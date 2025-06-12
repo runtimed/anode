@@ -1,0 +1,19 @@
+{
+  "name": "@anode/docworker",
+  "version": "0.1.0",
+  "type": "module",
+  "main": "./src/index.ts",
+  "scripts": {
+    "dev": "wrangler dev --port 8787",
+    "deploy": "wrangler deploy",
+    "build": "echo 'CloudFlare Worker - no build needed'",
+    "clean": "echo 'CloudFlare Worker - no clean needed'"
+  },
+  "dependencies": {
+    "@anode/schema": "workspace:*",
+    "@livestore/sync-cf": "catalog:"
+  },
+  "devDependencies": {
+    "wrangler": "catalog:"
+  }
+}
