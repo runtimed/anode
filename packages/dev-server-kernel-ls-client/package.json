@@ -1,0 +1,26 @@
+{
+  "name": "@anode/dev-server-kernel-ls-client",
+  "version": "0.1.0",
+  "type": "module",
+  "main": "./dist/index.js",
+  "scripts": {
+    "start": "tsx src/index.ts",
+    "dev": "tsx src/index.ts",
+    "build": "tsc",
+    "clean": "rm -rf dist",
+    "watch": "tsx watch src/index.ts",
+    "cleanup-state": "tsx src/cleanup-state.ts"
+  },
+  "dependencies": {
+    "@anode/schema": "workspace:*",
+    "@livestore/adapter-node": "catalog:",
+    "@livestore/livestore": "catalog:",
+    "@livestore/sync-cf": "catalog:",
+    "pyodide": "catalog:"
+  },
+  "devDependencies": {
+    "typescript": "catalog:",
+    "@types/node": "catalog:",
+    "tsx": "catalog:"
+  }
+}

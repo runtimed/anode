@@ -90,6 +90,9 @@ catalogs:
     tailwindcss:
       specifier: ^4.1.10
       version: 4.1.10
+    tsx:
+      specifier: ^4.19.2
+      version: 4.20.1
     tw-animate-css:
       specifier: ^1.3.4
       version: 1.3.4
@@ -136,7 +139,7 @@ importers:
         version: link:../schema
       '@livestore/adapter-node':
         specifier: 'catalog:'
-        version: 0.3.1(35361d9b20aca980c7d047b95d310660)
+        version: 0.3.1(0fc92e3441c2fa252ad3068eed924201)
       '@livestore/livestore':
         specifier: 'catalog:'
         version: 0.3.1(c8a6ab75252475c2bbdc72175802283e)
@@ -150,6 +153,9 @@ importers:
       '@types/node':
         specifier: 'catalog:'
         version: 24.0.1
+      tsx:
+        specifier: 'catalog:'
+        version: 4.20.1
       typescript:
         specifier: 'catalog:'
         version: 5.8.3
@@ -242,7 +248,7 @@ importers:
     devDependencies:
       '@livestore/devtools-vite':
         specifier: 'catalog:'
-        version: 0.3.1(86b23cdab3fec6ce66c6be1fd16c121f)
+        version: 0.3.1(af826b48a47bd6b0291986bba044c781)
       '@tailwindcss/cli':
         specifier: 'catalog:'
         version: 4.1.10
@@ -257,7 +263,7 @@ importers:
         version: 19.1.6(@types/react@19.1.8)
       '@vitejs/plugin-react':
         specifier: 'catalog:'
-        version: 4.5.2(vite@6.3.5(@types/node@24.0.1)(jiti@2.4.2)(lightningcss@1.30.1)(yaml@2.8.0))
+        version: 4.5.2(vite@6.3.5(@types/node@24.0.1)(jiti@2.4.2)(lightningcss@1.30.1)(tsx@4.20.1)(yaml@2.8.0))
       autoprefixer:
         specifier: 'catalog:'
         version: 10.4.21(postcss@8.5.5)
@@ -272,7 +278,7 @@ importers:
         version: 5.8.3
       vite:
         specifier: 'catalog:'
-        version: 6.3.5(@types/node@24.0.1)(jiti@2.4.2)(lightningcss@1.30.1)(yaml@2.8.0)
+        version: 6.3.5(@types/node@24.0.1)(jiti@2.4.2)(lightningcss@1.30.1)(tsx@4.20.1)(yaml@2.8.0)
 
 packages:
 
@@ -1901,6 +1907,9 @@ packages:
   get-source@2.0.12:
     resolution: {integrity: sha512-X5+4+iD+HoSeEED+uwrQ07BOQr0kEDFMVqqpBuI+RaZBpBpHCuXxo70bjar6f0b0u/DQJsJ7ssurpP0V60Az+w==}
 
+  get-tsconfig@4.10.1:
+    resolution: {integrity: sha512-auHyJ4AgMz7vgS8Hp3N6HXSmlMdUyhSUrfBF16w153rxtLIEOE+HGqaBppczZvnHLqQJfiHotCYpNhl0lUROFQ==}
+
   glob-to-regexp@0.4.1:
     resolution: {integrity: sha512-lkX1HJXwyMcprw/5YUZc2s7DrpAiHB21/V+E1rHUrVNokkvB6bqMzT0VfV6/86ZNabt1k14YOIaT7nDvOX3Iiw==}
 
@@ -2220,6 +2229,9 @@ packages:
     resolution: {integrity: sha512-fGxEI7+wsG9xrvdjsrlmL22OMTTiHRwAMroiEeMgq8gzoLC/PQr7RsRDSTLUg/bZAZtF+TVIkHc6/4RIKrui+Q==}
     engines: {node: '>=0.10.0'}
 
+  resolve-pkg-maps@1.0.0:
+    resolution: {integrity: sha512-seS2Tj26TBVOC2NIc2rOe2y2ZO7efxITtLZcGSOnHHNOQ7CkiUBfw0Iw2ck6xkIhPwLhKNLS8BO+hEpngQlqzw==}
+
   rollup@4.43.0:
     resolution: {integrity: sha512-wdN2Kd3Twh8MAEOEJZsuxuLKCsBEo4PVNLK6tQWAn10VhsVewQLzcucMgLolRlhFybGxfclbPeEYBaP6RvUFGg==}
     engines: {node: '>=18.0.0', npm: '>=8.0.0'}
@@ -2313,6 +2325,11 @@ packages:
 
   tslib@2.8.1:
     resolution: {integrity: sha512-oJFu94HQb+KVduSUQL7wnpmqnfmLsOA/nAh6b6EH0wCEoK0/mPeXU6c3wKDV83MkOuHPRHtSXKKU99IBazS/2w==}
+
+  tsx@4.20.1:
+    resolution: {integrity: sha512-JsFUnMHIE+g8KllOvWTrSOwCKM10xLcsesvUQR61znsbrcwZ4U/QaqdymmvTqG5GMD7k2VFv9UG35C4dRy34Ag==}
+    engines: {node: '>=18.0.0'}
+    hasBin: true
 
   tw-animate-css@1.3.4:
     resolution: {integrity: sha512-dd1Ht6/YQHcNbq0znIT6dG8uhO7Ce+VIIhZUhjsryXsMPJQz3bZg7Q2eNzLwipb25bRZslGb2myio5mScd1TFg==}
@@ -3065,15 +3082,15 @@ snapshots:
       '@jridgewell/resolve-uri': 3.1.2
       '@jridgewell/sourcemap-codec': 1.5.0
 
-  '@livestore/adapter-node@0.3.1(35361d9b20aca980c7d047b95d310660)':
+  '@livestore/adapter-node@0.3.1(0fc92e3441c2fa252ad3068eed924201)':
     dependencies:
       '@livestore/common': 0.3.1(c8a6ab75252475c2bbdc72175802283e)
-      '@livestore/devtools-vite': 0.3.1(c43b41c35b654a66ed717bcbe61ecb00)
+      '@livestore/devtools-vite': 0.3.1(c28f1f1955d52ba155162a960af8d3ea)
       '@livestore/sqlite-wasm': 0.3.1(98382fdcde6a084dc12fd91b63524e13)
       '@livestore/utils': 0.3.1(98382fdcde6a084dc12fd91b63524e13)
       '@livestore/webmesh': 0.3.1(98382fdcde6a084dc12fd91b63524e13)
       '@opentelemetry/api': 1.9.0
-      vite: 6.3.4(@types/node@24.0.1)(jiti@2.4.2)(lightningcss@1.30.1)(yaml@2.8.0)
+      vite: 6.3.4(@types/node@24.0.1)(jiti@2.4.2)(lightningcss@1.30.1)(tsx@4.20.1)(yaml@2.8.0)
     transitivePeerDependencies:
       - '@effect/cli'
       - '@effect/cluster'
@@ -3152,11 +3169,11 @@ snapshots:
       - '@opentelemetry/resources'
       - effect
 
-  '@livestore/devtools-vite@0.3.1(86b23cdab3fec6ce66c6be1fd16c121f)':
+  '@livestore/devtools-vite@0.3.1(af826b48a47bd6b0291986bba044c781)':
     dependencies:
       '@livestore/adapter-web': 0.3.1(c8a6ab75252475c2bbdc72175802283e)
       '@livestore/utils': 0.3.1(98382fdcde6a084dc12fd91b63524e13)
-      vite: 6.3.5(@types/node@24.0.1)(jiti@2.4.2)(lightningcss@1.30.1)(yaml@2.8.0)
+      vite: 6.3.5(@types/node@24.0.1)(jiti@2.4.2)(lightningcss@1.30.1)(tsx@4.20.1)(yaml@2.8.0)
     transitivePeerDependencies:
       - '@effect/cli'
       - '@effect/cluster'
@@ -3175,11 +3192,11 @@ snapshots:
       - '@opentelemetry/resources'
       - effect
 
-  '@livestore/devtools-vite@0.3.1(c43b41c35b654a66ed717bcbe61ecb00)':
+  '@livestore/devtools-vite@0.3.1(c28f1f1955d52ba155162a960af8d3ea)':
     dependencies:
       '@livestore/adapter-web': 0.3.1(c8a6ab75252475c2bbdc72175802283e)
       '@livestore/utils': 0.3.1(98382fdcde6a084dc12fd91b63524e13)
-      vite: 6.3.4(@types/node@24.0.1)(jiti@2.4.2)(lightningcss@1.30.1)(yaml@2.8.0)
+      vite: 6.3.4(@types/node@24.0.1)(jiti@2.4.2)(lightningcss@1.30.1)(tsx@4.20.1)(yaml@2.8.0)
     transitivePeerDependencies:
       - '@effect/cli'
       - '@effect/cluster'
@@ -3915,7 +3932,7 @@ snapshots:
     dependencies:
       csstype: 3.1.3
 
-  '@vitejs/plugin-react@4.5.2(vite@6.3.5(@types/node@24.0.1)(jiti@2.4.2)(lightningcss@1.30.1)(yaml@2.8.0))':
+  '@vitejs/plugin-react@4.5.2(vite@6.3.5(@types/node@24.0.1)(jiti@2.4.2)(lightningcss@1.30.1)(tsx@4.20.1)(yaml@2.8.0))':
     dependencies:
       '@babel/core': 7.27.4
       '@babel/plugin-transform-react-jsx-self': 7.27.1(@babel/core@7.27.4)
@@ -3923,7 +3940,7 @@ snapshots:
       '@rolldown/pluginutils': 1.0.0-beta.11
       '@types/babel__core': 7.20.5
       react-refresh: 0.17.0
-      vite: 6.3.5(@types/node@24.0.1)(jiti@2.4.2)(lightningcss@1.30.1)(yaml@2.8.0)
+      vite: 6.3.5(@types/node@24.0.1)(jiti@2.4.2)(lightningcss@1.30.1)(tsx@4.20.1)(yaml@2.8.0)
     transitivePeerDependencies:
       - supports-color
 
@@ -4142,6 +4159,10 @@ snapshots:
     dependencies:
       data-uri-to-buffer: 2.0.2
       source-map: 0.6.1
+
+  get-tsconfig@4.10.1:
+    dependencies:
+      resolve-pkg-maps: 1.0.0
 
   glob-to-regexp@0.4.1: {}
 
@@ -4403,6 +4424,8 @@ snapshots:
 
   require-directory@2.1.1: {}
 
+  resolve-pkg-maps@1.0.0: {}
+
   rollup@4.43.0:
     dependencies:
       '@types/estree': 1.0.7
@@ -4530,6 +4553,13 @@ snapshots:
 
   tslib@2.8.1: {}
 
+  tsx@4.20.1:
+    dependencies:
+      esbuild: 0.25.5
+      get-tsconfig: 4.10.1
+    optionalDependencies:
+      fsevents: 2.3.3
+
   tw-animate-css@1.3.4: {}
 
   typescript@5.8.3: {}
@@ -4575,7 +4605,7 @@ snapshots:
 
   uuid@11.1.0: {}
 
-  vite@6.3.4(@types/node@24.0.1)(jiti@2.4.2)(lightningcss@1.30.1)(yaml@2.8.0):
+  vite@6.3.4(@types/node@24.0.1)(jiti@2.4.2)(lightningcss@1.30.1)(tsx@4.20.1)(yaml@2.8.0):
     dependencies:
       esbuild: 0.25.5
       fdir: 6.4.6(picomatch@4.0.2)
@@ -4588,9 +4618,10 @@ snapshots:
       fsevents: 2.3.3
       jiti: 2.4.2
       lightningcss: 1.30.1
+      tsx: 4.20.1
       yaml: 2.8.0
 
-  vite@6.3.5(@types/node@24.0.1)(jiti@2.4.2)(lightningcss@1.30.1)(yaml@2.8.0):
+  vite@6.3.5(@types/node@24.0.1)(jiti@2.4.2)(lightningcss@1.30.1)(tsx@4.20.1)(yaml@2.8.0):
     dependencies:
       esbuild: 0.25.5
       fdir: 6.4.6(picomatch@4.0.2)
@@ -4603,6 +4634,7 @@ snapshots:
       fsevents: 2.3.3
       jiti: 2.4.2
       lightningcss: 1.30.1
+      tsx: 4.20.1
       yaml: 2.8.0
 
   workerd@1.20250604.0:

@@ -136,3 +136,9 @@ dist
 .pnp.*
 
 .wrangler
+
+# Pyodide cache
+pyodide-cache/
+
+# LiveStore tmp directories
+tmp/
