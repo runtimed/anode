@@ -1,0 +1,44 @@
+{
+  "name": "@anode/web-client",
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite --port 5173",
+    "build": "tsc && vite build",
+    "preview": "vite preview",
+    "clean": "rm -rf dist"
+  },
+  "dependencies": {
+    "@anode/schema": "workspace:*",
+    "@livestore/adapter-web": "catalog:",
+    "@livestore/react": "catalog:",
+    "@livestore/livestore": "catalog:",
+    "@livestore/wa-sqlite": "catalog:",
+    "@livestore/webmesh": "catalog:",
+    "@overengineering/fps-meter": "^0.1.2",
+    "@radix-ui/react-dropdown-menu": "catalog:",
+    "@radix-ui/react-separator": "catalog:",
+    "@radix-ui/react-slot": "catalog:",
+    "class-variance-authority": "catalog:",
+    "clsx": "catalog:",
+    "lucide-react": "catalog:",
+    "react": "catalog:",
+    "react-dom": "catalog:",
+    "tailwind-merge": "catalog:",
+    "tw-animate-css": "catalog:",
+    "@livestore/sync-cf": "catalog:"
+  },
+  "devDependencies": {
+    "@livestore/devtools-vite": "catalog:",
+    "@vitejs/plugin-react": "catalog:",
+    "@types/react": "catalog:",
+    "@types/react-dom": "catalog:",
+    "typescript": "catalog:",
+    "vite": "catalog:",
+    "tailwindcss": "catalog:",
+    "@tailwindcss/cli": "catalog:",
+    "@tailwindcss/postcss": "catalog:",
+    "autoprefixer": "catalog:",
+    "postcss": "catalog:"
+  }
+}

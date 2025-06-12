@@ -197,6 +197,9 @@ importers:
       '@livestore/react':
         specifier: 'catalog:'
         version: 0.3.1(8e88a584ccba2b70298056819875f28e)
+      '@livestore/sync-cf':
+        specifier: 'catalog:'
+        version: 0.3.1(98382fdcde6a084dc12fd91b63524e13)
       '@livestore/wa-sqlite':
         specifier: 'catalog:'
         version: 1.0.5-dev.2
