@@ -117,55 +117,78 @@ store.subscribe(executionRequests$, {
       processedExecutions.set(cell.id, cell.executionCount);
 
       try {
-        // Mark start
-        store.commit(events.cellExecutionStarted({
-          cellId: cell.id,
-          executionCount: cell.executionCount,
-          startedAt: new Date(),
-        }));
+        // Mark start with error handling
+        try {
+          store.commit(events.cellExecutionStarted({
+            cellId: cell.id,
+            executionCount: cell.executionCount,
+            startedAt: new Date(),
+          }));
+        } catch (commitError) {
+          console.warn(`⚠️ Error committing cellExecutionStarted for ${cell.id}:`, commitError);
+        }
 
-        // Clear previous outputs
-        store.commit(events.cellOutputsCleared({
-          cellId: cell.id,
-          clearedBy: "kernel-adapter",
-        }));
+        // Clear previous outputs with error handling
+        try {
+          store.commit(events.cellOutputsCleared({
+            cellId: cell.id,
+            clearedBy: "kernel-adapter",
+          }));
+        } catch (commitError) {
+          console.warn(`⚠️ Error committing cellOutputsCleared for ${cell.id}:`, commitError);
+        }
 
         // Execute code
         const outputs = await kernel.execute(cell.source ?? "");
 
-        // Emit outputs
+        // Emit outputs with error handling
         outputs.forEach((out, idx) => {
-          store.commit(events.cellOutputAdded({
-            id: crypto.randomUUID(),
-            cellId: cell.id,
-            outputType: out.type as any,
-            data: out.data,
-            position: idx,
-            createdAt: new Date(),
-          }));
+          try {
+            store.commit(events.cellOutputAdded({
+              id: crypto.randomUUID(),
+              cellId: cell.id,
+              outputType: out.type as any,
+              data: out.data,
+              position: idx,
+              createdAt: new Date(),
+            }));
+          } catch (commitError) {
+            console.warn(`⚠️ Error committing cellOutputAdded for ${cell.id} output ${idx}:`, commitError);
+          }
         });
 
-        // Completion status
+        // Completion status with error handling
         const status = outputs.some((o) => o.type === "error") ? "error" : "success";
-        store.commit(events.cellExecutionCompleted({
-          cellId: cell.id,
-          executionCount: cell.executionCount,
-          completedAt: new Date(),
-          status,
-        }));
+        try {
+          store.commit(events.cellExecutionCompleted({
+            cellId: cell.id,
+            executionCount: cell.executionCount,
+            completedAt: new Date(),
+            status,
+          }));
+        } catch (commitError) {
+          console.warn(`⚠️ Error committing cellExecutionCompleted for ${cell.id}:`, commitError);
+        }
 
         console.log(`✅ Cell ${cell.id} executed (${status}) - ${outputs.length} outputs`);
       } catch (error) {
         console.error(`❌ Error executing cell ${cell.id}:`, error);
 
-        // Mark as error
-        store.commit(events.cellExecutionCompleted({
-          cellId: cell.id,
-          executionCount: cell.executionCount,
-          completedAt: new Date(),
-          status: "error",
-        }));
+        // Mark as error with error handling
+        try {
+          store.commit(events.cellExecutionCompleted({
+            cellId: cell.id,
+            executionCount: cell.executionCount,
+            completedAt: new Date(),
+            status: "error",
+          }));
+        } catch (commitError) {
+          console.error(`💥 Failed to mark cell ${cell.id} as error:`, commitError);
+        }
       }
+
+      // Add a small delay between cell executions to reduce concurrency pressure
+      await new Promise(resolve => setTimeout(resolve, 100));
     }
   }
 });
