@@ -24,6 +24,19 @@
     "concurrently": "catalog:",
     "typescript": "catalog:"
   },
+  "pnpm": {
+    "overrides": {
+      "effect": "3.15.5",
+      "react": "19.0.0",
+      "react-dom": "19.0.0",
+      "@effect/platform": "0.82.4",
+      "@effect/typeclass": "0.34.2",
+      "@effect/cluster": "0.34.2",
+      "@effect/experimental": "0.46.8",
+      "@effect/sql": "0.35.8",
+      "@effect/rpc": "0.59.9"
+    }
+  },
   "workspaces": [
     "packages/*"
   ],
@@ -39,5 +52,8 @@
     "workspace"
   ],
   "author": "Anode Team",
-  "license": "MIT"
+  "license": "MIT",
+  "dependencies": {
+    "@livestore/peer-deps": "catalog:"
+  }
 }
