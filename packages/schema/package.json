@@ -13,7 +13,9 @@
     "watch": "tsc --watch --skipLibCheck",
     "clean": "rm -rf dist",
     "type-check": "tsc --noEmit",
-    "lint": "tsc --noEmit"
+    "lint": "tsc --noEmit",
+    "test": "vitest",
+    "test:run": "vitest run"
   },
   "dependencies": {
     "@livestore/livestore": "catalog:",
@@ -21,6 +23,8 @@
     "effect": "catalog:"
   },
   "devDependencies": {
-    "typescript": "catalog:"
+    "typescript": "catalog:",
+    "vitest": "catalog:",
+    "@effect/vitest": "catalog:"
   }
 }

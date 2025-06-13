@@ -25,7 +25,10 @@ catalog:
   "@effect/opentelemetry": 0.48.8
   "@effect/sql": 0.35.8
   "@effect/rpc": 0.59.9
-  "@effect/vitest": 0.15.2
+  "@effect/vitest": 0.23.7
+  vitest: ^3.0.0
+  "@vitest/ui": ^3.0.0
+  happy-dom: ^15.11.6
   react: 19.0.0
   react-dom: 19.0.0
   "@types/react": ^19.1.8

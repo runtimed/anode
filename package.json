@@ -19,7 +19,16 @@
     "build:schema": "pnpm --filter @anode/schema build",
     "clean": "pnpm --recursive --filter='@anode/*' clean",
     "install:all": "pnpm install",
-    "test": "echo 'Tests not yet implemented'",
+    "test": "vitest",
+    "test:ui": "vitest --ui",
+    "test:run": "vitest run",
+    "test:coverage": "vitest --coverage",
+    "test:watch": "vitest --watch",
+    "test:schema": "vitest run test/schema-validation.test.ts",
+    "test:integration": "vitest run test/integration/",
+    "test:reactivity": "vitest run test/integration/reactivity-debugging.test.ts",
+    "test:kernel": "pnpm --filter @anode/dev-server-kernel-ls-client test",
+    "test:debug": "DEBUG_TESTS=true vitest run",
     "lint": "pnpm --recursive --filter='@anode/*' lint",
     "type-check": "pnpm --recursive --filter='@anode/*' type-check",
     "type-check:kernel": "pnpm --filter @anode/dev-server-kernel-ls-client type-check",
@@ -32,7 +41,11 @@
   },
   "devDependencies": {
     "concurrently": "catalog:",
-    "typescript": "catalog:"
+    "typescript": "catalog:",
+    "vitest": "catalog:",
+    "@effect/vitest": "catalog:",
+    "@vitest/ui": "catalog:",
+    "happy-dom": "catalog:"
   },
   "pnpm": {
     "overrides": {
@@ -64,6 +77,9 @@
   "author": "Anode Team",
   "license": "MIT",
   "dependencies": {
-    "@livestore/peer-deps": "catalog:"
+    "@livestore/peer-deps": "catalog:",
+    "effect": "catalog:",
+    "@livestore/livestore": "catalog:",
+    "@livestore/adapter-node": "catalog:"
   }
 }
