@@ -237,6 +237,17 @@ export const events = {
     }),
   }),
 
+  // Kernel events (for backwards compatibility)
+  kernelRegistered: Events.synced({
+    name: 'v1.KernelRegistered',
+    schema: Schema.Struct({
+      kernelId: Schema.String,
+      kernelType: Schema.String,
+      notebookId: Schema.String,
+      registeredAt: Schema.Date,
+    }),
+  }),
+
   // Output events (from kernel responses)
   cellOutputAdded: Events.synced({
     name: 'v1.CellOutputAdded',
@@ -366,6 +377,13 @@ const materializers = State.SQLite.materializers(events, {
       aiModel: model,
       aiSettings: settings,
     }).where({ id: cellId }),
+
+  // Kernel materializers (for backwards compatibility)
+  'v1.KernelRegistered': ({ kernelId, kernelType, notebookId, registeredAt }) => {
+    // No-op for backwards compatibility - just ignore this event
+    // This allows old events to be processed without errors
+    return []
+  },
 })
 
 const state = State.SQLite.makeState({ tables, materializers })
