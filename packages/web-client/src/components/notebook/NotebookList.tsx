@@ -8,7 +8,7 @@ import { Badge } from '@/components/ui/badge'
 import { Separator } from '@/components/ui/separator'
 
 const currentNotebookQuery = queryDb(
-  tables.notebook.query.limit(1)
+  tables.notebook.select().limit(1)
 )
 
 interface NotebookListProps {

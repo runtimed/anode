@@ -33,25 +33,25 @@ const store = await createStorePromise({
 console.log("✅ Store connected. Analyzing current state...");
 
 // Check current cell states
-const allCells$ = queryDb(tables.cells.query, { label: 'allCells' });
+const allCells$ = queryDb(tables.cells.select(), { label: 'allCells' });
 const stuckCells$ = queryDb(
-  tables.cells.query.where({
+  tables.cells.select().where({
     executionState: ['queued', 'running']
   }),
   { label: 'stuckCells' }
 );
 
 // Check execution queue
-const allQueue$ = queryDb(tables.executionQueue.query, { label: 'allQueue' });
+const allQueue$ = queryDb(tables.executionQueue.select(), { label: 'allQueue' });
 const stuckQueue$ = queryDb(
-  tables.executionQueue.query.where({
+  tables.executionQueue.select().where({
     status: ['pending', 'assigned', 'executing']
   }),
   { label: 'stuckQueue' }
 );
 
 // Check kernel sessions
-const kernelSessions$ = queryDb(tables.kernelSessions.query, { label: 'kernelSessions' });
+const kernelSessions$ = queryDb(tables.kernelSessions.select(), { label: 'kernelSessions' });
 
 const allCells = store.query(allCells$) as any[];
 const stuckCells = store.query(stuckCells$) as any[];

@@ -10,12 +10,11 @@ import { Badge } from '@/components/ui/badge'
 import { Separator } from '@/components/ui/separator'
 
 const cellsQuery = queryDb(
-  tables.cells.query
-    .where({ deletedAt: null })
+  tables.cells.select().where({ deletedAt: null })
 )
 
 const notebookQuery = queryDb(
-  tables.notebook.query.limit(1)
+  tables.notebook.select().limit(1)
 )
 
 interface NotebookViewerProps {

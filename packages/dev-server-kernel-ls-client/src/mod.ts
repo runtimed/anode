@@ -90,7 +90,7 @@ const processedExecutions = new Set<string>();
 
 // Monitor execution queue for work assigned to this kernel session
 const assignedWork$ = queryDb(
-  tables.executionQueue.query
+  tables.executionQueue.select()
     .where({
       status: 'assigned',
       assignedKernelSession: SESSION_ID
@@ -140,7 +140,7 @@ store.subscribe(assignedWork$, {
 // Also monitor for new pending executions that need assignment
 // This kernel will try to claim unassigned work
 const pendingWork$ = queryDb(
-  tables.executionQueue.query
+  tables.executionQueue.select()
     .where({ status: 'pending' })
     .orderBy('priority', 'desc')
     .orderBy('requestedAt', 'asc')
@@ -157,7 +157,7 @@ store.subscribe(pendingWork$, {
 
     // Check if this kernel is ready to take work
     const activeKernels = store.query(
-      tables.kernelSessions.query
+      tables.kernelSessions.select()
         .where({ isActive: true, status: 'ready' })
         .orderBy('lastHeartbeat', 'desc')
     ) as any[];
@@ -192,7 +192,7 @@ async function processExecution(queueEntry: any) {
 
   // Get the cell details
   const cells = store.query(
-    tables.cells.query.where({ id: queueEntry.cellId })
+    tables.cells.select().where({ id: queueEntry.cellId })
   ) as any[];
   const cell = cells[0];
 

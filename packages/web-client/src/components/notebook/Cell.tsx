@@ -49,7 +49,7 @@ export const Cell: React.FC<CellProps> = ({
 
   // Create stable query using useMemo to prevent React Hook issues
   const outputsQuery = React.useMemo(() =>
-    queryDb(tables.outputs.query.where({ cellId: cell.id })),
+    queryDb(tables.outputs.select().where({ cellId: cell.id })),
     [cell.id]
   )
   const outputs = store.useQuery(outputsQuery) as any[]

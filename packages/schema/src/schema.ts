@@ -448,33 +448,27 @@ const materializers = State.SQLite.materializers(events, {
     }).where({ id: cellId }),
   ],
 
-  'v1.ExecutionAssigned': ({ queueId, kernelSessionId, assignedAt }) => [
-    // Update queue entry
+  'v1.ExecutionAssigned': ({ queueId, kernelSessionId, assignedAt }) =>
     tables.executionQueue.update({
       status: 'assigned',
       assignedKernelSession: kernelSessionId,
       assignedAt,
     }).where({ id: queueId }),
-  ],
 
   'v1.ExecutionStarted': ({ queueId }) =>
     tables.executionQueue.update({ status: 'executing' }).where({ id: queueId }),
 
-  'v1.ExecutionCompleted': ({ queueId, status, completedAt }) => [
-    // Update queue entry
+  'v1.ExecutionCompleted': ({ queueId, status, completedAt }) =>
     tables.executionQueue.update({
       status: status === 'success' ? 'completed' : 'failed',
       completedAt,
     }).where({ id: queueId }),
-  ],
 
-  'v1.ExecutionCancelled': ({ queueId, cancelledAt }) => [
-    // Update queue entry
+  'v1.ExecutionCancelled': ({ queueId, cancelledAt }) =>
     tables.executionQueue.update({
       status: 'cancelled',
       completedAt: cancelledAt,
     }).where({ id: queueId }),
-  ],
 
   // Output materializers
   'v1.CellOutputAdded': ({ id, cellId, outputType, data, position, createdAt }) =>
