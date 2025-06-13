@@ -96,7 +96,8 @@ if (stuckCells.length === 0 && stuckQueue.length === 0) {
       store.commit(events.cellSourceChanged({
         id: cell.id,
         source: cell.source || '',
-        modifiedBy: 'cleanup-script'
+        modifiedBy: 'cleanup-script',
+        notebookLastModified: new Date()
       }));
 
       await new Promise(resolve => setTimeout(resolve, 100));

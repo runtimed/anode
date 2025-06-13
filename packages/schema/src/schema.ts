@@ -162,6 +162,7 @@ export const events = {
       position: Schema.Number,
       createdBy: Schema.String,
       createdAt: Schema.Date,
+      notebookLastModified: Schema.Date,
     }),
   }),
 
@@ -171,6 +172,7 @@ export const events = {
       id: Schema.String,
       source: Schema.String,
       modifiedBy: Schema.String,
+      notebookLastModified: Schema.Date,
     }),
   }),
 
@@ -179,6 +181,7 @@ export const events = {
     schema: Schema.Struct({
       id: Schema.String,
       cellType: Schema.Literal('code', 'markdown', 'raw', 'sql', 'ai'),
+      notebookLastModified: Schema.Date,
     }),
   }),
 
@@ -188,6 +191,7 @@ export const events = {
       id: Schema.String,
       deletedAt: Schema.Date,
       deletedBy: Schema.String,
+      notebookLastModified: Schema.Date,
     }),
   }),
 
@@ -196,6 +200,7 @@ export const events = {
     schema: Schema.Struct({
       id: Schema.String,
       newPosition: Schema.Number,
+      notebookLastModified: Schema.Date,
     }),
   }),
 
@@ -378,7 +383,7 @@ const materializers = State.SQLite.materializers(events, {
     tables.notebook.update({ title, lastModified }),
 
   // Cell materializers
-  'v1.CellCreated': ({ id, cellType, position, createdBy, createdAt }) => [
+  'v1.CellCreated': ({ id, cellType, position, createdBy, createdAt, notebookLastModified }) => [
     tables.cells.insert({
       id,
       cellType,
@@ -387,20 +392,28 @@ const materializers = State.SQLite.materializers(events, {
       createdAt
     }),
     // Update notebook's last modified time
-    tables.notebook.update({ lastModified: createdAt }),
+    tables.notebook.update({ lastModified: notebookLastModified }),
   ],
 
-  'v1.CellSourceChanged': ({ id, source }) =>
+  'v1.CellSourceChanged': ({ id, source, notebookLastModified }) => [
     tables.cells.update({ source }).where({ id }),
+    tables.notebook.update({ lastModified: notebookLastModified }),
+  ],
 
-  'v1.CellTypeChanged': ({ id, cellType }) =>
+  'v1.CellTypeChanged': ({ id, cellType, notebookLastModified }) => [
     tables.cells.update({ cellType }).where({ id }),
+    tables.notebook.update({ lastModified: notebookLastModified }),
+  ],
 
-  'v1.CellDeleted': ({ id, deletedAt }) =>
+  'v1.CellDeleted': ({ id, deletedAt, notebookLastModified }) => [
     tables.cells.update({ deletedAt }).where({ id }),
+    tables.notebook.update({ lastModified: notebookLastModified }),
+  ],
 
-  'v1.CellMoved': ({ id, newPosition }) =>
+  'v1.CellMoved': ({ id, newPosition, notebookLastModified }) => [
     tables.cells.update({ position: newPosition }).where({ id }),
+    tables.notebook.update({ lastModified: notebookLastModified }),
+  ],
 
   // Kernel lifecycle materializers
   'v1.KernelSessionStarted': ({ sessionId, kernelId, kernelType, startedAt, capabilities }) =>

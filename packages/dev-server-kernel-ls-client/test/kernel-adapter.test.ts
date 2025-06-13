@@ -188,7 +188,8 @@ describe('Kernel Adapter', () => {
         cellType: 'code',
         position: 0,
         createdBy: 'user-123',
-        createdAt: new Date()
+        createdAt: new Date(),
+        notebookLastModified: new Date()
       }))
 
       // Request execution
@@ -239,7 +240,8 @@ describe('Kernel Adapter', () => {
         cellType: 'code',
         position: 0,
         createdBy: 'user-123',
-        createdAt: new Date()
+        createdAt: new Date(),
+        notebookLastModified: new Date()
       }))
 
       store.commit(events.cellCreated({
@@ -247,7 +249,8 @@ describe('Kernel Adapter', () => {
         cellType: 'code',
         position: 1,
         createdBy: 'user-123',
-        createdAt: new Date()
+        createdAt: new Date(),
+        notebookLastModified: new Date()
       }))
 
       // Request low priority execution first
@@ -313,7 +316,8 @@ describe('Kernel Adapter', () => {
         cellType: 'code',
         position: 0,
         createdBy: 'user-123',
-        createdAt: new Date()
+        createdAt: new Date(),
+        notebookLastModified: new Date()
       }))
 
       store.commit(events.executionRequested({
@@ -391,7 +395,8 @@ describe('Kernel Adapter', () => {
           cellType: 'code',
           position: i,
           createdBy: 'user-123',
-          createdAt: new Date()
+          createdAt: new Date(),
+          notebookLastModified: new Date()
         }))
 
         store.commit(events.executionRequested({
@@ -446,13 +451,15 @@ describe('Kernel Adapter', () => {
         cellType: 'code',
         position: 0,
         createdBy: 'user-123',
-        createdAt: new Date()
+        createdAt: new Date(),
+        notebookLastModified: new Date()
       }))
 
       store.commit(events.cellSourceChanged({
         id: cellId,
         source: code,
-        modifiedBy: 'user-123'
+        modifiedBy: 'user-123',
+        notebookLastModified: new Date()
       }))
 
       // Execute code
@@ -470,7 +477,8 @@ describe('Kernel Adapter', () => {
         outputType: 'stream',
         data: outputs[0].data,
         position: 0,
-        createdAt: new Date()
+        createdAt: new Date(),
+        notebookLastModified: new Date()
       }))
 
       // Verify output was stored
@@ -488,13 +496,15 @@ describe('Kernel Adapter', () => {
         cellType: 'code',
         position: 0,
         createdBy: 'user-123',
-        createdAt: new Date()
+        createdAt: new Date(),
+        notebookLastModified: new Date()
       }))
 
       store.commit(events.cellSourceChanged({
         id: cellId,
         source: errorCode,
-        modifiedBy: 'user-123'
+        modifiedBy: 'user-123',
+        notebookLastModified: new Date()
       }))
 
       // Execute code that throws error
@@ -514,7 +524,8 @@ describe('Kernel Adapter', () => {
         cellType: 'code',
         position: 0,
         createdBy: 'user-123',
-        createdAt: new Date()
+        createdAt: new Date(),
+        notebookLastModified: new Date()
       }))
 
       store.commit(events.cellOutputAdded({
@@ -523,7 +534,8 @@ describe('Kernel Adapter', () => {
         outputType: 'stream',
         data: 'Old output',
         position: 0,
-        createdAt: new Date()
+        createdAt: new Date(),
+        notebookLastModified: new Date()
       }))
 
       // Verify output exists
@@ -618,7 +630,8 @@ describe('Kernel Adapter', () => {
           cellType: 'code',
           position: 0,
           createdBy: 'user-123',
-          createdAt: new Date()
+          createdAt: new Date(),
+        notebookLastModified: new Date()
         }))
 
         store.commit(events.executionRequested({

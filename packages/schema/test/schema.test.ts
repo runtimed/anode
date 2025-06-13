@@ -29,13 +29,15 @@ describe('Anode Schema', () => {
         cellType: 'code' as const,
         position: 0,
         createdBy: 'user-456',
-        createdAt: now.toISOString()
+        createdAt: now.toISOString(),
+        notebookLastModified: now.toISOString()
       }
 
       const result = S.decodeUnknownSync(events.cellCreated.schema)(validEvent)
       expect(result).toEqual({
         ...validEvent,
-        createdAt: now
+        createdAt: now,
+        notebookLastModified: now
       })
     })
 
@@ -102,7 +104,8 @@ describe('Anode Schema', () => {
         cellType: 'invalid-type',
         position: 0,
         createdBy: 'user-456',
-        createdAt: new Date().toISOString()
+        createdAt: new Date().toISOString(),
+        notebookLastModified: new Date().toISOString()
       }
 
       expect(() => {
@@ -190,7 +193,8 @@ describe('Anode Schema', () => {
         id: notebookId,
         title: 'Test Notebook',
         ownerId: 'user-123',
-        createdAt: now
+        createdAt: now,
+        notebookLastModified: now
       }))
 
       // Query notebook
@@ -211,14 +215,16 @@ describe('Anode Schema', () => {
         cellType: 'code',
         position: 0,
         createdBy: 'user-123',
-        createdAt: now
+        createdAt: now,
+        notebookLastModified: now
       }))
 
       // Update cell source
       store.commit(events.cellSourceChanged({
         id: cellId,
         source: 'print("Hello, World!")',
-        modifiedBy: 'user-123'
+        modifiedBy: 'user-123',
+        notebookLastModified: now
       }))
 
       // Query cells
@@ -278,7 +284,8 @@ describe('Anode Schema', () => {
         cellType: 'code',
         position: 0,
         createdBy: 'user-123',
-        createdAt: now
+        createdAt: now,
+        notebookLastModified: now
       }))
 
       // Request execution
@@ -338,7 +345,8 @@ describe('Anode Schema', () => {
         cellType: 'code',
         position: 0,
         createdBy: 'user-123',
-        createdAt: now
+        createdAt: now,
+        notebookLastModified: now
       }))
 
       // Add output
@@ -348,7 +356,8 @@ describe('Anode Schema', () => {
         outputType: 'stream',
         data: { name: 'stdout', text: 'Hello, World!\n' },
         position: 0,
-        createdAt: now
+        createdAt: now,
+        notebookLastModified: now
       }))
 
       // Query outputs
@@ -380,7 +389,8 @@ describe('Anode Schema', () => {
         cellType: 'code',
         position: 0,
         createdBy: 'user-123',
-        createdAt: now
+        createdAt: now,
+        notebookLastModified: now
       }))
 
       // Delete cell
@@ -388,7 +398,8 @@ describe('Anode Schema', () => {
       store.commit(events.cellDeleted({
         id: cellId,
         deletedAt,
-        deletedBy: 'user-123'
+        deletedBy: 'user-123',
+        notebookLastModified: deletedAt
       }))
 
       // Query all cells (including deleted)
@@ -418,12 +429,14 @@ describe('Anode Schema', () => {
 
       // Create cell (should update notebook lastModified)
       const cellCreatedTime = new Date(initialTime.getTime() + 1000)
+      // Create cell
       store.commit(events.cellCreated({
         id: cellId,
         cellType: 'code',
         position: 0,
         createdBy: 'user-123',
-        createdAt: cellCreatedTime
+        createdAt: cellCreatedTime,
+        notebookLastModified: cellCreatedTime
       }))
 
       // Query notebook
@@ -458,7 +471,8 @@ describe('Anode Schema', () => {
         cellType: 'code',
         position: 0,
         createdBy: 'user-123',
-        createdAt: now
+        createdAt: now,
+        notebookLastModified: now
       }))
 
       // Should have one active cell
@@ -469,7 +483,8 @@ describe('Anode Schema', () => {
       store.commit(events.cellDeleted({
         id: cellId,
         deletedAt: new Date(),
-        deletedBy: 'user-123'
+        deletedBy: 'user-123',
+        notebookLastModified: new Date()
       }))
 
       // Should have no active cells

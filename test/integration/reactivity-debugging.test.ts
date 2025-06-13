@@ -62,7 +62,8 @@ describe('Reactivity Debugging', () => {
         cellType: 'code',
         position: 0,
         createdBy: 'test-user',
-        createdAt: new Date()
+        createdAt: new Date(),
+        notebookLastModified: new Date()
       }))
 
       store.commit(events.executionRequested({
@@ -125,7 +126,8 @@ describe('Reactivity Debugging', () => {
         cellType: 'code',
         position: 0,
         createdBy: 'test-user',
-        createdAt: new Date()
+        createdAt: new Date(),
+        notebookLastModified: new Date()
       }))
 
       store.commit(events.executionRequested({
@@ -205,7 +207,8 @@ describe('Reactivity Debugging', () => {
         cellType: 'code',
         position: 0,
         createdBy: 'test-user',
-        createdAt: new Date()
+        createdAt: new Date(),
+        notebookLastModified: new Date()
       }))
 
       // Good callback should work even if bad query fails
@@ -247,7 +250,8 @@ describe('Reactivity Debugging', () => {
           cellType: 'code',
           position: i,
           createdBy: 'test-user',
-          createdAt: new Date()
+          createdAt: new Date(),
+        notebookLastModified: new Date()
         })))
 
         if (i > 0) {
@@ -351,7 +355,8 @@ describe('Reactivity Debugging', () => {
         cellType: 'code',
         position: 0,
         createdBy: 'test-user',
-        createdAt: new Date()
+        createdAt: new Date(),
+        notebookLastModified: new Date()
       }))
 
       store.commit(events.executionRequested({
@@ -427,7 +432,8 @@ describe('Reactivity Debugging', () => {
             cellType: 'code',
             position: op,
             createdBy: 'test-user',
-            createdAt: new Date()
+            createdAt: new Date(),
+        notebookLastModified: new Date()
           }))
 
           if (op % 2 === 0) {
@@ -532,7 +538,8 @@ describe('Reactivity Debugging', () => {
         cellType: 'code',
         position: 0,
         createdBy: 'test-user',
-        createdAt: new Date()
+        createdAt: new Date(),
+        notebookLastModified: new Date()
       }))
 
       await waitFor(() => successfulUpdates.length > 0)
@@ -544,7 +551,8 @@ describe('Reactivity Debugging', () => {
         cellType: 'code',
         position: 1,
         createdBy: 'test-user',
-        createdAt: new Date()
+        createdAt: new Date(),
+        notebookLastModified: new Date()
       }))
 
       await waitFor(() => successfulUpdates.length > 1)
@@ -575,7 +583,8 @@ describe('Reactivity Debugging', () => {
         cellType: 'code',
         position: 0,
         createdBy: 'test-user',
-        createdAt: new Date()
+        createdAt: new Date(),
+        notebookLastModified: new Date()
       }))
 
       await waitFor(() => updates.length > 0)
