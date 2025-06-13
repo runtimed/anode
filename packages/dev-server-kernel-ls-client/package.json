@@ -9,7 +9,9 @@
     "build": "tsc",
     "clean": "rm -rf dist",
     "watch": "tsx watch src/index.ts",
-    "cleanup-state": "tsx src/cleanup-state.ts"
+    "cleanup-state": "tsx src/cleanup-state.ts",
+    "type-check": "tsc --noEmit",
+    "lint": "tsc --noEmit"
   },
   "dependencies": {
     "@anode/schema": "workspace:*",

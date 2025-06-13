@@ -17,7 +17,8 @@
     "clean": "pnpm --recursive --filter='@anode/*' clean",
     "install:all": "pnpm install",
     "test": "echo 'Tests not yet implemented'",
-    "lint": "echo 'Linting not yet implemented'",
+    "lint": "pnpm --recursive --filter='@anode/*' lint",
+    "type-check": "pnpm --recursive --filter='@anode/*' type-check",
     "start": "echo 'Use pnpm dev to start core services. For Python execution, start kernel with: NOTEBOOK_ID=your-notebook-id pnpm dev:kernel'"
   },
   "devDependencies": {
