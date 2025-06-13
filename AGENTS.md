@@ -11,7 +11,7 @@ Anode is a real-time collaborative notebook system built on LiveStore, an event-
 - **Schema Package** (`@anode/schema`): Contains LiveStore schema definitions (events, state, materializers)
 - **Web Client** (`@anode/web-client`): React-based web interface
 - **Document Worker** (`@anode/docworker`): Cloudflare Worker for sync backend
-- **Kernel Client** (`@anode/dev-server-kernel-ls-client`): Python execution server
+- **Kernel Client** (`@anode/dev-server-kernel-ls-client`): Python execution server (manual start per notebook)
 
 ## Key Dependencies
 
@@ -20,6 +20,26 @@ The project heavily relies on:
 - **Effect**: Functional programming library for TypeScript
 - **React**: UI framework
 - **TypeScript**: Primary language
+
+## Current Architecture (December 2024)
+
+### **Simplified Notebook/Store Relationship**
+- `NOTEBOOK_ID = STORE_ID`: Each notebook gets its own LiveStore database
+- URL routing: Access notebooks via `?notebook=notebook-id`
+- Single notebook per store eliminates data boundary confusion
+- All events naturally scoped to one notebook
+
+### **Execution Queue System**
+- Replaced direct event processing with proper work queue
+- Flow: `executionRequested` → `executionAssigned` → `executionStarted` → `executionCompleted`
+- Kernels claim work from queue instead of processing all events
+- Session-based assignment for future auth enforcement
+
+### **Kernel Session Tracking**
+- Each kernel restart gets unique `sessionId`
+- 30-second heartbeat mechanism
+- Session IDs tracked in execution queue
+- **Future**: Document worker will validate kernel permissions
 
 ## LiveStore Documentation
 
@@ -49,34 +69,37 @@ Two approaches available:
 
 ### Common Commands
 ```bash
-# Full development environment
+# Start core services (web + sync)
+./start-dev.sh
+# OR
 pnpm dev
 
-# TypeScript project references approach
-pnpm dev:tsc
+# Start kernel for specific notebook (manual)
+NOTEBOOK_ID=notebook-123-abc pnpm dev:kernel
 
 # Individual services
 pnpm dev:web-only
-pnpm dev:kernel
 pnpm dev:sync-only
 
-# Build operations
-pnpm build:schema
-pnpm build:tsc
+# Development utilities
+pnpm reset-storage  # Clear all local storage
+pnpm build:schema   # Required after schema changes
 ```
 
 ## Important Considerations
 
 ### Schema Changes
 - Schema package must be built before dependent packages can consume changes
-- TypeScript project references handle cross-package dependencies automatically
+- **Current**: Single `notebook` table per store (not `notebooks`)
+- Added `kernelSessions` and `executionQueue` tables for lifecycle management
 - Event schema changes require backwards compatibility
 
 ### Local-First Architecture
 - All data operations happen locally first
 - Events are synced across clients via the document worker
-- SQLite provides local reactive state
+- SQLite provides local reactive state per notebook
 - Network connectivity is optional
+- **Current**: Manual kernel lifecycle management
 
 ### Code Style
 - Prefer functional programming patterns (Effect library)
@@ -89,9 +112,11 @@ pnpm build:tsc
 anode/
 ├── packages/
 │   ├── schema/           # LiveStore schema definitions
-│   ├── web-client/       # React web application
+│   ├── web-client/       # React web application  
 │   ├── docworker/        # Cloudflare Worker sync backend
-│   └── dev-server-kernel-ls-client/  # Python kernel server
+│   └── dev-server-kernel-ls-client/  # Python kernel server (manual)
+├── start-dev.sh          # Development startup script
+├── reset-local-storage.cjs  # Clean development state
 ├── package.json          # Root workspace configuration
 └── pnpm-workspace.yaml   # Dependency catalog
 ```
@@ -99,10 +124,12 @@ anode/
 ## Troubleshooting
 
 ### Common Issues
-- **Build failures**: Ensure schema is built first
-- **Type errors**: Check TypeScript project references
+- **Build failures**: Ensure schema is built first (`pnpm build:schema`)
+- **Type errors**: Fixed - proper TypeScript throughout codebase
 - **Runtime errors**: Verify LiveStore adapter configuration
 - **Sync issues**: Check document worker deployment
+- **Execution not working**: Start kernel manually with `NOTEBOOK_ID=your-notebook-id pnpm dev:kernel`
+- **Stale state**: Run `pnpm reset-storage` to clear everything
 
 ### Debugging
 - Use LiveStore devtools for state inspection
@@ -116,4 +143,6 @@ anode/
 - Focus on technical implementation over feature descriptions
 - Reference LiveStore docs for event-sourcing patterns
 - Consider backwards compatibility for schema changes
-- TypeScript project references are preferred for standalone service development
+- **Current state**: Manual kernel management, basic execution queue working
+- **Known issues**: LiveStore reactivity errors, no kernel permission enforcement yet
+- Each notebook = separate LiveStore database for isolation
