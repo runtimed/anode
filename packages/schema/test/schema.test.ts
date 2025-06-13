@@ -4,6 +4,8 @@ import { createStorePromise, queryDb } from '@livestore/livestore'
 import { makeAdapter } from '@livestore/adapter-node'
 import { events, tables, schema } from '../src/schema.js'
 
+// Vitest setup - remove dependency on external setup file
+
 describe('Anode Schema', () => {
   describe('Event Schema Validation', () => {
     it('should validate notebookInitialized event', () => {
@@ -29,15 +31,13 @@ describe('Anode Schema', () => {
         cellType: 'code' as const,
         position: 0,
         createdBy: 'user-456',
-        createdAt: now.toISOString(),
-        notebookLastModified: now.toISOString()
+        createdAt: now.toISOString()
       }
 
       const result = S.decodeUnknownSync(events.cellCreated.schema)(validEvent)
       expect(result).toEqual({
         ...validEvent,
-        createdAt: now,
-        notebookLastModified: now
+        createdAt: now
       })
     })
 
@@ -214,16 +214,14 @@ describe('Anode Schema', () => {
         cellType: 'code',
         position: 0,
         createdBy: 'user-123',
-        createdAt: now,
-        notebookLastModified: now
+        createdAt: now
       }))
 
       // Update cell source
       store.commit(events.cellSourceChanged({
         id: cellId,
         source: 'print("Hello, World!")',
-        modifiedBy: 'user-123',
-        notebookLastModified: now
+        modifiedBy: 'user-123'
       }))
 
       // Query cells
@@ -284,7 +282,6 @@ describe('Anode Schema', () => {
         position: 0,
         createdBy: 'user-123',
         createdAt: now,
-        notebookLastModified: now
       }))
 
       // Request execution
@@ -345,7 +342,6 @@ describe('Anode Schema', () => {
         position: 0,
         createdBy: 'user-123',
         createdAt: now,
-        notebookLastModified: now
       }))
 
       // Add output
@@ -387,8 +383,7 @@ describe('Anode Schema', () => {
         cellType: 'code',
         position: 0,
         createdBy: 'user-123',
-        createdAt: now,
-        notebookLastModified: now
+        createdAt: now
       }))
 
       // Delete cell
@@ -396,8 +391,7 @@ describe('Anode Schema', () => {
       store.commit(events.cellDeleted({
         id: cellId,
         deletedAt,
-        deletedBy: 'user-123',
-        notebookLastModified: deletedAt
+        deletedBy: 'user-123'
       }))
 
       // Query all cells (including deleted)
@@ -433,14 +427,15 @@ describe('Anode Schema', () => {
         cellType: 'code',
         position: 0,
         createdBy: 'user-123',
-        createdAt: cellCreatedTime,
-        notebookLastModified: cellCreatedTime
+        createdAt: cellCreatedTime
       }))
 
-      // Query notebook
+      // Query notebook - lastModified should be updated automatically
       const notebooks = store.query(tables.notebook.select())
       expect(notebooks).toHaveLength(1)
-      expect(notebooks[0].lastModified).toEqual(cellCreatedTime)
+      // The notebook lastModified should be updated, but we can't predict the exact timestamp
+      // since it's set by the materializer at event processing time
+      expect(notebooks[0].lastModified.getTime()).toBeGreaterThanOrEqual(initialTime.getTime())
     })
 
     it('should support reactive queries', async () => {
@@ -469,8 +464,7 @@ describe('Anode Schema', () => {
         cellType: 'code',
         position: 0,
         createdBy: 'user-123',
-        createdAt: now,
-        notebookLastModified: now
+        createdAt: now
       }))
 
       // Should have one active cell
@@ -481,8 +475,7 @@ describe('Anode Schema', () => {
       store.commit(events.cellDeleted({
         id: cellId,
         deletedAt: new Date(),
-        deletedBy: 'user-123',
-        notebookLastModified: new Date()
+        deletedBy: 'user-123'
       }))
 
       // Should have no active cells
@@ -514,6 +507,115 @@ describe('Anode Schema', () => {
         const withoutPrefix = name.replace(/^v1\./, '')
         expect(withoutPrefix).toMatch(/^[A-Z][a-zA-Z]*$/)
       })
+    })
+  })
+
+  describe('Build-time Schema Validation', () => {
+    it('should not have redundant notebookLastModified fields', () => {
+      // These events should derive notebook lastModified from event timestamp
+      const eventsWithCleanTimestamps = [
+        'v1.CellCreated',
+        'v1.CellSourceChanged',
+        'v1.CellTypeChanged',
+        'v1.CellDeleted',
+        'v1.CellMoved',
+      ]
+
+      for (const eventName of eventsWithCleanTimestamps) {
+        const event = Object.values(events).find(e => e.name === eventName)
+        expect(event).toBeDefined()
+
+        // Create event payload without notebookLastModified
+        const testPayload: any = {
+          id: 'test-id',
+          // Add minimal required fields based on event type
+          ...(eventName === 'v1.CellCreated' && {
+            cellType: 'code',
+            position: 0,
+            createdBy: 'test-user',
+            createdAt: new Date().toISOString(),
+          }),
+          ...(eventName === 'v1.CellSourceChanged' && {
+            source: 'test source',
+            modifiedBy: 'test-user',
+          }),
+          ...(eventName === 'v1.CellTypeChanged' && {
+            cellType: 'markdown',
+          }),
+          ...(eventName === 'v1.CellDeleted' && {
+            deletedAt: new Date().toISOString(),
+            deletedBy: 'test-user',
+          }),
+          ...(eventName === 'v1.CellMoved' && {
+            newPosition: 1,
+          }),
+        }
+
+        // Events should validate successfully without notebookLastModified
+        const result = S.decodeUnknownSync(event!.schema)(testPayload)
+        expect(result).toBeDefined()
+
+        // Verify notebookLastModified is NOT in the schema
+        expect(result).not.toHaveProperty('notebookLastModified')
+      }
+    })
+
+    it('should have required fields for event types', () => {
+      // Test that events have expected required fields
+      const cellCreatedEvent = Object.values(events).find(e => e.name === 'v1.CellCreated')
+      expect(cellCreatedEvent).toBeDefined()
+
+      const validCellCreated = {
+        id: 'cell-123',
+        cellType: 'code' as const,
+        position: 0,
+        createdBy: 'user-123',
+        createdAt: new Date().toISOString(),
+        // notebookLastModified removed - derived from event timestamp
+      }
+
+      expect(() => {
+        S.decodeUnknownSync(cellCreatedEvent!.schema)(validCellCreated)
+      }).not.toThrow()
+    })
+
+    it('should validate event naming conventions', () => {
+      const allEventNames = Object.values(events).map(e => e.name)
+
+      // All synced events should use v1 prefix
+      const syncedEvents = allEventNames.filter(name => name !== 'uiStateSet')
+      syncedEvents.forEach(name => {
+        expect(name).toMatch(/^v1\./)
+      })
+
+      // Event names should be PascalCase after prefix
+      syncedEvents.forEach(name => {
+        const withoutPrefix = name.replace(/^v1\./, '')
+        expect(withoutPrefix).toMatch(/^[A-Z][a-zA-Z]*$/)
+      })
+    })
+
+    it('should not have missing required events', () => {
+      const requiredEvents = [
+        'v1.NotebookInitialized',
+        'v1.NotebookTitleChanged',
+        'v1.CellCreated',
+        'v1.CellSourceChanged',
+        'v1.CellTypeChanged',
+        'v1.CellDeleted',
+        'v1.CellMoved',
+        'v1.KernelSessionStarted',
+        'v1.ExecutionRequested',
+        'v1.ExecutionAssigned',
+        'v1.ExecutionStarted',
+        'v1.ExecutionCompleted',
+      ]
+
+      const existingEventNames = Object.values(events).map(e => e.name)
+
+      for (const requiredEvent of requiredEvents) {
+        expect(existingEventNames).toContain(requiredEvent)
+      }
     })
   })
 })

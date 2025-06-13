@@ -162,7 +162,6 @@ export const events = {
       position: Schema.Number,
       createdBy: Schema.String,
       createdAt: Schema.Date,
-      notebookLastModified: Schema.Date,
     }),
   }),
 
@@ -172,7 +171,6 @@ export const events = {
       id: Schema.String,
       source: Schema.String,
       modifiedBy: Schema.String,
-      notebookLastModified: Schema.Date,
     }),
   }),
 
@@ -181,7 +179,6 @@ export const events = {
     schema: Schema.Struct({
       id: Schema.String,
       cellType: Schema.Literal('code', 'markdown', 'raw', 'sql', 'ai'),
-      notebookLastModified: Schema.Date,
     }),
   }),
 
@@ -191,7 +188,6 @@ export const events = {
       id: Schema.String,
       deletedAt: Schema.Date,
       deletedBy: Schema.String,
-      notebookLastModified: Schema.Date,
     }),
   }),
 
@@ -200,7 +196,6 @@ export const events = {
     schema: Schema.Struct({
       id: Schema.String,
       newPosition: Schema.Number,
-      notebookLastModified: Schema.Date,
     }),
   }),
 
@@ -383,7 +378,7 @@ const materializers = State.SQLite.materializers(events, {
     tables.notebook.update({ title, lastModified }),
 
   // Cell materializers
-  'v1.CellCreated': ({ id, cellType, position, createdBy, createdAt, notebookLastModified }) => [
+  'v1.CellCreated': ({ id, cellType, position, createdBy, createdAt }) => [
     tables.cells.insert({
       id,
       cellType,
@@ -392,27 +387,27 @@ const materializers = State.SQLite.materializers(events, {
       createdAt
     }),
     // Update notebook's last modified time
-    tables.notebook.update({ lastModified: notebookLastModified }),
+    tables.notebook.update({ lastModified: new Date() }),
   ],
 
-  'v1.CellSourceChanged': ({ id, source, notebookLastModified }) => [
+  'v1.CellSourceChanged': ({ id, source }) => [
     tables.cells.update({ source }).where({ id }),
-    tables.notebook.update({ lastModified: notebookLastModified }),
+    tables.notebook.update({ lastModified: new Date() }),
   ],
 
-  'v1.CellTypeChanged': ({ id, cellType, notebookLastModified }) => [
+  'v1.CellTypeChanged': ({ id, cellType }) => [
     tables.cells.update({ cellType }).where({ id }),
-    tables.notebook.update({ lastModified: notebookLastModified }),
+    tables.notebook.update({ lastModified: new Date() }),
   ],
 
-  'v1.CellDeleted': ({ id, deletedAt, notebookLastModified }) => [
+  'v1.CellDeleted': ({ id, deletedAt }) => [
     tables.cells.update({ deletedAt }).where({ id }),
-    tables.notebook.update({ lastModified: notebookLastModified }),
+    tables.notebook.update({ lastModified: new Date() }),
   ],
 
-  'v1.CellMoved': ({ id, newPosition, notebookLastModified }) => [
+  'v1.CellMoved': ({ id, newPosition }) => [
     tables.cells.update({ position: newPosition }).where({ id }),
-    tables.notebook.update({ lastModified: notebookLastModified }),
+    tables.notebook.update({ lastModified: new Date() }),
   ],
 
   // Kernel lifecycle materializers
@@ -421,7 +416,7 @@ const materializers = State.SQLite.materializers(events, {
       sessionId,
       kernelId,
       kernelType,
-      status: 'starting',
+      status: 'ready',
       startedAt,
       lastHeartbeat: startedAt,
       canExecuteCode: capabilities.canExecuteCode,
@@ -444,7 +439,6 @@ const materializers = State.SQLite.materializers(events, {
 
   // Execution queue materializers
   'v1.ExecutionRequested': ({ queueId, cellId, executionCount, requestedBy, requestedAt, priority }) => [
-    // Add to execution queue
     tables.executionQueue.insert({
       id: queueId,
       cellId,
@@ -452,11 +446,12 @@ const materializers = State.SQLite.materializers(events, {
       requestedBy,
       requestedAt,
       priority,
+      status: 'pending',
     }),
-    // Update cell state
+    // Update cell execution state
     tables.cells.update({
-      executionCount,
       executionState: 'queued',
+      executionCount,
       queuedAt: requestedAt,
     }).where({ id: cellId }),
   ],
@@ -468,20 +463,56 @@ const materializers = State.SQLite.materializers(events, {
       assignedAt,
     }).where({ id: queueId }),
 
-  'v1.ExecutionStarted': ({ queueId }) =>
-    tables.executionQueue.update({ status: 'executing' }).where({ id: queueId }),
+  'v1.ExecutionStarted': ({ queueId }, ctx) => {
+    // Get the queue entry to find the cell ID
+    const queueEntry = ctx.query(tables.executionQueue.select().where({ id: queueId }).first()) as any
+    if (!queueEntry) return []
 
-  'v1.ExecutionCompleted': ({ queueId, status, completedAt }) =>
-    tables.executionQueue.update({
-      status: status === 'success' ? 'completed' : 'failed',
-      completedAt,
-    }).where({ id: queueId }),
+    return [
+      // Update execution queue
+      tables.executionQueue.update({ status: 'executing' }).where({ id: queueId }),
+      // Update cell execution state
+      tables.cells.update({
+        executionState: 'running',
+      }).where({ id: queueEntry.cellId }),
+    ]
+  },
 
-  'v1.ExecutionCancelled': ({ queueId, cancelledAt }) =>
-    tables.executionQueue.update({
-      status: 'cancelled',
-      completedAt: cancelledAt,
-    }).where({ id: queueId }),
+  'v1.ExecutionCompleted': ({ queueId, status, completedAt }, ctx) => {
+    // Get the queue entry to find the cell ID
+    const queueEntry = ctx.query(tables.executionQueue.select().where({ id: queueId }).first()) as any
+    if (!queueEntry) return []
+
+    return [
+      // Update execution queue
+      tables.executionQueue.update({
+        status: status === 'success' ? 'completed' : 'failed',
+        completedAt,
+      }).where({ id: queueId }),
+      // Update cell execution state
+      tables.cells.update({
+        executionState: status === 'success' ? 'completed' : 'error',
+      }).where({ id: queueEntry.cellId }),
+    ]
+  },
+
+  'v1.ExecutionCancelled': ({ queueId, cancelledAt }, ctx) => {
+    // Get the queue entry to find the cell ID
+    const queueEntry = ctx.query(tables.executionQueue.select().where({ id: queueId }).first()) as any
+    if (!queueEntry) return []
+
+    return [
+      // Update execution queue
+      tables.executionQueue.update({
+        status: 'cancelled',
+        completedAt: cancelledAt,
+      }).where({ id: queueId }),
+      // Update cell execution state
+      tables.cells.update({
+        executionState: 'idle',
+      }).where({ id: queueEntry.cellId }),
+    ]
+  },
 
   // Output materializers
   'v1.CellOutputAdded': ({ id, cellId, outputType, data, position, createdAt }) =>

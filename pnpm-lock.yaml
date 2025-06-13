@@ -239,6 +239,12 @@ importers:
       '@effect/vitest':
         specifier: 'catalog:'
         version: 0.23.7(effect@3.15.5)(vitest@3.2.3)
+      '@types/node':
+        specifier: 'catalog:'
+        version: 24.0.1
+      tsx:
+        specifier: 'catalog:'
+        version: 4.20.1
       typescript:
         specifier: 'catalog:'
         version: 5.8.3
