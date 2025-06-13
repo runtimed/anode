@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach } from 'vitest'
+import { describe, it, expect, beforeEach, afterEach } from 'vitest'
 import { Effect, Schema as S } from 'effect'
 import { createStorePromise, queryDb } from '@livestore/livestore'
 import { makeAdapter } from '@livestore/adapter-node'
@@ -193,8 +193,7 @@ describe('Anode Schema', () => {
         id: notebookId,
         title: 'Test Notebook',
         ownerId: 'user-123',
-        createdAt: now,
-        notebookLastModified: now
+        createdAt: now
       }))
 
       // Query notebook
@@ -356,8 +355,7 @@ describe('Anode Schema', () => {
         outputType: 'stream',
         data: { name: 'stdout', text: 'Hello, World!\n' },
         position: 0,
-        createdAt: now,
-        notebookLastModified: now
+        createdAt: now
       }))
 
       // Query outputs
