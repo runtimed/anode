@@ -1,0 +1,46 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "ESNext",
+    "moduleResolution": "Node",
+    "strict": true,
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "noEmit": true,
+    "composite": false,
+    "allowImportingTsExtensions": true,
+    "lib": ["ES2022", "DOM"],
+    "types": ["vitest/globals", "node"],
+    "baseUrl": ".",
+    "paths": {
+      "@anode/schema": ["./packages/schema/src"],
+      "@anode/schema/*": ["./packages/schema/src/*"],
+      "@anode/web-client": ["./packages/web-client/src"],
+      "@anode/web-client/*": ["./packages/web-client/src/*"],
+      "@anode/docworker": ["./packages/docworker/src"],
+      "@anode/docworker/*": ["./packages/docworker/src/*"],
+      "@anode/dev-server-kernel-ls-client": ["./packages/dev-server-kernel-ls-client/src"],
+      "@anode/dev-server-kernel-ls-client/*": ["./packages/dev-server-kernel-ls-client/src/*"]
+    }
+  },
+  "include": [
+    "test/**/*",
+    "packages/*/test/**/*",
+    "packages/*/src/**/*"
+  ],
+  "exclude": [
+    "node_modules",
+    "dist",
+    "**/*.d.ts"
+  ],
+  "references": [
+    { "path": "./packages/schema" },
+    { "path": "./packages/web-client" },
+    { "path": "./packages/docworker" },
+    { "path": "./packages/dev-server-kernel-ls-client" }
+  ]
+}

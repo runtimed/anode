@@ -11,7 +11,9 @@
     "watch": "tsx watch src/index.ts",
     "cleanup-state": "tsx src/cleanup-state.ts",
     "type-check": "tsc --noEmit",
-    "lint": "tsc --noEmit"
+    "lint": "tsc --noEmit",
+    "test": "vitest",
+    "test:run": "vitest run"
   },
   "dependencies": {
     "@anode/schema": "workspace:*",
@@ -23,6 +25,9 @@
   "devDependencies": {
     "typescript": "catalog:",
     "@types/node": "catalog:",
-    "tsx": "catalog:"
+    "tsx": "catalog:",
+    "vitest": "catalog:",
+    "@effect/vitest": "catalog:",
+    "happy-dom": "catalog:"
   }
 }

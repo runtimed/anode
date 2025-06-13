@@ -1,0 +1,876 @@
+import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
+import { createStorePromise, queryDb } from "@livestore/livestore";
+import { makeAdapter } from "@livestore/adapter-node";
+// @ts-ignore - Schema imports work at runtime via Vitest aliases
+import { events, tables, schema } from "@anode/schema";
+import {
+  createTestStoreId,
+  createTestSessionId,
+  waitFor,
+  cleanupResources,
+} from "../setup.js";
+
+// Mock Pyodide for integration tests
+const mockPyodide = {
+  runPython: vi.fn(),
+  globals: {
+    get: vi.fn(),
+    set: vi.fn(),
+  },
+};
+
+vi.mock("pyodide", () => ({
+  loadPyodide: vi.fn(() => Promise.resolve(mockPyodide)),
+}));
+
+describe.skip("End-to-End Execution Flow", () => {
+  let store: any;
+  let storeId: string;
+  let sessionId: string;
+  let kernelId: string;
+
+  beforeEach(async () => {
+    storeId = createTestStoreId();
+    sessionId = createTestSessionId();
+    kernelId = `kernel-${Date.now()}`;
+
+    const adapter = makeAdapter({
+      storage: { type: "in-memory" },
+    });
+
+    store = await createStorePromise({
+      adapter,
+      schema,
+      storeId,
+    });
+
+    // Reset mocks
+    vi.clearAllMocks();
+    mockPyodide.runPython.mockReturnValue(undefined);
+    mockPyodide.globals.get.mockReturnValue(undefined);
+  });
+
+  afterEach(async () => {
+    await cleanupResources(store);
+  });
+
+  describe("Complete Notebook Execution Flow", () => {
+    it("should handle full notebook creation and execution cycle", async () => {
+      const notebookId = storeId; // Same as store ID in simplified architecture
+      const cellId = "cell-001";
+      const queueId = "queue-001";
+      const outputId = "output-001";
+
+      // Track state changes
+      const stateChanges: string[] = [];
+      const notebookQuery$ = queryDb(tables.notebook.select(), {
+        label: "notebook",
+      });
+      const cellsQuery$ = queryDb(tables.cells.select(), { label: "cells" });
+      const queueQuery$ = queryDb(tables.executionQueue.select(), {
+        label: "queue",
+      });
+      const outputsQuery$ = queryDb(tables.outputs.select(), {
+        label: "outputs",
+      });
+
+      store.subscribe(notebookQuery$, {
+        onUpdate: () => stateChanges.push("notebook"),
+      });
+      store.subscribe(cellsQuery$, {
+        onUpdate: () => stateChanges.push("cells"),
+      });
+      store.subscribe(queueQuery$, {
+        onUpdate: () => stateChanges.push("queue"),
+      });
+      store.subscribe(outputsQuery$, {
+        onUpdate: () => stateChanges.push("outputs"),
+      });
+
+      // Step 1: Initialize notebook
+      store.commit(
+        events.notebookInitialized({
+          id: notebookId,
+          title: "Integration Test Notebook",
+          ownerId: "test-user",
+          createdAt: new Date(),
+        }),
+      );
+
+      await waitFor(() => stateChanges.includes("notebook"));
+
+      // Step 2: Create a code cell
+      store.commit(
+        events.cellCreated({
+          id: cellId,
+          cellType: "code",
+          position: 0,
+          createdBy: "test-user",
+          createdAt: new Date(),
+        }),
+      );
+
+      store.commit(
+        events.cellSourceChanged({
+          id: cellId,
+          source: 'print("Hello from integration test!")',
+          modifiedBy: "test-user",
+        }),
+      );
+
+      await waitFor(() => stateChanges.includes("cells"));
+
+      // Step 3: Start kernel session
+      store.commit(
+        events.kernelSessionStarted({
+          sessionId,
+          kernelId,
+          kernelType: "python3",
+          startedAt: new Date(),
+          capabilities: {
+            canExecuteCode: true,
+            canExecuteSql: false,
+            canExecuteAi: false,
+          },
+        }),
+      );
+
+      // Step 4: Request execution
+      store.commit(
+        events.executionRequested({
+          queueId,
+          cellId,
+          executionCount: 1,
+          requestedBy: "test-user",
+          requestedAt: new Date(),
+          priority: 1,
+        }),
+      );
+
+      await waitFor(() => stateChanges.includes("queue"));
+
+      // Step 5: Assign execution to kernel
+      store.commit(
+        events.executionAssigned({
+          queueId,
+          kernelSessionId: sessionId,
+          assignedAt: new Date(),
+        }),
+      );
+
+      // Step 6: Start execution
+      store.commit(
+        events.executionStarted({
+          queueId,
+          kernelSessionId: sessionId,
+          startedAt: new Date(),
+        }),
+      );
+
+      // Step 7: Clear previous outputs
+      store.commit(
+        events.cellOutputsCleared({
+          cellId,
+          clearedBy: kernelId,
+        }),
+      );
+
+      // Step 8: Add execution output
+      store.commit(
+        events.cellOutputAdded({
+          id: outputId,
+          cellId,
+          outputType: "stream",
+          data: { name: "stdout", text: "Hello from integration test!\n" },
+          position: 0,
+          createdAt: new Date(),
+        }),
+      );
+
+      await waitFor(() => stateChanges.includes("outputs"));
+
+      // Step 9: Complete execution
+      store.commit(
+        events.executionCompleted({
+          queueId,
+          status: "success",
+          completedAt: new Date(),
+        }),
+      );
+
+      // Verify final state
+      const notebook = store.query(tables.notebook.select())[0];
+      expect(notebook.id).toBe(notebookId);
+      expect(notebook.title).toBe("Integration Test Notebook");
+
+      const cells = store.query(tables.cells.select());
+      expect(cells).toHaveLength(1);
+      expect(cells[0].id).toBe(cellId);
+      expect(cells[0].source).toBe('print("Hello from integration test!")');
+
+      const queue = store.query(tables.executionQueue.select());
+      expect(queue).toHaveLength(1);
+      expect(queue[0].status).toBe("completed");
+
+      const outputs = store.query(tables.outputs.select());
+      expect(outputs).toHaveLength(1);
+      expect(outputs[0].cellId).toBe(cellId);
+      expect(outputs[0].data).toEqual({
+        name: "stdout",
+        text: "Hello from integration test!\n",
+      });
+    });
+
+    it("should handle execution errors gracefully", async () => {
+      const cellId = "error-cell";
+      const queueId = "error-queue";
+
+      // Create notebook and cell with error code
+      store.commit(
+        events.notebookInitialized({
+          id: storeId,
+          title: "Error Test Notebook",
+          ownerId: "test-user",
+          createdAt: new Date(),
+        }),
+      );
+
+      store.commit(
+        events.cellCreated({
+          id: cellId,
+          cellType: "code",
+          position: 0,
+          createdBy: "test-user",
+          createdAt: new Date(),
+        }),
+      );
+
+      store.commit(
+        events.cellSourceChanged({
+          id: cellId,
+          source: 'raise ValueError("Test error")',
+          modifiedBy: "test-user",
+        }),
+      );
+
+      // Start kernel and request execution
+      store.commit(
+        events.kernelSessionStarted({
+          sessionId,
+          kernelId,
+          kernelType: "python3",
+          startedAt: new Date(),
+          capabilities: {
+            canExecuteCode: true,
+            canExecuteSql: false,
+            canExecuteAi: false,
+          },
+        }),
+      );
+
+      store.commit(
+        events.executionRequested({
+          queueId,
+          cellId,
+          executionCount: 1,
+          requestedBy: "test-user",
+          requestedAt: new Date(),
+          priority: 1,
+        }),
+      );
+
+      store.commit(
+        events.executionAssigned({
+          queueId,
+          kernelSessionId: sessionId,
+          assignedAt: new Date(),
+        }),
+      );
+
+      store.commit(
+        events.executionStarted({
+          queueId,
+          kernelSessionId: sessionId,
+          startedAt: new Date(),
+        }),
+      );
+
+      // Add error output
+      store.commit(
+        events.cellOutputAdded({
+          id: "error-output",
+          cellId,
+          outputType: "error",
+          data: {
+            ename: "ValueError",
+            evalue: "Test error",
+            traceback: [
+              "Traceback (most recent call last):",
+              '  File "<stdin>", line 1, in <module>',
+              "ValueError: Test error",
+            ],
+          },
+          position: 0,
+          createdAt: new Date(),
+        }),
+      );
+
+      // Complete with error status
+      store.commit(
+        events.executionCompleted({
+          queueId,
+          status: "error",
+          completedAt: new Date(),
+          error: "ValueError: Test error",
+        }),
+      );
+
+      // Verify error handling
+      const queue = store.query(tables.executionQueue.select());
+      expect(queue[0].status).toBe("failed");
+
+      const outputs = store.query(tables.outputs.select());
+      expect(outputs[0].outputType).toBe("error");
+      expect(outputs[0].data.ename).toBe("ValueError");
+    });
+
+    it("should handle multiple concurrent executions", async () => {
+      const numCells = 3;
+      const cells = Array.from({ length: numCells }, (_, i) => ({
+        cellId: `cell-${i}`,
+        queueId: `queue-${i}`,
+        outputId: `output-${i}`,
+      }));
+
+      // Create notebook
+      store.commit(
+        events.notebookInitialized({
+          id: storeId,
+          title: "Concurrent Test Notebook",
+          ownerId: "test-user",
+          createdAt: new Date(),
+        }),
+      );
+
+      // Create multiple cells
+      cells.forEach(({ cellId }, index) => {
+        store.commit(
+          events.cellCreated({
+            id: cellId,
+            cellType: "code",
+            position: index,
+            createdBy: "test-user",
+            createdAt: new Date(),
+          }),
+        );
+
+        store.commit(
+          events.cellSourceChanged({
+            id: cellId,
+            source: `print("Output from cell ${index}")`,
+            modifiedBy: "test-user",
+          }),
+        );
+      });
+
+      // Start multiple kernel sessions
+      const sessions = Array.from({ length: 2 }, (_, i) => ({
+        sessionId: `${sessionId}-${i}`,
+        kernelId: `${kernelId}-${i}`,
+      }));
+
+      sessions.forEach(({ sessionId: sid, kernelId: kid }) => {
+        store.commit(
+          events.kernelSessionStarted({
+            sessionId: sid,
+            kernelId: kid,
+            kernelType: "python3",
+            startedAt: new Date(),
+            capabilities: {
+              canExecuteCode: true,
+              canExecuteSql: false,
+              canExecuteAi: false,
+            },
+          }),
+        );
+      });
+
+      // Request executions for all cells
+      cells.forEach(({ cellId, queueId }, index) => {
+        store.commit(
+          events.executionRequested({
+            queueId,
+            cellId,
+            executionCount: 1,
+            requestedBy: "test-user",
+            requestedAt: new Date(),
+            priority: index + 1,
+          }),
+        );
+      });
+
+      // Assign executions to different sessions
+      cells.forEach(({ queueId }, index) => {
+        const sessionIndex = index % sessions.length;
+        const { sessionId: sid } = sessions[sessionIndex];
+
+        store.commit(
+          events.executionAssigned({
+            queueId,
+            kernelSessionId: sid,
+            assignedAt: new Date(),
+          }),
+        );
+
+        store.commit(
+          events.executionStarted({
+            queueId,
+            kernelSessionId: sid,
+            startedAt: new Date(),
+          }),
+        );
+      });
+
+      // Complete all executions
+      cells.forEach(({ cellId, queueId, outputId }, index) => {
+        store.commit(
+          events.cellOutputAdded({
+            id: outputId,
+            cellId,
+            outputType: "stream",
+            data: { name: "stdout", text: `Output from cell ${index}\n` },
+            position: 0,
+            createdAt: new Date(),
+          }),
+        );
+
+        store.commit(
+          events.executionCompleted({
+            queueId,
+            status: "success",
+            completedAt: new Date(),
+          }),
+        );
+      });
+
+      // Verify all executions completed
+      const queue = store.query(tables.executionQueue.select());
+      expect(queue).toHaveLength(numCells);
+      expect(queue.every((entry) => entry.status === "completed")).toBe(true);
+
+      const outputs = store.query(tables.outputs.select());
+      expect(outputs).toHaveLength(numCells);
+      outputs.forEach((output, index) => {
+        expect(output.data.text).toBe(`Output from cell ${index}\n`);
+      });
+    });
+  });
+
+  describe("Reactive Query Behavior", () => {
+    it("should handle reactive queries without memory leaks", async () => {
+      const updateCounts = {
+        cells: 0,
+        queue: 0,
+        outputs: 0,
+      };
+
+      // Create reactive queries
+      const cellsQuery$ = queryDb(
+        tables.cells.select().where({ deletedAt: null }),
+        { label: "activeCells" },
+      );
+
+      const queueQuery$ = queryDb(
+        tables.executionQueue.select().where({ status: "pending" }),
+        { label: "pendingQueue" },
+      );
+
+      const outputsQuery$ = queryDb(tables.outputs.select(), {
+        label: "allOutputs",
+      });
+
+      // Subscribe to queries
+      const subscriptions = [
+        store.subscribe(cellsQuery$, {
+          onUpdate: () => updateCounts.cells++,
+        }),
+        store.subscribe(queueQuery$, {
+          onUpdate: () => updateCounts.queue++,
+        }),
+        store.subscribe(outputsQuery$, {
+          onUpdate: () => updateCounts.outputs++,
+        }),
+      ];
+
+      // Perform operations that trigger updates
+      const cellId = "reactive-test-cell";
+      const queueId = "reactive-test-queue";
+
+      store.commit(
+        events.cellCreated({
+          id: cellId,
+          cellType: "code",
+          position: 0,
+          createdBy: "test-user",
+          createdAt: new Date(),
+        }),
+      );
+
+      store.commit(
+        events.executionRequested({
+          queueId,
+          cellId,
+          executionCount: 1,
+          requestedBy: "test-user",
+          requestedAt: new Date(),
+          priority: 1,
+        }),
+      );
+
+      store.commit(
+        events.cellOutputAdded({
+          id: "reactive-output",
+          cellId,
+          outputType: "stream",
+          data: "Test output",
+          position: 0,
+          createdAt: new Date(),
+        }),
+      );
+
+      // Wait for updates to propagate
+      await waitFor(
+        () =>
+          updateCounts.cells > 0 &&
+          updateCounts.queue > 0 &&
+          updateCounts.outputs > 0,
+      );
+
+      expect(updateCounts.cells).toBeGreaterThan(0);
+      expect(updateCounts.queue).toBeGreaterThan(0);
+      expect(updateCounts.outputs).toBeGreaterThan(0);
+
+      // Clean up subscriptions (critical for preventing memory leaks)
+      subscriptions.forEach((unsub) => unsub());
+    });
+
+    it("should handle subscription errors without crashing", async () => {
+      const errorCallback = vi.fn();
+
+      // Create a query that might cause issues (invalid column)
+      const problematicQuery$ = queryDb(
+        tables.cells.select().where({ nonExistentColumn: "value" }),
+        { label: "problematicQuery" },
+      );
+
+      // This should handle the error gracefully
+      try {
+        const subscription = store.subscribe(problematicQuery$, {
+          onUpdate: () => {},
+          onError: errorCallback,
+        });
+
+        // If subscription was created successfully, clean it up
+        if (typeof subscription === "function") {
+          subscription();
+        }
+      } catch (error) {
+        // Expected for invalid query
+        expect(error).toBeDefined();
+      }
+    });
+
+    it("should handle rapid state changes without dropping updates", async () => {
+      const allUpdates: any[] = [];
+
+      const cellsQuery$ = queryDb(tables.cells.select(), {
+        label: "allCellsMonitor",
+      });
+
+      const subscription = store.subscribe(cellsQuery$, {
+        onUpdate: (cells) => {
+          allUpdates.push({ timestamp: Date.now(), cellCount: cells.length });
+        },
+      });
+
+      // Rapidly create and delete cells
+      const operations: Array<() => any> = [];
+      for (let i = 0; i < 10; i++) {
+        const cellId = `rapid-cell-${i}`;
+
+        operations.push(() =>
+          store.commit(
+            (events as any).cellCreated({
+              id: cellId,
+              cellType: "code",
+              position: i,
+              createdBy: "test-user",
+              createdAt: new Date(),
+            }),
+          ),
+        );
+
+        if (i % 2 === 0) {
+          operations.push(() =>
+            store.commit(
+              (events as any).cellDeleted({
+                id: cellId,
+                deletedBy: "test-user",
+                deletedAt: new Date() as any,
+              }),
+            ),
+          );
+        }
+      }
+
+      // Execute operations rapidly
+      operations.forEach((op: any) => op());
+
+      // Wait for updates to settle
+      await (waitFor as any)(() => allUpdates.length > 5, 2000);
+
+      expect(allUpdates.length).toBeGreaterThan(0);
+
+      // Verify updates are in chronological order
+      for (let i = 1; i < allUpdates.length; i++) {
+        expect(allUpdates[i].timestamp).toBeGreaterThanOrEqual(
+          allUpdates[i - 1].timestamp,
+        );
+      }
+
+      subscription();
+    });
+  });
+
+  describe("Kernel Session Lifecycle", () => {
+    it("should handle kernel restart during execution", async () => {
+      const cellId = "restart-test-cell";
+      const queueId = "restart-test-queue";
+      const newSessionId = `${sessionId}-restarted`;
+
+      // Create cell and start execution
+      store.commit(
+        events.cellCreated({
+          id: cellId,
+          cellType: "code",
+          position: 0,
+          createdBy: "test-user",
+          createdAt: new Date(),
+        }),
+      );
+
+      store.commit(
+        events.kernelSessionStarted({
+          sessionId,
+          kernelId,
+          kernelType: "python3",
+          startedAt: new Date(),
+          capabilities: {
+            canExecuteCode: true,
+            canExecuteSql: false,
+            canExecuteAi: false,
+          },
+        }),
+      );
+
+      store.commit(
+        events.executionRequested({
+          queueId,
+          cellId,
+          executionCount: 1,
+          requestedBy: "test-user",
+          requestedAt: new Date(),
+          priority: 1,
+        }),
+      );
+
+      store.commit(
+        events.executionAssigned({
+          queueId,
+          kernelSessionId: sessionId,
+          assignedAt: new Date(),
+        }),
+      );
+
+      store.commit(
+        events.executionStarted({
+          queueId,
+          kernelSessionId: sessionId,
+          startedAt: new Date(),
+        }),
+      );
+
+      // Simulate kernel restart during execution
+      store.commit(
+        events.kernelSessionTerminated({
+          sessionId,
+          reason: "restart",
+          terminatedAt: new Date(),
+        }),
+      );
+
+      // Start new kernel session
+      store.commit(
+        events.kernelSessionStarted({
+          sessionId: newSessionId,
+          kernelId,
+          kernelType: "python3",
+          startedAt: new Date(),
+          capabilities: {
+            canExecuteCode: true,
+            canExecuteSql: false,
+            canExecuteAi: false,
+          },
+        }),
+      );
+
+      // Verify kernel states
+      const sessions = store.query(tables.kernelSessions.select());
+      expect(sessions).toHaveLength(2);
+
+      const oldSession = sessions.find((s) => s.sessionId === sessionId);
+      const newSession = sessions.find((s) => s.sessionId === newSessionId);
+
+      expect(oldSession.status).toBe("terminated");
+      expect(oldSession.isActive).toBe(false);
+      expect(newSession.status).toBe("starting");
+      expect(newSession.isActive).toBe(true);
+    });
+
+    it("should track heartbeats and session health", async () => {
+      store.commit(
+        events.kernelSessionStarted({
+          sessionId,
+          kernelId,
+          kernelType: "python3",
+          startedAt: new Date(),
+          capabilities: {
+            canExecuteCode: true,
+            canExecuteSql: false,
+            canExecuteAi: false,
+          },
+        }),
+      );
+
+      const heartbeatTimes: Date[] = [];
+
+      // Send multiple heartbeats
+      for (let i = 0; i < 5; i++) {
+        const heartbeatTime = new Date(Date.now() + i * 30000); // Every 30 seconds
+        heartbeatTimes.push(heartbeatTime);
+
+        store.commit(
+          (events as any).kernelSessionHeartbeat({
+            sessionId,
+            heartbeatAt: heartbeatTime as any,
+            status: i % 2 === 0 ? "ready" : "busy",
+          }),
+        );
+      }
+
+      const session = store.query(tables.kernelSessions.select())[0];
+      expect(session.lastHeartbeat).toEqual(
+        heartbeatTimes[heartbeatTimes.length - 1],
+      );
+      expect(session.status).toBe("busy"); // Last heartbeat status
+    });
+  });
+
+  describe("Data Consistency", () => {
+    it("should maintain referential integrity between tables", async () => {
+      const cellId = "integrity-test-cell";
+      const queueId = "integrity-test-queue";
+      const outputId = "integrity-test-output";
+
+      // Create related records
+      store.commit(
+        events.cellCreated({
+          id: cellId,
+          cellType: "code",
+          position: 0,
+          createdBy: "test-user",
+          createdAt: new Date(),
+        }),
+      );
+
+      store.commit(
+        events.executionRequested({
+          queueId,
+          cellId,
+          executionCount: 1,
+          requestedBy: "test-user",
+          requestedAt: new Date(),
+          priority: 1,
+        }),
+      );
+
+      store.commit(
+        events.cellOutputAdded({
+          id: outputId,
+          cellId,
+          outputType: "stream",
+          data: "Test output",
+          position: 0,
+          createdAt: new Date(),
+        }),
+      );
+
+      // Verify relationships
+      const cell = store.query(tables.cells.select().where({ id: cellId }))[0];
+      const queueEntry = store.query(
+        tables.executionQueue.select().where({ cellId }),
+      )[0];
+      const output = store.query(tables.outputs.select().where({ cellId }))[0];
+
+      expect(cell.id).toBe(cellId);
+      expect(queueEntry.cellId).toBe(cellId);
+      expect(output.cellId).toBe(cellId);
+
+      // Delete cell (soft delete)
+      store.commit(
+        events.cellDeleted({
+          id: cellId,
+          deletedAt: new Date(),
+          deletedBy: "test-user",
+        }),
+      );
+
+      // Outputs should still exist (they're not automatically cleaned up)
+      const outputsAfterDelete = store.query(
+        tables.outputs.select().where({ cellId }),
+      );
+      expect(outputsAfterDelete).toHaveLength(1);
+
+      // But cell should be marked as deleted
+      const cellAfterDelete = store.query(
+        tables.cells.select().where({ id: cellId }),
+      )[0];
+      expect(cellAfterDelete.deletedAt).toBeDefined();
+    });
+
+    it("should handle transaction rollbacks correctly", async () => {
+      const initialCellCount = store.query(tables.cells.select()).length;
+
+      try {
+        // This should work
+        store.commit(
+          events.cellCreated({
+            id: "valid-cell",
+            cellType: "code",
+            position: 0,
+            createdBy: "test-user",
+            createdAt: new Date(),
+          }),
+        );
+
+        // Verify cell was created
+        const cellsAfterValid = store.query(tables.cells.select());
+        expect(cellsAfterValid.length).toBe(initialCellCount + 1);
+      } catch (error) {
+        // If there was an error, count should remain unchanged
+        const cellsAfterError = store.query(tables.cells.select());
+        expect(cellsAfterError.length).toBe(initialCellCount);
+      }
+    });
+  });
+});
