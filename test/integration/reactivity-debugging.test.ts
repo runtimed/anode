@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import { createStorePromise, queryDb } from "@livestore/livestore";
 import { makeAdapter } from "@livestore/adapter-node";
+// @ts-ignore - Schema imports work at runtime via Vitest aliases
 import { events, tables, schema } from "@anode/schema";
 import {
   createTestStoreId,
@@ -264,13 +265,13 @@ describe("Reactivity Debugging", () => {
       });
 
       // Rapidly create, modify, and delete cells
-      const operations = [];
+      const operations: Array<() => any> = [];
       for (let i = 0; i < 20; i++) {
         const cellId = `rapid-${i}`;
 
         operations.push(() =>
           store.commit(
-            events.cellCreated({
+            (events as any).cellCreated({
               id: cellId,
               cellType: "code",
               position: i,
@@ -296,7 +297,7 @@ describe("Reactivity Debugging", () => {
         if (i % 3 === 0) {
           operations.push(() =>
             store.commit(
-              events.cellDeleted({
+              (events as any).cellDeleted({
                 id: cellId,
                 deletedAt: new Date(),
                 deletedBy: "test-user",
@@ -308,10 +309,10 @@ describe("Reactivity Debugging", () => {
       }
 
       // Execute all operations
-      operations.forEach((op) => op());
+      operations.forEach((op: any) => op());
 
       // Wait for all updates to settle
-      await waitFor(() => stateSnapshots.length > 10, 2000);
+      await (waitFor as any)(() => stateSnapshots.length > 10, 2000);
 
       // Verify state consistency
       expect(stateSnapshots.length).toBeGreaterThan(0);

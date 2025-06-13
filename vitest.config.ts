@@ -58,7 +58,7 @@ export default defineConfig({
     },
 
     // Reporter configuration
-    reporter: ["verbose"],
+    reporters: ["verbose"],
 
     // Retry failed tests
     retry: 2,

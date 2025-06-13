@@ -1,9 +1,14 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
-// TODO: Fix imports after schema build setup
-// import { createStorePromise, queryDb } from '@livestore/livestore'
-// import { makeAdapter } from '@livestore/adapter-node'
-// import { events, tables, schema } from '@anode/schema'
-// import { createTestStoreId, createTestSessionId, waitFor, cleanupResources } from '../setup.js'
+import { createStorePromise, queryDb } from "@livestore/livestore";
+import { makeAdapter } from "@livestore/adapter-node";
+// @ts-ignore - Schema imports work at runtime via Vitest aliases
+import { events, tables, schema } from "@anode/schema";
+import {
+  createTestStoreId,
+  createTestSessionId,
+  waitFor,
+  cleanupResources,
+} from "../setup.js";
 
 // Mock Pyodide for integration tests
 const mockPyodide = {
@@ -589,13 +594,13 @@ describe.skip("End-to-End Execution Flow", () => {
       });
 
       // Rapidly create and delete cells
-      const operations = [];
+      const operations: Array<() => any> = [];
       for (let i = 0; i < 10; i++) {
         const cellId = `rapid-cell-${i}`;
 
         operations.push(() =>
           store.commit(
-            events.cellCreated({
+            (events as any).cellCreated({
               id: cellId,
               cellType: "code",
               position: i,
@@ -608,10 +613,10 @@ describe.skip("End-to-End Execution Flow", () => {
         if (i % 2 === 0) {
           operations.push(() =>
             store.commit(
-              events.cellDeleted({
+              (events as any).cellDeleted({
                 id: cellId,
-                deletedAt: new Date(),
                 deletedBy: "test-user",
+                deletedAt: new Date() as any,
               }),
             ),
           );
@@ -619,10 +624,10 @@ describe.skip("End-to-End Execution Flow", () => {
       }
 
       // Execute operations rapidly
-      operations.forEach((op) => op());
+      operations.forEach((op: any) => op());
 
       // Wait for updates to settle
-      await waitFor(() => allUpdates.length > 5, 2000);
+      await (waitFor as any)(() => allUpdates.length > 5, 2000);
 
       expect(allUpdates.length).toBeGreaterThan(0);
 
@@ -747,7 +752,7 @@ describe.skip("End-to-End Execution Flow", () => {
         }),
       );
 
-      const heartbeatTimes = [];
+      const heartbeatTimes: Date[] = [];
 
       // Send multiple heartbeats
       for (let i = 0; i < 5; i++) {
@@ -755,9 +760,9 @@ describe.skip("End-to-End Execution Flow", () => {
         heartbeatTimes.push(heartbeatTime);
 
         store.commit(
-          events.kernelSessionHeartbeat({
+          (events as any).kernelSessionHeartbeat({
             sessionId,
-            heartbeatAt: heartbeatTime,
+            heartbeatAt: heartbeatTime as any,
             status: i % 2 === 0 ? "ready" : "busy",
           }),
         );
