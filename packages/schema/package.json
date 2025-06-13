@@ -8,8 +8,9 @@
     ".": "./dist/index.js"
   },
   "scripts": {
-    "build": "tsc",
-    "dev": "tsc --watch",
+    "build": "tsc --skipLibCheck",
+    "dev": "tsc --watch --skipLibCheck",
+    "watch": "tsc --watch --skipLibCheck",
     "clean": "rm -rf dist",
     "type-check": "tsc --noEmit",
     "lint": "tsc --noEmit"

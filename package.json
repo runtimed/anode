@@ -9,7 +9,10 @@
   },
   "scripts": {
     "build": "pnpm --recursive --filter='@anode/*' build",
-    "dev": "pnpm build:schema && concurrently --names 'SCHEMA,DOCWORKER,WEB' --prefix-colors 'yellow,blue,green' 'pnpm --filter @anode/schema dev' 'pnpm --filter @anode/docworker dev' 'pnpm --filter @anode/web-client dev'",
+    "build:tsc": "tsc --build",
+    "build:tsc:watch": "tsc --build --watch",
+    "dev": "pnpm build:schema && concurrently --names 'SCHEMA,DOCWORKER,WEB' --prefix-colors 'yellow,blue,green' 'pnpm --filter @anode/schema watch' 'pnpm --filter @anode/docworker dev' 'pnpm --filter @anode/web-client dev'",
+    "dev:tsc": "pnpm build:schema && concurrently --names 'TSC,DOCWORKER,WEB' --prefix-colors 'yellow,blue,green' 'pnpm build:tsc:watch' 'pnpm --filter @anode/docworker dev' 'pnpm --filter @anode/web-client dev'",
     "dev:web-only": "pnpm --filter @anode/web-client dev",
     "dev:kernel": "pnpm --filter @anode/dev-server-kernel-ls-client dev",
     "dev:sync-only": "pnpm --filter @anode/docworker dev",
