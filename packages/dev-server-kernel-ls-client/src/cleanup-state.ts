@@ -32,14 +32,17 @@ const store = await createStorePromise({
 console.log("✅ Store connected. Analyzing current state...");
 
 // Check current state
-const allCells = store.query(tables.cells);
-const stuckCells = allCells.filter(cell =>
-  cell.executionState === 'running' ||
-  cell.executionState === 'pending'
-);
+const allCells$ = queryDb(tables.cells, { label: 'allCells' });
+const runningCells$ = queryDb(tables.cells.where({ executionState: 'running' }), { label: 'runningCells' });
+const pendingCells$ = queryDb(tables.cells.where({ executionState: 'pending' }), { label: 'pendingCells' });
+
+const allCells = store.query(allCells$) as any[];
+const runningCells = store.query(runningCells$) as any[];
+const pendingCells = store.query(pendingCells$) as any[];
+const stuckCells = [...runningCells, ...pendingCells];
 
 console.log(`📊 Found ${allCells.length} total cells`);
-console.log(`🔒 Found ${stuckCells.length} stuck cells`);
+console.log(`🔒 Found ${stuckCells.length} stuck cells (${runningCells.length} running, ${pendingCells.length} pending)`);
 
 if (stuckCells.length === 0) {
   console.log("🎉 No stuck cells found! State is clean.");
@@ -72,10 +75,9 @@ if (stuckCells.length === 0) {
 await new Promise(resolve => setTimeout(resolve, 2000));
 
 // Verify cleanup worked
-const remainingStuckCells = store.query(tables.cells).filter(cell =>
-  cell.executionState === 'running' ||
-  cell.executionState === 'pending'
-);
+const updatedRunningCells = store.query(runningCells$) as any[];
+const updatedPendingCells = store.query(pendingCells$) as any[];
+const remainingStuckCells = [...updatedRunningCells, ...updatedPendingCells];
 
 if (remainingStuckCells.length > 0) {
   console.log(`⚠️ Warning: ${remainingStuckCells.length} cells still stuck after cleanup.`);

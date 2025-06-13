@@ -46,20 +46,6 @@ console.log("✅ Kernel ready. Setting up debugging and subscriptions...");
 // Track processed execution counts to prevent re-execution
 const processedExecutions = new Map<string, number>();
 
-// Debug: Check what's in the store initially
-const allNotebooks = store.query(tables.notebooks);
-const allCells = store.query(tables.cells);
-console.log(`📊 Initial store state:`);
-console.log(`   - Notebooks: ${allNotebooks.length}`);
-console.log(`   - Cells: ${allCells.length}`);
-if (allNotebooks.length > 0) {
-  console.log(`   - Notebook IDs: ${allNotebooks.map(n => n.id).join(', ')}`);
-}
-if (allCells.length > 0) {
-  console.log(`   - Cell IDs: ${allCells.map(c => c.id).join(', ')}`);
-  console.log(`   - Cell notebook IDs: ${allCells.map(c => c.notebookId).join(', ')}`);
-}
-
 console.log("🔍 Subscribing to CellExecutionRequested events...");
 
 // Debug: Subscribe to ALL cells first to see what's happening
