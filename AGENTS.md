@@ -112,7 +112,7 @@ pnpm build:schema   # Required after schema changes
 anode/
 ├── packages/
 │   ├── schema/           # LiveStore schema definitions
-│   ├── web-client/       # React web application  
+│   ├── web-client/       # React web application
 │   ├── docworker/        # Cloudflare Worker sync backend
 │   └── dev-server-kernel-ls-client/  # Python kernel server (manual)
 ├── start-dev.sh          # Development startup script
@@ -146,3 +146,10 @@ anode/
 - **Current state**: Manual kernel management, basic execution queue working
 - **Known issues**: LiveStore reactivity errors, no kernel permission enforcement yet
 - Each notebook = separate LiveStore database for isolation
+
+### Communication Style
+- Use authentic developer voice - "beginnings at least...", "note: we can use X in future", uncertainty is fine just be explicit
+- Show honest assessment of current state vs. aspirational goals
+- Acknowledge rough edges and incomplete work rather than polishing everything
+- Write like you're documenting for teammates, not marketing to users
+- Be concise but complete - cover what matters without being verbose
