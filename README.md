@@ -214,6 +214,30 @@ DEBUG=* NOTEBOOK_ID=your-notebook-id pnpm --filter @anode/dev-server-kernel-ls-c
 4. Start development: `./start-dev.sh`
 5. Make changes and test end-to-end flow
 
+### **Linting & Type Checking**
+
+We've set up comprehensive TypeScript linting and type checking for all packages:
+
+```bash
+# Check everything
+pnpm type-check                     # Type check all packages
+pnpm lint                          # Lint all packages  
+pnpm ci                           # Run both type-check and lint
+
+# Per-package commands
+pnpm type-check:kernel            # Type check kernel service only
+pnpm type-check:schema            # Type check schema package only
+pnpm lint:kernel                  # Lint kernel service only
+pnpm lint:schema                  # Lint schema package only
+
+# Individual package commands
+pnpm --filter @anode/dev-server-kernel-ls-client type-check
+pnpm --filter @anode/web-client type-check
+pnpm --filter @anode/schema type-check
+```
+
+**GitHub Actions CI**: The `.github/workflows/ci.yml` automatically runs type checking and linting on all pull requests and pushes to main/develop branches.
+
 ### **Package Dependencies**
 ```
 schema (base package)
