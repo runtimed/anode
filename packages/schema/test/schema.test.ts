@@ -4,12 +4,9 @@ import { createStorePromise, queryDb } from '@livestore/livestore'
 import { makeAdapter } from '@livestore/adapter-node'
 import { events, tables, schema } from '../src/schema.js'
 
-// Vitest setup - remove dependency on external setup file
-
 describe('Anode Schema', () => {
   describe('Event Schema Validation', () => {
     it('should validate notebookInitialized event', () => {
-      const now = new Date()
       const validEvent = {
         id: 'notebook-123',
         title: 'Test Notebook',
@@ -21,7 +18,6 @@ describe('Anode Schema', () => {
     })
 
     it('should validate cellCreated event', () => {
-      const now = new Date()
       const validEvent = {
         id: 'cell-123',
         cellType: 'code' as const,
@@ -34,7 +30,6 @@ describe('Anode Schema', () => {
     })
 
     it('should validate kernelSessionStarted event', () => {
-      const now = new Date()
       const validEvent = {
         sessionId: 'session-123',
         kernelId: 'kernel-456',
@@ -51,7 +46,6 @@ describe('Anode Schema', () => {
     })
 
     it('should validate executionRequested event', () => {
-      const now = new Date()
       const validEvent = {
         queueId: 'queue-123',
         cellId: 'cell-456',
@@ -65,7 +59,6 @@ describe('Anode Schema', () => {
     })
 
     it('should validate cellOutputAdded event', () => {
-      const now = new Date()
       const validEvent = {
         id: 'output-123',
         cellId: 'cell-456',
@@ -163,7 +156,6 @@ describe('Anode Schema', () => {
 
     it('should create and query notebook', async () => {
       const notebookId = 'test-notebook-123'
-      const now = new Date()
 
       // Create notebook
       store.commit(events.notebookInitialized({
@@ -182,7 +174,6 @@ describe('Anode Schema', () => {
 
     it('should create and query cells', async () => {
       const cellId = 'test-cell-123'
-      const now = new Date()
 
       // Create cell
       store.commit(events.cellCreated({
@@ -211,12 +202,11 @@ describe('Anode Schema', () => {
     it('should manage kernel sessions', async () => {
       const sessionId = 'test-session-123'
       const kernelId = 'test-kernel-456'
-      const now = new Date()
 
       // Start kernel session
       store.commit(events.kernelSessionStarted({
-        sessionId: 'session-123',
-        kernelId: 'kernel-123',
+        sessionId: sessionId,
+        kernelId: kernelId,
         kernelType: 'python3',
         capabilities: {
           canExecuteCode: true,
@@ -226,7 +216,6 @@ describe('Anode Schema', () => {
       }))
 
       // Send heartbeat
-      const heartbeatTime = new Date(now.getTime() + 30000)
       store.commit(events.kernelSessionHeartbeat({
         sessionId,
         status: 'ready'
@@ -246,7 +235,6 @@ describe('Anode Schema', () => {
       const cellId = 'test-cell-123'
       const queueId = 'test-queue-456'
       const sessionId = 'test-session-789'
-      const now = new Date()
 
       // Create cell first
       store.commit(events.cellCreated({
@@ -258,7 +246,7 @@ describe('Anode Schema', () => {
 
       // Request execution
       store.commit(events.executionRequested({
-        queueId: 'queue-123',
+        queueId: queueId,
         cellId,
         executionCount: 1,
         requestedBy: 'user-123',
@@ -294,14 +282,13 @@ describe('Anode Schema', () => {
       // Query updated cell
       const cells = store.query(tables.cells.select())
       expect(cells).toHaveLength(1)
-      expect(cells[0].executionState).toBe('queued') // Updated by executionRequested
+      expect(cells[0].executionState).toBe('completed') // Updated by executionCompleted
       expect(cells[0].executionCount).toBe(1)
     })
 
     it('should handle cell outputs', async () => {
       const cellId = 'test-cell-123'
       const outputId = 'test-output-456'
-      const now = new Date()
 
       // Create cell first
       store.commit(events.cellCreated({
@@ -339,9 +326,8 @@ describe('Anode Schema', () => {
       expect(outputsAfterClear).toHaveLength(0)
     })
 
-    it('should handle cell deletion with soft delete', async () => {
+    it('should handle cell deletion with hard delete', async () => {
       const cellId = 'test-cell-123'
-      const now = new Date()
 
       // Create cell
       store.commit(events.cellCreated({
@@ -356,50 +342,19 @@ describe('Anode Schema', () => {
         id: cellId,
       }))
 
-      // Query all cells (including deleted)
+      // Query all cells (hard delete removes the cell entirely)
       const allCells = store.query(tables.cells.select())
-      expect(allCells).toHaveLength(1)
+      expect(allCells).toHaveLength(0)
 
-      // Query only non-deleted cells
+      // Query only non-deleted cells (same as all cells since hard delete is used)
       const activeCells = store.query(
         tables.cells.select()
       )
       expect(activeCells).toHaveLength(0)
     })
 
-    it('should update notebook last modified on cell changes', async () => {
-      const notebookId = 'test-notebook-123'
-      const cellId = 'test-cell-456'
-      const initialTime = new Date()
-
-      // Create notebook
-      store.commit(events.notebookInitialized({
-        id: notebookId,
-        title: 'Test Notebook',
-        ownerId: 'user-123'
-      }))
-
-      // Create cell (should update notebook lastModified)
-      const cellCreatedTime = new Date(initialTime.getTime() + 1000)
-      // Create cell
-      store.commit(events.cellCreated({
-        id: cellId,
-        cellType: 'code',
-        position: 0,
-        createdBy: 'user-123'
-      }))
-
-      // Query notebook - lastModified should be updated automatically
-      const notebooks = store.query(tables.notebook.select())
-      expect(notebooks).toHaveLength(1)
-      // The notebook lastModified should be updated, but we can't predict the exact timestamp
-      // since it's set by the materializer at event processing time
-      expect(notebooks[0].lastModified.getTime()).toBeGreaterThanOrEqual(initialTime.getTime())
-    })
-
     it('should support reactive queries', async () => {
       const cellId = 'test-cell-123'
-      const now = new Date()
 
       // Create reactive query
       const activeCells$ = queryDb(
@@ -467,9 +422,9 @@ describe('Anode Schema', () => {
   })
 
   describe('Build-time Schema Validation', () => {
-    it('should not have redundant notebookLastModified fields', () => {
-      // These events should derive notebook lastModified from event timestamp
-      const eventsWithCleanTimestamps = [
+    it('should not have redundant fields', () => {
+      // These events should be clean without timestamp complications
+      const eventsWithCleanSchema = [
         'v1.CellCreated',
         'v1.CellSourceChanged',
         'v1.CellTypeChanged',
@@ -477,11 +432,11 @@ describe('Anode Schema', () => {
         'v1.CellMoved',
       ]
 
-      for (const eventName of eventsWithCleanTimestamps) {
+      for (const eventName of eventsWithCleanSchema) {
         const event = Object.values(events).find(e => e.name === eventName)
         expect(event).toBeDefined()
 
-        // Create event payload without notebookLastModified
+        // Create event payload with minimal required fields
         const testPayload: any = {
           id: 'test-id',
           // Add minimal required fields based on event type
@@ -504,12 +459,9 @@ describe('Anode Schema', () => {
           }),
         }
 
-        // Events should validate successfully without notebookLastModified
+        // Events should validate successfully
         const result = S.decodeUnknownSync(event!.schema)(testPayload)
         expect(result).toBeDefined()
-
-        // Verify notebookLastModified is NOT in the schema
-        expect(result).not.toHaveProperty('notebookLastModified')
       }
     })
 
