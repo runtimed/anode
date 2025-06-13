@@ -69,10 +69,21 @@ const NotebookApp: React.FC = () => {
 
 const storeId = getStoreId()
 
+// Check for reset parameter to handle schema evolution issues
+const resetPersistence = new URLSearchParams(window.location.search).get('reset') !== null
+
+// Clean up URL if reset was requested
+if (resetPersistence) {
+  const searchParams = new URLSearchParams(window.location.search)
+  searchParams.delete('reset')
+  window.history.replaceState(null, '', `${window.location.pathname}?${searchParams.toString()}`)
+}
+
 const adapter = makePersistedAdapter({
   storage: { type: 'opfs' },
   worker: LiveStoreWorker,
   sharedWorker: LiveStoreSharedWorker,
+  resetPersistence,
 })
 
 export const App: React.FC = () => (

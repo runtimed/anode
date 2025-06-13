@@ -2,10 +2,7 @@
   "compilerOptions": {
     "target": "ES2022",
     "module": "ESNext",
-    "moduleResolution": "bundler",
-    "declaration": true,
-    "outDir": "./dist",
-    "rootDir": "./src",
+    "moduleResolution": "Node",
     "strict": true,
     "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
@@ -13,12 +10,16 @@
     "forceConsistentCasingInFileNames": true,
     "resolveJsonModule": true,
     "isolatedModules": true,
-    "noEmit": false,
-    "lib": ["ES2022", "DOM"]
+    "noEmit": true,
+    "composite": true,
+    "declaration": true,
+    "declarationMap": true
   },
-  "include": ["src/**/*"],
-  "exclude": ["dist", "node_modules"],
+  "files": [],
   "references": [
-    { "path": "../schema" }
+    { "path": "./packages/schema" },
+    { "path": "./packages/web-client" },
+    { "path": "./packages/docworker" },
+    { "path": "./packages/dev-server-kernel-ls-client" }
   ]
 }
