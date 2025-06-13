@@ -8,14 +8,16 @@
     "deploy": "wrangler deploy",
     "build": "echo 'CloudFlare Worker - no build needed'",
     "clean": "echo 'CloudFlare Worker - no clean needed'",
-    "type-check": "echo 'CloudFlare Worker - type checking handled by wrangler'",
-    "lint": "echo 'CloudFlare Worker - linting handled by wrangler'"
+    "type-check": "tsc --noEmit",
+    "lint": "tsc --noEmit"
   },
   "dependencies": {
     "@anode/schema": "workspace:*",
     "@livestore/sync-cf": "catalog:"
   },
   "devDependencies": {
-    "wrangler": "catalog:"
+    "wrangler": "catalog:",
+    "@cloudflare/workers-types": "catalog:",
+    "typescript": "catalog:"
   }
 }

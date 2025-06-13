@@ -93,9 +93,9 @@ NOTEBOOK_ID=my-notebook pnpm --filter @anode/dev-server-kernel-ls-client dev
 
 ### **`@anode/docworker`** - CloudFlare Workers Sync
 - **Purpose**: Real-time synchronization and event storage
-- **Tech**: CloudFlare Workers, WebSocket, D1 Database
+- **Tech**: CloudFlare Workers, WebSocket, D1 Database, TypeScript
 - **Port**: 8787
-- **Features**: Event broadcasting, auth validation, CORS handling
+- **Features**: Event broadcasting, auth validation, CORS handling, full type checking
 
 ### **`@anode/dev-server-kernel-ls-client`** - Python Kernel Process
 - **Purpose**: Python execution process that connects to a specific notebook store
@@ -236,7 +236,7 @@ pnpm --filter @anode/web-client type-check
 pnpm --filter @anode/schema type-check
 ```
 
-**GitHub Actions CI**: The `.github/workflows/ci.yml` automatically runs type checking and linting on all pull requests and pushes to main/develop branches.
+**GitHub Actions CI**: The `.github/workflows/ci.yml` automatically runs type checking and linting on all 4 packages (including CloudFlare Workers) on all pull requests and pushes to main/develop branches.
 
 ### **Package Dependencies**
 ```
@@ -247,9 +247,11 @@ schema (base package)
 ```
 
 ### **Coding Standards**
-- TypeScript strict mode
+- TypeScript strict mode across all packages (including CloudFlare Workers)
+- Comprehensive type checking and linting via `pnpm check`
 - Event-driven architecture patterns
 - Real-time collaboration considerations
+- LiveStore reactive query patterns
 
 ## 📄 **License**
 
