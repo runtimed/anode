@@ -8,7 +8,7 @@ import { Badge } from '@/components/ui/badge'
 import { Separator } from '@/components/ui/separator'
 
 const notebooksQuery = queryDb(
-  (get) => tables.notebooks
+  tables.notebooks
 )
 
 interface NotebookListProps {
@@ -17,7 +17,7 @@ interface NotebookListProps {
 
 export const NotebookList: React.FC<NotebookListProps> = ({ onSelectNotebook }) => {
   const { store } = useStore()
-  const notebooks = store.useQuery(notebooksQuery)
+  const notebooks = store.useQuery(notebooksQuery) as any[]
 
   const createNotebook = useCallback(() => {
     const notebookId = `notebook-${Date.now()}-${Math.random().toString(36).slice(2)}`
@@ -51,7 +51,7 @@ export const NotebookList: React.FC<NotebookListProps> = ({ onSelectNotebook }) 
     }
   }
 
-  const sortedNotebooks = [...notebooks].sort((a, b) =>
+  const sortedNotebooks = notebooks.sort((a: any, b: any) =>
     new Date(b.lastModified).getTime() - new Date(a.lastModified).getTime()
   )
 
@@ -88,7 +88,7 @@ export const NotebookList: React.FC<NotebookListProps> = ({ onSelectNotebook }) 
         </Card>
       ) : (
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-          {sortedNotebooks.map((notebook) => (
+          {sortedNotebooks.map((notebook: any) => (
             <Card
               key={notebook.id}
               className="cursor-pointer hover:shadow-md transition-shadow"

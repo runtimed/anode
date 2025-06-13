@@ -11,7 +11,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu'
-import { Separator } from '@/components/ui/separator'
+
 
 interface AiCellProps {
   cell: typeof tables.cells.Type
@@ -219,7 +219,7 @@ export const AiCell: React.FC<AiCellProps> = ({
         <div className="space-y-3">
           <Textarea
             value={userInput}
-            onChange={(e) => setUserInput(e.target.value)}
+            onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setUserInput(e.target.value)}
             onKeyDown={handleKeyDown}
             placeholder="Ask me anything about your notebook, data, or analysis..."
             className="min-h-[80px] resize-none"

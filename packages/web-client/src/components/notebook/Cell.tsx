@@ -47,10 +47,10 @@ export const Cell: React.FC<CellProps> = ({
 
   // Create stable query using useMemo to prevent React Hook issues
   const outputsQuery = React.useMemo(() =>
-    queryDb((get) => tables.outputs.where({ cellId: cell.id })),
+    queryDb(tables.outputs.where({ cellId: cell.id })),
     [cell.id]
   )
-  const outputs = store.useQuery(outputsQuery)
+  const outputs = store.useQuery(outputsQuery) as any[]
 
   const updateSource = useCallback(() => {
     if (localSource !== cell.source) {
@@ -252,7 +252,7 @@ export const Cell: React.FC<CellProps> = ({
           {isEditing ? (
             <Textarea
               value={localSource}
-              onChange={(e) => setLocalSource(e.target.value)}
+              onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setLocalSource(e.target.value)}
               onBlur={updateSource}
               onKeyDown={handleKeyDown}
               placeholder={
@@ -312,7 +312,7 @@ export const Cell: React.FC<CellProps> = ({
                 </div>
               )}
 
-              {[...outputs]
+              {outputs
                 .sort((a: any, b: any) => a.position - b.position)
                 .map((output: any) => (
                   <div key={output.id} className="border rounded-md">

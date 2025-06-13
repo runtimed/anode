@@ -10,12 +10,12 @@ import { Badge } from '@/components/ui/badge'
 import { Separator } from '@/components/ui/separator'
 
 const cellsQuery = (notebookId: string) => queryDb(
-  (get) => tables.cells
+  tables.cells
     .where({ notebookId, deletedAt: null })
 )
 
 const notebookQuery = (notebookId: string) => queryDb(
-  (get) => tables.notebooks.where({ id: notebookId }).limit(1)
+  tables.notebooks.where({ id: notebookId }).limit(1)
 )
 
 interface NotebookViewerProps {
@@ -25,8 +25,8 @@ interface NotebookViewerProps {
 
 export const NotebookViewer: React.FC<NotebookViewerProps> = ({ notebookId, onBack }) => {
   const { store } = useStore()
-  const cells = store.useQuery(cellsQuery(notebookId))
-  const notebooks = store.useQuery(notebookQuery(notebookId))
+  const cells = store.useQuery(cellsQuery(notebookId)) as any[]
+  const notebooks = store.useQuery(notebookQuery(notebookId)) as any[]
   const notebook = notebooks[0]
 
   const [isEditingTitle, setIsEditingTitle] = React.useState(false)
@@ -52,7 +52,7 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({ notebookId, onBa
   const addCell = useCallback((afterCellId?: string, cellType: 'code' | 'markdown' | 'raw' | 'sql' | 'ai' = 'code') => {
     const cellId = `cell-${Date.now()}-${Math.random().toString(36).slice(2)}`
     const newPosition = afterCellId
-      ? Math.max(...cells.map(c => c.position)) + 1
+      ? Math.max(...cells.map((c: any) => c.position)) + 1
       : cells.length
 
     store.commit(events.cellCreated({
@@ -74,10 +74,10 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({ notebookId, onBa
   }, [store])
 
   const moveCell = useCallback((cellId: string, direction: 'up' | 'down') => {
-    const currentCell = cells.find(c => c.id === cellId)
+    const currentCell = cells.find((c: any) => c.id === cellId)
     if (!currentCell) return
 
-    const sortedCells = [...cells].sort((a, b) => a.position - b.position)
+    const sortedCells = cells.sort((a: any, b: any) => a.position - b.position)
     const currentIndex = sortedCells.findIndex(c => c.id === cellId)
 
     if (direction === 'up' && currentIndex > 0) {
@@ -117,7 +117,7 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({ notebookId, onBa
     )
   }
 
-  const sortedCells = [...cells].sort((a, b) => a.position - b.position)
+  const sortedCells = cells.sort((a: any, b: any) => a.position - b.position)
 
   return (
     <div className="max-w-4xl mx-auto p-6">
@@ -133,9 +133,9 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({ notebookId, onBa
               {isEditingTitle ? (
                 <Input
                   value={localTitle}
-                  onChange={(e) => setLocalTitle(e.target.value)}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => setLocalTitle(e.target.value)}
                   onBlur={updateTitle}
-                  onKeyDown={(e) => {
+                  onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => {
                     if (e.key === 'Enter') updateTitle()
                     if (e.key === 'Escape') {
                       setLocalTitle(notebook.title)
@@ -188,7 +188,7 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({ notebookId, onBa
             </CardContent>
           </Card>
         ) : (
-          sortedCells.map((cell, index) => (
+          sortedCells.map((cell: any) => (
             <Cell
               key={cell.id}
               cell={cell}

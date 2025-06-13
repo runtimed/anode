@@ -222,7 +222,7 @@ We've set up comprehensive TypeScript linting and type checking for all packages
 # Check everything
 pnpm type-check                     # Type check all packages
 pnpm lint                          # Lint all packages  
-pnpm ci                           # Run both type-check and lint
+pnpm check                         # Run both type-check and lint
 
 # Per-package commands
 pnpm type-check:kernel            # Type check kernel service only

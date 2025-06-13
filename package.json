@@ -23,7 +23,7 @@
     "type-check:schema": "pnpm --filter @anode/schema type-check",
     "lint:kernel": "pnpm --filter @anode/dev-server-kernel-ls-client lint",
     "lint:schema": "pnpm --filter @anode/schema lint",
-    "ci": "pnpm type-check && pnpm lint",
+    "check": "pnpm type-check && pnpm lint",
     "start": "echo 'Use pnpm dev to start core services. For Python execution, start kernel with: NOTEBOOK_ID=your-notebook-id pnpm dev:kernel'"
   },
   "devDependencies": {

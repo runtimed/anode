@@ -2,9 +2,9 @@ name: CI
 
 on:
   push:
-    branches: [ main, develop ]
+    branches: [main, develop]
   pull_request:
-    branches: [ main, develop ]
+    branches: [main, develop]
 
 jobs:
   lint-and-typecheck:
@@ -18,7 +18,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '23'
+          node-version: "23"
 
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
@@ -44,11 +44,8 @@ jobs:
       - name: Build schema
         run: pnpm build:schema
 
-      - name: Run type checking
-        run: pnpm type-check
-
-      - name: Run linting
-        run: pnpm lint
+      - name: Run type checking and linting
+        run: pnpm check
 
   build:
     name: Build All Packages
@@ -62,7 +59,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '23'
+          node-version: "23"
 
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
