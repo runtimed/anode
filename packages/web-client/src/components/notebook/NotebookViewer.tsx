@@ -9,13 +9,13 @@ import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
 import { Separator } from '@/components/ui/separator'
 
-const cellsQuery = (notebookId: string) => queryDb(
-  tables.cells
-    .where({ notebookId, deletedAt: null })
+const cellsQuery = queryDb(
+  tables.cells.query
+    .where({ deletedAt: null })
 )
 
-const notebookQuery = (notebookId: string) => queryDb(
-  tables.notebooks.where({ id: notebookId }).limit(1)
+const notebookQuery = queryDb(
+  tables.notebook.query.limit(1)
 )
 
 interface NotebookViewerProps {
@@ -23,10 +23,10 @@ interface NotebookViewerProps {
   onBack: () => void
 }
 
-export const NotebookViewer: React.FC<NotebookViewerProps> = ({ notebookId, onBack }) => {
+export const NotebookViewer: React.FC<NotebookViewerProps> = ({ onBack }) => {
   const { store } = useStore()
-  const cells = store.useQuery(cellsQuery(notebookId)) as any[]
-  const notebooks = store.useQuery(notebookQuery(notebookId)) as any[]
+  const cells = store.useQuery(cellsQuery) as any[]
+  const notebooks = store.useQuery(notebookQuery) as any[]
   const notebook = notebooks[0]
 
   const [isEditingTitle, setIsEditingTitle] = React.useState(false)
@@ -41,7 +41,6 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({ notebookId, onBa
   const updateTitle = useCallback(() => {
     if (notebook && localTitle !== notebook.title) {
       store.commit(events.notebookTitleChanged({
-        id: notebook.id,
         title: localTitle,
         lastModified: new Date(),
       }))
@@ -57,13 +56,12 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({ notebookId, onBa
 
     store.commit(events.cellCreated({
       id: cellId,
-      notebookId,
       position: newPosition,
       cellType,
       createdBy: 'current-user',
       createdAt: new Date(),
     }))
-  }, [notebookId, cells, store])
+  }, [cells, store])
 
   const deleteCell = useCallback((cellId: string) => {
     store.commit(events.cellDeleted({
@@ -78,7 +76,7 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({ notebookId, onBa
     if (!currentCell) return
 
     const sortedCells = cells.sort((a: any, b: any) => a.position - b.position)
-    const currentIndex = sortedCells.findIndex(c => c.id === cellId)
+    const currentIndex = sortedCells.findIndex((c: any) => c.id === cellId)
 
     if (direction === 'up' && currentIndex > 0) {
       const targetCell = sortedCells[currentIndex - 1]

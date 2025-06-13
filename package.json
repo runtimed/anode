@@ -27,6 +27,7 @@
     "lint:kernel": "pnpm --filter @anode/dev-server-kernel-ls-client lint",
     "lint:schema": "pnpm --filter @anode/schema lint",
     "check": "pnpm type-check && pnpm lint",
+    "reset-storage": "node reset-local-storage.cjs",
     "start": "echo 'Use pnpm dev to start core services. For Python execution, start kernel with: NOTEBOOK_ID=your-notebook-id pnpm dev:kernel'"
   },
   "devDependencies": {

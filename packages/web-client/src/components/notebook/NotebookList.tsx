@@ -7,8 +7,8 @@ import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Separator } from '@/components/ui/separator'
 
-const notebooksQuery = queryDb(
-  tables.notebooks
+const currentNotebookQuery = queryDb(
+  tables.notebook.query.limit(1)
 )
 
 interface NotebookListProps {
@@ -17,23 +17,39 @@ interface NotebookListProps {
 
 export const NotebookList: React.FC<NotebookListProps> = ({ onSelectNotebook }) => {
   const { store } = useStore()
-  const notebooks = store.useQuery(notebooksQuery) as any[]
+  const notebooks = store.useQuery(currentNotebookQuery) as any[]
+  const currentNotebook = notebooks[0]
 
-  const createNotebook = useCallback(() => {
+  const createNewNotebook = useCallback(() => {
+    // Generate a unique notebook ID that will also be the store ID
     const notebookId = `notebook-${Date.now()}-${Math.random().toString(36).slice(2)}`
-    const title = `Notebook ${new Date().toLocaleDateString()}`
-    const now = new Date()
 
-    store.commit(events.notebookCreated({
+    // In the new architecture, we need to navigate to a new store
+    // For now, we'll just show a message about how to create notebooks
+    alert(`To create a new notebook, open a new browser tab/window and navigate to:
+
+${window.location.origin}?notebook=${notebookId}
+
+This will create a new notebook with ID: ${notebookId}
+
+Note: In the simplified architecture, each notebook gets its own store/database.`)
+  }, [])
+
+  const initializeCurrentNotebook = useCallback(() => {
+    // If we're in a store but don't have a notebook initialized, create one
+    const notebookId = store.storeId || `notebook-${Date.now()}`
+    const title = `Notebook ${new Date().toLocaleDateString()}`
+
+    store.commit(events.notebookInitialized({
       id: notebookId,
       title,
       ownerId: 'current-user', // TODO: get from auth
-      createdAt: now,
+      createdAt: new Date(),
     }))
 
-    // Auto-select the new notebook
+    // Navigate to the notebook view
     onSelectNotebook(notebookId)
-  }, [onSelectNotebook, store])
+  }, [store, onSelectNotebook])
 
   const formatDate = (date: Date) => {
     const now = new Date()
@@ -51,100 +67,95 @@ export const NotebookList: React.FC<NotebookListProps> = ({ onSelectNotebook }) 
     }
   }
 
-  const sortedNotebooks = notebooks.sort((a: any, b: any) =>
-    new Date(b.lastModified).getTime() - new Date(a.lastModified).getTime()
-  )
-
   return (
     <div className="max-w-4xl mx-auto p-6">
       {/* Header */}
       <div className="flex items-center justify-between mb-8">
         <div>
-          <h1 className="text-3xl font-bold">My Notebooks</h1>
+          <h1 className="text-3xl font-bold">Anode Notebooks</h1>
           <p className="text-muted-foreground mt-2">
-            Create and manage your collaborative notebooks
+            Real-time collaborative notebook system
           </p>
         </div>
-        <Button onClick={createNotebook} size="lg">
+        <Button onClick={createNewNotebook} size="lg">
           + New Notebook
         </Button>
       </div>
 
-      {/* Notebooks Grid */}
-      {sortedNotebooks.length === 0 ? (
+      {/* Current Notebook or Initialize */}
+      {!currentNotebook ? (
         <Card>
           <CardContent className="p-12 text-center">
             <div className="max-w-md mx-auto">
-              <h3 className="text-xl font-semibold mb-2">No notebooks yet</h3>
+              <h3 className="text-xl font-semibold mb-2">Initialize This Notebook</h3>
               <p className="text-muted-foreground mb-6">
-                Get started by creating your first collaborative notebook.
-                You can write code, add markdown documentation, and share with others.
+                This store doesn't have a notebook yet. Initialize it to start
+                creating cells and collaborating with others.
               </p>
-              <Button onClick={createNotebook} size="lg">
-                Create Your First Notebook
+              <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-md text-sm">
+                <strong>Store ID:</strong> {store.storeId || 'default'}
+              </div>
+              <Button onClick={initializeCurrentNotebook} size="lg">
+                Initialize Notebook
               </Button>
             </div>
           </CardContent>
         </Card>
       ) : (
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-          {sortedNotebooks.map((notebook: any) => (
-            <Card
-              key={notebook.id}
-              className="cursor-pointer hover:shadow-md transition-shadow"
-              onClick={() => onSelectNotebook(notebook.id)}
-            >
-              <CardHeader className="pb-3">
-                <div className="flex items-start justify-between">
-                  <CardTitle className="text-lg line-clamp-2 leading-tight">
-                    {notebook.title}
-                  </CardTitle>
-                  <Badge variant="secondary" className="ml-2 shrink-0">
-                    {notebook.kernelType}
+        <Card
+          className="cursor-pointer hover:shadow-md transition-shadow"
+          onClick={() => onSelectNotebook(currentNotebook.id)}
+        >
+          <CardHeader className="pb-3">
+            <div className="flex items-start justify-between">
+              <CardTitle className="text-lg line-clamp-2 leading-tight">
+                {currentNotebook.title}
+              </CardTitle>
+              <Badge variant="secondary" className="ml-2 shrink-0">
+                {currentNotebook.kernelType}
+              </Badge>
+            </div>
+          </CardHeader>
+
+          <CardContent className="pt-0">
+            <div className="space-y-2">
+              <div className="flex items-center justify-between text-sm text-muted-foreground">
+                <span>Modified</span>
+                <span>{formatDate(new Date(currentNotebook.lastModified))}</span>
+              </div>
+
+              <div className="flex items-center justify-between text-sm text-muted-foreground">
+                <span>Created</span>
+                <span>{formatDate(new Date(currentNotebook.createdAt))}</span>
+              </div>
+
+              <Separator className="my-3" />
+
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Badge variant="outline" className="text-xs">
+                    {currentNotebook.isPublic ? 'Public' : 'Private'}
+                  </Badge>
+                  <Badge variant="outline" className="text-xs">
+                    Store: {store.storeId}
                   </Badge>
                 </div>
-              </CardHeader>
-
-              <CardContent className="pt-0">
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between text-sm text-muted-foreground">
-                    <span>Modified</span>
-                    <span>{formatDate(new Date(notebook.lastModified))}</span>
-                  </div>
-
-                  <div className="flex items-center justify-between text-sm text-muted-foreground">
-                    <span>Created</span>
-                    <span>{formatDate(new Date(notebook.createdAt))}</span>
-                  </div>
-
-                  <Separator className="my-3" />
-
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <Badge variant="outline" className="text-xs">
-                        {notebook.isPublic ? 'Public' : 'Private'}
-                      </Badge>
-                    </div>
-                    <div className="text-xs text-muted-foreground">
-                      by {notebook.ownerId}
-                    </div>
-                  </div>
+                <div className="text-xs text-muted-foreground">
+                  by {currentNotebook.ownerId}
                 </div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
       )}
 
-      {/* Footer Stats */}
-      {sortedNotebooks.length > 0 && (
-        <>
-          <Separator className="my-8" />
-          <div className="text-center text-sm text-muted-foreground">
-            {sortedNotebooks.length} notebook{sortedNotebooks.length !== 1 ? 's' : ''} total
-          </div>
-        </>
-      )}
+      {/* Architecture Info */}
+      <Separator className="my-8" />
+      <div className="text-center text-sm text-muted-foreground space-y-2">
+        <div><strong>Simplified Architecture:</strong> One notebook per store/database</div>
+        <div>Store ID: {store.storeId || 'default'}</div>
+        <div>To access other notebooks, use different URLs with ?notebook=&lt;notebook-id&gt;</div>
+      </div>
     </div>
   )
 }

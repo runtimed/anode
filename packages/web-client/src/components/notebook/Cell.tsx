@@ -16,8 +16,10 @@ import { SqlCell } from './SqlCell.js'
 import { AiCell } from './AiCell.js'
 import { queryDb } from '@livestore/livestore'
 
+type CellType = typeof tables.cells.Type
+
 interface CellProps {
-  cell: typeof tables.cells.Type
+  cell: CellType
   onAddCell: () => void
   onDeleteCell: () => void
   onMoveUp: () => void
@@ -47,7 +49,7 @@ export const Cell: React.FC<CellProps> = ({
 
   // Create stable query using useMemo to prevent React Hook issues
   const outputsQuery = React.useMemo(() =>
-    queryDb(tables.outputs.where({ cellId: cell.id })),
+    queryDb(tables.outputs.query.where({ cellId: cell.id })),
     [cell.id]
   )
   const outputs = store.useQuery(outputsQuery) as any[]
@@ -76,7 +78,7 @@ export const Cell: React.FC<CellProps> = ({
       return
     }
 
-    console.log('🚀 Executing cell via LiveStore events:', cell.id, 'in notebook:', cell.notebookId)
+    console.log('🚀 Executing cell via execution queue:', cell.id)
 
     try {
       // Clear previous outputs first
@@ -85,21 +87,28 @@ export const Cell: React.FC<CellProps> = ({
         clearedBy: 'current-user',
       }))
 
-      // Emit CellExecutionRequested event - kernel service will pick this up
-      store.commit(events.cellExecutionRequested({
+      // Generate unique queue ID
+      const queueId = `exec-${Date.now()}-${Math.random().toString(36).slice(2)}`
+      const executionCount = (cell.executionCount || 0) + 1
+
+      // Add to execution queue - kernels will pick this up
+      store.commit(events.executionRequested({
+        queueId,
         cellId: cell.id,
-        notebookId: cell.notebookId,
+        executionCount,
         requestedBy: 'current-user',
-        executionCount: (cell.executionCount || 0) + 1,
+        requestedAt: new Date(),
+        priority: 0, // Normal priority
       }))
 
-      console.log('✅ Execution request sent via LiveStore event')
+      console.log('✅ Execution queued with ID:', queueId)
 
       // The kernel service will now:
-      // 1. See the CellExecutionRequested event
-      // 2. Execute the code
-      // 3. Emit CellExecutionStarted, CellOutputAdded, CellExecutionCompleted events
-      // 4. All clients will see the results in real-time!
+      // 1. See the pending execution in the queue
+      // 2. Assign itself to the execution
+      // 3. Execute the code
+      // 4. Emit execution events and cell outputs
+      // 5. All clients will see the results in real-time!
 
     } catch (error) {
       console.error('❌ LiveStore execution error:', error)
@@ -111,21 +120,14 @@ export const Cell: React.FC<CellProps> = ({
         outputType: 'error',
         data: {
           ename: 'LiveStoreError',
-          evalue: error instanceof Error ? error.message : 'Failed to emit execution request',
+          evalue: error instanceof Error ? error.message : 'Failed to queue execution request',
           traceback: ['Error occurred while emitting LiveStore event'],
         },
         position: 0,
         createdAt: new Date(),
       }))
-
-      store.commit(events.cellExecutionCompleted({
-        cellId: cell.id,
-        executionCount: (cell.executionCount || 0) + 1,
-        completedAt: new Date(),
-        status: 'error',
-      }))
     }
-  }, [cell.id, cell.notebookId, cell.source, cell.executionCount, store])
+  }, [cell.id, cell.source, cell.executionCount, store])
 
   const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && e.shiftKey) {
@@ -164,7 +166,8 @@ export const Cell: React.FC<CellProps> = ({
   const getExecutionStatus = () => {
     switch (cell.executionState) {
       case 'idle': return null
-      case 'executing': return <Badge variant="destructive">Running...</Badge>
+      case 'queued': return <Badge variant="secondary">Queued</Badge>
+      case 'running': return <Badge variant="destructive">Running...</Badge>
       case 'completed': return <Badge variant="default">✓</Badge>
       case 'error': return <Badge variant="destructive">Error</Badge>
       default: return null
@@ -285,9 +288,13 @@ export const Cell: React.FC<CellProps> = ({
                 variant="outline"
                 size="sm"
                 onClick={executeCell}
-                disabled={cell.executionState === 'executing'}
+                disabled={cell.executionState === 'running' || cell.executionState === 'queued'}
               >
-                {cell.executionState === 'executing' ? 'Running...' : 'Run'}
+                {cell.executionState === 'running'
+                  ? 'Running...'
+                  : cell.executionState === 'queued'
+                  ? 'Queued...'
+                  : 'Run'}
               </Button>
               <span className="text-xs text-muted-foreground">
                 Shift+Enter to run and move • Ctrl+Enter to run
@@ -303,7 +310,7 @@ export const Cell: React.FC<CellProps> = ({
           <div className="mt-4">
             <Separator className="mb-3" />
             <div className="space-y-2">
-              {cell.executionState === 'running' && (
+              {cell.executionState === 'running' && outputs.length === 0 && (
                 <div className="p-3 bg-blue-50 border border-blue-200 rounded-md">
                   <div className="flex items-center gap-2">
                     <div className="animate-spin w-4 h-4 border-2 border-blue-600 border-t-transparent rounded-full"></div>
@@ -318,7 +325,7 @@ export const Cell: React.FC<CellProps> = ({
                   <div key={output.id} className="border rounded-md">
                     {output.outputType === 'stream' && (
                       <div className="p-3 bg-gray-50 font-mono text-sm whitespace-pre-wrap">
-                        {output.data['text/plain']}
+                        {(output.data as any)['text/plain']}
                       </div>
                     )}
 
@@ -326,7 +333,7 @@ export const Cell: React.FC<CellProps> = ({
                       <div className="p-3 bg-green-50 border-green-200">
                         <div className="text-xs text-green-600 mb-1">Result:</div>
                         <div className="font-mono text-sm whitespace-pre-wrap">
-                          {output.data['text/plain']}
+                          {(output.data as any)['text/plain']}
                         </div>
                       </div>
                     )}
@@ -336,13 +343,13 @@ export const Cell: React.FC<CellProps> = ({
                         <div className="text-xs text-red-600 mb-1">Error:</div>
                         <div className="font-mono text-sm">
                           <div className="font-semibold text-red-700">
-                            {output.data.ename}: {output.data.evalue}
+                            {(output.data as any).ename}: {(output.data as any).evalue}
                           </div>
-                          {output.data.traceback && (
+                          {(output.data as any).traceback && (
                             <div className="mt-2 text-red-600 text-xs whitespace-pre-wrap">
-                              {Array.isArray(output.data.traceback)
-                                ? output.data.traceback.join('\n')
-                                : output.data.traceback}
+                              {Array.isArray((output.data as any).traceback)
+                                ? (output.data as any).traceback.join('\n')
+                                : (output.data as any).traceback}
                             </div>
                           )}
                         </div>
@@ -353,7 +360,7 @@ export const Cell: React.FC<CellProps> = ({
                       <div className="p-3 bg-blue-50 border-blue-200">
                         <div className="text-xs text-blue-600 mb-1">Display:</div>
                         <div className="font-mono text-sm whitespace-pre-wrap">
-                          {output.data['text/plain'] || JSON.stringify(output.data, null, 2)}
+                          {(output.data as any)['text/plain'] || JSON.stringify(output.data, null, 2)}
                         </div>
                       </div>
                     )}

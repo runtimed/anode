@@ -10,17 +10,21 @@ import { NotebookList } from './components/notebook/NotebookList.js'
 import { NotebookViewer } from './components/notebook/NotebookViewer.js'
 import LiveStoreWorker from './livestore.worker?worker'
 import { schema } from '@anode/schema'
-import { getStoreId } from './util/store-id.js'
+import { getStoreId, getCurrentNotebookId } from './util/store-id.js'
 
 const NotebookApp: React.FC = () => {
-  const [currentNotebookId, setCurrentNotebookId] = useState<string | null>(null)
+  // In the simplified architecture, we always show the current notebook
+  // The notebook ID comes from the URL and is the same as the store ID
+  const currentNotebookId = getCurrentNotebookId()
+  const [viewMode, setViewMode] = useState<'list' | 'notebook'>('list')
 
-  const handleSelectNotebook = (notebookId: string) => {
-    setCurrentNotebookId(notebookId)
+  const handleSelectNotebook = () => {
+    // Since we're in a single-notebook store, just show the notebook view
+    setViewMode('notebook')
   }
 
   const handleBackToList = () => {
-    setCurrentNotebookId(null)
+    setViewMode('list')
   }
 
   return (
@@ -33,29 +37,31 @@ const NotebookApp: React.FC = () => {
               className="text-xl font-bold text-primary cursor-pointer hover:opacity-80 transition-opacity"
               onClick={handleBackToList}
             >
-              📓 LiveStore Notebooks
+              📓 Anode Notebooks
             </h1>
-            {currentNotebookId && (
+            {viewMode === 'notebook' && (
               <>
                 <span className="text-muted-foreground">/</span>
                 <button
                   onClick={handleBackToList}
                   className="text-primary hover:opacity-80 text-sm transition-opacity"
                 >
-                  ← Back to Notebooks
+                  ← Back to Overview
                 </button>
               </>
             )}
           </div>
 
-          <div className="text-xs text-muted-foreground">
-            Collaborative • Real-time • Event-sourced
+          <div className="text-xs text-muted-foreground flex items-center gap-2">
+            <span>Notebook: {currentNotebookId}</span>
+            <span>•</span>
+            <span>Real-time Collaborative</span>
           </div>
         </div>
       </nav>
 
       {/* Main Content */}
-      {currentNotebookId ? (
+      {viewMode === 'notebook' ? (
         <NotebookViewer
           notebookId={currentNotebookId}
           onBack={handleBackToList}
