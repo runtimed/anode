@@ -28,7 +28,7 @@ console.log(`🎫 Session ID: ${SESSION_ID}`);
 console.log(`🔄 Sync URL: ${SYNC_URL}`);
 
 const adapter = makeAdapter({
-  storage: { type: "fs", baseDirectory: "./tmp" },
+  storage: { type: 'in-memory' },
   sync: {
     backend: makeCfSync({ url: SYNC_URL }),
     onSyncError: "shutdown",

@@ -16,7 +16,7 @@ const SYNC_URL = process.env.LIVESTORE_SYNC_URL ?? "ws://localhost:8787";
 console.log(`🧹 Cleaning up execution states for notebook store '${NOTEBOOK_ID}'`);
 
 const adapter = makeAdapter({
-  storage: { type: "fs", baseDirectory: "./tmp" },
+  storage: { type: 'in-memory' },
   sync: {
     backend: makeCfSync({ url: SYNC_URL }),
     onSyncError: "shutdown",
@@ -97,7 +97,6 @@ if (stuckCells.length === 0 && stuckQueue.length === 0) {
         id: cell.id,
         source: cell.source || '',
         modifiedBy: 'cleanup-script',
-        notebookLastModified: new Date()
       }));
 
       await new Promise(resolve => setTimeout(resolve, 100));
