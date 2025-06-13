@@ -93,7 +93,6 @@ describe.skip("End-to-End Execution Flow", () => {
           id: notebookId,
           title: "Integration Test Notebook",
           ownerId: "test-user",
-          createdAt: new Date(),
         }),
       );
 
@@ -106,7 +105,6 @@ describe.skip("End-to-End Execution Flow", () => {
           cellType: "code",
           position: 0,
           createdBy: "test-user",
-          createdAt: new Date(),
         }),
       );
 
@@ -126,7 +124,6 @@ describe.skip("End-to-End Execution Flow", () => {
           sessionId,
           kernelId,
           kernelType: "python3",
-          startedAt: new Date(),
           capabilities: {
             canExecuteCode: true,
             canExecuteSql: false,
@@ -142,7 +139,6 @@ describe.skip("End-to-End Execution Flow", () => {
           cellId,
           executionCount: 1,
           requestedBy: "test-user",
-          requestedAt: new Date(),
           priority: 1,
         }),
       );
@@ -154,7 +150,6 @@ describe.skip("End-to-End Execution Flow", () => {
         events.executionAssigned({
           queueId,
           kernelSessionId: sessionId,
-          assignedAt: new Date(),
         }),
       );
 
@@ -163,7 +158,6 @@ describe.skip("End-to-End Execution Flow", () => {
         events.executionStarted({
           queueId,
           kernelSessionId: sessionId,
-          startedAt: new Date(),
         }),
       );
 
@@ -183,7 +177,6 @@ describe.skip("End-to-End Execution Flow", () => {
           outputType: "stream",
           data: { name: "stdout", text: "Hello from integration test!\n" },
           position: 0,
-          createdAt: new Date(),
         }),
       );
 
@@ -194,7 +187,6 @@ describe.skip("End-to-End Execution Flow", () => {
         events.executionCompleted({
           queueId,
           status: "success",
-          completedAt: new Date(),
         }),
       );
 
@@ -231,7 +223,6 @@ describe.skip("End-to-End Execution Flow", () => {
           id: storeId,
           title: "Error Test Notebook",
           ownerId: "test-user",
-          createdAt: new Date(),
         }),
       );
 
@@ -241,7 +232,6 @@ describe.skip("End-to-End Execution Flow", () => {
           cellType: "code",
           position: 0,
           createdBy: "test-user",
-          createdAt: new Date(),
         }),
       );
 
@@ -259,7 +249,6 @@ describe.skip("End-to-End Execution Flow", () => {
           sessionId,
           kernelId,
           kernelType: "python3",
-          startedAt: new Date(),
           capabilities: {
             canExecuteCode: true,
             canExecuteSql: false,
@@ -274,7 +263,6 @@ describe.skip("End-to-End Execution Flow", () => {
           cellId,
           executionCount: 1,
           requestedBy: "test-user",
-          requestedAt: new Date(),
           priority: 1,
         }),
       );
@@ -283,7 +271,6 @@ describe.skip("End-to-End Execution Flow", () => {
         events.executionAssigned({
           queueId,
           kernelSessionId: sessionId,
-          assignedAt: new Date(),
         }),
       );
 
@@ -291,7 +278,6 @@ describe.skip("End-to-End Execution Flow", () => {
         events.executionStarted({
           queueId,
           kernelSessionId: sessionId,
-          startedAt: new Date(),
         }),
       );
 
@@ -311,7 +297,6 @@ describe.skip("End-to-End Execution Flow", () => {
             ],
           },
           position: 0,
-          createdAt: new Date(),
         }),
       );
 
@@ -320,7 +305,6 @@ describe.skip("End-to-End Execution Flow", () => {
         events.executionCompleted({
           queueId,
           status: "error",
-          completedAt: new Date(),
           error: "ValueError: Test error",
         }),
       );
@@ -348,7 +332,6 @@ describe.skip("End-to-End Execution Flow", () => {
           id: storeId,
           title: "Concurrent Test Notebook",
           ownerId: "test-user",
-          createdAt: new Date(),
         }),
       );
 
@@ -360,7 +343,6 @@ describe.skip("End-to-End Execution Flow", () => {
             cellType: "code",
             position: index,
             createdBy: "test-user",
-            createdAt: new Date(),
           }),
         );
 
@@ -385,7 +367,6 @@ describe.skip("End-to-End Execution Flow", () => {
             sessionId: sid,
             kernelId: kid,
             kernelType: "python3",
-            startedAt: new Date(),
             capabilities: {
               canExecuteCode: true,
               canExecuteSql: false,
@@ -403,7 +384,6 @@ describe.skip("End-to-End Execution Flow", () => {
             cellId,
             executionCount: 1,
             requestedBy: "test-user",
-            requestedAt: new Date(),
             priority: index + 1,
           }),
         );
@@ -418,7 +398,6 @@ describe.skip("End-to-End Execution Flow", () => {
           events.executionAssigned({
             queueId,
             kernelSessionId: sid,
-            assignedAt: new Date(),
           }),
         );
 
@@ -426,7 +405,6 @@ describe.skip("End-to-End Execution Flow", () => {
           events.executionStarted({
             queueId,
             kernelSessionId: sid,
-            startedAt: new Date(),
           }),
         );
       });
@@ -440,7 +418,6 @@ describe.skip("End-to-End Execution Flow", () => {
             outputType: "stream",
             data: { name: "stdout", text: `Output from cell ${index}\n` },
             position: 0,
-            createdAt: new Date(),
           }),
         );
 
@@ -448,7 +425,6 @@ describe.skip("End-to-End Execution Flow", () => {
           events.executionCompleted({
             queueId,
             status: "success",
-            completedAt: new Date(),
           }),
         );
       });
@@ -475,10 +451,9 @@ describe.skip("End-to-End Execution Flow", () => {
       };
 
       // Create reactive queries
-      const cellsQuery$ = queryDb(
-        tables.cells.select().where({ deletedAt: null }),
-        { label: "activeCells" },
-      );
+      const cellsQuery$ = queryDb(tables.cells.select(), {
+        label: "activeCells",
+      });
 
       const queueQuery$ = queryDb(
         tables.executionQueue.select().where({ status: "pending" }),
@@ -512,7 +487,6 @@ describe.skip("End-to-End Execution Flow", () => {
           cellType: "code",
           position: 0,
           createdBy: "test-user",
-          createdAt: new Date(),
         }),
       );
 
@@ -522,7 +496,6 @@ describe.skip("End-to-End Execution Flow", () => {
           cellId,
           executionCount: 1,
           requestedBy: "test-user",
-          requestedAt: new Date(),
           priority: 1,
         }),
       );
@@ -534,7 +507,6 @@ describe.skip("End-to-End Execution Flow", () => {
           outputType: "stream",
           data: "Test output",
           position: 0,
-          createdAt: new Date(),
         }),
       );
 
@@ -605,7 +577,6 @@ describe.skip("End-to-End Execution Flow", () => {
               cellType: "code",
               position: i,
               createdBy: "test-user",
-              createdAt: new Date(),
             }),
           ),
         );
@@ -616,7 +587,6 @@ describe.skip("End-to-End Execution Flow", () => {
               (events as any).cellDeleted({
                 id: cellId,
                 deletedBy: "test-user",
-                deletedAt: new Date() as any,
               }),
             ),
           );
@@ -655,7 +625,6 @@ describe.skip("End-to-End Execution Flow", () => {
           cellType: "code",
           position: 0,
           createdBy: "test-user",
-          createdAt: new Date(),
         }),
       );
 
@@ -664,7 +633,6 @@ describe.skip("End-to-End Execution Flow", () => {
           sessionId,
           kernelId,
           kernelType: "python3",
-          startedAt: new Date(),
           capabilities: {
             canExecuteCode: true,
             canExecuteSql: false,
@@ -679,7 +647,6 @@ describe.skip("End-to-End Execution Flow", () => {
           cellId,
           executionCount: 1,
           requestedBy: "test-user",
-          requestedAt: new Date(),
           priority: 1,
         }),
       );
@@ -688,7 +655,6 @@ describe.skip("End-to-End Execution Flow", () => {
         events.executionAssigned({
           queueId,
           kernelSessionId: sessionId,
-          assignedAt: new Date(),
         }),
       );
 
@@ -696,7 +662,6 @@ describe.skip("End-to-End Execution Flow", () => {
         events.executionStarted({
           queueId,
           kernelSessionId: sessionId,
-          startedAt: new Date(),
         }),
       );
 
@@ -705,7 +670,6 @@ describe.skip("End-to-End Execution Flow", () => {
         events.kernelSessionTerminated({
           sessionId,
           reason: "restart",
-          terminatedAt: new Date(),
         }),
       );
 
@@ -715,7 +679,6 @@ describe.skip("End-to-End Execution Flow", () => {
           sessionId: newSessionId,
           kernelId,
           kernelType: "python3",
-          startedAt: new Date(),
           capabilities: {
             canExecuteCode: true,
             canExecuteSql: false,
@@ -743,7 +706,6 @@ describe.skip("End-to-End Execution Flow", () => {
           sessionId,
           kernelId,
           kernelType: "python3",
-          startedAt: new Date(),
           capabilities: {
             canExecuteCode: true,
             canExecuteSql: false,
@@ -762,7 +724,6 @@ describe.skip("End-to-End Execution Flow", () => {
         store.commit(
           (events as any).kernelSessionHeartbeat({
             sessionId,
-            heartbeatAt: heartbeatTime as any,
             status: i % 2 === 0 ? "ready" : "busy",
           }),
         );
@@ -789,7 +750,6 @@ describe.skip("End-to-End Execution Flow", () => {
           cellType: "code",
           position: 0,
           createdBy: "test-user",
-          createdAt: new Date(),
         }),
       );
 
@@ -799,7 +759,6 @@ describe.skip("End-to-End Execution Flow", () => {
           cellId,
           executionCount: 1,
           requestedBy: "test-user",
-          requestedAt: new Date(),
           priority: 1,
         }),
       );
@@ -811,7 +770,6 @@ describe.skip("End-to-End Execution Flow", () => {
           outputType: "stream",
           data: "Test output",
           position: 0,
-          createdAt: new Date(),
         }),
       );
 
@@ -830,7 +788,6 @@ describe.skip("End-to-End Execution Flow", () => {
       store.commit(
         events.cellDeleted({
           id: cellId,
-          deletedAt: new Date(),
           deletedBy: "test-user",
         }),
       );
@@ -845,7 +802,6 @@ describe.skip("End-to-End Execution Flow", () => {
       const cellAfterDelete = store.query(
         tables.cells.select().where({ id: cellId }),
       )[0];
-      expect(cellAfterDelete.deletedAt).toBeDefined();
     });
 
     it("should handle transaction rollbacks correctly", async () => {
@@ -859,7 +815,6 @@ describe.skip("End-to-End Execution Flow", () => {
             cellType: "code",
             position: 0,
             createdBy: "test-user",
-            createdAt: new Date(),
           }),
         );
 

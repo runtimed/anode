@@ -12,7 +12,7 @@ import { Copy, Terminal, Circle } from 'lucide-react'
 import { getCurrentNotebookId } from '../../util/store-id.js'
 
 const cellsQuery = queryDb(
-  tables.cells.select().where({ deletedAt: null })
+  tables.cells.select()
 )
 
 const notebookQuery = queryDb(
@@ -62,7 +62,6 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({ onBack }) => {
     if (notebook && localTitle !== notebook.title) {
       store.commit(events.notebookTitleChanged({
         title: localTitle,
-        lastModified: new Date(),
       }))
     }
     setIsEditingTitle(false)
@@ -79,15 +78,12 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({ onBack }) => {
       position: newPosition,
       cellType,
       createdBy: 'current-user',
-      createdAt: new Date(),
     }))
   }, [cells, store])
 
   const deleteCell = useCallback((cellId: string) => {
     store.commit(events.cellDeleted({
       id: cellId,
-      deletedAt: new Date(),
-      deletedBy: 'current-user',
     }))
   }, [store])
 
@@ -270,7 +266,7 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({ onBack }) => {
                   </div>
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Started:</span>
-                    <span>{new Date(activeKernel.startedAt).toLocaleTimeString()}</span>
+                    {/* <span>{new Date(activeKernel.startedAt).toLocaleTimeString()}</span> */}
                   </div>
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Last Heartbeat:</span>
@@ -344,8 +340,6 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({ onBack }) => {
       {/* Notebook Info */}
       <Separator className="my-8" />
       <div className="text-xs text-muted-foreground text-center">
-        <div>Created: {new Date(notebook.createdAt).toLocaleString()}</div>
-        <div>Modified: {new Date(notebook.lastModified).toLocaleString()}</div>
         <div>Owner: {notebook.ownerId}</div>
       </div>
     </div>

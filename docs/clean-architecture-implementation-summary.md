@@ -21,7 +21,6 @@ cellCreated: Events.synced({
     cellType: Schema.Literal('code', 'markdown', 'raw', 'sql', 'ai'),
     position: Schema.Number,
     createdBy: Schema.String,
-    createdAt: Schema.Date,
     notebookLastModified: Schema.Date, // ❌ Redundant!
   }),
 }),
@@ -36,7 +35,6 @@ cellCreated: Events.synced({
     cellType: Schema.Literal('code', 'markdown', 'raw', 'sql', 'ai'),
     position: Schema.Number,
     createdBy: Schema.String,
-    createdAt: Schema.Date,
     // notebookLastModified removed - derived automatically
   }),
 }),
@@ -46,8 +44,8 @@ cellCreated: Events.synced({
 
 **Before:**
 ```typescript
-'v1.CellCreated': ({ id, cellType, position, createdBy, createdAt, notebookLastModified }) => [
-  tables.cells.insert({ id, cellType, position, createdBy, createdAt }),
+'v1.CellCreated': ({ id, cellType, position, createdBy, notebookLastModified }) => [
+  tables.cells.insert({ id, cellType, position, createdBy }),
   tables.notebook.update({ lastModified: notebookLastModified }), // Manual timestamp
 ],
 ```
@@ -69,7 +67,6 @@ store.commit(events.cellCreated({
   position: newPosition,
   cellType,
   createdBy: 'current-user',
-  createdAt: new Date(),
   notebookLastModified: new Date(), // ❌ Manual, error-prone
 }))
 ```
@@ -81,7 +78,6 @@ store.commit(events.cellCreated({
   position: newPosition,
   cellType,
   createdBy: 'current-user',
-  createdAt: new Date(),
   // notebookLastModified automatically handled ✅
 }))
 ```
@@ -138,8 +134,8 @@ Created foundation for preventing future schema issues:
 The LiveStore documentation suggests materializers have access to event metadata via `ctx.event`, but the exact API needs investigation:
 ```typescript
 // Future potential improvement
-'v1.CellCreated': ({ id, cellType, position, createdBy, createdAt }, ctx) => [
-  tables.cells.insert({ id, cellType, position, createdBy, createdAt }),
+'v1.CellCreated': ({ id, cellType, position, createdBy }, ctx) => [
+  tables.cells.insert({ id, cellType, position, createdBy }),
   tables.notebook.update({ lastModified: new Date(ctx.event.timestamp) }), // Use actual event time
 ],
 ```

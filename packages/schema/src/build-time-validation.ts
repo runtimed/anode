@@ -116,14 +116,6 @@ export function validateEventSchemaTypes(): ValidationResult {
   for (const [eventKey, event] of Object.entries(events)) {
     const eventName = event.name
 
-    // Validate common required fields
-    if (eventName.includes('Created') && !hasFieldInSchema(event.schema, 'createdAt')) {
-      warnings.push(`Event '${eventName}' should have 'createdAt' field`)
-    }
-
-    if (eventName.includes('Deleted') && !hasFieldInSchema(event.schema, 'deletedAt')) {
-      warnings.push(`Event '${eventName}' should have 'deletedAt' field`)
-    }
 
     // Validate ID fields are strings
     if (hasFieldInSchema(event.schema, 'id')) {
@@ -133,16 +125,7 @@ export function validateEventSchemaTypes(): ValidationResult {
       }
     }
 
-    // Validate date fields
-    const dateFields = ['createdAt', 'deletedAt', 'modifiedAt', 'startedAt', 'completedAt']
-    for (const dateField of dateFields) {
-      if (hasFieldInSchema(event.schema, dateField)) {
-        const fieldType = getFieldTypeFromSchema(event.schema, dateField)
-        if (fieldType !== 'Date') {
-          errors.push(`Event '${eventName}' '${dateField}' field should be Date, got ${fieldType}`)
-        }
-      }
-    }
+
   }
 
   return {

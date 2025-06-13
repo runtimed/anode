@@ -44,28 +44,11 @@ Note: In the simplified architecture, each notebook gets its own store/database.
       id: notebookId,
       title,
       ownerId: 'current-user', // TODO: get from auth
-      createdAt: new Date(),
     }))
 
     // Navigate to the notebook view
     onSelectNotebook(notebookId)
   }, [store, onSelectNotebook])
-
-  const formatDate = (date: Date) => {
-    const now = new Date()
-    const diffMs = now.getTime() - date.getTime()
-    const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24))
-
-    if (diffDays === 0) {
-      return 'Today'
-    } else if (diffDays === 1) {
-      return 'Yesterday'
-    } else if (diffDays < 7) {
-      return `${diffDays} days ago`
-    } else {
-      return date.toLocaleDateString()
-    }
-  }
 
   return (
     <div className="max-w-4xl mx-auto p-6">
@@ -121,12 +104,7 @@ Note: In the simplified architecture, each notebook gets its own store/database.
             <div className="space-y-2">
               <div className="flex items-center justify-between text-sm text-muted-foreground">
                 <span>Modified</span>
-                <span>{formatDate(new Date(currentNotebook.lastModified))}</span>
-              </div>
-
-              <div className="flex items-center justify-between text-sm text-muted-foreground">
-                <span>Created</span>
-                <span>{formatDate(new Date(currentNotebook.createdAt))}</span>
+                <span>Recently</span>
               </div>
 
               <Separator className="my-3" />

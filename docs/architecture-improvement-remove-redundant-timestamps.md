@@ -12,7 +12,6 @@ cellCreated: Events.synced({
     cellType: Schema.Literal('code', 'markdown', 'raw', 'sql', 'ai'),
     position: Schema.Number,
     createdBy: Schema.String,
-    createdAt: Schema.Date,
     notebookLastModified: Schema.Date, // <- This is redundant!
   }),
 }),
@@ -40,7 +39,6 @@ cellCreated: Events.synced({
     cellType: Schema.Literal('code', 'markdown', 'raw', 'sql', 'ai'),
     position: Schema.Number,
     createdBy: Schema.String,
-    createdAt: Schema.Date,
     // notebookLastModified: removed!
   }),
 }),
@@ -68,24 +66,23 @@ const materializers = State.SQLite.materializers(events, {
       cellType,
       position,
       createdBy,
-      createdAt
     }),
     // Use event timestamp for notebook lastModified
-    tables.notebook.update({ 
+    tables.notebook.update({
       lastModified: new Date(ctx.event.timestamp) // <-- Use event metadata!
     }),
   ],
 
   'v1.CellSourceChanged': ({ id, source }, ctx) => [
     tables.cells.update({ source }).where({ id }),
-    tables.notebook.update({ 
+    tables.notebook.update({
       lastModified: new Date(ctx.event.timestamp) // <-- Consistent!
     }),
   ],
 
-  'v1.CellDeleted': ({ id, deletedAt }, ctx) => [
+  'v1.CellDeleted': ({ id, }, ctx) => [
     tables.cells.update({ deletedAt }).where({ id }),
-    tables.notebook.update({ 
+    tables.notebook.update({
       lastModified: new Date(ctx.event.timestamp)
     }),
   ],
@@ -103,7 +100,6 @@ store.commit(events.cellCreated({
   position: newPosition,
   cellType,
   createdBy: 'current-user',
-  createdAt: new Date(),
   notebookLastModified: new Date(), // Manual, error-prone
 }))
 
@@ -113,7 +109,6 @@ store.commit(events.cellCreated({
   position: newPosition,
   cellType,
   createdBy: 'current-user',
-  createdAt: new Date(),
   // notebookLastModified automatically derived from event timestamp!
 }))
 ```
@@ -122,14 +117,14 @@ store.commit(events.cellCreated({
 
 ```typescript
 // Helper function to reduce boilerplate in materializers
-const updateNotebookLastModified = (ctx: MaterializerContext) => 
-  tables.notebook.update({ 
-    lastModified: new Date(ctx.event.timestamp) 
+const updateNotebookLastModified = (ctx: MaterializerContext) =>
+  tables.notebook.update({
+    lastModified: new Date(ctx.event.timestamp)
   })
 
 const materializers = State.SQLite.materializers(events, {
-  'v1.CellCreated': ({ id, cellType, position, createdBy, createdAt }, ctx) => [
-    tables.cells.insert({ id, cellType, position, createdBy, createdAt }),
+  'v1.CellCreated': ({ id, cellType, position, createdBy }, ctx) => [
+    tables.cells.insert({ id, cellType, position, createdBy }),
     updateNotebookLastModified(ctx),
   ],
 
@@ -154,7 +149,7 @@ const materializers = State.SQLite.materializers(events, {
 ## Migration Strategy
 
 1. **Phase 1**: Add new materializers using event timestamps (parallel to existing)
-2. **Phase 2**: Update client code to stop passing `notebookLastModified` 
+2. **Phase 2**: Update client code to stop passing `notebookLastModified`
 3. **Phase 3**: Remove `notebookLastModified` from event schemas
 4. **Phase 4**: Clean up old materializer code
 
