@@ -52,6 +52,81 @@ NOTEBOOK_ID=my-notebook pnpm --filter @anode/dev-server-kernel-ls-client dev
 - **Sync Server**: ws://localhost:8787
 - **Kernel Health**: http://localhost:3001/health (when running)
 
+## 🚀 **Quick Start (Simplified Architecture)**
+
+### **1. Start Core Services**
+```bash
+# Option A: Use the start script
+./start-dev.sh
+
+# Option B: Manual start
+pnpm build:schema && pnpm dev
+```
+
+### **2. Create Your First Notebook**
+1. Open http://localhost:5173
+2. The URL will automatically get a notebook ID: `?notebook=notebook-123-abc`
+3. Click "Initialize Notebook" to create your first notebook
+4. Start adding cells and collaborating!
+
+### **3. Enable Python Execution**
+```bash
+# In a new terminal, start a kernel for your notebook
+NOTEBOOK_ID=notebook-123-abc pnpm dev:kernel
+```
+
+### **4. Access Different Notebooks**
+- Each notebook gets its own URL: `?notebook=my-project`
+- Share URLs with collaborators for real-time editing
+- Each notebook = isolated database = secure collaboration
+
+### **5. Reset Everything (Development)**
+```bash
+# Clear all local storage and start fresh
+pnpm reset-storage
+```
+
+## 🏗️ **Architectural Changes (December 2024)**
+
+### **Simplified Notebook/Store ID Management**
+
+We've simplified the relationship between notebooks and stores:
+
+- **NOTEBOOK_ID = STORE_ID**: Each notebook gets its own LiveStore database
+- **URL-based routing**: Access notebooks via `?notebook=notebook-id`
+- **Single notebook per store**: Eliminates confusion about data boundaries
+- **Event scoping**: All events are naturally scoped to one notebook
+
+### **Kernel Lifecycle Management**
+
+Enhanced kernel management with proper lifecycle tracking:
+
+```bash
+# Each kernel process has:
+- Stable KERNEL_ID (can restart)
+- Unique SESSION_ID (changes on restart)
+- Heartbeat mechanism
+- Capability reporting
+- Graceful shutdown handling
+```
+
+### **Execution Queue System**
+
+Replaced direct event processing with a proper execution queue:
+
+1. **Request**: User clicks "Run" → `executionRequested` event
+2. **Assignment**: Available kernel claims work → `executionAssigned` event
+3. **Execution**: Kernel processes code → `executionStarted` event
+4. **Completion**: Results published → `executionCompleted` event
+
+### **Benefits**
+
+- **Simplified reasoning**: One notebook = one database
+- **Better security**: Natural data isolation
+- **Kernel safety**: Prevents stale kernels from processing work
+- **Queue management**: Proper work distribution and retry logic
+- **Restart handling**: Kernels can restart without losing state
+
 ## 🎯 **Key Features**
 
 ### ✅ **Real-time Collaboration**

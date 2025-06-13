@@ -1,5 +1,6 @@
-// Utility script to clean up stuck execution states in the LiveStore
-// Run this when cells are stuck in "running" or "pending" state
+// Utility script to clean up stuck execution states in the new architecture
+// Run this when cells are stuck in "queued" or "running" state, or when
+// execution queue entries are stuck
 
 import { makeAdapter } from "@livestore/adapter-node";
 import { createStorePromise, queryDb } from "@livestore/livestore";
@@ -31,61 +32,120 @@ const store = await createStorePromise({
 
 console.log("✅ Store connected. Analyzing current state...");
 
-// Check current state
-const allCells$ = queryDb(tables.cells, { label: 'allCells' });
-const runningCells$ = queryDb(tables.cells.where({ executionState: 'running' }), { label: 'runningCells' });
-const pendingCells$ = queryDb(tables.cells.where({ executionState: 'pending' }), { label: 'pendingCells' });
+// Check current cell states
+const allCells$ = queryDb(tables.cells.select(), { label: 'allCells' });
+const stuckCells$ = queryDb(
+  tables.cells.select().where({
+    executionState: ['queued', 'running']
+  }),
+  { label: 'stuckCells' }
+);
+
+// Check execution queue
+const allQueue$ = queryDb(tables.executionQueue.select(), { label: 'allQueue' });
+const stuckQueue$ = queryDb(
+  tables.executionQueue.select().where({
+    status: ['pending', 'assigned', 'executing']
+  }),
+  { label: 'stuckQueue' }
+);
+
+// Check kernel sessions
+const kernelSessions$ = queryDb(tables.kernelSessions.select(), { label: 'kernelSessions' });
 
 const allCells = store.query(allCells$) as any[];
-const runningCells = store.query(runningCells$) as any[];
-const pendingCells = store.query(pendingCells$) as any[];
-const stuckCells = [...runningCells, ...pendingCells];
+const stuckCells = store.query(stuckCells$) as any[];
+const allQueue = store.query(allQueue$) as any[];
+const stuckQueue = store.query(stuckQueue$) as any[];
+const kernelSessions = store.query(kernelSessions$) as any[];
 
-console.log(`📊 Found ${allCells.length} total cells`);
-console.log(`🔒 Found ${stuckCells.length} stuck cells (${runningCells.length} running, ${pendingCells.length} pending)`);
+console.log(`📊 Current state:`);
+console.log(`   • Cells: ${allCells.length} total, ${stuckCells.length} stuck`);
+console.log(`   • Queue: ${allQueue.length} total, ${stuckQueue.length} stuck`);
+console.log(`   • Kernels: ${kernelSessions.length} sessions`);
 
-if (stuckCells.length === 0) {
-  console.log("🎉 No stuck cells found! State is clean.");
+if (stuckCells.length === 0 && stuckQueue.length === 0) {
+  console.log("🎉 No stuck items found! State is clean.");
 } else {
-  console.log("\n🔧 Fixing stuck cells:");
+  console.log("\n🔧 Cleaning up stuck items:");
 
-  for (const cell of stuckCells) {
-    console.log(`   - Cell ${cell.id}: ${cell.executionState} -> completed`);
+  // Clean up stuck execution queue entries
+  for (const queueEntry of stuckQueue) {
+    console.log(`   • Queue ${queueEntry.id}: ${queueEntry.status} -> cancelled`);
 
     try {
-      // Reset to completed state and mark as error since execution was interrupted
-      store.commit(events.cellExecutionCompleted({
-        cellId: cell.id,
-        executionCount: cell.executionCount || 0,
-        completedAt: new Date(),
-        status: "error", // Mark as error since execution was interrupted
+      store.commit(events.executionCancelled({
+        queueId: queueEntry.id,
+        cancelledBy: 'cleanup-script',
+        cancelledAt: new Date(),
+        reason: 'Cleanup script - execution was stuck'
       }));
 
-      // Small delay between commits to reduce concurrency pressure
+      await new Promise(resolve => setTimeout(resolve, 100));
+    } catch (error) {
+      console.error(`   ❌ Failed to cancel queue entry ${queueEntry.id}:`, error);
+    }
+  }
+
+  // Reset stuck cells to idle state
+  for (const cell of stuckCells) {
+    console.log(`   • Cell ${cell.id}: ${cell.executionState} -> idle`);
+
+    try {
+      // Use a dummy source change to trigger state update to idle
+      store.commit(events.cellSourceChanged({
+        id: cell.id,
+        source: cell.source || '',
+        modifiedBy: 'cleanup-script'
+      }));
+
       await new Promise(resolve => setTimeout(resolve, 100));
     } catch (error) {
       console.error(`   ❌ Failed to reset cell ${cell.id}:`, error);
     }
   }
 
-  console.log(`✅ Reset ${stuckCells.length} stuck cells to completed state`);
+  console.log(`✅ Processed ${stuckQueue.length} queue entries and ${stuckCells.length} cells`);
 }
 
-// Give more time for sync and check if cleanup worked
-await new Promise(resolve => setTimeout(resolve, 2000));
+// Show kernel session status
+if (kernelSessions.length > 0) {
+  console.log("\n🔍 Kernel sessions:");
+  for (const session of kernelSessions) {
+    const age = Math.round((Date.now() - new Date(session.lastHeartbeat).getTime()) / 1000);
+    console.log(`   • ${session.sessionId}: ${session.status} (${age}s ago)`);
 
-// Verify cleanup worked
-const updatedRunningCells = store.query(runningCells$) as any[];
-const updatedPendingCells = store.query(pendingCells$) as any[];
-const remainingStuckCells = [...updatedRunningCells, ...updatedPendingCells];
+    // Mark old sessions as terminated
+    if (session.isActive && age > 300) { // 5 minutes
+      console.log(`   ⚠️ Marking stale session as terminated: ${session.sessionId}`);
 
-if (remainingStuckCells.length > 0) {
-  console.log(`⚠️ Warning: ${remainingStuckCells.length} cells still stuck after cleanup.`);
+      try {
+        store.commit(events.kernelSessionTerminated({
+          sessionId: session.sessionId,
+          reason: 'timeout',
+          terminatedAt: new Date()
+        }));
+      } catch (error) {
+        console.error(`   ❌ Failed to terminate session ${session.sessionId}:`, error);
+      }
+    }
+  }
+}
+
+// Give time for sync and verify cleanup worked
+console.log("\n⏳ Waiting for sync...");
+await new Promise(resolve => setTimeout(resolve, 3000));
+
+const finalStuckCells = store.query(stuckCells$) as any[];
+const finalStuckQueue = store.query(stuckQueue$) as any[];
+
+if (finalStuckCells.length > 0 || finalStuckQueue.length > 0) {
+  console.log(`⚠️ Warning: Still ${finalStuckCells.length} stuck cells and ${finalStuckQueue.length} stuck queue entries.`);
   console.log("💡 You may need to run this script again or check for sync issues.");
 } else {
-  console.log("✅ Verification passed: All cells are in clean state!");
+  console.log("✅ Verification passed: All items are in clean state!");
 }
 
-console.log("🧹 Cleanup complete!");
+console.log("\n🧹 Cleanup complete!");
 await store.shutdown();
 process.exit(0);
