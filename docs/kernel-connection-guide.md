@@ -2,13 +2,13 @@
 
 ## Overview
 
-Anode uses a manual kernel architecture where each notebook requires its own kernel instance to execute code. This guide explains how to connect kernels to your notebooks.
+Anode uses a manual kernel architecture where each notebook requires its own kernel instance to execute code. The kernels use a **reactive architecture** with LiveStore's `queryDb` subscriptions for instant execution response. This guide explains how to connect kernels to your notebooks.
 
 ## Architecture
 
 - **One Kernel Per Notebook**: Each notebook (identified by its `NOTEBOOK_ID`) requires a dedicated kernel instance
 - **Manual Start**: Kernels must be started manually via command line
-- **Automatic Connection**: Once started, kernels automatically connect to the notebook and begin processing execution requests
+- **Automatic Connection**: Once started, kernels automatically connect to the notebook and begin **reactively** processing execution requests (no polling delays)
 - **Session Management**: Each kernel restart gets a unique `sessionId` for tracking
 
 ## Quick Start
@@ -38,7 +38,7 @@ NOTEBOOK_ID=notebook-1749845652584-2b2uydujic7 pnpm dev:kernel
 Once the kernel starts, you should see:
 - Green status indicator in the notebook UI
 - Kernel badge shows a filled circle (●) instead of empty (○)
-- Ability to execute code cells
+- Ability to execute code cells **instantly** (reactive architecture)
 
 ## UI Indicators
 
@@ -66,7 +66,7 @@ The kernel helper panel provides:
 1. Run the `pnpm dev:kernel` command with your `NOTEBOOK_ID`
 2. Kernel registers with the notebook store
 3. Status changes from "disconnected" to "starting" to "ready"
-4. Kernel begins processing execution requests from the queue
+4. Kernel begins **reactively** processing execution requests from the queue (instant response)
 
 ### Heartbeat System
 - Kernels send heartbeats every 30 seconds
@@ -110,6 +110,12 @@ If you accidentally start multiple kernels for the same notebook:
 - No kernel permission enforcement yet
 - No automatic restart on failure
 
+### Performance Benefits
+- **Zero-latency execution** - cells execute instantly when run
+- **Reactive architecture** - no polling delays (previously 500ms-2s)
+- **Real-time work detection** via LiveStore `queryDb` subscriptions
+- **Efficient resource usage** - only reacts when work is available
+
 ### Future Improvements
 - Automatic kernel startup
 - Kernel permission validation via document worker
@@ -120,7 +126,7 @@ If you accidentally start multiple kernels for the same notebook:
 
 ### Event Flow
 1. User executes cell → `executionRequested` event
-2. Kernel polls execution queue
+2. **Kernel instantly detects** work via reactive `queryDb` subscription
 3. Kernel claims work → `executionAssigned` event  
 4. Kernel starts execution → `executionStarted` event
 5. Kernel completes execution → `executionCompleted` event

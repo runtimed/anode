@@ -8,7 +8,7 @@
    ```bash
    NOTEBOOK_ID=your-notebook-id pnpm dev:kernel
    ```
-4. **Check the status** - Green dot = connected, ready to execute code
+4. **Check the status** - Green dot = connected, ready to execute code **instantly** (reactive architecture)
 
 ## Example
 
@@ -23,7 +23,13 @@ NOTEBOOK_ID=notebook-1749845652584-2b2uydujic7 pnpm dev:kernel
 
 - **Kernel Button**: Click to see connection status and copy command
 - **Kernel Badge**: `python3 ●` (connected) vs `python3 ○` (disconnected)  
-- **Status Colors**: 🟢 Ready | 🟡 Starting | 🔴 Disconnected
+- **Status Colors**: 🟢 Ready (instant execution) | 🟡 Starting | 🔴 Disconnected
+
+## Performance
+
+- **⚡ Zero-latency execution** - Code runs instantly when you press run
+- **🔄 Reactive architecture** - No polling delays (old system had 500ms-2s delays)
+- **📡 Real-time work detection** via LiveStore reactive subscriptions
 
 ## Troubleshooting
 
@@ -34,6 +40,7 @@ NOTEBOOK_ID=notebook-1749845652584-2b2uydujic7 pnpm dev:kernel
 **Code won't execute?**
 - Verify you see a green status indicator
 - Check the terminal running the kernel for errors
+- Should execute instantly with reactive architecture - any delay indicates an issue
 
 **Need help?**
 - Click the "Kernel" button in the notebook header for detailed status and commands
