@@ -21,18 +21,8 @@ export const NotebookList: React.FC<NotebookListProps> = ({ onSelectNotebook }) 
   const currentNotebook = notebooks[0]
 
   const createNewNotebook = useCallback(() => {
-    // Generate a unique notebook ID that will also be the store ID
-    const notebookId = `notebook-${Date.now()}-${Math.random().toString(36).slice(2)}`
-
-    // In the new architecture, we need to navigate to a new store
-    // For now, we'll just show a message about how to create notebooks
-    alert(`To create a new notebook, open a new browser tab/window and navigate to:
-
-${window.location.origin}?notebook=${notebookId}
-
-This will create a new notebook with ID: ${notebookId}
-
-Note: In the simplified architecture, each notebook gets its own store/database.`)
+    // Navigate to clean URL which will create a new store/notebook
+    window.location.href = window.location.origin
   }, [])
 
   const initializeCurrentNotebook = useCallback(() => {
@@ -44,37 +34,20 @@ Note: In the simplified architecture, each notebook gets its own store/database.
       id: notebookId,
       title,
       ownerId: 'current-user', // TODO: get from auth
-      createdAt: new Date(),
     }))
 
     // Navigate to the notebook view
     onSelectNotebook(notebookId)
   }, [store, onSelectNotebook])
 
-  const formatDate = (date: Date) => {
-    const now = new Date()
-    const diffMs = now.getTime() - date.getTime()
-    const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24))
-
-    if (diffDays === 0) {
-      return 'Today'
-    } else if (diffDays === 1) {
-      return 'Yesterday'
-    } else if (diffDays < 7) {
-      return `${diffDays} days ago`
-    } else {
-      return date.toLocaleDateString()
-    }
-  }
-
   return (
     <div className="max-w-4xl mx-auto p-6">
       {/* Header */}
       <div className="flex items-center justify-between mb-8">
         <div>
-          <h1 className="text-3xl font-bold">Anode Notebooks</h1>
+          <h1 className="text-3xl font-bold">Welcome</h1>
           <p className="text-muted-foreground mt-2">
-            Real-time collaborative notebook system
+            Get started by initializing this notebook or creating a new one
           </p>
         </div>
         <Button onClick={createNewNotebook} size="lg">
@@ -121,12 +94,7 @@ Note: In the simplified architecture, each notebook gets its own store/database.
             <div className="space-y-2">
               <div className="flex items-center justify-between text-sm text-muted-foreground">
                 <span>Modified</span>
-                <span>{formatDate(new Date(currentNotebook.lastModified))}</span>
-              </div>
-
-              <div className="flex items-center justify-between text-sm text-muted-foreground">
-                <span>Created</span>
-                <span>{formatDate(new Date(currentNotebook.createdAt))}</span>
+                <span>Recently</span>
               </div>
 
               <Separator className="my-3" />

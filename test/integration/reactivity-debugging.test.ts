@@ -45,8 +45,7 @@ describe("Reactivity Debugging", () => {
       const assignedWork$ = queryDb(
         tables.executionQueue
           .select()
-          .where({ status: "assigned", assignedKernelSession: sessionId })
-          .orderBy("requestedAt", "asc"),
+          .where({ status: "assigned", assignedKernelSession: sessionId }),
         { label: "assignedWork" },
       );
 
@@ -70,7 +69,6 @@ describe("Reactivity Debugging", () => {
           cellType: "code",
           position: 0,
           createdBy: "test-user",
-          createdAt: new Date(),
           notebookLastModified: new Date(),
         }),
       );
@@ -81,7 +79,6 @@ describe("Reactivity Debugging", () => {
           cellId,
           executionCount: 1,
           requestedBy: "test-user",
-          requestedAt: new Date(),
           priority: 1,
         }),
       );
@@ -90,7 +87,6 @@ describe("Reactivity Debugging", () => {
         events.executionAssigned({
           queueId,
           kernelSessionId: sessionId,
-          assignedAt: new Date(),
         }),
       );
 
@@ -106,7 +102,6 @@ describe("Reactivity Debugging", () => {
         events.executionStarted({
           queueId,
           kernelSessionId: sessionId,
-          startedAt: new Date(),
         }),
       );
 
@@ -143,7 +138,6 @@ describe("Reactivity Debugging", () => {
           cellType: "code",
           position: 0,
           createdBy: "test-user",
-          createdAt: new Date(),
           notebookLastModified: new Date(),
         }),
       );
@@ -154,7 +148,6 @@ describe("Reactivity Debugging", () => {
           cellId: "multi-sub-cell",
           executionCount: 1,
           requestedBy: "test-user",
-          requestedAt: new Date(),
           priority: 1,
         }),
       );
@@ -179,7 +172,6 @@ describe("Reactivity Debugging", () => {
         events.executionCompleted({
           queueId: "multi-sub-queue",
           status: "success",
-          completedAt: new Date(),
         }),
       );
 
@@ -229,7 +221,6 @@ describe("Reactivity Debugging", () => {
           cellType: "code",
           position: 0,
           createdBy: "test-user",
-          createdAt: new Date(),
           notebookLastModified: new Date(),
         }),
       );
@@ -258,7 +249,6 @@ describe("Reactivity Debugging", () => {
             cells: cells.map((c) => ({
               id: c.id,
               position: c.position,
-              deletedAt: c.deletedAt,
             })),
           });
         },
@@ -276,7 +266,6 @@ describe("Reactivity Debugging", () => {
               cellType: "code",
               position: i,
               createdBy: "test-user",
-              createdAt: new Date(),
               notebookLastModified: new Date(),
             }),
           ),
@@ -299,7 +288,6 @@ describe("Reactivity Debugging", () => {
             store.commit(
               (events as any).cellDeleted({
                 id: cellId,
-                deletedAt: new Date(),
                 deletedBy: "test-user",
                 notebookLastModified: new Date(),
               }),
@@ -384,7 +372,6 @@ describe("Reactivity Debugging", () => {
           sessionId,
           kernelId,
           kernelType: "python3",
-          startedAt: new Date(),
           capabilities: {
             canExecuteCode: true,
             canExecuteSql: false,
@@ -403,7 +390,6 @@ describe("Reactivity Debugging", () => {
           cellType: "code",
           position: 0,
           createdBy: "test-user",
-          createdAt: new Date(),
           notebookLastModified: new Date(),
         }),
       );
@@ -414,7 +400,6 @@ describe("Reactivity Debugging", () => {
           cellId,
           executionCount: 1,
           requestedBy: "test-user",
-          requestedAt: new Date(),
           priority: 1,
         }),
       );
@@ -424,7 +409,6 @@ describe("Reactivity Debugging", () => {
         events.executionAssigned({
           queueId,
           kernelSessionId: sessionId,
-          assignedAt: new Date(),
         }),
       );
 
@@ -491,7 +475,6 @@ describe("Reactivity Debugging", () => {
               cellType: "code",
               position: op,
               createdBy: "test-user",
-              createdAt: new Date(),
               notebookLastModified: new Date(),
             }),
           );
@@ -500,7 +483,6 @@ describe("Reactivity Debugging", () => {
             store.commit(
               events.cellDeleted({
                 id: cellId,
-                deletedAt: new Date(),
                 deletedBy: "test-user",
                 notebookLastModified: new Date(),
               }),
@@ -542,7 +524,6 @@ describe("Reactivity Debugging", () => {
           store.commit(
             events.kernelSessionHeartbeat({
               sessionId: `high-freq-session-${i % 3}`, // Cycle through 3 sessions
-              heartbeatAt: new Date(),
               status: i % 2 === 0 ? "ready" : "busy",
             }),
           );
@@ -555,7 +536,6 @@ describe("Reactivity Debugging", () => {
           sessionId: "high-freq-session-0",
           kernelId: "high-freq-kernel",
           kernelType: "python3",
-          startedAt: new Date(),
           capabilities: {
             canExecuteCode: true,
             canExecuteSql: false,
@@ -604,7 +584,6 @@ describe("Reactivity Debugging", () => {
           cellType: "code",
           position: 0,
           createdBy: "test-user",
-          createdAt: new Date(),
           notebookLastModified: new Date(),
         }),
       );
@@ -619,7 +598,6 @@ describe("Reactivity Debugging", () => {
           cellType: "code",
           position: 1,
           createdBy: "test-user",
-          createdAt: new Date(),
           notebookLastModified: new Date(),
         }),
       );
@@ -652,7 +630,6 @@ describe("Reactivity Debugging", () => {
           cellType: "code",
           position: 0,
           createdBy: "test-user",
-          createdAt: new Date(),
           notebookLastModified: new Date(),
         }),
       );

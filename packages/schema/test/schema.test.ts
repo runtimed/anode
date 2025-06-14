@@ -7,47 +7,33 @@ import { events, tables, schema } from '../src/schema.js'
 describe('Anode Schema', () => {
   describe('Event Schema Validation', () => {
     it('should validate notebookInitialized event', () => {
-      const now = new Date()
       const validEvent = {
         id: 'notebook-123',
         title: 'Test Notebook',
-        ownerId: 'user-456',
-        createdAt: now.toISOString()
+        ownerId: 'user-456'
       }
 
       const result = S.decodeUnknownSync(events.notebookInitialized.schema)(validEvent)
-      expect(result).toEqual({
-        ...validEvent,
-        createdAt: now
-      })
+      expect(result).toEqual(validEvent)
     })
 
     it('should validate cellCreated event', () => {
-      const now = new Date()
       const validEvent = {
         id: 'cell-123',
         cellType: 'code' as const,
         position: 0,
-        createdBy: 'user-456',
-        createdAt: now.toISOString(),
-        notebookLastModified: now.toISOString()
+        createdBy: 'user-456'
       }
 
       const result = S.decodeUnknownSync(events.cellCreated.schema)(validEvent)
-      expect(result).toEqual({
-        ...validEvent,
-        createdAt: now,
-        notebookLastModified: now
-      })
+      expect(result).toEqual(validEvent)
     })
 
     it('should validate kernelSessionStarted event', () => {
-      const now = new Date()
       const validEvent = {
         sessionId: 'session-123',
         kernelId: 'kernel-456',
         kernelType: 'python3',
-        startedAt: now.toISOString(),
         capabilities: {
           canExecuteCode: true,
           canExecuteSql: false,
@@ -56,46 +42,33 @@ describe('Anode Schema', () => {
       }
 
       const result = S.decodeUnknownSync(events.kernelSessionStarted.schema)(validEvent)
-      expect(result).toEqual({
-        ...validEvent,
-        startedAt: now
-      })
+      expect(result).toEqual(validEvent)
     })
 
     it('should validate executionRequested event', () => {
-      const now = new Date()
       const validEvent = {
         queueId: 'queue-123',
         cellId: 'cell-456',
         executionCount: 1,
         requestedBy: 'user-789',
-        requestedAt: now.toISOString(),
         priority: 1
       }
 
       const result = S.decodeUnknownSync(events.executionRequested.schema)(validEvent)
-      expect(result).toEqual({
-        ...validEvent,
-        requestedAt: now
-      })
+      expect(result).toEqual(validEvent)
     })
 
     it('should validate cellOutputAdded event', () => {
-      const now = new Date()
       const validEvent = {
         id: 'output-123',
         cellId: 'cell-456',
         outputType: 'stream' as const,
         data: { name: 'stdout', text: 'Hello, World!' },
-        position: 0,
-        createdAt: now.toISOString()
+        position: 0
       }
 
       const result = S.decodeUnknownSync(events.cellOutputAdded.schema)(validEvent)
-      expect(result).toEqual({
-        ...validEvent,
-        createdAt: now
-      })
+      expect(result).toEqual(validEvent)
     })
 
     it('should reject invalid cell types', () => {
@@ -103,9 +76,7 @@ describe('Anode Schema', () => {
         id: 'cell-123',
         cellType: 'invalid-type',
         position: 0,
-        createdBy: 'user-456',
-        createdAt: new Date().toISOString(),
-        notebookLastModified: new Date().toISOString()
+        createdBy: 'user-456'
       }
 
       expect(() => {
@@ -116,8 +87,7 @@ describe('Anode Schema', () => {
     it('should reject invalid execution status', () => {
       const invalidEvent = {
         queueId: 'queue-123',
-        status: 'invalid-status',
-        completedAt: new Date().toISOString()
+        status: 'invalid-status'
       }
 
       expect(() => {
@@ -186,14 +156,12 @@ describe('Anode Schema', () => {
 
     it('should create and query notebook', async () => {
       const notebookId = 'test-notebook-123'
-      const now = new Date()
 
       // Create notebook
       store.commit(events.notebookInitialized({
         id: notebookId,
         title: 'Test Notebook',
-        ownerId: 'user-123',
-        createdAt: now
+        ownerId: 'user-123'
       }))
 
       // Query notebook
@@ -206,7 +174,6 @@ describe('Anode Schema', () => {
 
     it('should create and query cells', async () => {
       const cellId = 'test-cell-123'
-      const now = new Date()
 
       // Create cell
       store.commit(events.cellCreated({
@@ -214,16 +181,13 @@ describe('Anode Schema', () => {
         cellType: 'code',
         position: 0,
         createdBy: 'user-123',
-        createdAt: now,
-        notebookLastModified: now
       }))
 
       // Update cell source
       store.commit(events.cellSourceChanged({
         id: cellId,
         source: 'print("Hello, World!")',
-        modifiedBy: 'user-123',
-        notebookLastModified: now
+        modifiedBy: 'user-123'
       }))
 
       // Query cells
@@ -238,14 +202,12 @@ describe('Anode Schema', () => {
     it('should manage kernel sessions', async () => {
       const sessionId = 'test-session-123'
       const kernelId = 'test-kernel-456'
-      const now = new Date()
 
       // Start kernel session
       store.commit(events.kernelSessionStarted({
-        sessionId,
-        kernelId,
+        sessionId: sessionId,
+        kernelId: kernelId,
         kernelType: 'python3',
-        startedAt: now,
         capabilities: {
           canExecuteCode: true,
           canExecuteSql: false,
@@ -254,10 +216,8 @@ describe('Anode Schema', () => {
       }))
 
       // Send heartbeat
-      const heartbeatTime = new Date(now.getTime() + 30000)
       store.commit(events.kernelSessionHeartbeat({
         sessionId,
-        heartbeatAt: heartbeatTime,
         status: 'ready'
       }))
 
@@ -275,7 +235,6 @@ describe('Anode Schema', () => {
       const cellId = 'test-cell-123'
       const queueId = 'test-queue-456'
       const sessionId = 'test-session-789'
-      const now = new Date()
 
       // Create cell first
       store.commit(events.cellCreated({
@@ -283,39 +242,33 @@ describe('Anode Schema', () => {
         cellType: 'code',
         position: 0,
         createdBy: 'user-123',
-        createdAt: now,
-        notebookLastModified: now
       }))
 
       // Request execution
       store.commit(events.executionRequested({
-        queueId,
+        queueId: queueId,
         cellId,
         executionCount: 1,
         requestedBy: 'user-123',
-        requestedAt: now,
-        priority: 1
+        priority: 0
       }))
 
       // Assign to kernel
       store.commit(events.executionAssigned({
         queueId,
-        kernelSessionId: sessionId,
-        assignedAt: new Date(now.getTime() + 1000)
+        kernelSessionId: sessionId
       }))
 
       // Start execution
       store.commit(events.executionStarted({
         queueId,
-        kernelSessionId: sessionId,
-        startedAt: new Date(now.getTime() + 2000)
+        kernelSessionId: sessionId
       }))
 
       // Complete execution
       store.commit(events.executionCompleted({
         queueId,
-        status: 'success',
-        completedAt: new Date(now.getTime() + 5000)
+        status: 'success'
       }))
 
       // Query execution queue
@@ -329,14 +282,13 @@ describe('Anode Schema', () => {
       // Query updated cell
       const cells = store.query(tables.cells.select())
       expect(cells).toHaveLength(1)
-      expect(cells[0].executionState).toBe('queued') // Updated by executionRequested
+      expect(cells[0].executionState).toBe('completed') // Updated by executionCompleted
       expect(cells[0].executionCount).toBe(1)
     })
 
     it('should handle cell outputs', async () => {
       const cellId = 'test-cell-123'
       const outputId = 'test-output-456'
-      const now = new Date()
 
       // Create cell first
       store.commit(events.cellCreated({
@@ -344,8 +296,6 @@ describe('Anode Schema', () => {
         cellType: 'code',
         position: 0,
         createdBy: 'user-123',
-        createdAt: now,
-        notebookLastModified: now
       }))
 
       // Add output
@@ -354,8 +304,7 @@ describe('Anode Schema', () => {
         cellId,
         outputType: 'stream',
         data: { name: 'stdout', text: 'Hello, World!\n' },
-        position: 0,
-        createdAt: now
+        position: 0
       }))
 
       // Query outputs
@@ -377,9 +326,8 @@ describe('Anode Schema', () => {
       expect(outputsAfterClear).toHaveLength(0)
     })
 
-    it('should handle cell deletion with soft delete', async () => {
+    it('should handle cell deletion with hard delete', async () => {
       const cellId = 'test-cell-123'
-      const now = new Date()
 
       // Create cell
       store.commit(events.cellCreated({
@@ -387,69 +335,30 @@ describe('Anode Schema', () => {
         cellType: 'code',
         position: 0,
         createdBy: 'user-123',
-        createdAt: now,
-        notebookLastModified: now
       }))
 
       // Delete cell
-      const deletedAt = new Date(now.getTime() + 1000)
       store.commit(events.cellDeleted({
         id: cellId,
-        deletedAt,
-        deletedBy: 'user-123',
-        notebookLastModified: deletedAt
       }))
 
-      // Query all cells (including deleted)
+      // Query all cells (hard delete removes the cell entirely)
       const allCells = store.query(tables.cells.select())
-      expect(allCells).toHaveLength(1)
-      expect(allCells[0].deletedAt).toEqual(deletedAt)
+      expect(allCells).toHaveLength(0)
 
-      // Query only non-deleted cells
+      // Query only non-deleted cells (same as all cells since hard delete is used)
       const activeCells = store.query(
-        tables.cells.select().where({ deletedAt: null })
+        tables.cells.select()
       )
       expect(activeCells).toHaveLength(0)
     })
 
-    it('should update notebook last modified on cell changes', async () => {
-      const notebookId = 'test-notebook-123'
-      const cellId = 'test-cell-456'
-      const initialTime = new Date()
-
-      // Create notebook
-      store.commit(events.notebookInitialized({
-        id: notebookId,
-        title: 'Test Notebook',
-        ownerId: 'user-123',
-        createdAt: initialTime
-      }))
-
-      // Create cell (should update notebook lastModified)
-      const cellCreatedTime = new Date(initialTime.getTime() + 1000)
-      // Create cell
-      store.commit(events.cellCreated({
-        id: cellId,
-        cellType: 'code',
-        position: 0,
-        createdBy: 'user-123',
-        createdAt: cellCreatedTime,
-        notebookLastModified: cellCreatedTime
-      }))
-
-      // Query notebook
-      const notebooks = store.query(tables.notebook.select())
-      expect(notebooks).toHaveLength(1)
-      expect(notebooks[0].lastModified).toEqual(cellCreatedTime)
-    })
-
     it('should support reactive queries', async () => {
       const cellId = 'test-cell-123'
-      const now = new Date()
 
       // Create reactive query
       const activeCells$ = queryDb(
-        tables.cells.select().where({ deletedAt: null }),
+        tables.cells.select(),
         { label: 'activeCells' }
       )
 
@@ -469,8 +378,6 @@ describe('Anode Schema', () => {
         cellType: 'code',
         position: 0,
         createdBy: 'user-123',
-        createdAt: now,
-        notebookLastModified: now
       }))
 
       // Should have one active cell
@@ -479,10 +386,7 @@ describe('Anode Schema', () => {
 
       // Delete cell
       store.commit(events.cellDeleted({
-        id: cellId,
-        deletedAt: new Date(),
-        deletedBy: 'user-123',
-        notebookLastModified: new Date()
+        id: cellId
       }))
 
       // Should have no active cells
@@ -514,6 +418,107 @@ describe('Anode Schema', () => {
         const withoutPrefix = name.replace(/^v1\./, '')
         expect(withoutPrefix).toMatch(/^[A-Z][a-zA-Z]*$/)
       })
+    })
+  })
+
+  describe('Build-time Schema Validation', () => {
+    it('should not have redundant fields', () => {
+      // These events should be clean without timestamp complications
+      const eventsWithCleanSchema = [
+        'v1.CellCreated',
+        'v1.CellSourceChanged',
+        'v1.CellTypeChanged',
+        'v1.CellDeleted',
+        'v1.CellMoved',
+      ]
+
+      for (const eventName of eventsWithCleanSchema) {
+        const event = Object.values(events).find(e => e.name === eventName)
+        expect(event).toBeDefined()
+
+        // Create event payload with minimal required fields
+        const testPayload: any = {
+          id: 'test-id',
+          // Add minimal required fields based on event type
+          ...(eventName === 'v1.CellCreated' && {
+            cellType: 'code',
+            position: 0,
+            createdBy: 'test-user',
+          }),
+          ...(eventName === 'v1.CellSourceChanged' && {
+            source: 'test source',
+            modifiedBy: 'test-user',
+          }),
+          ...(eventName === 'v1.CellTypeChanged' && {
+            cellType: 'markdown',
+          }),
+          ...(eventName === 'v1.CellDeleted' && {
+          }),
+          ...(eventName === 'v1.CellMoved' && {
+            newPosition: 1,
+          }),
+        }
+
+        // Events should validate successfully
+        const result = S.decodeUnknownSync(event!.schema)(testPayload)
+        expect(result).toBeDefined()
+      }
+    })
+
+    it('should have required fields for event types', () => {
+      // Test that events have expected required fields
+      const cellCreatedEvent = Object.values(events).find(e => e.name === 'v1.CellCreated')
+      expect(cellCreatedEvent).toBeDefined()
+
+      const validCellCreated = {
+        id: 'cell-123',
+        cellType: 'code' as const,
+        position: 0,
+        createdBy: 'user-123'
+      }
+
+      expect(() => {
+        S.decodeUnknownSync(cellCreatedEvent!.schema)(validCellCreated)
+      }).not.toThrow()
+    })
+
+    it('should validate event naming conventions', () => {
+      const allEventNames = Object.values(events).map(e => e.name)
+
+      // All synced events should use v1 prefix
+      const syncedEvents = allEventNames.filter(name => name !== 'uiStateSet')
+      syncedEvents.forEach(name => {
+        expect(name).toMatch(/^v1\./)
+      })
+
+      // Event names should be PascalCase after prefix
+      syncedEvents.forEach(name => {
+        const withoutPrefix = name.replace(/^v1\./, '')
+        expect(withoutPrefix).toMatch(/^[A-Z][a-zA-Z]*$/)
+      })
+    })
+
+    it('should not have missing required events', () => {
+      const requiredEvents = [
+        'v1.NotebookInitialized',
+        'v1.NotebookTitleChanged',
+        'v1.CellCreated',
+        'v1.CellSourceChanged',
+        'v1.CellTypeChanged',
+        'v1.CellDeleted',
+        'v1.CellMoved',
+        'v1.KernelSessionStarted',
+        'v1.ExecutionRequested',
+        'v1.ExecutionAssigned',
+        'v1.ExecutionStarted',
+        'v1.ExecutionCompleted',
+      ]
+
+      const existingEventNames = Object.values(events).map(e => e.name)
+
+      for (const requiredEvent of requiredEvents) {
+        expect(existingEventNames).toContain(requiredEvent)
+      }
     })
   })
 })

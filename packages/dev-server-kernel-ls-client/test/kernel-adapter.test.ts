@@ -90,7 +90,6 @@ describe('Kernel Adapter', () => {
         sessionId,
         kernelId,
         kernelType: 'python3',
-        startedAt: new Date(),
         capabilities: {
           canExecuteCode: true,
           canExecuteSql: false,
@@ -102,7 +101,7 @@ describe('Kernel Adapter', () => {
       expect(sessions).toHaveLength(1)
       expect(sessions[0].sessionId).toBe(sessionId)
       expect(sessions[0].kernelId).toBe(kernelId)
-      expect(sessions[0].status).toBe('starting')
+      expect(sessions[0].status).toBe('ready')
       expect(sessions[0].isActive).toBe(true)
     })
 
@@ -112,7 +111,6 @@ describe('Kernel Adapter', () => {
         sessionId,
         kernelId,
         kernelType: 'python3',
-        startedAt: new Date(),
         capabilities: {
           canExecuteCode: true,
           canExecuteSql: false,
@@ -120,17 +118,15 @@ describe('Kernel Adapter', () => {
         }
       }))
 
-      // Send heartbeat
-      const heartbeatTime = new Date()
+      // Send heartbeat with busy status
       store.commit(events.kernelSessionHeartbeat({
         sessionId,
-        heartbeatAt: heartbeatTime,
-        status: 'ready'
+        status: 'busy'
       }))
 
       const sessions = store.query(tables.kernelSessions.select())
-      expect(sessions[0].status).toBe('ready')
-      expect(sessions[0].lastHeartbeat).toEqual(heartbeatTime)
+      expect(sessions[0].status).toBe('busy')
+      expect(sessions[0].isActive).toBe(true)
     })
 
     it('should mark session as terminated on shutdown', async () => {
@@ -139,7 +135,6 @@ describe('Kernel Adapter', () => {
         sessionId,
         kernelId,
         kernelType: 'python3',
-        startedAt: new Date(),
         capabilities: {
           canExecuteCode: true,
           canExecuteSql: false,
@@ -152,13 +147,11 @@ describe('Kernel Adapter', () => {
       store.commit(events.kernelSessionTerminated({
         sessionId,
         reason: 'shutdown',
-        terminatedAt
       }))
 
       const sessions = store.query(tables.kernelSessions.select())
       expect(sessions[0].status).toBe('terminated')
       expect(sessions[0].isActive).toBe(false)
-      expect(sessions[0].terminatedAt).toEqual(terminatedAt)
     })
   })
 
@@ -169,7 +162,6 @@ describe('Kernel Adapter', () => {
         sessionId,
         kernelId,
         kernelType: 'python3',
-        startedAt: new Date(),
         capabilities: {
           canExecuteCode: true,
           canExecuteSql: false,
@@ -188,7 +180,6 @@ describe('Kernel Adapter', () => {
         cellType: 'code',
         position: 0,
         createdBy: 'user-123',
-        createdAt: new Date(),
         notebookLastModified: new Date()
       }))
 
@@ -198,7 +189,6 @@ describe('Kernel Adapter', () => {
         cellId,
         executionCount: 1,
         requestedBy: 'user-123',
-        requestedAt: new Date(),
         priority: 1
       }))
 
@@ -206,21 +196,18 @@ describe('Kernel Adapter', () => {
       store.commit(events.executionAssigned({
         queueId,
         kernelSessionId: sessionId,
-        assignedAt: new Date()
       }))
 
       // Start execution
       store.commit(events.executionStarted({
         queueId,
         kernelSessionId: sessionId,
-        startedAt: new Date()
       }))
 
       // Complete execution
       store.commit(events.executionCompleted({
         queueId,
         status: 'success',
-        completedAt: new Date()
       }))
 
       const queueEntries = store.query(tables.executionQueue.select())
@@ -240,7 +227,6 @@ describe('Kernel Adapter', () => {
         cellType: 'code',
         position: 0,
         createdBy: 'user-123',
-        createdAt: new Date(),
         notebookLastModified: new Date()
       }))
 
@@ -249,7 +235,6 @@ describe('Kernel Adapter', () => {
         cellType: 'code',
         position: 1,
         createdBy: 'user-123',
-        createdAt: new Date(),
         notebookLastModified: new Date()
       }))
 
@@ -259,7 +244,6 @@ describe('Kernel Adapter', () => {
         cellId: cellId1,
         executionCount: 1,
         requestedBy: 'user-123',
-        requestedAt: new Date(),
         priority: 1
       }))
 
@@ -269,7 +253,6 @@ describe('Kernel Adapter', () => {
         cellId: cellId2,
         executionCount: 1,
         requestedBy: 'user-123',
-        requestedAt: new Date(),
         priority: 10
       }))
 
@@ -278,7 +261,6 @@ describe('Kernel Adapter', () => {
         tables.executionQueue.select()
           .where({ status: 'pending' })
           .orderBy('priority', 'desc')
-          .orderBy('requestedAt', 'asc')
       )
 
       expect(pendingQueue).toHaveLength(2)
@@ -294,8 +276,7 @@ describe('Kernel Adapter', () => {
       // Create reactive query for assigned work
       const assignedWork$ = queryDb(
         tables.executionQueue.select()
-          .where({ status: 'assigned', assignedKernelSession: sessionId })
-          .orderBy('requestedAt', 'asc'),
+          .where({ status: 'assigned', assignedKernelSession: sessionId }),
         { label: 'assignedWork' }
       )
 
@@ -316,7 +297,6 @@ describe('Kernel Adapter', () => {
         cellType: 'code',
         position: 0,
         createdBy: 'user-123',
-        createdAt: new Date(),
         notebookLastModified: new Date()
       }))
 
@@ -325,7 +305,6 @@ describe('Kernel Adapter', () => {
         cellId,
         executionCount: 1,
         requestedBy: 'user-123',
-        requestedAt: new Date(),
         priority: 1
       }))
 
@@ -333,7 +312,6 @@ describe('Kernel Adapter', () => {
       store.commit(events.executionAssigned({
         queueId,
         kernelSessionId: sessionId,
-        assignedAt: new Date()
       }))
 
       // Should receive update with assigned work
@@ -395,7 +373,6 @@ describe('Kernel Adapter', () => {
           cellType: 'code',
           position: i,
           createdBy: 'user-123',
-          createdAt: new Date(),
           notebookLastModified: new Date()
         }))
 
@@ -404,7 +381,6 @@ describe('Kernel Adapter', () => {
           cellId,
           executionCount: 1,
           requestedBy: 'user-123',
-          requestedAt: new Date(),
           priority: i
         }))
 
@@ -451,7 +427,6 @@ describe('Kernel Adapter', () => {
         cellType: 'code',
         position: 0,
         createdBy: 'user-123',
-        createdAt: new Date(),
         notebookLastModified: new Date()
       }))
 
@@ -477,7 +452,6 @@ describe('Kernel Adapter', () => {
         outputType: 'stream',
         data: outputs[0].data,
         position: 0,
-        createdAt: new Date(),
         notebookLastModified: new Date()
       }))
 
@@ -496,7 +470,6 @@ describe('Kernel Adapter', () => {
         cellType: 'code',
         position: 0,
         createdBy: 'user-123',
-        createdAt: new Date(),
         notebookLastModified: new Date()
       }))
 
@@ -524,7 +497,6 @@ describe('Kernel Adapter', () => {
         cellType: 'code',
         position: 0,
         createdBy: 'user-123',
-        createdAt: new Date(),
         notebookLastModified: new Date()
       }))
 
@@ -534,7 +506,6 @@ describe('Kernel Adapter', () => {
         outputType: 'stream',
         data: 'Old output',
         position: 0,
-        createdAt: new Date(),
         notebookLastModified: new Date()
       }))
 
@@ -572,7 +543,6 @@ describe('Kernel Adapter', () => {
         sessionId,
         kernelId,
         kernelType: 'python3',
-        startedAt: new Date(),
         capabilities: {
           canExecuteCode: true,
           canExecuteSql: false,
@@ -596,7 +566,6 @@ describe('Kernel Adapter', () => {
         sessionId: session1,
         kernelId: `${kernelId}-1`,
         kernelType: 'python3',
-        startedAt: new Date(),
         capabilities: {
           canExecuteCode: true,
           canExecuteSql: false,
@@ -608,7 +577,6 @@ describe('Kernel Adapter', () => {
         sessionId: session2,
         kernelId: `${kernelId}-2`,
         kernelType: 'python3',
-        startedAt: new Date(),
         capabilities: {
           canExecuteCode: true,
           canExecuteSql: false,
@@ -630,7 +598,6 @@ describe('Kernel Adapter', () => {
           cellType: 'code',
           position: 0,
           createdBy: 'user-123',
-          createdAt: new Date(),
         notebookLastModified: new Date()
         }))
 
@@ -639,14 +606,12 @@ describe('Kernel Adapter', () => {
           cellId,
           executionCount: 1,
           requestedBy: 'user-123',
-          requestedAt: new Date(),
           priority: 1
         }))
 
         store.commit(events.executionAssigned({
           queueId,
           kernelSessionId: execSessionId,
-          assignedAt: new Date()
         }))
       }
 

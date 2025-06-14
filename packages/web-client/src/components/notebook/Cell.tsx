@@ -97,8 +97,7 @@ export const Cell: React.FC<CellProps> = ({
         cellId: cell.id,
         executionCount,
         requestedBy: 'current-user',
-        requestedAt: new Date(),
-        priority: 0, // Normal priority
+        priority: 1,
       }))
 
       console.log('✅ Execution queued with ID:', queueId)
@@ -124,7 +123,6 @@ export const Cell: React.FC<CellProps> = ({
           traceback: ['Error occurred while emitting LiveStore event'],
         },
         position: 0,
-        createdAt: new Date(),
       }))
     }
   }, [cell.id, cell.source, cell.executionCount, store])

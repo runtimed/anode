@@ -11,8 +11,6 @@ export const tables: Record<string, any> = {
       title: State.SQLite.text({ default: 'Untitled Notebook' }),
       kernelType: State.SQLite.text({ default: 'python3' }),
       ownerId: State.SQLite.text(),
-      createdAt: State.SQLite.integer({ schema: Schema.DateFromNumber }),
-      lastModified: State.SQLite.integer({ schema: Schema.DateFromNumber }),
       isPublic: State.SQLite.boolean({ default: false }),
     },
   }),
@@ -28,7 +26,6 @@ export const tables: Record<string, any> = {
       // Execution state
       executionCount: State.SQLite.integer({ nullable: true }),
       executionState: State.SQLite.text({ default: 'idle', schema: Schema.Literal('idle', 'queued', 'running', 'completed', 'error') }),
-      queuedAt: State.SQLite.integer({ nullable: true, schema: Schema.DateFromNumber }),
       assignedKernelSession: State.SQLite.text({ nullable: true }), // Which kernel session is handling this
 
       // SQL-specific fields
@@ -41,9 +38,7 @@ export const tables: Record<string, any> = {
       aiConversation: State.SQLite.json({ nullable: true, schema: Schema.Any }), // Array of messages
       aiSettings: State.SQLite.json({ nullable: true, schema: Schema.Any }), // temperature, max_tokens, etc.
 
-      createdAt: State.SQLite.integer({ schema: Schema.DateFromNumber }),
       createdBy: State.SQLite.text(),
-      deletedAt: State.SQLite.integer({ nullable: true, schema: Schema.DateFromNumber }),
     },
   }),
 
@@ -55,7 +50,6 @@ export const tables: Record<string, any> = {
       outputType: State.SQLite.text({ schema: Schema.Literal('display_data', 'execute_result', 'stream', 'error') }),
       data: State.SQLite.json({ schema: Schema.Any }),
       position: State.SQLite.real(),
-      createdAt: State.SQLite.integer({ schema: Schema.DateFromNumber }),
     },
   }),
 
@@ -67,9 +61,6 @@ export const tables: Record<string, any> = {
       kernelId: State.SQLite.text(), // Stable kernel identifier
       kernelType: State.SQLite.text({ default: 'python3' }),
       status: State.SQLite.text({ schema: Schema.Literal('starting', 'ready', 'busy', 'restarting', 'terminated') }),
-      startedAt: State.SQLite.integer({ schema: Schema.DateFromNumber }),
-      lastHeartbeat: State.SQLite.integer({ schema: Schema.DateFromNumber }),
-      terminatedAt: State.SQLite.integer({ nullable: true, schema: Schema.DateFromNumber }),
       isActive: State.SQLite.boolean({ default: true }),
 
       // Capability flags
@@ -87,13 +78,10 @@ export const tables: Record<string, any> = {
       cellId: State.SQLite.text(),
       executionCount: State.SQLite.integer(),
       requestedBy: State.SQLite.text(),
-      requestedAt: State.SQLite.integer({ schema: Schema.DateFromNumber }),
 
       // Queue management
       status: State.SQLite.text({ default: 'pending', schema: Schema.Literal('pending', 'assigned', 'executing', 'completed', 'failed', 'cancelled') }),
       assignedKernelSession: State.SQLite.text({ nullable: true }),
-      assignedAt: State.SQLite.integer({ nullable: true, schema: Schema.DateFromNumber }),
-      completedAt: State.SQLite.integer({ nullable: true, schema: Schema.DateFromNumber }),
 
       // Priority and metadata
       priority: State.SQLite.integer({ default: 0 }), // Higher = more important
@@ -112,7 +100,6 @@ export const tables: Record<string, any> = {
       connectionString: State.SQLite.text(), // encrypted connection details
       isDefault: State.SQLite.boolean({ default: false }),
       createdBy: State.SQLite.text(),
-      createdAt: State.SQLite.integer({ schema: Schema.DateFromNumber }),
     },
   }),
 
@@ -141,7 +128,6 @@ export const events = {
       id: Schema.String, // Same as storeId
       title: Schema.String,
       ownerId: Schema.String,
-      createdAt: Schema.Date,
     }),
   }),
 
@@ -149,7 +135,6 @@ export const events = {
     name: 'v1.NotebookTitleChanged',
     schema: Schema.Struct({
       title: Schema.String,
-      lastModified: Schema.Date,
     }),
   }),
 
@@ -161,8 +146,6 @@ export const events = {
       cellType: Schema.Literal('code', 'markdown', 'raw', 'sql', 'ai'),
       position: Schema.Number,
       createdBy: Schema.String,
-      createdAt: Schema.Date,
-      notebookLastModified: Schema.Date,
     }),
   }),
 
@@ -172,7 +155,6 @@ export const events = {
       id: Schema.String,
       source: Schema.String,
       modifiedBy: Schema.String,
-      notebookLastModified: Schema.Date,
     }),
   }),
 
@@ -181,7 +163,6 @@ export const events = {
     schema: Schema.Struct({
       id: Schema.String,
       cellType: Schema.Literal('code', 'markdown', 'raw', 'sql', 'ai'),
-      notebookLastModified: Schema.Date,
     }),
   }),
 
@@ -189,9 +170,6 @@ export const events = {
     name: 'v1.CellDeleted',
     schema: Schema.Struct({
       id: Schema.String,
-      deletedAt: Schema.Date,
-      deletedBy: Schema.String,
-      notebookLastModified: Schema.Date,
     }),
   }),
 
@@ -200,7 +178,6 @@ export const events = {
     schema: Schema.Struct({
       id: Schema.String,
       newPosition: Schema.Number,
-      notebookLastModified: Schema.Date,
     }),
   }),
 
@@ -211,7 +188,6 @@ export const events = {
       sessionId: Schema.String, // Unique per kernel restart
       kernelId: Schema.String, // Stable kernel identifier
       kernelType: Schema.String,
-      startedAt: Schema.Date,
       capabilities: Schema.Struct({
         canExecuteCode: Schema.Boolean,
         canExecuteSql: Schema.Boolean,
@@ -224,7 +200,6 @@ export const events = {
     name: 'v1.KernelSessionHeartbeat',
     schema: Schema.Struct({
       sessionId: Schema.String,
-      heartbeatAt: Schema.Date,
       status: Schema.Literal('ready', 'busy'),
     }),
   }),
@@ -234,7 +209,6 @@ export const events = {
     schema: Schema.Struct({
       sessionId: Schema.String,
       reason: Schema.Literal('shutdown', 'restart', 'error', 'timeout'),
-      terminatedAt: Schema.Date,
     }),
   }),
 
@@ -246,7 +220,6 @@ export const events = {
       cellId: Schema.String,
       executionCount: Schema.Number,
       requestedBy: Schema.String,
-      requestedAt: Schema.Date,
       priority: Schema.Number,
     }),
   }),
@@ -256,7 +229,6 @@ export const events = {
     schema: Schema.Struct({
       queueId: Schema.String,
       kernelSessionId: Schema.String,
-      assignedAt: Schema.Date,
     }),
   }),
 
@@ -265,7 +237,6 @@ export const events = {
     schema: Schema.Struct({
       queueId: Schema.String,
       kernelSessionId: Schema.String,
-      startedAt: Schema.Date,
     }),
   }),
 
@@ -274,7 +245,6 @@ export const events = {
     schema: Schema.Struct({
       queueId: Schema.String,
       status: Schema.Literal('success', 'error', 'cancelled'),
-      completedAt: Schema.Date,
       error: Schema.optional(Schema.String),
     }),
   }),
@@ -284,7 +254,6 @@ export const events = {
     schema: Schema.Struct({
       queueId: Schema.String,
       cancelledBy: Schema.String,
-      cancelledAt: Schema.Date,
       reason: Schema.String,
     }),
   }),
@@ -298,7 +267,6 @@ export const events = {
       outputType: Schema.Literal('display_data', 'execute_result', 'stream', 'error'),
       data: Schema.Any,
       position: Schema.Number,
-      createdAt: Schema.Date,
     }),
   }),
 
@@ -320,7 +288,6 @@ export const events = {
       connectionString: Schema.String,
       isDefault: Schema.Boolean,
       createdBy: Schema.String,
-      createdAt: Schema.Date,
     }),
   }),
 
@@ -370,135 +337,153 @@ export const events = {
 // Materializers map events to state changes
 const materializers = State.SQLite.materializers(events, {
   // Notebook materializers
-  'v1.NotebookInitialized': ({ id, title, ownerId, createdAt }) =>
+  'v1.NotebookInitialized': ({ id, title, ownerId }) =>
     tables.notebook.insert({
       id,
       title,
       ownerId,
-      createdAt,
-      lastModified: createdAt
     }),
 
-  'v1.NotebookTitleChanged': ({ title, lastModified }) =>
-    tables.notebook.update({ title, lastModified }),
+  'v1.NotebookTitleChanged': ({ title }) =>
+    tables.notebook.update({ title }),
 
   // Cell materializers
-  'v1.CellCreated': ({ id, cellType, position, createdBy, createdAt, notebookLastModified }) => [
+  'v1.CellCreated': ({ id, cellType, position, createdBy }) =>
     tables.cells.insert({
       id,
       cellType,
       position,
       createdBy,
-      createdAt
     }),
-    // Update notebook's last modified time
-    tables.notebook.update({ lastModified: notebookLastModified }),
-  ],
 
-  'v1.CellSourceChanged': ({ id, source, notebookLastModified }) => [
+  'v1.CellSourceChanged': ({ id, source }) =>
     tables.cells.update({ source }).where({ id }),
-    tables.notebook.update({ lastModified: notebookLastModified }),
-  ],
 
-  'v1.CellTypeChanged': ({ id, cellType, notebookLastModified }) => [
+  'v1.CellTypeChanged': ({ id, cellType }) =>
     tables.cells.update({ cellType }).where({ id }),
-    tables.notebook.update({ lastModified: notebookLastModified }),
-  ],
 
-  'v1.CellDeleted': ({ id, deletedAt, notebookLastModified }) => [
-    tables.cells.update({ deletedAt }).where({ id }),
-    tables.notebook.update({ lastModified: notebookLastModified }),
-  ],
+  'v1.CellDeleted': ({ id }) =>
+    tables.cells.delete().where({ id }),
 
-  'v1.CellMoved': ({ id, newPosition, notebookLastModified }) => [
+  'v1.CellMoved': ({ id, newPosition }) =>
     tables.cells.update({ position: newPosition }).where({ id }),
-    tables.notebook.update({ lastModified: notebookLastModified }),
-  ],
 
   // Kernel lifecycle materializers
-  'v1.KernelSessionStarted': ({ sessionId, kernelId, kernelType, startedAt, capabilities }) =>
+  'v1.KernelSessionStarted': ({ sessionId, kernelId, kernelType, capabilities }) =>
     tables.kernelSessions.insert({
       sessionId,
       kernelId,
       kernelType,
-      status: 'starting',
-      startedAt,
-      lastHeartbeat: startedAt,
+      status: 'ready',
       canExecuteCode: capabilities.canExecuteCode,
       canExecuteSql: capabilities.canExecuteSql,
       canExecuteAi: capabilities.canExecuteAi,
     }),
 
-  'v1.KernelSessionHeartbeat': ({ sessionId, heartbeatAt, status }) =>
+  'v1.KernelSessionHeartbeat': ({ sessionId, status }) =>
     tables.kernelSessions.update({
-      lastHeartbeat: heartbeatAt,
       status: status === 'ready' ? 'ready' : 'busy',
     }).where({ sessionId }),
 
-  'v1.KernelSessionTerminated': ({ sessionId, terminatedAt }) =>
+  'v1.KernelSessionTerminated': ({ sessionId }) =>
     tables.kernelSessions.update({
       status: 'terminated',
-      terminatedAt,
       isActive: false,
     }).where({ sessionId }),
 
   // Execution queue materializers
-  'v1.ExecutionRequested': ({ queueId, cellId, executionCount, requestedBy, requestedAt, priority }) => [
-    // Add to execution queue
+  'v1.ExecutionRequested': ({ queueId, cellId, executionCount, requestedBy, priority }) => [
     tables.executionQueue.insert({
       id: queueId,
       cellId,
       executionCount,
       requestedBy,
-      requestedAt,
       priority,
+      status: 'pending',
     }),
-    // Update cell state
+    // Update cell execution state
     tables.cells.update({
-      executionCount,
       executionState: 'queued',
-      queuedAt: requestedAt,
+      executionCount,
     }).where({ id: cellId }),
   ],
 
-  'v1.ExecutionAssigned': ({ queueId, kernelSessionId, assignedAt }) =>
+  'v1.ExecutionAssigned': ({ queueId, kernelSessionId }) =>
     tables.executionQueue.update({
       status: 'assigned',
       assignedKernelSession: kernelSessionId,
-      assignedAt,
     }).where({ id: queueId }),
 
-  'v1.ExecutionStarted': ({ queueId }) =>
-    tables.executionQueue.update({ status: 'executing' }).where({ id: queueId }),
+  'v1.ExecutionStarted': ({ queueId }, ctx) => {
+    // Get the queue entry to find the cell ID
+    const queueEntries = ctx.query(tables.executionQueue.select().where({ id: queueId }).limit(1))
+    if (queueEntries.length === 0) return []
 
-  'v1.ExecutionCompleted': ({ queueId, status, completedAt }) =>
-    tables.executionQueue.update({
-      status: status === 'success' ? 'completed' : 'failed',
-      completedAt,
-    }).where({ id: queueId }),
+    const queueEntry = queueEntries[0] as any
 
-  'v1.ExecutionCancelled': ({ queueId, cancelledAt }) =>
-    tables.executionQueue.update({
-      status: 'cancelled',
-      completedAt: cancelledAt,
-    }).where({ id: queueId }),
+    return [
+      // Update execution queue
+      tables.executionQueue.update({ status: 'executing' }).where({ id: queueId }),
+      // Update cell execution state
+      tables.cells.update({
+        executionState: 'running',
+      }).where({ id: queueEntry.cellId }),
+    ]
+  },
+
+  'v1.ExecutionCompleted': ({ queueId, status }, ctx) => {
+    // Get the queue entry to find the cell ID
+    const queueEntries = ctx.query(tables.executionQueue.select().where({ id: queueId }).limit(1))
+    if (queueEntries.length === 0) return []
+
+    const queueEntry = queueEntries[0] as any
+
+    return [
+      // Update execution queue
+      tables.executionQueue.update({
+        status: status === 'success' ? 'completed' : 'failed',
+      }).where({ id: queueId }),
+      // Update cell execution state
+      tables.cells.update({
+        executionState: status === 'success' ? 'completed' : 'error',
+      }).where({ id: queueEntry.cellId }),
+    ]
+  },
+
+  'v1.ExecutionCancelled': ({ queueId }, ctx) => {
+    // Get the queue entry to find the cell ID
+    const queueEntries = ctx.query(tables.executionQueue.select().where({ id: queueId }).limit(1))
+    if (queueEntries.length === 0) return []
+
+    const queueEntry = queueEntries[0] as any
+
+    return [
+      // Update execution queue
+      tables.executionQueue.update({
+        status: 'cancelled',
+      }).where({ id: queueId }),
+      // Update cell execution state
+      tables.cells.update({
+        executionState: 'idle',
+      }).where({ id: queueEntry.cellId }),
+    ]
+  },
 
   // Output materializers
-  'v1.CellOutputAdded': ({ id, cellId, outputType, data, position, createdAt }) =>
+  'v1.CellOutputAdded': ({ id, cellId, outputType, data, position }) =>
     tables.outputs.insert({
       id,
       cellId,
       outputType,
       data,
       position,
-      createdAt
     }),
 
   'v1.CellOutputsCleared': ({ cellId }) =>
     tables.outputs.delete().where({ cellId }),
 
   // SQL materializers
-  'v1.SqlConnectionCreated': ({ id, name, type, connectionString, isDefault, createdBy, createdAt }) =>
+  'v1.SqlConnectionCreated': ({ id, name, type, connectionString, isDefault, createdBy }) =>
     tables.dataConnections.insert({
       id,
       name,
@@ -506,7 +491,6 @@ const materializers = State.SQLite.materializers(events, {
       connectionString,
       isDefault,
       createdBy,
-      createdAt,
     }),
 
   'v1.SqlQueryExecuted': ({ cellId, connectionId, query, resultData }) =>

@@ -8,13 +8,19 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
 import { Separator } from '@/components/ui/separator'
+import { Copy, Terminal, Circle } from 'lucide-react'
+import { getCurrentNotebookId } from '../../util/store-id.js'
 
 const cellsQuery = queryDb(
-  tables.cells.select().where({ deletedAt: null })
+  tables.cells.select()
 )
 
 const notebookQuery = queryDb(
   tables.notebook.select().limit(1)
+)
+
+const kernelSessionsQuery = queryDb(
+  tables.kernelSessions.select().where({ isActive: true })
 )
 
 interface NotebookViewerProps {
@@ -26,10 +32,25 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({ onBack }) => {
   const { store } = useStore()
   const cells = store.useQuery(cellsQuery) as any[]
   const notebooks = store.useQuery(notebookQuery) as any[]
+  const kernelSessions = store.useQuery(kernelSessionsQuery) as any[]
   const notebook = notebooks[0]
 
   const [isEditingTitle, setIsEditingTitle] = React.useState(false)
   const [localTitle, setLocalTitle] = React.useState(notebook?.title || '')
+  const [showKernelHelper, setShowKernelHelper] = React.useState(false)
+
+  const currentNotebookId = getCurrentNotebookId()
+  const kernelCommand = `NOTEBOOK_ID=${currentNotebookId} pnpm dev:kernel`
+
+  // Check kernel status
+  const activeKernel = kernelSessions.find((session: any) => session.status === 'ready')
+  const hasActiveKernel = Boolean(activeKernel)
+  const kernelStatus = activeKernel?.status || (kernelSessions.length > 0 ? kernelSessions[0].status : 'disconnected')
+
+  const copyKernelCommand = useCallback(() => {
+    navigator.clipboard.writeText(kernelCommand)
+    // Could add a toast notification here
+  }, [kernelCommand])
 
   React.useEffect(() => {
     if (notebook?.title) {
@@ -41,7 +62,6 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({ onBack }) => {
     if (notebook && localTitle !== notebook.title) {
       store.commit(events.notebookTitleChanged({
         title: localTitle,
-        lastModified: new Date(),
       }))
     }
     setIsEditingTitle(false)
@@ -58,15 +78,12 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({ onBack }) => {
       position: newPosition,
       cellType,
       createdBy: 'current-user',
-      createdAt: new Date(),
     }))
   }, [cells, store])
 
   const deleteCell = useCallback((cellId: string) => {
     store.commit(events.cellDeleted({
       id: cellId,
-      deletedAt: new Date(),
-      deletedBy: 'current-user',
     }))
   }, [store])
 
@@ -153,10 +170,112 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({ onBack }) => {
             </div>
 
             <div className="flex items-center gap-2">
-              <Badge variant="secondary">{notebook.kernelType}</Badge>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setShowKernelHelper(!showKernelHelper)}
+                className="flex items-center gap-2"
+              >
+                <Terminal className="h-4 w-4" />
+                Kernel
+                <Circle
+                  className={`h-2 w-2 fill-current ${
+                    hasActiveKernel ? 'text-green-500' :
+                    kernelStatus === 'starting' ? 'text-yellow-500' :
+                    'text-red-500'
+                  }`}
+                />
+              </Button>
+              <Badge
+                variant="secondary"
+                className={`${
+                  hasActiveKernel ? 'bg-green-100 text-green-800 border-green-200' :
+                  kernelStatus === 'starting' ? 'bg-yellow-100 text-yellow-800 border-yellow-200' :
+                  'bg-red-100 text-red-800 border-red-200'
+                }`}
+              >
+                {notebook.kernelType} {hasActiveKernel ? '●' : '○'}
+              </Badge>
               <Badge variant="outline">{sortedCells.length} cells</Badge>
             </div>
           </div>
+
+          {showKernelHelper && (
+            <div className="mt-4 p-4 bg-slate-50 border rounded-lg">
+              <div className="flex items-center justify-between mb-2">
+                <h4 className="font-medium text-sm flex items-center gap-2">
+                  Kernel Status
+                  <Circle
+                    className={`h-3 w-3 fill-current ${
+                      hasActiveKernel ? 'text-green-500' :
+                      kernelStatus === 'starting' ? 'text-yellow-500' :
+                      'text-red-500'
+                    }`}
+                  />
+                  <span className={`text-xs font-normal ${
+                    hasActiveKernel ? 'text-green-600' :
+                    kernelStatus === 'starting' ? 'text-yellow-600' :
+                    'text-red-600'
+                  }`}>
+                    {hasActiveKernel ? 'Connected' :
+                     kernelStatus === 'starting' ? 'Starting...' :
+                     'Disconnected'}
+                  </span>
+                </h4>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setShowKernelHelper(false)}
+                  className="h-6 w-6 p-0"
+                >
+                  ×
+                </Button>
+              </div>
+
+              {!hasActiveKernel && (
+                <>
+                  <p className="text-sm text-muted-foreground mb-3">
+                    Run this command in your terminal to start a kernel for notebook <code className="bg-slate-200 px-1 rounded">{currentNotebookId}</code>:
+                  </p>
+                  <div className="flex items-center gap-2 bg-slate-900 text-slate-100 p-3 rounded font-mono text-sm">
+                    <span className="flex-1">{kernelCommand}</span>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={copyKernelCommand}
+                      className="h-8 w-8 p-0 text-slate-300 hover:text-slate-100 hover:bg-slate-700"
+                    >
+                      <Copy className="h-4 w-4" />
+                    </Button>
+                  </div>
+                  <p className="text-xs text-muted-foreground mt-2">
+                    Note: Each notebook requires its own kernel instance. The kernel will connect automatically once started.
+                  </p>
+                </>
+              )}
+
+              {hasActiveKernel && activeKernel && (
+                <div className="text-sm space-y-2">
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Session ID:</span>
+                    <code className="bg-slate-200 px-1 rounded text-xs">{activeKernel.sessionId}</code>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Kernel Type:</span>
+                    <span>{activeKernel.kernelType}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Started:</span>
+                    {/* <span>{new Date(activeKernel.startedAt).toLocaleTimeString()}</span> */}
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Last Heartbeat:</span>
+                    <span>{new Date(activeKernel.lastHeartbeat).toLocaleTimeString()}</span>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
         </CardHeader>
       </Card>
 
@@ -221,8 +340,6 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({ onBack }) => {
       {/* Notebook Info */}
       <Separator className="my-8" />
       <div className="text-xs text-muted-foreground text-center">
-        <div>Created: {new Date(notebook.createdAt).toLocaleString()}</div>
-        <div>Modified: {new Date(notebook.lastModified).toLocaleString()}</div>
         <div>Owner: {notebook.ownerId}</div>
       </div>
     </div>
