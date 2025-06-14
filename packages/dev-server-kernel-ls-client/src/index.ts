@@ -1,8 +1,8 @@
 import { createServer } from "node:http";
 import { URL } from "node:url";
 
-// Import the existing kernel adapter logic that handles LiveStore events
-import "./mod.js";
+// Import the REACTIVE kernel adapter logic that handles LiveStore events
+import "./mod-reactive.js";
 
 const PORT = process.env.PORT ? parseInt(process.env.PORT) : 3001;
 const NOTEBOOK_ID = process.env.NOTEBOOK_ID || "demo-notebook";
@@ -76,14 +76,14 @@ const server = createServer(async (req, res) => {
 server.listen(PORT, () => {
   console.log(`🐍 Kernel Service running on port ${PORT}`);
   console.log(`📓 Serving notebook: ${NOTEBOOK_ID}`);
-  console.log(`🔗 LiveStore adapter starting (event-driven execution only)...`);
+  console.log(`🔗 LiveStore REACTIVE adapter starting (event-driven execution only)...`);
   console.log(`💡 Available endpoints:`);
   console.log(`   • GET  http://localhost:${PORT}/health`);
   console.log(`   • GET  http://localhost:${PORT}/status`);
   console.log(``);
-  console.log(`⚡ Code execution happens via LiveStore events:`);
+  console.log(`⚡ Code execution happens via REACTIVE LiveStore queries:`);
   console.log(`   1. Web client emits cellExecutionRequested event`);
-  console.log(`   2. This service receives event via LiveStore adapter`);
+  console.log(`   2. This service reacts to queue changes via queryDb subscriptions`);
   console.log(`   3. Python code executes with Pyodide`);
   console.log(`   4. Results sent back via cellOutputAdded events`);
   console.log(`   5. All connected clients see results in real-time`);
@@ -97,7 +97,7 @@ const shutdown = async () => {
   isShuttingDown = true;
 
   console.log("🛑 Shutting down kernel service...");
-  console.log("🔗 LiveStore adapter will handle its own cleanup...");
+  console.log("🔗 LiveStore REACTIVE adapter will handle its own cleanup...");
 
   server.close(() => {
     console.log("✅ HTTP server closed");
@@ -124,6 +124,6 @@ process.on("unhandledRejection", (reason, promise) => {
   shutdown();
 });
 
-console.log("🎉 Kernel service operational - LiveStore event-driven mode");
-console.log("📡 Waiting for cellExecutionRequested events...");
+console.log("🎉 Kernel service operational - LiveStore REACTIVE mode");
+console.log("📡 Listening for reactive queue changes...");
 console.log("🔌 Press Ctrl+C to stop");
