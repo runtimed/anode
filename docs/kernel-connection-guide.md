@@ -158,5 +158,4 @@ pnpm reset-storage
 ## Related Documentation
 
 - [AGENTS.md](../AGENTS.md) - General development context
-- [Architecture Improvement](./architecture-improvement-remove-redundant-timestamps.md) - Recent schema improvements
-- [Clean Architecture Summary](./clean-architecture-implementation-summary.md) - Implementation details
+- [ROADMAP.md](../ROADMAP.md) - Development priorities and next steps
