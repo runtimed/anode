@@ -40,10 +40,24 @@ ParseError: notebook
 - **Web Client**: Updated to not send/reference timestamp fields
 - **Kernel Client**: Updated to not send timestamp parameters
 
-### 3. Circular Reactive Dependencies - PREVIOUSLY FIXED
+### 3. Kernel Query Column Mismatch - FIXED
+**Problem**: Kernel client was querying for non-existent `requestedAt` column in `executionQueue` table, causing "no such column" SQL errors.
+
+**Root Cause**: 
+```
+SqliteError: no such column: requestedAt
+SELECT * FROM 'executionQueue' WHERE status = ? ORDER BY requestedAt asc
+```
+
+**Solution**: Fixed kernel polling queries to use existing schema columns:
+- **Assigned work polling**: Changed from `ORDER BY requestedAt` to `ORDER BY priority DESC`
+- **Pending work polling**: Removed `ORDER BY requestedAt` clause entirely
+- **Result**: Kernel now polls successfully without database errors
+
+### 4. Circular Reactive Dependencies - PREVIOUSLY FIXED
 **Solution**: Replaced reactive subscriptions with polling approach in kernel client.
 
-### 4. Schema Materializer Errors - PREVIOUSLY FIXED  
+### 5. Schema Materializer Errors - PREVIOUSLY FIXED  
 **Solution**: Updated materializers to use safer query patterns with `.limit(1)` instead of `.first()`.
 
 ## Current System State
@@ -51,13 +65,13 @@ ParseError: notebook
 ### ✅ **Working Components**
 - **Event sequencing**: No more sync conflicts
 - **Kernel registration**: Clean session startup and heartbeats
-- **Polling architecture**: Stable assigned/pending work detection
+- **Polling architecture**: Stable assigned/pending work detection without SQL errors
 - **Schema simplification**: All timestamp complexity eliminated
-- **Basic execution flow**: Ready for end-to-end testing
+- **Database queries**: All kernel queries now match actual schema columns
+- **Basic execution flow**: Kernel operational and ready for end-to-end testing
 
 ### ⚠️ **Known Issues**
 - **Tests need cleanup**: Schema tests still reference removed timestamp fields
-- **TypeScript build artifacts**: May cause Zed/IDE issues (cleaned up build artifacts)
 - **End-to-end flow**: Needs testing with actual cell execution
 
 ## Architecture Decisions Made
@@ -86,9 +100,10 @@ ParseError: notebook
 
 ### **Kernel Client** (`packages/dev-server-kernel-ls-client/`)
 - ✅ **Initial sync delay**: Prevents sequence number conflicts
-- ✅ **Polling architecture**: Stable work detection
+- ✅ **Polling architecture**: Stable work detection without SQL errors
 - ✅ **Error handling**: Comprehensive debugging and stack traces
 - ✅ **No timestamp events**: Updated for simplified schema
+- ✅ **Fixed queries**: All SQL queries now match actual schema columns
 
 ### **Web Client** (`packages/web-client/`)
 - ✅ **No timestamp events**: Updated for simplified schema
@@ -136,8 +151,7 @@ AUTH_TOKEN=insecure-token-change-me   # Sync backend auth
 
 ### **Immediate Priority**
 1. **Fix remaining tests**: Remove timestamp references in schema tests
-2. **End-to-end testing**: Verify full execution flow works
-3. **Clean up TypeScript artifacts**: Ensure IDE stability
+2. **End-to-end testing**: Verify full execution flow works with web client
 
 ### **Short-term Improvements**
 1. **Better sync detection**: Replace delay with actual sync state checking
@@ -172,15 +186,22 @@ pnpm --filter @anode/schema test    # Run schema tests (needs fixing)
 1. **LiveStore timestamp handling is complex** - simpler schemas are more reliable
 2. **Event sequencing timing matters** - initial sync must complete first
 3. **Polling is more predictable than reactive subscriptions** for complex workflows
-4. **Comprehensive debugging is essential** for distributed event-driven systems
-5. **Schema simplification > feature completeness** for prototypes
+4. **Schema-query alignment is critical** - ensure all queries match actual table columns
+5. **Comprehensive debugging is essential** for distributed event-driven systems
+6. **Schema simplification > feature completeness** for prototypes
 
 ## Communication with Next Developer
 
-The system is now in a much more stable state. The major architectural issues have been resolved, and the execution flow should work reliably. Focus on:
+The system is now in a stable working state. All major architectural issues have been resolved:
+
+✅ **Kernel runs without errors** - no more SQL column mismatches or sequence conflicts
+✅ **Clean startup and polling** - kernel registers properly and waits for work
+✅ **Stable architecture** - polling approach works reliably
+
+Focus on:
 
 1. **Test cleanup first** - get the test suite passing
-2. **End-to-end verification** - ensure cell execution actually works
+2. **End-to-end verification** - test actual cell execution through web client
 3. **Incremental improvements** - add features back gradually
 
-The timestamp removal was aggressive but necessary - it eliminated a whole class of type conversion issues that were causing system instability. This can be revisited later with proper LiveStore patterns once the core functionality is solid.
+The timestamp removal was aggressive but necessary - it eliminated a whole class of type conversion and query mismatch issues that were causing system instability. The kernel query fixes ensure database operations work correctly. This foundation can support adding features back with proper LiveStore patterns once core functionality is verified.

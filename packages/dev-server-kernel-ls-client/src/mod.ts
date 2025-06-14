@@ -147,7 +147,7 @@ const pollAssignedWork = async () => {
           status: 'assigned',
           assignedKernelSession: SESSION_ID
         })
-        .orderBy('requestedAt', 'asc')
+        .orderBy('priority', 'desc')
     ) as any[];
     console.log(`📋 Found ${entries.length} assigned entries`);
 
@@ -202,7 +202,6 @@ const pollPendingWork = async () => {
       tables.executionQueue.select()
         .where({ status: 'pending' })
         .orderBy('priority', 'desc')
-        .orderBy('requestedAt', 'asc')
         .limit(1) // Only claim one at a time
     ) as any[];
     console.log(`📋 Found ${entries.length} pending entries`);
@@ -216,7 +215,6 @@ const pollPendingWork = async () => {
     const activeKernels = store.query(
       tables.kernelSessions.select()
         .where({ isActive: true, status: 'ready' })
-        .orderBy('lastHeartbeat', 'desc')
     ) as any[];
     console.log(`🤖 Found ${activeKernels.length} active kernels`);
 
