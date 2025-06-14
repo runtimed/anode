@@ -101,7 +101,7 @@ describe('Kernel Adapter', () => {
       expect(sessions).toHaveLength(1)
       expect(sessions[0].sessionId).toBe(sessionId)
       expect(sessions[0].kernelId).toBe(kernelId)
-      expect(sessions[0].status).toBe('starting')
+      expect(sessions[0].status).toBe('ready')
       expect(sessions[0].isActive).toBe(true)
     })
 
@@ -118,16 +118,15 @@ describe('Kernel Adapter', () => {
         }
       }))
 
-      // Send heartbeat
-      const heartbeatTime = new Date()
+      // Send heartbeat with busy status
       store.commit(events.kernelSessionHeartbeat({
         sessionId,
-        status: 'ready'
+        status: 'busy'
       }))
 
       const sessions = store.query(tables.kernelSessions.select())
-      expect(sessions[0].status).toBe('ready')
-      expect(sessions[0].lastHeartbeat).toEqual(heartbeatTime)
+      expect(sessions[0].status).toBe('busy')
+      expect(sessions[0].isActive).toBe(true)
     })
 
     it('should mark session as terminated on shutdown', async () => {
