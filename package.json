@@ -40,12 +40,12 @@
     "start": "echo 'Use pnpm dev to start core services. For Python execution, start kernel with: NOTEBOOK_ID=your-notebook-id pnpm dev:kernel'"
   },
   "devDependencies": {
-    "concurrently": "catalog:",
-    "typescript": "catalog:",
-    "vitest": "catalog:",
     "@effect/vitest": "catalog:",
     "@vitest/ui": "catalog:",
-    "happy-dom": "catalog:"
+    "concurrently": "catalog:",
+    "happy-dom": "catalog:",
+    "typescript": "catalog:",
+    "vitest": "catalog:"
   },
   "pnpm": {
     "overrides": {
@@ -58,7 +58,15 @@
       "@effect/experimental": "0.46.8",
       "@effect/sql": "0.35.8",
       "@effect/rpc": "0.59.9"
-    }
+    },
+    "onlyBuiltDependencies": [
+      "@parcel/watcher",
+      "@tailwindcss/oxide",
+      "esbuild",
+      "msgpackr-extract",
+      "sharp",
+      "workerd"
+    ]
   },
   "workspaces": [
     "packages/*"
@@ -77,9 +85,9 @@
   "author": "Anode Team",
   "license": "MIT",
   "dependencies": {
-    "@livestore/peer-deps": "catalog:",
-    "effect": "catalog:",
+    "@livestore/adapter-node": "catalog:",
     "@livestore/livestore": "catalog:",
-    "@livestore/adapter-node": "catalog:"
+    "@livestore/peer-deps": "catalog:",
+    "effect": "catalog:"
   }
 }
