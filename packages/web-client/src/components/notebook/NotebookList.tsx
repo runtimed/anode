@@ -21,18 +21,8 @@ export const NotebookList: React.FC<NotebookListProps> = ({ onSelectNotebook }) 
   const currentNotebook = notebooks[0]
 
   const createNewNotebook = useCallback(() => {
-    // Generate a unique notebook ID that will also be the store ID
-    const notebookId = `notebook-${Date.now()}-${Math.random().toString(36).slice(2)}`
-
-    // In the new architecture, we need to navigate to a new store
-    // For now, we'll just show a message about how to create notebooks
-    alert(`To create a new notebook, open a new browser tab/window and navigate to:
-
-${window.location.origin}?notebook=${notebookId}
-
-This will create a new notebook with ID: ${notebookId}
-
-Note: In the simplified architecture, each notebook gets its own store/database.`)
+    // Navigate to clean URL which will create a new store/notebook
+    window.location.href = window.location.origin
   }, [])
 
   const initializeCurrentNotebook = useCallback(() => {
@@ -55,9 +45,9 @@ Note: In the simplified architecture, each notebook gets its own store/database.
       {/* Header */}
       <div className="flex items-center justify-between mb-8">
         <div>
-          <h1 className="text-3xl font-bold">Anode Notebooks</h1>
+          <h1 className="text-3xl font-bold">Welcome</h1>
           <p className="text-muted-foreground mt-2">
-            Real-time collaborative notebook system
+            Get started by initializing this notebook or creating a new one
           </p>
         </div>
         <Button onClick={createNewNotebook} size="lg">

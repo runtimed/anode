@@ -33,12 +33,19 @@ const NotebookApp: React.FC = () => {
       <nav className="border-b bg-card px-4 py-3">
         <div className="max-w-6xl mx-auto flex items-center justify-between">
           <div className="flex items-center gap-4">
-            <h1
-              className="text-xl font-bold text-primary cursor-pointer hover:opacity-80 transition-opacity"
-              onClick={handleBackToList}
-            >
-              📓 Anode Notebooks
-            </h1>
+            <div className="flex items-center gap-3">
+              <img
+                src="/logo.svg"
+                alt="Anode"
+                className="h-8 w-auto"
+              />
+              <h1
+                className="text-xl font-bold text-primary cursor-pointer hover:opacity-80 transition-opacity"
+                onClick={handleBackToList}
+              >
+                Anode
+              </h1>
+            </div>
             {viewMode === 'notebook' && (
               <>
                 <span className="text-muted-foreground">/</span>
@@ -52,10 +59,8 @@ const NotebookApp: React.FC = () => {
             )}
           </div>
 
-          <div className="text-xs text-muted-foreground flex items-center gap-2">
-            <span>Notebook: {currentNotebookId}</span>
-            <span>•</span>
-            <span>Real-time Collaborative</span>
+          <div className="text-xs text-muted-foreground">
+            {currentNotebookId}
           </div>
         </div>
       </nav>
