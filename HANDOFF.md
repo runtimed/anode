@@ -1,15 +1,15 @@
 # Anode Kernel System - Working State
 
-## Current Status: ✅ FULLY OPERATIONAL
+## Current Status: ✅ FULLY OPERATIONAL - REACTIVE ARCHITECTURE
 
-The Anode kernel system is now working end-to-end. Kernels can execute Python code from notebook cells successfully.
+The Anode kernel system is now working end-to-end with a breakthrough reactive architecture. Kernels can execute Python code from notebook cells with **instant response** using LiveStore's reactive queries.
 
 ## Architecture Overview
 
 - **Each notebook = one LiveStore store** (`NOTEBOOK_ID = STORE_ID`)
-- **Kernel process**: Python execution server using Pyodide, manually started per notebook
-- **Execution queue**: Event-driven system with states: `pending` → `assigned` → `executing` → `completed`
-- **Communication**: Events synced via CloudFlare Workers backend
+- **Kernel process**: Python execution server using Pyodide with **reactive query subscriptions**
+- **Execution queue**: **Instant reactive** event-driven system with states: `pending` → `assigned` → `executing` → `completed`
+- **Communication**: Events synced via CloudFlare Workers backend with zero-latency detection
 
 ## ✅ RESOLVED ISSUES
 
@@ -25,6 +25,10 @@ The Anode kernel system is now working end-to-end. Kernels can execute Python co
 **Problem**: Kernel queries referenced non-existent columns (`requestedAt`, `lastHeartbeat`).
 **Solution**: Fixed all kernel SQL queries to match actual schema columns.
 
+### 4. Reactive Architecture Breakthrough - IMPLEMENTED
+**Problem**: Polling every 500ms-2s created execution delays and inefficient resource usage.
+**Solution**: Implemented reactive `queryDb` subscriptions with proper event deferral to avoid LiveStore race conditions. Executions now start **instantly** when cells are run.
+
 ## Current Working Flow
 
 1. **Start sync backend**: `pnpm dev:sync-only`
@@ -38,17 +42,18 @@ The Anode kernel system is now working end-to-end. Kernels can execute Python co
 
 - ✅ Kernel startup and registration
 - ✅ Event sequencing without conflicts
-- ✅ Work queue management
+- ✅ **Instant reactive work queue management** (zero polling delays)
 - ✅ Python code execution via Pyodide
 - ✅ Output generation and storage
 - ✅ Multiple notebooks with isolated kernels
-- ✅ Stable polling without database errors
+- ✅ **Real-time reactive subscriptions** without database errors
+- ✅ **Lightning-fast execution response** using LiveStore's intended reactive architecture
 
 ## Key Architecture Decisions
 
 **Timestamp Elimination**: Removed all timestamp fields to eliminate conversion complexity and database errors. Simple schemas are more reliable.
 
-**Polling Over Reactivity**: Kernels poll for work instead of using reactive subscriptions. More predictable for complex workflows.
+**Reactive Over Polling**: **BREAKTHROUGH** - Kernels now use LiveStore's `queryDb` reactive subscriptions for instant work detection. Eliminated polling delays entirely - executions start the moment cells are run. Resolved race conditions with proper event deferral using `setTimeout(..., 0)`.
 
 **One Store Per Notebook**: Each notebook gets its own LiveStore database for clean data isolation.
 
@@ -61,9 +66,11 @@ The Anode kernel system is now working end-to-end. Kernels can execute Python co
 
 ### Kernel Client (`packages/dev-server-kernel-ls-client/`)
 - ✅ Fixed SQL queries match schema
-- ✅ Stable polling loops
+- ✅ **Reactive query subscriptions** (replaced polling)
+- ✅ **Instant execution response** via `queryDb` subscriptions
 - ✅ Python execution working
 - ✅ Error handling and debugging
+- ✅ **Race condition resolution** with deferred event commits
 
 ### Web Client (`packages/web-client/`)
 - ✅ Updated for simplified schema
@@ -94,9 +101,11 @@ DEBUG=* NOTEBOOK_ID=test pnpm dev:kernel  # Verbose kernel logs
 ## Key Insights
 
 - Simple schemas beat complex ones for prototypes
-- Polling is more reliable than reactive subscriptions for distributed systems
+- **Reactive subscriptions are superior to polling** when implemented correctly with proper race condition handling
 - Initial sync timing matters for event sequencing
 - Database query/schema alignment is critical
 - Comprehensive logging helps debug distributed systems
+- **Event deferral** (`setTimeout(..., 0)`) resolves LiveStore reactive system conflicts
+- **Zero-latency execution** is achievable with LiveStore's intended reactive architecture
 
 The system now provides a solid foundation for collaborative notebook execution.

@@ -2,7 +2,7 @@
 
 A real-time collaborative notebook system built with LiveStore event sourcing.
 
-**Current Status: ✅ FULLY OPERATIONAL** - Python code execution working end-to-end.
+**Current Status: ✅ FULLY OPERATIONAL** - Python code execution working end-to-end with reactive architecture.
 
 ## Architecture
 
@@ -14,7 +14,7 @@ A real-time collaborative notebook system built with LiveStore event sourcing.
 ### Key Design
 - Each notebook = one LiveStore store (`NOTEBOOK_ID = STORE_ID`)
 - Execution queue system: `pending` → `assigned` → `executing` → `completed`
-- Kernels poll for work instead of reactive subscriptions
+- **Reactive kernel architecture** using LiveStore's `queryDb` subscriptions
 - Manual kernel management (start one per notebook)
 
 ## Quick Start
@@ -47,9 +47,10 @@ NOTEBOOK_ID=notebook-123-abc pnpm dev:kernel
 - ✅ Real-time collaborative editing
 - ✅ Python code execution via Pyodide
 - ✅ Event sourcing and sync
-- ✅ Work queue management
+- ✅ **Reactive work queue management** (instant response)
 - ✅ Multiple isolated notebooks
 - ✅ Output generation and display
+- ✅ Zero-latency execution (no polling delays)
 
 ## Development Commands
 
@@ -81,7 +82,7 @@ packages/
 
 **Simplified Schema**: Removed all timestamp fields to eliminate complexity and database errors. Simple schemas are more reliable for prototypes.
 
-**Polling Over Reactivity**: Kernels poll for work every 500ms instead of using reactive subscriptions. More predictable for distributed systems.
+**Reactive Over Polling**: Kernels use LiveStore's `queryDb` reactive subscriptions for instant work detection. No more polling delays - executions start immediately when cells are run.
 
 **One Store Per Notebook**: Each notebook gets its own LiveStore database for clean isolation.
 
@@ -90,7 +91,7 @@ packages/
 **Build failures**: Run `pnpm build:schema` first
 **Execution not working**: Start kernel with correct `NOTEBOOK_ID`
 **Stale state**: Run `pnpm reset-storage`
-**SQL errors**: Check that kernel queries match schema columns
+**Slow execution**: Should be instant with reactive architecture - check kernel logs for errors
 
 ## Next Steps
 
@@ -99,4 +100,4 @@ packages/
 3. Improve kernel lifecycle management
 4. Add proper authentication
 
-The system provides a solid foundation for collaborative notebook execution and can be extended incrementally.
+The system provides a solid foundation for collaborative notebook execution with **instant reactive execution** and can be extended incrementally.

@@ -6,7 +6,7 @@ This document provides essential context for AI assistants working on the Anode 
 
 Anode is a real-time collaborative notebook system built on LiveStore, an event-sourcing based local-first data synchronization library. The project uses a monorepo structure with TypeScript and pnpm workspaces.
 
-**Current Status**: The system is fully operational with working Python code execution.
+**Current Status**: The system is fully operational with working Python code execution using a breakthrough reactive architecture.
 
 ## Architecture
 
@@ -30,11 +30,12 @@ Anode is a real-time collaborative notebook system built on LiveStore, an event-
 - Single notebook per store eliminates data boundary confusion
 - All events naturally scoped to one notebook
 
-### **Execution Queue System**
+### **Reactive Execution Queue System**
 - Flow: `executionRequested` → `executionAssigned` → `executionStarted` → `executionCompleted`
-- Kernels poll for work from queue instead of processing all events
+- **Kernels use reactive `queryDb` subscriptions** for instant work detection (no polling)
+- **Zero-latency execution** - cells execute immediately when run
 - Session-based assignment for future auth enforcement
-- Currently working end-to-end
+- Currently working end-to-end with lightning-fast response
 
 ### **Kernel Session Tracking**
 - Each kernel restart gets unique `sessionId`
@@ -66,14 +67,15 @@ pnpm build:schema   # Required after schema changes
 ### ✅ What's Working
 - Kernel startup and registration
 - Event sequencing without conflicts
-- Work queue management
+- **Instant reactive work queue management** (zero polling delays)
 - Python code execution via Pyodide
 - Output generation and storage
 - Multiple notebooks with isolated kernels
-- Stable polling without database errors
+- **Real-time reactive subscriptions** using LiveStore's `queryDb`
+- **Lightning-fast execution response** with proper race condition handling
 
 ### ⚠️ Known Issues
-- Tests need cleanup (reference removed timestamp fields)
+- Tests need cleanup (reference removed timestamp fields) - partially resolved
 - Manual kernel lifecycle management
 - No authentication (insecure tokens)
 
@@ -128,10 +130,11 @@ anode/
 ## Notes for AI Assistants
 
 ### Current State
-- Basic execution flow is working reliably
+- **Reactive execution flow** working with instant response
 - Manual kernel management (one per notebook)
 - Simplified schema without timestamps
 - Each notebook = separate LiveStore database for isolation
+- **Breakthrough reactive architecture** using LiveStore's intended design patterns
 
 ### Communication Style
 - Use authentic developer voice - uncertainty is fine, just be explicit
@@ -142,9 +145,11 @@ anode/
 
 ### Key Insights for Development
 - Simple schemas beat complex ones for prototypes
-- Polling is more reliable than reactive subscriptions for distributed systems
+- **Reactive subscriptions are superior to polling** when implemented correctly with proper race condition handling
 - Database query/schema alignment is critical
 - Initial sync timing matters for event sequencing
 - Comprehensive logging helps debug distributed systems
+- **Event deferral** (`setTimeout(..., 0)`) resolves LiveStore reactive system conflicts
+- **Zero-latency execution** is achievable with LiveStore's reactive `queryDb` subscriptions
 
 The system provides a solid foundation for collaborative notebook execution and can be extended incrementally.
