@@ -1,207 +1,102 @@
-# LiveStore Kernel System - Updated Handoff
+# Anode Kernel System - Working State
 
-## Current State Summary
+## Current Status: ✅ FULLY OPERATIONAL
 
-After extensive debugging and refactoring, we've resolved the major execution issues in the Anode kernel system. The system now has a simplified architecture with timestamps removed and proper event sequencing.
+The Anode kernel system is now working end-to-end. Kernels can execute Python code from notebook cells successfully.
 
 ## Architecture Overview
 
-- **Notebook System**: Each notebook = one LiveStore store (NOTEBOOK_ID = STORE_ID)
-- **Kernel Process**: Python execution server using Pyodide, manually started per notebook
-- **Execution Queue**: Event-driven system with states: `pending` → `assigned` → `executing` → `completed`
-- **Communication**: Events synced via CloudFlare Workers sync backend
+- **Each notebook = one LiveStore store** (`NOTEBOOK_ID = STORE_ID`)
+- **Kernel process**: Python execution server using Pyodide, manually started per notebook
+- **Execution queue**: Event-driven system with states: `pending` → `assigned` → `executing` → `completed`
+- **Communication**: Events synced via CloudFlare Workers backend
 
-## ✅ MAJOR ISSUES RESOLVED
+## ✅ RESOLVED ISSUES
 
 ### 1. Event Sequence Number Conflicts - FIXED
-**Problem**: Kernel was committing events with incorrect sequence numbers, causing sync backend to reject them with "Invalid parent event number" errors.
-
-**Solution**: Added initial sync delay before kernel commits its first event:
-- 2-second configurable delay (`INITIAL_SYNC_DELAY` env var)
-- Allows time for initial sync to complete before kernel registration
-- Added debugging to show store state before committing events
+**Problem**: Kernel was committing events with incorrect sequence numbers.
+**Solution**: Added 2-second initial sync delay before kernel commits first event.
 
 ### 2. Timestamp Schema Complexity - ELIMINATED
-**Problem**: Complex Date ↔ number conversions in LiveStore schemas were causing parsing errors and LiveStore shutdowns.
+**Problem**: Complex Date ↔ number conversions causing LiveStore shutdowns.
+**Solution**: Removed all timestamp fields from schemas and events.
 
-**Root Cause**: 
-```
-ParseError: notebook
-└─ ["createdAt"]
-   └─ DateFromNumber
-      └─ Type side transformation failure
-         └─ Expected DateFromSelf, actual 1749852900062
-```
+### 3. SQL Column Mismatches - FIXED
+**Problem**: Kernel queries referenced non-existent columns (`requestedAt`, `lastHeartbeat`).
+**Solution**: Fixed all kernel SQL queries to match actual schema columns.
 
-**Solution**: **Completely removed all timestamp fields** from the system:
-- **Tables**: Removed `createdAt`, `lastModified`, `startedAt`, `terminatedAt`, `heartbeatAt`, etc.
-- **Events**: Removed timestamp parameters from all event schemas
-- **Materializers**: Simplified to not handle date conversions
-- **Web Client**: Updated to not send/reference timestamp fields
-- **Kernel Client**: Updated to not send timestamp parameters
+## Current Working Flow
 
-### 3. Kernel Query Column Mismatch - FIXED
-**Problem**: Kernel client was querying for non-existent `requestedAt` column in `executionQueue` table, causing "no such column" SQL errors.
+1. **Start sync backend**: `pnpm dev:sync-only`
+2. **Start web client**: `pnpm dev:web-only` 
+3. **Start kernel**: `NOTEBOOK_ID=your-notebook-id pnpm dev:kernel`
+4. **Create cells** in web interface
+5. **Execute cells** - kernel picks up work and runs Python code
+6. **See results** displayed in notebook
 
-**Root Cause**: 
-```
-SqliteError: no such column: requestedAt
-SELECT * FROM 'executionQueue' WHERE status = ? ORDER BY requestedAt asc
-```
+## What's Working
 
-**Solution**: Fixed kernel polling queries to use existing schema columns:
-- **Assigned work polling**: Changed from `ORDER BY requestedAt` to `ORDER BY priority DESC`
-- **Pending work polling**: Removed `ORDER BY requestedAt` clause entirely
-- **Result**: Kernel now polls successfully without database errors
+- ✅ Kernel startup and registration
+- ✅ Event sequencing without conflicts
+- ✅ Work queue management
+- ✅ Python code execution via Pyodide
+- ✅ Output generation and storage
+- ✅ Multiple notebooks with isolated kernels
+- ✅ Stable polling without database errors
 
-### 4. Circular Reactive Dependencies - PREVIOUSLY FIXED
-**Solution**: Replaced reactive subscriptions with polling approach in kernel client.
+## Key Architecture Decisions
 
-### 5. Schema Materializer Errors - PREVIOUSLY FIXED  
-**Solution**: Updated materializers to use safer query patterns with `.limit(1)` instead of `.first()`.
+**Timestamp Elimination**: Removed all timestamp fields to eliminate conversion complexity and database errors. Simple schemas are more reliable.
 
-## Current System State
+**Polling Over Reactivity**: Kernels poll for work instead of using reactive subscriptions. More predictable for complex workflows.
 
-### ✅ **Working Components**
-- **Event sequencing**: No more sync conflicts
-- **Kernel registration**: Clean session startup and heartbeats
-- **Polling architecture**: Stable assigned/pending work detection without SQL errors
-- **Schema simplification**: All timestamp complexity eliminated
-- **Database queries**: All kernel queries now match actual schema columns
-- **Basic execution flow**: Kernel operational and ready for end-to-end testing
+**One Store Per Notebook**: Each notebook gets its own LiveStore database for clean data isolation.
 
-### ⚠️ **Known Issues**
-- **Tests need cleanup**: Schema tests still reference removed timestamp fields
-- **End-to-end flow**: Needs testing with actual cell execution
+## File Status
 
-## Architecture Decisions Made
+### Schema Package (`packages/schema/`)
+- ✅ Clean schemas without timestamp fields
+- ✅ Working materializers
+- ⚠️ Tests need cleanup (still reference removed fields)
 
-### ✅ **Timestamp Elimination Strategy**
-- **Rationale**: Timestamps were causing more problems than value in this prototype
-- **Benefits**: Simplified schema, eliminated conversion errors, reduced complexity
-- **Trade-offs**: Lost audit trail capabilities (can be re-added later if needed)
+### Kernel Client (`packages/dev-server-kernel-ls-client/`)
+- ✅ Fixed SQL queries match schema
+- ✅ Stable polling loops
+- ✅ Python execution working
+- ✅ Error handling and debugging
 
-### ✅ **Event Sequencing Strategy**  
-- **Initial sync delay**: Simple but effective solution for startup timing
-- **Configurable timing**: `INITIAL_SYNC_DELAY` env var for tuning
-- **Store state debugging**: Added visibility into sync state
-
-### ✅ **Polling Over Reactivity**
-- **Assigned work**: 500ms polling for kernel's own work
-- **Pending work**: 2s polling for claiming new work  
-- **No reactive subscriptions**: Avoids circular dependency issues
-
-## Current File State
-
-### **Schema Package** (`packages/schema/`)
-- ✅ **Simplified schemas**: All timestamp fields removed
-- ✅ **Clean materializers**: No date conversion logic
-- ⚠️ **Tests need fixing**: Still reference removed fields
-
-### **Kernel Client** (`packages/dev-server-kernel-ls-client/`)
-- ✅ **Initial sync delay**: Prevents sequence number conflicts
-- ✅ **Polling architecture**: Stable work detection without SQL errors
-- ✅ **Error handling**: Comprehensive debugging and stack traces
-- ✅ **No timestamp events**: Updated for simplified schema
-- ✅ **Fixed queries**: All SQL queries now match actual schema columns
-
-### **Web Client** (`packages/web-client/`)
-- ✅ **No timestamp events**: Updated for simplified schema
-- ✅ **UI simplified**: Removed timestamp displays
-- ⚠️ **Some cleanup needed**: References to removed fields
-
-## Testing Status
-
-### **Current Test Setup**
-```bash
-# Start sync backend
-pnpm dev:sync-only
-
-# Start kernel for specific notebook  
-NOTEBOOK_ID=notebook-$(date +%s)-test pnpm dev:kernel
-
-# Start web client
-pnpm dev:web-only
-```
-
-### **Test Notebook Creation Flow**
-1. Navigate to web client
-2. Initialize notebook (should work cleanly)
-3. Create code cell (should work without LiveStore shutdown)
-4. Execute cell (kernel should pick up and process)
-
-## Key Configuration
-
-### **Kernel Environment Variables**
-```bash
-NOTEBOOK_ID=notebook-123-abc           # Required: which notebook to serve
-INITIAL_SYNC_DELAY=2000               # Optional: sync delay in ms
-KERNEL_ID=kernel-${process.pid}       # Auto-generated
-AUTH_TOKEN=insecure-token-change-me   # Sync backend auth
-```
-
-### **Current Architecture Benefits**
-- **Simplified reasoning**: No timestamp conversion complexity
-- **Stable event sequencing**: No more sync conflicts  
-- **Predictable polling**: No reactive subscription issues
-- **Clear separation**: Each notebook = isolated store
-- **Comprehensive debugging**: Good visibility into system state
-
-## Next Steps for Development
-
-### **Immediate Priority**
-1. **Fix remaining tests**: Remove timestamp references in schema tests
-2. **End-to-end testing**: Verify full execution flow works with web client
-
-### **Short-term Improvements**
-1. **Better sync detection**: Replace delay with actual sync state checking
-2. **Error recovery**: Handle kernel restart scenarios gracefully
-3. **Performance optimization**: Tune polling intervals
-
-### **Long-term Architecture**
-1. **Kernel lifecycle management**: Automatic start/stop per notebook
-2. **Authentication**: Replace insecure tokens with proper auth
-3. **Timestamp re-introduction**: Add back with proper LiveStore patterns if needed
+### Web Client (`packages/web-client/`)
+- ✅ Updated for simplified schema
+- ✅ Cell creation and execution requests working
 
 ## Development Commands
 
 ```bash
 # Core development
-pnpm build:schema                     # Required after schema changes
 pnpm dev                             # Start web + sync
-NOTEBOOK_ID=test pnpm dev:kernel     # Start kernel
+NOTEBOOK_ID=notebook-123 pnpm dev:kernel  # Start kernel
 
-# Debugging  
+# Utilities
 pnpm reset-storage                   # Clear all local storage
-DEBUG=* NOTEBOOK_ID=test pnpm dev:kernel  # Verbose kernel logs
+pnpm build:schema                    # Build schema after changes
 
-# Testing
-pnpm type-check                      # Check all TypeScript
-pnpm lint                           # Lint all packages
-pnpm --filter @anode/schema test    # Run schema tests (needs fixing)
+# Debugging
+DEBUG=* NOTEBOOK_ID=test pnpm dev:kernel  # Verbose kernel logs
 ```
 
-## Key Insights for Future Development
+## Next Steps
 
-1. **LiveStore timestamp handling is complex** - simpler schemas are more reliable
-2. **Event sequencing timing matters** - initial sync must complete first
-3. **Polling is more predictable than reactive subscriptions** for complex workflows
-4. **Schema-query alignment is critical** - ensure all queries match actual table columns
-5. **Comprehensive debugging is essential** for distributed event-driven systems
-6. **Schema simplification > feature completeness** for prototypes
+1. **Clean up tests** - remove timestamp field references
+2. **Add error recovery** - handle kernel restart scenarios
+3. **Improve kernel lifecycle** - automatic start/stop
+4. **Add authentication** - replace insecure tokens
 
-## Communication with Next Developer
+## Key Insights
 
-The system is now in a stable working state. All major architectural issues have been resolved:
+- Simple schemas beat complex ones for prototypes
+- Polling is more reliable than reactive subscriptions for distributed systems
+- Initial sync timing matters for event sequencing
+- Database query/schema alignment is critical
+- Comprehensive logging helps debug distributed systems
 
-✅ **Kernel runs without errors** - no more SQL column mismatches or sequence conflicts
-✅ **Clean startup and polling** - kernel registers properly and waits for work
-✅ **Stable architecture** - polling approach works reliably
-
-Focus on:
-
-1. **Test cleanup first** - get the test suite passing
-2. **End-to-end verification** - test actual cell execution through web client
-3. **Incremental improvements** - add features back gradually
-
-The timestamp removal was aggressive but necessary - it eliminated a whole class of type conversion and query mismatch issues that were causing system instability. The kernel query fixes ensure database operations work correctly. This foundation can support adding features back with proper LiveStore patterns once core functionality is verified.
+The system now provides a solid foundation for collaborative notebook execution.

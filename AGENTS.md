@@ -6,16 +6,17 @@ This document provides essential context for AI assistants working on the Anode 
 
 Anode is a real-time collaborative notebook system built on LiveStore, an event-sourcing based local-first data synchronization library. The project uses a monorepo structure with TypeScript and pnpm workspaces.
 
+**Current Status**: The system is fully operational with working Python code execution.
+
 ## Architecture
 
-- **Schema Package** (`@anode/schema`): Contains LiveStore schema definitions (events, state, materializers)
+- **Schema Package** (`@anode/schema`): LiveStore schema definitions (events, state, materializers)
 - **Web Client** (`@anode/web-client`): React-based web interface
 - **Document Worker** (`@anode/docworker`): Cloudflare Worker for sync backend
 - **Kernel Client** (`@anode/dev-server-kernel-ls-client`): Python execution server (manual start per notebook)
 
 ## Key Dependencies
 
-The project heavily relies on:
 - **LiveStore**: Event-sourcing library for local-first apps
 - **Effect**: Functional programming library for TypeScript
 - **React**: UI framework
@@ -30,48 +31,22 @@ The project heavily relies on:
 - All events naturally scoped to one notebook
 
 ### **Execution Queue System**
-- Replaced direct event processing with proper work queue
 - Flow: `executionRequested` → `executionAssigned` → `executionStarted` → `executionCompleted`
-- Kernels claim work from queue instead of processing all events
+- Kernels poll for work from queue instead of processing all events
 - Session-based assignment for future auth enforcement
+- Currently working end-to-end
 
 ### **Kernel Session Tracking**
 - Each kernel restart gets unique `sessionId`
 - 30-second heartbeat mechanism
 - Session IDs tracked in execution queue
-- **Future**: Document worker will validate kernel permissions
-
-## LiveStore Documentation
-
-For LiveStore-specific questions, reference the complete documentation:
-```
-@fetch https://docs.livestore.dev/llms-full.txt
-```
-
-This provides comprehensive information about:
-- Event sourcing patterns
-- Schema definitions and materializers
-- Reactive queries and state management
-- Sync providers and adapters
-- Platform-specific implementations
+- Manual kernel management (start one per notebook)
 
 ## Development Setup
-
-### Package Dependencies
-- Packages use `workspace:*` for internal dependencies
-- External dependencies managed via pnpm catalog in `pnpm-workspace.yaml`
-- TypeScript project references configured for efficient builds
-
-### Build System
-Two approaches available:
-1. **Watch Mode**: `pnpm dev` - Individual package watchers
-2. **Project References**: `pnpm dev:tsc` - TypeScript incremental builds
 
 ### Common Commands
 ```bash
 # Start core services (web + sync)
-./start-dev.sh
-# OR
 pnpm dev
 
 # Start kernel for specific notebook (manual)
@@ -86,20 +61,35 @@ pnpm reset-storage  # Clear all local storage
 pnpm build:schema   # Required after schema changes
 ```
 
+## Current Working State
+
+### ✅ What's Working
+- Kernel startup and registration
+- Event sequencing without conflicts
+- Work queue management
+- Python code execution via Pyodide
+- Output generation and storage
+- Multiple notebooks with isolated kernels
+- Stable polling without database errors
+
+### ⚠️ Known Issues
+- Tests need cleanup (reference removed timestamp fields)
+- Manual kernel lifecycle management
+- No authentication (insecure tokens)
+
 ## Important Considerations
 
-### Schema Changes
+### Schema Design
 - Schema package must be built before dependent packages can consume changes
-- **Current**: Single `notebook` table per store (not `notebooks`)
-- Added `kernelSessions` and `executionQueue` tables for lifecycle management
-- Event schema changes require backwards compatibility
+- Single `notebook` table per store (not `notebooks`)
+- `kernelSessions` and `executionQueue` tables for lifecycle management
+- **No timestamp fields** - eliminated for simplicity and stability
 
 ### Local-First Architecture
 - All data operations happen locally first
-- Events are synced across clients via the document worker
+- Events synced across clients via document worker
 - SQLite provides local reactive state per notebook
-- Network connectivity is optional
-- **Current**: Manual kernel lifecycle management
+- Network connectivity optional
 
 ### Code Style
 - Prefer functional programming patterns (Effect library)
@@ -114,7 +104,7 @@ anode/
 │   ├── schema/           # LiveStore schema definitions
 │   ├── web-client/       # React web application
 │   ├── docworker/        # Cloudflare Worker sync backend
-│   └── dev-server-kernel-ls-client/  # Python kernel server (manual)
+│   └── dev-server-kernel-ls-client/  # Python kernel server
 ├── start-dev.sh          # Development startup script
 ├── reset-local-storage.cjs  # Clean development state
 ├── package.json          # Root workspace configuration
@@ -124,32 +114,37 @@ anode/
 ## Troubleshooting
 
 ### Common Issues
-- **Build failures**: Ensure schema is built first (`pnpm build:schema`)
-- **Type errors**: Fixed - proper TypeScript throughout codebase
-- **Runtime errors**: Verify LiveStore adapter configuration
+- **Build failures**: Run `pnpm build:schema` first
 - **Sync issues**: Check document worker deployment
 - **Execution not working**: Start kernel manually with `NOTEBOOK_ID=your-notebook-id pnpm dev:kernel`
 - **Stale state**: Run `pnpm reset-storage` to clear everything
 
 ### Debugging
-- Use LiveStore devtools for state inspection
 - Browser console for client-side issues
 - Wrangler logs for worker debugging
 - Terminal output for kernel server issues
+- Comprehensive logging in kernel for execution flow
 
 ## Notes for AI Assistants
 
-- This is exploratory/prototype code - avoid marketing language
-- Focus on technical implementation over feature descriptions
-- Reference LiveStore docs for event-sourcing patterns
-- Consider backwards compatibility for schema changes
-- **Current state**: Manual kernel management, basic execution queue working
-- **Known issues**: LiveStore reactivity errors, no kernel permission enforcement yet
+### Current State
+- Basic execution flow is working reliably
+- Manual kernel management (one per notebook)
+- Simplified schema without timestamps
 - Each notebook = separate LiveStore database for isolation
 
 ### Communication Style
-- Use authentic developer voice - "beginnings at least...", "note: we can use X in future", uncertainty is fine just be explicit
-- Show honest assessment of current state vs. aspirational goals
-- Acknowledge rough edges and incomplete work rather than polishing everything
-- Write like you're documenting for teammates, not marketing to users
-- Be concise but complete - cover what matters without being verbose
+- Use authentic developer voice - uncertainty is fine, just be explicit
+- Show honest assessment of current state vs future goals
+- Acknowledge rough edges rather than polishing everything
+- Write like documenting for teammates, not marketing
+- Be concise but complete
+
+### Key Insights for Development
+- Simple schemas beat complex ones for prototypes
+- Polling is more reliable than reactive subscriptions for distributed systems
+- Database query/schema alignment is critical
+- Initial sync timing matters for event sequencing
+- Comprehensive logging helps debug distributed systems
+
+The system provides a solid foundation for collaborative notebook execution and can be extended incrementally.
