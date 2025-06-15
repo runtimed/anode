@@ -74,7 +74,9 @@ export const AiCell: React.FC<AiCellProps> = ({
   }, [localSource, cell.source, cell.id, store])
 
   const executeAiPrompt = useCallback(async () => {
-    if (!cell.source?.trim()) {
+    // Use localSource instead of cell.source to get the current typed content
+    const sourceToExecute = localSource || cell.source
+    if (!sourceToExecute?.trim()) {
       console.log('No prompt to execute')
       return
     }
@@ -126,7 +128,7 @@ export const AiCell: React.FC<AiCellProps> = ({
         position: 0,
       }))
     }
-  }, [cell.id, cell.source, cell.executionCount, store])
+  }, [cell.id, localSource, cell.executionCount, store])
 
   const handleKeyDown = useCallback((e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     const textarea = e.currentTarget
