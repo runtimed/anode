@@ -2,78 +2,73 @@ import { makePersistedAdapter } from '@livestore/adapter-web'
 import LiveStoreSharedWorker from '@livestore/adapter-web/shared-worker?sharedworker'
 import { LiveStoreProvider } from '@livestore/react'
 import { FPSMeter } from '@overengineering/fps-meter'
-import type React from 'react'
-import { useState } from 'react'
+
+import React, { useState, useEffect } from 'react'
 import { unstable_batchedUpdates as batchUpdates } from 'react-dom'
 
-import { NotebookList } from './components/notebook/NotebookList.js'
 import { NotebookViewer } from './components/notebook/NotebookViewer.js'
 import LiveStoreWorker from './livestore.worker?worker'
-import { schema } from '../../../shared/schema.js'
+import { schema, events, tables } from '../../../shared/schema.js'
 import { getStoreId, getCurrentNotebookId } from './util/store-id.js'
+import { useStore } from '@livestore/react'
+import { queryDb } from '@livestore/livestore'
 
 const NotebookApp: React.FC = () => {
   // In the simplified architecture, we always show the current notebook
   // The notebook ID comes from the URL and is the same as the store ID
   const currentNotebookId = getCurrentNotebookId()
-  const [viewMode, setViewMode] = useState<'list' | 'notebook'>('list')
+  const { store } = useStore()
+  const [isInitializing, setIsInitializing] = useState(false)
 
-  const handleSelectNotebook = () => {
-    // Since we're in a single-notebook store, just show the notebook view
-    setViewMode('notebook')
+  // Check if notebook exists
+  const notebooks = store.useQuery(queryDb(tables.notebook.select().limit(1))) as any[]
+  const currentNotebook = notebooks[0]
+
+  // Auto-initialize notebook if it doesn't exist
+  useEffect(() => {
+    if (!currentNotebook && !isInitializing) {
+      setIsInitializing(true)
+      const notebookId = store.storeId || `notebook-${Date.now()}`
+      const title = `Notebook ${new Date().toLocaleDateString()}`
+
+      store.commit(events.notebookInitialized({
+        id: notebookId,
+        title,
+        ownerId: 'current-user', // TODO: get from auth
+      }))
+
+      setIsInitializing(false)
+    }
+  }, [currentNotebook, isInitializing, store])
+
+  const createNewNotebook = () => {
+    // Navigate to clean URL which will create a new store/notebook
+    window.location.href = window.location.origin
   }
 
-  const handleBackToList = () => {
-    setViewMode('list')
+  // Show loading while initializing
+  if (!currentNotebook && isInitializing) {
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-background">
+        <div className="text-center">
+          <div className="text-lg font-semibold text-foreground mb-2">
+            Initializing Notebook
+          </div>
+          <div className="text-sm text-muted-foreground">
+            Setting up your workspace...
+          </div>
+        </div>
+      </div>
+    )
   }
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Navigation Header */}
-      <nav className="border-b bg-card px-4 py-3">
-        <div className="max-w-6xl mx-auto flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <div className="flex items-center gap-3">
-              <img
-                src="/logo.svg"
-                alt="Anode"
-                className="h-8 w-auto"
-              />
-              <h1
-                className="text-xl font-bold text-primary cursor-pointer hover:opacity-80 transition-opacity"
-                onClick={handleBackToList}
-              >
-                Anode
-              </h1>
-            </div>
-            {viewMode === 'notebook' && (
-              <>
-                <span className="text-muted-foreground">/</span>
-                <button
-                  onClick={handleBackToList}
-                  className="text-primary hover:opacity-80 text-sm transition-opacity"
-                >
-                  ← Back to Overview
-                </button>
-              </>
-            )}
-          </div>
-
-          <div className="text-xs text-muted-foreground">
-            {currentNotebookId}
-          </div>
-        </div>
-      </nav>
-
       {/* Main Content */}
-      {viewMode === 'notebook' ? (
-        <NotebookViewer
-          notebookId={currentNotebookId}
-          onBack={handleBackToList}
-        />
-      ) : (
-        <NotebookList onSelectNotebook={handleSelectNotebook} />
-      )}
+      <NotebookViewer
+        notebookId={currentNotebookId}
+        onNewNotebook={createNewNotebook}
+      />
     </div>
   )
 }

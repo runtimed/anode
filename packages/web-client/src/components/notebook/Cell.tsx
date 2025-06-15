@@ -16,8 +16,12 @@ import {
 import { SqlCell } from './SqlCell.js'
 import { AiCell } from './AiCell.js'
 import { RichOutput } from './RichOutput.js'
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
+import { Play, ChevronUp, ChevronDown, Plus, X, Code, FileText, Database, Bot } from 'lucide-react'
 
 type CellType = typeof tables.cells.Type
+
+
 
 interface CellProps {
   cell: CellType
@@ -105,7 +109,7 @@ export const Cell: React.FC<CellProps> = ({
     }
   }, [localSource, cell.source, cell.id, store])
 
-  const changeCellType = useCallback((newType: 'code' | 'markdown' | 'raw' | 'sql' | 'ai') => {
+  const changeCellType = useCallback((newType: 'code' | 'markdown' | 'sql' | 'ai') => {
     store.commit(events.cellTypeChanged({
       id: cell.id,
       cellType: newType,
@@ -224,59 +228,65 @@ export const Cell: React.FC<CellProps> = ({
     }
   }, [onFocus])
 
-  const getBadgeVariant = () => {
+  const getCellTypeIcon = () => {
     switch (cell.cellType) {
-      case 'code': return 'default'
-      case 'markdown': return 'secondary'
-      case 'sql': return 'default'
-      case 'ai': return 'default'
-      case 'raw': return 'outline'
-      default: return 'default'
+      case 'code': return <Code className="h-3 w-3" />
+      case 'markdown': return <FileText className="h-3 w-3" />
+      case 'sql': return <Database className="h-3 w-3" />
+      case 'ai': return <Bot className="h-3 w-3" />
+      default: return <Code className="h-3 w-3" />
     }
   }
 
   const getExecutionStatus = () => {
     switch (cell.executionState) {
       case 'idle': return null
-      case 'queued': return <Badge variant="secondary">Queued</Badge>
-      case 'running': return <Badge variant="destructive">Running...</Badge>
-      case 'completed': return <Badge variant="default">✓</Badge>
-      case 'error': return <Badge variant="destructive">Error</Badge>
+      case 'queued': return <Badge variant="secondary" className="h-5 text-xs">Queued</Badge>
+      case 'running': return (
+        <Badge variant="outline" className="h-5 text-xs border-blue-200 text-blue-700 bg-blue-50">
+          <div className="animate-spin w-2 h-2 border border-blue-600 border-t-transparent rounded-full mr-1"></div>
+          Running
+        </Badge>
+      )
+      case 'error': return <Badge variant="outline" className="h-5 text-xs border-red-200 text-red-700 bg-red-50">Error</Badge>
       default: return null
     }
   }
 
   return (
-    <div className={`mb-2 relative group border-l-4 transition-colors pl-4 ${
-      autoFocus ? 'border-primary/40' : 'border-transparent'
+    <div className={`mb-2 relative group border-l-2 transition-all duration-200 pt-2 ${
+      autoFocus ? 'border-primary/60 bg-primary/5' : 'border-border/30 hover:bg-muted/10'
     }`}>
       {/* Cell Header */}
-      <div className="flex items-center justify-between mb-2 py-1">
-        <div className="flex items-center gap-2">
+      <div className="flex items-center justify-between mb-2 pl-6 pr-4">
+        <div className="flex items-center gap-3">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Badge
-                variant={getBadgeVariant()}
-                className="cursor-pointer hover:opacity-80 text-xs"
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-6 px-2 gap-1.5 text-xs font-medium hover:bg-muted/50"
               >
-                {cell.cellType}
-              </Badge>
+                {getCellTypeIcon()}
+                <span className="capitalize">{cell.cellType}</span>
+              </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent>
-              <DropdownMenuItem onClick={() => changeCellType('code')}>
+            <DropdownMenuContent align="start" className="w-40">
+              <DropdownMenuItem onClick={() => changeCellType('code')} className="gap-2">
+                <Code className="h-4 w-4" />
                 Code
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => changeCellType('markdown')}>
+              <DropdownMenuItem onClick={() => changeCellType('markdown')} className="gap-2">
+                <FileText className="h-4 w-4" />
                 Markdown
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => changeCellType('sql')}>
-                🗄️ SQL Query
+              <DropdownMenuItem onClick={() => changeCellType('sql')} className="gap-2">
+                <Database className="h-4 w-4" />
+                SQL Query
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => changeCellType('ai')}>
-                🤖 AI Assistant
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => changeCellType('raw')}>
-                Raw
+              <DropdownMenuItem onClick={() => changeCellType('ai')} className="gap-2">
+                <Bot className="h-4 w-4" />
+                AI Assistant
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
@@ -284,98 +294,134 @@ export const Cell: React.FC<CellProps> = ({
         </div>
 
         {/* Cell Controls - visible on hover */}
-        <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={onMoveUp}
-            className="h-6 w-6 p-0 text-xs"
-          >
-            ↑
-          </Button>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={onMoveDown}
-            className="h-6 w-6 p-0 text-xs"
-          >
-            ↓
-          </Button>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={onAddCell}
-            className="h-6 w-6 p-0 text-xs"
-          >
-            +
-          </Button>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={onDeleteCell}
-            className="h-6 w-6 p-0 text-xs text-destructive hover:text-destructive"
-          >
-            ×
-          </Button>
-        </div>
+        <TooltipProvider>
+          <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={onMoveUp}
+                  className="h-7 w-7 p-0 hover:bg-muted/80"
+                >
+                  <ChevronUp className="h-3 w-3" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>Move cell up</TooltipContent>
+            </Tooltip>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={onMoveDown}
+                  className="h-7 w-7 p-0 hover:bg-muted/80"
+                >
+                  <ChevronDown className="h-3 w-3" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>Move cell down</TooltipContent>
+            </Tooltip>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={onAddCell}
+                  className="h-7 w-7 p-0 hover:bg-muted/80"
+                >
+                  <Plus className="h-3 w-3" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>Add cell below</TooltipContent>
+            </Tooltip>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={onDeleteCell}
+                  className="h-7 w-7 p-0 text-muted-foreground hover:text-destructive hover:bg-destructive/10"
+                >
+                  <X className="h-3 w-3" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>Delete cell</TooltipContent>
+            </Tooltip>
+          </div>
+        </TooltipProvider>
       </div>
 
-      {/* Cell Content */}
-      <div className={`rounded-md border transition-colors ${
-        autoFocus
-          ? 'bg-card border-ring/50'
-          : 'bg-card/50 border-border/50 focus-within:border-ring/50 focus-within:bg-card'
-      }`}>
-        <div className="min-h-[60px]">
-          <Textarea
-            ref={textareaRef}
-            value={localSource}
-            onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setLocalSource(e.target.value)}
-            onBlur={updateSource}
-            onKeyDown={handleKeyDown}
-            placeholder={
-              cell.cellType === 'code'
-                ? 'Enter your code here...'
-                : cell.cellType === 'markdown'
-                ? 'Enter markdown...'
-                : 'Enter raw text...'
-            }
-            className="min-h-[60px] resize-none border-0 p-3 focus-visible:ring-0 font-mono bg-transparent w-full"
-            onFocus={handleFocus}
-          />
-        </div>
-
-        {/* Execution Controls for Code Cells */}
+      {/* Cell Content with Left Gutter Play Button */}
+      <div className="relative">
+        {/* Play Button Breaking Through Left Border */}
         {cell.cellType === 'code' && (
-          <div className="border-t border-border/50 p-3 bg-muted/20">
-            <div className="flex items-center gap-2">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={executeCell}
-                disabled={cell.executionState === 'running' || cell.executionState === 'queued'}
-                className="h-7"
-              >
-                {cell.executionState === 'running'
-                  ? 'Running...'
-                  : cell.executionState === 'queued'
-                  ? 'Queued...'
-                  : 'Run'}
-              </Button>
-
-            </div>
+          <div className="absolute -left-3 z-10" style={{ top: '0.375rem' }}>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={executeCell}
+              disabled={cell.executionState === 'running' || cell.executionState === 'queued'}
+              className="h-6 w-6 p-0 rounded-sm bg-white border-0 hover:bg-white"
+            >
+              {cell.executionState === 'running' ? (
+                <div className="animate-spin w-3 h-3 border border-current border-t-transparent rounded-full bg-white"></div>
+              ) : cell.executionState === 'queued' ? (
+                <div className="w-2 h-2 bg-amber-500 rounded-full"></div>
+              ) : (
+                <Play className="h-3 w-3" />
+              )}
+            </Button>
           </div>
         )}
+
+        {/* Text Content Area */}
+        <div className={`transition-colors py-1 pl-4 pr-4 ${
+          autoFocus
+            ? 'bg-white'
+            : 'bg-white'
+        }`}>
+          <div className="min-h-[1.5rem]">
+            <Textarea
+              ref={textareaRef}
+              value={localSource}
+              onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setLocalSource(e.target.value)}
+              onBlur={updateSource}
+              onKeyDown={handleKeyDown}
+              placeholder={
+                cell.cellType === 'code'
+                  ? 'Enter your code here...'
+                  : cell.cellType === 'markdown'
+                  ? 'Enter markdown...'
+                  : 'Enter raw text...'
+              }
+              className="min-h-[1.5rem] resize-none border-0 px-2 py-1 focus-visible:ring-0 font-mono bg-white w-full placeholder:text-muted-foreground/60 shadow-none"
+              onFocus={handleFocus}
+            />
+          </div>
+        </div>
       </div>
 
-
+      {/* Execution Summary - appears after input */}
+      {cell.cellType === 'code' && (cell.executionCount || cell.executionState === 'running' || cell.executionState === 'queued') && (
+        <div className="mt-1 pl-6 pr-4">
+          <div className="text-xs text-muted-foreground pb-1">
+            {cell.executionState === 'running' ? (
+              'Running...'
+            ) : cell.executionState === 'queued' ? (
+              'Queued'
+            ) : cell.executionCount ? (
+              '0.3s'
+            ) : null}
+          </div>
+        </div>
+      )}
 
       {/* Output Area for Code Cells */}
       {cell.cellType === 'code' && (outputs.length > 0 || cell.executionState === 'running') && (
-        <div className="mt-2">
-          <div className="bg-card/30 rounded-md border border-border/50 overflow-hidden">
+        <div className="mt-1 pl-6 pr-4">
             {cell.executionState === 'running' && outputs.length === 0 && (
-              <div className="p-3 bg-blue-50/50 border-b border-border/50">
+              <div className="py-3 border-l-2 border-blue-200 pl-1">
                 <div className="flex items-center gap-2">
                   <div className="animate-spin w-4 h-4 border-2 border-blue-600 border-t-transparent rounded-full"></div>
                   <span className="text-sm text-blue-700">Executing...</span>
@@ -386,19 +432,18 @@ export const Cell: React.FC<CellProps> = ({
             {outputs
               .sort((a: OutputData, b: OutputData) => a.position - b.position)
               .map((output: OutputData, index: number) => (
-                <div key={output.id} className={index > 0 ? "border-t border-border/50" : ""}>
+                <div key={output.id} className={index > 0 ? "border-t border-border/30 mt-2 pt-2" : ""}>
                   {output.outputType === 'error' ? (
                     // Keep special error handling for better UX
-                    <div className="p-3 bg-red-50/50">
-                      <div className="text-xs text-red-600 mb-1 font-medium">Error:</div>
+                    <div className="py-3 border-l-2 border-red-200 pl-1">
                       <div className="font-mono text-sm">
-                        <div className="font-semibold text-red-700">
+                        <div className="font-semibold text-red-700 mb-1">
                           {isErrorOutput(output.data)
                             ? `${output.data.ename}: ${output.data.evalue}`
                             : 'Unknown error'}
                         </div>
                         {isErrorOutput(output.data) && output.data.traceback && (
-                          <div className="mt-2 text-red-600 text-xs whitespace-pre-wrap">
+                          <div className="mt-2 text-red-600 text-xs whitespace-pre-wrap opacity-80">
                             {Array.isArray(output.data.traceback)
                               ? output.data.traceback.join('\n')
                               : output.data.traceback}
@@ -408,15 +453,16 @@ export const Cell: React.FC<CellProps> = ({
                     </div>
                   ) : (
                     // Use RichOutput for all other output types
-                    <RichOutput
-                      data={output.data as Record<string, unknown>}
-                      metadata={output.metadata as Record<string, unknown> | undefined}
-                      outputType={output.outputType}
-                    />
+                    <div className="py-2">
+                      <RichOutput
+                        data={output.data as Record<string, unknown>}
+                        metadata={output.metadata as Record<string, unknown> | undefined}
+                        outputType={output.outputType}
+                      />
+                    </div>
                   )}
                 </div>
               ))}
-          </div>
         </div>
       )}
     </div>

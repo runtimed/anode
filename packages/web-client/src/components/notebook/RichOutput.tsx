@@ -165,50 +165,12 @@ export const RichOutput: React.FC<RichOutputProps> = ({
     }
   }
 
-  const getOutputTypeLabel = () => {
-    switch (outputType as 'display_data' | 'execute_result' | 'stream' | 'error') {
-      case 'execute_result':
-        return 'Result'
-      case 'display_data':
-        return 'Output'
-      case 'stream':
-        return 'Stream'
-      case 'error':
-        return 'Error'
-      default:
-        return 'Output'
-    }
-  }
 
-  const getOutputTypeColor = () => {
-    switch (outputType as 'display_data' | 'execute_result' | 'stream' | 'error') {
-      case 'execute_result':
-        return 'text-green-600'
-      case 'display_data':
-        return 'text-blue-600'
-      case 'stream':
-        return 'text-gray-600'
-      case 'error':
-        return 'text-red-600'
-      default:
-        return 'text-gray-600'
-    }
-  }
 
 
 
   return (
-    <div className="py-2">
-      {/* Optional subtle header for non-plain content */}
-      {(mediaType && mediaType !== 'text/plain') && (
-        <div className="mb-2">
-          <div className={`text-xs font-medium ${getOutputTypeColor()}`}>
-            {getOutputTypeLabel()}
-            <span className="text-gray-500 ml-2">({mediaType})</span>
-          </div>
-        </div>
-      )}
-
+    <div>
       {/* Content */}
       <div>
         {renderContent()}
