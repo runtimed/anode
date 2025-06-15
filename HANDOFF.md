@@ -104,6 +104,16 @@ pnpm dev                                 # Everything auto-starts
 - Don't add timestamps to events - LiveStore handles automatically
 - Keep the reactive subscriptions - they eliminated polling delays
 
+## Re-enabling Skipped Tests
+
+**Current skipped tests** (13 total) can be re-enabled incrementally:
+
+1. **Start with**: `kernel-adapter.test.ts` - subscription error handling
+2. **Then tackle**: `execution-flow.test.ts` - end-to-end workflows  
+3. **Finally**: `reactivity-debugging.test.ts` - performance scenarios
+
+Process: Remove `.skip`, run `pnpm test`, fix issues, commit.
+
 ## Next Developer Notes
 
 The core technical challenges are solved. Focus on integrating real AI APIs while preserving the rich output quality we've achieved. The unified execution system makes AI cells first-class citizens - maintain that design.

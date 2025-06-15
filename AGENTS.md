@@ -2,6 +2,8 @@
 
 This document provides essential context for AI assistants working on the Anode project.
 
+For current work state and immediate next steps, see `HANDOFF.md` - it focuses on where development was left off and what to work on next.
+
 ## Project Overview
 
 Anode is a real-time collaborative notebook system built on LiveStore, an event-sourcing based local-first data synchronization library. The project uses a monorepo structure with TypeScript and pnpm workspaces.
