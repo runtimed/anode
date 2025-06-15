@@ -70,9 +70,29 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({ onBack }) => {
 
   const addCell = useCallback((afterCellId?: string, cellType: 'code' | 'markdown' | 'raw' | 'sql' | 'ai' = 'code') => {
     const cellId = `cell-${Date.now()}-${Math.random().toString(36).slice(2)}`
-    const newPosition = afterCellId
-      ? Math.max(...cells.map((c: any) => c.position)) + 1
-      : cells.length
+
+    let newPosition: number
+    if (afterCellId) {
+      // Find the current cell and insert after it
+      const currentCell = cells.find((c: any) => c.id === afterCellId)
+      if (currentCell) {
+        newPosition = currentCell.position + 1
+        // Shift all subsequent cells down by 1
+        const cellsToShift = cells.filter((c: any) => c.position >= newPosition)
+        cellsToShift.forEach((cell: any) => {
+          store.commit(events.cellMoved({
+            id: cell.id,
+            newPosition: cell.position + 1,
+          }))
+        })
+      } else {
+        // Fallback: add at end
+        newPosition = Math.max(...cells.map((c: any) => c.position), -1) + 1
+      }
+    } else {
+      // Add at end
+      newPosition = Math.max(...cells.map((c: any) => c.position), -1) + 1
+    }
 
     store.commit(events.cellCreated({
       id: cellId,

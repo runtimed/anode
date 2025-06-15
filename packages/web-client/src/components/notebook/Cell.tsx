@@ -113,7 +113,9 @@ export const Cell: React.FC<CellProps> = ({
   }, [cell.id, store])
 
   const executeCell = useCallback(async () => {
-    if (!cell.source?.trim()) {
+    // Use localSource instead of cell.source to get the current typed content
+    const sourceToExecute = localSource || cell.source
+    if (!sourceToExecute?.trim()) {
       console.log('No code to execute')
       return
     }
@@ -165,7 +167,7 @@ export const Cell: React.FC<CellProps> = ({
         position: 0,
       }))
     }
-  }, [cell.id, cell.source, cell.executionCount, store])
+  }, [cell.id, localSource, cell.executionCount, store])
 
   const handleKeyDown = useCallback((e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     const textarea = e.currentTarget
