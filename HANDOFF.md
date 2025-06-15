@@ -105,7 +105,6 @@ NOTEBOOK_ID=your-id pnpm dev:kernel      # Kernel for specific notebook
 
 # Utilities  
 pnpm reset-storage                       # Clear all data
-pnpm build:schema                        # Rebuild after schema changes
 
 # Testing
 pnpm test                                # Run test suite
@@ -179,11 +178,11 @@ setTimeout(() => {
 
 | Issue | Solution |
 |-------|----------|
-| Build failures | Run `pnpm build:schema` first |
+| Schema changes not reflected | No build needed - changes to `shared/schema.ts` are immediately available |
+| Type errors | TypeScript catches invalid queries at compile time - check column names |
 | Execution not working | Start kernel with correct `NOTEBOOK_ID` |
 | Slow execution | Should be instant - check kernel logs |
 | Stale state | Run `pnpm reset-storage` |
-| Schema errors | Verify schema is built after changes |
 
 ## Recent Major Improvements ✅
 

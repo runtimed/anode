@@ -24,8 +24,8 @@ All core functionality tests are passing with the **zero-latency reactive archit
 
 ### 1. TypeScript Project References ✅
 - Tests now import directly from source TypeScript files
-- No longer require `pnpm build:schema` before running tests
-- Faster development feedback loop
+- No build steps required - direct TypeScript imports from `shared/schema.ts`
+- Faster development feedback loop with immediate schema changes
 - Proper module resolution via Vitest aliases
 
 ### 2. Zero-Latency Reactive Architecture ✅
@@ -230,7 +230,7 @@ pnpm test
 pnpm test:run
 
 # Specific test file
-pnpm test packages/schema/test/schema.test.ts
+pnpm test test/integration/execution-flow.test.ts
 
 # Watch mode (explicit)
 pnpm test --watch

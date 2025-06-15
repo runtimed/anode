@@ -76,8 +76,9 @@ Anode uses a breakthrough reactive architecture for instant execution:
 
 ```
 anode/
+├── shared/
+│   └── schema.ts                         # LiveStore schema - TypeScript source directly imported by all packages
 ├── packages/
-│   ├── schema/                           # LiveStore events & state definitions
 │   ├── web-client/                       # React notebook interface
 │   ├── docworker/                        # Cloudflare Workers sync backend
 │   └── dev-server-kernel-ls-client/      # Python execution server
@@ -94,7 +95,6 @@ NOTEBOOK_ID=your-notebook-id pnpm dev:kernel  # Start kernel for specific notebo
 
 # Utilities
 pnpm reset-storage                        # Clear all local data
-pnpm build:schema                         # Rebuild schema after changes
 
 # Individual services (for debugging)
 pnpm dev:web-only                         # Web client only
@@ -125,7 +125,8 @@ See [ROADMAP.md](./ROADMAP.md) for detailed development priorities.
 
 | Problem | Solution |
 |---------|----------|
-| Build failures | Run `pnpm build:schema` first |
+| Schema changes not reflected | No build needed - changes to `shared/schema.ts` are immediately available |
+| Type errors | TypeScript catches invalid queries at compile time - check column names |
 | Execution not working | Start kernel with correct `NOTEBOOK_ID` (use copy button in UI) |
 | Stale state | Run `pnpm reset-storage` |
 | Slow execution | Should be instant - check kernel logs |
@@ -134,7 +135,7 @@ See [ROADMAP.md](./ROADMAP.md) for detailed development priorities.
 
 ## Architecture Highlights
 
-**Simplified Event Schema**: Removed timestamp complexity for reliability. Simple schemas work better for rapid prototyping.
+**Zero-Build Schema Architecture**: Direct TypeScript imports from `shared/schema.ts` eliminate build complexity while maintaining full type safety. No compiled artifacts needed.
 
 **Rich Output System**: Supports multiple media types including HTML tables for pandas DataFrames, SVG plots for matplotlib, and markdown for AI responses. Media type prioritization ensures best format is always displayed.
 

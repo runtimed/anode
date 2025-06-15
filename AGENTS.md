@@ -10,7 +10,7 @@ Anode is a real-time collaborative notebook system built on LiveStore, an event-
 
 ## Architecture
 
-- **Shared Schema** (`shared/schema.ts`): LiveStore schema definitions (events, state, materializers) - directly imported by all packages
+- **Shared Schema** (`shared/schema.ts`): LiveStore schema definitions (events, state, materializers) - TypeScript source file directly imported by all packages with full type inference
 - **Web Client** (`@anode/web-client`): React-based web interface
 - **Document Worker** (`@anode/docworker`): Cloudflare Worker for sync backend
 - **Kernel Client** (`@anode/dev-server-kernel-ls-client`): Python execution server (manual start per notebook)
@@ -67,7 +67,6 @@ pnpm dev:sync-only
 
 # Development utilities
 pnpm reset-storage  # Clear all local storage
-pnpm build:schema   # Required after schema changes
 ```
 
 ## Current Working State
@@ -111,6 +110,7 @@ pnpm build:schema   # Required after schema changes
 - **Performance Optimization** - Handle large notebooks and datasets efficiently
 
 ### Recent Major Achievements ✅
+- ✅ **Schema Architecture Simplification** - Eliminated build complexity with direct TypeScript imports
 - ✅ **Rich Output System** - HTML tables, SVG plots, markdown rendering
 - ✅ **Pandas DataFrame Support** - Professional table styling matching Jupyter quality
 - ✅ **Matplotlib Integration** - Crisp vector graphics with proper rendering
@@ -123,7 +123,8 @@ pnpm build:schema   # Required after schema changes
 ## Important Considerations
 
 ### Schema Design
-- Shared schema file (`shared/schema.ts`) provides direct imports with full type inference
+- **Direct TypeScript imports**: `shared/schema.ts` provides zero-build-step imports with full type inference across all packages
+- **Single source of truth**: No compiled artifacts needed - TypeScript handles type checking from source
 - Single `notebook` table per store (not `notebooks`)
 - `kernelSessions` and `executionQueue` tables for lifecycle management
 - **No timestamp fields** - eliminated for simplicity and stability (LiveStore handles timing automatically)
@@ -144,7 +145,7 @@ pnpm build:schema   # Required after schema changes
 ```
 anode/
 ├── shared/
-│   └── schema.ts         # LiveStore schema definitions (events, state, materializers)
+│   └── schema.ts         # LiveStore schema - TypeScript source directly imported by all packages
 ├── packages/
 │   ├── web-client/       # React web application
 │   ├── docworker/        # Cloudflare Worker sync backend
@@ -158,7 +159,8 @@ anode/
 ## Troubleshooting
 
 ### Common Issues
-- **Build failures**: No schema build needed - schema is directly imported from `shared/schema.ts`
+- **Schema updates**: No build step required - changes to `shared/schema.ts` are immediately available to all packages
+- **Type errors**: TypeScript now catches invalid queries and schema mismatches at compile time
 - **Sync issues**: Check document worker deployment
 - **Execution not working**: Start kernel manually with `NOTEBOOK_ID=your-notebook-id pnpm dev:kernel`
 - **Stale state**: Run `pnpm reset-storage` to clear everything
@@ -198,7 +200,7 @@ anode/
 - **Matplotlib SVG rendering** - Crisp vector graphics with proper display
 - **Fluid UX transformation** - Jupyter-like navigation and interaction completed
 - **Unified execution system** - AI cells work exactly like code cells through execution queue
-- **Simplified schema architecture** - Direct file imports eliminate package boundaries and build steps
+- **Zero-build schema architecture** - Direct TypeScript imports eliminate build complexity while maintaining full type safety
 - Event sourcing provides excellent debugging and audit capabilities  
 - Local-first design enables offline work and instant responsiveness
 - **Proper event deferral** resolves LiveStore execution segment conflicts effectively
@@ -207,7 +209,7 @@ anode/
 - **Consistent cross-cell behavior** enables predictable user experience
 - **AI integration architecture** - Mock responses working, ready for real API integration
 
-**Current Development Cycle**: Major UX improvements and rich output system completed in June 2025, creating a fluid notebook experience with Jupyter-quality output rendering while maintaining real-time collaboration advantages.
+**Current Development Cycle**: Major UX improvements, rich output system, and schema architecture simplification completed, creating a fluid notebook experience with Jupyter-quality output rendering and zero-build-step development while maintaining real-time collaboration advantages.
 
 The system provides a **production-ready foundation** for AI-native collaborative notebooks with modern UX, professional-quality output rendering, and is positioned for advanced enterprise features.
 
