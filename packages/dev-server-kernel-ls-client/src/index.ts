@@ -32,6 +32,7 @@ const server = createServer(async (req, res) => {
         timestamp: new Date().toISOString(),
         service: "dev-server-kernel-ls-client",
         execution_model: "livestore-events-only",
+        ai_support: "enabled (mock responses)",
       }),
     );
     return;
@@ -48,7 +49,8 @@ const server = createServer(async (req, res) => {
         uptime: process.uptime(),
         memory: process.memoryUsage(),
         execution_model: "livestore-events-only",
-        note: "This service responds ONLY to LiveStore cellExecutionRequested events",
+        ai_support: "enabled (mock responses)",
+        note: "This service responds ONLY to LiveStore cellExecutionRequested events for code and AI cells",
         env: {
           NODE_VERSION: process.version,
           LIVESTORE_SYNC_URL:
@@ -67,6 +69,7 @@ const server = createServer(async (req, res) => {
       error: "Not found",
       available_endpoints: ["/health", "/status"],
       execution_model: "livestore-events-only",
+      ai_support: "enabled (mock responses)",
       note: "This kernel service does NOT provide HTTP execution endpoints",
     }),
   );
@@ -81,10 +84,10 @@ server.listen(PORT, () => {
   console.log(`   • GET  http://localhost:${PORT}/health`);
   console.log(`   • GET  http://localhost:${PORT}/status`);
   console.log(``);
-  console.log(`⚡ Code execution happens via REACTIVE LiveStore queries:`);
-  console.log(`   1. Web client emits cellExecutionRequested event`);
+  console.log(`⚡ Code & AI execution happens via REACTIVE LiveStore queries:`);
+  console.log(`   1. Web client emits cellExecutionRequested event (code or AI)`);
   console.log(`   2. This service reacts to queue changes via queryDb subscriptions`);
-  console.log(`   3. Python code executes with Pyodide`);
+  console.log(`   3. Python code executes with Pyodide OR AI generates mock response`);
   console.log(`   4. Results sent back via cellOutputAdded events`);
   console.log(`   5. All connected clients see results in real-time`);
 });

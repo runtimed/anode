@@ -27,6 +27,7 @@ console.log(`🎯 Kernel ID: ${KERNEL_ID}`);
 console.log(`🎫 Session ID: ${SESSION_ID}`);
 console.log(`🔄 Sync URL: ${SYNC_URL}`);
 console.log(`⚡ Using reactive queries instead of polling`);
+console.log(`🤖 AI cell support: enabled (mock responses)`);
 
 const adapter = makeAdapter({
   storage: { type: "in-memory" },
@@ -98,7 +99,7 @@ try {
     capabilities: {
       canExecuteCode: true,
       canExecuteSql: false,
-      canExecuteAi: false,
+      canExecuteAi: true,
     },
   }));
   console.log("✅ kernelSessionStarted event committed successfully");
@@ -151,6 +152,34 @@ const activeKernelsQuery$ = queryDb(
   }
 );
 
+// Generate fake AI response for testing
+async function generateFakeAiResponse(cell: any): Promise<any[]> {
+  const provider = cell.aiProvider || 'openai';
+  const model = cell.aiModel || 'gpt-4';
+  const prompt = cell.source || '';
+
+  // Simulate AI thinking time
+  await new Promise(resolve => setTimeout(resolve, 1000 + Math.random() * 2000));
+
+  const responses = [
+    `I understand you're asking: "${prompt}"\n\nThis is a mock response from ${model}. In the full implementation, I would analyze your notebook context and provide helpful insights.`,
+
+    `Based on your prompt "${prompt}", here are some thoughts:\n\n1. This appears to be a question about your notebook\n2. I can see the context from previous cells\n3. Let me provide a helpful response\n\nNote: This is currently a mock response from the ${provider} ${model} integration.`,
+
+    `Hello! I'm your AI assistant powered by ${model}.\n\nYour prompt: "${prompt}"\n\nI'm designed to help with:\n• Code analysis and debugging\n• Data interpretation\n• Suggestions for next steps\n• Answering questions about your work\n\nThis is a placeholder response while we build the real API integration.`,
+
+    `Analyzing your request: "${prompt}"\n\n🔍 **Context Analysis:**\nI can see this is part of your notebook workflow. \n\n💡 **Insights:**\nBased on the pattern of your request, you might be interested in exploring data analysis techniques.\n\n🚀 **Next Steps:**\nConsider breaking down your problem into smaller components.\n\n*Note: This is a simulated ${provider} ${model} response for development.*`
+  ];
+
+  const randomResponse = responses[Math.floor(Math.random() * responses.length)];
+
+  return [{
+    type: "execute_result",
+    data: { "text/plain": randomResponse },
+    position: 0,
+  }];
+}
+
 // Process execution function (same as before)
 async function processExecution(queueEntry: any) {
   console.log(`⚡ Processing execution ${queueEntry.id} for cell ${queueEntry.cellId}`);
@@ -178,12 +207,25 @@ async function processExecution(queueEntry: any) {
       clearedBy: `kernel-${KERNEL_ID}`,
     }));
 
-    console.log(`🐍 Executing Python code for cell ${cell.id}:`);
-    console.log(`    ${(cell.source || '').slice(0, 100)}${cell.source?.length > 100 ? '...' : ''}`);
+    // Check if this is an AI cell
+    let outputs;
+    if (cell.cellType === 'ai') {
+      console.log(`🤖 Executing AI prompt for cell ${cell.id}:`);
+      console.log(`    Provider: ${cell.aiProvider || 'openai'}`);
+      console.log(`    Model: ${cell.aiModel || 'gpt-4'}`);
+      console.log(`    Prompt: ${(cell.source || '').slice(0, 100)}${cell.source?.length > 100 ? '...' : ''}`);
 
-    // Execute the code
-    const outputs = await kernel.execute(cell.source ?? "");
-    console.log(`📤 Generated ${outputs.length} outputs`);
+      // Generate fake AI response
+      outputs = await generateFakeAiResponse(cell);
+      console.log(`📤 Generated ${outputs.length} AI outputs`);
+    } else {
+      console.log(`🐍 Executing Python code for cell ${cell.id}:`);
+      console.log(`    ${(cell.source || '').slice(0, 100)}${cell.source?.length > 100 ? '...' : ''}`);
+
+      // Execute the code
+      outputs = await kernel.execute(cell.source ?? "");
+      console.log(`📤 Generated ${outputs.length} outputs`);
+    }
 
     // Emit outputs
     outputs.forEach((output, idx) => {
