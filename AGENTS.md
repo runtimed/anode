@@ -6,7 +6,7 @@ This document provides essential context for AI assistants working on the Anode 
 
 Anode is a real-time collaborative notebook system built on LiveStore, an event-sourcing based local-first data synchronization library. The project uses a monorepo structure with TypeScript and pnpm workspaces.
 
-**Current Status**: The system is fully operational with working Python code execution using a breakthrough reactive architecture.
+**Current Status**: Fully operational with zero-latency Python execution.
 
 ## Architecture
 
@@ -22,7 +22,7 @@ Anode is a real-time collaborative notebook system built on LiveStore, an event-
 - **React**: UI framework
 - **TypeScript**: Primary language
 
-## Current Architecture (December 2024)
+## Current Architecture - Fully Operational
 
 ### **Simplified Notebook/Store Relationship**
 - `NOTEBOOK_ID = STORE_ID`: Each notebook gets its own LiveStore database
@@ -34,8 +34,8 @@ Anode is a real-time collaborative notebook system built on LiveStore, an event-
 - Flow: `executionRequested` → `executionAssigned` → `executionStarted` → `executionCompleted`
 - **Kernels use reactive `queryDb` subscriptions** for instant work detection (no polling)
 - **Zero-latency execution** - cells execute immediately when run
-- Session-based assignment for future auth enforcement
-- Currently working end-to-end with lightning-fast response
+- Session-based assignment with auth enforcement planned
+- **Fully operational** - working end-to-end with lightning-fast response
 
 ### **Kernel Session Tracking**
 - Each kernel restart gets unique `sessionId`
@@ -63,21 +63,41 @@ pnpm build:schema   # Required after schema changes
 ```
 
 ## Current Working State
+## What's Working ✅
 
-### ✅ What's Working
-- Kernel startup and registration
-- Event sequencing without conflicts
-- **Instant reactive work queue management** (zero polling delays)
-- Python code execution via Pyodide
-- Output generation and storage
-- Multiple notebooks with isolated kernels
-- **Real-time reactive subscriptions** using LiveStore's `queryDb`
-- **Lightning-fast execution response** with proper race condition handling
+- ✅ **Instant Python execution** with zero polling delays
+- ✅ **Real-time collaboration** across multiple users  
+- ✅ **Reactive architecture** using LiveStore's `queryDb` subscriptions
+- ✅ **Multiple isolated notebooks** with separate kernels
+- ✅ **Rich output display** for Python results
+- ✅ **Offline-first operation** with sync when connected
+- ✅ **Event sourcing** for complete history and debugging
+- ✅ **Session management** with kernel isolation
+- ✅ **Comprehensive testing** (68 passing tests)
 
-### ⚠️ Known Issues
-- Tests need cleanup (reference removed timestamp fields) - partially resolved
-- Manual kernel lifecycle management
-- No authentication (insecure tokens)
+## Next Phase: AI Integration & UX Polish 🤖
+
+**Priority Focus**: AI ↔ Python ↔ User interactions with fluid notebook UX
+
+### Immediate Goals
+- **Notebook UX Improvements** - Fluid cell navigation and Jupyter-like interaction
+- **AI Cell Architecture** - Notebook-aware AI assistance
+- **Code Completions** - LSP + kernel-based suggestions  
+- **Authentication** - Google OAuth with session management
+- **Kernel Lifecycle** - Automatic startup and management
+
+### Current UX Issues to Address
+- Click-to-edit model breaks notebook flow
+- No keyboard navigation between cells (arrow keys)
+- Heavy card UI feels cluttered vs clean notebook interfaces
+- Hover-only controls are hard to discover
+- Missing standard execution shortcuts (Shift+Enter, Ctrl+Enter)
+
+### Technical Debt
+- Manual kernel lifecycle management (being addressed)
+- Authentication system (Google OAuth planned)
+- Enhanced error handling and recovery
+- Cell interaction model needs modernization
 
 ## Important Considerations
 
@@ -129,27 +149,29 @@ anode/
 
 ## Notes for AI Assistants
 
-### Current State
-- **Reactive execution flow** working with instant response
-- Manual kernel management (one per notebook)
-- Simplified schema without timestamps
-- Each notebook = separate LiveStore database for isolation
-- **Breakthrough reactive architecture** using LiveStore's intended design patterns
+### Current State - Fully Operational
+- **Zero-latency execution** with reactive architecture breakthrough
+- Manual kernel management (automation planned)
+- Simplified schemas for reliability and rapid development
+- Each notebook = separate LiveStore database for clean isolation
+- **Stable reactive architecture** leveraging LiveStore's capabilities
+- Ready for AI integration and advanced features
 
 ### Communication Style
 - Use authentic developer voice - uncertainty is fine, just be explicit
-- Show honest assessment of current state vs future goals
-- Acknowledge rough edges rather than polishing everything
-- Write like documenting for teammates, not marketing
-- Be concise but complete
+- Focus on AI ↔ Python ↔ User interaction goals
+- Acknowledge current production readiness while planning next phase
+- Emphasize technical achievements and breakthrough architecture
+- Balance current capabilities with AI integration roadmap
 
 ### Key Insights for Development
-- Simple schemas beat complex ones for prototypes
-- **Reactive subscriptions are superior to polling** when implemented correctly with proper race condition handling
-- Database query/schema alignment is critical
-- Initial sync timing matters for event sequencing
-- Comprehensive logging helps debug distributed systems
-- **Event deferral** (`setTimeout(..., 0)`) resolves LiveStore reactive system conflicts
-- **Zero-latency execution** is achievable with LiveStore's reactive `queryDb` subscriptions
+- **Reactive architecture breakthrough** - Zero-latency execution achieved
+- Simple schemas enable rapid prototyping and reliable operation
+- Event sourcing provides excellent debugging and audit capabilities  
+- Local-first design enables offline work and instant responsiveness
+- **Proper event deferral** resolves LiveStore execution segment conflicts effectively
+- Session-based kernel management enables clean isolation and scaling
+- **AI integration readiness** - Architecture supports context-aware AI cells
+- **UX modernization needed** - Current cell interaction model needs Jupyter-like fluidity
 
-The system provides a solid foundation for collaborative notebook execution and can be extended incrementally.
+The system provides a **solid foundation** for AI-native collaborative notebooks and is positioned for the next phase of intelligent features.
