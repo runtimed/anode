@@ -99,6 +99,167 @@ describe('PyodideKernel', () => {
       expect(mockPyodide.runPythonAsync).toHaveBeenCalledWith(code)
     })
 
+    it('should capture stdout stream output', async () => {
+      const code = 'print("Hello, World!")'
+
+      // Mock stdout callback
+      const { loadPyodide } = await import('pyodide')
+      const mockLoadPyodide = vi.mocked(loadPyodide)
+
+      // Get the stdout callback that was passed to loadPyodide
+      const loadPyodideCall = mockLoadPyodide.mock.calls[0]
+      const options = loadPyodideCall?.[0] as any
+      const stdoutCallback = options?.stdout
+
+      // Mock runPythonAsync to return undefined and trigger stdout
+      mockPyodide.runPythonAsync.mockImplementation(async (code) => {
+        if (stdoutCallback) {
+          stdoutCallback("Hello, World!\n")
+        }
+        return undefined
+      })
+
+      // Mock the plot outputs clearing and checking
+      mockPyodide.runPython.mockReturnValueOnce(undefined) // _plot_outputs = []
+      mockPyodide.runPython.mockReturnValueOnce('[]') // json.dumps(_plot_outputs)
+
+      const outputs = await kernel.execute(code)
+
+      expect(outputs).toHaveLength(1)
+      expect(outputs[0]).toEqual({
+        type: 'stream',
+        data: {
+          name: 'stdout',
+          text: 'Hello, World!\n'
+        },
+        metadata: {},
+        position: 0
+      })
+    })
+
+    it('should capture stderr stream output', async () => {
+      const code = 'import sys; print("Error message", file=sys.stderr)'
+
+      // Mock stderr callback
+      const { loadPyodide } = await import('pyodide')
+      const mockLoadPyodide = vi.mocked(loadPyodide)
+
+      // Get the stderr callback that was passed to loadPyodide
+      const loadPyodideCall = mockLoadPyodide.mock.calls[0]
+      const options = loadPyodideCall?.[0] as any
+      const stderrCallback = options?.stderr
+
+      // Mock runPythonAsync to return undefined and trigger stderr
+      mockPyodide.runPythonAsync.mockImplementation(async (code) => {
+        if (stderrCallback) {
+          stderrCallback("Error message\n")
+        }
+        return undefined
+      })
+
+      // Mock the plot outputs clearing and checking
+      mockPyodide.runPython.mockReturnValueOnce(undefined) // _plot_outputs = []
+      mockPyodide.runPython.mockReturnValueOnce('[]') // json.dumps(_plot_outputs)
+
+      const outputs = await kernel.execute(code)
+
+      expect(outputs).toHaveLength(1)
+      expect(outputs[0]).toEqual({
+        type: 'stream',
+        data: {
+          name: 'stderr',
+          text: 'Error message\n'
+        },
+        metadata: {},
+        position: 0
+      })
+    })
+
+    it('should capture both stdout and stderr with other outputs', async () => {
+      const code = 'print("stdout"); import sys; print("stderr", file=sys.stderr); 42'
+
+      // Mock stdout and stderr callbacks
+      const { loadPyodide } = await import('pyodide')
+      const mockLoadPyodide = vi.mocked(loadPyodide)
+
+      const loadPyodideCall = mockLoadPyodide.mock.calls[0]
+      const options = loadPyodideCall?.[0] as any
+      const stdoutCallback = options?.stdout
+      const stderrCallback = options?.stderr
+
+      // Mock runPythonAsync to return a result and trigger both stdout and stderr
+      mockPyodide.runPythonAsync.mockImplementation(async (code) => {
+        if (stdoutCallback) {
+          stdoutCallback("stdout\n")
+        }
+        if (stderrCallback) {
+          stderrCallback("stderr\n")
+        }
+        return 42
+      })
+
+      // Mock the plot outputs clearing and checking
+      mockPyodide.runPython.mockReturnValueOnce(undefined) // _plot_outputs = []
+      mockPyodide.runPython.mockReturnValueOnce('[]') // json.dumps(_plot_outputs)
+      mockPyodide.runPython.mockReturnValueOnce('{"text/plain": "42"}') // format_for_display
+
+      const outputs = await kernel.execute(code)
+
+      expect(outputs).toHaveLength(3)
+
+      // Execute result should come first
+      expect(outputs[0]).toEqual({
+        type: 'execute_result',
+        data: { 'text/plain': '42' },
+        metadata: {},
+        position: 0
+      })
+
+      // Then stdout
+      expect(outputs[1]).toEqual({
+        type: 'stream',
+        data: {
+          name: 'stdout',
+          text: 'stdout\n'
+        },
+        metadata: {},
+        position: 1
+      })
+
+      // Then stderr
+      expect(outputs[2]).toEqual({
+        type: 'stream',
+        data: {
+          name: 'stderr',
+          text: 'stderr\n'
+        },
+        metadata: {},
+        position: 2
+      })
+    })
+
+    it('should not create stream outputs for empty stdout/stderr', async () => {
+      const code = '2 + 2'  // No print statements
+
+      // Mock runPythonAsync to return a result without triggering stdout/stderr
+      mockPyodide.runPythonAsync.mockResolvedValue(4)
+      // Mock the plot outputs clearing, checking, and format_for_display result
+      mockPyodide.runPython.mockReturnValueOnce(undefined) // _plot_outputs = []
+      mockPyodide.runPython.mockReturnValueOnce('[]') // json.dumps(_plot_outputs)
+      mockPyodide.runPython.mockReturnValueOnce('{"text/plain": "4"}') // format_for_display
+
+      const outputs = await kernel.execute(code)
+
+      // Should only have the execute_result, no stream outputs
+      expect(outputs).toHaveLength(1)
+      expect(outputs[0]).toEqual({
+        type: 'execute_result',
+        data: { 'text/plain': '4' },
+        metadata: {},
+        position: 0
+      })
+    })
+
     it('should handle expression results', async () => {
       const code = '2 + 2'
 

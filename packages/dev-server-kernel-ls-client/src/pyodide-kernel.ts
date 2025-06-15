@@ -1,9 +1,9 @@
 import { loadPyodide, PyodideInterface } from "pyodide";
-import { OutputType, ErrorOutputData, RichOutputData } from "../../../shared/schema.js";
+import { OutputType, ErrorOutputData, RichOutputData, StreamOutputData } from "../../../shared/schema.js";
 
 export interface OutputData {
   type: OutputType;
-  data: RichOutputData | ErrorOutputData | unknown;
+  data: RichOutputData | ErrorOutputData | StreamOutputData | unknown;
   metadata?: Record<string, unknown>;
   position: number;
 }
@@ -12,6 +12,8 @@ export class PyodideKernel {
   private pyodide: PyodideInterface | null = null;
   private readonly notebookId: string;
   private initialized = false;
+  private stdoutBuffer: string[] = [];
+  private stderrBuffer: string[] = [];
 
   constructor(notebookId: string) {
     this.notebookId = notebookId;
@@ -25,8 +27,14 @@ export class PyodideKernel {
     );
 
     this.pyodide = await loadPyodide({
-      stdout: (text: string) => console.log("[py]:", text),
-      stderr: (text: string) => console.error("[py]:", text),
+      stdout: (text: string) => {
+        console.log("[py]:", text);
+        this.stdoutBuffer.push(text);
+      },
+      stderr: (text: string) => {
+        console.error("[py]:", text);
+        this.stderrBuffer.push(text);
+      },
     });
 
     // Install common packages for data science and visualization
@@ -126,6 +134,11 @@ print("🐍 Python runtime ready with matplotlib and rich output support")
     if (!code.trim()) return [];
 
     const outputs: OutputData[] = [];
+
+    // Clear stdout/stderr buffers before execution
+    this.stdoutBuffer = [];
+    this.stderrBuffer = [];
+
     try {
       // Clear any previous plot outputs
       this.pyodide!.runPython("_plot_outputs = []");
@@ -167,6 +180,38 @@ json.dumps(result_data)
           outputs.push({
             type: "execute_result",
             data: richData,
+            metadata: {},
+            position: outputs.length,
+          });
+        }
+      }
+
+      // Add any stdout outputs that were captured
+      if (this.stdoutBuffer.length > 0) {
+        const stdoutText = this.stdoutBuffer.join('\n');
+        if (stdoutText.trim()) {
+          outputs.push({
+            type: "stream",
+            data: {
+              name: "stdout",
+              text: stdoutText,
+            } as StreamOutputData,
+            metadata: {},
+            position: outputs.length,
+          });
+        }
+      }
+
+      // Add any stderr outputs that were captured
+      if (this.stderrBuffer.length > 0) {
+        const stderrText = this.stderrBuffer.join('\n');
+        if (stderrText.trim()) {
+          outputs.push({
+            type: "stream",
+            data: {
+              name: "stderr",
+              text: stderrText,
+            } as StreamOutputData,
             metadata: {},
             position: outputs.length,
           });

@@ -2,6 +2,7 @@ import React from 'react'
 import ReactMarkdown from 'react-markdown'
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter'
 import { oneLight } from 'react-syntax-highlighter/dist/esm/styles/prism'
+import { StreamOutputData } from '../../../../../shared/schema.js'
 import './RichOutput.css'
 
 interface RichOutputProps {
@@ -20,11 +21,26 @@ interface OutputData {
   [key: string]: unknown
 }
 
+
+
 export const RichOutput: React.FC<RichOutputProps> = ({
   data,
-  metadata,
   outputType = 'display_data'
 }) => {
+  // Handle stream outputs specially
+  if (outputType === 'stream') {
+    const streamData = data as unknown as StreamOutputData
+    const isStderr = streamData.name === 'stderr'
+
+    return (
+      <div className={`py-2 ${isStderr ? 'text-red-600' : 'text-gray-700'}`}>
+        <div className="font-mono text-sm whitespace-pre-wrap leading-relaxed">
+          {streamData.text}
+        </div>
+      </div>
+    )
+  }
+
   const outputData = data as OutputData
 
   // Determine the best media type to render, in order of preference
@@ -61,7 +77,7 @@ export const RichOutput: React.FC<RichOutputProps> = ({
     switch (mediaType) {
       case 'text/markdown':
         return (
-          <div className="prose prose-sm max-w-none">
+          <div className="prose prose-sm max-w-none prose-gray">
             <ReactMarkdown
               components={{
                 code({ node, className, children, ...props }) {
@@ -74,11 +90,17 @@ export const RichOutput: React.FC<RichOutputProps> = ({
                       style={oneLight}
                       language={language}
                       PreTag="div"
+                      customStyle={{
+                        margin: 0,
+                        background: '#f9fafb',
+                        borderRadius: '0.375rem',
+                        padding: '0.5rem'
+                      }}
                     >
                       {String(children).replace(/\n$/, '')}
                     </SyntaxHighlighter>
                   ) : (
-                    <code className={className} {...props}>
+                    <code className={`${className} bg-gray-100 px-1 py-0.5 rounded text-sm`} {...props}>
                       {children}
                     </code>
                   )
@@ -96,11 +118,11 @@ export const RichOutput: React.FC<RichOutputProps> = ({
             className="max-w-none dataframe-container"
             dangerouslySetInnerHTML={{ __html: outputData[mediaType] || '' }}
             style={{
-              // Add styles for pandas DataFrames
-              '--dataframe-border': '1px solid #dee2e6',
+              // Clean styles for pandas DataFrames
+              '--dataframe-border': '1px solid #e5e7eb',
               '--dataframe-bg': '#fff',
-              '--dataframe-header-bg': '#f8f9fa',
-              '--dataframe-hover-bg': '#f5f5f5'
+              '--dataframe-header-bg': '#f9fafb',
+              '--dataframe-hover-bg': '#f3f4f6'
             } as React.CSSProperties}
           />
         )
@@ -108,7 +130,7 @@ export const RichOutput: React.FC<RichOutputProps> = ({
       case 'image/svg+xml':
       case 'image/svg':
         return (
-          <div className="flex justify-center p-4">
+          <div className="flex justify-center py-2">
             <div
               className="max-w-full"
               dangerouslySetInnerHTML={{ __html: outputData[mediaType] || '' }}
@@ -118,7 +140,7 @@ export const RichOutput: React.FC<RichOutputProps> = ({
 
       case 'application/json':
         return (
-          <div className="bg-gray-50 rounded-md p-3">
+          <div className="bg-gray-50/50 rounded p-2">
             <SyntaxHighlighter
               language="json"
               style={oneLight}
@@ -136,7 +158,7 @@ export const RichOutput: React.FC<RichOutputProps> = ({
       case 'text/plain':
       default:
         return (
-          <div className="font-mono text-sm whitespace-pre-wrap">
+          <div className="font-mono text-sm whitespace-pre-wrap leading-relaxed text-gray-700">
             {String(outputData[mediaType] || '')}
           </div>
         )
@@ -144,7 +166,7 @@ export const RichOutput: React.FC<RichOutputProps> = ({
   }
 
   const getOutputTypeLabel = () => {
-    switch (outputType) {
+    switch (outputType as 'display_data' | 'execute_result' | 'stream' | 'error') {
       case 'execute_result':
         return 'Result'
       case 'display_data':
@@ -159,7 +181,7 @@ export const RichOutput: React.FC<RichOutputProps> = ({
   }
 
   const getOutputTypeColor = () => {
-    switch (outputType) {
+    switch (outputType as 'display_data' | 'execute_result' | 'stream' | 'error') {
       case 'execute_result':
         return 'text-green-600'
       case 'display_data':
@@ -173,46 +195,22 @@ export const RichOutput: React.FC<RichOutputProps> = ({
     }
   }
 
-  const getOutputTypeBg = () => {
-    switch (outputType) {
-      case 'execute_result':
-        return 'bg-green-50/50'
-      case 'display_data':
-        return 'bg-blue-50/50'
-      case 'stream':
-        return 'bg-gray-50/50'
-      case 'error':
-        return 'bg-red-50/50'
-      default:
-        return 'bg-gray-50/50'
-    }
-  }
+
 
   return (
-    <div className={`${getOutputTypeBg()}`}>
-      {/* Output Type Header */}
-      <div className="px-3 py-1 border-b border-border/50">
-        <div className="flex items-center justify-between">
+    <div className="py-2">
+      {/* Optional subtle header for non-plain content */}
+      {(mediaType && mediaType !== 'text/plain') && (
+        <div className="mb-2">
           <div className={`text-xs font-medium ${getOutputTypeColor()}`}>
             {getOutputTypeLabel()}
-            {mediaType && mediaType !== 'text/plain' && (
-              <span className="text-gray-500 ml-2">({mediaType})</span>
-            )}
+            <span className="text-gray-500 ml-2">({mediaType})</span>
           </div>
-          {metadata && Object.keys(metadata).length > 0 && (
-            <div className="text-xs text-gray-400">
-              {Object.entries(metadata).map(([key, value]) => (
-                <span key={key} className="ml-2">
-                  {key}: {String(value)}
-                </span>
-              ))}
-            </div>
-          )}
         </div>
-      </div>
+      )}
 
       {/* Content */}
-      <div className="p-3">
+      <div>
         {renderContent()}
       </div>
     </div>
