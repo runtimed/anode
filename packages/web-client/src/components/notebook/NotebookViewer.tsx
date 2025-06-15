@@ -1,7 +1,7 @@
 import React, { useCallback } from 'react'
 import { useStore } from '@livestore/react'
 import { queryDb } from '@livestore/livestore'
-import { tables, events } from '@anode/schema'
+import { tables, events, CellData, KernelSessionData } from '@anode/schema'
 import { Cell } from './Cell.js'
 import { Card, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -44,7 +44,7 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({ onBack }) => {
   const kernelCommand = `NOTEBOOK_ID=${currentNotebookId} pnpm dev:kernel`
 
   // Check kernel status
-  const activeKernel = kernelSessions.find((session: any) => session.status === 'ready')
+  const activeKernel = kernelSessions.find((session: KernelSessionData) => session.status === 'ready')
   const hasActiveKernel = Boolean(activeKernel)
   const kernelStatus = activeKernel?.status || (kernelSessions.length > 0 ? kernelSessions[0].status : 'disconnected')
 
@@ -74,12 +74,12 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({ onBack }) => {
     let newPosition: number
     if (afterCellId) {
       // Find the current cell and insert after it
-      const currentCell = cells.find((c: any) => c.id === afterCellId)
+      const currentCell = cells.find((c: CellData) => c.id === afterCellId)
       if (currentCell) {
         newPosition = currentCell.position + 1
         // Shift all subsequent cells down by 1
-        const cellsToShift = cells.filter((c: any) => c.position >= newPosition)
-        cellsToShift.forEach((cell: any) => {
+        const cellsToShift = cells.filter((c: CellData) => c.position >= newPosition)
+        cellsToShift.forEach((cell: CellData) => {
           store.commit(events.cellMoved({
             id: cell.id,
             newPosition: cell.position + 1,
@@ -87,11 +87,11 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({ onBack }) => {
         })
       } else {
         // Fallback: add at end
-        newPosition = Math.max(...cells.map((c: any) => c.position), -1) + 1
+        newPosition = Math.max(...cells.map((c: CellData) => c.position), -1) + 1
       }
     } else {
       // Add at end
-      newPosition = Math.max(...cells.map((c: any) => c.position), -1) + 1
+      newPosition = Math.max(...cells.map((c: CellData) => c.position), -1) + 1
     }
 
     store.commit(events.cellCreated({
@@ -112,11 +112,11 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({ onBack }) => {
   }, [store])
 
   const moveCell = useCallback((cellId: string, direction: 'up' | 'down') => {
-    const currentCell = cells.find((c: any) => c.id === cellId)
+    const currentCell = cells.find((c: CellData) => c.id === cellId)
     if (!currentCell) return
 
-    const sortedCells = cells.sort((a: any, b: any) => a.position - b.position)
-    const currentIndex = sortedCells.findIndex((c: any) => c.id === cellId)
+    const sortedCells = cells.sort((a: CellData, b: CellData) => a.position - b.position)
+    const currentIndex = sortedCells.findIndex((c: CellData) => c.id === cellId)
 
     if (direction === 'up' && currentIndex > 0) {
       const targetCell = sortedCells[currentIndex - 1]
@@ -152,8 +152,8 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({ onBack }) => {
   }, [])
 
   const focusNextCell = useCallback((currentCellId: string) => {
-    const sortedCells = cells.sort((a: any, b: any) => a.position - b.position)
-    const currentIndex = sortedCells.findIndex((c: any) => c.id === currentCellId)
+    const sortedCells = cells.sort((a: CellData, b: CellData) => a.position - b.position)
+    const currentIndex = sortedCells.findIndex((c: CellData) => c.id === currentCellId)
 
     if (currentIndex < sortedCells.length - 1) {
       const nextCell = sortedCells[currentIndex + 1]
@@ -165,8 +165,8 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({ onBack }) => {
   }, [cells, addCell])
 
   const focusPreviousCell = useCallback((currentCellId: string) => {
-    const sortedCells = cells.sort((a: any, b: any) => a.position - b.position)
-    const currentIndex = sortedCells.findIndex((c: any) => c.id === currentCellId)
+    const sortedCells = cells.sort((a: CellData, b: CellData) => a.position - b.position)
+    const currentIndex = sortedCells.findIndex((c: CellData) => c.id === currentCellId)
 
     if (currentIndex > 0) {
       const previousCell = sortedCells[currentIndex - 1]
@@ -176,7 +176,7 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({ onBack }) => {
 
   // Reset focus when focused cell changes or is removed
   React.useEffect(() => {
-    if (focusedCellId && !cells.find((c: any) => c.id === focusedCellId)) {
+    if (focusedCellId && !cells.find((c: CellData) => c.id === focusedCellId)) {
       setFocusedCellId(null)
     }
   }, [focusedCellId, cells])
@@ -184,7 +184,7 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({ onBack }) => {
   // Focus first cell when notebook loads and has cells
   React.useEffect(() => {
     if (!focusedCellId && cells.length > 0) {
-      const sortedCells = cells.sort((a: any, b: any) => a.position - b.position)
+      const sortedCells = cells.sort((a: CellData, b: CellData) => a.position - b.position)
       setFocusedCellId(sortedCells[0].id)
     }
   }, [focusedCellId, cells])
@@ -197,7 +197,7 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({ onBack }) => {
     )
   }
 
-  const sortedCells = cells.sort((a: any, b: any) => a.position - b.position)
+  const sortedCells = cells.sort((a: CellData, b: CellData) => a.position - b.position)
 
   return (
     <div className="max-w-4xl mx-auto p-6">
@@ -396,7 +396,7 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({ onBack }) => {
             </div>
           </div>
         ) : (
-          sortedCells.map((cell: any) => (
+          sortedCells.map((cell: CellData) => (
             <Cell
               key={cell.id}
               cell={cell}

@@ -1,14 +1,15 @@
-import { loadPyodide } from "pyodide";
+import { loadPyodide, PyodideInterface } from "pyodide";
+import { OutputType, GenericOutputData, ErrorOutputData, RichOutputData } from "@anode/schema";
 
 export interface OutputData {
-  type: "display_data" | "execute_result" | "stream" | "error";
-  data: any;
-  metadata?: any;
+  type: OutputType;
+  data: RichOutputData | ErrorOutputData | unknown;
+  metadata?: Record<string, unknown>;
   position: number;
 }
 
 export class PyodideKernel {
-  private pyodide: any = null;
+  private pyodide: PyodideInterface | null = null;
   private readonly notebookId: string;
   private initialized = false;
 
@@ -29,10 +30,10 @@ export class PyodideKernel {
     });
 
     // Install common packages for data science and visualization
-    await this.pyodide.loadPackage(["matplotlib", "numpy", "pandas"]);
+    await this.pyodide!.loadPackage(["matplotlib", "numpy", "pandas"]);
 
     // Set up matplotlib and simple display formatting
-    this.pyodide.runPython(`
+    this.pyodide!.runPython(`
 import matplotlib
 import matplotlib.pyplot as plt
 import numpy as np
@@ -127,23 +128,23 @@ print("🐍 Python runtime ready with matplotlib and rich output support")
     const outputs: OutputData[] = [];
     try {
       // Clear any previous plot outputs
-      this.pyodide.runPython("_plot_outputs = []");
+      this.pyodide!.runPython("_plot_outputs = []");
 
       // Execute the code and capture the result
-      const result = await this.pyodide.runPythonAsync(code);
+      const result = await this.pyodide!.runPythonAsync(code);
 
       // Get any plot outputs that were generated
-      const plotOutputsJson = this.pyodide.runPython(`
+      const plotOutputsJson = this.pyodide!.runPython(`
 import json
 json.dumps(_plot_outputs)
 `);
 
       // Add plot outputs first
       if (plotOutputsJson && plotOutputsJson !== "[]") {
-        const plotOutputs = JSON.parse(plotOutputsJson);
-        plotOutputs.forEach((output: any, idx: number) => {
+        const plotOutputs = JSON.parse(plotOutputsJson as string);
+        plotOutputs.forEach((output: { output_type: string; data: unknown; metadata?: Record<string, unknown> }, idx: number) => {
           outputs.push({
-            type: output.output_type as any,
+            type: output.output_type as OutputType,
             data: output.data,
             metadata: output.metadata || {},
             position: idx,
@@ -154,15 +155,15 @@ json.dumps(_plot_outputs)
       // Handle the execution result if we have one
       if (result !== undefined && result !== null) {
         // Get rich representation of the result
-        this.pyodide.globals.set("_temp_result", result);
-        const richDataJson = this.pyodide.runPython(`
+        this.pyodide!.globals.set("_temp_result", result);
+        const richDataJson = this.pyodide!.runPython(`
 import json
 result_data = format_for_display(_temp_result)
 json.dumps(result_data)
 `);
 
         if (richDataJson && richDataJson !== "null") {
-          const richData = JSON.parse(richDataJson);
+          const richData = JSON.parse(richDataJson as string);
           outputs.push({
             type: "execute_result",
             data: richData,
@@ -172,14 +173,16 @@ json.dumps(result_data)
         }
       }
 
-    } catch (err: any) {
+    } catch (err: unknown) {
+      const errorData: ErrorOutputData = {
+        ename: (err as Error)?.name ?? "PythonError",
+        evalue: (err as Error)?.message ?? "Execution failed",
+        traceback: [(err as Error)?.stack ?? ""],
+      };
+
       outputs.push({
         type: "error",
-        data: {
-          ename: err?.name ?? "PythonError",
-          evalue: err?.message ?? "Execution failed",
-          traceback: [err?.stack ?? ""],
-        },
+        data: errorData,
         position: outputs.length,
       });
     }

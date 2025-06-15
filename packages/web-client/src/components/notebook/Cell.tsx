@@ -1,6 +1,6 @@
 import React, { useState, useCallback } from 'react'
 import { useStore } from '@livestore/react'
-import { events, tables } from '@anode/schema'
+import { events, tables, OutputData, isErrorOutput } from '@anode/schema'
 
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
@@ -384,8 +384,8 @@ export const Cell: React.FC<CellProps> = ({
             )}
 
             {outputs
-              .sort((a: any, b: any) => a.position - b.position)
-              .map((output: any, index: number) => (
+              .sort((a: OutputData, b: OutputData) => a.position - b.position)
+              .map((output: OutputData, index: number) => (
                 <div key={output.id} className={index > 0 ? "border-t border-border/50" : ""}>
                   {output.outputType === 'error' ? (
                     // Keep special error handling for better UX
@@ -393,13 +393,15 @@ export const Cell: React.FC<CellProps> = ({
                       <div className="text-xs text-red-600 mb-1 font-medium">Error:</div>
                       <div className="font-mono text-sm">
                         <div className="font-semibold text-red-700">
-                          {(output.data as any).ename}: {(output.data as any).evalue}
+                          {isErrorOutput(output.data)
+                            ? `${output.data.ename}: ${output.data.evalue}`
+                            : 'Unknown error'}
                         </div>
-                        {(output.data as any).traceback && (
+                        {isErrorOutput(output.data) && output.data.traceback && (
                           <div className="mt-2 text-red-600 text-xs whitespace-pre-wrap">
-                            {Array.isArray((output.data as any).traceback)
-                              ? (output.data as any).traceback.join('\n')
-                              : (output.data as any).traceback}
+                            {Array.isArray(output.data.traceback)
+                              ? output.data.traceback.join('\n')
+                              : output.data.traceback}
                           </div>
                         )}
                       </div>
@@ -407,8 +409,8 @@ export const Cell: React.FC<CellProps> = ({
                   ) : (
                     // Use RichOutput for all other output types
                     <RichOutput
-                      data={output.data}
-                      metadata={output.metadata}
+                      data={output.data as Record<string, unknown>}
+                      metadata={output.metadata as Record<string, unknown> | undefined}
                       outputType={output.outputType}
                     />
                   )}

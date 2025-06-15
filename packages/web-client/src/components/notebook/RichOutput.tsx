@@ -5,8 +5,8 @@ import { oneLight } from 'react-syntax-highlighter/dist/esm/styles/prism'
 import './RichOutput.css'
 
 interface RichOutputProps {
-  data: Record<string, any>
-  metadata?: Record<string, any>
+  data: Record<string, unknown>
+  metadata?: Record<string, unknown>
   outputType?: 'display_data' | 'execute_result' | 'stream' | 'error'
 }
 
@@ -16,8 +16,8 @@ interface OutputData {
   'text/html'?: string
   'image/svg+xml'?: string
   'image/svg'?: string
-  'application/json'?: any
-  [key: string]: any
+  'application/json'?: unknown
+  [key: string]: unknown
 }
 
 export const RichOutput: React.FC<RichOutputProps> = ({
@@ -71,7 +71,7 @@ export const RichOutput: React.FC<RichOutputProps> = ({
 
                   return !inline && language ? (
                     <SyntaxHighlighter
-                      style={oneLight as any}
+                      style={oneLight}
                       language={language}
                       PreTag="div"
                     >
@@ -85,7 +85,7 @@ export const RichOutput: React.FC<RichOutputProps> = ({
                 }
               }}
             >
-              {outputData[mediaType]}
+              {String(outputData[mediaType] || '')}
             </ReactMarkdown>
           </div>
         )
@@ -121,7 +121,7 @@ export const RichOutput: React.FC<RichOutputProps> = ({
           <div className="bg-gray-50 rounded-md p-3">
             <SyntaxHighlighter
               language="json"
-              style={oneLight as any}
+              style={oneLight}
               customStyle={{
                 margin: 0,
                 background: 'transparent',
@@ -137,7 +137,7 @@ export const RichOutput: React.FC<RichOutputProps> = ({
       default:
         return (
           <div className="font-mono text-sm whitespace-pre-wrap">
-            {outputData[mediaType]}
+            {String(outputData[mediaType] || '')}
           </div>
         )
     }

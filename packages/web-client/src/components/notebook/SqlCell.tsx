@@ -1,6 +1,6 @@
 import React, { useState, useCallback } from 'react'
 import { useStore } from '@livestore/react'
-import { events, tables } from '@anode/schema'
+import { events, tables, SqlResultData } from '@anode/schema'
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
 import { Badge } from '@/components/ui/badge'
@@ -149,12 +149,7 @@ export const SqlCell: React.FC<SqlCellProps> = ({
   const renderResults = () => {
     if (!cell.sqlResultData) return null
 
-    const data = cell.sqlResultData as {
-      columns: string[]
-      rows: any[][]
-      rowCount: number
-      executionTime: string
-    }
+    const data = cell.sqlResultData as SqlResultData
 
     return (
       <div className="mt-4 space-y-3">
@@ -180,7 +175,7 @@ export const SqlCell: React.FC<SqlCellProps> = ({
                   <tr key={i} className="border-t">
                     {row.map((cell, j) => (
                       <td key={j} className="px-3 py-2">
-                        {cell}
+                        {String(cell ?? '')}
                       </td>
                     ))}
                   </tr>

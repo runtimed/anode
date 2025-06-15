@@ -437,7 +437,7 @@ describe('Anode Schema', () => {
         expect(event).toBeDefined()
 
         // Create event payload with minimal required fields
-        const testPayload: any = {
+        const testPayload: Record<string, unknown> = {
           id: 'test-id',
           // Add minimal required fields based on event type
           ...(eventName === 'v1.CellCreated' && {
