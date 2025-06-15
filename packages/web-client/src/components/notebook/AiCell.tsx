@@ -321,7 +321,7 @@ export const AiCell: React.FC<AiCellProps> = ({
       </div>
 
       {/* Cell Content */}
-      <div className={`rounded-md border transition-colors ${
+      <div className={`border transition-colors ${
         autoFocus
           ? 'bg-card border-ring/50'
           : 'bg-card/50 border-border/50 focus-within:border-ring/50 focus-within:bg-card'
