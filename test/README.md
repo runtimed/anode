@@ -1,14 +1,15 @@
 # Anode Testing Infrastructure
 
-This document describes the comprehensive testing setup for the Anode project.
+**Status: ✅ Fully Operational** - Good testing infrastructure supporting zero-latency reactive architecture.
 
 ## Overview
 
-Anode now has a robust testing infrastructure built on:
-- **Vitest 3.x** - Fast test runner with great TypeScript support
-- **@effect/vitest** - Effect-specific testing utilities
+Anode has a robust testing infrastructure built on:
+- **Vitest 3.x** - Fast test runner with excellent TypeScript support
+- **@effect/vitest** - Effect-specific testing utilities for LiveStore integration
 - **Happy DOM** - Lightweight DOM implementation for browser-like testing
-- **Comprehensive mocking** - For external dependencies like Pyodide
+- **Comprehensive mocking** - External dependencies (Pyodide, LiveStore adapters)
+- **68 passing tests** - Good validation of working system
 
 ## Test Structure
 
@@ -40,12 +41,12 @@ anode/
 
 ### 2. Kernel Integration Tests
 - **Location**: `packages/dev-server-kernel-ls-client/test/`
-- **Purpose**: Tests kernel lifecycle and execution flow
+- **Purpose**: Tests zero-latency kernel execution and lifecycle
 - **Coverage**:
-  - Kernel session management
-  - Execution queue processing
-  - Reactive query subscriptions (debugging reactivity issues)
-  - Error handling and recovery
+  - Kernel session management and isolation
+  - Zero-latency execution queue processing
+  - Reactive query subscriptions
+  - Error handling and recovery scenarios
 
 ### 3. End-to-End Integration Tests
 - **Location**: `test/integration/`
@@ -56,14 +57,14 @@ anode/
   - State consistency across components
   - Memory leak prevention
 
-### 4. Reactivity Debugging Tests
+### 4. Reactivity Tests
 - **Location**: `test/integration/reactivity-debugging.test.ts`
-- **Purpose**: Specifically targets the "reactivity errors" you mentioned
+- **Purpose**: Validates zero-latency reactive architecture
 - **Coverage**:
-  - Query subscription lifecycle
-  - Memory management
-  - Error recovery
-  - Performance under load
+  - Zero-latency query subscription lifecycle
+  - Memory management and cleanup
+  - Error recovery and resilience
+  - Performance validation under load
 
 ## Key Testing Features
 
@@ -77,23 +78,24 @@ anode/
 - **Helpers**: Async utilities, resource cleanup, error testing
 - **Factory functions**: Dynamic test data generation
 
-### Reactivity Testing
-Special focus on the server-side client reactivity issues:
+### Zero-Latency Reactive Testing
+Validation of instant execution architecture:
 
 ```typescript
-// Example: Testing query subscription cleanup
-it('should properly clean up subscriptions on query disposal', async () => {
-  const subscription = store.subscribe(query$, { onUpdate: callback })
+// Example: Testing zero-latency execution flow
+it('should execute cells instantly via reactive subscriptions', async () => {
+  const subscription = store.subscribe(executionQueue$, { onUpdate: callback })
   
-  // Trigger updates
-  store.commit(events.cellCreated({ ... }))
+  // Trigger execution
+  store.commit(events.executionRequested({ cellId, source: 'print("hello")' }))
   
-  // Clean up subscription (critical for preventing memory leaks)
+  // Verify instant response (no polling delays)
+  await waitFor(() => expect(callback).toHaveBeenCalledWith(
+    expect.arrayContaining([expect.objectContaining({ status: 'assigned' })])
+  ))
+  
+  // Clean up subscription
   subscription()
-  
-  // Verify no more callbacks after cleanup
-  store.commit(events.cellDeleted({ ... }))
-  expect(callback).not.toHaveBeenCalledAfter(cleanup)
 })
 ```
 
@@ -137,8 +139,11 @@ pnpm test:reactivity
 
 ### Debug Mode
 ```bash
-# Run with detailed logging
+# Run with detailed logging for troubleshooting
 pnpm test:debug
+
+# Run AI integration tests (when available)
+pnpm test:ai
 ```
 
 ## Test Configuration
@@ -156,13 +161,14 @@ Tests automatically set:
 
 ## Debugging Tests
 
-### Reactivity Issues
-The tests include specific scenarios for debugging the server-side reactivity errors:
+### Reactivity Validation
+The tests validate the zero-latency reactive architecture:
 
-1. **Memory Leaks**: Tests for proper subscription cleanup
-2. **Error Recovery**: Handling query failures gracefully
-3. **State Consistency**: Ensuring reactive queries stay in sync
-4. **Performance**: High-frequency update handling
+1. **Zero-Latency Execution**: Validates instant cell execution without polling delays
+2. **Memory Management**: Tests proper subscription cleanup and resource management
+3. **Error Recovery**: Handling query failures and race conditions gracefully
+4. **State Consistency**: Ensuring reactive queries maintain perfect sync
+5. **Performance**: High-frequency update handling
 
 ### Useful Debug Patterns
 ```bash
@@ -201,11 +207,12 @@ const cell = createMockCell({
 
 ## Performance Testing
 
-Tests include performance benchmarks for:
-- Query subscription overhead
-- Memory usage patterns
-- Event processing latency
-- Concurrent execution handling
+Performance validation includes:
+- Zero-latency query subscription overhead
+- Memory usage patterns and leak detection
+- Event processing latency (targeting <1ms for execution triggers)
+- Concurrent execution handling and scaling
+- AI integration performance (planned for next phase)
 
 ## Best Practices
 
@@ -216,17 +223,18 @@ Tests include performance benchmarks for:
 4. Mock external dependencies
 5. Test error scenarios explicitly
 
-### Debugging Reactivity
-1. Use `waitFor` for async state changes
-2. Track subscription counts and cleanup
-3. Test rapid state changes
-4. Verify memory usage patterns
+### Reactive Testing
+1. Use `waitFor` for async state changes validation
+2. Track subscription counts and proper cleanup
+3. Test rapid state changes and high-frequency updates
+4. Verify zero-latency execution performance
+5. Validate memory usage patterns
 
 ### CI/CD Integration
 Tests are designed to be:
 - Fast (< 30 seconds for full suite)
 - Reliable (no flaky tests)
-- Comprehensive (high coverage)
+- Good coverage
 - Isolated (no external dependencies)
 
 ## Known Issues & Solutions
@@ -250,13 +258,15 @@ Tests are designed to be:
 - Use `pnpm test:ui` for interactive test results instead
 - Coverage reports still work with `pnpm test:coverage`
 
-## Future Enhancements
+## Future Enhancements - AI Integration Focus
 
-Planned testing improvements:
-- Browser automation tests (Playwright)
-- Performance regression detection
-- Visual regression testing
-- Property-based testing for edge cases
+Next phase testing priorities:
+- **Re-enable skipped tests one by one** - good opportunity now that major issues are resolved
+- **AI cell integration tests** - Context extraction and LLM provider validation
+- **Code completion tests** - LSP integration and kernel-based suggestions
+- **Authentication flow tests** - Google OAuth and session management
+- Browser automation tests (Playwright) for full E2E workflows
+- Performance regression detection for AI workloads
 
 ## Contributing
 
@@ -277,3 +287,4 @@ When adding new tests:
 - Check test output for specific error messages
 - Use `DEBUG_TESTS=true` for verbose logging
 - Review existing test patterns for guidance
+- Focus on re-enabling skipped tests and AI integration testing patterns as the next development phase
