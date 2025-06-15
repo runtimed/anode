@@ -35,7 +35,7 @@ export const tables: Record<string, any> = {
       // AI-specific fields
       aiProvider: State.SQLite.text({ nullable: true }), // 'openai', 'anthropic', 'local'
       aiModel: State.SQLite.text({ nullable: true }),
-      aiConversation: State.SQLite.json({ nullable: true, schema: Schema.Any }), // Array of messages
+
       aiSettings: State.SQLite.json({ nullable: true, schema: Schema.Any }), // temperature, max_tokens, etc.
 
       createdBy: State.SQLite.text(),
@@ -303,18 +303,6 @@ export const events = {
   }),
 
   // AI events
-  aiConversationUpdated: Events.synced({
-    name: 'v1.AiConversationUpdated',
-    schema: Schema.Struct({
-      cellId: Schema.String,
-      conversation: Schema.Array(Schema.Struct({
-        role: Schema.Literal('user', 'assistant', 'system'),
-        content: Schema.String,
-        timestamp: Schema.Date,
-      })),
-      updatedBy: Schema.String,
-    }),
-  }),
 
   aiSettingsChanged: Events.synced({
     name: 'v1.AiSettingsChanged',
@@ -502,10 +490,6 @@ const materializers = State.SQLite.materializers(events, {
     }).where({ id: cellId }),
 
   // AI materializers
-  'v1.AiConversationUpdated': ({ cellId, conversation }) =>
-    tables.cells.update({
-      aiConversation: conversation,
-    }).where({ id: cellId }),
 
   'v1.AiSettingsChanged': ({ cellId, provider, model, settings }) =>
     tables.cells.update({

@@ -43,11 +43,31 @@ export const Cell: React.FC<CellProps> = ({
 }) => {
   // Route to specialized cell components
   if (cell.cellType === 'sql') {
-    return <SqlCell cell={cell} onAddCell={onAddCell} onDeleteCell={onDeleteCell} onMoveUp={onMoveUp} onMoveDown={onMoveDown} />
+    return <SqlCell
+      cell={cell}
+      onAddCell={onAddCell}
+      onDeleteCell={onDeleteCell}
+      onMoveUp={onMoveUp}
+      onMoveDown={onMoveDown}
+      onFocusNext={onFocusNext}
+      onFocusPrevious={onFocusPrevious}
+      autoFocus={autoFocus}
+      onFocus={onFocus}
+    />
   }
 
   if (cell.cellType === 'ai') {
-    return <AiCell cell={cell} onAddCell={onAddCell} onDeleteCell={onDeleteCell} onMoveUp={onMoveUp} onMoveDown={onMoveDown} />
+    return <AiCell
+      cell={cell}
+      onAddCell={onAddCell}
+      onDeleteCell={onDeleteCell}
+      onMoveUp={onMoveUp}
+      onMoveDown={onMoveDown}
+      onFocusNext={onFocusNext}
+      onFocusPrevious={onFocusPrevious}
+      autoFocus={autoFocus}
+      onFocus={onFocus}
+    />
   }
 
   // Default cell component for code, markdown, raw
