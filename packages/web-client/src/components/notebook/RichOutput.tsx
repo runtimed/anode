@@ -2,6 +2,7 @@ import React from 'react'
 import ReactMarkdown from 'react-markdown'
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter'
 import { oneLight } from 'react-syntax-highlighter/dist/esm/styles/prism'
+import { StreamOutputData } from '../../../../../shared/schema.js'
 import './RichOutput.css'
 
 interface RichOutputProps {
@@ -20,11 +21,36 @@ interface OutputData {
   [key: string]: unknown
 }
 
+
+
 export const RichOutput: React.FC<RichOutputProps> = ({
   data,
   metadata,
   outputType = 'display_data'
 }) => {
+  // Handle stream outputs specially
+  if (outputType === 'stream') {
+    const streamData = data as unknown as StreamOutputData
+    return (
+      <div className="bg-gray-50/50">
+        {/* Output Type Header */}
+        <div className="px-3 py-1 border-b border-border/50">
+          <div className="flex items-center justify-between">
+            <div className="text-xs font-medium text-gray-600">
+              Stream ({streamData.name})
+            </div>
+          </div>
+        </div>
+        {/* Content */}
+        <div className="p-3">
+          <div className="font-mono text-sm whitespace-pre-wrap">
+            {streamData.text}
+          </div>
+        </div>
+      </div>
+    )
+  }
+
   const outputData = data as OutputData
 
   // Determine the best media type to render, in order of preference
@@ -144,7 +170,7 @@ export const RichOutput: React.FC<RichOutputProps> = ({
   }
 
   const getOutputTypeLabel = () => {
-    switch (outputType) {
+    switch (outputType as 'display_data' | 'execute_result' | 'stream' | 'error') {
       case 'execute_result':
         return 'Result'
       case 'display_data':
@@ -159,7 +185,7 @@ export const RichOutput: React.FC<RichOutputProps> = ({
   }
 
   const getOutputTypeColor = () => {
-    switch (outputType) {
+    switch (outputType as 'display_data' | 'execute_result' | 'stream' | 'error') {
       case 'execute_result':
         return 'text-green-600'
       case 'display_data':
@@ -174,7 +200,7 @@ export const RichOutput: React.FC<RichOutputProps> = ({
   }
 
   const getOutputTypeBg = () => {
-    switch (outputType) {
+    switch (outputType as 'display_data' | 'execute_result' | 'stream' | 'error') {
       case 'execute_result':
         return 'bg-green-50/50'
       case 'display_data':
