@@ -438,7 +438,7 @@ export const AiCell: React.FC<AiCellProps> = ({
 
       {/* Context Information */}
       {outputs.length === 0 && cell.executionState === 'idle' && (
-        <div className="mt-3 pl-6 pr-4 text-sm text-muted-foreground border-l-2 border-purple-200 pl-1 py-2">
+        <div className="mt-3 pl-6 pr-4 text-sm text-muted-foreground border-l-2 border-purple-200 py-2">
           <div className="flex items-start gap-2">
             <Bot className="h-4 w-4 text-purple-600 mt-0.5 flex-shrink-0" />
             <div>

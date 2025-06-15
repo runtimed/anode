@@ -402,7 +402,20 @@ export const Cell: React.FC<CellProps> = ({
         </div>
       </div>
 
-
+      {/* Execution Summary - appears after input */}
+      {cell.cellType === 'code' && (cell.executionCount || cell.executionState === 'running' || cell.executionState === 'queued') && (
+        <div className="mt-1 pl-6 pr-4">
+          <div className="text-xs text-muted-foreground pb-1">
+            {cell.executionState === 'running' ? (
+              'Running...'
+            ) : cell.executionState === 'queued' ? (
+              'Queued'
+            ) : cell.executionCount ? (
+              '0.3s'
+            ) : null}
+          </div>
+        </div>
+      )}
 
       {/* Output Area for Code Cells */}
       {cell.cellType === 'code' && (outputs.length > 0 || cell.executionState === 'running') && (
