@@ -210,11 +210,11 @@ export const SqlCell: React.FC<SqlCellProps> = ({
   }
 
   return (
-    <div className={`mb-3 relative group border-l-2 transition-all duration-200 pl-4 ${
+    <div className={`mb-3 relative group border-l-2 transition-all duration-200 ${
       autoFocus ? 'border-blue-500/60 bg-blue-50/30' : 'border-transparent hover:border-border/50'
     }`}>
       {/* Cell Header */}
-      <div className="flex items-center justify-between mb-3 py-1">
+      <div className="flex items-center justify-between mb-3 py-1 px-4">
         <div className="flex items-center gap-3">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -298,10 +298,10 @@ export const SqlCell: React.FC<SqlCellProps> = ({
       </div>
 
       {/* Cell Content */}
-      <div className={`border transition-colors ${
+      <div className={`transition-colors px-4 py-3 ${
         autoFocus
-          ? 'bg-card border-ring/50'
-          : 'bg-card/50 border-border/50 focus-within:border-ring/50 focus-within:bg-card'
+          ? 'bg-card/80'
+          : 'bg-card/30 focus-within:bg-card/60'
       }`}>
         <div className="min-h-[80px]">
           <Textarea
@@ -311,13 +311,13 @@ export const SqlCell: React.FC<SqlCellProps> = ({
             onBlur={updateQuery}
             onKeyDown={handleKeyDown}
             placeholder="SELECT * FROM your_table WHERE condition = 'value';"
-            className="min-h-[80px] resize-none border-0 p-3 focus-visible:ring-0 font-mono bg-transparent w-full"
+            className="min-h-[80px] resize-none border-0 p-0 focus-visible:ring-0 font-mono bg-transparent w-full placeholder:text-muted-foreground/60"
             onFocus={handleFocus}
           />
         </div>
 
         {/* SQL Controls */}
-        <div className="border-t border-border/30 px-3 py-2 bg-blue-50/30">
+        <div className="border-t border-border/20 pt-3 mt-3">
           <div className="flex items-center justify-between">
             <Button
               variant={cell.executionState === 'running' ? 'outline' : 'default'}

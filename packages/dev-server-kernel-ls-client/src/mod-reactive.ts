@@ -163,22 +163,17 @@ async function generateFakeAiResponse(cell: any): Promise<any[]> {
 
   // Create rich markdown responses with various content types
   const markdownResponses = [
-    `# AI Analysis Response
+`I understand you're asking: "${prompt}"
 
-I understand you're asking: "${prompt}"
-
-## Context
 This is a **mock response** from \`${model}\`. In the full implementation, I would analyze your notebook context and provide helpful insights.
 
-### Key Points:
-- 🔍 **Analysis**: Your request shows interest in data exploration
-- 💡 **Suggestion**: Consider breaking complex problems into smaller steps
-- 📊 **Next Steps**: Try visualizing your data first
+- 🔍 **Analysis**
+- 💡 **Suggestion**
+- 📊 **Next Steps**
 
 \`\`\`python
-# Example code suggestion
 import pandas as pd
-df = pd.read_csv('your_data.csv')
+df = pd.read_csv('yas.csv')
 df.head()
 \`\`\`
 

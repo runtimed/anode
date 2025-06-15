@@ -170,7 +170,7 @@ export const RichOutput: React.FC<RichOutputProps> = ({
 
 
   return (
-    <div className="py-2">
+    <div>
       {/* Content */}
       <div>
         {renderContent()}
