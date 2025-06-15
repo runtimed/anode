@@ -214,7 +214,7 @@ export const SqlCell: React.FC<SqlCellProps> = ({
       autoFocus ? 'border-blue-500/60 bg-blue-50/30' : 'border-transparent hover:border-border/50'
     }`}>
       {/* Cell Header */}
-      <div className="flex items-center justify-between mb-3 py-1 pl-6 pr-4">
+      <div className="flex items-center justify-between my-3 py-1 pl-6 pr-4">
         <div className="flex items-center gap-3">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -296,8 +296,8 @@ export const SqlCell: React.FC<SqlCellProps> = ({
       {/* Cell Content */}
       <div className={`transition-colors px-4 py-3 ${
         autoFocus
-          ? 'bg-card/80'
-          : 'bg-card/30 focus-within:bg-card/60'
+          ? 'bg-card/20'
+          : 'bg-card/5 focus-within:bg-card/10'
       }`}>
         <div className="min-h-[80px]">
           <Textarea
@@ -307,7 +307,7 @@ export const SqlCell: React.FC<SqlCellProps> = ({
             onBlur={updateQuery}
             onKeyDown={handleKeyDown}
             placeholder="SELECT * FROM your_table WHERE condition = 'value';"
-            className="min-h-[80px] resize-none border-0 px-2 py-2 focus-visible:ring-0 font-mono bg-transparent w-full placeholder:text-muted-foreground/60"
+            className="min-h-[80px] resize-none border-0 px-2 py-2 focus-visible:ring-0 font-mono bg-white w-full placeholder:text-muted-foreground/60 shadow-none"
             onFocus={handleFocus}
           />
         </div>
