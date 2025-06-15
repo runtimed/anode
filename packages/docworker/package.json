@@ -12,7 +12,6 @@
     "lint": "tsc --noEmit"
   },
   "dependencies": {
-    "@anode/schema": "workspace:*",
     "@livestore/sync-cf": "catalog:"
   },
   "devDependencies": {

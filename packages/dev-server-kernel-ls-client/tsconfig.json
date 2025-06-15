@@ -5,7 +5,6 @@
     "moduleResolution": "bundler",
     "declaration": true,
     "outDir": "./dist",
-    "rootDir": "./src",
     "strict": true,
     "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
@@ -16,9 +15,7 @@
     "noEmit": false,
     "lib": ["ES2022", "DOM"]
   },
-  "include": ["src/**/*"],
+  "include": ["src/**/*", "../../../shared/**/*"],
   "exclude": ["dist", "node_modules"],
-  "references": [
-    { "path": "../schema" }
-  ]
+  "references": []
 }

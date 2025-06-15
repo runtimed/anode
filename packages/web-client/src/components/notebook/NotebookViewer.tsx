@@ -1,7 +1,7 @@
 import React, { useCallback } from 'react'
 import { useStore } from '@livestore/react'
+import { events, tables, CellData, KernelSessionData } from '../../../../../shared/schema.js'
 import { queryDb } from '@livestore/livestore'
-import { tables, events, CellData, KernelSessionData } from '@anode/schema'
 import { Cell } from './Cell.js'
 import { Card, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -11,17 +11,7 @@ import { Separator } from '@/components/ui/separator'
 import { Copy, Terminal, Circle } from 'lucide-react'
 import { getCurrentNotebookId } from '../../util/store-id.js'
 
-const cellsQuery = queryDb(
-  tables.cells.select()
-)
 
-const notebookQuery = queryDb(
-  tables.notebook.select().limit(1)
-)
-
-const kernelSessionsQuery = queryDb(
-  tables.kernelSessions.select().where({ isActive: true })
-)
 
 interface NotebookViewerProps {
   notebookId: string
@@ -30,9 +20,9 @@ interface NotebookViewerProps {
 
 export const NotebookViewer: React.FC<NotebookViewerProps> = ({ onBack }) => {
   const { store } = useStore()
-  const cells = store.useQuery(cellsQuery) as any[]
-  const notebooks = store.useQuery(notebookQuery) as any[]
-  const kernelSessions = store.useQuery(kernelSessionsQuery) as any[]
+  const cells = store.useQuery(queryDb(tables.cells.select().orderBy('position', 'asc'))) as CellData[]
+  const notebooks = store.useQuery(queryDb(tables.notebook.select().limit(1))) as any[]
+  const kernelSessions = store.useQuery(queryDb(tables.kernelSessions.select().where({ isActive: true }))) as KernelSessionData[]
   const notebook = notebooks[0]
 
   const [isEditingTitle, setIsEditingTitle] = React.useState(false)
@@ -335,8 +325,8 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({ onBack }) => {
                     {/* <span>{new Date(activeKernel.startedAt).toLocaleTimeString()}</span> */}
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-muted-foreground">Last Heartbeat:</span>
-                    <span>{new Date(activeKernel.lastHeartbeat).toLocaleTimeString()}</span>
+                    <span className="text-muted-foreground">Status:</span>
+                    <span>{activeKernel.status}</span>
                   </div>
                 </div>
               )}

@@ -1,6 +1,6 @@
 import React, { useState, useCallback } from 'react'
 import { useStore } from '@livestore/react'
-import { events, tables, OutputData, isErrorOutput } from '@anode/schema'
+import { events, tables, OutputData, isErrorOutput } from '../../../../../shared/schema.js'
 import { queryDb } from '@livestore/livestore'
 
 import { Button } from '@/components/ui/button'
@@ -46,7 +46,7 @@ export const AiCell: React.FC<AiCellProps> = ({
     queryDb(tables.outputs.select().where({ cellId: cell.id })),
     [cell.id]
   )
-  const outputs = store.useQuery(outputsQuery) as any[]
+  const outputs = store.useQuery(outputsQuery) as OutputData[]
 
   const provider = cell.aiProvider || 'openai'
   const model = cell.aiModel || 'gpt-4'

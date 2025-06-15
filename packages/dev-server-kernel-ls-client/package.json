@@ -16,7 +16,6 @@
     "test:run": "vitest run"
   },
   "dependencies": {
-    "@anode/schema": "workspace:*",
     "@livestore/adapter-node": "catalog:",
     "@livestore/livestore": "catalog:",
     "@livestore/sync-cf": "catalog:",

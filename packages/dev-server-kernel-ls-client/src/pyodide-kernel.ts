@@ -1,5 +1,5 @@
 import { loadPyodide, PyodideInterface } from "pyodide";
-import { OutputType, GenericOutputData, ErrorOutputData, RichOutputData } from "@anode/schema";
+import { OutputType, ErrorOutputData, RichOutputData } from "../../../shared/schema.js";
 
 export interface OutputData {
   type: OutputType;

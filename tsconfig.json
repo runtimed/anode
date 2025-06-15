@@ -17,7 +17,6 @@
   },
   "files": [],
   "references": [
-    { "path": "./packages/schema" },
     { "path": "./packages/web-client" },
     { "path": "./packages/docworker" },
     { "path": "./packages/dev-server-kernel-ls-client" }

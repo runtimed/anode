@@ -2,7 +2,7 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 import { Effect } from 'effect'
 import { createStorePromise, queryDb } from '@livestore/livestore'
 import { makeAdapter } from '@livestore/adapter-node'
-import { events, tables, schema } from '@anode/schema'
+import { events, tables, schema } from '../../../shared/schema.js'
 import { createTestStoreId, createTestSessionId, waitFor, cleanupResources } from './setup.js'
 
 // Mock Pyodide to avoid loading the actual runtime in tests
@@ -179,8 +179,7 @@ describe('Kernel Adapter', () => {
         id: cellId,
         cellType: 'code',
         position: 0,
-        createdBy: 'user-123',
-        notebookLastModified: new Date()
+        createdBy: 'user-123'
       }))
 
       // Request execution
@@ -226,16 +225,14 @@ describe('Kernel Adapter', () => {
         id: cellId1,
         cellType: 'code',
         position: 0,
-        createdBy: 'user-123',
-        notebookLastModified: new Date()
+        createdBy: 'user-123'
       }))
 
       store.commit(events.cellCreated({
         id: cellId2,
         cellType: 'code',
         position: 1,
-        createdBy: 'user-123',
-        notebookLastModified: new Date()
+        createdBy: 'user-123'
       }))
 
       // Request low priority execution first
@@ -296,8 +293,7 @@ describe('Kernel Adapter', () => {
         id: cellId,
         cellType: 'code',
         position: 0,
-        createdBy: 'user-123',
-        notebookLastModified: new Date()
+        createdBy: 'user-123'
       }))
 
       store.commit(events.executionRequested({
@@ -327,9 +323,10 @@ describe('Kernel Adapter', () => {
     it.skip('should handle subscription errors gracefully', async () => {
       const errorCallback = vi.fn()
 
-      // Create query that might have issues
+      // Create query that might have issues (simulate error conditions)
+      // Note: With strict typing, we simulate runtime errors differently
       const problematicQuery$ = queryDb(
-        tables.executionQueue.select().where({ invalidColumn: 'value' }),
+        tables.executionQueue.select().where({ id: 'non-existent-queue-id' }),
         { label: 'problematicQuery' }
       )
 
@@ -372,8 +369,7 @@ describe('Kernel Adapter', () => {
           id: cellId,
           cellType: 'code',
           position: i,
-          createdBy: 'user-123',
-          notebookLastModified: new Date()
+          createdBy: 'user-123'
         }))
 
         store.commit(events.executionRequested({
@@ -388,8 +384,7 @@ describe('Kernel Adapter', () => {
         if (i % 2 === 0) {
           store.commit(events.executionCompleted({
             queueId,
-            status: 'success',
-            completedAt: new Date()
+            status: 'success'
           }))
         }
       }
@@ -426,15 +421,13 @@ describe('Kernel Adapter', () => {
         id: cellId,
         cellType: 'code',
         position: 0,
-        createdBy: 'user-123',
-        notebookLastModified: new Date()
+        createdBy: 'user-123'
       }))
 
       store.commit(events.cellSourceChanged({
         id: cellId,
         source: code,
-        modifiedBy: 'user-123',
-        notebookLastModified: new Date()
+        modifiedBy: 'user-123'
       }))
 
       // Execute code
@@ -451,8 +444,7 @@ describe('Kernel Adapter', () => {
         cellId,
         outputType: 'stream',
         data: outputs[0].data,
-        position: 0,
-        notebookLastModified: new Date()
+        position: 0
       }))
 
       // Verify output was stored
@@ -469,15 +461,13 @@ describe('Kernel Adapter', () => {
         id: cellId,
         cellType: 'code',
         position: 0,
-        createdBy: 'user-123',
-        notebookLastModified: new Date()
+        createdBy: 'user-123'
       }))
 
       store.commit(events.cellSourceChanged({
         id: cellId,
         source: errorCode,
-        modifiedBy: 'user-123',
-        notebookLastModified: new Date()
+        modifiedBy: 'user-123'
       }))
 
       // Execute code that throws error
@@ -496,8 +486,7 @@ describe('Kernel Adapter', () => {
         id: cellId,
         cellType: 'code',
         position: 0,
-        createdBy: 'user-123',
-        notebookLastModified: new Date()
+        createdBy: 'user-123'
       }))
 
       store.commit(events.cellOutputAdded({
@@ -505,8 +494,7 @@ describe('Kernel Adapter', () => {
         cellId,
         outputType: 'stream',
         data: 'Old output',
-        position: 0,
-        notebookLastModified: new Date()
+        position: 0
       }))
 
       // Verify output exists
@@ -597,8 +585,7 @@ describe('Kernel Adapter', () => {
           id: cellId,
           cellType: 'code',
           position: 0,
-          createdBy: 'user-123',
-        notebookLastModified: new Date()
+          createdBy: 'user-123'
         }))
 
         store.commit(events.executionRequested({
