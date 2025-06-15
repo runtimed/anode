@@ -22,6 +22,7 @@ interface SqlCellProps {
   onFocusNext?: () => void
   onFocusPrevious?: () => void
   autoFocus?: boolean
+  onFocus?: () => void
 }
 
 export const SqlCell: React.FC<SqlCellProps> = ({
@@ -32,7 +33,8 @@ export const SqlCell: React.FC<SqlCellProps> = ({
   onMoveDown,
   onFocusNext,
   onFocusPrevious,
-  autoFocus = false
+  autoFocus = false,
+  onFocus
 }) => {
   const { store } = useStore()
   const [localQuery, setLocalQuery] = useState(cell.source)
@@ -132,6 +134,12 @@ export const SqlCell: React.FC<SqlCellProps> = ({
       executeQuery()
     }
   }, [updateQuery, executeQuery, onAddCell, onFocusNext, onFocusPrevious])
+
+  const handleFocus = useCallback(() => {
+    if (onFocus) {
+      onFocus()
+    }
+  }, [onFocus])
 
   const getConnectionBadge = () => {
     if (!cell.sqlConnectionId) {
@@ -255,6 +263,7 @@ export const SqlCell: React.FC<SqlCellProps> = ({
             onKeyDown={handleKeyDown}
             placeholder="SELECT * FROM your_table WHERE condition = 'value';"
             className="min-h-[80px] resize-none border-0 p-3 focus-visible:ring-0 font-mono bg-transparent w-full"
+            onFocus={handleFocus}
           />
         </div>
 

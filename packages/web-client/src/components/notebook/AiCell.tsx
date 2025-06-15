@@ -22,6 +22,7 @@ interface AiCellProps {
   onFocusNext?: () => void
   onFocusPrevious?: () => void
   autoFocus?: boolean
+  onFocus?: () => void
 }
 
 type Message = {
@@ -38,7 +39,8 @@ export const AiCell: React.FC<AiCellProps> = ({
   onMoveDown,
   onFocusNext,
   onFocusPrevious,
-  autoFocus = false
+  autoFocus = false,
+  onFocus
 }) => {
   const { store } = useStore()
   const [userInput, setUserInput] = useState('')
@@ -129,6 +131,12 @@ export const AiCell: React.FC<AiCellProps> = ({
       sendMessage()
     }
   }, [sendMessage, onFocusNext, onFocusPrevious])
+
+  const handleFocus = useCallback(() => {
+    if (onFocus) {
+      onFocus()
+    }
+  }, [onFocus])
 
   const changeProvider = useCallback((newProvider: string, newModel: string) => {
     store.commit(events.aiSettingsChanged({
@@ -271,6 +279,7 @@ export const AiCell: React.FC<AiCellProps> = ({
             placeholder="Ask me anything about your notebook, data, or analysis..."
             className="min-h-[80px] resize-none border-0 p-0 focus-visible:ring-0 bg-transparent"
             disabled={isGenerating}
+            onFocus={handleFocus}
           />
 
           {/* AI Controls */}

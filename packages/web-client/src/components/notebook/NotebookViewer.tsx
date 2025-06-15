@@ -363,6 +363,7 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({ onBack }) => {
               onMoveDown={() => moveCell(cell.id, 'down')}
               onFocusNext={() => focusNextCell(cell.id)}
               onFocusPrevious={() => focusPreviousCell(cell.id)}
+              onFocus={() => focusCell(cell.id)}
               autoFocus={focusedCellId === cell.id}
             />
           ))

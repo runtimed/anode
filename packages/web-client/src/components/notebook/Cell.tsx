@@ -27,6 +27,7 @@ interface CellProps {
   onFocusNext?: () => void
   onFocusPrevious?: () => void
   autoFocus?: boolean
+  onFocus?: () => void
 }
 
 export const Cell: React.FC<CellProps> = ({
@@ -37,7 +38,8 @@ export const Cell: React.FC<CellProps> = ({
   onMoveDown,
   onFocusNext,
   onFocusPrevious,
-  autoFocus = false
+  autoFocus = false,
+  onFocus
 }) => {
   // Route to specialized cell components
   if (cell.cellType === 'sql') {
@@ -193,6 +195,12 @@ export const Cell: React.FC<CellProps> = ({
     }
   }, [updateSource, executeCell, cell.cellType, onAddCell, onFocusNext, onFocusPrevious])
 
+  const handleFocus = useCallback(() => {
+    if (onFocus) {
+      onFocus()
+    }
+  }, [onFocus])
+
   const getBadgeVariant = () => {
     switch (cell.cellType) {
       case 'code': return 'default'
@@ -310,6 +318,7 @@ export const Cell: React.FC<CellProps> = ({
                 : 'Enter raw text...'
             }
             className="min-h-[60px] resize-none border-0 p-3 focus-visible:ring-0 font-mono bg-transparent w-full"
+            onFocus={handleFocus}
           />
         </div>
 
