@@ -16,6 +16,7 @@ import {
 import { SqlCell } from './SqlCell.js'
 import { AiCell } from './AiCell.js'
 import { RichOutput } from './RichOutput.js'
+import { Play, ChevronUp, ChevronDown, Plus, X, Code, FileText, Database, Bot, FileX } from 'lucide-react'
 
 type CellType = typeof tables.cells.Type
 
@@ -224,58 +225,70 @@ export const Cell: React.FC<CellProps> = ({
     }
   }, [onFocus])
 
-  const getBadgeVariant = () => {
+  const getCellTypeIcon = () => {
     switch (cell.cellType) {
-      case 'code': return 'default'
-      case 'markdown': return 'secondary'
-      case 'sql': return 'default'
-      case 'ai': return 'default'
-      case 'raw': return 'outline'
-      default: return 'default'
+      case 'code': return <Code className="h-3 w-3" />
+      case 'markdown': return <FileText className="h-3 w-3" />
+      case 'sql': return <Database className="h-3 w-3" />
+      case 'ai': return <Bot className="h-3 w-3" />
+      case 'raw': return <FileX className="h-3 w-3" />
+      default: return <Code className="h-3 w-3" />
     }
   }
 
   const getExecutionStatus = () => {
     switch (cell.executionState) {
       case 'idle': return null
-      case 'queued': return <Badge variant="secondary">Queued</Badge>
-      case 'running': return <Badge variant="destructive">Running...</Badge>
-      case 'completed': return <Badge variant="default">✓</Badge>
-      case 'error': return <Badge variant="destructive">Error</Badge>
+      case 'queued': return <Badge variant="secondary" className="h-5 text-xs">Queued</Badge>
+      case 'running': return (
+        <Badge variant="outline" className="h-5 text-xs border-blue-200 text-blue-700 bg-blue-50">
+          <div className="animate-spin w-2 h-2 border border-blue-600 border-t-transparent rounded-full mr-1"></div>
+          Running
+        </Badge>
+      )
+      case 'completed': return <Badge variant="outline" className="h-5 text-xs border-green-200 text-green-700 bg-green-50">✓</Badge>
+      case 'error': return <Badge variant="outline" className="h-5 text-xs border-red-200 text-red-700 bg-red-50">Error</Badge>
       default: return null
     }
   }
 
   return (
-    <div className={`mb-2 relative group border-l-4 transition-colors pl-4 ${
-      autoFocus ? 'border-primary/40' : 'border-transparent'
+    <div className={`mb-3 relative group border-l-2 transition-all duration-200 pl-4 ${
+      autoFocus ? 'border-primary/60 bg-primary/5' : 'border-transparent hover:border-border/50'
     }`}>
       {/* Cell Header */}
-      <div className="flex items-center justify-between mb-2 py-1">
-        <div className="flex items-center gap-2">
+      <div className="flex items-center justify-between mb-3 py-1">
+        <div className="flex items-center gap-3">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Badge
-                variant={getBadgeVariant()}
-                className="cursor-pointer hover:opacity-80 text-xs"
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-6 px-2 gap-1.5 text-xs font-medium hover:bg-muted/50"
               >
-                {cell.cellType}
-              </Badge>
+                {getCellTypeIcon()}
+                <span className="capitalize">{cell.cellType}</span>
+              </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent>
-              <DropdownMenuItem onClick={() => changeCellType('code')}>
+            <DropdownMenuContent align="start" className="w-40">
+              <DropdownMenuItem onClick={() => changeCellType('code')} className="gap-2">
+                <Code className="h-4 w-4" />
                 Code
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => changeCellType('markdown')}>
+              <DropdownMenuItem onClick={() => changeCellType('markdown')} className="gap-2">
+                <FileText className="h-4 w-4" />
                 Markdown
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => changeCellType('sql')}>
-                🗄️ SQL Query
+              <DropdownMenuItem onClick={() => changeCellType('sql')} className="gap-2">
+                <Database className="h-4 w-4" />
+                SQL Query
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => changeCellType('ai')}>
-                🤖 AI Assistant
+              <DropdownMenuItem onClick={() => changeCellType('ai')} className="gap-2">
+                <Bot className="h-4 w-4" />
+                AI Assistant
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => changeCellType('raw')}>
+              <DropdownMenuItem onClick={() => changeCellType('raw')} className="gap-2">
+                <FileX className="h-4 w-4" />
                 Raw
               </DropdownMenuItem>
             </DropdownMenuContent>
@@ -284,38 +297,42 @@ export const Cell: React.FC<CellProps> = ({
         </div>
 
         {/* Cell Controls - visible on hover */}
-        <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+        <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
           <Button
             variant="ghost"
             size="sm"
             onClick={onMoveUp}
-            className="h-6 w-6 p-0 text-xs"
+            className="h-7 w-7 p-0 hover:bg-muted/80"
+            title="Move cell up"
           >
-            ↑
+            <ChevronUp className="h-3 w-3" />
           </Button>
           <Button
             variant="ghost"
             size="sm"
             onClick={onMoveDown}
-            className="h-6 w-6 p-0 text-xs"
+            className="h-7 w-7 p-0 hover:bg-muted/80"
+            title="Move cell down"
           >
-            ↓
+            <ChevronDown className="h-3 w-3" />
           </Button>
           <Button
             variant="ghost"
             size="sm"
             onClick={onAddCell}
-            className="h-6 w-6 p-0 text-xs"
+            className="h-7 w-7 p-0 hover:bg-muted/80"
+            title="Add cell below"
           >
-            +
+            <Plus className="h-3 w-3" />
           </Button>
           <Button
             variant="ghost"
             size="sm"
             onClick={onDeleteCell}
-            className="h-6 w-6 p-0 text-xs text-destructive hover:text-destructive"
+            className="h-7 w-7 p-0 text-muted-foreground hover:text-destructive hover:bg-destructive/10"
+            title="Delete cell"
           >
-            ×
+            <X className="h-3 w-3" />
           </Button>
         </div>
       </div>
@@ -347,21 +364,30 @@ export const Cell: React.FC<CellProps> = ({
 
         {/* Execution Controls for Code Cells */}
         {cell.cellType === 'code' && (
-          <div className="border-t border-border/50 p-3 bg-muted/20">
-            <div className="flex items-center gap-2">
+          <div className="border-t border-border/30 px-3 py-2 bg-muted/10">
+            <div className="flex items-center justify-between">
               <Button
-                variant="outline"
+                variant={cell.executionState === 'running' || cell.executionState === 'queued' ? 'outline' : 'default'}
                 size="sm"
                 onClick={executeCell}
                 disabled={cell.executionState === 'running' || cell.executionState === 'queued'}
-                className="h-7"
+                className="h-7 gap-1.5 text-xs"
               >
-                {cell.executionState === 'running'
-                  ? 'Running...'
-                  : cell.executionState === 'queued'
-                  ? 'Queued...'
-                  : 'Run'}
+                {cell.executionState === 'running' ? (
+                  <>
+                    <div className="animate-spin w-3 h-3 border border-current border-t-transparent rounded-full"></div>
+                    Running
+                  </>
+                ) : cell.executionState === 'queued' ? (
+                  <>Queued</>
+                ) : (
+                  <>
+                    <Play className="h-3 w-3" />
+                    Run
+                  </>
+                )}
               </Button>
+
 
             </div>
           </div>
@@ -389,16 +415,16 @@ export const Cell: React.FC<CellProps> = ({
                 <div key={output.id} className={index > 0 ? "border-t border-border/50" : ""}>
                   {output.outputType === 'error' ? (
                     // Keep special error handling for better UX
-                    <div className="p-3 bg-red-50/50">
-                      <div className="text-xs text-red-600 mb-1 font-medium">Error:</div>
+                    <div className="p-4 bg-red-50/80 border-l-2 border-red-200">
+                      <div className="text-xs text-red-600 mb-2 font-medium">Error</div>
                       <div className="font-mono text-sm">
-                        <div className="font-semibold text-red-700">
+                        <div className="font-semibold text-red-700 mb-1">
                           {isErrorOutput(output.data)
                             ? `${output.data.ename}: ${output.data.evalue}`
                             : 'Unknown error'}
                         </div>
                         {isErrorOutput(output.data) && output.data.traceback && (
-                          <div className="mt-2 text-red-600 text-xs whitespace-pre-wrap">
+                          <div className="mt-2 text-red-600 text-xs whitespace-pre-wrap opacity-80">
                             {Array.isArray(output.data.traceback)
                               ? output.data.traceback.join('\n')
                               : output.data.traceback}

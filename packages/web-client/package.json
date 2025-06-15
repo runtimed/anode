@@ -21,6 +21,7 @@
     "@radix-ui/react-dropdown-menu": "catalog:",
     "@radix-ui/react-separator": "catalog:",
     "@radix-ui/react-slot": "catalog:",
+    "@radix-ui/react-tooltip": "catalog:",
     "@types/react-syntax-highlighter": "^15.5.13",
     "class-variance-authority": "catalog:",
     "clsx": "catalog:",

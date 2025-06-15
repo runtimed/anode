@@ -7,8 +7,7 @@ import { Card, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
-import { Separator } from '@/components/ui/separator'
-import { Copy, Terminal, Circle } from 'lucide-react'
+import { Copy, Terminal, Circle, Plus, FileText, Database, Bot, Code } from 'lucide-react'
 import { getCurrentNotebookId } from '../../util/store-id.js'
 
 
@@ -225,7 +224,7 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({ onBack }) => {
               )}
             </div>
 
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-3">
               <Button
                 variant="outline"
                 size="sm"
@@ -237,7 +236,7 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({ onBack }) => {
                 <Circle
                   className={`h-2 w-2 fill-current ${
                     hasActiveKernel ? 'text-green-500' :
-                    kernelStatus === 'starting' ? 'text-yellow-500' :
+                    kernelStatus === 'starting' ? 'text-amber-500' :
                     'text-red-500'
                   }`}
                 />
@@ -246,7 +245,7 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({ onBack }) => {
                 variant="secondary"
                 className={`${
                   hasActiveKernel ? 'bg-green-100 text-green-800 border-green-200' :
-                  kernelStatus === 'starting' ? 'bg-yellow-100 text-yellow-800 border-yellow-200' :
+                  kernelStatus === 'starting' ? 'bg-amber-100 text-amber-800 border-amber-200' :
                   'bg-red-100 text-red-800 border-red-200'
                 }`}
               >
@@ -335,25 +334,22 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({ onBack }) => {
         </CardHeader>
       </Card>
 
-      {/* Keyboard Shortcuts Help */}
+      {/* Keyboard Shortcuts Help - More subtle */}
       {sortedCells.length > 0 && (
-        <div className="mb-4 p-3 bg-blue-50/50 border border-blue-200/50 rounded-lg">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4 text-sm">
-              <div className="flex items-center gap-2">
-                <kbd className="px-2 py-1 bg-white border border-gray-300 rounded text-xs font-mono">↑↓</kbd>
-                <span className="text-muted-foreground">Navigate cells</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <kbd className="px-2 py-1 bg-white border border-gray-300 rounded text-xs font-mono">Shift+Enter</kbd>
-                <span className="text-muted-foreground">Run & move</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <kbd className="px-2 py-1 bg-white border border-gray-300 rounded text-xs font-mono">Ctrl+Enter</kbd>
-                <span className="text-muted-foreground">Run & stay</span>
-              </div>
+        <div className="mb-6 px-4 py-2 bg-muted/30 rounded-md">
+          <div className="flex items-center justify-center gap-6 text-xs text-muted-foreground">
+            <div className="flex items-center gap-1">
+              <kbd className="px-1.5 py-0.5 bg-background border rounded text-xs font-mono">↑↓</kbd>
+              <span>Navigate</span>
             </div>
-
+            <div className="flex items-center gap-1">
+              <kbd className="px-1.5 py-0.5 bg-background border rounded text-xs font-mono">⇧↵</kbd>
+              <span>Run & next</span>
+            </div>
+            <div className="flex items-center gap-1">
+              <kbd className="px-1.5 py-0.5 bg-background border rounded text-xs font-mono">⌘↵</kbd>
+              <span>Run</span>
+            </div>
           </div>
         </div>
       )}
@@ -367,17 +363,21 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({ onBack }) => {
                 Welcome to your notebook! Choose a cell type to get started.
               </div>
               <div className="flex justify-center gap-2 flex-wrap mb-4">
-                <Button onClick={() => addCell()}>
-                  + Code Cell
+                <Button onClick={() => addCell()} className="flex items-center gap-2">
+                  <Code className="h-4 w-4" />
+                  Code Cell
                 </Button>
-                <Button variant="outline" onClick={() => addCell(undefined, 'markdown')}>
-                  📝 Markdown
+                <Button variant="outline" onClick={() => addCell(undefined, 'markdown')} className="flex items-center gap-2">
+                  <FileText className="h-4 w-4" />
+                  Markdown
                 </Button>
-                <Button variant="outline" onClick={() => addCell(undefined, 'sql')}>
-                  🗄️ SQL Query
+                <Button variant="outline" onClick={() => addCell(undefined, 'sql')} className="flex items-center gap-2">
+                  <Database className="h-4 w-4" />
+                  SQL Query
                 </Button>
-                <Button variant="outline" onClick={() => addCell(undefined, 'ai')}>
-                  🤖 AI Assistant
+                <Button variant="outline" onClick={() => addCell(undefined, 'ai')} className="flex items-center gap-2">
+                  <Bot className="h-4 w-4" />
+                  AI Assistant
                 </Button>
               </div>
               <div className="text-xs text-muted-foreground">
@@ -407,31 +407,40 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({ onBack }) => {
       {sortedCells.length > 0 && (
         <div className="mt-8 pt-6 border-t border-border/30">
           <div className="text-center space-y-3">
-            <div className="flex justify-center gap-2">
-              <Button variant="outline" size="sm" onClick={() => addCell()}>
-                + Code Cell
+            <div className="flex justify-center gap-2 flex-wrap">
+              <Button variant="outline" size="sm" onClick={() => addCell()} className="flex items-center gap-1.5">
+                <Plus className="h-3 w-3" />
+                <Code className="h-3 w-3" />
+                Code
               </Button>
-              <Button variant="outline" size="sm" onClick={() => addCell(undefined, 'markdown')}>
-                📝 Markdown
+              <Button variant="outline" size="sm" onClick={() => addCell(undefined, 'markdown')} className="flex items-center gap-1.5">
+                <Plus className="h-3 w-3" />
+                <FileText className="h-3 w-3" />
+                Markdown
               </Button>
-              <Button variant="outline" size="sm" onClick={() => addCell(undefined, 'sql')}>
-                🗄️ SQL Query
+              <Button variant="outline" size="sm" onClick={() => addCell(undefined, 'sql')} className="flex items-center gap-1.5">
+                <Plus className="h-3 w-3" />
+                <Database className="h-3 w-3" />
+                SQL
               </Button>
-              <Button variant="outline" size="sm" onClick={() => addCell(undefined, 'ai')}>
-                🤖 AI Assistant
+              <Button variant="outline" size="sm" onClick={() => addCell(undefined, 'ai')} className="flex items-center gap-1.5">
+                <Plus className="h-3 w-3" />
+                <Bot className="h-3 w-3" />
+                AI
               </Button>
             </div>
-            <div className="text-xs text-muted-foreground">
-              Add a new cell below
+            <div className="text-xs text-muted-foreground mt-2">
+              Add a new cell
             </div>
           </div>
         </div>
       )}
 
       {/* Notebook Info */}
-      <Separator className="my-8" />
-      <div className="text-xs text-muted-foreground text-center">
-        <div>Owner: {notebook.ownerId}</div>
+      <div className="mt-12 pt-6 border-t border-border/30">
+        <div className="text-xs text-muted-foreground text-center">
+          Owner: {notebook.ownerId}
+        </div>
       </div>
     </div>
   )

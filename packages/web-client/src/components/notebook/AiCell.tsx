@@ -13,6 +13,7 @@ import {
   DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu'
 import { RichOutput } from './RichOutput.js'
+import { Play, ChevronUp, ChevronDown, Plus, X, Bot, Code, FileText, Database, FileX } from 'lucide-react'
 
 interface AiCellProps {
   cell: typeof tables.cells.Type
@@ -181,6 +182,13 @@ export const AiCell: React.FC<AiCellProps> = ({
     }
   }, [onFocus])
 
+  const changeCellType = useCallback((newType: 'code' | 'markdown' | 'raw' | 'sql' | 'ai') => {
+    store.commit(events.cellTypeChanged({
+      id: cell.id,
+      cellType: newType,
+    }))
+  }, [cell.id, store])
+
   const changeProvider = useCallback((newProvider: string, newModel: string) => {
     store.commit(events.aiSettingsChanged({
       cellId: cell.id,
@@ -193,18 +201,18 @@ export const AiCell: React.FC<AiCellProps> = ({
     }))
   }, [cell.id, store])
 
-  const getBadgeVariant = () => {
-    return 'default' as const
+  const getCellTypeIcon = () => {
+    return <Bot className="h-3 w-3" />
   }
 
   const getProviderBadge = () => {
     const colors = {
-      openai: 'bg-green-600',
-      anthropic: 'bg-orange-600',
-      local: 'bg-purple-600'
+      openai: 'text-green-700 bg-green-50 border-green-200',
+      anthropic: 'text-orange-700 bg-orange-50 border-orange-200',
+      local: 'text-purple-700 bg-purple-50 border-purple-200'
     }
     return (
-      <Badge variant="secondary" className={colors[provider as keyof typeof colors] || 'bg-gray-600'}>
+      <Badge variant="outline" className={`h-5 text-xs ${colors[provider as keyof typeof colors] || 'bg-gray-50'}`}>
         {provider.toUpperCase()} • {model}
       </Badge>
     )
@@ -213,64 +221,101 @@ export const AiCell: React.FC<AiCellProps> = ({
   const getExecutionStatus = () => {
     switch (cell.executionState) {
       case 'idle': return null
-      case 'queued': return <Badge variant="secondary">Queued</Badge>
-      case 'running': return <Badge variant="destructive">Generating...</Badge>
-      case 'completed': return <Badge variant="default">✓</Badge>
-      case 'error': return <Badge variant="destructive">Error</Badge>
+      case 'queued': return <Badge variant="secondary" className="h-5 text-xs">Queued</Badge>
+      case 'running': return (
+        <Badge variant="outline" className="h-5 text-xs border-purple-200 text-purple-700 bg-purple-50">
+          <div className="animate-spin w-2 h-2 border border-purple-600 border-t-transparent rounded-full mr-1"></div>
+          Generating
+        </Badge>
+      )
+      case 'completed': return <Badge variant="outline" className="h-5 text-xs border-green-200 text-green-700 bg-green-50">✓</Badge>
+      case 'error': return <Badge variant="outline" className="h-5 text-xs border-red-200 text-red-700 bg-red-50">Error</Badge>
       default: return null
     }
   }
 
   return (
-    <div className={`mb-2 relative group border-l-4 transition-colors pl-4 ${
-      autoFocus ? 'border-purple-500/40' : 'border-transparent'
+    <div className={`mb-3 relative group border-l-2 transition-all duration-200 pl-4 ${
+      autoFocus ? 'border-purple-500/60 bg-purple-50/30' : 'border-transparent hover:border-border/50'
     }`}>
       {/* Cell Header */}
-      <div className="flex items-center justify-between mb-2 py-1">
-        <div className="flex items-center gap-2">
-          <Badge
-            variant={getBadgeVariant()}
-            className="cursor-pointer hover:opacity-80 text-xs bg-purple-600 text-white"
-          >
-            AI
-          </Badge>
+      <div className="flex items-center justify-between mb-3 py-1">
+        <div className="flex items-center gap-3">
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-6 px-2 gap-1.5 text-xs font-medium hover:bg-muted/50 bg-purple-50 text-purple-700 border border-purple-200"
+              >
+                {getCellTypeIcon()}
+                <span>AI</span>
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="start" className="w-40">
+              <DropdownMenuItem onClick={() => changeCellType('code')} className="gap-2">
+                <Code className="h-4 w-4" />
+                Code
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => changeCellType('markdown')} className="gap-2">
+                <FileText className="h-4 w-4" />
+                Markdown
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => changeCellType('sql')} className="gap-2">
+                <Database className="h-4 w-4" />
+                SQL Query
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => changeCellType('ai')} className="gap-2">
+                <Bot className="h-4 w-4" />
+                AI Assistant
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => changeCellType('raw')} className="gap-2">
+                <FileX className="h-4 w-4" />
+                Raw
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
           {getProviderBadge()}
           {getExecutionStatus()}
         </div>
 
         {/* Cell Controls - visible on hover */}
-        <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+        <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
           <Button
             variant="ghost"
             size="sm"
             onClick={onMoveUp}
-            className="h-6 w-6 p-0 text-xs"
+            className="h-7 w-7 p-0 hover:bg-muted/80"
+            title="Move cell up"
           >
-            ↑
+            <ChevronUp className="h-3 w-3" />
           </Button>
           <Button
             variant="ghost"
             size="sm"
             onClick={onMoveDown}
-            className="h-6 w-6 p-0 text-xs"
+            className="h-7 w-7 p-0 hover:bg-muted/80"
+            title="Move cell down"
           >
-            ↓
+            <ChevronDown className="h-3 w-3" />
           </Button>
           <Button
             variant="ghost"
             size="sm"
             onClick={onAddCell}
-            className="h-6 w-6 p-0 text-xs"
+            className="h-7 w-7 p-0 hover:bg-muted/80"
+            title="Add cell below"
           >
-            +
+            <Plus className="h-3 w-3" />
           </Button>
           <Button
             variant="ghost"
             size="sm"
             onClick={onDeleteCell}
-            className="h-6 w-6 p-0 text-xs text-destructive hover:text-destructive"
+            className="h-7 w-7 p-0 text-muted-foreground hover:text-destructive hover:bg-destructive/10"
+            title="Delete cell"
           >
-            ×
+            <X className="h-3 w-3" />
           </Button>
         </div>
       </div>
@@ -295,46 +340,56 @@ export const AiCell: React.FC<AiCellProps> = ({
         </div>
 
         {/* Execution Controls */}
-        <div className="border-t border-border/50 p-3 bg-muted/20">
-          <div className="flex items-center gap-2">
+        <div className="border-t border-border/30 px-3 py-2 bg-purple-50/30">
+          <div className="flex items-center justify-between">
             <Button
-              variant="outline"
+              variant={cell.executionState === 'running' || cell.executionState === 'queued' ? 'outline' : 'default'}
               size="sm"
               onClick={executeAiPrompt}
               disabled={cell.executionState === 'running' || cell.executionState === 'queued'}
-              className="bg-purple-50 hover:bg-purple-100 text-purple-700 border-purple-200 h-7"
+              className="h-7 gap-1.5 text-xs bg-purple-600 hover:bg-purple-700 text-white"
             >
-              {cell.executionState === 'running'
-                ? 'Generating...'
-                : cell.executionState === 'queued'
-                ? 'Queued...'
-                : 'Send'}
+              {cell.executionState === 'running' ? (
+                <>
+                  <div className="animate-spin w-3 h-3 border border-current border-t-transparent rounded-full"></div>
+                  Generating
+                </>
+              ) : cell.executionState === 'queued' ? (
+                <>Queued</>
+              ) : (
+                <>
+                  <Play className="h-3 w-3" />
+                  Send
+                </>
+              )}
             </Button>
 
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="outline" size="sm" className="h-7">
-                  Change Model
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent>
-                <DropdownMenuItem onClick={() => changeProvider('openai', 'gpt-4')}>
-                  OpenAI GPT-4
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => changeProvider('openai', 'gpt-3.5-turbo')}>
-                  OpenAI GPT-3.5 Turbo
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => changeProvider('anthropic', 'claude-3-sonnet')}>
-                  Anthropic Claude 3 Sonnet
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => changeProvider('anthropic', 'claude-3-haiku')}>
-                  Anthropic Claude 3 Haiku
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => changeProvider('local', 'llama-2')}>
-                  Local Llama 2
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+            <div className="flex items-center gap-2">
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" size="sm" className="h-7 text-xs text-muted-foreground">
+                    Change Model
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuItem onClick={() => changeProvider('openai', 'gpt-4')}>
+                    OpenAI GPT-4
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => changeProvider('openai', 'gpt-3.5-turbo')}>
+                    OpenAI GPT-3.5 Turbo
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => changeProvider('anthropic', 'claude-3-sonnet')}>
+                    Anthropic Claude 3 Sonnet
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => changeProvider('anthropic', 'claude-3-haiku')}>
+                    Anthropic Claude 3 Haiku
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => changeProvider('local', 'llama-2')}>
+                    Local Llama 2
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
           </div>
         </div>
       </div>
@@ -344,7 +399,7 @@ export const AiCell: React.FC<AiCellProps> = ({
         <div className="mt-2">
           <div className="bg-card/30 rounded-md border border-border/50 overflow-hidden">
             {cell.executionState === 'running' && outputs.length === 0 && (
-              <div className="p-3 bg-purple-50/50 border-b border-border/50">
+              <div className="p-4 bg-purple-50/50 border-b border-border/50">
                 <div className="flex items-center gap-2">
                   <div className="animate-spin w-4 h-4 border-2 border-purple-600 border-t-transparent rounded-full"></div>
                   <span className="text-sm text-purple-700">Generating AI response...</span>
@@ -358,16 +413,16 @@ export const AiCell: React.FC<AiCellProps> = ({
                 <div key={output.id} className={index > 0 ? "border-t border-border/50" : ""}>
                   {output.outputType === 'error' ? (
                     // Keep special error handling for better UX
-                    <div className="p-3 bg-red-50/50">
-                      <div className="text-xs text-red-600 mb-1 font-medium">Error:</div>
+                    <div className="p-4 bg-red-50/80 border-l-2 border-red-200">
+                      <div className="text-xs text-red-600 mb-2 font-medium">Error</div>
                       <div className="font-mono text-sm">
-                        <div className="font-semibold text-red-700">
+                        <div className="font-semibold text-red-700 mb-1">
                           {isErrorOutput(output.data)
                             ? `${output.data.ename}: ${output.data.evalue}`
                             : 'Unknown error'}
                         </div>
                         {isErrorOutput(output.data) && output.data.traceback && (
-                          <div className="mt-2 text-red-600 text-xs whitespace-pre-wrap">
+                          <div className="mt-2 text-red-600 text-xs whitespace-pre-wrap opacity-80">
                             {Array.isArray(output.data.traceback)
                               ? output.data.traceback.join('\n')
                               : output.data.traceback}
@@ -377,7 +432,7 @@ export const AiCell: React.FC<AiCellProps> = ({
                     </div>
                   ) : (
                     // Use RichOutput for all other output types, with AI-specific styling
-                    <div className="bg-purple-50/50">
+                    <div className="bg-purple-50/30">
                       <RichOutput
                         data={output.data as Record<string, unknown>}
                         metadata={output.metadata as Record<string, unknown> | undefined}
@@ -393,10 +448,17 @@ export const AiCell: React.FC<AiCellProps> = ({
 
       {/* Context Information */}
       {outputs.length === 0 && cell.executionState === 'idle' && (
-        <div className="mt-2 text-sm text-muted-foreground bg-muted/50 rounded-lg p-3">
-          💡 <strong>AI Assistant</strong><br/>
-          I can help analyze your data, explain code, suggest improvements, and answer questions about your notebook.
-          I have access to all previous cells and their outputs for context.
+        <div className="mt-3 text-sm text-muted-foreground bg-purple-50/30 border border-purple-200/50 rounded-lg p-3">
+          <div className="flex items-start gap-2">
+            <Bot className="h-4 w-4 text-purple-600 mt-0.5 flex-shrink-0" />
+            <div>
+              <div className="font-medium text-purple-700 mb-1">AI Assistant</div>
+              <div className="text-xs">
+                I can help analyze your data, explain code, suggest improvements, and answer questions about your notebook.
+                I have access to all previous cells and their outputs for context.
+              </div>
+            </div>
+          </div>
         </div>
       )}
     </div>

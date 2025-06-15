@@ -10,6 +10,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu'
+import { Play, ChevronUp, ChevronDown, Plus, X, Database, Code, FileText, Bot, FileX } from 'lucide-react'
 
 interface SqlCellProps {
   cell: typeof tables.cells.Type
@@ -139,11 +140,31 @@ export const SqlCell: React.FC<SqlCellProps> = ({
     }
   }, [onFocus])
 
-  const getConnectionBadge = () => {
-    if (!cell.sqlConnectionId) {
-      return <Badge variant="outline" className="text-orange-600">No Connection</Badge>
+  const changeCellType = useCallback((newType: 'code' | 'markdown' | 'raw' | 'sql' | 'ai') => {
+    store.commit(events.cellTypeChanged({
+      id: cell.id,
+      cellType: newType,
+    }))
+  }, [cell.id, store])
+
+  const getCellTypeIcon = () => {
+    return <Database className="h-3 w-3" />
+  }
+
+  const getExecutionStatus = () => {
+    switch (cell.executionState) {
+      case 'idle': return null
+      case 'queued': return <Badge variant="secondary" className="h-5 text-xs">Queued</Badge>
+      case 'running': return (
+        <Badge variant="outline" className="h-5 text-xs border-blue-200 text-blue-700 bg-blue-50">
+          <div className="animate-spin w-2 h-2 border border-blue-600 border-t-transparent rounded-full mr-1"></div>
+          Running
+        </Badge>
+      )
+      case 'completed': return <Badge variant="outline" className="h-5 text-xs border-green-200 text-green-700 bg-green-50">✓</Badge>
+      case 'error': return <Badge variant="outline" className="h-5 text-xs border-red-200 text-red-700 bg-red-50">Error</Badge>
+      default: return null
     }
-    return <Badge variant="secondary">Connection: {cell.sqlConnectionId}</Badge>
   }
 
   const renderResults = () => {
@@ -189,54 +210,89 @@ export const SqlCell: React.FC<SqlCellProps> = ({
   }
 
   return (
-    <div className={`mb-2 relative group border-l-4 transition-colors pl-4 ${
-      autoFocus ? 'border-blue-500/40' : 'border-transparent'
+    <div className={`mb-3 relative group border-l-2 transition-all duration-200 pl-4 ${
+      autoFocus ? 'border-blue-500/60 bg-blue-50/30' : 'border-transparent hover:border-border/50'
     }`}>
       {/* Cell Header */}
-      <div className="flex items-center justify-between mb-2 py-1">
-        <div className="flex items-center gap-2">
-          <Badge variant="default" className="bg-blue-600 text-xs">
-            SQL
+      <div className="flex items-center justify-between mb-3 py-1">
+        <div className="flex items-center gap-3">
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-6 px-2 gap-1.5 text-xs font-medium hover:bg-muted/50 bg-blue-50 text-blue-700 border border-blue-200"
+              >
+                {getCellTypeIcon()}
+                <span>SQL</span>
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="start" className="w-40">
+              <DropdownMenuItem onClick={() => changeCellType('code')} className="gap-2">
+                <Code className="h-4 w-4" />
+                Code
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => changeCellType('markdown')} className="gap-2">
+                <FileText className="h-4 w-4" />
+                Markdown
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => changeCellType('sql')} className="gap-2">
+                <Database className="h-4 w-4" />
+                SQL Query
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => changeCellType('ai')} className="gap-2">
+                <Bot className="h-4 w-4" />
+                AI Assistant
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => changeCellType('raw')} className="gap-2">
+                <FileX className="h-4 w-4" />
+                Raw
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+          <Badge variant="outline" className="h-5 text-xs text-muted-foreground">
+            {cell.sqlConnectionId || 'No connection'}
           </Badge>
-          {getConnectionBadge()}
-          {cell.executionState === 'running' && (
-            <Badge variant="destructive">Running...</Badge>
-          )}
+          {getExecutionStatus()}
         </div>
 
-        {/* Cell Controls */}
-        <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+        {/* Cell Controls - visible on hover */}
+        <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
           <Button
             variant="ghost"
             size="sm"
             onClick={onMoveUp}
-            className="h-6 w-6 p-0 text-xs"
+            className="h-7 w-7 p-0 hover:bg-muted/80"
+            title="Move cell up"
           >
-            ↑
+            <ChevronUp className="h-3 w-3" />
           </Button>
           <Button
             variant="ghost"
             size="sm"
             onClick={onMoveDown}
-            className="h-6 w-6 p-0 text-xs"
+            className="h-7 w-7 p-0 hover:bg-muted/80"
+            title="Move cell down"
           >
-            ↓
+            <ChevronDown className="h-3 w-3" />
           </Button>
           <Button
             variant="ghost"
             size="sm"
             onClick={onAddCell}
-            className="h-6 w-6 p-0 text-xs"
+            className="h-7 w-7 p-0 hover:bg-muted/80"
+            title="Add cell below"
           >
-            +
+            <Plus className="h-3 w-3" />
           </Button>
           <Button
             variant="ghost"
             size="sm"
             onClick={onDeleteCell}
-            className="h-6 w-6 p-0 text-xs text-destructive hover:text-destructive"
+            className="h-7 w-7 p-0 text-muted-foreground hover:text-destructive hover:bg-destructive/10"
+            title="Delete cell"
           >
-            ×
+            <X className="h-3 w-3" />
           </Button>
         </div>
       </div>
@@ -261,32 +317,42 @@ export const SqlCell: React.FC<SqlCellProps> = ({
         </div>
 
         {/* SQL Controls */}
-        <div className="border-t border-border/50 p-3 bg-muted/20">
-          <div className="flex items-center gap-2">
+        <div className="border-t border-border/30 px-3 py-2 bg-blue-50/30">
+          <div className="flex items-center justify-between">
             <Button
-              variant="outline"
+              variant={cell.executionState === 'running' ? 'outline' : 'default'}
               size="sm"
               onClick={executeQuery}
               disabled={cell.executionState === 'running' || !cell.sqlConnectionId}
-              className="bg-blue-50 hover:bg-blue-100 text-blue-700 border-blue-200 h-7"
+              className="h-7 gap-1.5 text-xs bg-blue-600 hover:bg-blue-700 text-white"
             >
-              {cell.executionState === 'running' ? 'Running...' : 'Run Query'}
+              {cell.executionState === 'running' ? (
+                <>
+                  <div className="animate-spin w-3 h-3 border border-current border-t-transparent rounded-full"></div>
+                  Running
+                </>
+              ) : (
+                <>
+                  <Play className="h-3 w-3" />
+                  Run Query
+                </>
+              )}
             </Button>
 
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="outline" size="sm" className="h-7">
-                  {cell.sqlConnectionId ? 'Change Connection' : 'Select Connection'}
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent>
-                <DropdownMenuItem>PostgreSQL - Main DB</DropdownMenuItem>
-                <DropdownMenuItem>MySQL - Analytics</DropdownMenuItem>
-                <DropdownMenuItem>+ Add New Connection</DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-
-
+            <div className="flex items-center gap-2">
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" size="sm" className="h-7 text-xs text-muted-foreground">
+                    {cell.sqlConnectionId ? 'Change Connection' : 'Select Connection'}
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuItem>PostgreSQL - Main DB</DropdownMenuItem>
+                  <DropdownMenuItem>MySQL - Analytics</DropdownMenuItem>
+                  <DropdownMenuItem>+ Add New Connection</DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
           </div>
         </div>
       </div>

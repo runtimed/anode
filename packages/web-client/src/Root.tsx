@@ -2,6 +2,7 @@ import { makePersistedAdapter } from '@livestore/adapter-web'
 import LiveStoreSharedWorker from '@livestore/adapter-web/shared-worker?sharedworker'
 import { LiveStoreProvider } from '@livestore/react'
 import { FPSMeter } from '@overengineering/fps-meter'
+
 import type React from 'react'
 import { useState } from 'react'
 import { unstable_batchedUpdates as batchUpdates } from 'react-dom'
