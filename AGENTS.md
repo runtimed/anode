@@ -10,7 +10,7 @@ Anode is a real-time collaborative notebook system built on LiveStore, an event-
 
 ## Architecture
 
-- **Schema Package** (`@anode/schema`): LiveStore schema definitions (events, state, materializers)
+- **Shared Schema** (`shared/schema.ts`): LiveStore schema definitions (events, state, materializers) - directly imported by all packages
 - **Web Client** (`@anode/web-client`): React-based web interface
 - **Document Worker** (`@anode/docworker`): Cloudflare Worker for sync backend
 - **Kernel Client** (`@anode/dev-server-kernel-ls-client`): Python execution server (manual start per notebook)
@@ -123,7 +123,7 @@ pnpm build:schema   # Required after schema changes
 ## Important Considerations
 
 ### Schema Design
-- Schema package must be built before dependent packages can consume changes
+- Shared schema file (`shared/schema.ts`) provides direct imports with full type inference
 - Single `notebook` table per store (not `notebooks`)
 - `kernelSessions` and `executionQueue` tables for lifecycle management
 - **No timestamp fields** - eliminated for simplicity and stability (LiveStore handles timing automatically)
@@ -143,8 +143,9 @@ pnpm build:schema   # Required after schema changes
 ## File Structure
 ```
 anode/
+├── shared/
+│   └── schema.ts         # LiveStore schema definitions (events, state, materializers)
 ├── packages/
-│   ├── schema/           # LiveStore schema definitions
 │   ├── web-client/       # React web application
 │   ├── docworker/        # Cloudflare Worker sync backend
 │   └── dev-server-kernel-ls-client/  # Python kernel server
@@ -157,7 +158,7 @@ anode/
 ## Troubleshooting
 
 ### Common Issues
-- **Build failures**: Run `pnpm build:schema` first
+- **Build failures**: No schema build needed - schema is directly imported from `shared/schema.ts`
 - **Sync issues**: Check document worker deployment
 - **Execution not working**: Start kernel manually with `NOTEBOOK_ID=your-notebook-id pnpm dev:kernel`
 - **Stale state**: Run `pnpm reset-storage` to clear everything
@@ -197,7 +198,7 @@ anode/
 - **Matplotlib SVG rendering** - Crisp vector graphics with proper display
 - **Fluid UX transformation** - Jupyter-like navigation and interaction completed
 - **Unified execution system** - AI cells work exactly like code cells through execution queue
-- Simple schemas enable rapid prototyping and reliable operation
+- **Simplified schema architecture** - Direct file imports eliminate package boundaries and build steps
 - Event sourcing provides excellent debugging and audit capabilities  
 - Local-first design enables offline work and instant responsiveness
 - **Proper event deferral** resolves LiveStore execution segment conflicts effectively

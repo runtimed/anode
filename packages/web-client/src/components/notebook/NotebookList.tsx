@@ -1,7 +1,7 @@
 import React, { useCallback } from 'react'
 import { useStore } from '@livestore/react'
 import { queryDb } from '@livestore/livestore'
-import { tables, events } from '@anode/schema'
+import { tables, events } from '../../../../../shared/schema.js'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'

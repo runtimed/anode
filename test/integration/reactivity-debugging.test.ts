@@ -1,8 +1,7 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import { createStorePromise, queryDb } from "@livestore/livestore";
 import { makeAdapter } from "@livestore/adapter-node";
-// @ts-ignore - Schema imports work at runtime via Vitest aliases
-import { events, tables, schema } from "@anode/schema";
+import { events, tables, schema } from "../../shared/schema.js";
 import {
   createTestStoreId,
   createTestSessionId,
@@ -69,7 +68,6 @@ describe("Reactivity Debugging", () => {
           cellType: "code",
           position: 0,
           createdBy: "test-user",
-          notebookLastModified: new Date(),
         }),
       );
 
@@ -138,7 +136,6 @@ describe("Reactivity Debugging", () => {
           cellType: "code",
           position: 0,
           createdBy: "test-user",
-          notebookLastModified: new Date(),
         }),
       );
 
@@ -190,9 +187,10 @@ describe("Reactivity Debugging", () => {
       // Good query
       const goodQuery$ = queryDb(tables.cells.select(), { label: "goodQuery" });
 
-      // Problematic query (invalid column)
+      // Problematic query (simulate error conditions)
+      // Note: With strict typing, we simulate runtime errors differently
       const badQuery$ = queryDb(
-        tables.cells.select().where({ invalidColumn: "value" }),
+        tables.cells.select().where({ id: "non-existent-cell-id" }),
         { label: "badQuery" },
       );
 
@@ -221,7 +219,6 @@ describe("Reactivity Debugging", () => {
           cellType: "code",
           position: 0,
           createdBy: "test-user",
-          notebookLastModified: new Date(),
         }),
       );
 
@@ -261,12 +258,11 @@ describe("Reactivity Debugging", () => {
 
         operations.push(() =>
           store.commit(
-            (events as any).cellCreated({
+            events.cellCreated({
               id: cellId,
               cellType: "code",
               position: i,
               createdBy: "test-user",
-              notebookLastModified: new Date(),
             }),
           ),
         );
@@ -277,7 +273,6 @@ describe("Reactivity Debugging", () => {
               events.cellMoved({
                 id: `rapid-${i - 1}`,
                 newPosition: i * 10,
-                notebookLastModified: new Date(),
               }),
             ),
           );
@@ -286,10 +281,8 @@ describe("Reactivity Debugging", () => {
         if (i % 3 === 0) {
           operations.push(() =>
             store.commit(
-              (events as any).cellDeleted({
+              events.cellDeleted({
                 id: cellId,
-                deletedBy: "test-user",
-                notebookLastModified: new Date(),
               }),
             ),
           );
@@ -390,7 +383,6 @@ describe("Reactivity Debugging", () => {
           cellType: "code",
           position: 0,
           createdBy: "test-user",
-          notebookLastModified: new Date(),
         }),
       );
 
@@ -452,7 +444,7 @@ describe("Reactivity Debugging", () => {
         // Create multiple subscriptions
         for (let i = 0; i < 3; i++) {
           const query$ = queryDb(
-            tables.cells.select().where({ position: { ">=": i } }),
+            tables.cells.select().where({ position: { op: ">=", value: i } }),
             { label: `memoryTestQuery-${cycle}-${i}` },
           );
 
@@ -475,7 +467,6 @@ describe("Reactivity Debugging", () => {
               cellType: "code",
               position: op,
               createdBy: "test-user",
-              notebookLastModified: new Date(),
             }),
           );
 
@@ -483,8 +474,6 @@ describe("Reactivity Debugging", () => {
             store.commit(
               events.cellDeleted({
                 id: cellId,
-                deletedBy: "test-user",
-                notebookLastModified: new Date(),
               }),
             );
           }
@@ -584,7 +573,6 @@ describe("Reactivity Debugging", () => {
           cellType: "code",
           position: 0,
           createdBy: "test-user",
-          notebookLastModified: new Date(),
         }),
       );
 
@@ -598,7 +586,6 @@ describe("Reactivity Debugging", () => {
           cellType: "code",
           position: 1,
           createdBy: "test-user",
-          notebookLastModified: new Date(),
         }),
       );
 
@@ -630,7 +617,6 @@ describe("Reactivity Debugging", () => {
           cellType: "code",
           position: 0,
           createdBy: "test-user",
-          notebookLastModified: new Date(),
         }),
       );
 

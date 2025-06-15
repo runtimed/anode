@@ -9,7 +9,7 @@ import { createStorePromise, queryDb } from "@livestore/livestore";
 import { makeCfSync } from "@livestore/sync-cf";
 
 // Import the same schema used by the web client so we share events/tables.
-import { events, schema, tables, CellData, ExecutionQueueData, KernelSessionData, GenericOutputData } from "@anode/schema";
+import { events, schema, tables, CellData, ExecutionQueueData, KernelSessionData } from "../../../shared/schema.js";
 import { PyodideKernel } from "./pyodide-kernel.js";
 
 const NOTEBOOK_ID = process.env.NOTEBOOK_ID ?? "demo-notebook";

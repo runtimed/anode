@@ -9,7 +9,7 @@ import { unstable_batchedUpdates as batchUpdates } from 'react-dom'
 import { NotebookList } from './components/notebook/NotebookList.js'
 import { NotebookViewer } from './components/notebook/NotebookViewer.js'
 import LiveStoreWorker from './livestore.worker?worker'
-import { schema } from '@anode/schema'
+import { schema } from '../../../shared/schema.js'
 import { getStoreId, getCurrentNotebookId } from './util/store-id.js'
 
 const NotebookApp: React.FC = () => {

@@ -1,6 +1,7 @@
 import React, { useState, useCallback } from 'react'
 import { useStore } from '@livestore/react'
-import { events, tables, OutputData, isErrorOutput } from '@anode/schema'
+import { events, tables, OutputData, isErrorOutput } from '../../../../../shared/schema.js'
+import { queryDb } from '@livestore/livestore'
 
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
@@ -15,7 +16,6 @@ import {
 import { SqlCell } from './SqlCell.js'
 import { AiCell } from './AiCell.js'
 import { RichOutput } from './RichOutput.js'
-import { queryDb } from '@livestore/livestore'
 
 type CellType = typeof tables.cells.Type
 
@@ -81,7 +81,7 @@ export const Cell: React.FC<CellProps> = ({
     queryDb(tables.outputs.select().where({ cellId: cell.id })),
     [cell.id]
   )
-  const outputs = store.useQuery(outputsQuery) as any[]
+  const outputs = store.useQuery(outputsQuery) as OutputData[]
 
   // Auto-focus when requested
   React.useEffect(() => {

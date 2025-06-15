@@ -72,7 +72,6 @@ export default defineConfig({
   // Resolve aliases for imports - pointing directly to source files
   resolve: {
     alias: {
-      "@anode/schema": path.resolve(__dirname, "./packages/schema/src"),
       "@anode/web-client": path.resolve(__dirname, "./packages/web-client/src"),
       "@anode/docworker": path.resolve(__dirname, "./packages/docworker/src"),
       "@anode/dev-server-kernel-ls-client": path.resolve(
