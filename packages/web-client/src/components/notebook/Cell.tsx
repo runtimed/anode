@@ -21,6 +21,8 @@ import { Play, ChevronUp, ChevronDown, Plus, X, Code, FileText, Database, Bot } 
 
 type CellType = typeof tables.cells.Type
 
+
+
 interface CellProps {
   cell: CellType
   onAddCell: () => void
@@ -252,11 +254,11 @@ export const Cell: React.FC<CellProps> = ({
   }
 
   return (
-    <div className={`mb-3 relative group border-l-2 transition-all duration-200 ${
+    <div className={`mb-2 relative group border-l-2 transition-all duration-200 pt-2 ${
       autoFocus ? 'border-primary/60 bg-primary/5' : 'border-border/30 hover:bg-muted/10'
     }`}>
       {/* Cell Header */}
-      <div className="flex items-center justify-between my-3 py-1 pl-6 pr-4">
+      <div className="flex items-center justify-between mb-2 pl-6 pr-4">
         <div className="flex items-center gap-3">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -354,7 +356,7 @@ export const Cell: React.FC<CellProps> = ({
       <div className="relative">
         {/* Play Button Breaking Through Left Border */}
         {cell.cellType === 'code' && (
-          <div className="absolute -left-3 top-5 z-10">
+          <div className="absolute -left-3 z-10" style={{ top: '0.375rem' }}>
             <Button
               variant="ghost"
               size="sm"
@@ -363,7 +365,7 @@ export const Cell: React.FC<CellProps> = ({
               className="h-6 w-6 p-0 rounded-sm bg-white border-0 hover:bg-white"
             >
               {cell.executionState === 'running' ? (
-                <div className="animate-spin w-3 h-3 border border-current border-t-transparent rounded-full"></div>
+                <div className="animate-spin w-3 h-3 border border-current border-t-transparent rounded-full bg-white"></div>
               ) : cell.executionState === 'queued' ? (
                 <div className="w-2 h-2 bg-amber-500 rounded-full"></div>
               ) : (
@@ -374,12 +376,12 @@ export const Cell: React.FC<CellProps> = ({
         )}
 
         {/* Text Content Area */}
-        <div className={`transition-colors py-3 pl-4 pr-4 ${
+        <div className={`transition-colors py-1 pl-4 pr-4 ${
           autoFocus
             ? 'bg-white'
             : 'bg-white'
         }`}>
-          <div className="min-h-[60px]">
+          <div className="min-h-[1.5rem]">
             <Textarea
               ref={textareaRef}
               value={localSource}
@@ -393,7 +395,7 @@ export const Cell: React.FC<CellProps> = ({
                   ? 'Enter markdown...'
                   : 'Enter raw text...'
               }
-              className="min-h-[60px] resize-none border-0 px-2 py-2 focus-visible:ring-0 font-mono bg-white w-full placeholder:text-muted-foreground/60 shadow-none"
+              className="min-h-[1.5rem] resize-none border-0 px-2 py-1 focus-visible:ring-0 font-mono bg-white w-full placeholder:text-muted-foreground/60 shadow-none"
               onFocus={handleFocus}
             />
           </div>
@@ -404,13 +406,7 @@ export const Cell: React.FC<CellProps> = ({
 
       {/* Output Area for Code Cells */}
       {cell.cellType === 'code' && (outputs.length > 0 || cell.executionState === 'running') && (
-        <div className="relative mt-3 pl-6 pr-4">
-          {/* Execution Count in Left Gutter */}
-          {cell.executionCount && (
-            <div className="absolute -left-3 top-2 text-xs text-muted-foreground font-mono bg-background px-1 w-6 text-center">
-              [{cell.executionCount}]
-            </div>
-          )}
+        <div className="mt-1 pl-6 pr-4">
             {cell.executionState === 'running' && outputs.length === 0 && (
               <div className="py-3 border-l-2 border-blue-200 pl-1">
                 <div className="flex items-center gap-2">
