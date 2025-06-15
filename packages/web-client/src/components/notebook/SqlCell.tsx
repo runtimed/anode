@@ -214,7 +214,7 @@ export const SqlCell: React.FC<SqlCellProps> = ({
       autoFocus ? 'border-blue-500/60 bg-blue-50/30' : 'border-transparent hover:border-border/50'
     }`}>
       {/* Cell Header */}
-      <div className="flex items-center justify-between mb-3 py-1 px-4">
+      <div className="flex items-center justify-between mb-3 py-1 pl-6 pr-4">
         <div className="flex items-center gap-3">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -307,13 +307,13 @@ export const SqlCell: React.FC<SqlCellProps> = ({
             onBlur={updateQuery}
             onKeyDown={handleKeyDown}
             placeholder="SELECT * FROM your_table WHERE condition = 'value';"
-            className="min-h-[80px] resize-none border-0 p-0 focus-visible:ring-0 font-mono bg-transparent w-full placeholder:text-muted-foreground/60"
+            className="min-h-[80px] resize-none border-0 px-2 py-2 focus-visible:ring-0 font-mono bg-transparent w-full placeholder:text-muted-foreground/60"
             onFocus={handleFocus}
           />
         </div>
 
         {/* SQL Controls */}
-        <div className="border-t border-border/20 pt-3 mt-3">
+        <div className="border-t border-border/20 pt-3 mt-3 pl-2 pr-0">
           <div className="flex items-center justify-between">
             <Button
               variant={cell.executionState === 'running' ? 'outline' : 'default'}

@@ -239,7 +239,7 @@ export const AiCell: React.FC<AiCellProps> = ({
       autoFocus ? 'border-purple-500/60 bg-purple-50/30' : 'border-transparent hover:border-border/50'
     }`}>
       {/* Cell Header */}
-      <div className="flex items-center justify-between mb-3 py-1 px-4">
+      <div className="flex items-center justify-between mb-3 py-1 pl-6 pr-4">
         <div className="flex items-center gap-3">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -351,13 +351,13 @@ export const AiCell: React.FC<AiCellProps> = ({
             onBlur={updateSource}
             onKeyDown={handleKeyDown}
             placeholder="Ask me anything about your notebook, data, or analysis..."
-            className="min-h-[60px] resize-none border-0 p-0 focus-visible:ring-0 font-mono bg-transparent w-full placeholder:text-muted-foreground/60"
+            className="min-h-[60px] resize-none border-0 px-2 py-2 focus-visible:ring-0 font-mono bg-transparent w-full placeholder:text-muted-foreground/60"
             onFocus={handleFocus}
           />
         </div>
 
         {/* Execution Controls */}
-        <div className="border-t border-border/20 pt-3 mt-3">
+        <div className="border-t border-border/20 pt-3 mt-3 pl-2 pr-0">
           <div className="flex items-center justify-between">
             <Button
               variant={cell.executionState === 'running' || cell.executionState === 'queued' ? 'outline' : 'default'}
@@ -389,9 +389,9 @@ export const AiCell: React.FC<AiCellProps> = ({
 
       {/* Output Area for AI Responses */}
       {(outputs.length > 0 || cell.executionState === 'running') && (
-        <div className="mt-3 px-4">
+        <div className="mt-3 pl-6 pr-4">
           {cell.executionState === 'running' && outputs.length === 0 && (
-            <div className="py-3 border-l-2 border-purple-200 pl-3">
+            <div className="py-3 border-l-2 border-purple-200 pl-1">
               <div className="flex items-center gap-2">
                 <div className="animate-spin w-4 h-4 border-2 border-purple-600 border-t-transparent rounded-full"></div>
                 <span className="text-sm text-purple-700">Generating AI response...</span>
@@ -405,7 +405,7 @@ export const AiCell: React.FC<AiCellProps> = ({
               <div key={output.id} className={index > 0 ? "border-t border-border/30 mt-2 pt-2" : ""}>
                 {output.outputType === 'error' ? (
                   // Keep special error handling for better UX
-                  <div className="py-3 border-l-2 border-red-200 pl-3">
+                  <div className="py-3 border-l-2 border-red-200 pl-1">
                     <div className="font-mono text-sm">
                       <div className="font-semibold text-red-700 mb-1">
                         {isErrorOutput(output.data)
@@ -438,7 +438,7 @@ export const AiCell: React.FC<AiCellProps> = ({
 
       {/* Context Information */}
       {outputs.length === 0 && cell.executionState === 'idle' && (
-        <div className="mt-3 px-4 text-sm text-muted-foreground border-l-2 border-purple-200 pl-3 py-2">
+        <div className="mt-3 pl-6 pr-4 text-sm text-muted-foreground border-l-2 border-purple-200 pl-1 py-2">
           <div className="flex items-start gap-2">
             <Bot className="h-4 w-4 text-purple-600 mt-0.5 flex-shrink-0" />
             <div>
