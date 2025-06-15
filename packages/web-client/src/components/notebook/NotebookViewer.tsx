@@ -38,6 +38,7 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({ onBack }) => {
   const [isEditingTitle, setIsEditingTitle] = React.useState(false)
   const [localTitle, setLocalTitle] = React.useState(notebook?.title || '')
   const [showKernelHelper, setShowKernelHelper] = React.useState(false)
+  const [focusedCellId, setFocusedCellId] = React.useState<string | null>(null)
 
   const currentNotebookId = getCurrentNotebookId()
   const kernelCommand = `NOTEBOOK_ID=${currentNotebookId} pnpm dev:kernel`
@@ -79,6 +80,9 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({ onBack }) => {
       cellType,
       createdBy: 'current-user',
     }))
+
+    // Focus the new cell after creation
+    setTimeout(() => setFocusedCellId(cellId), 0)
   }, [cells, store])
 
   const deleteCell = useCallback((cellId: string) => {
@@ -122,6 +126,48 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({ onBack }) => {
       }
     }
   }, [cells, store])
+
+  const focusCell = useCallback((cellId: string) => {
+    setFocusedCellId(cellId)
+  }, [])
+
+  const focusNextCell = useCallback((currentCellId: string) => {
+    const sortedCells = cells.sort((a: any, b: any) => a.position - b.position)
+    const currentIndex = sortedCells.findIndex((c: any) => c.id === currentCellId)
+
+    if (currentIndex < sortedCells.length - 1) {
+      const nextCell = sortedCells[currentIndex + 1]
+      setFocusedCellId(nextCell.id)
+    } else {
+      // At the last cell, create a new one
+      addCell(currentCellId)
+    }
+  }, [cells, addCell])
+
+  const focusPreviousCell = useCallback((currentCellId: string) => {
+    const sortedCells = cells.sort((a: any, b: any) => a.position - b.position)
+    const currentIndex = sortedCells.findIndex((c: any) => c.id === currentCellId)
+
+    if (currentIndex > 0) {
+      const previousCell = sortedCells[currentIndex - 1]
+      setFocusedCellId(previousCell.id)
+    }
+  }, [cells])
+
+  // Reset focus when focused cell changes or is removed
+  React.useEffect(() => {
+    if (focusedCellId && !cells.find((c: any) => c.id === focusedCellId)) {
+      setFocusedCellId(null)
+    }
+  }, [focusedCellId, cells])
+
+  // Focus first cell when notebook loads and has cells
+  React.useEffect(() => {
+    if (!focusedCellId && cells.length > 0) {
+      const sortedCells = cells.sort((a: any, b: any) => a.position - b.position)
+      setFocusedCellId(sortedCells[0].id)
+    }
+  }, [focusedCellId, cells])
 
   if (!notebook) {
     return (
@@ -280,14 +326,14 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({ onBack }) => {
       </Card>
 
       {/* Cells */}
-      <div className="space-y-1">
+      <div className="space-y-3">
         {sortedCells.length === 0 ? (
-          <Card>
-            <CardContent className="p-8 text-center">
+          <div className="text-center py-12">
+            <div className="max-w-md mx-auto">
               <div className="text-muted-foreground mb-6">
-                This notebook is empty. Choose a cell type to get started.
+                Welcome to your notebook! Choose a cell type to get started.
               </div>
-              <div className="flex justify-center gap-2 flex-wrap">
+              <div className="flex justify-center gap-2 flex-wrap mb-4">
                 <Button onClick={() => addCell()}>
                   + Code Cell
                 </Button>
@@ -301,8 +347,11 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({ onBack }) => {
                   🤖 AI Assistant
                 </Button>
               </div>
-            </CardContent>
-          </Card>
+              <div className="text-xs text-muted-foreground">
+                💡 Use ↑↓ arrow keys to navigate • Shift+Enter to run and move • Ctrl+Enter to run
+              </div>
+            </div>
+          </div>
         ) : (
           sortedCells.map((cell: any) => (
             <Cell
@@ -312,6 +361,9 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({ onBack }) => {
               onDeleteCell={() => deleteCell(cell.id)}
               onMoveUp={() => moveCell(cell.id, 'up')}
               onMoveDown={() => moveCell(cell.id, 'down')}
+              onFocusNext={() => focusNextCell(cell.id)}
+              onFocusPrevious={() => focusPreviousCell(cell.id)}
+              autoFocus={focusedCellId === cell.id}
             />
           ))
         )}
@@ -319,20 +371,25 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({ onBack }) => {
 
       {/* Add Cell Buttons */}
       {sortedCells.length > 0 && (
-        <div className="mt-6 text-center space-y-3">
-          <div className="flex justify-center gap-2">
-            <Button variant="outline" onClick={() => addCell()}>
-              + Code Cell
-            </Button>
-            <Button variant="outline" onClick={() => addCell(undefined, 'markdown')}>
-              📝 Markdown
-            </Button>
-            <Button variant="outline" onClick={() => addCell(undefined, 'sql')}>
-              🗄️ SQL Query
-            </Button>
-            <Button variant="outline" onClick={() => addCell(undefined, 'ai')}>
-              🤖 AI Assistant
-            </Button>
+        <div className="mt-8 pt-6 border-t border-border/30">
+          <div className="text-center space-y-3">
+            <div className="flex justify-center gap-2">
+              <Button variant="outline" size="sm" onClick={() => addCell()}>
+                + Code Cell
+              </Button>
+              <Button variant="outline" size="sm" onClick={() => addCell(undefined, 'markdown')}>
+                📝 Markdown
+              </Button>
+              <Button variant="outline" size="sm" onClick={() => addCell(undefined, 'sql')}>
+                🗄️ SQL Query
+              </Button>
+              <Button variant="outline" size="sm" onClick={() => addCell(undefined, 'ai')}>
+                🤖 AI Assistant
+              </Button>
+            </div>
+            <div className="text-xs text-muted-foreground">
+              Add a new cell below
+            </div>
           </div>
         </div>
       )}
