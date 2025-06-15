@@ -16,6 +16,7 @@ import {
 import { SqlCell } from './SqlCell.js'
 import { AiCell } from './AiCell.js'
 import { RichOutput } from './RichOutput.js'
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
 import { Play, ChevronUp, ChevronDown, Plus, X, Code, FileText, Database, Bot, FileX } from 'lucide-react'
 
 type CellType = typeof tables.cells.Type
@@ -297,44 +298,62 @@ export const Cell: React.FC<CellProps> = ({
         </div>
 
         {/* Cell Controls - visible on hover */}
-        <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={onMoveUp}
-            className="h-7 w-7 p-0 hover:bg-muted/80"
-            title="Move cell up"
-          >
-            <ChevronUp className="h-3 w-3" />
-          </Button>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={onMoveDown}
-            className="h-7 w-7 p-0 hover:bg-muted/80"
-            title="Move cell down"
-          >
-            <ChevronDown className="h-3 w-3" />
-          </Button>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={onAddCell}
-            className="h-7 w-7 p-0 hover:bg-muted/80"
-            title="Add cell below"
-          >
-            <Plus className="h-3 w-3" />
-          </Button>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={onDeleteCell}
-            className="h-7 w-7 p-0 text-muted-foreground hover:text-destructive hover:bg-destructive/10"
-            title="Delete cell"
-          >
-            <X className="h-3 w-3" />
-          </Button>
-        </div>
+        <TooltipProvider>
+          <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={onMoveUp}
+                  className="h-7 w-7 p-0 hover:bg-muted/80"
+                >
+                  <ChevronUp className="h-3 w-3" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>Move cell up</TooltipContent>
+            </Tooltip>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={onMoveDown}
+                  className="h-7 w-7 p-0 hover:bg-muted/80"
+                >
+                  <ChevronDown className="h-3 w-3" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>Move cell down</TooltipContent>
+            </Tooltip>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={onAddCell}
+                  className="h-7 w-7 p-0 hover:bg-muted/80"
+                >
+                  <Plus className="h-3 w-3" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>Add cell below</TooltipContent>
+            </Tooltip>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={onDeleteCell}
+                  className="h-7 w-7 p-0 text-muted-foreground hover:text-destructive hover:bg-destructive/10"
+                >
+                  <X className="h-3 w-3" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>Delete cell</TooltipContent>
+            </Tooltip>
+          </div>
+        </TooltipProvider>
       </div>
 
       {/* Cell Content */}

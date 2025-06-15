@@ -396,59 +396,54 @@ export const AiCell: React.FC<AiCellProps> = ({
 
       {/* Output Area for AI Responses */}
       {(outputs.length > 0 || cell.executionState === 'running') && (
-        <div className="mt-2">
-          <div className="bg-card/30 rounded-md border border-border/50 overflow-hidden">
-            {cell.executionState === 'running' && outputs.length === 0 && (
-              <div className="p-4 bg-purple-50/50 border-b border-border/50">
-                <div className="flex items-center gap-2">
-                  <div className="animate-spin w-4 h-4 border-2 border-purple-600 border-t-transparent rounded-full"></div>
-                  <span className="text-sm text-purple-700">Generating AI response...</span>
-                </div>
+        <div className="mt-3">
+          {cell.executionState === 'running' && outputs.length === 0 && (
+            <div className="p-3 border-l-2 border-purple-200">
+              <div className="flex items-center gap-2">
+                <div className="animate-spin w-4 h-4 border-2 border-purple-600 border-t-transparent rounded-full"></div>
+                <span className="text-sm text-purple-700">Generating AI response...</span>
               </div>
-            )}
+            </div>
+          )}
 
-            {outputs
-              .sort((a: OutputData, b: OutputData) => a.position - b.position)
-              .map((output: OutputData, index: number) => (
-                <div key={output.id} className={index > 0 ? "border-t border-border/50" : ""}>
-                  {output.outputType === 'error' ? (
-                    // Keep special error handling for better UX
-                    <div className="p-4 bg-red-50/80 border-l-2 border-red-200">
-                      <div className="text-xs text-red-600 mb-2 font-medium">Error</div>
-                      <div className="font-mono text-sm">
-                        <div className="font-semibold text-red-700 mb-1">
-                          {isErrorOutput(output.data)
-                            ? `${output.data.ename}: ${output.data.evalue}`
-                            : 'Unknown error'}
-                        </div>
-                        {isErrorOutput(output.data) && output.data.traceback && (
-                          <div className="mt-2 text-red-600 text-xs whitespace-pre-wrap opacity-80">
-                            {Array.isArray(output.data.traceback)
-                              ? output.data.traceback.join('\n')
-                              : output.data.traceback}
-                          </div>
-                        )}
+          {outputs
+            .sort((a: OutputData, b: OutputData) => a.position - b.position)
+            .map((output: OutputData, index: number) => (
+              <div key={output.id} className={index > 0 ? "border-t border-border/30 mt-2 pt-2" : ""}>
+                {output.outputType === 'error' ? (
+                  // Keep special error handling for better UX
+                  <div className="p-3 border-l-2 border-red-200">
+                    <div className="font-mono text-sm">
+                      <div className="font-semibold text-red-700 mb-1">
+                        {isErrorOutput(output.data)
+                          ? `${output.data.ename}: ${output.data.evalue}`
+                          : 'Unknown error'}
                       </div>
+                      {isErrorOutput(output.data) && output.data.traceback && (
+                        <div className="mt-2 text-red-600 text-xs whitespace-pre-wrap opacity-80">
+                          {Array.isArray(output.data.traceback)
+                            ? output.data.traceback.join('\n')
+                            : output.data.traceback}
+                        </div>
+                      )}
                     </div>
-                  ) : (
-                    // Use RichOutput for all other output types, with AI-specific styling
-                    <div className="bg-purple-50/30">
-                      <RichOutput
-                        data={output.data as Record<string, unknown>}
-                        metadata={output.metadata as Record<string, unknown> | undefined}
-                        outputType={output.outputType}
-                      />
-                    </div>
-                  )}
-                </div>
-              ))}
-          </div>
+                  </div>
+                ) : (
+                  // Use RichOutput for all other output types
+                  <RichOutput
+                    data={output.data as Record<string, unknown>}
+                    metadata={output.metadata as Record<string, unknown> | undefined}
+                    outputType={output.outputType}
+                  />
+                )}
+              </div>
+            ))}
         </div>
       )}
 
       {/* Context Information */}
       {outputs.length === 0 && cell.executionState === 'idle' && (
-        <div className="mt-3 text-sm text-muted-foreground bg-purple-50/30 border border-purple-200/50 rounded-lg p-3">
+        <div className="mt-3 text-sm text-muted-foreground border-l-2 border-purple-200 pl-3 py-2">
           <div className="flex items-start gap-2">
             <Bot className="h-4 w-4 text-purple-600 mt-0.5 flex-shrink-0" />
             <div>

@@ -232,7 +232,7 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({ onBack }) => {
                 className="flex items-center gap-2"
               >
                 <Terminal className="h-4 w-4" />
-                Kernel
+                <span className="capitalize">{notebook.kernelType}</span>
                 <Circle
                   className={`h-2 w-2 fill-current ${
                     hasActiveKernel ? 'text-green-500' :
@@ -241,16 +241,6 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({ onBack }) => {
                   }`}
                 />
               </Button>
-              <Badge
-                variant="secondary"
-                className={`${
-                  hasActiveKernel ? 'bg-green-100 text-green-800 border-green-200' :
-                  kernelStatus === 'starting' ? 'bg-amber-100 text-amber-800 border-amber-200' :
-                  'bg-red-100 text-red-800 border-red-200'
-                }`}
-              >
-                {notebook.kernelType} {hasActiveKernel ? '●' : '○'}
-              </Badge>
               <Badge variant="outline">{sortedCells.length} cells</Badge>
             </div>
           </div>

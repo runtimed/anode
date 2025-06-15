@@ -17,7 +17,7 @@ const NotebookApp: React.FC = () => {
   // In the simplified architecture, we always show the current notebook
   // The notebook ID comes from the URL and is the same as the store ID
   const currentNotebookId = getCurrentNotebookId()
-  const [viewMode, setViewMode] = useState<'list' | 'notebook'>('list')
+  const [viewMode, setViewMode] = useState<'list' | 'notebook'>('notebook')
 
   const handleSelectNotebook = () => {
     // Since we're in a single-notebook store, just show the notebook view
