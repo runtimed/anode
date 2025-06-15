@@ -12,6 +12,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu'
+import { RichOutput } from './RichOutput.js'
 
 interface AiCellProps {
   cell: typeof tables.cells.Type
@@ -353,22 +354,8 @@ export const AiCell: React.FC<AiCellProps> = ({
               .sort((a: any, b: any) => a.position - b.position)
               .map((output: any, index: number) => (
                 <div key={output.id} className={index > 0 ? "border-t border-border/50" : ""}>
-                  {output.outputType === 'stream' && (
-                    <div className="p-3 bg-gray-50/50 font-mono text-sm whitespace-pre-wrap">
-                      {(output.data as any)['text/plain']}
-                    </div>
-                  )}
-
-                  {output.outputType === 'execute_result' && (
-                    <div className="p-3 bg-purple-50/50">
-                      <div className="text-xs text-purple-600 mb-1 font-medium">AI Response:</div>
-                      <div className="text-sm whitespace-pre-wrap">
-                        {(output.data as any)['text/plain']}
-                      </div>
-                    </div>
-                  )}
-
-                  {output.outputType === 'error' && (
+                  {output.outputType === 'error' ? (
+                    // Keep special error handling for better UX
                     <div className="p-3 bg-red-50/50">
                       <div className="text-xs text-red-600 mb-1 font-medium">Error:</div>
                       <div className="font-mono text-sm">
@@ -384,14 +371,14 @@ export const AiCell: React.FC<AiCellProps> = ({
                         )}
                       </div>
                     </div>
-                  )}
-
-                  {output.outputType === 'display_data' && (
-                    <div className="p-3 bg-purple-50/50">
-                      <div className="text-xs text-purple-600 mb-1 font-medium">AI Response:</div>
-                      <div className="text-sm whitespace-pre-wrap">
-                        {(output.data as any)['text/plain'] || JSON.stringify(output.data, null, 2)}
-                      </div>
+                  ) : (
+                    // Use RichOutput for all other output types, with AI-specific styling
+                    <div className="bg-purple-50/50">
+                      <RichOutput
+                        data={output.data}
+                        metadata={output.metadata}
+                        outputType={output.outputType}
+                      />
                     </div>
                   )}
                 </div>
