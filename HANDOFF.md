@@ -261,11 +261,79 @@ The system currently achieves:
 - **Solid foundation** - Good test coverage and CI
 - **Production-ready outputs** - Rich display system comparable to Jupyter
 
+## Next Development Session Priorities 🎯
+
+### Priority 1: Real AI API Integration (2-3 hours)
+**Status**: Architecture proven with mock responses - ready for real APIs
+
+**Tasks**:
+1. **OpenAI Integration**
+   - Add `openai` package to kernel dependencies
+   - Replace `generateFakeAiResponse()` in `mod-reactive.ts` (line 154+)
+   - Implement streaming responses for real-time output
+   - Handle API errors gracefully with user-friendly messages
+
+2. **Anthropic Integration**
+   - Add Claude API support with consistent interface
+   - Test markdown output quality matches OpenAI
+
+3. **Model Selection UI**
+   - Improve dropdown in `AiCell.tsx`
+   - Add API key configuration
+   - Better error handling for failed requests
+
+### Priority 2: Automatic Kernel Management (1-2 hours)
+**Status**: Manual startup works - needs automation
+
+**Tasks**:
+1. **Auto-start Integration**
+   - Modify `pnpm dev` to auto-spawn kernels per notebook
+   - Remove manual `NOTEBOOK_ID=xyz pnpm dev:kernel` requirement
+   - Add kernel health monitoring and auto-restart
+
+2. **UI Integration**
+   - Show kernel status in `NotebookViewer.tsx`
+   - Add kernel connection indicator
+   - Handle kernel failures gracefully
+
+### Priority 3: Authentication Foundation (1-2 hours)
+**Status**: Ready for basic implementation
+
+**Tasks**:
+1. **Google OAuth Setup**
+   - Configure OAuth application credentials
+   - Add auth flow to web client
+   - Associate notebooks with user sessions
+
+2. **Schema Updates**
+   - Add user fields to events and tables
+   - Update `createdBy` fields to use real user IDs
+
+### Quick Wins for Next Session
+- [ ] Replace mock AI with OpenAI API (highest impact)
+- [ ] Auto-start kernels with `pnpm dev` (removes friction)
+- [ ] Improve model selection UI (better UX)
+
+### Testing Checklist
+- [ ] AI responses render as rich markdown (regression test)
+- [ ] DataFrames still show HTML tables (regression test)
+- [ ] Matplotlib plots display as SVG (regression test)
+- [ ] Real AI API errors handle gracefully
+- [ ] Multiple notebooks auto-get kernels
+
+### Key Files for Next Session
+- `packages/dev-server-kernel-ls-client/src/mod-reactive.ts` - AI integration target
+- `packages/web-client/src/components/notebook/AiCell.tsx` - UI improvements
+- `packages/dev-server-kernel-ls-client/src/index.ts` - Kernel management
+- Root `package.json` scripts - Auto-start integration
+
 ## Conclusion
 
 Anode has achieved its **core technical goals**, **UX modernization**, **AI integration**, and **rich output rendering**. The combination of reactive architecture, fluid navigation, unified execution, and professional-quality output display creates a solid foundation for advanced AI-notebook interactions.
 
 The breakthrough in **execution latency** (zero polling delays), **rich output quality** (HTML tables, SVG plots), **interaction fluidity** (Jupyter-like navigation), and **AI integration** (unified execution queue) positions Anode as a unique offering in the collaborative notebook ecosystem - the first truly AI-native notebook with real-time collaboration and Jupyter-quality output rendering.
+
+**Next Session Focus**: With rich outputs complete, the priority is real AI API integration to replace mock responses while preserving the quality output system we've built.
 
 ---
 
