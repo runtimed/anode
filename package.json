@@ -1,9 +1,9 @@
 {
   "name": "anode-workspace",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "private": true,
   "type": "module",
-  "description": "Anode - real-time collaborative notebook system",
+  "description": "Anode - real-time collaborative notebook system with rich outputs",
   "engines": {
     "node": ">=23.0.0"
   },
@@ -80,7 +80,11 @@
     "event-sourcing",
     "python",
     "jupyter",
-    "workspace"
+    "workspace",
+    "rich-outputs",
+    "matplotlib",
+    "pandas",
+    "svg"
   ],
   "author": "Anode Team",
   "license": "MIT",
