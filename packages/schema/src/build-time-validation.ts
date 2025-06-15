@@ -235,14 +235,14 @@ function findEventByName(eventName: string) {
   return Object.values(events).find(event => event.name === eventName)
 }
 
-function hasFieldInSchema(schema: any, fieldName: string): boolean {
+function hasFieldInSchema(schema: unknown, fieldName: string): boolean {
   // This would need to inspect the actual Effect Schema structure
   // For now, return false as a placeholder
   // In a real implementation, you'd traverse the schema AST
   return false
 }
 
-function getFieldTypeFromSchema(schema: any, fieldName: string): string {
+function getFieldTypeFromSchema(schema: unknown, fieldName: string): string {
   // This would need to inspect the actual Effect Schema structure
   // For now, return 'unknown' as a placeholder
   return 'unknown'

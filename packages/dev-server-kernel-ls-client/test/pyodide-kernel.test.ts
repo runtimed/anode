@@ -271,7 +271,7 @@ describe('PyodideKernel', () => {
 
       expect(outputs).toHaveLength(1)
       expect(outputs[0].type).toBe('error')
-      expect(outputs[0].data.ename).toBe('SyntaxError')
+      expect((outputs[0].data as any).ename).toBe('SyntaxError')
     })
 
     it('should handle runtime errors', async () => {
@@ -285,7 +285,7 @@ describe('PyodideKernel', () => {
 
       expect(outputs).toHaveLength(1)
       expect(outputs[0].type).toBe('error')
-      expect(outputs[0].data.ename).toBe('ZeroDivisionError')
+      expect((outputs[0].data as any).ename).toBe('ZeroDivisionError')
     })
 
     it('should handle execution before initialization', async () => {
