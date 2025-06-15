@@ -105,9 +105,9 @@ export const AiCell: React.FC<AiCellProps> = ({
 
     // Handle arrow key navigation between cells
     if (e.key === 'ArrowUp' && selectionStart === selectionEnd) {
-      // Check if cursor is at the beginning of the first line
+      // For empty cells or cursor at beginning of first line
       const beforeCursor = value.substring(0, selectionStart)
-      const isAtTop = !beforeCursor.includes('\n')
+      const isAtTop = selectionStart === 0 || !beforeCursor.includes('\n')
 
       if (isAtTop && onFocusPrevious) {
         e.preventDefault()
@@ -115,9 +115,9 @@ export const AiCell: React.FC<AiCellProps> = ({
         return
       }
     } else if (e.key === 'ArrowDown' && selectionStart === selectionEnd) {
-      // Check if cursor is at the end of the last line
+      // For empty cells or cursor at end of last line
       const afterCursor = value.substring(selectionEnd)
-      const isAtBottom = !afterCursor.includes('\n')
+      const isAtBottom = selectionEnd === value.length || !afterCursor.includes('\n')
 
       if (isAtBottom && onFocusNext) {
         e.preventDefault()
@@ -320,9 +320,7 @@ export const AiCell: React.FC<AiCellProps> = ({
                 </DropdownMenu>
               </div>
 
-              <span className="text-xs text-muted-foreground">
-                Ctrl+Enter to send • ↑↓ to navigate
-              </span>
+
             </div>
           </div>
 

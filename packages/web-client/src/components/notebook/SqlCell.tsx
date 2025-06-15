@@ -98,9 +98,9 @@ export const SqlCell: React.FC<SqlCellProps> = ({
 
     // Handle arrow key navigation between cells
     if (e.key === 'ArrowUp' && selectionStart === selectionEnd) {
-      // Check if cursor is at the beginning of the first line
+      // For empty cells or cursor at beginning of first line
       const beforeCursor = value.substring(0, selectionStart)
-      const isAtTop = !beforeCursor.includes('\n')
+      const isAtTop = selectionStart === 0 || !beforeCursor.includes('\n')
 
       if (isAtTop && onFocusPrevious) {
         e.preventDefault()
@@ -109,9 +109,9 @@ export const SqlCell: React.FC<SqlCellProps> = ({
         return
       }
     } else if (e.key === 'ArrowDown' && selectionStart === selectionEnd) {
-      // Check if cursor is at the end of the last line
+      // For empty cells or cursor at end of last line
       const afterCursor = value.substring(selectionEnd)
-      const isAtBottom = !afterCursor.includes('\n')
+      const isAtBottom = selectionEnd === value.length || !afterCursor.includes('\n')
 
       if (isAtBottom && onFocusNext) {
         e.preventDefault()
@@ -293,9 +293,7 @@ export const SqlCell: React.FC<SqlCellProps> = ({
               </DropdownMenuContent>
             </DropdownMenu>
 
-            <span className="text-xs text-muted-foreground">
-              Shift+Enter to run and move • Ctrl+Enter to run • ↑↓ to navigate
-            </span>
+
           </div>
         </div>
       </div>
