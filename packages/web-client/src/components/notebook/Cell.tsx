@@ -398,51 +398,48 @@ export const Cell: React.FC<CellProps> = ({
 
       {/* Output Area for Code Cells */}
       {cell.cellType === 'code' && (outputs.length > 0 || cell.executionState === 'running') && (
-        <div className="mt-2">
-          <div className="bg-card/30 rounded-md border border-border/50 overflow-hidden">
-            {cell.executionState === 'running' && outputs.length === 0 && (
-              <div className="p-3 bg-blue-50/50 border-b border-border/50">
-                <div className="flex items-center gap-2">
-                  <div className="animate-spin w-4 h-4 border-2 border-blue-600 border-t-transparent rounded-full"></div>
-                  <span className="text-sm text-blue-700">Executing...</span>
-                </div>
+        <div className="mt-3">
+          {cell.executionState === 'running' && outputs.length === 0 && (
+            <div className="p-3 border-l-2 border-blue-200">
+              <div className="flex items-center gap-2">
+                <div className="animate-spin w-4 h-4 border-2 border-blue-600 border-t-transparent rounded-full"></div>
+                <span className="text-sm text-blue-700">Executing...</span>
               </div>
-            )}
+            </div>
+          )}
 
-            {outputs
-              .sort((a: OutputData, b: OutputData) => a.position - b.position)
-              .map((output: OutputData, index: number) => (
-                <div key={output.id} className={index > 0 ? "border-t border-border/50" : ""}>
-                  {output.outputType === 'error' ? (
-                    // Keep special error handling for better UX
-                    <div className="p-4 bg-red-50/80 border-l-2 border-red-200">
-                      <div className="text-xs text-red-600 mb-2 font-medium">Error</div>
-                      <div className="font-mono text-sm">
-                        <div className="font-semibold text-red-700 mb-1">
-                          {isErrorOutput(output.data)
-                            ? `${output.data.ename}: ${output.data.evalue}`
-                            : 'Unknown error'}
-                        </div>
-                        {isErrorOutput(output.data) && output.data.traceback && (
-                          <div className="mt-2 text-red-600 text-xs whitespace-pre-wrap opacity-80">
-                            {Array.isArray(output.data.traceback)
-                              ? output.data.traceback.join('\n')
-                              : output.data.traceback}
-                          </div>
-                        )}
+          {outputs
+            .sort((a: OutputData, b: OutputData) => a.position - b.position)
+            .map((output: OutputData, index: number) => (
+              <div key={output.id} className={index > 0 ? "border-t border-border/30 mt-2 pt-2" : ""}>
+                {output.outputType === 'error' ? (
+                  // Keep special error handling for better UX
+                  <div className="p-3 border-l-2 border-red-200">
+                    <div className="font-mono text-sm">
+                      <div className="font-semibold text-red-700 mb-1">
+                        {isErrorOutput(output.data)
+                          ? `${output.data.ename}: ${output.data.evalue}`
+                          : 'Unknown error'}
                       </div>
+                      {isErrorOutput(output.data) && output.data.traceback && (
+                        <div className="mt-2 text-red-600 text-xs whitespace-pre-wrap opacity-80">
+                          {Array.isArray(output.data.traceback)
+                            ? output.data.traceback.join('\n')
+                            : output.data.traceback}
+                        </div>
+                      )}
                     </div>
-                  ) : (
-                    // Use RichOutput for all other output types
-                    <RichOutput
-                      data={output.data as Record<string, unknown>}
-                      metadata={output.metadata as Record<string, unknown> | undefined}
-                      outputType={output.outputType}
-                    />
-                  )}
-                </div>
-              ))}
-          </div>
+                  </div>
+                ) : (
+                  // Use RichOutput for all other output types
+                  <RichOutput
+                    data={output.data as Record<string, unknown>}
+                    metadata={output.metadata as Record<string, unknown> | undefined}
+                    outputType={output.outputType}
+                  />
+                )}
+              </div>
+            ))}
         </div>
       )}
     </div>
