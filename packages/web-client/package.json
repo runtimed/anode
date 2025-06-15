@@ -13,34 +13,37 @@
   "dependencies": {
     "@anode/schema": "workspace:*",
     "@livestore/adapter-web": "catalog:",
-    "@livestore/react": "catalog:",
     "@livestore/livestore": "catalog:",
+    "@livestore/react": "catalog:",
+    "@livestore/sync-cf": "catalog:",
     "@livestore/wa-sqlite": "catalog:",
     "@livestore/webmesh": "catalog:",
     "@overengineering/fps-meter": "^0.1.2",
     "@radix-ui/react-dropdown-menu": "catalog:",
     "@radix-ui/react-separator": "catalog:",
     "@radix-ui/react-slot": "catalog:",
+    "@types/react-syntax-highlighter": "^15.5.13",
     "class-variance-authority": "catalog:",
     "clsx": "catalog:",
     "lucide-react": "catalog:",
     "react": "catalog:",
     "react-dom": "catalog:",
+    "react-markdown": "^10.1.0",
+    "react-syntax-highlighter": "^15.6.1",
     "tailwind-merge": "catalog:",
-    "tw-animate-css": "catalog:",
-    "@livestore/sync-cf": "catalog:"
+    "tw-animate-css": "catalog:"
   },
   "devDependencies": {
     "@livestore/devtools-vite": "catalog:",
-    "@vitejs/plugin-react": "catalog:",
-    "@types/react": "catalog:",
-    "@types/react-dom": "catalog:",
-    "typescript": "catalog:",
-    "vite": "catalog:",
-    "tailwindcss": "catalog:",
     "@tailwindcss/cli": "catalog:",
     "@tailwindcss/postcss": "catalog:",
+    "@types/react": "catalog:",
+    "@types/react-dom": "catalog:",
+    "@vitejs/plugin-react": "catalog:",
     "autoprefixer": "catalog:",
-    "postcss": "catalog:"
+    "postcss": "catalog:",
+    "tailwindcss": "catalog:",
+    "typescript": "catalog:",
+    "vite": "catalog:"
   }
 }

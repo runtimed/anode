@@ -152,7 +152,7 @@ const activeKernelsQuery$ = queryDb(
   }
 );
 
-// Generate fake AI response for testing
+// Generate fake AI response for testing with rich output support
 async function generateFakeAiResponse(cell: any): Promise<any[]> {
   const provider = cell.aiProvider || 'openai';
   const model = cell.aiModel || 'gpt-4';
@@ -161,21 +161,171 @@ async function generateFakeAiResponse(cell: any): Promise<any[]> {
   // Simulate AI thinking time
   await new Promise(resolve => setTimeout(resolve, 1000 + Math.random() * 2000));
 
-  const responses = [
-    `I understand you're asking: "${prompt}"\n\nThis is a mock response from ${model}. In the full implementation, I would analyze your notebook context and provide helpful insights.`,
+  // Create rich markdown responses with various content types
+  const markdownResponses = [
+    `# AI Analysis Response
 
-    `Based on your prompt "${prompt}", here are some thoughts:\n\n1. This appears to be a question about your notebook\n2. I can see the context from previous cells\n3. Let me provide a helpful response\n\nNote: This is currently a mock response from the ${provider} ${model} integration.`,
+I understand you're asking: "${prompt}"
 
-    `Hello! I'm your AI assistant powered by ${model}.\n\nYour prompt: "${prompt}"\n\nI'm designed to help with:\n• Code analysis and debugging\n• Data interpretation\n• Suggestions for next steps\n• Answering questions about your work\n\nThis is a placeholder response while we build the real API integration.`,
+## Context
+This is a **mock response** from \`${model}\`. In the full implementation, I would analyze your notebook context and provide helpful insights.
 
-    `Analyzing your request: "${prompt}"\n\n🔍 **Context Analysis:**\nI can see this is part of your notebook workflow. \n\n💡 **Insights:**\nBased on the pattern of your request, you might be interested in exploring data analysis techniques.\n\n🚀 **Next Steps:**\nConsider breaking down your problem into smaller components.\n\n*Note: This is a simulated ${provider} ${model} response for development.*`
+### Key Points:
+- 🔍 **Analysis**: Your request shows interest in data exploration
+- 💡 **Suggestion**: Consider breaking complex problems into smaller steps
+- 📊 **Next Steps**: Try visualizing your data first
+
+\`\`\`python
+# Example code suggestion
+import pandas as pd
+df = pd.read_csv('your_data.csv')
+df.head()
+\`\`\`
+
+> **Note**: This is a simulated response for development purposes.`,
+
+    `# 🤖 ${provider.toUpperCase()} ${model} Response
+
+Based on your prompt: **"${prompt}"**
+
+## Analysis
+
+1. **Context Understanding**: This appears to be a question about your notebook
+2. **Data Insights**: I can see the context from previous cells
+3. **Recommendations**: Let me provide a helpful response
+
+## Code Example
+
+\`\`\`python
+# Based on your question, you might find this helpful:
+import matplotlib.pyplot as plt
+import numpy as np
+
+# Generate sample data
+x = np.linspace(0, 10, 100)
+y = np.sin(x)
+
+plt.figure(figsize=(10, 6))
+plt.plot(x, y, 'b-', linewidth=2)
+plt.title('Example Visualization')
+plt.xlabel('X values')
+plt.ylabel('Y values')
+plt.grid(True, alpha=0.3)
+plt.show()
+\`\`\`
+
+---
+*This is currently a mock response from the ${provider} ${model} integration.*`,
+
+    `# Hello! 👋 I'm your AI assistant
+
+**Powered by**: ${provider} ${model}
+
+## Your prompt
+> "${prompt}"
+
+## How I can help
+
+| Area | Description |
+|------|-------------|
+| 🔧 **Code Analysis** | Debug and optimize your code |
+| 📊 **Data Interpretation** | Analyze patterns and insights |
+| 💡 **Suggestions** | Recommend next steps |
+| ❓ **Q&A** | Answer questions about your work |
+
+## Example Analysis
+
+\`\`\`python
+# Let's say you have this data:
+data = {
+    'category': ['A', 'B', 'C', 'D'],
+    'values': [23, 45, 56, 78]
+}
+
+# I could suggest:
+import pandas as pd
+df = pd.DataFrame(data)
+print(df.describe())
+\`\`\`
+
+### 🚀 Ready to help!
+This is a placeholder response while we build the real API integration.`,
+
+    `# 🔍 Analysis Results
+
+## Request Analysis
+**Your prompt**: "${prompt}"
+
+### Context Analysis
+I can see this is part of your notebook workflow and I'm here to help!
+
+### Recommendations
+
+#### 1. **Data Exploration**
+Start with understanding your data structure:
+
+\`\`\`python
+# Basic data exploration
+print(f"Shape: {df.shape}")
+print(f"Columns: {df.columns.tolist()}")
+print(f"Data types:\\n{df.dtypes}")
+\`\`\`
+
+#### 2. **Visualization Strategy**
+Consider these visualization approaches:
+
+- **Scatter plots** for relationships
+- **Histograms** for distributions
+- **Box plots** for outlier detection
+
+#### 3. **Next Steps**
+Break down your problem into:
+1. Data cleaning
+2. Exploratory analysis
+3. Hypothesis testing
+4. Results interpretation
+
+---
+
+> 💡 **Tip**: This is a simulated ${provider} ${model} response for development. The real integration will provide context-aware insights based on your actual notebook content.`
   ];
 
-  const randomResponse = responses[Math.floor(Math.random() * responses.length)];
+  // Occasionally generate SVG examples
+  const shouldGenerateSvg = Math.random() < 0.2; // 20% chance
+
+  if (shouldGenerateSvg) {
+    const svgExample = `<svg width="300" height="200" xmlns="http://www.w3.org/2000/svg">
+  <rect width="100%" height="100%" fill="#f8f9fa" stroke="#dee2e6" stroke-width="2"/>
+  <circle cx="150" cy="100" r="60" fill="#007bff" opacity="0.7"/>
+  <text x="150" y="105" text-anchor="middle" font-family="Arial, sans-serif" font-size="14" fill="white">
+    AI Response
+  </text>
+  <text x="150" y="170" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" fill="#6c757d">
+    ${provider} ${model}
+  </text>
+</svg>`;
+
+    return [{
+      type: "execute_result",
+      data: {
+        "text/markdown": `# AI Response with Visualization
+
+Here's an example of how I can provide visual responses:`,
+        "image/svg+xml": svgExample,
+        "text/plain": `AI Response from ${provider} ${model} with SVG visualization`
+      },
+      position: 0,
+    }];
+  }
+
+  const randomResponse = markdownResponses[Math.floor(Math.random() * markdownResponses.length)];
 
   return [{
     type: "execute_result",
-    data: { "text/plain": randomResponse },
+    data: {
+      "text/markdown": randomResponse,
+      "text/plain": randomResponse.replace(/[#*`>|\-]/g, '').replace(/\n+/g, '\n').trim() // Fallback plain text
+    },
     position: 0,
   }];
 }
@@ -227,13 +377,14 @@ async function processExecution(queueEntry: any) {
       console.log(`📤 Generated ${outputs.length} outputs`);
     }
 
-    // Emit outputs
+    // Emit outputs with metadata support
     outputs.forEach((output, idx) => {
       store.commit(events.cellOutputAdded({
         id: crypto.randomUUID(),
         cellId: cell.id,
         outputType: output.type as any,
         data: output.data,
+        metadata: output.metadata || undefined,
         position: idx,
       }));
     });

@@ -3,6 +3,7 @@ import { loadPyodide } from "pyodide";
 export interface OutputData {
   type: "display_data" | "execute_result" | "stream" | "error";
   data: any;
+  metadata?: any;
   position: number;
 }
 
@@ -27,7 +28,89 @@ export class PyodideKernel {
       stderr: (text: string) => console.error("[py]:", text),
     });
 
-    this.pyodide.runPython('print("🐍 Python runtime ready")');
+    // Install common packages for data science and visualization
+    await this.pyodide.loadPackage(["matplotlib", "numpy", "pandas"]);
+
+    // Set up matplotlib and simple display formatting
+    this.pyodide.runPython(`
+import matplotlib
+import matplotlib.pyplot as plt
+import numpy as np
+import pandas as pd
+import io
+import json
+
+# Configure matplotlib for SVG output
+matplotlib.use('svg')
+
+def format_for_display(obj):
+    """Simple formatter for common data types"""
+    if obj is None:
+        return None
+
+    result = {"text/plain": str(obj)}
+
+    # Check for pandas DataFrame
+    if hasattr(obj, '_repr_html_') and hasattr(obj, 'columns'):
+        try:
+            result["text/html"] = obj._repr_html_()
+        except:
+            pass
+
+    # Check for other rich representations
+    if hasattr(obj, '_repr_markdown_'):
+        try:
+            result["text/markdown"] = obj._repr_markdown_()
+        except:
+            pass
+
+    if hasattr(obj, '_repr_svg_'):
+        try:
+            result["image/svg+xml"] = obj._repr_svg_()
+        except:
+            pass
+
+    return result
+
+# Store for plot outputs
+_plot_outputs = []
+
+# Override plt.show to capture plots
+_original_show = plt.show
+def _custom_show(block=None):
+    """Custom show function that captures SVG output"""
+    global _plot_outputs
+
+    if plt.get_fignums():  # Check if there are active figures
+        # Get current figure
+        fig = plt.gcf()
+
+        # Save as SVG
+        svg_buffer = io.StringIO()
+        fig.savefig(svg_buffer, format='svg', bbox_inches='tight',
+                   facecolor='white', edgecolor='none')
+        svg_content = svg_buffer.getvalue()
+        svg_buffer.close()
+
+        # Store the plot
+        _plot_outputs.append({
+            'data': {
+                'image/svg+xml': svg_content,
+                'text/plain': '[Plot output]'
+            },
+            'metadata': {},
+            'output_type': 'display_data'
+        })
+
+        # Clear the figure
+        plt.clf()
+
+    return _original_show(block=block) if block is not None else _original_show()
+
+plt.show = _custom_show
+
+print("🐍 Python runtime ready with matplotlib and rich output support")
+`);
 
     this.initialized = true;
     console.log(`✅ Pyodide kernel ready for notebook ${this.notebookId}`);
@@ -43,14 +126,52 @@ export class PyodideKernel {
 
     const outputs: OutputData[] = [];
     try {
+      // Clear any previous plot outputs
+      this.pyodide.runPython("_plot_outputs = []");
+
+      // Execute the code and capture the result
       const result = await this.pyodide.runPythonAsync(code);
-      if (result !== undefined) {
-        outputs.push({
-          type: "execute_result",
-          data: { "text/plain": String(result) },
-          position: 0,
+
+      // Get any plot outputs that were generated
+      const plotOutputsJson = this.pyodide.runPython(`
+import json
+json.dumps(_plot_outputs)
+`);
+
+      // Add plot outputs first
+      if (plotOutputsJson && plotOutputsJson !== "[]") {
+        const plotOutputs = JSON.parse(plotOutputsJson);
+        plotOutputs.forEach((output: any, idx: number) => {
+          outputs.push({
+            type: output.output_type as any,
+            data: output.data,
+            metadata: output.metadata || {},
+            position: idx,
+          });
         });
       }
+
+      // Handle the execution result if we have one
+      if (result !== undefined && result !== null) {
+        // Get rich representation of the result
+        this.pyodide.globals.set("_temp_result", result);
+        const richDataJson = this.pyodide.runPython(`
+import json
+result_data = format_for_display(_temp_result)
+json.dumps(result_data)
+`);
+
+        if (richDataJson && richDataJson !== "null") {
+          const richData = JSON.parse(richDataJson);
+          outputs.push({
+            type: "execute_result",
+            data: richData,
+            metadata: {},
+            position: outputs.length,
+          });
+        }
+      }
+
     } catch (err: any) {
       outputs.push({
         type: "error",
@@ -59,7 +180,7 @@ export class PyodideKernel {
           evalue: err?.message ?? "Execution failed",
           traceback: [err?.stack ?? ""],
         },
-        position: 0,
+        position: outputs.length,
       });
     }
     return outputs;

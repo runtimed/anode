@@ -5,6 +5,7 @@ import { PyodideKernel } from '../src/pyodide-kernel.js'
 const mockPyodide = {
   runPython: vi.fn(),
   runPythonAsync: vi.fn(),
+  loadPackage: vi.fn(() => Promise.resolve()),
   globals: {
     get: vi.fn(),
     set: vi.fn(),
@@ -39,6 +40,10 @@ describe('PyodideKernel', () => {
     mockPyodide.runPython.mockReturnValue(undefined)
     mockPyodide.globals.get.mockReturnValue(undefined)
 
+    // Reset mock call order
+    mockPyodide.runPython.mockClear()
+    mockPyodide.runPythonAsync.mockClear()
+
     kernel = new PyodideKernel(notebookId)
   })
 
@@ -53,9 +58,8 @@ describe('PyodideKernel', () => {
       await kernel.initialize()
 
       expect(kernel.isInitialized()).toBe(true)
-      expect(mockPyodide.runPython).toHaveBeenCalledWith(
-        'print("🐍 Python runtime ready")'
-      )
+      expect(mockPyodide.loadPackage).toHaveBeenCalledWith(["matplotlib", "numpy", "pandas"])
+      expect(mockPyodide.runPython).toHaveBeenCalledWith(expect.stringContaining("🐍 Python runtime ready with matplotlib and rich output support"))
     })
 
     it('should handle initialization errors', async () => {
@@ -85,6 +89,9 @@ describe('PyodideKernel', () => {
 
       // Mock runPythonAsync to return undefined (print returns None)
       mockPyodide.runPythonAsync.mockResolvedValue(undefined)
+      // Mock the plot outputs clearing and checking
+      mockPyodide.runPython.mockReturnValueOnce(undefined) // _plot_outputs = []
+      mockPyodide.runPython.mockReturnValueOnce('[]') // json.dumps(_plot_outputs)
 
       const outputs = await kernel.execute(code)
 
@@ -97,6 +104,10 @@ describe('PyodideKernel', () => {
 
       // Mock runPythonAsync to return a result
       mockPyodide.runPythonAsync.mockResolvedValue(4)
+      // Mock the plot outputs clearing, checking, and format_for_display result
+      mockPyodide.runPython.mockReturnValueOnce(undefined) // _plot_outputs = []
+      mockPyodide.runPython.mockReturnValueOnce('[]') // json.dumps(_plot_outputs)
+      mockPyodide.runPython.mockReturnValueOnce('{"text/plain": "4"}') // format_for_display
 
       const outputs = await kernel.execute(code)
 
@@ -104,6 +115,7 @@ describe('PyodideKernel', () => {
       expect(outputs[0]).toEqual({
         type: 'execute_result',
         data: { 'text/plain': '4' },
+        metadata: {},
         position: 0
       })
     })
@@ -134,6 +146,10 @@ describe('PyodideKernel', () => {
       const code = '"Hello, World!"'
 
       mockPyodide.runPythonAsync.mockResolvedValue('Hello, World!')
+      // Mock the plot outputs clearing, checking, and format_for_display result
+      mockPyodide.runPython.mockReturnValueOnce(undefined) // _plot_outputs = []
+      mockPyodide.runPython.mockReturnValueOnce('[]') // json.dumps(_plot_outputs)
+      mockPyodide.runPython.mockReturnValueOnce('{"text/plain": "Hello, World!"}') // format_for_display
 
       const outputs = await kernel.execute(code)
 
@@ -141,6 +157,7 @@ describe('PyodideKernel', () => {
       expect(outputs[0]).toEqual({
         type: 'execute_result',
         data: { 'text/plain': 'Hello, World!' },
+        metadata: {},
         position: 0
       })
     })
@@ -149,6 +166,9 @@ describe('PyodideKernel', () => {
       const code = 'x = 42'  // Assignment returns None
 
       mockPyodide.runPythonAsync.mockResolvedValue(undefined)
+      // Mock the plot outputs clearing and checking
+      mockPyodide.runPython.mockReturnValueOnce(undefined) // _plot_outputs = []
+      mockPyodide.runPython.mockReturnValueOnce('[]') // json.dumps(_plot_outputs)
 
       const outputs = await kernel.execute(code)
 
@@ -169,16 +189,22 @@ describe('PyodideKernel', () => {
     it('should preserve variables between executions', async () => {
       // First execution
       mockPyodide.runPythonAsync.mockResolvedValue(undefined)
+      mockPyodide.runPython.mockReturnValueOnce(undefined) // _plot_outputs = []
+      mockPyodide.runPython.mockReturnValueOnce('[]') // json.dumps(_plot_outputs)
       await kernel.execute('x = 42')
 
       // Second execution should access the variable
       mockPyodide.runPythonAsync.mockResolvedValue(42)
+      mockPyodide.runPython.mockReturnValueOnce(undefined) // _plot_outputs = []
+      mockPyodide.runPython.mockReturnValueOnce('[]') // json.dumps(_plot_outputs)
+      mockPyodide.runPython.mockReturnValueOnce('{"text/plain": "42"}') // format_for_display
       const outputs = await kernel.execute('x')
 
       expect(outputs).toHaveLength(1)
       expect(outputs[0]).toEqual({
         type: 'execute_result',
         data: { 'text/plain': '42' },
+        metadata: {},
         position: 0
       })
     })
@@ -188,6 +214,9 @@ describe('PyodideKernel', () => {
 
       const complexResult = [1, 2, 3, { key: "value" }]
       mockPyodide.runPythonAsync.mockResolvedValue(complexResult)
+      mockPyodide.runPython.mockReturnValueOnce(undefined) // _plot_outputs = []
+      mockPyodide.runPython.mockReturnValueOnce('[]') // json.dumps(_plot_outputs)
+      mockPyodide.runPython.mockReturnValueOnce(`{"text/plain": "${String(complexResult)}"}`) // format_for_display
 
       const outputs = await kernel.execute(code)
 
@@ -195,6 +224,7 @@ describe('PyodideKernel', () => {
       expect(outputs[0]).toEqual({
         type: 'execute_result',
         data: { 'text/plain': String(complexResult) },
+        metadata: {},
         position: 0
       })
     })
@@ -203,6 +233,9 @@ describe('PyodideKernel', () => {
       const code = 'import math\nmath.pi'
 
       mockPyodide.runPythonAsync.mockResolvedValue(3.141592653589793)
+      mockPyodide.runPython.mockReturnValueOnce(undefined) // _plot_outputs = []
+      mockPyodide.runPython.mockReturnValueOnce('[]') // json.dumps(_plot_outputs)
+      mockPyodide.runPython.mockReturnValueOnce('{"text/plain": "3.141592653589793"}') // format_for_display
 
       const outputs = await kernel.execute(code)
 
@@ -210,6 +243,7 @@ describe('PyodideKernel', () => {
       expect(outputs[0]).toEqual({
         type: 'execute_result',
         data: { 'text/plain': '3.141592653589793' },
+        metadata: {},
         position: 0
       })
     })
@@ -259,6 +293,8 @@ describe('PyodideKernel', () => {
 
       // The real implementation auto-initializes, so this should work
       mockPyodide.runPythonAsync.mockResolvedValue(undefined)
+      mockPyodide.runPython.mockReturnValueOnce(undefined) // _plot_outputs = []
+      mockPyodide.runPython.mockReturnValueOnce('[]') // json.dumps(_plot_outputs)
       const outputs = await uninitializedKernel.execute('print("test")')
       expect(outputs).toHaveLength(0) // print returns None
       expect(uninitializedKernel.isInitialized()).toBe(true)
@@ -270,6 +306,8 @@ describe('PyodideKernel', () => {
 
       // The real implementation auto-initializes, so this should work
       mockPyodide.runPythonAsync.mockResolvedValue(undefined)
+      mockPyodide.runPython.mockReturnValueOnce(undefined) // _plot_outputs = []
+      mockPyodide.runPython.mockReturnValueOnce('[]') // json.dumps(_plot_outputs)
       const outputs = await kernel.execute('print("test")')
       expect(outputs).toHaveLength(0) // print returns None
       expect(kernel.isInitialized()).toBe(true)
@@ -308,6 +346,8 @@ describe('PyodideKernel', () => {
     it('should maintain execution state across calls', async () => {
       // Set up a class and instance
       mockPyodide.runPythonAsync.mockResolvedValue(undefined)
+      mockPyodide.runPython.mockReturnValueOnce(undefined) // _plot_outputs = []
+      mockPyodide.runPython.mockReturnValueOnce('[]') // json.dumps(_plot_outputs)
       await kernel.execute(`
 class Counter:
     def __init__(self):
@@ -322,20 +362,31 @@ counter = Counter()
 
       // First increment
       mockPyodide.runPythonAsync.mockResolvedValue(1)
+      mockPyodide.runPython.mockReturnValueOnce(undefined) // _plot_outputs = []
+      mockPyodide.runPython.mockReturnValueOnce('[]') // json.dumps(_plot_outputs)
+      mockPyodide.runPython.mockReturnValueOnce('{"text/plain": "1"}') // format_for_display
       let outputs = await kernel.execute('counter.increment()')
       expect(outputs[0].data).toEqual({ 'text/plain': '1' })
 
       // Second increment should continue from previous state
       mockPyodide.runPythonAsync.mockResolvedValue(2)
+      mockPyodide.runPython.mockReturnValueOnce(undefined) // _plot_outputs = []
+      mockPyodide.runPython.mockReturnValueOnce('[]') // json.dumps(_plot_outputs)
+      mockPyodide.runPython.mockReturnValueOnce('{"text/plain": "2"}') // format_for_display
       outputs = await kernel.execute('counter.increment()')
       expect(outputs[0].data).toEqual({ 'text/plain': '2' })
     })
 
     it('should handle variable redefinition', async () => {
       mockPyodide.runPythonAsync.mockResolvedValue(undefined)
+      mockPyodide.runPython.mockReturnValueOnce(undefined) // _plot_outputs = []
+      mockPyodide.runPython.mockReturnValueOnce('[]') // json.dumps(_plot_outputs)
       await kernel.execute('x = "first"')
 
       mockPyodide.runPythonAsync.mockResolvedValue('second')
+      mockPyodide.runPython.mockReturnValueOnce(undefined) // _plot_outputs = []
+      mockPyodide.runPython.mockReturnValueOnce('[]') // json.dumps(_plot_outputs)
+      mockPyodide.runPython.mockReturnValueOnce('{"text/plain": "second"}') // format_for_display
       const outputs = await kernel.execute('x = "second"\nx')
 
       expect(outputs).toHaveLength(1)
@@ -352,6 +403,9 @@ counter = Counter()
       const code = '"Hello 🌍"'
 
       mockPyodide.runPythonAsync.mockResolvedValue('Hello 🌍')
+      mockPyodide.runPython.mockReturnValueOnce(undefined) // _plot_outputs = []
+      mockPyodide.runPython.mockReturnValueOnce('[]') // json.dumps(_plot_outputs)
+      mockPyodide.runPython.mockReturnValueOnce('{"text/plain": "Hello 🌍"}') // format_for_display
 
       const outputs = await kernel.execute(code)
 
@@ -362,6 +416,9 @@ counter = Counter()
       const longString = 'A'.repeat(10000)
 
       mockPyodide.runPythonAsync.mockResolvedValue(longString)
+      mockPyodide.runPython.mockReturnValueOnce(undefined) // _plot_outputs = []
+      mockPyodide.runPython.mockReturnValueOnce('[]') // json.dumps(_plot_outputs)
+      mockPyodide.runPython.mockReturnValueOnce(`{"text/plain": "${longString}"}`) // format_for_display
 
       const outputs = await kernel.execute(`"${'A'.repeat(10000)}"`)
 
@@ -372,6 +429,9 @@ counter = Counter()
       const code = `2 ** 10`
 
       mockPyodide.runPythonAsync.mockResolvedValue(1024)
+      mockPyodide.runPython.mockReturnValueOnce(undefined) // _plot_outputs = []
+      mockPyodide.runPython.mockReturnValueOnce('[]') // json.dumps(_plot_outputs)
+      mockPyodide.runPython.mockReturnValueOnce('{"text/plain": "1024"}') // format_for_display
 
       const outputs = await kernel.execute(code)
 
@@ -379,6 +439,7 @@ counter = Counter()
       expect(outputs[0]).toEqual({
         type: 'execute_result',
         data: { 'text/plain': '1024' },
+        metadata: {},
         position: 0
       })
     })

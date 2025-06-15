@@ -49,6 +49,7 @@ export const tables: Record<string, any> = {
       cellId: State.SQLite.text(),
       outputType: State.SQLite.text({ schema: Schema.Literal('display_data', 'execute_result', 'stream', 'error') }),
       data: State.SQLite.json({ schema: Schema.Any }),
+      metadata: State.SQLite.json({ nullable: true, schema: Schema.Any }), // For additional output metadata
       position: State.SQLite.real(),
     },
   }),
@@ -266,6 +267,7 @@ export const events = {
       cellId: Schema.String,
       outputType: Schema.Literal('display_data', 'execute_result', 'stream', 'error'),
       data: Schema.Any,
+      metadata: Schema.optional(Schema.Any), // For additional output metadata
       position: Schema.Number,
     }),
   }),
@@ -458,12 +460,13 @@ const materializers = State.SQLite.materializers(events, {
   },
 
   // Output materializers
-  'v1.CellOutputAdded': ({ id, cellId, outputType, data, position }) =>
+  'v1.CellOutputAdded': ({ id, cellId, outputType, data, metadata, position }) =>
     tables.outputs.insert({
       id,
       cellId,
       outputType,
       data,
+      metadata,
       position,
     }),
 
