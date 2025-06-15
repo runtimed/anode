@@ -212,7 +212,7 @@ export const AiCell: React.FC<AiCellProps> = ({
       local: 'text-purple-700 bg-purple-50 border-purple-200'
     }
     return (
-      <Badge variant="outline" className={`h-5 text-xs ${colors[provider as keyof typeof colors] || 'bg-gray-50'}`}>
+      <Badge variant="outline" className={`h-5 text-xs cursor-pointer hover:opacity-80 ${colors[provider as keyof typeof colors] || 'bg-gray-50'}`}>
         {provider.toUpperCase()} • {model}
       </Badge>
     )
@@ -271,7 +271,28 @@ export const AiCell: React.FC<AiCellProps> = ({
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
-          {getProviderBadge()}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              {getProviderBadge()}
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem onClick={() => changeProvider('openai', 'gpt-4')}>
+                OpenAI GPT-4
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => changeProvider('openai', 'gpt-3.5-turbo')}>
+                OpenAI GPT-3.5 Turbo
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => changeProvider('anthropic', 'claude-3-sonnet')}>
+                Anthropic Claude 3 Sonnet
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => changeProvider('anthropic', 'claude-3-haiku')}>
+                Anthropic Claude 3 Haiku
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => changeProvider('local', 'llama-2')}>
+                Local Llama 2
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
           {getExecutionStatus()}
         </div>
 
@@ -360,31 +381,7 @@ export const AiCell: React.FC<AiCellProps> = ({
               )}
             </Button>
 
-            <div className="flex items-center gap-2">
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="sm" className="h-7 text-xs text-muted-foreground">
-                    Change Model
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                  <DropdownMenuItem onClick={() => changeProvider('openai', 'gpt-4')}>
-                    OpenAI GPT-4
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => changeProvider('openai', 'gpt-3.5-turbo')}>
-                    OpenAI GPT-3.5 Turbo
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => changeProvider('anthropic', 'claude-3-sonnet')}>
-                    Anthropic Claude 3 Sonnet
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => changeProvider('anthropic', 'claude-3-haiku')}>
-                    Anthropic Claude 3 Haiku
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => changeProvider('local', 'llama-2')}>
-                    Local Llama 2
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
+            <div>
             </div>
           </div>
         </div>
