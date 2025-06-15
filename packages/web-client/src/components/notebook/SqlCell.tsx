@@ -1,7 +1,6 @@
 import React, { useState, useCallback } from 'react'
 import { useStore } from '@livestore/react'
 import { events, tables } from '@anode/schema'
-import { Card, CardContent, CardHeader } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
 import { Badge } from '@/components/ui/badge'
@@ -11,7 +10,6 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu'
-import { Separator } from '@/components/ui/separator'
 
 interface SqlCellProps {
   cell: typeof tables.cells.Type
