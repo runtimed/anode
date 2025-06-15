@@ -7,7 +7,6 @@ import React, { useState, useEffect } from 'react'
 import { unstable_batchedUpdates as batchUpdates } from 'react-dom'
 
 import { NotebookViewer } from './components/notebook/NotebookViewer.js'
-import { Button } from './components/ui/button.js'
 import LiveStoreWorker from './livestore.worker?worker'
 import { schema, events, tables } from '../../../shared/schema.js'
 import { getStoreId, getCurrentNotebookId } from './util/store-id.js'
@@ -65,33 +64,11 @@ const NotebookApp: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Navigation Header */}
-      <nav className="border-b bg-card px-4 py-3">
-        <div className="max-w-6xl mx-auto flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <div className="flex items-center gap-3">
-              <img
-                src="/logo.svg"
-                alt="Anode"
-                className="h-8 w-auto"
-              />
-              <h1 className="text-xl font-bold text-primary">
-                Anode
-              </h1>
-            </div>
-            <Button onClick={createNewNotebook} variant="outline" size="sm">
-              + New Notebook
-            </Button>
-          </div>
-
-          <div className="text-xs text-muted-foreground">
-            {currentNotebookId}
-          </div>
-        </div>
-      </nav>
-
       {/* Main Content */}
-      <NotebookViewer notebookId={currentNotebookId} />
+      <NotebookViewer
+        notebookId={currentNotebookId}
+        onNewNotebook={createNewNotebook}
+      />
     </div>
   )
 }
