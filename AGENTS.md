@@ -75,20 +75,29 @@ pnpm build:schema   # Required after schema changes
 - ✅ **Session management** with kernel isolation
 - ✅ **Comprehensive testing** (68 passing tests)
 
-## Next Phase: AI Integration 🤖
+## Next Phase: AI Integration & UX Polish 🤖
 
-**Priority Focus**: AI ↔ Python ↔ User interactions
+**Priority Focus**: AI ↔ Python ↔ User interactions with fluid notebook UX
 
 ### Immediate Goals
+- **Notebook UX Improvements** - Fluid cell navigation and Jupyter-like interaction
 - **AI Cell Architecture** - Notebook-aware AI assistance
 - **Code Completions** - LSP + kernel-based suggestions  
 - **Authentication** - Google OAuth with session management
 - **Kernel Lifecycle** - Automatic startup and management
 
+### Current UX Issues to Address
+- Click-to-edit model breaks notebook flow
+- No keyboard navigation between cells (arrow keys)
+- Heavy card UI feels cluttered vs clean notebook interfaces
+- Hover-only controls are hard to discover
+- Missing standard execution shortcuts (Shift+Enter, Ctrl+Enter)
+
 ### Technical Debt
 - Manual kernel lifecycle management (being addressed)
 - Authentication system (Google OAuth planned)
 - Enhanced error handling and recovery
+- Cell interaction model needs modernization
 
 ## Important Considerations
 
@@ -163,5 +172,6 @@ anode/
 - **Proper event deferral** resolves LiveStore execution segment conflicts effectively
 - Session-based kernel management enables clean isolation and scaling
 - **AI integration readiness** - Architecture supports context-aware AI cells
+- **UX modernization needed** - Current cell interaction model needs Jupyter-like fluidity
 
 The system provides a **solid foundation** for AI-native collaborative notebooks and is positioned for the next phase of intelligent features.

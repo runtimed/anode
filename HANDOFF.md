@@ -57,13 +57,14 @@ NOTEBOOK_ID=notebook-123-abc pnpm dev:kernel
 The roadmap focuses on **AI ↔ Python ↔ User interactions** as the key differentiator:
 
 ### Immediate Priorities
-1. **AI Cell Architecture** - Notebook-aware AI assistance
-2. **Code Completions** - LSP + kernel-based suggestions
-3. **Authentication** - Google OAuth with session management
-4. **Kernel Lifecycle** - Automatic startup and management
+1. **Notebook UX Improvements** - Fluid cell navigation and Jupyter-like interaction
+2. **AI Cell Architecture** - Notebook-aware AI assistance
+3. **Code Completions** - LSP + kernel-based suggestions
+4. **Authentication** - Google OAuth with session management
+5. **Kernel Lifecycle** - Automatic startup and management
 
 ### Core Vision
-Anode aims to be the **first AI-native collaborative notebook** that truly understands context and enables seamless human-AI-code interaction.
+Anode aims to be the **first AI-native collaborative notebook** that truly understands context and enables seamless human-AI-code interaction with a fluid, Jupyter-like interface.
 
 ## Technical Foundation
 
@@ -169,6 +170,17 @@ setTimeout(() => {
 | Stale state | Run `pnpm reset-storage` |
 | Schema errors | Verify schema is built after changes |
 
+## Current UX Issues
+
+The notebook interface currently has several interaction issues that need addressing:
+- **Click-to-edit model** breaks fluid notebook workflow
+- **No keyboard navigation** between cells (arrow keys)
+- **Heavy card UI** feels cluttered compared to clean notebook interfaces
+- **Hover-only controls** are hard to discover and use
+- **Missing standard shortcuts** (Shift+Enter, Ctrl+Enter work but need polish)
+
+These UX improvements are high priority for achieving Jupyter parity.
+
 ## Testing Status
 
 - ✅ **68 passing tests** with good coverage
@@ -180,6 +192,7 @@ setTimeout(() => {
 ## Future Development
 
 ### Phase 1: Stable Foundation
+- Notebook UX improvements (fluid cell navigation)
 - Google OAuth authentication
 - Automatic kernel lifecycle management
 - Demo deployment on CloudFlare Pages

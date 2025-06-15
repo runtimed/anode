@@ -71,7 +71,36 @@ This roadmap outlines the next phases of development for Anode, building on the 
   - Auto-imports and documentation on hover
   - Error highlighting and diagnostics
 
-### 2.2 AI Cell Architecture 🤖
+### 2.2 Notebook UX Improvements 📝
+**Priority: HIGH** - Fluid notebook interaction experience
+
+**Current Issues**: Click-to-edit model, no keyboard navigation, heavy card UI breaks notebook flow
+**Target**: Jupyter-like fluid interaction without complex mode switching
+
+- [ ] **Fluid Cell Navigation**
+  - Down arrow at bottom of cell moves to next cell
+  - Up arrow at top of cell moves to previous cell
+  - Smooth focus transitions between cells
+  - No separate command/edit modes
+
+- [ ] **Execution Flow Improvements**
+  - Shift+Enter: Run cell and move to next
+  - Ctrl+Enter: Run cell and stay in current
+  - Simple execution count display (below code, not `In[]` format)
+  - Clear execution status feedback
+
+- [ ] **Streamlined Cell Interface**
+  - Reduce heavy card styling for cleaner notebook feel
+  - Better visual focus states (subtle borders, not heavy cards)
+  - Context-sensitive controls (appear when cell selected)
+  - Simplified cell type switching
+
+- [ ] **Responsive Cell Controls**
+  - Always-visible minimal controls (not hover-only)
+  - Better mobile interaction support
+  - Cleaner visual hierarchy between cells
+
+### 2.3 AI Cell Architecture 🤖
 **Priority: HIGH** - Enable AI <> Python <> User interactions
 
 **Design Vision**: AI cells function like kernel adapters
@@ -88,7 +117,7 @@ This roadmap outlines the next phases of development for Anode, building on the 
   - Intelligent context window management
   - Cell dependency tracking
 
-### 2.3 SQL Cell Integration 🗄️
+### 2.4 SQL Cell Integration 🗄️
 **Priority: MEDIUM** - SQL analysis on Python data
 
 **Design Vision**: SQL cells work in tandem with Python kernel
