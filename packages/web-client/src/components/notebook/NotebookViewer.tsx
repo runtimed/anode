@@ -6,7 +6,6 @@ import { Cell } from './Cell.js'
 import { Card, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { Badge } from '@/components/ui/badge'
 import { Copy, Terminal, Circle, Plus, FileText, Database, Bot, Code } from 'lucide-react'
 import { getCurrentNotebookId } from '../../util/store-id.js'
 
@@ -14,10 +13,9 @@ import { getCurrentNotebookId } from '../../util/store-id.js'
 
 interface NotebookViewerProps {
   notebookId: string
-  onBack: () => void
 }
 
-export const NotebookViewer: React.FC<NotebookViewerProps> = ({ onBack }) => {
+export const NotebookViewer: React.FC<NotebookViewerProps> = () => {
   const { store } = useStore()
   const cells = store.useQuery(queryDb(tables.cells.select().orderBy('position', 'asc'))) as CellData[]
   const notebooks = store.useQuery(queryDb(tables.notebook.select().limit(1))) as any[]
@@ -195,9 +193,7 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({ onBack }) => {
         <CardHeader>
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4 flex-1">
-              <Button variant="outline" onClick={onBack}>
-                ← Back
-              </Button>
+
 
               {isEditingTitle ? (
                 <Input
@@ -241,7 +237,13 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({ onBack }) => {
                   }`}
                 />
               </Button>
-              <Badge variant="outline">{sortedCells.length} cells</Badge>
+              <Button
+                variant="outline"
+                size="sm"
+                className="flex items-center gap-2 pointer-events-none"
+              >
+                <span>{sortedCells.length} cells</span>
+              </Button>
             </div>
           </div>
 

@@ -6,8 +6,8 @@ import { FPSMeter } from '@overengineering/fps-meter'
 import React, { useState, useEffect } from 'react'
 import { unstable_batchedUpdates as batchUpdates } from 'react-dom'
 
-import { NotebookList } from './components/notebook/NotebookList.js'
 import { NotebookViewer } from './components/notebook/NotebookViewer.js'
+import { Button } from './components/ui/button.js'
 import LiveStoreWorker from './livestore.worker?worker'
 import { schema, events, tables } from '../../../shared/schema.js'
 import { getStoreId, getCurrentNotebookId } from './util/store-id.js'
@@ -19,7 +19,6 @@ const NotebookApp: React.FC = () => {
   // The notebook ID comes from the URL and is the same as the store ID
   const currentNotebookId = getCurrentNotebookId()
   const { store } = useStore()
-  const [viewMode, setViewMode] = useState<'list' | 'notebook'>('notebook')
   const [isInitializing, setIsInitializing] = useState(false)
 
   // Check if notebook exists
@@ -43,13 +42,9 @@ const NotebookApp: React.FC = () => {
     }
   }, [currentNotebook, isInitializing, store])
 
-  const handleSelectNotebook = () => {
-    // Since we're in a single-notebook store, just show the notebook view
-    setViewMode('notebook')
-  }
-
-  const handleBackToList = () => {
-    setViewMode('list')
+  const createNewNotebook = () => {
+    // Navigate to clean URL which will create a new store/notebook
+    window.location.href = window.location.origin
   }
 
   // Show loading while initializing
@@ -80,24 +75,13 @@ const NotebookApp: React.FC = () => {
                 alt="Anode"
                 className="h-8 w-auto"
               />
-              <h1
-                className="text-xl font-bold text-primary cursor-pointer hover:opacity-80 transition-opacity"
-                onClick={handleBackToList}
-              >
+              <h1 className="text-xl font-bold text-primary">
                 Anode
               </h1>
             </div>
-            {viewMode === 'notebook' && (
-              <>
-                <span className="text-muted-foreground">/</span>
-                <button
-                  onClick={handleBackToList}
-                  className="text-primary hover:opacity-80 text-sm transition-opacity"
-                >
-                  ← Back to Overview
-                </button>
-              </>
-            )}
+            <Button onClick={createNewNotebook} variant="outline" size="sm">
+              + New Notebook
+            </Button>
           </div>
 
           <div className="text-xs text-muted-foreground">
@@ -107,14 +91,7 @@ const NotebookApp: React.FC = () => {
       </nav>
 
       {/* Main Content */}
-      {viewMode === 'notebook' ? (
-        <NotebookViewer
-          notebookId={currentNotebookId}
-          onBack={handleBackToList}
-        />
-      ) : (
-        <NotebookList onSelectNotebook={handleSelectNotebook} />
-      )}
+      <NotebookViewer notebookId={currentNotebookId} />
     </div>
   )
 }
