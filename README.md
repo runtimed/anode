@@ -17,6 +17,7 @@ A real-time collaborative notebook system built on LiveStore, focusing on seamle
 ### 1. Install and Start Core Services
 ```bash
 pnpm install
+echo "VITE_LIVESTORE_SYNC_URL=ws://localhost:8787" > packages/web-client/.env
 pnpm dev  # Starts web client + sync backend
 ```
 
