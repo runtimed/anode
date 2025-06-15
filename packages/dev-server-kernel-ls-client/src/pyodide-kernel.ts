@@ -188,7 +188,7 @@ json.dumps(result_data)
 
       // Add any stdout outputs that were captured
       if (this.stdoutBuffer.length > 0) {
-        const stdoutText = this.stdoutBuffer.join('');
+        const stdoutText = this.stdoutBuffer.join('\n');
         if (stdoutText.trim()) {
           outputs.push({
             type: "stream",
@@ -204,7 +204,7 @@ json.dumps(result_data)
 
       // Add any stderr outputs that were captured
       if (this.stderrBuffer.length > 0) {
-        const stderrText = this.stderrBuffer.join('');
+        const stderrText = this.stderrBuffer.join('\n');
         if (stderrText.trim()) {
           outputs.push({
             type: "stream",
