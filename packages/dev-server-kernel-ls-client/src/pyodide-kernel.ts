@@ -31,34 +31,56 @@ export class PyodideKernel {
     // Install common packages for data science and visualization
     await this.pyodide.loadPackage(["matplotlib", "numpy", "pandas"]);
 
-    // Set up matplotlib for rich output
+    // Set up matplotlib and simple display formatting
     this.pyodide.runPython(`
 import matplotlib
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import io
-import base64
+import json
 
 # Configure matplotlib for SVG output
 matplotlib.use('svg')
 
-# Helper function to create rich outputs
-def _display_result(result):
-    """Convert result to rich output format"""
-    if hasattr(result, '_repr_html_'):
-        return {'text/html': result._repr_html_()}
-    elif hasattr(result, '_repr_markdown_'):
-        return {'text/markdown': result._repr_markdown_()}
-    elif hasattr(result, '_repr_svg_'):
-        return {'image/svg+xml': result._repr_svg_()}
-    else:
-        return {'text/plain': str(result)}
+def format_for_display(obj):
+    """Simple formatter for common data types"""
+    if obj is None:
+        return None
+
+    result = {"text/plain": str(obj)}
+
+    # Check for pandas DataFrame
+    if hasattr(obj, '_repr_html_') and hasattr(obj, 'columns'):
+        try:
+            result["text/html"] = obj._repr_html_()
+        except:
+            pass
+
+    # Check for other rich representations
+    if hasattr(obj, '_repr_markdown_'):
+        try:
+            result["text/markdown"] = obj._repr_markdown_()
+        except:
+            pass
+
+    if hasattr(obj, '_repr_svg_'):
+        try:
+            result["image/svg+xml"] = obj._repr_svg_()
+        except:
+            pass
+
+    return result
+
+# Store for plot outputs
+_plot_outputs = []
 
 # Override plt.show to capture plots
 _original_show = plt.show
 def _custom_show(block=None):
     """Custom show function that captures SVG output"""
+    global _plot_outputs
+
     if plt.get_fignums():  # Check if there are active figures
         # Get current figure
         fig = plt.gcf()
@@ -70,8 +92,15 @@ def _custom_show(block=None):
         svg_content = svg_buffer.getvalue()
         svg_buffer.close()
 
-        # Store the SVG for retrieval
-        globals()['_last_plot_svg'] = svg_content
+        # Store the plot
+        _plot_outputs.append({
+            'data': {
+                'image/svg+xml': svg_content,
+                'text/plain': '[Plot output]'
+            },
+            'metadata': {},
+            'output_type': 'display_data'
+        })
 
         # Clear the figure
         plt.clf()
@@ -97,59 +126,49 @@ print("🐍 Python runtime ready with matplotlib and rich output support")
 
     const outputs: OutputData[] = [];
     try {
-      // Clear any previous plot SVG
-      this.pyodide.runPython("globals().pop('_last_plot_svg', None)");
+      // Clear any previous plot outputs
+      this.pyodide.runPython("_plot_outputs = []");
 
-      // Execute the code
+      // Execute the code and capture the result
       const result = await this.pyodide.runPythonAsync(code);
 
-      // Check if there's a plot SVG to display
-      const plotSvg = this.pyodide.runPython("globals().get('_last_plot_svg', None)");
-      if (plotSvg && plotSvg !== "None") {
-        outputs.push({
-          type: "display_data",
-          data: {
-            "image/svg+xml": plotSvg,
-            "text/plain": "[Plot output]"
-          },
-          metadata: { "plotly": { "display_as": "svg" } },
-          position: outputs.length,
+      // Get any plot outputs that were generated
+      const plotOutputsJson = this.pyodide.runPython(`
+import json
+json.dumps(_plot_outputs)
+`);
+
+      // Add plot outputs first
+      if (plotOutputsJson && plotOutputsJson !== "[]") {
+        const plotOutputs = JSON.parse(plotOutputsJson);
+        plotOutputs.forEach((output: any, idx: number) => {
+          outputs.push({
+            type: output.output_type as any,
+            data: output.data,
+            metadata: output.metadata || {},
+            position: idx,
+          });
         });
       }
 
-      // Handle the execution result
+      // Handle the execution result if we have one
       if (result !== undefined && result !== null) {
-        // Try to get rich representation
-        const richData = this.pyodide.runPython(`
-try:
-    _display_result(${JSON.stringify(result)})
-except:
-    {"text/plain": str(${JSON.stringify(result)})}
+        // Get rich representation of the result
+        this.pyodide.globals.set("_temp_result", result);
+        const richDataJson = this.pyodide.runPython(`
+import json
+result_data = format_for_display(_temp_result)
+json.dumps(result_data)
 `);
 
-        outputs.push({
-          type: "execute_result",
-          data: richData || { "text/plain": String(result) },
-          position: outputs.length,
-        });
-      }
-
-      // Handle special cases for common data types
-      if (typeof result === 'object' && result !== null) {
-        // Check if it's a pandas DataFrame
-        const isDataFrame = this.pyodide.runPython(`
-try:
-    import pandas as pd
-    isinstance(${JSON.stringify(result)}, pd.DataFrame)
-except:
-    False
-`);
-
-        if (isDataFrame) {
-          const htmlRepr = this.pyodide.runPython(`${JSON.stringify(result)}._repr_html_()`);
-          if (htmlRepr) {
-            outputs[outputs.length - 1].data["text/html"] = htmlRepr;
-          }
+        if (richDataJson && richDataJson !== "null") {
+          const richData = JSON.parse(richDataJson);
+          outputs.push({
+            type: "execute_result",
+            data: richData,
+            metadata: {},
+            position: outputs.length,
+          });
         }
       }
 

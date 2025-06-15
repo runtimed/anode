@@ -12,6 +12,7 @@ interface RichOutputProps {
 interface OutputData {
   'text/plain'?: string
   'text/markdown'?: string
+  'text/html'?: string
   'image/svg+xml'?: string
   'image/svg'?: string
   'application/json'?: any
@@ -29,6 +30,7 @@ export const RichOutput: React.FC<RichOutputProps> = ({
   const getPreferredMediaType = (): string | null => {
     const preferenceOrder = [
       'text/markdown',
+      'text/html',
       'image/svg+xml',
       'image/svg',
       'application/json',
@@ -85,6 +87,14 @@ export const RichOutput: React.FC<RichOutputProps> = ({
               {outputData[mediaType]}
             </ReactMarkdown>
           </div>
+        )
+
+      case 'text/html':
+        return (
+          <div
+            className="prose prose-sm max-w-none"
+            dangerouslySetInnerHTML={{ __html: outputData[mediaType] }}
+          />
         )
 
       case 'image/svg+xml':
