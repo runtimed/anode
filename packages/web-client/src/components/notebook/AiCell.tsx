@@ -13,7 +13,7 @@ import {
   DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu'
 import { RichOutput } from './RichOutput.js'
-import { Play, ChevronUp, ChevronDown, Plus, X, Bot, Code, FileText, Database, FileX } from 'lucide-react'
+import { Play, ChevronUp, ChevronDown, Plus, X, Bot, Code, FileText, Database } from 'lucide-react'
 
 interface AiCellProps {
   cell: typeof tables.cells.Type
@@ -182,7 +182,7 @@ export const AiCell: React.FC<AiCellProps> = ({
     }
   }, [onFocus])
 
-  const changeCellType = useCallback((newType: 'code' | 'markdown' | 'raw' | 'sql' | 'ai') => {
+  const changeCellType = useCallback((newType: 'code' | 'markdown' | 'sql' | 'ai') => {
     store.commit(events.cellTypeChanged({
       id: cell.id,
       cellType: newType,
@@ -268,10 +268,6 @@ export const AiCell: React.FC<AiCellProps> = ({
               <DropdownMenuItem onClick={() => changeCellType('ai')} className="gap-2">
                 <Bot className="h-4 w-4" />
                 AI Assistant
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => changeCellType('raw')} className="gap-2">
-                <FileX className="h-4 w-4" />
-                Raw
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>

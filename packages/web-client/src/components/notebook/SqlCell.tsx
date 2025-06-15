@@ -10,7 +10,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu'
-import { Play, ChevronUp, ChevronDown, Plus, X, Database, Code, FileText, Bot, FileX } from 'lucide-react'
+import { Play, ChevronUp, ChevronDown, Plus, X, Database, Code, FileText, Bot } from 'lucide-react'
 
 interface SqlCellProps {
   cell: typeof tables.cells.Type
@@ -140,7 +140,7 @@ export const SqlCell: React.FC<SqlCellProps> = ({
     }
   }, [onFocus])
 
-  const changeCellType = useCallback((newType: 'code' | 'markdown' | 'raw' | 'sql' | 'ai') => {
+  const changeCellType = useCallback((newType: 'code' | 'markdown' | 'sql' | 'ai') => {
     store.commit(events.cellTypeChanged({
       id: cell.id,
       cellType: newType,
@@ -243,10 +243,6 @@ export const SqlCell: React.FC<SqlCellProps> = ({
               <DropdownMenuItem onClick={() => changeCellType('ai')} className="gap-2">
                 <Bot className="h-4 w-4" />
                 AI Assistant
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => changeCellType('raw')} className="gap-2">
-                <FileX className="h-4 w-4" />
-                Raw
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>

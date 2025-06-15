@@ -17,7 +17,7 @@ import { SqlCell } from './SqlCell.js'
 import { AiCell } from './AiCell.js'
 import { RichOutput } from './RichOutput.js'
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
-import { Play, ChevronUp, ChevronDown, Plus, X, Code, FileText, Database, Bot, FileX } from 'lucide-react'
+import { Play, ChevronUp, ChevronDown, Plus, X, Code, FileText, Database, Bot } from 'lucide-react'
 
 type CellType = typeof tables.cells.Type
 
@@ -107,7 +107,7 @@ export const Cell: React.FC<CellProps> = ({
     }
   }, [localSource, cell.source, cell.id, store])
 
-  const changeCellType = useCallback((newType: 'code' | 'markdown' | 'raw' | 'sql' | 'ai') => {
+  const changeCellType = useCallback((newType: 'code' | 'markdown' | 'sql' | 'ai') => {
     store.commit(events.cellTypeChanged({
       id: cell.id,
       cellType: newType,
@@ -232,7 +232,6 @@ export const Cell: React.FC<CellProps> = ({
       case 'markdown': return <FileText className="h-3 w-3" />
       case 'sql': return <Database className="h-3 w-3" />
       case 'ai': return <Bot className="h-3 w-3" />
-      case 'raw': return <FileX className="h-3 w-3" />
       default: return <Code className="h-3 w-3" />
     }
   }
@@ -287,10 +286,6 @@ export const Cell: React.FC<CellProps> = ({
               <DropdownMenuItem onClick={() => changeCellType('ai')} className="gap-2">
                 <Bot className="h-4 w-4" />
                 AI Assistant
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => changeCellType('raw')} className="gap-2">
-                <FileX className="h-4 w-4" />
-                Raw
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>

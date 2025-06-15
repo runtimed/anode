@@ -56,7 +56,7 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({ onNewNotebook })
     setIsEditingTitle(false)
   }, [notebook, localTitle, store])
 
-  const addCell = useCallback((afterCellId?: string, cellType: 'code' | 'markdown' | 'raw' | 'sql' | 'ai' = 'code') => {
+  const addCell = useCallback((afterCellId?: string, cellType: 'code' | 'markdown' | 'sql' | 'ai' = 'code') => {
     const cellId = `cell-${Date.now()}-${Math.random().toString(36).slice(2)}`
 
     let newPosition: number
