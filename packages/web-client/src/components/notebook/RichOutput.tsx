@@ -64,16 +64,16 @@ export const RichOutput: React.FC<RichOutputProps> = ({
           <div className="prose prose-sm max-w-none">
             <ReactMarkdown
               components={{
-                code({ node, inline, className, children, ...props }) {
+                code({ node, className, children, ...props }) {
                   const match = /language-(\w+)/.exec(className || '')
                   const language = match ? match[1] : ''
+                  const inline = !className
 
                   return !inline && language ? (
                     <SyntaxHighlighter
-                      style={oneLight}
+                      style={oneLight as any}
                       language={language}
                       PreTag="div"
-                      {...props}
                     >
                       {String(children).replace(/\n$/, '')}
                     </SyntaxHighlighter>
@@ -94,7 +94,7 @@ export const RichOutput: React.FC<RichOutputProps> = ({
         return (
           <div
             className="max-w-none dataframe-container"
-            dangerouslySetInnerHTML={{ __html: outputData[mediaType] }}
+            dangerouslySetInnerHTML={{ __html: outputData[mediaType] || '' }}
             style={{
               // Add styles for pandas DataFrames
               '--dataframe-border': '1px solid #dee2e6',
@@ -111,7 +111,7 @@ export const RichOutput: React.FC<RichOutputProps> = ({
           <div className="flex justify-center p-4">
             <div
               className="max-w-full"
-              dangerouslySetInnerHTML={{ __html: outputData[mediaType] }}
+              dangerouslySetInnerHTML={{ __html: outputData[mediaType] || '' }}
             />
           </div>
         )
@@ -121,7 +121,7 @@ export const RichOutput: React.FC<RichOutputProps> = ({
           <div className="bg-gray-50 rounded-md p-3">
             <SyntaxHighlighter
               language="json"
-              style={oneLight}
+              style={oneLight as any}
               customStyle={{
                 margin: 0,
                 background: 'transparent',
