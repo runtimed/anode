@@ -186,7 +186,9 @@ export const AiCell: React.FC<AiCellProps> = ({
   }
 
   return (
-    <div className="mb-2 relative group border-l-4 border-transparent hover:border-purple-500/20 transition-colors pl-4">
+    <div className={`mb-2 relative group border-l-4 transition-colors pl-4 ${
+      autoFocus ? 'border-purple-500/40' : 'border-transparent'
+    }`}>
       {/* Cell Header */}
       <div className="flex items-center justify-between mb-2 py-1">
         <div className="flex items-center gap-2">
@@ -237,7 +239,11 @@ export const AiCell: React.FC<AiCellProps> = ({
       </div>
 
       {/* Cell Content */}
-      <div className="bg-card/50 rounded-md border border-border/50 focus-within:border-ring/50 focus-within:bg-card transition-colors p-3">
+      <div className={`rounded-md border transition-colors p-3 ${
+        autoFocus
+          ? 'bg-card border-ring/50'
+          : 'bg-card/50 border-border/50 focus-within:border-ring/50 focus-within:bg-card'
+      }`}>
         {/* Conversation History */}
         {conversation.length > 0 && (
           <div className="max-h-96 overflow-y-auto mb-4 space-y-2 -mx-3 px-3">

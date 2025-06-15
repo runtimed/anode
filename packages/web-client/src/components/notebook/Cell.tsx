@@ -216,7 +216,9 @@ export const Cell: React.FC<CellProps> = ({
   }
 
   return (
-    <div className="mb-2 relative group border-l-4 border-transparent hover:border-primary/20 transition-colors pl-4">
+    <div className={`mb-2 relative group border-l-4 transition-colors pl-4 ${
+      autoFocus ? 'border-primary/40' : 'border-transparent'
+    }`}>
       {/* Cell Header */}
       <div className="flex items-center justify-between mb-2 py-1">
         <div className="flex items-center gap-2">
@@ -288,7 +290,11 @@ export const Cell: React.FC<CellProps> = ({
       </div>
 
       {/* Cell Content */}
-      <div className="bg-card/50 rounded-md border border-border/50 focus-within:border-ring/50 focus-within:bg-card transition-colors">
+      <div className={`rounded-md border transition-colors ${
+        autoFocus
+          ? 'bg-card border-ring/50'
+          : 'bg-card/50 border-border/50 focus-within:border-ring/50 focus-within:bg-card'
+      }`}>
         <div className="min-h-[60px]">
           <Textarea
             ref={textareaRef}
