@@ -1,7 +1,7 @@
 import React, { useState, useCallback } from 'react'
 import { useStore } from '@livestore/react'
 import { events, tables } from '@anode/schema'
-import { Card, CardContent, CardHeader } from '@/components/ui/card'
+
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
 import { Badge } from '@/components/ui/badge'
@@ -11,7 +11,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu'
-import { Separator } from '@/components/ui/separator'
+
 import { SqlCell } from './SqlCell.js'
 import { AiCell } from './AiCell.js'
 import { queryDb } from '@livestore/livestore'
@@ -24,6 +24,10 @@ interface CellProps {
   onDeleteCell: () => void
   onMoveUp: () => void
   onMoveDown: () => void
+  onFocusNext?: () => void
+  onFocusPrevious?: () => void
+  autoFocus?: boolean
+  onFocus?: () => void
 }
 
 export const Cell: React.FC<CellProps> = ({
@@ -31,7 +35,11 @@ export const Cell: React.FC<CellProps> = ({
   onAddCell,
   onDeleteCell,
   onMoveUp,
-  onMoveDown
+  onMoveDown,
+  onFocusNext,
+  onFocusPrevious,
+  autoFocus = false,
+  onFocus
 }) => {
   // Route to specialized cell components
   if (cell.cellType === 'sql') {
@@ -44,8 +52,8 @@ export const Cell: React.FC<CellProps> = ({
 
   // Default cell component for code, markdown, raw
   const { store } = useStore()
-  const [isEditing, setIsEditing] = useState(false)
   const [localSource, setLocalSource] = useState(cell.source)
+  const textareaRef = React.useRef<HTMLTextAreaElement>(null)
 
   // Create stable query using useMemo to prevent React Hook issues
   const outputsQuery = React.useMemo(() =>
@@ -53,6 +61,18 @@ export const Cell: React.FC<CellProps> = ({
     [cell.id]
   )
   const outputs = store.useQuery(outputsQuery) as any[]
+
+  // Auto-focus when requested
+  React.useEffect(() => {
+    if (autoFocus && textareaRef.current) {
+      textareaRef.current.focus()
+    }
+  }, [autoFocus])
+
+  // Sync local source with cell source
+  React.useEffect(() => {
+    setLocalSource(cell.source)
+  }, [cell.source])
 
   const updateSource = useCallback(() => {
     if (localSource !== cell.source) {
@@ -62,7 +82,6 @@ export const Cell: React.FC<CellProps> = ({
         modifiedBy: 'current-user', // TODO: get from auth
       }))
     }
-    setIsEditing(false)
   }, [localSource, cell.source, cell.id, store])
 
   const changeCellType = useCallback((newType: 'code' | 'markdown' | 'raw' | 'sql' | 'ai') => {
@@ -127,7 +146,36 @@ export const Cell: React.FC<CellProps> = ({
     }
   }, [cell.id, cell.source, cell.executionCount, store])
 
-  const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
+  const handleKeyDown = useCallback((e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    const textarea = e.currentTarget
+    const { selectionStart, selectionEnd, value } = textarea
+
+    // Handle arrow key navigation between cells
+    if (e.key === 'ArrowUp' && selectionStart === selectionEnd) {
+      // For empty cells or cursor at beginning of first line
+      const beforeCursor = value.substring(0, selectionStart)
+      const isAtTop = selectionStart === 0 || !beforeCursor.includes('\n')
+
+      if (isAtTop && onFocusPrevious) {
+        e.preventDefault()
+        updateSource()
+        onFocusPrevious()
+        return
+      }
+    } else if (e.key === 'ArrowDown' && selectionStart === selectionEnd) {
+      // For empty cells or cursor at end of last line
+      const afterCursor = value.substring(selectionEnd)
+      const isAtBottom = selectionEnd === value.length || !afterCursor.includes('\n')
+
+      if (isAtBottom && onFocusNext) {
+        e.preventDefault()
+        updateSource()
+        onFocusNext()
+        return
+      }
+    }
+
+    // Handle execution shortcuts
     if (e.key === 'Enter' && e.shiftKey) {
       // Shift+Enter: Run cell and move to next (create new cell)
       e.preventDefault()
@@ -144,11 +192,14 @@ export const Cell: React.FC<CellProps> = ({
         executeCell()
       }
       // Don't call onAddCell() - stay in current cell
-    } else if (e.key === 'Escape') {
-      setLocalSource(cell.source)
-      setIsEditing(false)
     }
-  }, [updateSource, executeCell, cell.source, cell.cellType, onAddCell])
+  }, [updateSource, executeCell, cell.cellType, onAddCell, onFocusNext, onFocusPrevious])
+
+  const handleFocus = useCallback(() => {
+    if (onFocus) {
+      onFocus()
+    }
+  }, [onFocus])
 
   const getBadgeVariant = () => {
     switch (cell.cellType) {
@@ -173,120 +224,114 @@ export const Cell: React.FC<CellProps> = ({
   }
 
   return (
-    <Card className="mb-4 relative group">
-      <CardHeader className="pb-2">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Badge
-                  variant={getBadgeVariant()}
-                  className="cursor-pointer hover:opacity-80"
-                >
-                  {cell.cellType}
-                </Badge>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent>
-                <DropdownMenuItem onClick={() => changeCellType('code')}>
-                  Code
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => changeCellType('markdown')}>
-                  Markdown
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => changeCellType('sql')}>
-                  🗄️ SQL Query
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => changeCellType('ai')}>
-                  🤖 AI Assistant
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => changeCellType('raw')}>
-                  Raw
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-            {getExecutionStatus()}
-          </div>
-
-          {/* Cell Controls - visible on hover */}
-          <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={onMoveUp}
-              className="h-8 w-8 p-0"
-            >
-              ↑
-            </Button>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={onMoveDown}
-              className="h-8 w-8 p-0"
-            >
-              ↓
-            </Button>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={onAddCell}
-              className="h-8 w-8 p-0"
-            >
-              +
-            </Button>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={onDeleteCell}
-              className="h-8 w-8 p-0 text-destructive hover:text-destructive"
-            >
-              ×
-            </Button>
-          </div>
+    <div className={`mb-2 relative group border-l-4 transition-colors pl-4 ${
+      autoFocus ? 'border-primary/40' : 'border-transparent'
+    }`}>
+      {/* Cell Header */}
+      <div className="flex items-center justify-between mb-2 py-1">
+        <div className="flex items-center gap-2">
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Badge
+                variant={getBadgeVariant()}
+                className="cursor-pointer hover:opacity-80 text-xs"
+              >
+                {cell.cellType}
+              </Badge>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent>
+              <DropdownMenuItem onClick={() => changeCellType('code')}>
+                Code
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => changeCellType('markdown')}>
+                Markdown
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => changeCellType('sql')}>
+                🗄️ SQL Query
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => changeCellType('ai')}>
+                🤖 AI Assistant
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => changeCellType('raw')}>
+                Raw
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+          {getExecutionStatus()}
         </div>
-      </CardHeader>
 
-      <CardContent>
-        <div
-          onClick={() => setIsEditing(true)}
-          className="min-h-[40px] cursor-text"
-        >
-          {isEditing ? (
-            <Textarea
-              value={localSource}
-              onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setLocalSource(e.target.value)}
-              onBlur={updateSource}
-              onKeyDown={handleKeyDown}
-              placeholder={
-                cell.cellType === 'code'
-                  ? 'Enter your code here...'
-                  : cell.cellType === 'markdown'
-                  ? 'Enter markdown...'
-                  : 'Enter raw text...'
-              }
-              className="min-h-[60px] resize-none border-0 p-2 focus-visible:ring-0 font-mono"
-              autoFocus
-            />
-          ) : (
-            <div
-              className={`whitespace-pre-wrap font-mono text-sm min-h-[40px] p-2 rounded border-2 border-transparent hover:border-muted-foreground/20 transition-colors ${
-                cell.source ? '' : 'text-muted-foreground italic'
-              }`}
-            >
-              {cell.source || 'Click to edit...'}
-            </div>
-          )}
+        {/* Cell Controls - visible on hover */}
+        <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={onMoveUp}
+            className="h-6 w-6 p-0 text-xs"
+          >
+            ↑
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={onMoveDown}
+            className="h-6 w-6 p-0 text-xs"
+          >
+            ↓
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={onAddCell}
+            className="h-6 w-6 p-0 text-xs"
+          >
+            +
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={onDeleteCell}
+            className="h-6 w-6 p-0 text-xs text-destructive hover:text-destructive"
+          >
+            ×
+          </Button>
+        </div>
+      </div>
+
+      {/* Cell Content */}
+      <div className={`rounded-md border transition-colors ${
+        autoFocus
+          ? 'bg-card border-ring/50'
+          : 'bg-card/50 border-border/50 focus-within:border-ring/50 focus-within:bg-card'
+      }`}>
+        <div className="min-h-[60px]">
+          <Textarea
+            ref={textareaRef}
+            value={localSource}
+            onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setLocalSource(e.target.value)}
+            onBlur={updateSource}
+            onKeyDown={handleKeyDown}
+            placeholder={
+              cell.cellType === 'code'
+                ? 'Enter your code here...'
+                : cell.cellType === 'markdown'
+                ? 'Enter markdown...'
+                : 'Enter raw text...'
+            }
+            className="min-h-[60px] resize-none border-0 p-3 focus-visible:ring-0 font-mono bg-transparent w-full"
+            onFocus={handleFocus}
+          />
         </div>
 
         {/* Execution Controls for Code Cells */}
-        {cell.cellType === 'code' && !isEditing && (
-          <>
-            <Separator className="my-3" />
+        {cell.cellType === 'code' && (
+          <div className="border-t border-border/50 p-3 bg-muted/20">
             <div className="flex items-center gap-2">
               <Button
                 variant="outline"
                 size="sm"
                 onClick={executeCell}
                 disabled={cell.executionState === 'running' || cell.executionState === 'queued'}
+                className="h-7"
               >
                 {cell.executionState === 'running'
                   ? 'Running...'
@@ -294,80 +339,77 @@ export const Cell: React.FC<CellProps> = ({
                   ? 'Queued...'
                   : 'Run'}
               </Button>
-              <span className="text-xs text-muted-foreground">
-                Shift+Enter to run and move • Ctrl+Enter to run
-              </span>
-            </div>
-          </>
-        )}
 
-
-
-        {/* Output Area for Code Cells */}
-        {cell.cellType === 'code' && (outputs.length > 0 || cell.executionState === 'running') && (
-          <div className="mt-4">
-            <Separator className="mb-3" />
-            <div className="space-y-2">
-              {cell.executionState === 'running' && outputs.length === 0 && (
-                <div className="p-3 bg-blue-50 border border-blue-200 rounded-md">
-                  <div className="flex items-center gap-2">
-                    <div className="animate-spin w-4 h-4 border-2 border-blue-600 border-t-transparent rounded-full"></div>
-                    <span className="text-sm text-blue-700">Executing...</span>
-                  </div>
-                </div>
-              )}
-
-              {outputs
-                .sort((a: any, b: any) => a.position - b.position)
-                .map((output: any) => (
-                  <div key={output.id} className="border rounded-md">
-                    {output.outputType === 'stream' && (
-                      <div className="p-3 bg-gray-50 font-mono text-sm whitespace-pre-wrap">
-                        {(output.data as any)['text/plain']}
-                      </div>
-                    )}
-
-                    {output.outputType === 'execute_result' && (
-                      <div className="p-3 bg-green-50 border-green-200">
-                        <div className="text-xs text-green-600 mb-1">Result:</div>
-                        <div className="font-mono text-sm whitespace-pre-wrap">
-                          {(output.data as any)['text/plain']}
-                        </div>
-                      </div>
-                    )}
-
-                    {output.outputType === 'error' && (
-                      <div className="p-3 bg-red-50 border-red-200">
-                        <div className="text-xs text-red-600 mb-1">Error:</div>
-                        <div className="font-mono text-sm">
-                          <div className="font-semibold text-red-700">
-                            {(output.data as any).ename}: {(output.data as any).evalue}
-                          </div>
-                          {(output.data as any).traceback && (
-                            <div className="mt-2 text-red-600 text-xs whitespace-pre-wrap">
-                              {Array.isArray((output.data as any).traceback)
-                                ? (output.data as any).traceback.join('\n')
-                                : (output.data as any).traceback}
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    )}
-
-                    {output.outputType === 'display_data' && (
-                      <div className="p-3 bg-blue-50 border-blue-200">
-                        <div className="text-xs text-blue-600 mb-1">Display:</div>
-                        <div className="font-mono text-sm whitespace-pre-wrap">
-                          {(output.data as any)['text/plain'] || JSON.stringify(output.data, null, 2)}
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                ))}
             </div>
           </div>
         )}
-      </CardContent>
-    </Card>
+      </div>
+
+
+
+      {/* Output Area for Code Cells */}
+      {cell.cellType === 'code' && (outputs.length > 0 || cell.executionState === 'running') && (
+        <div className="mt-2">
+          <div className="bg-card/30 rounded-md border border-border/50 overflow-hidden">
+            {cell.executionState === 'running' && outputs.length === 0 && (
+              <div className="p-3 bg-blue-50/50 border-b border-border/50">
+                <div className="flex items-center gap-2">
+                  <div className="animate-spin w-4 h-4 border-2 border-blue-600 border-t-transparent rounded-full"></div>
+                  <span className="text-sm text-blue-700">Executing...</span>
+                </div>
+              </div>
+            )}
+
+            {outputs
+              .sort((a: any, b: any) => a.position - b.position)
+              .map((output: any, index: number) => (
+                <div key={output.id} className={index > 0 ? "border-t border-border/50" : ""}>
+                  {output.outputType === 'stream' && (
+                    <div className="p-3 bg-gray-50/50 font-mono text-sm whitespace-pre-wrap">
+                      {(output.data as any)['text/plain']}
+                    </div>
+                  )}
+
+                  {output.outputType === 'execute_result' && (
+                    <div className="p-3 bg-green-50/50">
+                      <div className="text-xs text-green-600 mb-1 font-medium">Result:</div>
+                      <div className="font-mono text-sm whitespace-pre-wrap">
+                        {(output.data as any)['text/plain']}
+                      </div>
+                    </div>
+                  )}
+
+                  {output.outputType === 'error' && (
+                    <div className="p-3 bg-red-50/50">
+                      <div className="text-xs text-red-600 mb-1 font-medium">Error:</div>
+                      <div className="font-mono text-sm">
+                        <div className="font-semibold text-red-700">
+                          {(output.data as any).ename}: {(output.data as any).evalue}
+                        </div>
+                        {(output.data as any).traceback && (
+                          <div className="mt-2 text-red-600 text-xs whitespace-pre-wrap">
+                            {Array.isArray((output.data as any).traceback)
+                              ? (output.data as any).traceback.join('\n')
+                              : (output.data as any).traceback}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  )}
+
+                  {output.outputType === 'display_data' && (
+                    <div className="p-3 bg-blue-50/50">
+                      <div className="text-xs text-blue-600 mb-1 font-medium">Display:</div>
+                      <div className="font-mono text-sm whitespace-pre-wrap">
+                        {(output.data as any)['text/plain'] || JSON.stringify(output.data, null, 2)}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              ))}
+          </div>
+        </div>
+      )}
+    </div>
   )
 }

@@ -75,29 +75,30 @@ pnpm build:schema   # Required after schema changes
 - ✅ **Session management** with kernel isolation
 - ✅ **Comprehensive testing** (68 passing tests)
 
-## Next Phase: AI Integration & UX Polish 🤖
+## Next Phase: AI Integration & Advanced Features 🤖
 
-**Priority Focus**: AI ↔ Python ↔ User interactions with fluid notebook UX
+**Priority Focus**: AI ↔ Python ↔ User interactions with enterprise-grade features
 
 ### Immediate Goals
-- **Notebook UX Improvements** - Fluid cell navigation and Jupyter-like interaction
-- **AI Cell Architecture** - Notebook-aware AI assistance
-- **Code Completions** - LSP + kernel-based suggestions  
-- **Authentication** - Google OAuth with session management
-- **Kernel Lifecycle** - Automatic startup and management
+- **AI Cell Functionality** - Real API integration with OpenAI, Anthropic, local models
+- **Automatic Kernel Management** - One-click notebook startup with auto-kernel lifecycle
+- **Code Completions** - LSP + kernel-based suggestions with Pyodide integration
+- **Authentication System** - Google OAuth with proper session management
+- **SQL Cell Implementation** - Real database connections and query execution
 
-### Current UX Issues to Address
-- Click-to-edit model breaks notebook flow
-- No keyboard navigation between cells (arrow keys)
-- Heavy card UI feels cluttered vs clean notebook interfaces
-- Hover-only controls are hard to discover
-- Missing standard execution shortcuts (Shift+Enter, Ctrl+Enter)
+### Medium-term Roadmap
+- **Enhanced Output Rendering** - Rich media, plots, and interactive visualizations
+- **Real-time Collaboration** - Live cursors and presence indicators
+- **Advanced Cell Operations** - Multi-select, drag-and-drop reordering
+- **Performance Optimization** - Handle large notebooks efficiently
 
-### Technical Debt
-- Manual kernel lifecycle management (being addressed)
-- Authentication system (Google OAuth planned)
-- Enhanced error handling and recovery
-- Cell interaction model needs modernization
+### Recent UX Achievements ✅
+- ✅ Fluid notebook navigation with arrow keys
+- ✅ Always-on textareas replacing click-to-edit model
+- ✅ Clean, focus-driven interface design
+- ✅ Standard keyboard shortcuts (Shift+Enter, Ctrl+Enter)
+- ✅ Prominent keyboard shortcuts help
+- ✅ Consistent behavior across all cell types
 
 ## Important Considerations
 
@@ -105,7 +106,7 @@ pnpm build:schema   # Required after schema changes
 - Schema package must be built before dependent packages can consume changes
 - Single `notebook` table per store (not `notebooks`)
 - `kernelSessions` and `executionQueue` tables for lifecycle management
-- **No timestamp fields** - eliminated for simplicity and stability
+- **No timestamp fields** - eliminated for simplicity and stability (LiveStore handles timing automatically)
 
 ### Local-First Architecture
 - All data operations happen locally first
@@ -159,19 +160,27 @@ anode/
 
 ### Communication Style
 - Use authentic developer voice - uncertainty is fine, just be explicit
-- Focus on AI ↔ Python ↔ User interaction goals
-- Acknowledge current production readiness while planning next phase
-- Emphasize technical achievements and breakthrough architecture
-- Balance current capabilities with AI integration roadmap
+- Focus on AI ↔ Python ↔ User interaction goals as primary differentiator
+- Acknowledge both technical and UX achievements completed
+- Emphasize production readiness and solid foundation for AI features
+- Balance current capabilities with enterprise collaboration roadmap
 
 ### Key Insights for Development
 - **Reactive architecture breakthrough** - Zero-latency execution achieved
+- **Fluid UX transformation** - Jupyter-like navigation and interaction completed
 - Simple schemas enable rapid prototyping and reliable operation
 - Event sourcing provides excellent debugging and audit capabilities  
 - Local-first design enables offline work and instant responsiveness
 - **Proper event deferral** resolves LiveStore execution segment conflicts effectively
 - Session-based kernel management enables clean isolation and scaling
-- **AI integration readiness** - Architecture supports context-aware AI cells
-- **UX modernization needed** - Current cell interaction model needs Jupyter-like fluidity
+- **Focus-based UI patterns** create clean, keyboard-driven workflows
+- **Consistent cross-cell behavior** enables predictable user experience
+- **AI integration readiness** - Solid UX foundation ready for intelligent features
 
-The system provides a **solid foundation** for AI-native collaborative notebooks and is positioned for the next phase of intelligent features.
+**Current Development Cycle**: Major UX improvements completed in June 2025, creating a fluid notebook experience that rivals Jupyter while maintaining real-time collaboration advantages.
+
+The system provides a **production-ready foundation** for AI-native collaborative notebooks with modern UX and is positioned for advanced enterprise features.
+
+## Important Note on Timestamps
+
+**Do NOT use manual timestamps in code or events.** LiveStore automatically handles all timing through its event sourcing system. Focus development on features and architecture rather than timestamp management - this was a key lesson learned that improved system stability significantly.

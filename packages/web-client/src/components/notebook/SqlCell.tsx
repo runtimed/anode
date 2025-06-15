@@ -1,7 +1,6 @@
 import React, { useState, useCallback } from 'react'
 import { useStore } from '@livestore/react'
 import { events, tables } from '@anode/schema'
-import { Card, CardContent, CardHeader } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
 import { Badge } from '@/components/ui/badge'
@@ -11,7 +10,6 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu'
-import { Separator } from '@/components/ui/separator'
 
 interface SqlCellProps {
   cell: typeof tables.cells.Type
@@ -19,6 +17,10 @@ interface SqlCellProps {
   onDeleteCell: () => void
   onMoveUp: () => void
   onMoveDown: () => void
+  onFocusNext?: () => void
+  onFocusPrevious?: () => void
+  autoFocus?: boolean
+  onFocus?: () => void
 }
 
 export const SqlCell: React.FC<SqlCellProps> = ({
@@ -26,11 +28,27 @@ export const SqlCell: React.FC<SqlCellProps> = ({
   onAddCell,
   onDeleteCell,
   onMoveUp,
-  onMoveDown
+  onMoveDown,
+  onFocusNext,
+  onFocusPrevious,
+  autoFocus = false,
+  onFocus
 }) => {
   const { store } = useStore()
-  const [isEditing, setIsEditing] = useState(false)
   const [localQuery, setLocalQuery] = useState(cell.source)
+  const textareaRef = React.useRef<HTMLTextAreaElement>(null)
+
+  // Auto-focus when requested
+  React.useEffect(() => {
+    if (autoFocus && textareaRef.current) {
+      textareaRef.current.focus()
+    }
+  }, [autoFocus])
+
+  // Sync local source with cell source
+  React.useEffect(() => {
+    setLocalQuery(cell.source)
+  }, [cell.source])
 
   const updateQuery = useCallback(() => {
     if (localQuery !== cell.source) {
@@ -40,7 +58,6 @@ export const SqlCell: React.FC<SqlCellProps> = ({
         modifiedBy: 'current-user',
       }))
     }
-    setIsEditing(false)
   }, [localQuery, cell.source, cell.id, store])
 
   const executeQuery = useCallback(() => {
@@ -73,7 +90,35 @@ export const SqlCell: React.FC<SqlCellProps> = ({
     }))
   }, [cell.id, cell.sqlConnectionId, localQuery, store])
 
-  const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
+  const handleKeyDown = useCallback((e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    const textarea = e.currentTarget
+    const { selectionStart, selectionEnd, value } = textarea
+
+    // Handle arrow key navigation between cells
+    if (e.key === 'ArrowUp' && selectionStart === selectionEnd) {
+      // For empty cells or cursor at beginning of first line
+      const beforeCursor = value.substring(0, selectionStart)
+      const isAtTop = selectionStart === 0 || !beforeCursor.includes('\n')
+
+      if (isAtTop && onFocusPrevious) {
+        e.preventDefault()
+        updateQuery()
+        onFocusPrevious()
+        return
+      }
+    } else if (e.key === 'ArrowDown' && selectionStart === selectionEnd) {
+      // For empty cells or cursor at end of last line
+      const afterCursor = value.substring(selectionEnd)
+      const isAtBottom = selectionEnd === value.length || !afterCursor.includes('\n')
+
+      if (isAtBottom && onFocusNext) {
+        e.preventDefault()
+        updateQuery()
+        onFocusNext()
+        return
+      }
+    }
+
     if (e.key === 'Enter' && e.shiftKey) {
       // Shift+Enter: Run query and move to next cell
       e.preventDefault()
@@ -85,11 +130,14 @@ export const SqlCell: React.FC<SqlCellProps> = ({
       e.preventDefault()
       updateQuery()
       executeQuery()
-    } else if (e.key === 'Escape') {
-      setLocalQuery(cell.source)
-      setIsEditing(false)
     }
-  }, [updateQuery, executeQuery, cell.source, onAddCell])
+  }, [updateQuery, executeQuery, onAddCell, onFocusNext, onFocusPrevious])
+
+  const handleFocus = useCallback(() => {
+    if (onFocus) {
+      onFocus()
+    }
+  }, [onFocus])
 
   const getConnectionBadge = () => {
     if (!cell.sqlConnectionId) {
@@ -146,121 +194,110 @@ export const SqlCell: React.FC<SqlCellProps> = ({
   }
 
   return (
-    <Card className="mb-4 relative group">
-      <CardHeader className="pb-2">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <Badge variant="default" className="bg-blue-600">
-              SQL
-            </Badge>
-            {getConnectionBadge()}
-            {cell.executionState === 'running' && (
-              <Badge variant="destructive">Running...</Badge>
-            )}
-          </div>
-
-          {/* Cell Controls */}
-          <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={onMoveUp}
-              className="h-8 w-8 p-0"
-            >
-              ↑
-            </Button>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={onMoveDown}
-              className="h-8 w-8 p-0"
-            >
-              ↓
-            </Button>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={onAddCell}
-              className="h-8 w-8 p-0"
-            >
-              +
-            </Button>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={onDeleteCell}
-              className="h-8 w-8 p-0 text-destructive hover:text-destructive"
-            >
-              ×
-            </Button>
-          </div>
-        </div>
-      </CardHeader>
-
-      <CardContent>
-        <div
-          onClick={() => setIsEditing(true)}
-          className="min-h-[60px] cursor-text"
-        >
-          {isEditing ? (
-            <Textarea
-              value={localQuery}
-              onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setLocalQuery(e.target.value)}
-              onBlur={updateQuery}
-              onKeyDown={handleKeyDown}
-              placeholder="SELECT * FROM your_table WHERE condition = 'value';"
-              className="min-h-[80px] resize-none border-0 p-2 focus-visible:ring-0 font-mono"
-              autoFocus
-            />
-          ) : (
-            <div
-              className={`whitespace-pre-wrap font-mono text-sm min-h-[60px] p-2 rounded border-2 border-transparent hover:border-muted-foreground/20 transition-colors ${
-                cell.source ? '' : 'text-muted-foreground italic'
-              }`}
-            >
-              {cell.source || 'Click to enter SQL query...'}
-            </div>
+    <div className={`mb-2 relative group border-l-4 transition-colors pl-4 ${
+      autoFocus ? 'border-blue-500/40' : 'border-transparent'
+    }`}>
+      {/* Cell Header */}
+      <div className="flex items-center justify-between mb-2 py-1">
+        <div className="flex items-center gap-2">
+          <Badge variant="default" className="bg-blue-600 text-xs">
+            SQL
+          </Badge>
+          {getConnectionBadge()}
+          {cell.executionState === 'running' && (
+            <Badge variant="destructive">Running...</Badge>
           )}
         </div>
 
+        {/* Cell Controls */}
+        <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={onMoveUp}
+            className="h-6 w-6 p-0 text-xs"
+          >
+            ↑
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={onMoveDown}
+            className="h-6 w-6 p-0 text-xs"
+          >
+            ↓
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={onAddCell}
+            className="h-6 w-6 p-0 text-xs"
+          >
+            +
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={onDeleteCell}
+            className="h-6 w-6 p-0 text-xs text-destructive hover:text-destructive"
+          >
+            ×
+          </Button>
+        </div>
+      </div>
+
+      {/* Cell Content */}
+      <div className={`rounded-md border transition-colors ${
+        autoFocus
+          ? 'bg-card border-ring/50'
+          : 'bg-card/50 border-border/50 focus-within:border-ring/50 focus-within:bg-card'
+      }`}>
+        <div className="min-h-[80px]">
+          <Textarea
+            ref={textareaRef}
+            value={localQuery}
+            onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setLocalQuery(e.target.value)}
+            onBlur={updateQuery}
+            onKeyDown={handleKeyDown}
+            placeholder="SELECT * FROM your_table WHERE condition = 'value';"
+            className="min-h-[80px] resize-none border-0 p-3 focus-visible:ring-0 font-mono bg-transparent w-full"
+            onFocus={handleFocus}
+          />
+        </div>
+
         {/* SQL Controls */}
-        {!isEditing && (
-          <>
-            <Separator className="my-3" />
-            <div className="flex items-center gap-2">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={executeQuery}
-                disabled={cell.executionState === 'running' || !cell.sqlConnectionId}
-                className="bg-blue-50 hover:bg-blue-100 text-blue-700 border-blue-200"
-              >
-                {cell.executionState === 'running' ? 'Running...' : 'Run Query'}
-              </Button>
+        <div className="border-t border-border/50 p-3 bg-muted/20">
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={executeQuery}
+              disabled={cell.executionState === 'running' || !cell.sqlConnectionId}
+              className="bg-blue-50 hover:bg-blue-100 text-blue-700 border-blue-200 h-7"
+            >
+              {cell.executionState === 'running' ? 'Running...' : 'Run Query'}
+            </Button>
 
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="outline" size="sm">
-                    {cell.sqlConnectionId ? 'Change Connection' : 'Select Connection'}
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent>
-                  <DropdownMenuItem>PostgreSQL - Main DB</DropdownMenuItem>
-                  <DropdownMenuItem>MySQL - Analytics</DropdownMenuItem>
-                  <DropdownMenuItem>+ Add New Connection</DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" size="sm" className="h-7">
+                  {cell.sqlConnectionId ? 'Change Connection' : 'Select Connection'}
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent>
+                <DropdownMenuItem>PostgreSQL - Main DB</DropdownMenuItem>
+                <DropdownMenuItem>MySQL - Analytics</DropdownMenuItem>
+                <DropdownMenuItem>+ Add New Connection</DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
 
-              <span className="text-xs text-muted-foreground">
-                Shift+Enter to run and move • Ctrl+Enter to run
-              </span>
-            </div>
-          </>
-        )}
+
+          </div>
+        </div>
+      </div>
 
         {/* Query Results */}
         {renderResults()}
-      </CardContent>
-    </Card>
+    </div>
   )
 }
