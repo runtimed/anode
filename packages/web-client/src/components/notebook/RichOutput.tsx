@@ -2,6 +2,7 @@ import React from 'react'
 import ReactMarkdown from 'react-markdown'
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter'
 import { oneLight } from 'react-syntax-highlighter/dist/esm/styles/prism'
+import './RichOutput.css'
 
 interface RichOutputProps {
   data: Record<string, any>
@@ -92,8 +93,15 @@ export const RichOutput: React.FC<RichOutputProps> = ({
       case 'text/html':
         return (
           <div
-            className="prose prose-sm max-w-none"
+            className="max-w-none dataframe-container"
             dangerouslySetInnerHTML={{ __html: outputData[mediaType] }}
+            style={{
+              // Add styles for pandas DataFrames
+              '--dataframe-border': '1px solid #dee2e6',
+              '--dataframe-bg': '#fff',
+              '--dataframe-header-bg': '#f8f9fa',
+              '--dataframe-hover-bg': '#f5f5f5'
+            } as React.CSSProperties}
           />
         )
 
