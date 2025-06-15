@@ -39,52 +39,15 @@ NOTEBOOK_ID=notebook-123-abc pnpm dev:kernel
 - Press **Ctrl+Enter** or click **Run**
 - See results appear instantly
 
-## Architecture
-
-Anode uses a breakthrough reactive architecture for instant execution:
-
-```
-┌─────────────────┐    ┌──────────────────┐    ┌─────────────────┐
-│   Web Client    │◄──►│  Document Worker │◄──►│ Python Kernel   │
-│   (React UI)    │    │  (CF Workers)    │    │   (Pyodide)     │
-└─────────────────┘    └──────────────────┘    └─────────────────┘
-         │                       │                       │
-         ▼                       ▼                       ▼
-   LiveStore DB         Event Sync Hub        Execution Queue
-```
-
-### Key Design Principles
-- **One notebook = One LiveStore store** (`NOTEBOOK_ID = STORE_ID`)
-- **Reactive work queue**: `executionRequested` → `executionAssigned` → `executionStarted` → `executionCompleted`
-- **Event sourcing**: All changes are events, enabling perfect collaboration and audit trails
-- **Session-based kernels**: Each kernel gets a unique session for isolation
-
 ## What's Working Right Now
 
 - ✅ **Instant Python execution** with zero polling delays
 - ✅ **Rich output rendering** - HTML tables, SVG plots, markdown, JSON
 - ✅ **Real-time collaborative editing** across multiple users
-- ✅ **Reactive architecture** using LiveStore's `queryDb` subscriptions  
-- ✅ **Multiple isolated notebooks** with separate kernels
 - ✅ **AI cell integration** with mock responses and markdown rendering
 - ✅ **Pandas DataFrames** with styled HTML table output
 - ✅ **Matplotlib plots** as crisp SVG vector graphics
 - ✅ **Offline-first operation** with sync when connected
-- ✅ **Event sourcing** for complete history and debugging
-
-## Project Structure
-
-```
-anode/
-├── shared/
-│   └── schema.ts                         # LiveStore schema - TypeScript source directly imported by all packages
-├── packages/
-│   ├── web-client/                       # React notebook interface
-│   ├── docworker/                        # Cloudflare Workers sync backend
-│   └── dev-server-kernel-ls-client/      # Python execution server
-├── ROADMAP.md                            # Development priorities
-└── AGENTS.md                             # AI agent context
-```
 
 ## Development Commands
 
@@ -95,10 +58,6 @@ NOTEBOOK_ID=your-notebook-id pnpm dev:kernel  # Start kernel for specific notebo
 
 # Utilities
 pnpm reset-storage                        # Clear all local data
-
-# Individual services (for debugging)
-pnpm dev:web-only                         # Web client only
-pnpm dev:sync-only                        # Sync backend only
 ```
 
 ## Next Phase: AI-First Notebooks
@@ -110,34 +69,22 @@ Anode is designed around **AI ↔ Python ↔ User interactions**. With rich outp
 - **Automatic kernel management** - One-click notebook startup with auto-kernel lifecycle
 - **Authentication system** - Google OAuth with proper session management
 - **Code completions** with LSP + kernel integration
-- **SQL cell functionality** - Real database connections and query execution
-
-### Rich Output Capabilities ✅ COMPLETED
-- **Multiple media types** - text/plain, text/markdown, text/html, image/svg+xml
-- **Pandas DataFrames** - Styled HTML tables with proper formatting
-- **Matplotlib plots** - Vector SVG graphics with interactive rendering
-- **AI responses** - Rich markdown with syntax highlighting
-- **Fallback support** - Always includes plain text as backup
-
-See [ROADMAP.md](./ROADMAP.md) for detailed development priorities.
 
 ## Troubleshooting
 
 | Problem | Solution |
 |---------|----------|
-| Schema changes not reflected | No build needed - changes to `shared/schema.ts` are immediately available |
+| Schema version mismatches | Ensure all services (web, kernel, sync) are restarted after schema changes |
 | Type errors | TypeScript catches invalid queries at compile time - check column names |
 | Execution not working | Start kernel with correct `NOTEBOOK_ID` (use copy button in UI) |
 | Stale state | Run `pnpm reset-storage` |
 | Slow execution | Should be instant - check kernel logs |
-| Tables not styled | Rich output CSS should auto-apply to pandas DataFrames |
-| Plots not showing | Check matplotlib is using SVG backend in kernel |
 
 ## Architecture Highlights
 
-**Zero-Build Schema Architecture**: Direct TypeScript imports from `shared/schema.ts` eliminate build complexity while maintaining full type safety. No compiled artifacts needed.
+**Zero-Build Schema Architecture**: Direct TypeScript imports from `shared/schema.ts` eliminate build complexity while maintaining full type safety.
 
-**Rich Output System**: Supports multiple media types including HTML tables for pandas DataFrames, SVG plots for matplotlib, and markdown for AI responses. Media type prioritization ensures best format is always displayed.
+**Rich Output System**: Supports multiple media types including HTML tables for pandas DataFrames, SVG plots for matplotlib, and markdown for AI responses.
 
 **Reactive Over Polling**: Kernels use LiveStore's reactive subscriptions for instant work detection. This breakthrough eliminates polling delays entirely.
 
@@ -145,15 +92,12 @@ See [ROADMAP.md](./ROADMAP.md) for detailed development priorities.
 
 ## Contributing
 
-Anode is an open source project focused on developer experience. The system provides a solid foundation for collaborative notebook execution and can be extended incrementally.
-
-Key areas for contribution:
+Anode is an open source project focused on developer experience. Key areas for contribution:
 - Real AI API integrations (OpenAI, Anthropic, local models)
 - Code completion systems with LSP integration
-- SQL cell functionality with database connections
 - Advanced rich outputs (interactive widgets, 3D plots)
 - Performance optimizations for large notebooks
 
 ## License
 
-[License TBD - Open Source]
+BSD 3-Clause
