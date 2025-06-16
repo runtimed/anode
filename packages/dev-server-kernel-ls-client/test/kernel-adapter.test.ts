@@ -610,8 +610,8 @@ describe('Kernel Adapter', () => {
       expect(assignedExecutions).toHaveLength(5)
 
       // Sessions should have work distributed
-      const session1Work = assignedExecutions.filter(e => e.assignedKernelSession === session1)
-      const session2Work = assignedExecutions.filter(e => e.assignedKernelSession === session2)
+      const session1Work = assignedExecutions.filter((e: any) => e.assignedKernelSession === session1)
+      const session2Work = assignedExecutions.filter((e: any) => e.assignedKernelSession === session2)
 
       expect(session1Work.length + session2Work.length).toBe(5)
     })

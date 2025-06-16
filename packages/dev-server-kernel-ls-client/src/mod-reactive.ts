@@ -42,12 +42,12 @@ const adapter = makeAdapter({
 });
 
 // Add error handlers to track what causes shutdowns
-process.on("uncaughtException", (error) => {
+process.on("uncaughtException", (error: any) => {
   console.error("💥 Uncaught exception that might trigger shutdown:");
   console.error(error.stack);
 });
 
-process.on("unhandledRejection", (reason, promise) => {
+process.on("unhandledRejection", (reason: any, promise: any) => {
   console.error("💥 Unhandled rejection that might trigger shutdown:");
   console.error("Promise:", promise);
   console.error("Reason:", reason);
