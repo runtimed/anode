@@ -1,6 +1,19 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 import { PyodideKernel } from '../src/pyodide-kernel.js'
 
+// Mock pyodide to prevent unhandled errors in CI
+vi.mock('pyodide', () => ({
+  loadPyodide: vi.fn().mockResolvedValue({
+    loadPackage: vi.fn().mockResolvedValue(undefined),
+    runPython: vi.fn().mockReturnValue(undefined),
+    runPythonAsync: vi.fn().mockResolvedValue(undefined),
+    globals: {
+      get: vi.fn(),
+      set: vi.fn(),
+    }
+  })
+}))
+
 /**
  * Smoke tests for PyodideKernel
  *
@@ -8,11 +21,15 @@ import { PyodideKernel } from '../src/pyodide-kernel.js'
  * - enhanced-display-system.ts (22 integration tests covering real functionality)
  * - kernel-adapter.test.ts (LiveStore integration tests)
  *
- * These smoke tests just verify basic kernel lifecycle without complex mocking.
+ * These smoke tests just verify basic kernel lifecycle with proper mocking.
  */
 
 describe('PyodideKernel - Smoke Tests', () => {
   console.log('🧪 Starting Anode test suite...')
+
+  beforeEach(() => {
+    vi.clearAllMocks()
+  })
 
   describe('Basic Construction', () => {
     it('should create a kernel instance', () => {
@@ -49,13 +66,19 @@ describe('PyodideKernel - Smoke Tests', () => {
       expect(kernel.isInitialized()).toBe(false)
     })
 
-    it('should reject execution before initialization', async () => {
-      await expect(kernel.execute('2 + 2')).rejects.toThrow()
+    it('should handle execution before initialization', async () => {
+      const result = await kernel.execute('2 + 2')
+      expect(result).toBeInstanceOf(Array)
+      expect(result.length).toBeGreaterThan(0)
+      expect(result[0].type).toBe('error')
     })
 
-    it('should reject execution after termination', async () => {
+    it('should handle execution after termination', async () => {
       await kernel.terminate()
-      await expect(kernel.execute('2 + 2')).rejects.toThrow()
+      const result = await kernel.execute('2 + 2')
+      expect(result).toBeInstanceOf(Array)
+      expect(result.length).toBeGreaterThan(0)
+      expect(result[0].type).toBe('error')
     })
   })
 
