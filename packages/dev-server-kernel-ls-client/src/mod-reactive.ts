@@ -15,6 +15,7 @@ import { makeCfSync } from "@livestore/sync-cf";
 // Import the same schema used by the web client so we share events/tables.
 import { events, schema, tables, CellData, ExecutionQueueData, KernelSessionData } from "../../../shared/schema.js";
 import { PyodideKernel } from "./pyodide-kernel.js";
+import { openaiClient } from "./openai-client.js";
 
 const NOTEBOOK_ID = process.env.NOTEBOOK_ID ?? "demo-notebook";
 const AUTH_TOKEN = process.env.AUTH_TOKEN ?? "insecure-token-change-me";
@@ -31,7 +32,7 @@ console.log(`🎯 Kernel ID: ${KERNEL_ID}`);
 console.log(`🎫 Session ID: ${SESSION_ID}`);
 console.log(`🔄 Sync URL: ${SYNC_URL}`);
 console.log(`⚡ Using reactive queries instead of polling`);
-console.log(`🤖 AI cell support: enabled (mock responses)`);
+console.log(`🤖 AI cell support: enabled (${openaiClient.isReady() ? 'OpenAI configured' : 'mock responses only - set OPENAI_API_KEY for real AI'})`);
 
 const adapter = makeAdapter({
   storage: { type: "in-memory" },
@@ -364,8 +365,16 @@ async function processExecution(queueEntry: any) {
       console.log(`    Model: ${cell.aiModel || 'gpt-4'}`);
       console.log(`    Prompt: ${(cell.source || '').slice(0, 100)}${cell.source?.length > 100 ? '...' : ''}`);
 
-      // Generate fake AI response
-      outputs = await generateFakeAiResponse(cell);
+      // Use real OpenAI API if configured, otherwise fall back to mock
+      if (openaiClient.isReady() && (cell.aiProvider === 'openai' || !cell.aiProvider)) {
+        outputs = await openaiClient.generateResponse(cell.source || '', {
+          model: cell.aiModel || 'gpt-4',
+          provider: cell.aiProvider || 'openai'
+        });
+      } else {
+        // Generate fake AI response for development/testing
+        outputs = await generateFakeAiResponse(cell);
+      }
       console.log(`📤 Generated ${outputs.length} AI outputs`);
     } else {
       console.log(`🐍 Executing Python code for cell ${cell.id}:`);
