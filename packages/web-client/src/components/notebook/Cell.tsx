@@ -411,7 +411,7 @@ export const Cell: React.FC<CellProps> = ({
             ) : cell.executionState === 'queued' ? (
               'Queued'
             ) : cell.executionCount ? (
-              '0.3s'
+              '0.3s' /* TODO: Gather execution time */
             ) : null}
           </div>
         </div>
@@ -419,7 +419,7 @@ export const Cell: React.FC<CellProps> = ({
 
       {/* Output Area for Code Cells */}
       {cell.cellType === 'code' && (outputs.length > 0 || cell.executionState === 'running') && (
-        <div className="mt-1 pl-6 pr-4">
+        <div className="mt-1 pl-6 pr-4 bg-background">
             {cell.executionState === 'running' && outputs.length === 0 && (
               <div className="py-3 border-l-2 border-blue-200 pl-1">
                 <div className="flex items-center gap-2">
