@@ -13,7 +13,8 @@
     "type-check": "tsc --noEmit",
     "lint": "tsc --noEmit",
     "test": "vitest",
-    "test:run": "vitest run"
+    "test:run": "vitest run",
+    "test:display": "tsx test/display-test.ts"
   },
   "dependencies": {
     "@livestore/adapter-node": "catalog:",
