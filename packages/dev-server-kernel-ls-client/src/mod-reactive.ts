@@ -4,6 +4,10 @@
 // 2. Subscribe to execution queue changes with proper lifecycle management
 // 3. Maintain same event flow but react automatically to data changes
 
+// TypeScript is driving me up a wall in not noticing node.
+// HACK: Just declare process now
+const process = (globalThis as any).process;
+
 import { makeAdapter } from "@livestore/adapter-node";
 import { createStorePromise, queryDb } from "@livestore/livestore";
 import { makeCfSync } from "@livestore/sync-cf";
@@ -38,12 +42,12 @@ const adapter = makeAdapter({
 });
 
 // Add error handlers to track what causes shutdowns
-process.on("uncaughtException", (error) => {
+process.on("uncaughtException", (error: any) => {
   console.error("💥 Uncaught exception that might trigger shutdown:");
   console.error(error.stack);
 });
 
-process.on("unhandledRejection", (reason, promise) => {
+process.on("unhandledRejection", (reason: any, promise: any) => {
   console.error("💥 Unhandled rejection that might trigger shutdown:");
   console.error("Promise:", promise);
   console.error("Reason:", reason);

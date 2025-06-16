@@ -1,5 +1,6 @@
-import { createServer } from "node:http";
-import { URL } from "node:url";
+// @ts-nocheck
+import { createServer } from "http";
+import { URL } from "url";
 
 // Import the REACTIVE kernel adapter logic that handles LiveStore events
 import "./mod-reactive.js";
