@@ -315,14 +315,18 @@ export const SqlCell: React.FC<SqlCellProps> = ({
             size="sm"
             onClick={executeQuery}
             disabled={cell.executionState === 'running' || cell.executionState === 'queued'}
-            className="h-6 w-6 p-0 rounded-sm bg-white border-0 hover:bg-white"
+            className={`h-6 w-6 p-0 rounded-sm bg-white border-0 hover:bg-white transition-colors ${
+              autoFocus
+                ? 'text-blue-600'
+                : 'text-muted-foreground/40 hover:text-blue-600 group-hover:text-blue-600'
+            }`}
           >
             {cell.executionState === 'running' ? (
               <div className="animate-spin w-3 h-3 border border-blue-600 border-t-transparent rounded-full bg-white"></div>
             ) : cell.executionState === 'queued' ? (
               <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
             ) : (
-              <Play className="h-3 w-3 text-blue-600" />
+              <Play className="h-3 w-3" />
             )}
           </Button>
         </div>

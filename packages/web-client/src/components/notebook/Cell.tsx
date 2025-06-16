@@ -375,8 +375,11 @@ export const Cell: React.FC<CellProps> = ({
               size="sm"
               onClick={executeCell}
               disabled={cell.executionState === 'running' || cell.executionState === 'queued'}
-              // className="h-6 w-6 p-0 rounded-sm bg-white border-0 hover:bg-white"
-              className="h-6 w-6 p-0 rounded-sm bg-white border-0 hover:bg-white"
+              className={`h-6 w-6 p-0 rounded-sm bg-white border-0 hover:bg-white transition-colors ${
+                autoFocus
+                  ? 'text-foreground'
+                  : 'text-muted-foreground/40 hover:text-foreground group-hover:text-foreground'
+              }`}
             >
               {cell.executionState === 'running' ? (
                 <div className="animate-spin w-3 h-3 border border-current border-t-transparent rounded-full bg-white"></div>

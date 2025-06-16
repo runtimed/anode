@@ -359,14 +359,18 @@ export const AiCell: React.FC<AiCellProps> = ({
             size="sm"
             onClick={executeAiPrompt}
             disabled={cell.executionState === 'running' || cell.executionState === 'queued'}
-            className="h-6 w-6 p-0 rounded-sm bg-white border-0 hover:bg-white"
+            className={`h-6 w-6 p-0 rounded-sm bg-white border-0 hover:bg-white transition-colors ${
+              autoFocus
+                ? 'text-purple-600'
+                : 'text-muted-foreground/40 hover:text-purple-600 group-hover:text-purple-600'
+            }`}
           >
             {cell.executionState === 'running' ? (
               <div className="animate-spin w-3 h-3 border border-purple-600 border-t-transparent rounded-full bg-white"></div>
             ) : cell.executionState === 'queued' ? (
               <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
             ) : (
-              <Play className="h-3 w-3 text-purple-600" />
+              <Play className="h-3 w-3" />
             )}
           </Button>
         </div>
