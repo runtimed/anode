@@ -35,8 +35,9 @@ The `.env` file contains all configuration needed for Anode, including sync URLs
 # Start web client and sync backend
 pnpm dev
 
-# In another terminal, start the kernel
-pnpm dev:kernel
+# In another terminal, get kernel command from notebook UI
+# Get kernel command from notebook UI, then:
+NOTEBOOK_ID=notebook-id-from-ui pnpm dev:kernel
 ```
 
 You should see confirmation that OpenAI is configured:
@@ -44,10 +45,7 @@ You should see confirmation that OpenAI is configured:
 🤖 AI cell support: enabled (OpenAI configured ✅)
 ```
 
-For specific notebooks, you can override the default:
-```bash
-NOTEBOOK_ID=your-notebook-id pnpm dev:kernel
-```
+**Important**: Always use the kernel command provided in the notebook UI to ensure proper notebook ID matching.
 
 ## Usage
 
@@ -220,11 +218,11 @@ The architecture supports multiple AI providers. Future versions may include:
 
 ### Testing
 
-Run the OpenAI integration tests:
+# Run the OpenAI integration tests:
 
 ```bash
-cd packages/dev-server-kernel-ls-client
-pnpm test openai-client
+# From project root:
+pnpm test:kernel
 ```
 
 ### Adding Custom Features

@@ -168,7 +168,7 @@ pnpm test               # Full test suite (27 passing, 13 skipped)
 ## Known Issues & Limitations
 
 ### Current Limitations
-- **Manual kernel startup**: Each notebook requires `NOTEBOOK_ID=xyz pnpm dev:kernel`
+- **Manual kernel startup**: Each notebook requires copying command from UI
 - **Rich outputs unverified**: Matplotlib, pandas integration needs testing
 - **Limited error recovery**: Kernel failures require manual restart
 - **No streaming outputs**: All output appears at execution completion
@@ -206,14 +206,12 @@ pnpm test               # Full test suite (27 passing, 13 skipped)
 **Development Commands:**
 ```bash
 # Setup
-cp .env.example .env                     # Configure environment (edit to add OPENAI_API_KEY)
+cp .env.example .env                     # Configure environment (optional: uncomment OPENAI_API_KEY)
 
 # Current workflow
 pnpm dev                                 # Web + sync
-pnpm dev:kernel                          # Kernel using .env config
-
-# For specific notebooks
-NOTEBOOK_ID=notebook-123-abc pnpm dev:kernel
+# Get kernel command from notebook UI, then:
+NOTEBOOK_ID=notebook-id-from-ui pnpm dev:kernel
 
 # Testing and utilities
 pnpm test                                # Current test suite

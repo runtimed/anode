@@ -56,16 +56,14 @@ Anode is a real-time collaborative notebook system built on LiveStore, an event-
 
 ```bash
 # Setup
-cp .env.example .env     # Configure environment (edit to add OPENAI_API_KEY)
+cp .env.example .env     # Configure environment (optional: uncomment OPENAI_API_KEY)
 
 # Start core services (web + sync)
 pnpm dev
 
-# Start kernel (uses .env config)
-pnpm dev:kernel
-
-# For specific notebooks
-NOTEBOOK_ID=notebook-123-abc pnpm dev:kernel
+# Start kernel (get command from notebook UI)
+# Get kernel command from notebook UI, then:
+NOTEBOOK_ID=notebook-id-from-ui pnpm dev:kernel
 
 # Utilities
 pnpm reset-storage  # Clear all local storage
@@ -189,8 +187,8 @@ cp .env.example .env # Configure environment
 # Start core services
 pnpm dev             # Web client + sync backend
 
-# In separate terminal, start kernel
-pnpm dev:kernel      # Uses .env config
+# In separate terminal, get kernel command from notebook UI
+# Then run: NOTEBOOK_ID=notebook-id-from-ui pnpm dev:kernel
 ```
 
 ## Important Development Notes
@@ -199,6 +197,6 @@ pnpm dev:kernel      # Uses .env config
 
 **Testing is Critical**: Many claims about functionality need verification through proper integration tests. Core features exist but integration testing is minimal.
 
-**Kernel Management**: Manual `NOTEBOOK_ID=xyz pnpm dev:kernel` startup creates significant user friction and should be a high priority to fix.
+**Kernel Management**: Manual kernel startup (copying command from UI) creates user friction and should be a high priority to fix.
 
 **Be Honest About Status**: This is a prototype with great potential, not a production-ready system. The LiveStore foundation is solid, but execution and rich output claims need verification.
