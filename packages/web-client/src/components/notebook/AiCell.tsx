@@ -235,11 +235,24 @@ export const AiCell: React.FC<AiCellProps> = ({
   }
 
   return (
-    <div className={`mb-3 relative group border-l-2 transition-all duration-200 ${
-      autoFocus ? 'border-purple-500/60 bg-purple-50/30' : 'border-transparent hover:border-border/50'
-    }`}>
+    <div className={`mb-2 relative group transition-all duration-200 pt-2 ${
+        autoFocus ? 'bg-purple-50/30' : 'hover:bg-muted/10'
+      }`} style={{
+        position: 'relative',
+      }}>
+      {/* Custom left border with controlled height */}
+      <div
+        className={`absolute left-0 top-0 w-0.5 transition-all duration-200 ${
+          autoFocus ? 'bg-purple-500/60' : 'bg-border/30'
+        }`}
+        style={{
+          height: outputs.length > 0 || cell.executionState === 'running' || cell.executionState === 'queued'
+            ? '100%'
+            : '4rem'
+        }}
+      />
       {/* Cell Header */}
-      <div className="flex items-center justify-between my-3 py-1 pl-6 pr-4">
+      <div className="flex items-center justify-between mb-2 pl-6 pr-4">
         <div className="flex items-center gap-3">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -337,59 +350,66 @@ export const AiCell: React.FC<AiCellProps> = ({
         </div>
       </div>
 
-      {/* Cell Content */}
-      <div className={`transition-colors px-4 py-3 ${
-        autoFocus
-          ? 'bg-card/20'
-          : 'bg-card/5 focus-within:bg-card/10'
-      }`}>
-        <div className="min-h-[60px]">
-          <Textarea
-            ref={textareaRef}
-            value={localSource}
-            onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setLocalSource(e.target.value)}
-            onBlur={updateSource}
-            onKeyDown={handleKeyDown}
-            placeholder="Ask me anything about your notebook, data, or analysis..."
-            className="min-h-[60px] resize-none border-0 px-2 py-2 focus-visible:ring-0 font-mono bg-white w-full placeholder:text-muted-foreground/60 shadow-none"
-            onFocus={handleFocus}
-          />
+      {/* Cell Content with Left Gutter Play Button */}
+      <div className="relative">
+        {/* Play Button Breaking Through Left Border */}
+        <div className="absolute -left-3 z-10" style={{ top: '0.375rem' }}>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={executeAiPrompt}
+            disabled={cell.executionState === 'running' || cell.executionState === 'queued'}
+            className="h-6 w-6 p-0 rounded-sm bg-white border-0 hover:bg-white"
+          >
+            {cell.executionState === 'running' ? (
+              <div className="animate-spin w-3 h-3 border border-purple-600 border-t-transparent rounded-full bg-white"></div>
+            ) : cell.executionState === 'queued' ? (
+              <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
+            ) : (
+              <Play className="h-3 w-3 text-purple-600" />
+            )}
+          </Button>
         </div>
 
-        {/* Execution Controls */}
-        <div className="border-t border-border/20 pt-3 mt-3 pl-2 pr-0">
-          <div className="flex items-center justify-between">
-            <Button
-              variant={cell.executionState === 'running' || cell.executionState === 'queued' ? 'outline' : 'default'}
-              size="sm"
-              onClick={executeAiPrompt}
-              disabled={cell.executionState === 'running' || cell.executionState === 'queued'}
-              className="h-7 gap-1.5 text-xs bg-purple-600 hover:bg-purple-700 text-white"
-            >
-              {cell.executionState === 'running' ? (
-                <>
-                  <div className="animate-spin w-3 h-3 border border-current border-t-transparent rounded-full"></div>
-                  Generating
-                </>
-              ) : cell.executionState === 'queued' ? (
-                <>Queued</>
-              ) : (
-                <>
-                  <Play className="h-3 w-3" />
-                  Send
-                </>
-              )}
-            </Button>
-
-            <div>
-            </div>
+        {/* Text Content Area */}
+        <div className={`transition-colors py-1 pl-4 pr-4 ${
+          autoFocus
+            ? 'bg-white'
+            : 'bg-white'
+        }`}>
+          <div className="min-h-[1.5rem]">
+            <Textarea
+              ref={textareaRef}
+              value={localSource}
+              onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setLocalSource(e.target.value)}
+              onBlur={updateSource}
+              onKeyDown={handleKeyDown}
+              placeholder="Ask me anything about your notebook, data, or analysis..."
+              className="min-h-[1.5rem] resize-none border-0 px-2 py-1 focus-visible:ring-0 font-mono bg-white w-full placeholder:text-muted-foreground/60 shadow-none"
+              onFocus={handleFocus}
+            />
           </div>
         </div>
       </div>
 
+      {/* Execution Summary - appears after input */}
+      {(cell.executionCount || cell.executionState === 'running' || cell.executionState === 'queued') && (
+        <div className="mt-1 pl-6 pr-4">
+          <div className="text-xs text-muted-foreground pb-1">
+            {cell.executionState === 'running' ? (
+              'Generating...'
+            ) : cell.executionState === 'queued' ? (
+              'Queued'
+            ) : cell.executionCount ? (
+              '1.2s' /* TODO: Gather execution time */
+            ) : null}
+          </div>
+        </div>
+      )}
+
       {/* Output Area for AI Responses */}
       {(outputs.length > 0 || cell.executionState === 'running') && (
-        <div className="mt-3 pl-6 pr-4">
+        <div className="mt-1 pl-6 pr-4 bg-background">
           {cell.executionState === 'running' && outputs.length === 0 && (
             <div className="py-3 border-l-2 border-purple-200 pl-1">
               <div className="flex items-center gap-2">
@@ -436,21 +456,7 @@ export const AiCell: React.FC<AiCellProps> = ({
         </div>
       )}
 
-      {/* Context Information */}
-      {outputs.length === 0 && cell.executionState === 'idle' && (
-        <div className="mt-3 pl-6 pr-4 text-sm text-muted-foreground border-l-2 border-purple-200 py-2">
-          <div className="flex items-start gap-2">
-            <Bot className="h-4 w-4 text-purple-600 mt-0.5 flex-shrink-0" />
-            <div>
-              <div className="font-medium text-purple-700 mb-1">AI Assistant</div>
-              <div className="text-xs">
-                I can help analyze your data, explain code, suggest improvements, and answer questions about your notebook.
-                I have access to all previous cells and their outputs for context.
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
+
     </div>
   )
 }
