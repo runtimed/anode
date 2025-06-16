@@ -254,9 +254,22 @@ export const Cell: React.FC<CellProps> = ({
   }
 
   return (
-    <div className={`mb-2 relative group border-l-2 transition-all duration-200 pt-2 ${
-      autoFocus ? 'border-primary/60 bg-primary/5' : 'border-border/30 hover:bg-muted/10'
-    }`}>
+    <div className={`mb-2 relative group transition-all duration-200 pt-2 ${
+      autoFocus ? 'bg-primary/5' : 'hover:bg-muted/10'
+    }`} style={{
+      position: 'relative',
+    }}>
+      {/* Custom left border with controlled height */}
+      <div
+        className={`absolute left-0 top-0 w-0.5 transition-all duration-200 ${
+          autoFocus ? 'bg-primary/60' : 'bg-border/30'
+        }`}
+        style={{
+          height: outputs.length > 0 || cell.executionState === 'running' || cell.executionState === 'queued'
+            ? '100%'
+            : '4rem'
+        }}
+      />
       {/* Cell Header */}
       <div className="flex items-center justify-between mb-2 pl-6 pr-4">
         <div className="flex items-center gap-3">
@@ -362,7 +375,11 @@ export const Cell: React.FC<CellProps> = ({
               size="sm"
               onClick={executeCell}
               disabled={cell.executionState === 'running' || cell.executionState === 'queued'}
-              className="h-6 w-6 p-0 rounded-sm bg-white border-0 hover:bg-white"
+              className={`h-6 w-6 p-0 rounded-sm bg-white border-0 hover:bg-white transition-colors ${
+                autoFocus
+                  ? 'text-foreground'
+                  : 'text-muted-foreground/40 hover:text-foreground group-hover:text-foreground'
+              }`}
             >
               {cell.executionState === 'running' ? (
                 <div className="animate-spin w-3 h-3 border border-current border-t-transparent rounded-full bg-white"></div>

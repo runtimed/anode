@@ -210,11 +210,24 @@ export const SqlCell: React.FC<SqlCellProps> = ({
   }
 
   return (
-    <div className={`mb-3 relative group border-l-2 transition-all duration-200 ${
-      autoFocus ? 'border-blue-500/60 bg-blue-50/30' : 'border-transparent hover:border-border/50'
-    }`}>
+    <div className={`mb-2 relative group transition-all duration-200 pt-2 ${
+        autoFocus ? 'bg-blue-50/30' : 'hover:bg-muted/10'
+      }`} style={{
+        position: 'relative',
+      }}>
+      {/* Custom left border with controlled height */}
+      <div
+        className={`absolute left-0 top-0 w-0.5 transition-all duration-200 ${
+          autoFocus ? 'bg-blue-500/60' : 'bg-border/30'
+        }`}
+        style={{
+          height: cell.sqlResultData || cell.executionState === 'running' || cell.executionState === 'queued'
+            ? '100%'
+            : '4rem'
+        }}
+      />
       {/* Cell Header */}
-      <div className="flex items-center justify-between my-3 py-1 pl-6 pr-4">
+      <div className="flex items-center justify-between mb-2 pl-6 pr-4">
         <div className="flex items-center gap-3">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -293,68 +306,73 @@ export const SqlCell: React.FC<SqlCellProps> = ({
         </div>
       </div>
 
-      {/* Cell Content */}
-      <div className={`transition-colors px-4 py-3 ${
-        autoFocus
-          ? 'bg-card/20'
-          : 'bg-card/5 focus-within:bg-card/10'
-      }`}>
-        <div className="min-h-[80px]">
-          <Textarea
-            ref={textareaRef}
-            value={localQuery}
-            onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setLocalQuery(e.target.value)}
-            onBlur={updateQuery}
-            onKeyDown={handleKeyDown}
-            placeholder="SELECT * FROM your_table WHERE condition = 'value';"
-            className="min-h-[80px] resize-none border-0 px-2 py-2 focus-visible:ring-0 font-mono bg-white w-full placeholder:text-muted-foreground/60 shadow-none"
-            onFocus={handleFocus}
-          />
+      {/* Cell Content with Left Gutter Play Button */}
+      <div className="relative">
+        {/* Play Button Breaking Through Left Border */}
+        <div className="absolute -left-3 z-10" style={{ top: '0.375rem' }}>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={executeQuery}
+            disabled={cell.executionState === 'running' || cell.executionState === 'queued'}
+            className={`h-6 w-6 p-0 rounded-sm bg-white border-0 hover:bg-white transition-colors ${
+              autoFocus
+                ? 'text-blue-600'
+                : 'text-muted-foreground/40 hover:text-blue-600 group-hover:text-blue-600'
+            }`}
+          >
+            {cell.executionState === 'running' ? (
+              <div className="animate-spin w-3 h-3 border border-blue-600 border-t-transparent rounded-full bg-white"></div>
+            ) : cell.executionState === 'queued' ? (
+              <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+            ) : (
+              <Play className="h-3 w-3" />
+            )}
+          </Button>
         </div>
 
-        {/* SQL Controls */}
-        <div className="border-t border-border/20 pt-3 mt-3 pl-2 pr-0">
-          <div className="flex items-center justify-between">
-            <Button
-              variant={cell.executionState === 'running' ? 'outline' : 'default'}
-              size="sm"
-              onClick={executeQuery}
-              disabled={cell.executionState === 'running' || !cell.sqlConnectionId}
-              className="h-7 gap-1.5 text-xs bg-blue-600 hover:bg-blue-700 text-white"
-            >
-              {cell.executionState === 'running' ? (
-                <>
-                  <div className="animate-spin w-3 h-3 border border-current border-t-transparent rounded-full"></div>
-                  Running
-                </>
-              ) : (
-                <>
-                  <Play className="h-3 w-3" />
-                  Run Query
-                </>
-              )}
-            </Button>
-
-            <div className="flex items-center gap-2">
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="sm" className="h-7 text-xs text-muted-foreground">
-                    {cell.sqlConnectionId ? 'Change Connection' : 'Select Connection'}
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                  <DropdownMenuItem>PostgreSQL - Main DB</DropdownMenuItem>
-                  <DropdownMenuItem>MySQL - Analytics</DropdownMenuItem>
-                  <DropdownMenuItem>+ Add New Connection</DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            </div>
+        {/* Text Content Area */}
+        <div className={`transition-colors py-1 pl-4 pr-4 ${
+          autoFocus
+            ? 'bg-white'
+            : 'bg-white'
+        }`}>
+          <div className="min-h-[1.5rem]">
+            <Textarea
+              ref={textareaRef}
+              value={localQuery}
+              onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setLocalQuery(e.target.value)}
+              onBlur={updateQuery}
+              onKeyDown={handleKeyDown}
+              placeholder="SELECT * FROM your_table WHERE condition = 'value';"
+              className="min-h-[1.5rem] resize-none border-0 px-2 py-1 focus-visible:ring-0 font-mono bg-white w-full placeholder:text-muted-foreground/60 shadow-none"
+              onFocus={handleFocus}
+            />
           </div>
         </div>
       </div>
 
-        {/* Query Results */}
-        {renderResults()}
+      {/* Execution Summary - appears after input */}
+      {(cell.executionCount || cell.executionState === 'running' || cell.executionState === 'queued') && (
+        <div className="mt-1 pl-6 pr-4">
+          <div className="text-xs text-muted-foreground pb-1">
+            {cell.executionState === 'running' ? (
+              'Running query...'
+            ) : cell.executionState === 'queued' ? (
+              'Queued'
+            ) : cell.executionCount ? (
+              '42ms' /* TODO: Use actual execution time from sqlResultData */
+            ) : null}
+          </div>
+        </div>
+      )}
+
+      {/* Query Results */}
+      {cell.sqlResultData && (
+        <div className="mt-1 pl-6 pr-4 bg-background">
+          {renderResults()}
+        </div>
+      )}
     </div>
   )
 }
