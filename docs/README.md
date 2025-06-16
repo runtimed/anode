@@ -16,20 +16,21 @@ Anode combines three key technologies:
 - **IPython**: Full Jupyter-compatible display system with custom hooks
 - **React**: Modern web interface with real-time collaborative editing
 
-### 🚀 Current Status: Early Prototype
+### 🚀 Current Status: Working Prototype
 
-Core collaborative editing and Python execution working, with rich outputs in development:
+Core collaborative editing, Python execution, and basic AI integration functional:
 
 ✅ **Working Features:**
 - Real-time collaborative notebook editing via LiveStore
 - Basic Python execution via Pyodide (manual kernel startup)
+- AI integration - OpenAI API responses when OPENAI_API_KEY is set, graceful fallback to mock
 - Cell management (create, edit, move, delete)
 - Text output and error handling
 - Event-sourced architecture with offline capability
 
-🚧 **In Development:**
-- Rich output rendering (matplotlib, pandas HTML tables)
-- IPython.display function integration
+🚧 **Needs Enhancement:**
+- Rich output rendering (matplotlib, pandas HTML tables) - needs verification
+- Enhanced AI features - notebook context awareness, tools for modifying cells
 - Automated kernel management
 - Comprehensive testing of display system
 
@@ -37,12 +38,16 @@ Core collaborative editing and Python execution working, with rich outputs in de
 
 **Immediate Focus:**
 - Integration testing to verify Python execution and rich outputs
+- Enhanced AI integration (notebook context awareness, tools for modifying cells)
 - Automated kernel management to remove manual startup friction
 - Rich output verification (matplotlib SVG, pandas HTML)
-- Better error handling and user feedback
 
-**Planned Features:**
-- Real AI integration (currently mock responses)
+**AI Integration Status:**
+- ✅ Basic OpenAI API integration working
+- ⚠️ Current limitations: No notebook context, no tools for modifying notebook
+- 📋 Planned: Context awareness, streaming responses, notebook modification tools
+
+**Other Planned Features:**
 - SQL cell execution
 - Interactive widgets
 - Production deployment
@@ -52,6 +57,7 @@ Core collaborative editing and Python execution working, with rich outputs in de
 ```
 docs/
 ├── README.md                 # This file - documentation index
+├── OPENAI_INTEGRATION.md     # AI setup and usage guide
 ├── DISPLAY_SYSTEM.md         # Display system architecture (aspirational)
 ├── TESTING.md               # Testing strategy and current gaps
 ├── display-examples.md       # Practical usage examples
@@ -61,13 +67,16 @@ docs/
 ### 🔧 For Developers
 
 **Getting Started:**
-1. Read [TESTING.md](./TESTING.md) for current test strategy and gaps
-2. Check [DISPLAY_SYSTEM.md](./DISPLAY_SYSTEM.md) for architecture goals
-3. Review [UI_DESIGN.md](./UI_DESIGN.md) for interface patterns
+1. Read [OPENAI_INTEGRATION.md](./OPENAI_INTEGRATION.md) for AI setup and current capabilities
+2. Check [TESTING.md](./TESTING.md) for current test strategy and gaps
+3. Review [DISPLAY_SYSTEM.md](./DISPLAY_SYSTEM.md) for architecture goals
+4. See [UI_DESIGN.md](./UI_DESIGN.md) for interface patterns
 
 **Key Files:**
 - `packages/dev-server-kernel-ls-client/src/pyodide-kernel.ts` - Python execution kernel
+- `packages/dev-server-kernel-ls-client/src/openai-client.ts` - OpenAI API integration
 - `packages/web-client/src/components/notebook/RichOutput.tsx` - Output rendering
+- `packages/web-client/src/components/notebook/AiCell.tsx` - AI cell interface
 - `shared/schema.ts` - LiveStore event definitions
 
 **Development Commands:**
@@ -105,14 +114,15 @@ When working on the display system:
 - Basic Python execution
 - Cell management and navigation
 
-**Phase 2: Rich Outputs** 🎯 **NEXT**
+**Phase 2: Rich Outputs & Enhanced AI** 🎯 **NEXT**
 - Integration testing for Python execution
 - Matplotlib and pandas display verification
+- Enhanced AI integration (context awareness, notebook tools)
 - Automated kernel management
 
-**Phase 3: AI Integration** 🚧 **IN PROGRESS**
-- Real AI API integration (separate branch)
-- Context-aware code assistance
+**Phase 3: Advanced Features**
+- Interactive widgets and collaborative components
+- SQL cell execution
 - Streaming AI responses
 
 **Phase 4: Production Features**

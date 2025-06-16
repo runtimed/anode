@@ -203,16 +203,20 @@ pnpm test               # Full test suite (27 passing, 13 skipped)
 
 ## Development Commands
 
+**Development Commands:**
 ```bash
+# Setup
+cp .env.example .env                     # Configure environment (edit to add OPENAI_API_KEY)
+
 # Current workflow
-pnpm dev                                 # Web + sync (auto-start ready)
-NOTEBOOK_ID=notebook-123-abc pnpm dev:kernel  # Manual kernel (to be automated)
+pnpm dev                                 # Web + sync
+pnpm dev:kernel                          # Kernel using .env config
 
-# Enhanced display testing
-pnpm test:display                        # Full validation suite
-pnpm test:minimal                        # Quick functionality check
+# For specific notebooks
+NOTEBOOK_ID=notebook-123-abc pnpm dev:kernel
 
-# Development utilities  
+# Testing and utilities
+pnpm test                                # Current test suite
 pnpm reset-storage                       # Clear all local data
 ```
 

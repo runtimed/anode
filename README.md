@@ -2,7 +2,7 @@
 
 A real-time collaborative notebook system built on LiveStore, focusing on seamless AI ↔ Python ↔ User interactions.
 
-**Current Status: Early Prototype** - Core collaborative editing and Python execution working, with rich outputs and AI integration in active development.
+**Current Status: Working Prototype** - Core collaborative editing, Python execution, and basic AI integration functional. Rich outputs need verification.
 
 ## What Makes Anode Different
 
@@ -15,10 +15,11 @@ A real-time collaborative notebook system built on LiveStore, focusing on seamle
 
 ## Quick Start
 
-### 1. Install and Start Core Services
+### 1. Install and Configure
 ```bash
 pnpm install
-echo "VITE_LIVESTORE_SYNC_URL=ws://localhost:8787" > packages/web-client/.env
+cp .env.example .env
+# Edit .env and add your OPENAI_API_KEY if you want real AI responses
 pnpm dev  # Starts web client + sync backend
 ```
 
@@ -29,7 +30,10 @@ pnpm dev  # Starts web client + sync backend
 
 ### 3. Enable Python Execution
 ```bash
-# In new terminal - use your actual notebook ID from the URL
+# In new terminal - uses default notebook from .env
+pnpm dev:kernel
+
+# Or for a specific notebook:
 NOTEBOOK_ID=notebook-123-abc pnpm dev:kernel
 ```
 
@@ -41,21 +45,33 @@ NOTEBOOK_ID=notebook-123-abc pnpm dev:kernel
 - Press **Ctrl+Enter** or click **Run**
 - See results appear instantly
 
+### 5. Try AI Integration (Optional)
+```bash
+# Edit .env and add your OpenAI API key:
+# OPENAI_API_KEY=sk-your-key-here
+
+# Restart kernel to pick up the API key
+pnpm dev:kernel
+```
+- Add an AI cell and ask questions about your data
+- Falls back to mock responses if no API key is set
+
 ## Current Status
 
 ### What's Working ✅
 - **Real-time collaborative editing** - Multiple users can edit notebooks simultaneously
 - **LiveStore event-sourcing** - Robust data synchronization and state management
 - **Python execution** - Code cells execute Python via Pyodide (manual kernel startup required)
+- **AI integration** - Real OpenAI API responses when OPENAI_API_KEY is set, graceful fallback to mock
 - **Cell management** - Create, edit, move, and delete code/markdown/AI cells
 - **Basic output display** - Text output and error handling
 - **Keyboard navigation** - Vim-like cell navigation and shortcuts
 - **Offline-first operation** - Works without network, syncs when connected
 
 ### In Development 🚧
-- **Rich output rendering** - HTML tables, SVG plots, matplotlib integration
-- **AI integration** - Real API connections (currently mock responses)
-- **Enhanced display system** - Full IPython.display compatibility
+- **Rich output rendering** - HTML tables, SVG plots, matplotlib integration (needs verification)
+- **Enhanced AI features** - Notebook context awareness, tools for modifying cells
+- **Enhanced display system** - Full IPython.display compatibility (needs verification)
 - **Automated kernel management** - One-click notebook startup
 
 ### Planned 📋
@@ -67,18 +83,21 @@ NOTEBOOK_ID=notebook-123-abc pnpm dev:kernel
 ### Known Limitations ⚠️
 - Manual kernel startup required per notebook (`NOTEBOOK_ID=xyz pnpm dev:kernel`)
 - Rich outputs (matplotlib, pandas) not fully verified in integration tests
-- AI cells return mock responses only
+- AI has no notebook context awareness or tools to modify notebook
 - Limited error handling for kernel failures
 
 ## Development Commands
 
 ```bash
 # Core development workflow
-pnpm dev                                  # Start web + sync
-NOTEBOOK_ID=your-notebook-id pnpm dev:kernel  # Start kernel for specific notebook
+pnpm dev                 # Start web + sync
+pnpm dev:kernel          # Start kernel (uses .env config)
+
+# For specific notebooks
+NOTEBOOK_ID=your-notebook-id pnpm dev:kernel
 
 # Utilities
-pnpm reset-storage                        # Clear all local data
+pnpm reset-storage       # Clear all local data
 ```
 
 ## Development Roadmap
@@ -91,7 +110,7 @@ See [ROADMAP.md](./ROADMAP.md) for detailed development plans and milestones.
 3. **Error Handling** - Better kernel failure recovery and user feedback
 
 ### Next Milestones
-- Real AI API integration (in progress on separate branch)
+- Enhanced AI integration (notebook context awareness, tools for modifying cells)
 - SQL cell implementation with database connections
 - Interactive widget system for collaborative data exploration
 - Production deployment and performance optimization
@@ -102,7 +121,8 @@ See [ROADMAP.md](./ROADMAP.md) for detailed development plans and milestones.
 |---------|----------|
 | Schema version mismatches | Ensure all services (web, kernel, sync) are restarted after schema changes |
 | Type errors | TypeScript catches invalid queries at compile time - check column names |
-| Execution not working | Start kernel with correct `NOTEBOOK_ID` (use copy button in UI) |
+| Execution not working | Start kernel with `pnpm dev:kernel` or check `.env` configuration |
+| AI cells showing mock responses | Add `OPENAI_API_KEY` to `.env` and restart kernel |
 | Stale state | Run `pnpm reset-storage` |
 | Slow execution | Should be instant - check kernel logs |
 
@@ -121,9 +141,11 @@ See [ROADMAP.md](./ROADMAP.md) for detailed development plans and milestones.
 ## Documentation
 
 For comprehensive documentation, see the [docs](./docs/) directory:
+- **[OpenAI Integration](./docs/OPENAI_INTEGRATION.md)** - AI setup and usage guide
 - **[Display System Guide](./docs/DISPLAY_SYSTEM.md)** - Complete technical documentation
 - **[Display Examples](./docs/display-examples.md)** - Practical usage examples
 - **[UI Design Guidelines](./docs/UI_DESIGN.md)** - Interface design principles
+- **[Testing Strategy](./docs/TESTING.md)** - Current testing approach and gaps
 
 ## Contributing
 

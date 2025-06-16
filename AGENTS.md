@@ -10,7 +10,7 @@ For current work state and immediate next steps, see `HANDOFF.md` - it provides 
 
 Anode is a real-time collaborative notebook system built on LiveStore, an event-sourcing based local-first data synchronization library. The project uses a monorepo structure with TypeScript and pnpm workspaces.
 
-**Current Status**: Fully operational with zero-latency Python execution, enhanced IPython display system, and rich output rendering.
+**Current Status**: Working prototype with collaborative editing, Python execution, and basic AI integration functional. Rich outputs need verification.
 
 ## Architecture
 
@@ -35,11 +35,13 @@ Anode is a real-time collaborative notebook system built on LiveStore, an event-
 - ✅ **Cell management** - Create, edit, move, delete cells with proper state sync
 - ✅ **Reactive architecture** - Kernel work detection without polling delays
 - ✅ **Text output handling** - Basic print statements and error display
+- ✅ **AI integration** - OpenAI API responses when OPENAI_API_KEY is set, graceful fallback to mock
 - ✅ **Offline-first operation** - Works without network, syncs when connected
 
-### What's In Development 🚧
+### What Needs Enhancement 🚧
 - 🚧 **Rich output rendering** - IPython integration code exists but needs verification
-- 🚧 **AI cell integration** - Mock responses working, real AI on separate branch
+- 🚧 **AI context awareness** - AI doesn't see previous cells or notebook context
+- 🚧 **AI notebook tools** - AI can't modify cells, create new cells, or run code
 - 🚧 **Display system** - Matplotlib, pandas support partially implemented
 - 🚧 **Automated kernel management** - Manual startup creates friction
 
@@ -53,10 +55,16 @@ Anode is a real-time collaborative notebook system built on LiveStore, an event-
 ## Development Commands
 
 ```bash
+# Setup
+cp .env.example .env     # Configure environment (edit to add OPENAI_API_KEY)
+
 # Start core services (web + sync)
 pnpm dev
 
-# Start kernel for specific notebook (manual)
+# Start kernel (uses .env config)
+pnpm dev:kernel
+
+# For specific notebooks
 NOTEBOOK_ID=notebook-123-abc pnpm dev:kernel
 
 # Utilities
@@ -74,7 +82,7 @@ pnpm reset-storage  # Clear all local storage
 - **Error Handling** - Better user feedback when things fail
 
 ### Phase 2: Advanced Features (Next 1-2 months)
-- **Real AI API Integration** - Replace mock responses (in progress on separate branch)
+- **Enhanced AI Integration** - Context awareness and notebook modification tools
 - **SQL Cell Implementation** - Database connections and query results
 - **Interactive Widgets** - IPython widgets support for collaborative elements
 - **Authentication System** - Google OAuth with proper session management
@@ -115,6 +123,7 @@ anode2/
 │   └── dev-server-kernel-ls-client/  # Python kernel server
 ├── docs/                 # Documentation directory
 │   ├── README.md         # Documentation index
+│   ├── OPENAI_INTEGRATION.md # AI setup and usage guide
 │   ├── DISPLAY_SYSTEM.md # Display system architecture
 │   ├── TESTING.md        # Testing strategy and gaps
 │   ├── UI_DESIGN.md      # Interface design guidelines
@@ -127,11 +136,11 @@ anode2/
 
 ## Notes for AI Assistants
 
-### Current State - Core Prototype Working
+### Current State - Working Prototype 
 - **LiveStore foundation** solid with real-time collaborative editing
 - **Basic Python execution** working via Pyodide (needs integration testing)
 - **Rich output system** architecture in place but verification needed
-- **Mock AI responses** working through execution queue
+- **AI integration** - OpenAI API working but lacks notebook context and tools
 - **Direct TypeScript schema** - No build complexity across packages
 - **Event-sourced architecture** - Excellent debugging and audit capabilities
 
@@ -145,8 +154,8 @@ anode2/
 
 ### Immediate Technical Goals
 - **Integration testing** to verify Python execution and rich outputs actually work
+- **Enhanced AI integration** - Add notebook context awareness and tools for modifying cells
 - **Automated kernel management** to remove manual startup friction
-- **Real AI integration** to replace mock responses (separate branch)
 - **Better error handling** for improved user experience
 
 ### Communication Style
@@ -174,11 +183,14 @@ pnpm type-check      # TypeScript validation
 **If User Isn't Running Dev Environment**:
 Tell them to start at the base of the repo:
 ```bash
+# Setup environment
+cp .env.example .env # Configure environment
+
 # Start core services
 pnpm dev             # Web client + sync backend
 
-# In separate terminal, start kernel when needed
-NOTEBOOK_ID=your-notebook-id pnpm dev:kernel
+# In separate terminal, start kernel
+pnpm dev:kernel      # Uses .env config
 ```
 
 ## Important Development Notes

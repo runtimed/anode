@@ -14,29 +14,39 @@ Anode now supports real OpenAI API integration for AI cells, providing powerful 
 
 ### 2. Configure the API Key
 
-Set your OpenAI API key as an environment variable:
+Copy the example environment file and add your API key:
 
 ```bash
-export OPENAI_API_KEY=sk-your-actual-api-key-here
+cp .env.example .env
 ```
 
-Or create a `.env` file in your project root:
+Edit `.env` and add your OpenAI API key:
 
 ```bash
 # .env
 OPENAI_API_KEY=sk-your-actual-api-key-here
 ```
 
-### 3. Start the Kernel with OpenAI Support
+The `.env` file contains all configuration needed for Anode, including sync URLs and kernel settings.
+
+### 3. Start the Services
 
 ```bash
-# Start the kernel for your notebook
-NOTEBOOK_ID=your-notebook-id pnpm dev:kernel
+# Start web client and sync backend
+pnpm dev
+
+# In another terminal, start the kernel
+pnpm dev:kernel
 ```
 
 You should see confirmation that OpenAI is configured:
 ```
-🤖 AI Integration: OpenAI API configured ✅
+🤖 AI cell support: enabled (OpenAI configured ✅)
+```
+
+For specific notebooks, you can override the default:
+```bash
+NOTEBOOK_ID=your-notebook-id pnpm dev:kernel
 ```
 
 ## Usage
@@ -127,8 +137,8 @@ await openaiClient.generateResponse(prompt, {
 ### Common Issues
 
 **"OpenAI client not configured"**
-- Check that `OPENAI_API_KEY` is set correctly
-- Restart the kernel service after setting the environment variable
+- Check that `OPENAI_API_KEY` is set correctly in `.env`
+- Restart the kernel service after updating the `.env` file
 
 **"Invalid API key"**
 - Verify your API key is correct
@@ -145,7 +155,7 @@ await openaiClient.generateResponse(prompt, {
 If OpenAI is not configured, the system automatically falls back to mock responses for development:
 
 ```
-🤖 AI Integration: Mock responses only - set OPENAI_API_KEY for real AI ⚠️
+🤖 AI cell support: enabled (mock responses only - set OPENAI_API_KEY for real AI ⚠️)
 ```
 
 This allows you to develop and test AI cell functionality without an API key.
@@ -176,8 +186,8 @@ Approximate token costs:
 
 ### API Key Protection
 
-- **Never commit** API keys to version control
-- **Use environment variables** or secure secret management
+- **Never commit** API keys to version control (`.env` is in `.gitignore`)
+- **Use the `.env` file** for local development
 - **Rotate keys** regularly
 - **Limit key permissions** if available
 
