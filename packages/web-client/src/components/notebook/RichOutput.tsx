@@ -130,7 +130,7 @@ export const RichOutput: React.FC<RichOutputProps> = ({
       case 'image/svg+xml':
       case 'image/svg':
         return (
-          <div className="flex justify-center py-2">
+          <div className="py-2">
             <div
               className="max-w-full"
               dangerouslySetInnerHTML={{ __html: outputData[mediaType] || '' }}
