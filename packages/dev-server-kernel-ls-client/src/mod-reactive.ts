@@ -157,8 +157,85 @@ const activeKernelsQuery$ = queryDb(
   }
 );
 
+// Context interface for AI cells
+interface NotebookContext {
+  previousCells: Array<{
+    id: string;
+    cellType: string;
+    source: string;
+    position: number;
+  }>;
+  totalCells: number;
+  currentCellPosition: number;
+}
+
+// Gather context from previous cells for AI execution
+async function gatherNotebookContext(store: any, currentCell: CellData): Promise<NotebookContext> {
+  // Query all cells that come before the current cell
+  const previousCellsQuery = queryDb(
+    tables.cells.select()
+      .where({
+        position: { op: '<', value: currentCell.position }
+      })
+      .orderBy('position', 'asc')
+  );
+
+  const previousCells = store.query(previousCellsQuery);
+
+  // Query total cell count for context
+  const allCellsQuery = queryDb(tables.cells.select());
+  const allCells = store.query(allCellsQuery);
+
+  return {
+    previousCells: previousCells.map((cell: CellData) => ({
+      id: cell.id,
+      cellType: cell.cellType,
+      source: cell.source || '',
+      position: cell.position
+    })),
+    totalCells: allCells.length,
+    currentCellPosition: currentCell.position
+  };
+}
+
+// Build system prompt with notebook context
+function buildSystemPromptWithContext(context: NotebookContext): string {
+  let systemPrompt = `You are a helpful AI assistant in a Jupyter-like notebook environment. You have access to the context of previous cells in the notebook.
+
+**Notebook Context:**
+- Total cells: ${context.totalCells}
+- Current cell position: ${context.currentCellPosition}
+- Previous cells available: ${context.previousCells.length}
+
+**Previous Cell Contents:**
+`;
+
+  if (context.previousCells.length === 0) {
+    systemPrompt += "No previous cells in this notebook.\n";
+  } else {
+    context.previousCells.forEach((cell, index) => {
+      systemPrompt += `
+Cell ${index + 1} (Position ${cell.position}, Type: ${cell.cellType}):
+\`\`\`${cell.cellType === 'code' ? 'python' : cell.cellType}
+${cell.source}
+\`\`\`
+`;
+    });
+  }
+
+  systemPrompt += `
+**Instructions:**
+- Provide clear, concise responses and include code examples when appropriate
+- Reference previous cells when relevant to provide context-aware assistance
+- If you see variables, functions, or data structures defined in previous cells, you can reference them
+- Help with debugging, optimization, or extending the existing code
+- Suggest next steps based on the notebook's progression`;
+
+  return systemPrompt;
+}
+
 // Generate fake AI response for testing with rich output support
-async function generateFakeAiResponse(cell: any): Promise<any[]> {
+async function generateFakeAiResponse(cell: any, context?: NotebookContext): Promise<any[]> {
   const provider = cell.aiProvider || 'openai';
   const model = cell.aiModel || 'gpt-4';
   const prompt = cell.source || '';
@@ -166,33 +243,55 @@ async function generateFakeAiResponse(cell: any): Promise<any[]> {
   // Simulate AI thinking time
   await new Promise(resolve => setTimeout(resolve, 1000 + Math.random() * 2000));
 
+  // Generate context-aware response
+  let contextInfo = '';
+  if (context && context.previousCells.length > 0) {
+    contextInfo = `
+
+## 📚 Notebook Context Analysis
+
+I can see **${context.previousCells.length} previous cells** in this notebook:
+
+`;
+    context.previousCells.forEach((cell, index) => {
+      const preview = cell.source.slice(0, 100);
+      contextInfo += `- **Cell ${index + 1}** (${cell.cellType}): ${preview}${cell.source.length > 100 ? '...' : ''}\n`;
+    });
+  } else if (context) {
+    contextInfo = '\n\n## 📚 Notebook Context\n\nThis appears to be the first cell in your notebook.\n';
+  }
+
   // Create rich markdown responses with various content types
   const markdownResponses = [
 `I understand you're asking: "${prompt}"
 
-This is a **mock response** from \`${model}\`. In the full implementation, I would analyze your notebook context and provide helpful insights.
+This is a **mock response** from \`${model}\` with notebook context awareness.${contextInfo}
 
-- 🔍 **Analysis**
-- 💡 **Suggestion**
-- 📊 **Next Steps**
+## 🔍 Analysis & Suggestions
+
+Based on your prompt and notebook context:
+- 💡 **Context Understanding**: I can see the progression of your work
+- 📊 **Data Insights**: Previous cells provide valuable context
+- 🚀 **Next Steps**: Building on existing code and variables
 
 \`\`\`python
+# Example based on notebook context
 import pandas as pd
-df = pd.read_csv('yas.csv')
+df = pd.read_csv('data.csv')
 df.head()
 \`\`\`
 
-> **Note**: This is a simulated response for development purposes.`,
+> **Note**: This is a simulated response. Real AI integration will provide deeper context analysis.`,
 
     `# 🤖 ${provider.toUpperCase()} ${model} Response
 
-Based on your prompt: **"${prompt}"**
+Based on your prompt: **"${prompt}"**${contextInfo}
 
 ## Analysis
 
-1. **Context Understanding**: This appears to be a question about your notebook
-2. **Data Insights**: I can see the context from previous cells
-3. **Recommendations**: Let me provide a helpful response
+1. **Context Understanding**: Analyzed your notebook progression
+2. **Data Insights**: Building on previous cells and variables
+3. **Recommendations**: Context-aware suggestions
 
 ## Code Example
 
@@ -222,7 +321,7 @@ plt.show()
 **Powered by**: ${provider} ${model}
 
 ## Your prompt
-> "${prompt}"
+> "${prompt}"${contextInfo}
 
 ## How I can help
 
@@ -254,10 +353,10 @@ This is a placeholder response while we build the real API integration.`,
     `# 🔍 Analysis Results
 
 ## Request Analysis
-**Your prompt**: "${prompt}"
+**Your prompt**: "${prompt}"${contextInfo}
 
 ### Context Analysis
-I can see this is part of your notebook workflow and I'm here to help!
+Building on your existing notebook workflow to provide targeted assistance!
 
 ### Recommendations
 
@@ -365,15 +464,20 @@ async function processExecution(queueEntry: any) {
       console.log(`    Model: ${cell.aiModel || 'gpt-4'}`);
       console.log(`    Prompt: ${(cell.source || '').slice(0, 100)}${cell.source?.length > 100 ? '...' : ''}`);
 
+      // Gather context from previous cells
+      const context = await gatherNotebookContext(store, cell);
+      console.log(`📚 Gathered context from ${context.previousCells.length} previous cells`);
+
       // Use real OpenAI API if configured, otherwise fall back to mock
       if (openaiClient.isReady() && (cell.aiProvider === 'openai' || !cell.aiProvider)) {
         outputs = await openaiClient.generateResponse(cell.source || '', {
           model: cell.aiModel || 'gpt-4',
-          provider: cell.aiProvider || 'openai'
+          provider: cell.aiProvider || 'openai',
+          systemPrompt: buildSystemPromptWithContext(context)
         });
       } else {
         // Generate fake AI response for development/testing
-        outputs = await generateFakeAiResponse(cell);
+        outputs = await generateFakeAiResponse(cell, context);
       }
       console.log(`📤 Generated ${outputs.length} AI outputs`);
     } else {
