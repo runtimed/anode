@@ -1,151 +1,233 @@
-# Testing Guide: Enhanced Display System
+# Testing Strategy
 
-This document provides comprehensive testing guidance for Anode's enhanced display system, covering the consolidated test suite, running tests, and testing best practices.
+This document outlines the current testing state and strategy for Anode, including gaps that need to be addressed and plans for comprehensive integration testing.
 
-## Overview
+## Current Testing State
 
-The enhanced display system includes extensive test coverage that validates IPython compatibility, rich output rendering, stream consolidation, and collaborative features using a consolidated test suite.
+Anode has basic test infrastructure but significant gaps in verifying core functionality. Most tests are smoke tests or use mocked dependencies, which doesn't prove the system works end-to-end.
 
-## Test Structure
+### What's Actually Tested ✅
 
-### Test Structure
+**Basic Infrastructure:**
+- Schema validation and TypeScript compilation
+- LiveStore event flow and state management
+- React component rendering without errors
+- Basic kernel lifecycle (with mocked Pyodide)
 
-**Consolidated Test Suite**:
+**Test Results:**
+```bash
+pnpm test
+# ✓ 27 passed | 13 skipped (40 total)
+# Includes: basic setup, mocked kernel tests, LiveStore integration
 ```
-packages/dev-server-kernel-ls-client/test/
-└── enhanced-display-system.ts    # Main consolidated test suite (22 tests)
-```
 
-**Key Benefits**:
-- ⚡ **Faster**: Single kernel initialization vs. multiple separate kernels
-- 🧪 **Realistic**: Tests build on shared kernel state like real usage
-- 🎯 **Comprehensive**: Tests covering all display functionality
-- 📊 **Efficient**: Fast execution with consolidated test suite
+### Critical Testing Gaps ❌
 
-### Test Commands
+**Python Execution:**
+- No real Pyodide startup/initialization testing
+- Rich output rendering unverified (matplotlib, pandas)
+- IPython.display functions not tested end-to-end
+- Performance claims unsubstantiated
+
+**Integration Scenarios:**
+- Kernel-to-UI communication not tested with real data
+- Error handling with actual Python exceptions
+- Memory usage and execution timeouts
+- Multi-user collaboration with real execution
+
+### Current Test Commands
 
 ```bash
-# Main consolidated test suite
-pnpm test:display        # Complete display system validation
-
-# Standard vitest tests
-pnpm test                # All unit tests
+# Basic test suite (mostly smoke tests)
+pnpm test                # All current tests (27 passing, 13 skipped)
+pnpm test:kernel         # Kernel tests (mocked Pyodide)
 pnpm test:run            # Run tests once without watch mode
 ```
 
-## Consolidated Test Suite Detail
+## Needed Integration Tests (Priority 1)
 
-### Main Test Suite (`pnpm test:display`)
+### Goal: Prove Core Functionality Works
 
-**Purpose**: Comprehensive display system validation with shared kernel state
-**Architecture**: Single PyodideKernel instance shared across all tests
-
-```typescript
-// Complete test coverage in one suite
-=== Basic Functionality ===
-✅ Simple expression execution (2 + 2)
-✅ Print statement output  
-✅ Multiple print statements consolidate
-✅ Mixed print and expression
-
-=== IPython Display Functions ===
-✅ display() function
-✅ HTML display
-✅ Markdown display  
-✅ Multiple display calls
-
-=== Rich Object Representations ===
-✅ Object with _repr_html_
-✅ Object with multiple representations
-
-=== Pandas DataFrames ===
-✅ DataFrame rich display
-
-=== Matplotlib Integration ===
-✅ Simple line plot (SVG generation)
-
-=== Quote Handling ===
-✅ Single quotes in HTML
-✅ Double quotes with escaping
-✅ Complex HTML/JavaScript with mixed quotes
-
-=== Stream Consolidation ===
-✅ stdout and stderr separation
-✅ Long output consolidation
-✅ Zen of Python consolidation
-
-=== Error Handling ===
-✅ Runtime error handling
-
-=== Mixed Content Scenarios ===
-✅ Comprehensive mixed output (real-world workflows)
-
-=== Performance and Reliability ===
-✅ Unicode and special characters
-✅ Large DataFrame handling
-```
-
-**Key Benefits**:
-- **Fast**: Faster than separate test files due to single kernel initialization
-- **Realistic**: Tests kernel state persistence like real usage
-- **Comprehensive**: Covers all enhanced display functionality
-- **Maintainable**: Single test file to update and maintain
-
-**Expected Performance**:
-- Kernel initialization: Fast startup
-- Test execution: Quick execution
-- SVG generation: Rich plot content for matplotlib
-- DataFrame HTML: Proper table structure
-
-## Testing Best Practices
-
-### Running Tests Efficiently
-
-```bash
-# Main development workflow
-pnpm test:display          # Enhanced display system validation
-
-# Pre-commit validation  
-pnpm test:run             # All unit tests
-```
-
-### Test Development Guidelines
-
-1. **Add to Consolidated Suite**: Extend `enhanced-display-system.ts` for new features
-2. **Test Real Use Cases**: Write tests that match actual user workflows  
-3. **Use Shared Kernel State**: Build tests that can leverage previous executions
-4. **Validate Multiple Output Types**: Test execution_result, display_data, stream, error
-5. **Check Output Content**: Verify both structure and actual rendered content
-5. **Test Edge Cases**: Empty outputs, long text, special characters
-6. **Keep Tests Fast**: Maintain efficient test execution
-
-### Adding New Tests
-
-When adding new display features, extend the consolidated test suite:
+**File to Create**: `packages/dev-server-kernel-ls-client/test/pyodide-integration.test.ts`
 
 ```typescript
-// In enhanced-display-system.ts, add to appropriate section
-await this.test('new feature description', async () => {
-  const result = await this.kernel.execute(`
-    # Your test code here - can use variables from previous tests
-  `);
+describe('Pyodide Integration Tests', () => {
+  let kernel: PyodideKernel
   
-  // Validate outputs using this.expect()
-  const expectedOutputType = result.find(r => r.type === 'display_data');
-  this.expect(expectedOutputType).toBeDefined();
-  this.expect(expectedOutputType?.data?.['text/html']).toContain('expected');
-})();
+  beforeAll(async () => {
+    kernel = new PyodideKernel('test-notebook')
+    await kernel.initialize() // Real Pyodide startup
+  }, 30000) // 30s timeout for Pyodide startup
+  
+  test('basic Python execution', async () => {
+    const result = await kernel.execute('2 + 2')
+    expect(result).toContainEqual(
+      expect.objectContaining({
+        type: 'execute_result',
+        data: expect.objectContaining({
+          'text/plain': '4'
+        })
+      })
+    )
+  })
+  
+  test('matplotlib plot generation', async () => {
+    const code = `
+import matplotlib.pyplot as plt
+import numpy as np
+x = np.linspace(0, 10, 100)
+y = np.sin(x)
+plt.plot(x, y)
+plt.title('Test Plot')
+plt.show()
+`
+    const result = await kernel.execute(code)
+    const svgOutput = result.find(r => r.type === 'display_data')
+    expect(svgOutput?.data).toHaveProperty('image/svg+xml')
+    expect(svgOutput?.data['image/svg+xml']).toContain('<svg')
+  })
+  
+  test('pandas DataFrame display', async () => {
+    const code = `
+import pandas as pd
+df = pd.DataFrame({'A': [1, 2, 3], 'B': [4, 5, 6]})
+df
+`
+    const result = await kernel.execute(code)
+    const htmlOutput = result.find(r => r.type === 'execute_result')
+    expect(htmlOutput?.data).toHaveProperty('text/html')
+    expect(htmlOutput?.data['text/html']).toContain('<table')
+  })
+  
+  test('IPython.display functions', async () => {
+    const code = `
+from IPython.display import HTML, Markdown, display
+display(HTML('<h1>Test HTML</h1>'))
+display(Markdown('**Bold text**'))
+`
+    const result = await kernel.execute(code)
+    expect(result).toHaveLength(2)
+    expect(result[0].data).toHaveProperty('text/html')
+    expect(result[1].data).toHaveProperty('text/markdown')
+  })
+})
 ```
 
-**Benefits of Consolidated Approach**:
-- Shared kernel state allows testing interactions between features
-- Faster execution with single initialization
-- More realistic testing environment
-- Easier to maintain and debug
+**Setup Requirements:**
+- Real Pyodide loading (no mocks)
+- Timeout handling for slow startup
+- Memory cleanup between tests
+- Proper error isolation
 
-## Test Data Validation
+## Testing Strategy
 
-### Expected Output Structures
+### Mock Strategy
+
+**When to Mock:**
+- External API calls (OpenAI, databases)
+- File system operations
+- Network requests to sync backend
+
+**When NOT to Mock:**
+- Pyodide execution (core functionality)
+- LiveStore state management
+- React component rendering
+- IPython display system
+
+### Test Environment Setup
+
+**CI Requirements:**
+- Node.js 18+ environment
+- Sufficient memory for Pyodide (>1GB)
+- Timeout handling for slow tests
+- Artifact collection for failed tests
+
+**Local Development:**
+```bash
+# Install test dependencies
+pnpm install
+
+# Run quick smoke tests
+pnpm test
+
+# Run integration tests (when created)
+pnpm test:integration --timeout 60000
+
+# Run specific test
+pnpm test --grep "basic Python execution"
+```
+
+### Performance Testing
+
+**Goal**: Validate speed and memory claims
+
+**Metrics to Track:**
+- Pyodide startup time
+- Execution latency for simple operations
+- Rich output rendering time
+- Memory usage during execution
+- Collaboration sync delays
+
+```typescript
+describe('Performance Tests', () => {
+  test('Pyodide startup under 10 seconds', async () => {
+    const start = Date.now()
+    const kernel = new PyodideKernel('perf-test')
+    await kernel.initialize()
+    const duration = Date.now() - start
+    expect(duration).toBeLessThan(10000)
+  })
+  
+  test('simple execution under 1 second', async () => {
+    const start = Date.now()
+    await kernel.execute('2 + 2')
+    const duration = Date.now() - start
+    expect(duration).toBeLessThan(1000)
+  })
+})
+```
+
+## Testing Roadmap
+
+### Phase 1: Foundation (Next 2 weeks)
+- [ ] Real Pyodide integration tests
+- [ ] Rich output verification tests
+- [ ] Basic performance benchmarks
+- [ ] Error scenario testing
+
+### Phase 2: Coverage (Next month)
+- [ ] End-to-end browser tests
+- [ ] Multi-user collaboration tests
+- [ ] Kernel lifecycle tests
+- [ ] Memory leak detection
+
+### Phase 3: Production (Next quarter)
+- [ ] Load testing with large notebooks
+- [ ] Cross-browser compatibility tests
+- [ ] Mobile device testing
+- [ ] Security penetration testing
+
+## Success Metrics
+
+### Functionality
+- All integration tests pass consistently
+- Rich outputs render correctly
+- Error handling works gracefully
+- Multi-user sync maintains consistency
+
+### Performance
+- Pyodide startup: < 10 seconds
+- Simple execution: < 1 second  
+- Rich output rendering: < 2 seconds
+- Memory usage: < 500MB per kernel
+
+### Reliability
+- Test suite completion: > 95%
+- Flaky test rate: < 5%
+- False positive rate: < 1%
+- Coverage of critical paths: 100%
+
+## Expected Output Structures
 
 ```typescript
 // Execution Result
@@ -190,102 +272,22 @@ await this.test('new feature description', async () => {
 }
 ```
 
-### Performance Benchmarks
+## Current Limitations
 
-Expected consolidated test suite performance:
+### Testing Gaps
+- Most tests use mocked Pyodide, don't prove real execution works
+- Rich output claims unverified through integration tests
+- Performance benchmarks missing
+- Error handling scenarios not thoroughly tested
 
-- **Kernel initialization**: Fast one-time startup
-- **Matplotlib plot generation**: Rich SVG content
-- **DataFrame rendering**: Proper HTML table structure  
-- **Stream consolidation**: Real-time merging with newline preservation
-
-**Performance Improvements from Consolidation**:
-- Faster than separate test files due to single kernel initialization
-- Shared state enables testing feature interactions
-
-## Debugging Test Failures
-
-### Common Issues and Solutions
-
-1. **Kernel initialization timeout**
-   ```bash
-   # Check if packages are loading correctly
-   # Look for "Loading" messages in output
-   ```
-
-2. **Missing display outputs**
-   ```bash
-   # Verify IPython integration
-   pnpm test:hooks  # Should show callback mechanisms working
-   ```
-
-3. **Incorrect stream consolidation**
-   - Check that newline handling preserves proper text formatting
-
-4. **Quote escaping errors**
-   - Verify that direct function calls handle all quote types correctly
-
-### Test Environment
-
-Tests run in Node.js with tsx for TypeScript execution:
-- **Pyodide**: Full Python environment in WebAssembly
-- **IPython**: Complete IPython shell with custom hooks
-- **Matplotlib**: SVG backend for vector graphics
-- **Pandas**: Full DataFrame support with HTML rendering
-
-## Continuous Integration
-
-### GitHub Actions Integration
-
-```yaml
-# Add to .github/workflows/test.yml  
-- name: Run Enhanced Display Tests
-  run: |
-    pnpm test:display    # Enhanced display system test suite
-```
-
-### Test Coverage Goals
-
-- **Core Functions**: 100% coverage of display system APIs ✅
-- **Output Types**: All four output types tested ✅  
-- **Edge Cases**: Quote handling, long outputs, errors ✅
-- **Integration**: Real-world usage patterns ✅
-- **Performance**: Fast execution with consolidated suite ✅
-- **Maintainability**: Consolidated suite for easy updates ✅
-
-## Future Test Expansion
-
-### Phase 2: Updateable Outputs
-
-When implementing updateable outputs by ID, extend the consolidated suite:
-
-```typescript
-// Add to enhanced-display-system.ts
-=== Updateable Outputs ===
-✅ Output update by ID
-✅ Real-time streaming updates  
-✅ Progress bar updates
-✅ Collaborative output updates
-
-=== Interactive Widgets ===
-✅ IPython widgets support
-✅ Widget state synchronization
-✅ Multi-user widget interactions
-```
-
-### Phase 3: AI Integration
-
-```typescript
-// Extend consolidated suite for AI features
-=== AI Integration ===
-✅ AI response rendering with rich display
-✅ Streaming AI text generation
-✅ AI-generated visualizations  
-✅ Context-aware code suggestions
-```
-
-**Advantage**: Consolidated approach allows testing interactions between AI features and existing display system.
+### Test Environment Issues
+- Long Pyodide startup time affects test execution
+- Memory cleanup between tests needs attention
+- Cross-browser testing not implemented
+- Mobile compatibility untested
 
 ---
 
-The enhanced display system's consolidated test suite ensures production-ready reliability while providing fast, comprehensive validation of Jupyter compatibility and real-time collaborative features. The unified approach enables testing feature interactions and maintains development velocity through efficient test execution.
+This testing strategy prioritizes proving that core functionality actually works before building advanced features. The immediate focus is on integration tests that verify real-world usage rather than unit tests that might miss integration issues.
+
+**Next Steps**: Implement Phase 1 integration tests to verify current claims about Python execution and rich output rendering.

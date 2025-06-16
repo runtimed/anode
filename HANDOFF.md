@@ -2,158 +2,162 @@
 
 ## Current Work State
 
-**Status**: ✅ **Phase 1 Complete** - Enhanced IPython Display System with Zero-Latency Execution
+**Status**: 🚧 **Core Prototype Working** - Collaborative editing and Python execution functional, rich outputs in development
 
-### What's Complete ✅
+### What's Actually Working ✅
 
-#### Enhanced Display System (Phase 1)
-- **Full IPython compatibility** with custom display hooks and publishers  
-- **Zero-latency execution** with reactive architecture and stream consolidation
-- **Rich output rendering** - HTML tables, SVG plots, markdown, JSON with proper MIME type handling
-- **IPython.display functions** - display(), clear_output(), HTML(), Markdown() all work correctly
-- **Rich object representations** - _repr_html_(), _repr_markdown_(), etc. fully supported
-- **Stream output consolidation** - Clean text blocks with proper newline handling
-- **Quote-safe code execution** - Direct Python function calls eliminate escaping issues
-- **Duplicate output prevention** - Clean, non-duplicated display outputs
-- **Comprehensive testing** - 80+ passing tests including display system validation
+#### Core Collaborative System
+- **LiveStore integration** - Event-sourcing with real-time collaboration working reliably
+- **Schema architecture** - Direct TypeScript imports across all packages with full type safety
+- **Reactive subscriptions** - Kernel work detection without polling delays
+- **Cell management** - Create, edit, move, delete cells with proper state sync
 
-#### Core Architecture  
-- **LiveStore integration** - Event-sourcing with real-time collaboration
-- **Schema refactor** - Direct TypeScript imports working across all packages
-- **Reactive subscriptions** - Eliminated polling delays entirely
-- **Mock AI responses** - Integrated through standard execution queue with rich markdown
+#### Python Execution
+- **Basic Python execution** - Code cells run Python via Pyodide (manual kernel startup)
+- **Error handling** - Python exceptions properly captured and displayed
+- **Text output** - print() statements and basic stdout/stderr capture
+- **Execution queue** - Proper job queuing and status tracking
 
-### What's Working Right Now
-- **Instant Python execution** when kernel is running (0.3s including rich rendering)
-- **Real-time collaboration** across multiple users with rich outputs
-- **Pandas DataFrames** with styled HTML table output
-- **Matplotlib plots** as crisp SVG vector graphics (25KB+ files)
-- **Stream consolidation** - Multiple print statements merge into clean text blocks
-- **Complex code execution** - Handles quotes, f-strings, JSON, HTML content
-- **IPython.display ecosystem** - Full compatibility with Jupyter display protocols
+#### User Interface
+- **Real-time collaboration** - Multiple users can edit simultaneously
+- **Keyboard navigation** - Cell focus, arrow keys, execution shortcuts
+- **Cell types** - Code, markdown, AI (mock), SQL (planned) cells supported
+- **Basic output display** - Text results and error messages shown
+
+### What's In Development 🚧
+
+#### Rich Output System
+- **Display hooks** - IPython integration code exists but needs integration testing
+- **Rich representations** - _repr_html_(), matplotlib, pandas support partially implemented
+- **Stream consolidation** - Output buffering and formatting logic present but unverified
+
+#### AI Integration
+- **Mock responses** - Fake AI responses working through execution queue
+- **Real AI** - API integration being developed on separate branch
 
 ## Immediate Next Steps
 
-### Priority 1: Updateable Outputs by ID (Phase 2 - High Impact)
-**Current limitation**: Stream consolidation happens at execution end, no real-time streaming
+### Priority 1: Integration Testing (Critical)
+**Current gap**: Core functionality exists but lacks verification
 
-**Goal**: Enable real-time streaming updates with unique output IDs
+**Goal**: Prove Python execution and rich outputs actually work end-to-end
 
-**Key Use Cases**:
-- Real-time progress bars and status updates  
-- Streaming AI responses (word-by-word text generation)
-- Dynamic chart updates during computation
-- Interactive widgets with collaborative support
+**Key Tests Needed**:
+- Python execution with real Pyodide startup
+- Matplotlib plot generation and display
+- Pandas DataFrame rendering
+- IPython.display functions (HTML, Markdown, etc.)
+- Error handling and recovery
 
-**Technical Implementation**:
-```typescript
-// New output structure needed
-interface OutputData {
-  id: string;                    // Unique identifier for updates
-  type: OutputType;
-  data: RichOutputData | StreamOutputData | ErrorOutputData;
-  metadata?: Record<string, unknown>;
-  position: number;
-  timestamp: number;             // For collaborative conflict resolution
-}
-
-// New methods needed in PyodideKernel
-updateOutput(id: string, newData: Partial<OutputData>): void;
-replaceOutput(id: string, newOutput: OutputData): void;
-```
-
-**Files to modify**:
-- `shared/schema.ts` - Add `id` and `timestamp` fields to output events
-- `packages/dev-server-kernel-ls-client/src/pyodide-kernel.ts` - Track output IDs, emit updates
-- `packages/web-client/src/components/notebook/RichOutput.tsx` - Handle output updates
-- LiveStore integration for update/replace operations
+**Files to create/modify**:
+- `packages/dev-server-kernel-ls-client/test/pyodide-integration.test.ts` - Real execution tests
+- Update mocked tests to include real functionality verification
+- Add test utilities for kernel lifecycle management
 
 **Estimated effort**: 4-6 hours
-**Impact**: Enables streaming AI responses and interactive widgets
+**Impact**: Verifies core value proposition and identifies real gaps
 
-### Priority 2: Real AI Integration (2-3 hours)
-**Current state**: Mock responses working perfectly through execution queue with rich markdown
+### Priority 2: Auto Kernel Management (High Impact)
+**Current friction**: Manual `NOTEBOOK_ID=xyz pnpm dev:kernel` per notebook
 
-**Next actions**:
-- Replace `generateFakeAiResponse()` in `packages/dev-server-kernel-ls-client/src/mod-reactive.ts` (line 154+)
-- Add OpenAI/Anthropic packages to kernel dependencies
-- Implement streaming responses using updateable outputs (once Phase 2 complete)
-- Handle API errors gracefully with rich error display
-
-**Files to modify**:
-- `packages/dev-server-kernel-ls-client/src/mod-reactive.ts` - Main integration point
-- `packages/web-client/src/components/notebook/AiCell.tsx` - Model selection UI
-- Add API key configuration system
-
-### Priority 3: Auto Kernel Management (1-2 hours)  
-**Current state**: Manual `NOTEBOOK_ID=xyz pnpm dev:kernel` works but creates friction
+**Goal**: One-click notebook startup with automatic kernel lifecycle
 
 **Next actions**:
 - Modify `pnpm dev` to auto-spawn kernels per notebook
 - Add kernel health monitoring and restart capability
-- Update UI to show kernel status automatically with better UX
+- Better error messages when kernels fail or disconnect
 
 **Files to modify**:
-- Root `package.json` - Update dev script for auto-kernel startup
+- Root `package.json` - Update dev script
 - `packages/web-client/src/components/notebook/NotebookViewer.tsx` - Status display
+- Add kernel process management utilities
 
-### Priority 4: Interactive Widgets (Phase 2 Extension)
-**Depends on**: Updateable outputs by ID implementation
+**Estimated effort**: 2-3 hours
+**Impact**: Removes major user friction
 
-**Goal**: IPython widgets support for collaborative interactive elements
+### Priority 3: Rich Output Verification (Medium)
+**Current state**: Code exists but integration unclear
 
-**Benefits**: 
-- Progress bars, sliders, buttons that work across users
-- Interactive visualizations with real-time updates
-- Enhanced AI interaction patterns
+**Goal**: Verify and fix matplotlib, pandas, IPython.display integration
 
-## Enhanced Display System Details
+**Next actions**:
+- Test actual matplotlib SVG generation
+- Verify pandas DataFrame HTML rendering
+- Fix any display hook integration issues
+- Document what rich outputs are supported
 
-### Architecture Breakthrough
-The enhanced display system successfully integrates **jupyterlite-pyodide-kernel's** proven display architecture with **Anode's LiveStore** collaborative system:
+**Files to modify**:
+- `packages/dev-server-kernel-ls-client/src/pyodide-kernel.ts` - Display system
+- Add rich output examples and tests
+- Document supported output types
 
-- **LiteDisplayPublisher**: Handles `IPython.display.display()` calls
-- **LiteDisplayHook**: Captures execution results with rich formatting  
-- **Direct function calls**: Eliminates quote escaping issues entirely
-- **Stream consolidation**: Real-time updates with clean UI presentation
+**Estimated effort**: 3-4 hours
+**Impact**: Delivers on rich output promises
 
-### Testing Infrastructure
+### Priority 4: Error Handling & UX (Low)
+**Current state**: Basic error display, could be much better
+
+**Goal**: Professional error handling and user feedback
+
+**Next actions**:
+- Better kernel failure messages
+- Execution timeout handling
+- Clear status indicators for all operations
+- Graceful degradation when kernel unavailable
+
+**Impact**: Better user experience and debugging
+
+## Display System Architecture
+
+### Current Implementation
+The display system integrates **jupyterlite-pyodide-kernel** patterns with **Anode's LiveStore** collaborative system:
+
+- **LiteDisplayPublisher**: Framework for `IPython.display.display()` calls
+- **LiteDisplayHook**: Execution result capture with formatting
+- **Stream consolidation**: Output buffering and formatting logic
+- **Event-driven outputs**: Rich outputs flow through LiveStore events
+
+### Current Testing Status
 ```bash
-# Comprehensive test suite (80+ tests)
-pnpm test:display        # Full display system validation
-pnpm test:minimal        # Quick smoke tests (10s)
-pnpm test:matplotlib     # SVG generation tests
-pnpm test:quotes         # Quote handling validation
-pnpm test:duplicates     # Duplicate prevention
-pnpm test:consolidation  # Stream consolidation
+# Existing test suite (mostly smoke tests)
+pnpm test:kernel         # Basic kernel lifecycle tests (mocked Pyodide)
+pnpm test               # Full test suite (27 passing, 13 skipped)
 ```
 
-### Production-Ready Features
-- ✅ **Pandas DataFrames**: Rich HTML tables with styling
-- ✅ **Matplotlib**: Vector SVG graphics (25KB+ complex plots)
-- ✅ **IPython ecosystem**: display(), HTML(), Markdown(), JSON()
-- ✅ **Stream handling**: Consolidated output with preserved newlines
-- ✅ **Error handling**: Proper traceback formatting and display
-- ✅ **Real-time collaboration**: All outputs sync instantly across users
+**Testing Gaps**:
+- No real Pyodide integration tests
+- Rich output generation unverified
+- Display hook integration not tested end-to-end
+- Performance claims unsubstantiated
 
-## Known Issues & Gotchas
+### Features Status
+- 🚧 **Pandas DataFrames**: Code exists, integration testing needed
+- 🚧 **Matplotlib**: SVG generation logic present, unverified
+- 🚧 **IPython ecosystem**: Display functions partially implemented
+- ✅ **Stream handling**: Basic text output working
+- ✅ **Error handling**: Python exceptions properly displayed
+- ✅ **Real-time collaboration**: Text outputs sync across users
 
-### Current Limitations (Phase 2 Will Address)
-- **No real-time streaming**: Stream consolidation happens at execution end
-- **No output updates**: Cannot update existing outputs (progress bars impossible)
-- **No interactive widgets**: IPython widgets not yet supported
+## Known Issues & Limitations
 
-### Schema & Architecture
+### Current Limitations
+- **Manual kernel startup**: Each notebook requires `NOTEBOOK_ID=xyz pnpm dev:kernel`
+- **Rich outputs unverified**: Matplotlib, pandas integration needs testing
+- **Limited error recovery**: Kernel failures require manual restart
+- **No streaming outputs**: All output appears at execution completion
+- **Mock AI only**: No real AI API integration yet
+
+### Schema & Architecture Notes
 - All packages use direct TypeScript imports: `../../../shared/schema.js`
 - No build step needed - changes are immediate across all packages
 - Must restart all services after schema changes to avoid version mismatches
 - Event deferral with `setTimeout(..., 0)` prevents LiveStore execution conflicts
 
-### Display System Preservation
-- **Don't modify** the IPython integration - it's working perfectly
-- **Don't touch** the stream consolidation logic - newlines are handled correctly  
-- **Don't change** the direct function call approach - it eliminates quote issues
-- **Preserve** the LiteDisplayPublisher/LiteDisplayHook architecture
+### Development Guidelines
+- **Test changes carefully**: Rich output system integration is complex
+- **Verify with real data**: Don't rely on mocked tests for core functionality
+- **Maintain kernel isolation**: Python execution should not block UI
+- **Preserve event sourcing**: All state changes must flow through LiveStore
 
 ## Files Currently Working
 
@@ -193,49 +197,53 @@ docs/
 └── UI_DESIGN.md             # Interface design guidelines
 ```
 
-## Phase Roadmap
+## Development Phases
 
-**✅ Phase 1: Enhanced Display System** - **COMPLETE**
-- Full IPython integration with display hooks and publishers
-- Stream consolidation and rich output rendering  
-- Quote-safe execution and comprehensive testing
+**✅ Phase 1: Core Prototype** - **CURRENT**
+- LiveStore integration and collaborative editing
+- Basic Python execution via Pyodide
+- Cell management and keyboard navigation
+- Text output and error handling
 
-**🎯 Phase 2: Updateable Outputs** - **NEXT PRIORITY**  
-- Unique output IDs for real-time updates
-- Interactive widgets and streaming AI responses
-- Advanced visualizations and collaborative features
+**🎯 Phase 2: Rich Outputs** - **NEXT PRIORITY**  
+- Integration testing for Python execution
+- Matplotlib and pandas display verification
+- IPython.display function support
+- Automated kernel management
 
 **Phase 3: AI Integration**
-- Real AI API integration (OpenAI, Anthropic) with rich display
-- AI-generated visualizations and code suggestions  
-- Intelligent notebook assistance with streaming responses
+- Real AI API integration (in progress on separate branch)
+- Streaming AI responses with rich display
+- Context-aware code suggestions
 
 **Phase 4: Advanced Features**
-- SQL cells with database connections and table display
-- Advanced collaborative widgets with real-time state
-- Performance optimizations for large notebooks
+- SQL cells with database connections
+- Interactive widgets and collaborative components
+- Performance optimization for large notebooks
+- Production deployment readiness
 
 ## Quick Wins Available
 
-1. **Auto-kernel startup** - Remove manual NOTEBOOK_ID friction (1-2 hours)
-2. **AI API integration** - Architecture ready, swap mock for real (2-3 hours)  
-3. **Better error handling** - Enhanced error display with rich formatting (1 hour)
+1. **Integration tests** - Verify Python execution actually works (2-3 hours)
+2. **Auto-kernel startup** - Remove manual NOTEBOOK_ID friction (1-2 hours)
+3. **Better error messaging** - Clear status when kernels fail (1 hour)
+4. **Rich output verification** - Test matplotlib/pandas claims (2-3 hours)
 
-## What Not to Change
+## What's Working Well
 
-- ✅ **Rich output system** - Working perfectly with full Jupyter compatibility
-- ✅ **Execution queue architecture** - AI cells integrate seamlessly  
-- ✅ **Direct function calls** - Eliminates quote escaping completely
-- ✅ **Stream consolidation** - Clean UI with proper newline handling
-- ✅ **LiveStore event sourcing** - Provides excellent debugging and audit
-- ✅ **Reactive subscriptions** - Zero-latency execution achieved
+- ✅ **LiveStore event sourcing** - Robust collaborative state management
+- ✅ **Execution queue architecture** - Clean job processing system
+- ✅ **Reactive subscriptions** - No polling delays for work detection
+- ✅ **Schema architecture** - Direct TypeScript imports work cleanly
+- ✅ **Cell management** - Create, edit, move operations solid
+- ✅ **Basic Python execution** - Code runs, text output displays
 
 ## Next Developer Success Path
 
-**Phase 1 Complete**: The enhanced display system provides a production-ready foundation with full Jupyter compatibility and zero-latency collaborative execution.
+**Current State**: Core collaborative notebook system working with basic Python execution. Rich output system architecture in place but needs verification.
 
-**Focus for Phase 2**: Implement updateable outputs by ID to enable real-time streaming updates. This unlocks interactive widgets, streaming AI responses, and dynamic visualizations while preserving the solid foundation we've built.
+**Immediate Focus**: Prove the system works as claimed through integration testing, then remove user friction with automated kernel management.
 
-**Key Insight**: The unified execution system makes AI cells first-class citizens. The enhanced display system provides rich output rendering. Updateable outputs will enable true streaming experiences.
+**Key Insight**: The LiveStore foundation is solid. Python execution works but needs verification. Rich outputs need real testing. AI integration is happening separately.
 
-Priority: **Updateable Outputs → Real AI → Auto Kernels → Interactive Widgets**
+Priority: **Integration Testing → Auto Kernels → Rich Output Verification → Error Handling**

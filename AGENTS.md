@@ -2,7 +2,9 @@
 
 This document provides essential context for AI assistants working on the Anode project.
 
-For current work state and immediate next steps, see `HANDOFF.md` - it focuses on where development was left off and what to work on next.
+For current work state and immediate next steps, see `HANDOFF.md` - it provides an honest assessment of what's working versus what needs development.
+
+**Development Workflow**: The user will typically be running the wrangler server and web client in separate tabs. If you need to check work, run a build and/or lints, tests, typechecks. If the user isn't running the dev environment, tell them how to start it at the base of the repo with pnpm.
 
 ## Project Overview
 
@@ -26,27 +28,26 @@ Anode is a real-time collaborative notebook system built on LiveStore, an event-
 
 ## Current Working State
 
-### What's Working ✅
-- ✅ **Enhanced IPython Display System** - Full Jupyter-compatible display hooks and publishers
-- ✅ **Instant Python execution** with zero polling delays and stream consolidation
-- ✅ **Rich output rendering** - HTML tables, SVG plots, markdown, JSON with proper MIME type handling
-- ✅ **IPython.display functions** - display(), clear_output(), HTML(), Markdown() all work correctly
-- ✅ **Rich object representations** - _repr_html_(), _repr_markdown_(), etc. fully supported
-- ✅ **Pandas DataFrames** with styled HTML table output
-- ✅ **Matplotlib plots** as crisp SVG vector graphics with zero-latency display
-- ✅ **Stream output consolidation** - Clean text blocks with proper newline handling
-- ✅ **Quote-safe execution** - Handles complex code with quotes, escapes, and special characters
-- ✅ **Real-time collaboration** across multiple users  
-- ✅ **AI cell integration** with mock responses and markdown rendering
-- ✅ **Offline-first operation** with sync when connected
-- ✅ **Robust testing suite** with extensive display system coverage and growing test base for ongoing development
+### What's Actually Working ✅
+- ✅ **LiveStore integration** - Event-sourcing with real-time collaboration working reliably
+- ✅ **Basic Python execution** - Code cells run Python via Pyodide (manual kernel startup)
+- ✅ **Real-time collaboration** - Multiple users can edit notebooks simultaneously
+- ✅ **Cell management** - Create, edit, move, delete cells with proper state sync
+- ✅ **Reactive architecture** - Kernel work detection without polling delays
+- ✅ **Text output handling** - Basic print statements and error display
+- ✅ **Offline-first operation** - Works without network, syncs when connected
+
+### What's In Development 🚧
+- 🚧 **Rich output rendering** - IPython integration code exists but needs verification
+- 🚧 **AI cell integration** - Mock responses working, real AI on separate branch
+- 🚧 **Display system** - Matplotlib, pandas support partially implemented
+- 🚧 **Automated kernel management** - Manual startup creates friction
 
 ### Core Architecture Features
 - `NOTEBOOK_ID = STORE_ID`: Each notebook gets its own LiveStore database
-- **Enhanced IPython Integration**: Custom display hooks and publishers provide full Jupyter compatibility
+- **Event-sourced state**: All changes flow through LiveStore events
 - **Reactive execution**: `executionRequested` → `executionAssigned` → `executionStarted` → `executionCompleted`
-- **Zero-latency**: Kernels use reactive `queryDb` subscriptions for instant work detection
-- **Stream consolidation**: Multiple stdout/stderr lines merge into clean text blocks with real-time updates
+- **Direct TypeScript schema**: No build step, imports work across packages
 - **Session-based kernels**: Each kernel restart gets unique `sessionId`
 
 ## Development Commands
@@ -62,23 +63,27 @@ NOTEBOOK_ID=notebook-123-abc pnpm dev:kernel
 pnpm reset-storage  # Clear all local storage
 ```
 
-## Next Phase: Advanced Display Features & AI Integration
+## Immediate Priorities
 
-**Priority Focus**: Build on enhanced display system for advanced features
+**Priority Focus**: Verify core functionality works, then remove friction
 
-### Immediate Goals (Phase 2)
-- **Updateable Outputs by ID** - Enable real-time streaming updates with clean consolidation
-- **Interactive Widgets** - IPython widgets support for dynamic UI elements
-- **Real AI API Integration** - OpenAI, Anthropic, local model calls with rich display
-- **Automatic Kernel Management** - One-click notebook startup
+### Phase 1: Prove It Works (Next 2 weeks)
+- **Integration Testing** - Real Pyodide tests to verify Python execution claims
+- **Rich Output Verification** - Test matplotlib, pandas, IPython.display actually work
+- **Automated Kernel Management** - Remove manual `NOTEBOOK_ID=xyz pnpm dev:kernel` friction
+- **Error Handling** - Better user feedback when things fail
+
+### Phase 2: Advanced Features (Next 1-2 months)
+- **Real AI API Integration** - Replace mock responses (in progress on separate branch)
+- **SQL Cell Implementation** - Database connections and query results
+- **Interactive Widgets** - IPython widgets support for collaborative elements
 - **Authentication System** - Google OAuth with proper session management
-- **Advanced Visualizations** - 3D plots, interactive charts, custom display components
 
-### Phase 3 Goals
+### Phase 3: Production (Next quarter)
+- **Performance Optimization** - Handle large notebooks efficiently
 - **Code Completions** - LSP + kernel-based suggestions
-- **SQL Cell Implementation** - Real database connections with table display
-- **AI-Generated Visualizations** - Smart chart recommendations and generation
-- **Collaborative Widgets** - Real-time shared interactive components
+- **Advanced Visualizations** - 3D plots, interactive charts
+- **Production Deployment** - Self-hosted and cloud options
 
 ## Important Considerations
 
@@ -101,51 +106,87 @@ pnpm reset-storage  # Clear all local storage
 
 ## File Structure
 ```
-anode/
+anode2/
 ├── shared/
 │   └── schema.ts         # LiveStore schema - TypeScript source directly imported by all packages
 ├── packages/
 │   ├── web-client/       # React web application
 │   ├── docworker/        # Cloudflare Worker sync backend
 │   └── dev-server-kernel-ls-client/  # Python kernel server
-├── package.json          # Root workspace configuration
-└── pnpm-workspace.yaml   # Dependency catalog
+├── docs/                 # Documentation directory
+│   ├── README.md         # Documentation index
+│   ├── DISPLAY_SYSTEM.md # Display system architecture
+│   ├── TESTING.md        # Testing strategy and gaps
+│   ├── UI_DESIGN.md      # Interface design guidelines
+│   └── display-examples.md # Practical usage examples
+├── HANDOFF.md           # Current work state and priorities
+├── ROADMAP.md           # Long-term vision and milestones
+├── package.json         # Root workspace configuration
+└── pnpm-workspace.yaml  # Dependency catalog
 ```
 
 ## Notes for AI Assistants
 
-### Current State - Enhanced Display System Complete
-- **Full IPython compatibility** with custom display hooks and publishers
-- **Zero-latency execution** with reactive architecture and stream consolidation
-- **Rich output rendering** completed - HTML tables, SVG plots, markdown, JSON
-- **Quote-safe code execution** via direct Python function calls
-- **Consolidated testing** - 22 comprehensive tests with 16x faster execution (15s vs 4+ minutes)
-- **Mock AI responses** working - ready for real API integration with rich display
-- **Zero-build schema architecture** - Direct TypeScript imports eliminate build complexity
-- **Production-ready foundation** for AI-native collaborative notebooks
+### Current State - Core Prototype Working
+- **LiveStore foundation** solid with real-time collaborative editing
+- **Basic Python execution** working via Pyodide (needs integration testing)
+- **Rich output system** architecture in place but verification needed
+- **Mock AI responses** working through execution queue
+- **Direct TypeScript schema** - No build complexity across packages
+- **Event-sourced architecture** - Excellent debugging and audit capabilities
 
 ### Key Development Insights
-- **IPython integration breakthrough** - Proper display system without jupyterlite complexity
-- **Stream consolidation pattern** - Real-time updates with clean UI presentation
-- **Direct function calls** - Eliminates quote escaping issues entirely
-- **Reactive architecture** - Zero-latency execution achieved
-- **Unified execution system** - AI cells work exactly like code cells through execution queue
-- **Event sourcing** provides excellent debugging and audit capabilities  
-- **Proper event deferral** resolves LiveStore execution segment conflicts
-- **Focus-based UI patterns** create clean, keyboard-driven workflows
+- **LiveStore integration** provides solid collaborative foundation
+- **Reactive architecture** eliminates polling delays for execution
+- **Event sourcing** enables powerful undo/redo and conflict resolution
+- **Direct function calls** approach eliminates quote escaping complexity
+- **Unified execution system** makes all cell types work through same queue
+- **Manual kernel startup** creates significant user friction
 
-### Next Architecture Goal: Updateable Outputs
-The current stream consolidation works by updating existing outputs in-place. The next major improvement is making this pattern work for all output types with unique IDs, enabling:
-- Real-time progress bars and status updates
-- Streaming text generation for AI responses
-- Dynamic chart updates during computation
-- Collaborative real-time output sharing
+### Immediate Technical Goals
+- **Integration testing** to verify Python execution and rich outputs actually work
+- **Automated kernel management** to remove manual startup friction
+- **Real AI integration** to replace mock responses (separate branch)
+- **Better error handling** for improved user experience
 
 ### Communication Style
 - Use authentic developer voice - uncertainty is fine, just be explicit
-- Focus on AI ↔ Python ↔ User interaction goals as primary differentiator
-- Emphasize production readiness and Jupyter-quality output rendering
+- Be honest about current prototype status while preserving the collaborative vision
+- Focus on proving core functionality works before claiming production readiness
+- Emphasize the solid LiveStore foundation and collaborative advantages
 
-## Important Note on Timestamps
+## Development Workflow Notes
+
+**User Environment**: The user will typically have:
+- Web client running in one tab (`pnpm dev`)
+- Wrangler server running in another tab 
+- Manual kernel startup as needed (`NOTEBOOK_ID=xyz pnpm dev:kernel`)
+
+**Checking Work**: If you need to verify changes:
+```bash
+# Build and check for issues
+pnpm build           # Build all packages
+pnpm lint            # Check code style
+pnpm test            # Run test suite
+pnpm type-check      # TypeScript validation
+```
+
+**If User Isn't Running Dev Environment**:
+Tell them to start at the base of the repo:
+```bash
+# Start core services
+pnpm dev             # Web client + sync backend
+
+# In separate terminal, start kernel when needed
+NOTEBOOK_ID=your-notebook-id pnpm dev:kernel
+```
+
+## Important Development Notes
 
 **Do NOT use manual timestamps in code or events.** LiveStore automatically handles all timing through its event sourcing system. Focus development on features and architecture rather than timestamp management.
+
+**Testing is Critical**: Many claims about functionality need verification through proper integration tests. Core features exist but integration testing is minimal.
+
+**Kernel Management**: Manual `NOTEBOOK_ID=xyz pnpm dev:kernel` startup creates significant user friction and should be a high priority to fix.
+
+**Be Honest About Status**: This is a prototype with great potential, not a production-ready system. The LiveStore foundation is solid, but execution and rich output claims need verification.
