@@ -59,7 +59,7 @@ print("More stdout after display")
 class RichDemo:
     def __init__(self, name):
         self.name = name
-    
+
     def _repr_html_(self):
         return f'''
         <div style="border: 2px solid #007acc; padding: 15px; border-radius: 5px;">
@@ -68,7 +68,7 @@ class RichDemo:
             <p>This object has a custom HTML representation!</p>
         </div>
         '''
-    
+
     def _repr_markdown_(self):
         return f'''
 ## Rich Markdown Representation
@@ -80,7 +80,7 @@ This object also has a *markdown* representation with:
 - **Bold text**
 - *Italic text*
         '''
-    
+
     def __repr__(self):
         return f'RichDemo(name="{self.name}")'
 
@@ -137,38 +137,12 @@ df
 
 ```python
 # Create a styled DataFrame
-styled_df = df.style.apply(lambda x: ['background-color: lightblue' 
-                                     if x.name % 2 == 0 
-                                     else 'background-color: lightgray' 
+styled_df = df.style.apply(lambda x: ['background-color: lightblue'
+                                     if x.name % 2 == 0
+                                     else 'background-color: lightgray'
                                      for i in x], axis=1)
 
 styled_df
-```
-
-## Anode Custom Display Utilities
-
-### 8. Enhanced Alerts
-
-```python
-# Use the built-in Anode alert functions
-anode_info("This is an informational message")
-anode_success("Operation completed successfully!")
-anode_warning("This is a warning message")
-anode_error("This represents an error state")
-```
-
-### 9. Data Tables
-
-```python
-# Display data as a rich table
-sample_data = [
-    {'Product': 'Laptop', 'Price': 999, 'Stock': 50},
-    {'Product': 'Mouse', 'Price': 25, 'Stock': 200},
-    {'Product': 'Keyboard', 'Price': 75, 'Stock': 150},
-    {'Product': 'Monitor', 'Price': 300, 'Stock': 75}
-]
-
-show_table(sample_data, caption="Product Inventory")
 ```
 
 ## Advanced Display Features
@@ -244,16 +218,16 @@ print("This line should not execute")
 class MultiRepresentation:
     def __init__(self, data):
         self.data = data
-    
+
     def _repr_html_(self):
         return f'<div style="color: blue; font-weight: bold;">HTML: {self.data}</div>'
-    
+
     def _repr_markdown_(self):
         return f'**Markdown:** _{self.data}_'
-    
+
     def _repr_json_(self):
         return {"type": "MultiRepresentation", "data": self.data}
-    
+
     def __repr__(self):
         return f'MultiRepresentation(data="{self.data}")'
 
