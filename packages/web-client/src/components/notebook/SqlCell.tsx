@@ -121,11 +121,13 @@ export const SqlCell: React.FC<SqlCellProps> = ({
     }
 
     if (e.key === 'Enter' && e.shiftKey) {
-      // Shift+Enter: Run query and move to next cell
+      // Shift+Enter: Run query and move to next (or create new cell if at end)
       e.preventDefault()
       updateQuery()
       executeQuery()
-      onAddCell()
+      if (onFocusNext) {
+        onFocusNext() // Move to next cell (or create new if at end)
+      }
     } else if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
       // Ctrl/Cmd+Enter: Run query but stay in current cell
       e.preventDefault()
