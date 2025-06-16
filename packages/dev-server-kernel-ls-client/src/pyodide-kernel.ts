@@ -97,8 +97,8 @@ class LiteDisplayHook(DisplayHook):
             if self.js_callback and format_dict:
                 self.js_callback(self.execution_count, format_dict, md_dict or {})
 
-            # Continue with normal IPython displayhook behavior
-            super().__call__(result)
+            # NOTE: We don't need to call the super because we're passing the result back in the callback
+            # super().__call__(result)
 
         return result
 
