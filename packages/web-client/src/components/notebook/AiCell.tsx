@@ -162,11 +162,13 @@ export const AiCell: React.FC<AiCellProps> = ({
 
     // Handle execution shortcuts
     if (e.key === 'Enter' && e.shiftKey) {
-      // Shift+Enter: Run cell and move to next (create new cell)
+      // Shift+Enter: Run cell and move to next (or create new cell if at end)
       e.preventDefault()
       updateSource()
       executeAiPrompt()
-      onAddCell() // Move to next cell
+      if (onFocusNext) {
+        onFocusNext() // Move to next cell (or create new if at end)
+      }
     } else if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
       // Ctrl/Cmd+Enter: Run cell but stay in current cell
       e.preventDefault()
