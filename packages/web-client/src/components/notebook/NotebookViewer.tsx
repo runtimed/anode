@@ -147,8 +147,10 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({ onNewNotebook })
       const nextCell = sortedCells[currentIndex + 1]
       setFocusedCellId(nextCell.id)
     } else {
-      // At the last cell, create a new one
-      addCell(currentCellId)
+      // At the last cell, create a new one with same cell type (but never raw)
+      const currentCell = sortedCells[currentIndex]
+      const newCellType = currentCell.cellType === 'raw' ? 'code' : currentCell.cellType
+      addCell(currentCellId, newCellType)
     }
   }, [cells, addCell])
 
@@ -414,7 +416,7 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({ onNewNotebook })
             <Cell
               key={cell.id}
               cell={cell}
-              onAddCell={() => addCell(cell.id)}
+              onAddCell={() => addCell(cell.id, cell.cellType === 'raw' ? 'code' : cell.cellType)}
               onDeleteCell={() => deleteCell(cell.id)}
               onMoveUp={() => moveCell(cell.id, 'up')}
               onMoveDown={() => moveCell(cell.id, 'down')}
