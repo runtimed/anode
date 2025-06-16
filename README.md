@@ -19,7 +19,7 @@ A real-time collaborative notebook system built on LiveStore, focusing on seamle
 ```bash
 pnpm install
 cp .env.example .env
-# Edit .env and add your OPENAI_API_KEY if you want real AI responses
+# Optional: Edit .env and uncomment OPENAI_API_KEY if you want real AI responses
 pnpm dev  # Starts web client + sync backend
 ```
 
@@ -30,28 +30,32 @@ pnpm dev  # Starts web client + sync backend
 
 ### 3. Enable Python Execution
 ```bash
-# In new terminal - uses default notebook from .env
+# In new terminal - start kernel for current notebook
+# Get the exact command from the UI (see step 4)
 pnpm dev:kernel
-
-# Or for a specific notebook:
-NOTEBOOK_ID=notebook-123-abc pnpm dev:kernel
 ```
 
-**Pro tip**: Click the **Kernel** button in the notebook header to copy the exact command for your notebook!
+**Important**: Always use the kernel command suggested in the notebook UI for proper notebook ID matching.
 
-### 4. Execute Code
+### 4. Get Kernel Command from UI
+- Open the notebook interface
+- Click the **Kernel** button in the notebook header
+- Copy the exact `NOTEBOOK_ID=xxx pnpm dev:kernel` command shown
+- Run that command in your terminal
+
+### 5. Execute Code
 - Add a code cell in the web interface
 - Write Python: `import numpy as np; np.random.random(5)`
 - Press **Ctrl+Enter** or click **Run**
 - See results appear instantly
 
-### 5. Try AI Integration (Optional)
+### 6. Try AI Integration (Optional)
 ```bash
-# Edit .env and add your OpenAI API key:
+# Edit .env and uncomment/set your OpenAI API key:
 # OPENAI_API_KEY=sk-your-key-here
 
-# Restart kernel to pick up the API key
-pnpm dev:kernel
+# Restart kernel to pick up the API key (use UI command)
+NOTEBOOK_ID=your-notebook-id pnpm dev:kernel
 ```
 - Add an AI cell and ask questions about your data
 - Falls back to mock responses if no API key is set
@@ -91,10 +95,8 @@ pnpm dev:kernel
 ```bash
 # Core development workflow
 pnpm dev                 # Start web + sync
-pnpm dev:kernel          # Start kernel (uses .env config)
-
-# For specific notebooks
-NOTEBOOK_ID=your-notebook-id pnpm dev:kernel
+# Get kernel command from notebook UI, then:
+NOTEBOOK_ID=notebook-id-from-ui pnpm dev:kernel
 
 # Utilities
 pnpm reset-storage       # Clear all local data
@@ -121,8 +123,8 @@ See [ROADMAP.md](./ROADMAP.md) for detailed development plans and milestones.
 |---------|----------|
 | Schema version mismatches | Ensure all services (web, kernel, sync) are restarted after schema changes |
 | Type errors | TypeScript catches invalid queries at compile time - check column names |
-| Execution not working | Start kernel with `pnpm dev:kernel` or check `.env` configuration |
-| AI cells showing mock responses | Add `OPENAI_API_KEY` to `.env` and restart kernel |
+| Execution not working | Use kernel command from notebook UI or check `.env` configuration |
+| AI cells showing mock responses | Uncomment and set `OPENAI_API_KEY` in `.env`, restart kernel |
 | Stale state | Run `pnpm reset-storage` |
 | Slow execution | Should be instant - check kernel logs |
 
