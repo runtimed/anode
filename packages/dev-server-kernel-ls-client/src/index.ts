@@ -33,7 +33,7 @@ const server = createServer(async (req, res) => {
         timestamp: new Date().toISOString(),
         service: "dev-server-kernel-ls-client",
         execution_model: "livestore-events-only",
-        ai_support: "enabled (mock responses)",
+        ai_support: process.env.OPENAI_API_KEY ? "enabled (OpenAI configured)" : "enabled (mock responses - set OPENAI_API_KEY for real AI)",
       }),
     );
     return;
@@ -50,7 +50,7 @@ const server = createServer(async (req, res) => {
         uptime: process.uptime(),
         memory: process.memoryUsage(),
         execution_model: "livestore-events-only",
-        ai_support: "enabled (mock responses)",
+        ai_support: process.env.OPENAI_API_KEY ? "enabled (OpenAI configured)" : "enabled (mock responses - set OPENAI_API_KEY for real AI)",
         note: "This service responds ONLY to LiveStore cellExecutionRequested events for code and AI cells",
         env: {
           NODE_VERSION: process.version,
@@ -70,7 +70,7 @@ const server = createServer(async (req, res) => {
       error: "Not found",
       available_endpoints: ["/health", "/status"],
       execution_model: "livestore-events-only",
-      ai_support: "enabled (mock responses)",
+      ai_support: process.env.OPENAI_API_KEY ? "enabled (OpenAI configured)" : "enabled (mock responses - set OPENAI_API_KEY for real AI)",
       note: "This kernel service does NOT provide HTTP execution endpoints",
     }),
   );
@@ -81,6 +81,7 @@ server.listen(PORT, () => {
   console.log(`🐍 Kernel Service running on port ${PORT}`);
   console.log(`📓 Serving notebook: ${NOTEBOOK_ID}`);
   console.log(`🔗 LiveStore REACTIVE adapter starting (event-driven execution only)...`);
+  console.log(`🤖 AI Integration: ${process.env.OPENAI_API_KEY ? 'OpenAI API configured ✅' : 'Mock responses only - set OPENAI_API_KEY for real AI ⚠️'}`);
   console.log(`💡 Available endpoints:`);
   console.log(`   • GET  http://localhost:${PORT}/health`);
   console.log(`   • GET  http://localhost:${PORT}/status`);
@@ -88,7 +89,7 @@ server.listen(PORT, () => {
   console.log(`⚡ Code & AI execution happens via REACTIVE LiveStore queries:`);
   console.log(`   1. Web client emits cellExecutionRequested event (code or AI)`);
   console.log(`   2. This service reacts to queue changes via queryDb subscriptions`);
-  console.log(`   3. Python code executes with Pyodide OR AI generates mock response`);
+  console.log(`   3. Python code executes with Pyodide OR AI calls OpenAI API`);
   console.log(`   4. Results sent back via cellOutputAdded events`);
   console.log(`   5. All connected clients see results in real-time`);
 });

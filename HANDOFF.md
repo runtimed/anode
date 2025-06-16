@@ -2,7 +2,7 @@
 
 ## Current Work State
 
-**Status**: 🚧 **Core Prototype Working** - Collaborative editing and Python execution functional, rich outputs in development
+**Status**: 🚧 **Working Prototype** - Core collaborative editing, Python execution, and basic AI integration functional, rich outputs need verification
 
 ### What's Actually Working ✅
 
@@ -18,22 +18,26 @@
 - **Text output** - print() statements and basic stdout/stderr capture
 - **Execution queue** - Proper job queuing and status tracking
 
+#### AI Integration (New! ✅)
+- **OpenAI API integration** - Real AI responses when OPENAI_API_KEY is set
+- **Error handling** - Graceful fallback for API failures, rate limits, invalid keys
+- **Rich output** - AI responses rendered as markdown with metadata (tokens, model)
+- **Development mode** - Automatic fallback to mock responses without API key
+- **Current limitations**: No notebook context awareness, no tools for modifying notebook
+
 #### User Interface
 - **Real-time collaboration** - Multiple users can edit simultaneously
 - **Keyboard navigation** - Cell focus, arrow keys, execution shortcuts
-- **Cell types** - Code, markdown, AI (mock), SQL (planned) cells supported
+- **Cell types** - Code, markdown, AI (with real API), SQL (planned) cells supported
 - **Basic output display** - Text results and error messages shown
 
-### What's In Development 🚧
+### What Needs Verification 🚧
 
 #### Rich Output System
 - **Display hooks** - IPython integration code exists but needs integration testing
 - **Rich representations** - _repr_html_(), matplotlib, pandas support partially implemented
 - **Stream consolidation** - Output buffering and formatting logic present but unverified
-
-#### AI Integration
-- **Mock responses** - Fake AI responses working through execution queue
-- **Real AI** - API integration being developed on separate branch
+- **Performance claims** - "Zero-latency" and rich output rendering need real testing
 
 ## Immediate Next Steps
 
@@ -57,7 +61,30 @@
 **Estimated effort**: 4-6 hours
 **Impact**: Verifies core value proposition and identifies real gaps
 
-### Priority 2: Auto Kernel Management (High Impact)
+### Priority 2: Enhanced AI Integration ✅ WORKING + Needs Enhancement
+**Status**: ✅ **Basic OpenAI API integration implemented**
+
+**What's working**:
+- Real OpenAI API calls replace mock responses when `OPENAI_API_KEY` is set
+- Comprehensive error handling for API failures, rate limits, and authentication
+- Rich markdown output with metadata tracking (token usage, model info)
+- Automatic fallback to mock responses for development without API key
+- Full test coverage with 11 passing tests
+- Documentation at `docs/OPENAI_INTEGRATION.md`
+
+**Current limitations**:
+- **No notebook context**: AI doesn't see previous cells or outputs
+- **No notebook tools**: AI can't modify cells, create new cells, or run code
+- **No streaming**: Responses appear all at once, not word-by-word
+- **Basic prompting**: Simple user prompt → AI response, no multi-turn conversation
+
+**Next enhancements needed**:
+- Context awareness: Send previous cells and outputs to AI
+- Notebook tools: Let AI create/modify cells and execute code
+- Streaming responses for better UX
+- Multi-turn conversation support
+
+### Priority 3: Auto Kernel Management (High Impact)
 **Current friction**: Manual `NOTEBOOK_ID=xyz pnpm dev:kernel` per notebook
 
 **Goal**: One-click notebook startup with automatic kernel lifecycle
@@ -145,7 +172,8 @@ pnpm test               # Full test suite (27 passing, 13 skipped)
 - **Rich outputs unverified**: Matplotlib, pandas integration needs testing
 - **Limited error recovery**: Kernel failures require manual restart
 - **No streaming outputs**: All output appears at execution completion
-- **Mock AI only**: No real AI API integration yet
+- **Basic AI integration**: No notebook context or tools for AI to modify notebook
+- **Performance claims unverified**: Need integration tests to validate speed/output claims
 
 ### Schema & Architecture Notes
 - All packages use direct TypeScript imports: `../../../shared/schema.js`
@@ -166,10 +194,12 @@ pnpm test               # Full test suite (27 passing, 13 skipped)
 - `packages/web-client/src/components/notebook/RichOutput.tsx` - Output rendering
 - `shared/schema.ts` - Output type definitions
 
-### Ready for Extension (Phase 2)
+### AI Integration Complete (Basic)
+- `packages/dev-server-kernel-ls-client/src/openai-client.ts` - OpenAI API client
 - `packages/dev-server-kernel-ls-client/src/mod-reactive.ts` - AI integration point
 - `packages/web-client/src/components/notebook/AiCell.tsx` - AI UI components
-- Test files - Comprehensive validation of all features
+- `packages/dev-server-kernel-ls-client/test/openai-client.test.ts` - Comprehensive tests
+- `docs/OPENAI_INTEGRATION.md` - Setup and usage documentation
 
 ## Development Commands
 
@@ -205,16 +235,19 @@ docs/
 - Cell management and keyboard navigation
 - Text output and error handling
 
-**🎯 Phase 2: Rich Outputs** - **NEXT PRIORITY**  
+**🎯 Phase 2: Rich Outputs & Enhanced AI** - **NEXT PRIORITY**  
 - Integration testing for Python execution
 - Matplotlib and pandas display verification
 - IPython.display function support
 - Automated kernel management
+- AI context awareness (previous cells, outputs)
+- AI notebook tools (create/modify cells, run code)
+- Streaming AI responses
 
-**Phase 3: AI Integration**
-- Real AI API integration (in progress on separate branch)
-- Streaming AI responses with rich display
-- Context-aware code suggestions
+**Phase 3: Advanced Features**
+- Interactive widgets and collaborative components
+- SQL cells with database connections
+- Performance optimization for large notebooks
 
 **Phase 4: Advanced Features**
 - SQL cells with database connections
@@ -240,10 +273,10 @@ docs/
 
 ## Next Developer Success Path
 
-**Current State**: Core collaborative notebook system working with basic Python execution. Rich output system architecture in place but needs verification.
+**Current State**: Core collaborative notebook system working with basic Python execution and basic AI integration. Rich output system architecture in place but needs verification.
 
-**Immediate Focus**: Prove the system works as claimed through integration testing, then remove user friction with automated kernel management.
+**Immediate Focus**: Prove the system works as claimed through integration testing, then enhance AI with notebook context and tools.
 
-**Key Insight**: The LiveStore foundation is solid. Python execution works but needs verification. Rich outputs need real testing. AI integration is happening separately.
+**Key Insight**: The LiveStore foundation is solid. Python execution works but needs verification. AI integration is working but basic (no context/tools). Rich outputs need real testing.
 
-Priority: **Integration Testing → Auto Kernels → Rich Output Verification → Error Handling**
+Priority: **Integration Testing → Enhanced AI (Context + Tools) → Auto Kernels → Rich Output Verification**

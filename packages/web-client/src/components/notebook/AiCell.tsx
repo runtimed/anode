@@ -412,17 +412,8 @@ export const AiCell: React.FC<AiCellProps> = ({
       )}
 
       {/* Output Area for AI Responses */}
-      {(outputs.length > 0 || cell.executionState === 'running') && (
+      {outputs.length > 0 && (
         <div className="mt-1 pl-6 pr-4 bg-background">
-          {cell.executionState === 'running' && outputs.length === 0 && (
-            <div className="py-3 border-l-2 border-purple-200 pl-1">
-              <div className="flex items-center gap-2">
-                <div className="animate-spin w-4 h-4 border-2 border-purple-600 border-t-transparent rounded-full"></div>
-                <span className="text-sm text-purple-700">Generating AI response...</span>
-              </div>
-            </div>
-          )}
-
           {outputs
             .sort((a: OutputData, b: OutputData) => a.position - b.position)
             .map((output: OutputData, index: number) => (
