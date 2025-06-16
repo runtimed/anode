@@ -9,7 +9,7 @@ The enhanced PyodideKernel now includes:
 - Custom display hooks for rich output formatting
 - Support for `IPython.display.display()` calls
 - Enhanced matplotlib integration with SVG output
-- Custom Anode display utilities
+- Standard IPython display functionality
 
 ## Basic Display Examples
 
@@ -289,4 +289,4 @@ The system now provides a foundation for advanced features like:
 - Custom visualization libraries
 - Advanced AI-generated content display
 
-All of this while maintaining Anode's real-time collaborative architecture and LiveStore integration.
+All of this while maintaining standard IPython compatibility and Anode's real-time collaborative architecture.

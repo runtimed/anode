@@ -12,8 +12,8 @@ The Anode display system has been completely upgraded to provide a Jupyter-compa
 - ✅ SVG matplotlib plots with zero-latency rendering
 - ✅ Stream output consolidation with proper newline handling
 - ✅ Quote-safe code execution via direct Python function calls
-- ✅ Custom Anode display utilities
-- ✅ Comprehensive test coverage (80+ tests)
+- ✅ IPython-compatible display utilities
+- ✅ Robust testing suite with extensive display system coverage
 
 ## Architecture
 
@@ -157,28 +157,35 @@ print("More stdout")
 42  # This is the execution result
 ```
 
-## Custom Anode Utilities
+## IPython Display Utilities
 
-The system includes custom display utilities for common use cases:
+The system uses standard IPython display functions - no custom Anode APIs needed:
 
-### Alert Messages
+### Alert-Style Messages (via HTML)
 
 ```python
-anode_info("This is an informational message")
-anode_success("Operation completed successfully!")
-anode_warning("This is a warning message")
-anode_error("This represents an error state")
+from IPython.display import display, HTML
+
+# Use standard HTML for styled messages
+display(HTML('<div style="color: blue; padding: 8px; border-left: 4px solid blue;">ℹ️ This is an informational message</div>'))
+display(HTML('<div style="color: green; padding: 8px; border-left: 4px solid green;">✅ Operation completed successfully!</div>'))
+display(HTML('<div style="color: orange; padding: 8px; border-left: 4px solid orange;">⚠️ This is a warning message</div>'))
+display(HTML('<div style="color: red; padding: 8px; border-left: 4px solid red;">❌ This represents an error state</div>'))
 ```
 
-### Data Tables
+### Data Tables (via Pandas)
 
 ```python
+import pandas as pd
+
+# Use pandas for rich table display
 data = [
     {'Product': 'Laptop', 'Price': 999, 'Stock': 50},
     {'Product': 'Mouse', 'Price': 25, 'Stock': 200}
 ]
 
-show_table(data, caption="Product Inventory")
+df = pd.DataFrame(data)
+df  # Displays as rich HTML table automatically
 ```
 
 ## Output Types
@@ -254,7 +261,7 @@ except Exception as e:
 
 ### Memory Management
 - Display data is cleaned for JSON serialization
-- Large outputs are truncated appropriately
+- Large outputs are handled appropriately
 - Matplotlib figures are cleared after capture
 
 ## Future Enhancements
@@ -362,8 +369,8 @@ interface RichOutputData {
 The enhanced display system successfully brings Anode's notebook experience to full Jupyter compatibility while maintaining its unique real-time collaborative features. The integration of proper IPython display hooks with LiveStore's reactive architecture provides both rich output capabilities and zero-latency collaboration.
 
 ### What's Working in Production
-- ✅ **Full IPython Compatibility**: All standard display functions work perfectly
-- ✅ **Stream Consolidation**: Clean text blocks with proper newline preservation
+- ✅ **Full IPython Compatibility**: All standard display functions work correctly
+- ✅ **Stream Consolidation**: Clean text blocks with proper newline preservation  
 - ✅ **Rich Output Rendering**: HTML, SVG, Markdown, JSON all render correctly
 - ✅ **Zero-latency Execution**: Reactive architecture with direct function calls
 - ✅ **Quote-safe Execution**: No more string escaping issues

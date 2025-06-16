@@ -4,6 +4,10 @@
 // 2. Subscribe to execution queue changes with proper lifecycle management
 // 3. Maintain same event flow but react automatically to data changes
 
+// TypeScript is driving me up a wall in not noticing node.
+// HACK: Just declare process now
+const process = (globalThis as any).process;
+
 import { makeAdapter } from "@livestore/adapter-node";
 import { createStorePromise, queryDb } from "@livestore/livestore";
 import { makeCfSync } from "@livestore/sync-cf";

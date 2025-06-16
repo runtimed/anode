@@ -29,7 +29,7 @@ The enhanced display system is **production ready** with full IPython compatibil
 - Matplotlib plots as crisp SVG vector graphics
 - Quote-safe code execution via direct function calls
 - Real-time collaboration across multiple users
-- Comprehensive test coverage (80+ tests)
+- Robust testing suite with extensive display system coverage
 
 ### 🎯 Next Phase: Updateable Outputs by ID
 
@@ -72,7 +72,9 @@ docs/
 **Testing**:
 ```bash
 # Test enhanced display functionality
-pnpm test:display        # Comprehensive display system tests (22 tests, ~15s)
+pnpm test:display        # Enhanced display system tests
+pnpm test                # All unit tests
+pnpm test:run            # Run tests once without watch mode
 ```
 
 ### 🧠 Design Philosophy
@@ -86,9 +88,9 @@ pnpm test:display        # Comprehensive display system tests (22 tests, ~15s)
 ### 🤝 Contributing
 
 When working on the display system:
-1. **Maintain IPython compatibility** - Follow Jupyter standards
+1. **Maintain IPython compatibility** - Follow Jupyter standards, not custom Anode APIs
 2. **Test thoroughly** - Add tests for new features
-3. **Document examples** - Update display-examples.md
+3. **Document examples** - Update display-examples.md with real, working examples
 4. **Consider collaboration** - How will features work with multiple users?
 5. **Think streaming** - Design for real-time updates
 

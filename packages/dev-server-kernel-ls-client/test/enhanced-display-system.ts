@@ -1,6 +1,6 @@
+// @ts-nocheck
 // Consolidated test suite for enhanced display system using tsx
-import { PyodideKernel } from '../src/pyodide-kernel.js';
-import type { OutputData } from '../src/pyodide-kernel.js';
+import { PyodideKernel, OutputData } from '../src/pyodide-kernel.js';
 
 interface TestResult {
   name: string;
