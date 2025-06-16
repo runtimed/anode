@@ -6,7 +6,7 @@
 
 ### What's Complete ✅
 
-#### Enhanced Display System (Phase 1)
+#### Enhanced Display System (Phase 1) ✅
 - **Full IPython compatibility** with custom display hooks and publishers  
 - **Zero-latency execution** with reactive architecture and stream consolidation
 - **Rich output rendering** - HTML tables, SVG plots, markdown, JSON with proper MIME type handling
@@ -17,11 +17,18 @@
 - **Duplicate output prevention** - Clean, non-duplicated display outputs
 - **Comprehensive testing** - 80+ passing tests including display system validation
 
+#### Real AI Integration (Phase 1.5) ✅
+- **OpenAI API integration** - Real AI responses replace mock when OPENAI_API_KEY is set
+- **Error handling** - Graceful fallback for API failures, rate limits, invalid keys
+- **Rich output** - AI responses rendered as markdown with metadata (tokens, model)
+- **Development mode** - Automatic fallback to mock responses without API key
+- **Full test coverage** - 11 comprehensive tests for OpenAI client functionality
+
 #### Core Architecture  
 - **LiveStore integration** - Event-sourcing with real-time collaboration
 - **Schema refactor** - Direct TypeScript imports working across all packages
 - **Reactive subscriptions** - Eliminated polling delays entirely
-- **Mock AI responses** - Integrated through standard execution queue with rich markdown
+- **Real OpenAI API integration** - Full AI responses with error handling and fallback to mock
 
 ### What's Working Right Now
 - **Instant Python execution** when kernel is running (0.3s including rich rendering)
@@ -31,6 +38,7 @@
 - **Stream consolidation** - Multiple print statements merge into clean text blocks
 - **Complex code execution** - Handles quotes, f-strings, JSON, HTML content
 - **IPython.display ecosystem** - Full compatibility with Jupyter display protocols
+- **Real AI integration** - OpenAI API with rich markdown output, token tracking, and graceful error handling
 
 ## Immediate Next Steps
 
@@ -71,21 +79,36 @@ replaceOutput(id: string, newOutput: OutputData): void;
 **Estimated effort**: 4-6 hours
 **Impact**: Enables streaming AI responses and interactive widgets
 
-### Priority 2: Real AI Integration (2-3 hours)
-**Current state**: Mock responses working perfectly through execution queue with rich markdown
+### Priority 2: Real AI Integration ✅ COMPLETE
+**Status**: ✅ **OpenAI API integration fully implemented and tested**
 
-**Next actions**:
-- Replace `generateFakeAiResponse()` in `packages/dev-server-kernel-ls-client/src/mod-reactive.ts` (line 154+)
-- Add OpenAI/Anthropic packages to kernel dependencies
-- Implement streaming responses using updateable outputs (once Phase 2 complete)
-- Handle API errors gracefully with rich error display
+**What's now working**:
+- Real OpenAI API calls replace mock responses when `OPENAI_API_KEY` is set
+- Comprehensive error handling for API failures, rate limits, and authentication
+- Rich markdown output with metadata tracking (token usage, model info)
+- Automatic fallback to mock responses for development without API key
+- Full test coverage with 11 passing tests
+- Documentation at `docs/OPENAI_INTEGRATION.md`
 
-**Files to modify**:
-- `packages/dev-server-kernel-ls-client/src/mod-reactive.ts` - Main integration point
-- `packages/web-client/src/components/notebook/AiCell.tsx` - Model selection UI
-- Add API key configuration system
+**Files implemented**:
+- ✅ `packages/dev-server-kernel-ls-client/src/openai-client.ts` - OpenAI API client
+- ✅ `packages/dev-server-kernel-ls-client/src/mod-reactive.ts` - Integration with execution queue
+- ✅ `packages/dev-server-kernel-ls-client/test/openai-client.test.ts` - Comprehensive tests
+- ✅ `packages/dev-server-kernel-ls-client/package.json` - OpenAI dependency added
 
-### Priority 3: Auto Kernel Management (1-2 hours)  
+**Usage**: Set `OPENAI_API_KEY=sk-your-key` and restart kernel. AI cells now use real OpenAI API!
+
+### Priority 2.5: Streaming AI Responses (Next - 2-3 hours)
+**Current state**: OpenAI API working but responses appear all at once
+
+**Goal**: Enable word-by-word streaming for AI responses using updateable outputs
+
+**Implementation ready**: 
+- `openaiClient.generateStreamingResponse()` already implemented
+- Needs updateable outputs (Priority 1) to display streaming chunks
+- Will provide ChatGPT-like experience in notebooks
+
+### Priority 3: Auto Kernel Management (1-2 hours)
 **Current state**: Manual `NOTEBOOK_ID=xyz pnpm dev:kernel` works but creates friction
 
 **Next actions**:

@@ -20,7 +20,8 @@
     "@livestore/adapter-node": "catalog:",
     "@livestore/livestore": "catalog:",
     "@livestore/sync-cf": "catalog:",
-    "pyodide": "catalog:"
+    "pyodide": "catalog:",
+    "openai": "^4.0.0"
   },
   "devDependencies": {
     "typescript": "catalog:",
