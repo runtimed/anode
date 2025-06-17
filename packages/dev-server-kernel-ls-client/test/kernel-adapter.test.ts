@@ -206,6 +206,7 @@ describe('Kernel Adapter', () => {
       // Complete execution
       store.commit(events.executionCompleted({
         queueId,
+        cellId,
         status: 'success',
       }))
 
@@ -384,6 +385,7 @@ describe('Kernel Adapter', () => {
         if (i % 2 === 0) {
           store.commit(events.executionCompleted({
             queueId,
+            cellId: `cell-${i}`,
             status: 'success'
           }))
         }

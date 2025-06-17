@@ -288,6 +288,7 @@ export const events = {
     name: "v1.ExecutionCompleted",
     schema: Schema.Struct({
       queueId: Schema.String,
+      cellId: Schema.String,
       status: Schema.Literal("success", "error", "cancelled"),
       error: Schema.optional(Schema.String),
     }),
@@ -297,6 +298,7 @@ export const events = {
     name: "v1.ExecutionCancelled",
     schema: Schema.Struct({
       queueId: Schema.String,
+      cellId: Schema.String,
       cancelledBy: Schema.String,
       reason: Schema.String,
     }),
@@ -491,55 +493,35 @@ const materializers = State.SQLite.materializers(events, {
     ];
   },
 
-  "v1.ExecutionCompleted": ({ queueId, status }, ctx) => {
-    // Get the queue entry to find the cell ID
-    const queueEntries = ctx.query(
-      tables.executionQueue.select().where({ id: queueId }).limit(1),
-    );
-    if (queueEntries.length === 0) return [];
+  "v1.ExecutionCompleted": ({ queueId, cellId, status }) => [
+    // Update execution queue
+    tables.executionQueue
+      .update({
+        status: status === "success" ? "completed" : "failed",
+      })
+      .where({ id: queueId }),
+    // Update cell execution state
+    tables.cells
+      .update({
+        executionState: status === "success" ? "completed" : "error",
+      })
+      .where({ id: cellId }),
+  ],
 
-    const queueEntry = queueEntries[0] as any;
-
-    return [
-      // Update execution queue
-      tables.executionQueue
-        .update({
-          status: status === "success" ? "completed" : "failed",
-        })
-        .where({ id: queueId }),
-      // Update cell execution state
-      tables.cells
-        .update({
-          executionState: status === "success" ? "completed" : "error",
-        })
-        .where({ id: queueEntry.cellId }),
-    ];
-  },
-
-  "v1.ExecutionCancelled": ({ queueId }, ctx) => {
-    // Get the queue entry to find the cell ID
-    const queueEntries = ctx.query(
-      tables.executionQueue.select().where({ id: queueId }).limit(1),
-    );
-    if (queueEntries.length === 0) return [];
-
-    const queueEntry = queueEntries[0] as any;
-
-    return [
-      // Update execution queue
-      tables.executionQueue
-        .update({
-          status: "cancelled",
-        })
-        .where({ id: queueId }),
-      // Update cell execution state
-      tables.cells
-        .update({
-          executionState: "idle",
-        })
-        .where({ id: queueEntry.cellId }),
-    ];
-  },
+  "v1.ExecutionCancelled": ({ queueId, cellId }) => [
+    // Update execution queue
+    tables.executionQueue
+      .update({
+        status: "cancelled",
+      })
+      .where({ id: queueId }),
+    // Update cell execution state
+    tables.cells
+      .update({
+        executionState: "idle",
+      })
+      .where({ id: cellId }),
+  ],
 
   // Output materializers
   "v1.CellOutputAdded": ({

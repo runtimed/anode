@@ -120,6 +120,7 @@ export const mockEvents = {
     name: "v1.ExecutionCompleted",
     args: {
       queueId: mockExecutionQueueEntry.id,
+      cellId: mockCellData.id,
       status: "success" as const,
       error: null,
     },
