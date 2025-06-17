@@ -137,7 +137,7 @@ display(Markdown('**Bold text**'))
 ### Test Environment Setup
 
 **CI Requirements:**
-- Node.js 18+ environment
+- Node.js 24+ environment
 - Sufficient memory for Pyodide (>1GB)
 - Timeout handling for slow tests
 - Artifact collection for failed tests

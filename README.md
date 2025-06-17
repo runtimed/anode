@@ -4,6 +4,12 @@ A real-time collaborative notebook system built on LiveStore, focusing on seamle
 
 **Current Status: Working Prototype** - Core collaborative editing, Python execution, and basic AI integration functional. Rich outputs need verification.
 
+## Prerequisites
+
+- **Node.js v24+** - Required for WebAssembly stack switching support in Pyodide
+- **pnpm** - Package manager for workspace dependencies
+- **2GB+ RAM** - Recommended for Python execution and package caching
+
 ## What Makes Anode Different
 
 - **Real-time collaboration** built on event sourcing (LiveStore)
