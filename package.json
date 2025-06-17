@@ -26,7 +26,9 @@
     "test:schema": "vitest run test/schema-validation.test.ts",
     "test:integration": "vitest run test/integration/",
     "test:reactivity": "vitest run test/integration/reactivity-debugging.test.ts",
-    "test:kernel": "pnpm --filter @anode/dev-server-kernel-ls-client test",
+    "test:kernel": "pnpm --filter @anode/dev-server-kernel-ls-client test:unit",
+    "test:kernel:all": "pnpm --filter @anode/dev-server-kernel-ls-client test:all",
+    "test:kernel:integration": "pnpm --filter @anode/dev-server-kernel-ls-client test:integration",
     "test:debug": "DEBUG_TESTS=true vitest run",
     "lint": "pnpm --recursive --filter='@anode/*' lint",
     "type-check": "pnpm --recursive --filter='@anode/*' type-check",
@@ -34,6 +36,12 @@
     "lint:kernel": "pnpm --filter @anode/dev-server-kernel-ls-client lint",
     "check": "pnpm type-check && pnpm lint",
     "reset-storage": "node reset-local-storage.cjs",
+    "cache:warm-up": "pnpm --filter @anode/dev-server-kernel-ls-client cache:warm-up",
+    "cache:warm-up:common": "pnpm --filter @anode/dev-server-kernel-ls-client cache:warm-up:common",
+    "cache:stats": "pnpm --filter @anode/dev-server-kernel-ls-client cache:stats",
+    "cache:list": "pnpm --filter @anode/dev-server-kernel-ls-client cache:list",
+    "cache:clear": "pnpm --filter @anode/dev-server-kernel-ls-client cache:clear",
+    "cache:cleanup": "pnpm --filter @anode/dev-server-kernel-ls-client cache:cleanup",
     "start": "echo 'Use pnpm dev to start core services. For Python execution, start kernel with: NOTEBOOK_ID=your-notebook-id pnpm dev:kernel'"
   },
   "devDependencies": {

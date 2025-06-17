@@ -68,6 +68,12 @@ NOTEBOOK_ID=notebook-id-from-ui pnpm dev:kernel
 
 # Utilities
 pnpm reset-storage  # Clear all local storage
+
+# Package caching (Node.js only)
+pnpm cache:warm-up     # Pre-load essential packages for faster startup
+pnpm cache:stats       # Show cache statistics
+pnpm cache:list        # List cached packages
+pnpm cache:clear       # Clear package cache
 ```
 
 ## Immediate Priorities
@@ -85,6 +91,7 @@ pnpm reset-storage  # Clear all local storage
 - **Context Inclusion Controls** - Users can mark cells as included/excluded from AI context
 - **Tool Execution Framework** - Reactive system handles AI tool calls with user confirmation
 - **Enhanced AI-Notebook Interaction** - AI becomes active development partner
+- **Package Cache Optimization** - Smart pre-loading and shared team caches
 
 ### Phase 3: Advanced Features (Next 2-3 months)
 - **MCP Integration** - Model Context Protocol support for extensible AI tooling via Python kernel
@@ -141,13 +148,14 @@ anode2/
 
 ## Notes for AI Assistants
 
-### Current State - Working Prototype 
+**Current Status - Working Prototype 
 - **LiveStore foundation** solid with real-time collaborative editing
 - **Basic Python execution** working via Pyodide (needs integration testing)
 - **Rich output system** architecture in place but verification needed
 - **AI integration** - OpenAI API working but lacks notebook context and tools
 - **Direct TypeScript schema** - No build complexity across packages
 - **Event-sourced architecture** - Excellent debugging and audit capabilities
+- **Package caching system** - Node.js package cache for faster Python execution
 
 ### Key Development Insights
 - **LiveStore integration** provides solid collaborative foundation
@@ -195,6 +203,9 @@ cp .env.example .env # Configure environment
 
 # Start core services
 pnpm dev             # Web client + sync backend
+
+# Warm up package cache for faster Python execution (recommended)
+pnpm cache:warm-up   # Pre-loads numpy, pandas, matplotlib, requests, etc.
 
 # In separate terminal, get kernel command from notebook UI
 # Then run: NOTEBOOK_ID=notebook-id-from-ui pnpm dev:kernel

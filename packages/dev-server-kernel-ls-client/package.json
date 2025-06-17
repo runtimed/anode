@@ -14,7 +14,17 @@
     "lint": "tsc --noEmit",
     "test": "vitest",
     "test:run": "vitest run",
-    "test:display": "tsx test/enhanced-display-system.ts"
+    "test:unit": "vitest run --exclude='**/pyodide-cache-integration.test.ts'",
+    "test:integration": "INTEGRATION_TESTS=true vitest run pyodide-cache-integration.test.ts",
+    "test:all": "INTEGRATION_TESTS=true vitest run",
+    "test:display": "tsx test/enhanced-display-system.ts",
+    "cache-cli": "tsx src/cache-cli.ts",
+    "cache:warm-up": "tsx src/cache-cli.ts warm-up --essential",
+    "cache:warm-up:common": "tsx src/cache-cli.ts warm-up --common",
+    "cache:stats": "tsx src/cache-cli.ts stats",
+    "cache:list": "tsx src/cache-cli.ts list",
+    "cache:clear": "tsx src/cache-cli.ts clear",
+    "cache:cleanup": "tsx src/cache-cli.ts cleanup"
   },
   "dependencies": {
     "@livestore/adapter-node": "catalog:",
