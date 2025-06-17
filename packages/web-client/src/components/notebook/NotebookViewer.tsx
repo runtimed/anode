@@ -283,8 +283,9 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({ onNewNotebook })
                 <span className="capitalize">{notebook.kernelType}</span>
                 <Circle
                   className={`h-2 w-2 fill-current ${
-                    hasActiveKernel && kernelHealth === 'healthy' ? 'text-green-500' :
-                    hasActiveKernel && kernelHealth === 'warning' ? 'text-amber-500' :
+                    activeKernel && kernelHealth === 'healthy' ? 'text-green-500' :
+                    activeKernel && kernelHealth === 'warning' ? 'text-amber-500' :
+                    activeKernel && kernelHealth === 'stale' ? 'text-amber-500' :
                     kernelStatus === 'starting' ? 'text-blue-500' :
                     'text-red-500'
                   }`}
@@ -308,22 +309,24 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({ onNewNotebook })
                 <h4 className="font-medium text-sm flex items-center gap-2">
                   Kernel Status
                   <Circle
-                    className={`h-3 w-3 fill-current ${
-                      hasActiveKernel && kernelHealth === 'healthy' ? 'text-green-500' :
-                      hasActiveKernel && kernelHealth === 'warning' ? 'text-amber-500' :
+                    className={`h-2 w-2 fill-current ${
+                      activeKernel && kernelHealth === 'healthy' ? 'text-green-500' :
+                      activeKernel && kernelHealth === 'warning' ? 'text-amber-500' :
+                      activeKernel && kernelHealth === 'stale' ? 'text-amber-500' :
                       kernelStatus === 'starting' ? 'text-blue-500' :
                       'text-red-500'
                     }`}
                   />
-                  <span className={`text-xs font-normal ${
-                    hasActiveKernel && kernelHealth === 'healthy' ? 'text-green-600' :
-                    hasActiveKernel && kernelHealth === 'warning' ? 'text-amber-600' :
-                    kernelStatus === 'starting' ? 'text-blue-600' :
-                    'text-red-600'
-                  }`}>
-                    {hasActiveKernel && kernelHealth === 'healthy' ? 'Connected' :
-                     hasActiveKernel && kernelHealth === 'warning' ? 'Connected (Slow)' :
-                     hasActiveKernel && kernelHealth === 'stale' ? 'Connected (Stale)' :
+                  <span className={`text-xs ${
+                      activeKernel && kernelHealth === 'healthy' ? 'text-green-600' :
+                      activeKernel && kernelHealth === 'warning' ? 'text-amber-600' :
+                      activeKernel && kernelHealth === 'stale' ? 'text-amber-600' :
+                      kernelStatus === 'starting' ? 'text-blue-600' :
+                      'text-red-600'
+                    }`}>
+                    {activeKernel && kernelHealth === 'healthy' ? 'Connected' :
+                     activeKernel && kernelHealth === 'warning' ? 'Connected (Slow)' :
+                     activeKernel && kernelHealth === 'stale' ? 'Connected (Stale)' :
                      kernelStatus === 'starting' ? 'Starting' :
                      'Disconnected'}
                   </span>

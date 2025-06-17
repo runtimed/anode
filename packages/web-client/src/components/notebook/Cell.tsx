@@ -17,7 +17,7 @@ import { SqlCell } from './SqlCell.js'
 import { AiCell } from './AiCell.js'
 import { RichOutput } from './RichOutput.js'
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
-import { Play, ChevronUp, ChevronDown, Plus, X, Code, FileText, Database, Bot } from 'lucide-react'
+import { Play, ChevronUp, ChevronDown, Plus, X, Code, FileText, Database, Bot, ArrowUp, ArrowDown } from 'lucide-react'
 
 type CellType = typeof tables.cells.Type
 
@@ -115,6 +115,20 @@ export const Cell: React.FC<CellProps> = ({
       cellType: newType,
     }))
   }, [cell.id, store])
+
+  const toggleSourceVisibility = useCallback(() => {
+    store.commit(events.cellSourceVisibilityToggled({
+      id: cell.id,
+      sourceVisible: !cell.sourceVisible,
+    }))
+  }, [cell.id, cell.sourceVisible, store])
+
+  const toggleOutputVisibility = useCallback(() => {
+    store.commit(events.cellOutputVisibilityToggled({
+      id: cell.id,
+      outputVisible: !cell.outputVisible,
+    }))
+  }, [cell.id, cell.outputVisible, store])
 
   const executeCell = useCallback(async () => {
     // Use localSource instead of cell.source to get the current typed content
@@ -311,6 +325,23 @@ export const Cell: React.FC<CellProps> = ({
         {/* Cell Controls - visible on hover */}
         <TooltipProvider>
           <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
+            {/* Visibility Toggles */}
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={toggleSourceVisibility}
+                  className={`h-7 w-7 p-0 hover:bg-muted/80 ${cell.sourceVisible ? '' : 'text-muted-foreground/60'}`}
+                >
+                  {cell.sourceVisible ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>{cell.sourceVisible ? 'Hide source' : 'Show source'}</TooltipContent>
+            </Tooltip>
+
+            {/* Separator */}
+            <div className="w-px h-4 bg-border/50 mx-1" />
             <Tooltip>
               <TooltipTrigger asChild>
                 <Button
@@ -319,7 +350,7 @@ export const Cell: React.FC<CellProps> = ({
                   onClick={onMoveUp}
                   className="h-7 w-7 p-0 hover:bg-muted/80"
                 >
-                  <ChevronUp className="h-3 w-3" />
+                  <ArrowUp className="h-3 w-3" />
                 </Button>
               </TooltipTrigger>
               <TooltipContent>Move cell up</TooltipContent>
@@ -332,7 +363,7 @@ export const Cell: React.FC<CellProps> = ({
                   onClick={onMoveDown}
                   className="h-7 w-7 p-0 hover:bg-muted/80"
                 >
-                  <ChevronDown className="h-3 w-3" />
+                  <ArrowDown className="h-3 w-3" />
                 </Button>
               </TooltipTrigger>
               <TooltipContent>Move cell down</TooltipContent>
@@ -371,7 +402,7 @@ export const Cell: React.FC<CellProps> = ({
       <div className="relative">
         {/* Play Button Breaking Through Left Border */}
         {cell.cellType === 'code' && (
-          <div className="absolute -left-3 z-10" style={{ top: '0.375rem' }}>
+          <div className="absolute -left-3 z-10" style={{ top: cell.sourceVisible ? '0.375rem' : '-1.5rem' }}>
             <Button
               variant="ghost"
               size="sm"
@@ -395,49 +426,74 @@ export const Cell: React.FC<CellProps> = ({
         )}
 
         {/* Text Content Area */}
-        <div className={`transition-colors py-1 pl-4 pr-4 ${
-          autoFocus
-            ? 'bg-white'
-            : 'bg-white'
-        }`}>
-          <div className="min-h-[1.5rem]">
-            <Textarea
-              ref={textareaRef}
-              value={localSource}
-              onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setLocalSource(e.target.value)}
-              onBlur={updateSource}
-              onKeyDown={handleKeyDown}
-              placeholder={
-                cell.cellType === 'code'
-                  ? 'Enter your code here...'
-                  : cell.cellType === 'markdown'
-                  ? 'Enter markdown...'
-                  : 'Enter raw text...'
-              }
-              className="min-h-[1.5rem] resize-none border-0 px-2 py-1 focus-visible:ring-0 font-mono bg-white w-full placeholder:text-muted-foreground/60 shadow-none"
-              onFocus={handleFocus}
-            />
+        {cell.sourceVisible && (
+          <div className={`transition-colors py-1 pl-4 pr-4 ${
+            autoFocus
+              ? 'bg-white'
+              : 'bg-white'
+          }`}>
+            <div className="min-h-[1.5rem]">
+              <Textarea
+                ref={textareaRef}
+                value={localSource}
+                onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setLocalSource(e.target.value)}
+                onBlur={updateSource}
+                onKeyDown={handleKeyDown}
+                placeholder={
+                  cell.cellType === 'code'
+                    ? 'Enter your code here...'
+                    : cell.cellType === 'markdown'
+                    ? 'Enter markdown...'
+                    : 'Enter raw text...'
+                }
+                className="min-h-[1.5rem] resize-none border-0 px-2 py-1 focus-visible:ring-0 font-mono bg-white w-full placeholder:text-muted-foreground/60 shadow-none"
+                onFocus={handleFocus}
+              />
+            </div>
           </div>
-        </div>
+        )}
       </div>
 
       {/* Execution Summary - appears after input */}
       {cell.cellType === 'code' && (cell.executionCount || cell.executionState === 'running' || cell.executionState === 'queued') && (
         <div className="mt-1 pl-6 pr-4">
-          <div className="text-xs text-muted-foreground pb-1">
-            {cell.executionState === 'running' ? (
-              'Running...'
-            ) : cell.executionState === 'queued' ? (
-              'Queued'
-            ) : cell.executionCount ? (
-              '0.3s' /* TODO: Gather execution time */
-            ) : null}
+          <div className="flex items-center justify-between text-xs text-muted-foreground pb-1">
+            <span>
+              {cell.executionState === 'running' ? (
+                'Running...'
+              ) : cell.executionState === 'queued' ? (
+                'Queued'
+              ) : cell.executionCount ? (
+                '0.3s' /* TODO: Gather execution time */
+              ) : null}
+            </span>
+            {(outputs.length > 0 || cell.executionState === 'running') && (
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={toggleOutputVisibility}
+                      className={`h-5 w-5 p-0 hover:bg-muted/80 transition-opacity ${
+                        autoFocus
+                          ? 'opacity-100'
+                          : 'opacity-0 group-hover:opacity-100'
+                      } ${cell.outputVisible ? '' : 'text-muted-foreground/60'}`}
+                    >
+                      {cell.outputVisible ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>{cell.outputVisible ? 'Hide output' : 'Show output'}</TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            )}
           </div>
         </div>
       )}
 
       {/* Output Area for Code Cells */}
-      {cell.cellType === 'code' && (outputs.length > 0 || cell.executionState === 'running') && (
+      {cell.cellType === 'code' && cell.outputVisible && (outputs.length > 0 || cell.executionState === 'running') && (
         <div className="mt-1 pl-6 pr-4 bg-background">
             {cell.executionState === 'running' && outputs.length === 0 && (
               <div className="py-3 border-l-2 border-blue-200 pl-1">

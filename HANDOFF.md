@@ -5,6 +5,7 @@
 **Focus**: Async Python execution, AI context integration, and visibility controls
 
 ✅ **Documentation fixes completed**: Updated all file references (mod-reactive.ts → kernel-adapter.ts, OPENAI_INTEGRATION.md → ai-features.md, etc.)
+✅ **Task 4 completed**: Source/Output Display Toggles implemented and ready for review
 
 ### Task 1: Switch to Async Python Code Execution ⏳
 **Goal**: Make Python code execution truly asynchronous in the kernel
@@ -42,21 +43,27 @@
 - `packages/web-client/src/components/notebook/AiCell.tsx` - Add visibility indicators
 - `packages/dev-server-kernel-ls-client/src/kernel-adapter.ts` - Filter cells in `gatherNotebookContext()` based on visibility settings
 
-### Task 4: Source/Output Display Toggles 📱
+### Task 4: Source/Output Display Toggles ✅ COMPLETED
 **Goal**: Allow users to collapse/expand source code and outputs
 **Solution**: Add UI toggles for cell content visibility
 
-**Features needed**:
-- Toggle to collapse/expand source code display
-- Toggle to collapse/expand output display
-- Preserve toggle state per user (using uiState table)
-- Keyboard shortcuts for quick toggling
+**Completed features**:
+- ✅ Toggle to collapse/expand source code display (chevron icons in cell controls)
+- ✅ Toggle to collapse/expand output display (chevron icons in execution summary bar)
+- ✅ Persistent state via LiveStore events (`sourceVisible`/`outputVisible` fields)
+- ✅ Real-time synchronization across collaborative sessions
+- ✅ Consistent implementation across Code, SQL, and AI cell types
+- ✅ Smart play button repositioning when source is collapsed
+- ✅ Hover-based visibility for reduced UI clutter
 
-**Files to modify**:
-- `shared/schema.ts` - Add collapsed state fields to uiState schema per cell
-- `packages/web-client/src/components/notebook/CodeCell.tsx` - Add collapse/expand buttons for source
-- `packages/web-client/src/components/notebook/RichOutput.tsx` - Add collapse/expand buttons for outputs
-- CSS classes for smooth expand/collapse animations with max-height transitions
+**Files modified**:
+- ✅ `shared/schema.ts` - Added `sourceVisible`/`outputVisible` fields with events and materializers
+- ✅ `packages/web-client/src/components/notebook/Cell.tsx` - Source/output visibility toggles
+- ✅ `packages/web-client/src/components/notebook/SqlCell.tsx` - SQL-specific toggles
+- ✅ `packages/web-client/src/components/notebook/AiCell.tsx` - AI-specific toggles
+- ✅ Icon improvements: ChevronUp/Down for show/hide, ArrowUp/Down for cell movement
+
+**Branch**: `feature/cell-visibility-toggles` (ready for review)
 
 ## Current Work State
 

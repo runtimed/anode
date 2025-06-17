@@ -56,6 +56,10 @@ export const tables = {
       aiModel: State.SQLite.text({ nullable: true }),
       aiSettings: State.SQLite.json({ nullable: true, schema: Schema.Any }), // temperature, max_tokens, etc.
 
+      // Display visibility controls
+      sourceVisible: State.SQLite.boolean({ default: true }),
+      outputVisible: State.SQLite.boolean({ default: true }),
+
       createdBy: State.SQLite.text(),
     },
   }),
@@ -225,6 +229,22 @@ export const events = {
     schema: Schema.Struct({
       id: Schema.String,
       newPosition: Schema.Number,
+    }),
+  }),
+
+  cellSourceVisibilityToggled: Events.synced({
+    name: "v1.CellSourceVisibilityToggled",
+    schema: Schema.Struct({
+      id: Schema.String,
+      sourceVisible: Schema.Boolean,
+    }),
+  }),
+
+  cellOutputVisibilityToggled: Events.synced({
+    name: "v1.CellOutputVisibilityToggled",
+    schema: Schema.Struct({
+      id: Schema.String,
+      outputVisible: Schema.Boolean,
     }),
   }),
 
@@ -409,6 +429,12 @@ const materializers = State.SQLite.materializers(events, {
 
   "v1.CellMoved": ({ id, newPosition }) =>
     tables.cells.update({ position: newPosition }).where({ id }),
+
+  "v1.CellSourceVisibilityToggled": ({ id, sourceVisible }) =>
+    tables.cells.update({ sourceVisible }).where({ id }),
+
+  "v1.CellOutputVisibilityToggled": ({ id, outputVisible }) =>
+    tables.cells.update({ outputVisible }).where({ id }),
 
   // Kernel lifecycle materializers
   "v1.KernelSessionStarted": ({
