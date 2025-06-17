@@ -11,7 +11,7 @@ cd anode
 pnpm install  # Automatically creates .env with defaults
 ```
 
-The `pnpm install` command automatically runs a setup script that creates a `.env` file with sensible defaults. No manual copying required!
+The `pnpm install` command automatically runs a setup script that creates separate `.env` files with sensible defaults. No manual copying required!
 
 ### 2. Start Development
 ```bash
@@ -26,7 +26,7 @@ pnpm dev  # Starts web client + sync backend
 5. Run that command in a new terminal
 
 ### 4. Optional: Add AI Features
-Edit `.env` and uncomment the OpenAI API key line:
+Edit `packages/dev-server-kernel-ls-client/.env` and uncomment the OpenAI API key line:
 ```bash
 # Uncomment and add your key:
 OPENAI_API_KEY=sk-your-key-here
@@ -35,8 +35,9 @@ OPENAI_API_KEY=sk-your-key-here
 ## Development Workflow
 
 ### Environment Setup
-- **Automatic**: Run `pnpm install` and the `.env` file is created automatically
-- **Manual**: Run `pnpm setup` if you need to recreate the environment file
+- **Automatic**: Run `pnpm install` and separate `.env` files are created automatically
+- **Manual**: Run `pnpm setup` if you need to recreate the environment files
+- **Security**: API keys are kept in server-side `.env` files, not exposed to browser
 - **Validation**: The setup script checks for required environment variables
 
 ### Running Services
@@ -49,7 +50,7 @@ OPENAI_API_KEY=sk-your-key-here
 ### Key Commands
 ```bash
 # Setup and development
-pnpm setup              # Create/validate .env file
+pnpm setup              # Create/validate .env files
 pnpm dev                # Start core services
 pnpm build              # Build all packages
 pnpm test               # Run test suite
@@ -78,17 +79,24 @@ anode/
 
 ## Environment Configuration
 
-The setup script automatically creates a `.env` file with these defaults:
+The setup script automatically creates separate `.env` files for security:
 
+**Web Client** (`packages/web-client/.env`) - Browser-exposed variables:
 ```bash
 # LiveStore Sync Backend URL
 VITE_LIVESTORE_SYNC_URL=ws://localhost:8787
+```
 
-# Authentication token for sync backend
-AUTH_TOKEN=insecure-token-change-me
+**Kernel Server** (`packages/dev-server-kernel-ls-client/.env`) - Server-only variables:
+```bash
+# LiveStore Sync Backend URL (for kernel server connection)
+LIVESTORE_SYNC_URL=ws://localhost:8787
 
 # OpenAI API Key for AI cells (uncomment and add your key)
 # OPENAI_API_KEY=your-openai-api-key-here
+
+# Authentication token for sync backend
+AUTH_TOKEN=insecure-token-change-me
 ```
 
 ### Port Configuration
@@ -136,9 +144,9 @@ pnpm test:schema             # Schema validation tests
 
 | Problem | Solution |
 |---------|----------|
-| Missing .env file | Run `pnpm setup` to auto-create with defaults |
+| Missing .env files | Run `pnpm setup` to auto-create with defaults |
 | Environment variable errors | Validate with `pnpm setup` |
-| Kernel not connecting | Use exact command from notebook UI |
+| Kernel not connecting | Use exact command from notebook UI, check kernel server .env |
 | Build failures | Run `pnpm clean && pnpm build` |
 | Type errors | Run `pnpm type-check` for detailed errors |
 
@@ -169,4 +177,4 @@ This project is licensed under the MIT License. See [LICENSE](./LICENSE) for det
 
 **Happy contributing!** 🚀
 
-The automated setup should make it easy to get started. If you encounter any friction in the development process, please open an issue - we want contributing to be as smooth as possible.
+The automated setup with separate `.env` files should make it easy to get started securely. If you encounter any friction in the development process, please open an issue - we want contributing to be as smooth as possible.
