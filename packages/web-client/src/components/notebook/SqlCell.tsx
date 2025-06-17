@@ -10,7 +10,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu'
-import { Play, ChevronUp, ChevronDown, Plus, X, Database, Code, FileText, Bot } from 'lucide-react'
+import { Play, ChevronUp, ChevronDown, Plus, X, Database, Code, FileText, Bot, ArrowUp, ArrowDown } from 'lucide-react'
 
 interface SqlCellProps {
   cell: typeof tables.cells.Type
@@ -303,7 +303,7 @@ export const SqlCell: React.FC<SqlCellProps> = ({
             className="h-7 w-7 p-0 hover:bg-muted/80"
             title="Move cell up"
           >
-            <ChevronUp className="h-3 w-3" />
+            <ArrowUp className="h-3 w-3" />
           </Button>
           <Button
             variant="ghost"
@@ -312,7 +312,7 @@ export const SqlCell: React.FC<SqlCellProps> = ({
             className="h-7 w-7 p-0 hover:bg-muted/80"
             title="Move cell down"
           >
-            <ChevronDown className="h-3 w-3" />
+            <ArrowDown className="h-3 w-3" />
           </Button>
           <Button
             variant="ghost"

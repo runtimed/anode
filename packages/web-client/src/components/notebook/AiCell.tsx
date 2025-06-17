@@ -13,7 +13,7 @@ import {
   DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu'
 import { RichOutput } from './RichOutput.js'
-import { Play, ChevronUp, ChevronDown, Plus, X, Bot, Code, FileText, Database } from 'lucide-react'
+import { Play, ChevronUp, ChevronDown, Plus, X, Bot, Code, FileText, Database, ArrowUp, ArrowDown } from 'lucide-react'
 
 interface AiCellProps {
   cell: typeof tables.cells.Type
@@ -353,7 +353,7 @@ export const AiCell: React.FC<AiCellProps> = ({
             className="h-7 w-7 p-0 hover:bg-muted/80"
             title="Move cell up"
           >
-            <ChevronUp className="h-3 w-3" />
+            <ArrowUp className="h-3 w-3" />
           </Button>
           <Button
             variant="ghost"
@@ -362,7 +362,7 @@ export const AiCell: React.FC<AiCellProps> = ({
             className="h-7 w-7 p-0 hover:bg-muted/80"
             title="Move cell down"
           >
-            <ChevronDown className="h-3 w-3" />
+            <ArrowDown className="h-3 w-3" />
           </Button>
           <Button
             variant="ghost"

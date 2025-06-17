@@ -17,7 +17,7 @@ import { SqlCell } from './SqlCell.js'
 import { AiCell } from './AiCell.js'
 import { RichOutput } from './RichOutput.js'
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
-import { Play, ChevronUp, ChevronDown, Plus, X, Code, FileText, Database, Bot } from 'lucide-react'
+import { Play, ChevronUp, ChevronDown, Plus, X, Code, FileText, Database, Bot, ArrowUp, ArrowDown } from 'lucide-react'
 
 type CellType = typeof tables.cells.Type
 
@@ -350,7 +350,7 @@ export const Cell: React.FC<CellProps> = ({
                   onClick={onMoveUp}
                   className="h-7 w-7 p-0 hover:bg-muted/80"
                 >
-                  <ChevronUp className="h-3 w-3" />
+                  <ArrowUp className="h-3 w-3" />
                 </Button>
               </TooltipTrigger>
               <TooltipContent>Move cell up</TooltipContent>
@@ -363,7 +363,7 @@ export const Cell: React.FC<CellProps> = ({
                   onClick={onMoveDown}
                   className="h-7 w-7 p-0 hover:bg-muted/80"
                 >
-                  <ChevronDown className="h-3 w-3" />
+                  <ArrowDown className="h-3 w-3" />
                 </Button>
               </TooltipTrigger>
               <TooltipContent>Move cell down</TooltipContent>
