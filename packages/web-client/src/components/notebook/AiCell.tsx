@@ -13,7 +13,7 @@ import {
   DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu'
 import { RichOutput } from './RichOutput.js'
-import { Play, ChevronUp, ChevronDown, Plus, X, Bot, Code, FileText, Database } from 'lucide-react'
+import { Play, ChevronUp, ChevronDown, Plus, X, Bot, Code, FileText, Database, Eye, EyeOff } from 'lucide-react'
 
 interface AiCellProps {
   cell: typeof tables.cells.Type
@@ -191,6 +191,20 @@ export const AiCell: React.FC<AiCellProps> = ({
     }))
   }, [cell.id, store])
 
+  const toggleSourceVisibility = useCallback(() => {
+    store.commit(events.cellSourceVisibilityToggled({
+      id: cell.id,
+      sourceVisible: !cell.sourceVisible,
+    }))
+  }, [cell.id, cell.sourceVisible, store])
+
+  const toggleOutputVisibility = useCallback(() => {
+    store.commit(events.cellOutputVisibilityToggled({
+      id: cell.id,
+      outputVisible: !cell.outputVisible,
+    }))
+  }, [cell.id, cell.outputVisible, store])
+
   const changeProvider = useCallback((newProvider: string, newModel: string) => {
     store.commit(events.aiSettingsChanged({
       cellId: cell.id,
@@ -319,6 +333,29 @@ export const AiCell: React.FC<AiCellProps> = ({
 
         {/* Cell Controls - visible on hover */}
         <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
+          {/* Visibility Toggles */}
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={toggleSourceVisibility}
+            className={`h-7 w-7 p-0 hover:bg-muted/80 ${cell.sourceVisible ? '' : 'text-muted-foreground/60'}`}
+            title="Toggle source visibility"
+          >
+            {cell.sourceVisible ? <Eye className="h-3 w-3" /> : <EyeOff className="h-3 w-3" />}
+          </Button>
+          {(outputs.length > 0 || cell.executionState === 'running' || cell.executionState === 'queued') && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={toggleOutputVisibility}
+              className={`h-7 w-7 p-0 hover:bg-muted/80 ${cell.outputVisible ? '' : 'text-muted-foreground/60'}`}
+              title="Toggle output visibility"
+            >
+              {cell.outputVisible ? <Eye className="h-3 w-3" /> : <EyeOff className="h-3 w-3" />}
+            </Button>
+          )}
+          {/* Separator */}
+          <div className="w-px h-4 bg-border/50 mx-1" />
           <Button
             variant="ghost"
             size="sm"
@@ -384,24 +421,26 @@ export const AiCell: React.FC<AiCellProps> = ({
         </div>
 
         {/* Text Content Area */}
-        <div className={`transition-colors py-1 pl-4 pr-4 ${
-          autoFocus
-            ? 'bg-white'
-            : 'bg-white'
-        }`}>
-          <div className="min-h-[1.5rem]">
-            <Textarea
-              ref={textareaRef}
-              value={localSource}
-              onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setLocalSource(e.target.value)}
-              onBlur={updateSource}
-              onKeyDown={handleKeyDown}
-              placeholder="Ask me anything about your notebook, data, or analysis..."
-              className="min-h-[1.5rem] resize-none border-0 px-2 py-1 focus-visible:ring-0 font-mono bg-white w-full placeholder:text-muted-foreground/60 shadow-none"
-              onFocus={handleFocus}
-            />
+        {cell.sourceVisible && (
+          <div className={`transition-colors py-1 pl-4 pr-4 ${
+            autoFocus
+              ? 'bg-white'
+              : 'bg-white'
+          }`}>
+            <div className="min-h-[1.5rem]">
+              <Textarea
+                ref={textareaRef}
+                value={localSource}
+                onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setLocalSource(e.target.value)}
+                onBlur={updateSource}
+                onKeyDown={handleKeyDown}
+                placeholder="Ask me anything about your notebook, data, or analysis..."
+                className="min-h-[1.5rem] resize-none border-0 px-2 py-1 focus-visible:ring-0 font-mono bg-white w-full placeholder:text-muted-foreground/60 shadow-none"
+                onFocus={handleFocus}
+              />
+            </div>
           </div>
-        </div>
+        )}
       </div>
 
       {/* Execution Summary - appears after input */}
@@ -420,7 +459,7 @@ export const AiCell: React.FC<AiCellProps> = ({
       )}
 
       {/* Output Area for AI Responses */}
-      {outputs.length > 0 && (
+      {outputs.length > 0 && cell.outputVisible && (
         <div className="mt-1 pl-6 pr-4 bg-background">
           {outputs
             .sort((a: OutputData, b: OutputData) => a.position - b.position)
