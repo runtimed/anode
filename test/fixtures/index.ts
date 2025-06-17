@@ -113,6 +113,7 @@ export const mockEvents = {
     name: "v1.ExecutionStarted",
     args: {
       queueId: mockExecutionQueueEntry.id,
+      cellId: mockCellData.id,
       kernelSessionId: mockKernelSession.sessionId,
     },
   },

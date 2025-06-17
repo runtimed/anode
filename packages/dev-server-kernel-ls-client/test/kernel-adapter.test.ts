@@ -200,6 +200,7 @@ describe('Kernel Adapter', () => {
       // Start execution
       store.commit(events.executionStarted({
         queueId,
+        cellId,
         kernelSessionId: sessionId,
       }))
 

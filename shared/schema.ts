@@ -280,6 +280,7 @@ export const events = {
     name: "v1.ExecutionStarted",
     schema: Schema.Struct({
       queueId: Schema.String,
+      cellId: Schema.String,
       kernelSessionId: Schema.String,
     }),
   }),
@@ -470,28 +471,18 @@ const materializers = State.SQLite.materializers(events, {
       })
       .where({ id: queueId }),
 
-  "v1.ExecutionStarted": ({ queueId }, ctx) => {
-    // Get the queue entry to find the cell ID
-    const queueEntries = ctx.query(
-      tables.executionQueue.select().where({ id: queueId }).limit(1),
-    );
-    if (queueEntries.length === 0) return [];
-
-    const queueEntry = queueEntries[0] as any;
-
-    return [
-      // Update execution queue
-      tables.executionQueue
-        .update({ status: "executing" })
-        .where({ id: queueId }),
-      // Update cell execution state
-      tables.cells
-        .update({
-          executionState: "running",
-        })
-        .where({ id: queueEntry.cellId }),
-    ];
-  },
+  "v1.ExecutionStarted": ({ queueId, cellId }) => [
+    // Update execution queue
+    tables.executionQueue
+      .update({ status: "executing" })
+      .where({ id: queueId }),
+    // Update cell execution state
+    tables.cells
+      .update({
+        executionState: "running",
+      })
+      .where({ id: cellId }),
+  ],
 
   "v1.ExecutionCompleted": ({ queueId, cellId, status }) => [
     // Update execution queue

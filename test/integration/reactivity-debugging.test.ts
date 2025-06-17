@@ -99,6 +99,7 @@ describe("Reactivity Debugging", () => {
       store.commit(
         events.executionStarted({
           queueId,
+          cellId,
           kernelSessionId: sessionId,
         }),
       );
