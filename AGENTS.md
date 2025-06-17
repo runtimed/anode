@@ -40,8 +40,9 @@ Anode is a real-time collaborative notebook system built on LiveStore, an event-
 
 ### What Needs Enhancement 🚧
 - 🚧 **Rich output rendering** - IPython integration code exists but needs verification
-- 🚧 **AI context awareness** - AI doesn't see previous cells or notebook context
-- 🚧 **AI notebook tools** - AI can't modify cells, create new cells, or run code
+- 🚧 **AI tool calling** - AI can't create cells, modify content, or execute code
+- 🚧 **Context inclusion controls** - Users can't exclude cells from AI context
+- 🚧 **MCP integration** - No Model Context Protocol support for extensible AI tools
 - 🚧 **Display system** - Matplotlib, pandas support partially implemented
 - 🚧 **Automated kernel management** - Manual startup creates friction
 
@@ -79,13 +80,19 @@ pnpm reset-storage  # Clear all local storage
 - **Automated Kernel Management** - Remove manual `NOTEBOOK_ID=xyz pnpm dev:kernel` friction
 - **Error Handling** - Better user feedback when things fail
 
-### Phase 2: Advanced Features (Next 1-2 months)
-- **Enhanced AI Integration** - Context awareness and notebook modification tools
+### Phase 2: AI Tool Calling & Context Controls (Next 1-2 months)
+- **AI Function Calling** - AI can create cells, modify content, and execute code using OpenAI function calling
+- **Context Inclusion Controls** - Users can mark cells as included/excluded from AI context
+- **Tool Execution Framework** - Reactive system handles AI tool calls with user confirmation
+- **Enhanced AI-Notebook Interaction** - AI becomes active development partner
+
+### Phase 3: Advanced Features (Next 2-3 months)
+- **MCP Integration** - Model Context Protocol support for extensible AI tooling via Python kernel
 - **SQL Cell Implementation** - Database connections and query results
 - **Interactive Widgets** - IPython widgets support for collaborative elements
 - **Authentication System** - Google OAuth with proper session management
 
-### Phase 3: Production (Next quarter)
+### Phase 4: Production (Next quarter)
 - **Performance Optimization** - Handle large notebooks efficiently
 - **Code Completions** - LSP + kernel-based suggestions
 - **Advanced Visualizations** - 3D plots, interactive charts
@@ -151,8 +158,10 @@ anode2/
 - **Manual kernel startup** creates significant user friction
 
 ### Immediate Technical Goals
+- **AI tool calling infrastructure** - Enable AI to create/modify cells using OpenAI function calling
+- **Context inclusion controls** - Let users control what cells AI can see for context
 - **Integration testing** to verify Python execution and rich outputs actually work
-- **Enhanced AI integration** - Add notebook context awareness and tools for modifying cells
+- **MCP integration foundation** - Architecture for Model Context Protocol providers via Python kernel
 - **Automated kernel management** to remove manual startup friction
 - **Better error handling** for improved user experience
 
@@ -196,6 +205,12 @@ pnpm dev             # Web client + sync backend
 **Do NOT use manual timestamps in code or events.** LiveStore automatically handles all timing through its event sourcing system. Focus development on features and architecture rather than timestamp management.
 
 **Testing is Critical**: Many claims about functionality need verification through proper integration tests. Core features exist but integration testing is minimal.
+
+**AI Tool Calling**: The next major enhancement is enabling AI to actively participate in notebook development through function calling - creating cells, modifying content, and executing code.
+
+**Context Control**: Users need granular control over what context AI sees, especially in large notebooks where token limits matter.
+
+**MCP Integration**: Long-term vision includes Model Context Protocol integration via Python kernel for unlimited AI tool extensibility.
 
 **Kernel Management**: Manual kernel startup (copying command from UI) creates user friction and should be a high priority to fix.
 

@@ -23,7 +23,8 @@
 - **Error handling** - Graceful fallback for API failures, rate limits, invalid keys
 - **Rich output** - AI responses rendered as markdown with metadata (tokens, model)
 - **Development mode** - Automatic fallback to mock responses without API key
-- **Current limitations**: No notebook context awareness, no tools for modifying notebook
+- **Notebook context awareness** - AI sees previous cells and outputs for context
+- **Current limitations**: No tools for AI to modify notebook, no cell context control
 
 #### User Interface
 - **Real-time collaboration** - Multiple users can edit simultaneously
@@ -73,18 +74,44 @@
 - Documentation at `docs/OPENAI_INTEGRATION.md`
 
 **Current limitations**:
-- **No notebook context**: AI doesn't see previous cells or outputs
-- **No notebook tools**: AI can't modify cells, create new cells, or run code
+- **No AI tools**: AI can't create cells, modify cells, or execute code
+- **No context control**: Users can't exclude cells from AI context
 - **No streaming**: Responses appear all at once, not word-by-word
 - **Basic prompting**: Simple user prompt → AI response, no multi-turn conversation
 
 **Next enhancements needed**:
-- Context awareness: Send previous cells and outputs to AI
-- Notebook tools: Let AI create/modify cells and execute code
+- **AI tool calling**: Let AI create/modify cells using OpenAI function calling
+- **Context inclusion controls**: Allow users to mark cells as included/excluded from AI context
+- **MCP integration** (long-term): Connect to Model Context Protocol providers via Python kernel
 - Streaming responses for better UX
 - Multi-turn conversation support
 
-### Priority 3: Auto Kernel Management (High Impact)
+### Priority 3: MCP Integration Foundation 🔮 LONG-TERM
+**Status**: 🎯 **Architecture planning**
+
+**Goal**: Connect to Model Context Protocol providers for extensible AI tooling
+
+**Key Concepts**:
+- **Local MCP Registry**: Discover and manage MCP providers via Python kernel
+- **Tool Routing**: Seamlessly route AI tool calls between built-in notebook tools and MCP providers
+- **Python Integration**: Use Python introspection to discover MCP-compatible modules
+- **Unified Interface**: Single AI interface that can access both notebook and external tools
+
+**Implementation Strategy**:
+1. Start with built-in notebook tools (`create_cell`, `modify_cell`)
+2. Design MCP registry architecture for future extension
+3. Add Python kernel discovery of MCP-compatible modules
+4. Implement tool routing between notebook and MCP providers
+
+**Files to create/modify**:
+- `packages/dev-server-kernel-ls-client/src/mcp-registry.ts` - MCP provider management
+- `packages/dev-server-kernel-ls-client/src/pyodide-kernel.ts` - Python MCP discovery
+- Enhanced tool routing in reactive system
+
+**Estimated effort**: 1-2 months (after tool calling foundation)
+**Impact**: Enables unlimited AI tool extensibility through Python ecosystem
+
+### Priority 4: Auto Kernel Management (High Impact)
 **Current friction**: Manual `NOTEBOOK_ID=xyz pnpm dev:kernel` per notebook
 
 **Goal**: One-click notebook startup with automatic kernel lifecycle
@@ -102,7 +129,7 @@
 **Estimated effort**: 2-3 hours
 **Impact**: Removes major user friction
 
-### Priority 3: Rich Output Verification (Medium)
+### Priority 5: Rich Output Verification (Medium)
 **Current state**: Code exists but integration unclear
 
 **Goal**: Verify and fix matplotlib, pandas, IPython.display integration
@@ -121,7 +148,7 @@
 **Estimated effort**: 3-4 hours
 **Impact**: Delivers on rich output promises
 
-### Priority 4: Error Handling & UX (Low)
+### Priority 6: Error Handling & UX (Low)
 **Current state**: Basic error display, could be much better
 
 **Goal**: Professional error handling and user feedback
@@ -165,14 +192,15 @@ pnpm test               # Full test suite (27 passing, 13 skipped)
 - ✅ **Error handling**: Python exceptions properly displayed
 - ✅ **Real-time collaboration**: Text outputs sync across users
 
-## Known Issues & Limitations
+### Known Issues & Limitations
 
 ### Current Limitations
 - **Manual kernel startup**: Each notebook requires copying command from UI
 - **Rich outputs unverified**: Matplotlib, pandas integration needs testing
 - **Limited error recovery**: Kernel failures require manual restart
 - **No streaming outputs**: All output appears at execution completion
-- **Basic AI integration**: No notebook context or tools for AI to modify notebook
+- **No AI tools**: AI cannot create cells, modify content, or execute code
+- **No context control**: Users cannot exclude cells from AI context
 - **Performance claims unverified**: Need integration tests to validate speed/output claims
 
 ### Schema & Architecture Notes
@@ -237,13 +265,17 @@ docs/
 - Cell management and keyboard navigation
 - Text output and error handling
 
-**🎯 Phase 2: Rich Outputs & Enhanced AI** - **NEXT PRIORITY**  
+**🎯 Phase 2: AI Tool Calling & Context Controls** - **NEXT PRIORITY**  
+- AI function calling for cell creation and modification
+- Context inclusion/exclusion controls for cells
+- Tool execution infrastructure and error handling
+- Enhanced AI-notebook interaction patterns
+
+**Phase 3: Rich Outputs & Infrastructure** - **FOLLOWING PRIORITY**
 - Integration testing for Python execution
 - Matplotlib and pandas display verification
 - IPython.display function support
 - Automated kernel management
-- AI context awareness (previous cells, outputs)
-- AI notebook tools (create/modify cells, run code)
 - Streaming AI responses
 
 **Phase 3: Advanced Features**
@@ -251,7 +283,8 @@ docs/
 - SQL cells with database connections
 - Performance optimization for large notebooks
 
-**Phase 4: Advanced Features**
+**Phase 4: MCP Integration & Advanced Features**
+- Model Context Protocol integration via Python kernel
 - SQL cells with database connections
 - Interactive widgets and collaborative components
 - Performance optimization for large notebooks
@@ -277,8 +310,8 @@ docs/
 
 **Current State**: Core collaborative notebook system working with basic Python execution and basic AI integration. Rich output system architecture in place but needs verification.
 
-**Immediate Focus**: Prove the system works as claimed through integration testing, then enhance AI with notebook context and tools.
+**Immediate Focus**: Implement AI tool calling and context controls to make AI an active development partner, then prove system works through integration testing.
 
-**Key Insight**: The LiveStore foundation is solid. Python execution works but needs verification. AI integration is working but basic (no context/tools). Rich outputs need real testing.
+**Key Insight**: The LiveStore foundation is solid. AI integration is working with context awareness but needs tool calling capabilities. Python execution works but needs verification. Rich outputs need real testing.
 
-Priority: **Integration Testing → Enhanced AI (Context + Tools) → Auto Kernels → Rich Output Verification**
+Priority: **AI Tool Calling & Context Controls → Integration Testing → Auto Kernels → Rich Output Verification → MCP Integration**
