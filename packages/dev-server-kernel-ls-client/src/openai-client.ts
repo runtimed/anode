@@ -25,6 +25,15 @@ interface ToolCall {
   arguments: Record<string, any>;
 }
 
+interface ToolCallOutput {
+  tool_call_id: string;
+  tool_name: string;
+  arguments: Record<string, any>;
+  status: 'success' | 'error';
+  timestamp: string;
+  execution_time_ms?: number;
+}
+
 // Define available notebook tools
 const NOTEBOOK_TOOLS: NotebookTool[] = [
   {
@@ -156,8 +165,42 @@ class OpenAIClient {
 
         for (const toolCall of toolCalls) {
           if (toolCall.type === 'function') {
+            let args: Record<string, any> = {};
+            let parseError: Error | null = null;
+
             try {
-              const args = JSON.parse(toolCall.function.arguments);
+              args = JSON.parse(toolCall.function.arguments);
+            } catch (error) {
+              parseError = error instanceof Error ? error : new Error(String(error));
+              console.error(`❌ Error parsing tool arguments for ${toolCall.function.name}:`, error);
+            }
+
+            if (parseError) {
+              const errorToolCallData: ToolCallOutput = {
+                tool_call_id: toolCall.id,
+                tool_name: toolCall.function.name,
+                arguments: { raw_arguments: toolCall.function.arguments },
+                status: 'error',
+                timestamp: new Date().toISOString()
+              };
+
+              outputs.push({
+                type: 'display_data',
+                data: {
+                  'application/vnd.anode.aitool+json': errorToolCallData,
+                  'text/markdown': `❌ **Tool failed**: \`${toolCall.function.name}\`\n\nError parsing arguments: ${parseError.message}`,
+                  'text/plain': `Tool failed: ${toolCall.function.name} - Error parsing arguments: ${parseError.message}`
+                },
+                metadata: {
+                  'anode/tool_call': true,
+                  'anode/tool_name': toolCall.function.name,
+                  'anode/tool_error': true
+                }
+              });
+              continue;
+            }
+
+            try {
               console.log(`📞 Calling tool: ${toolCall.function.name} with args:`, args);
 
               // Execute the tool call
@@ -167,10 +210,19 @@ class OpenAIClient {
                 arguments: args
               });
 
-              // Add confirmation output
+              // Add confirmation output with custom media type
+              const toolCallData: ToolCallOutput = {
+                tool_call_id: toolCall.id,
+                tool_name: toolCall.function.name,
+                arguments: args,
+                status: 'success',
+                timestamp: new Date().toISOString()
+              };
+
               outputs.push({
                 type: 'display_data',
                 data: {
+                  'application/vnd.anode.aitool+json': toolCallData,
                   'text/markdown': `🔧 **Tool executed**: \`${toolCall.function.name}\`\n\n${this.formatToolCall(toolCall.function.name, args)}`,
                   'text/plain': `Tool executed: ${toolCall.function.name}`
                 },
@@ -183,11 +235,27 @@ class OpenAIClient {
 
             } catch (error) {
               console.error(`❌ Error executing tool ${toolCall.function.name}:`, error);
+
+              const errorToolCallData: ToolCallOutput = {
+                tool_call_id: toolCall.id,
+                tool_name: toolCall.function.name,
+                arguments: args,
+                status: 'error',
+                timestamp: new Date().toISOString()
+              };
+
               outputs.push({
-                type: 'error',
-                ename: 'ToolExecutionError',
-                evalue: `Failed to execute ${toolCall.function.name}: ${error instanceof Error ? error.message : String(error)}`,
-                traceback: [String(error)]
+                type: 'display_data',
+                data: {
+                  'application/vnd.anode.aitool+json': errorToolCallData,
+                  'text/markdown': `❌ **Tool failed**: \`${toolCall.function.name}\`\n\nError: ${error instanceof Error ? error.message : String(error)}`,
+                  'text/plain': `Tool failed: ${toolCall.function.name} - ${error instanceof Error ? error.message : String(error)}`
+                },
+                metadata: {
+                  'anode/tool_call': true,
+                  'anode/tool_name': toolCall.function.name,
+                  'anode/tool_error': true
+                }
               });
             }
           }

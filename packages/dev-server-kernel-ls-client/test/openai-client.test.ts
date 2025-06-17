@@ -458,6 +458,9 @@ describe('OpenAI Client', () => {
 
       // First output: tool confirmation
       expect(result[0].type).toBe('display_data');
+      expect(result[0].data['application/vnd.anode.aitool+json']).toBeDefined();
+      expect(result[0].data['application/vnd.anode.aitool+json'].tool_name).toBe('create_cell');
+      expect(result[0].data['application/vnd.anode.aitool+json'].status).toBe('success');
       expect(result[0].data['text/markdown']).toContain('Tool executed');
       expect(result[0].data['text/markdown']).toContain('create_cell');
       expect(result[0].metadata['anode/tool_call']).toBe(true);
@@ -549,9 +552,11 @@ describe('OpenAI Client', () => {
       });
 
       expect(result).toHaveLength(1);
-      expect(result[0].type).toBe('error');
-      expect(result[0].ename).toBe('ToolExecutionError');
-      expect(result[0].evalue).toContain('Failed to execute create_cell');
+      expect(result[0].type).toBe('display_data');
+      expect(result[0].data['application/vnd.anode.aitool+json']).toBeDefined();
+      expect(result[0].data['application/vnd.anode.aitool+json'].status).toBe('error');
+      expect(result[0].data['text/markdown']).toContain('Tool failed');
+      expect(result[0].metadata['anode/tool_error']).toBe(true);
     });
 
     it('should work without tools when disabled', async () => {
