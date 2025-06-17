@@ -2,7 +2,7 @@ import { createServer } from "http";
 import { URL } from "url";
 
 // Import the REACTIVE kernel adapter logic that handles LiveStore events
-import "./mod-reactive.js";
+import "./kernel-adapter.js";
 
 const PORT = process.env.PORT ? parseInt(process.env.PORT) : 3001;
 const NOTEBOOK_ID = process.env.NOTEBOOK_ID || "demo-notebook";

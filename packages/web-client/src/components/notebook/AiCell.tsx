@@ -50,7 +50,7 @@ export const AiCell: React.FC<AiCellProps> = ({
   const outputs = store.useQuery(outputsQuery) as OutputData[]
 
   const provider = cell.aiProvider || 'openai'
-  const model = cell.aiModel || 'gpt-4'
+  const model = cell.aiModel || 'gpt-4o-mini'
 
   // Auto-focus when requested
   React.useEffect(() => {
@@ -291,8 +291,14 @@ export const AiCell: React.FC<AiCellProps> = ({
               {getProviderBadge()}
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
+              <DropdownMenuItem onClick={() => changeProvider('openai', 'gpt-4o')}>
+                OpenAI GPT-4o
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => changeProvider('openai', 'gpt-4o-mini')}>
+                OpenAI GPT-4o Mini
+              </DropdownMenuItem>
               <DropdownMenuItem onClick={() => changeProvider('openai', 'gpt-4')}>
-                OpenAI GPT-4
+                OpenAI GPT-4 (Legacy)
               </DropdownMenuItem>
               <DropdownMenuItem onClick={() => changeProvider('openai', 'gpt-3.5-turbo')}>
                 OpenAI GPT-3.5 Turbo
