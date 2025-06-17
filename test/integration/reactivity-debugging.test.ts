@@ -168,6 +168,7 @@ describe("Reactivity Debugging", () => {
       store.commit(
         events.executionCompleted({
           queueId: "multi-sub-queue",
+          cellId: "multi-sub-cell",
           status: "success",
         }),
       );

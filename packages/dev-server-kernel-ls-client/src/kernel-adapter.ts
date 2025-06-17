@@ -565,6 +565,7 @@ async function processExecution(queueEntry: any) {
     const hasErrors = outputs.some(o => o.type === "error");
     store.commit(events.executionCompleted({
       queueId: queueEntry.id,
+      cellId: queueEntry.cellId,
       status: hasErrors ? "error" : "success",
       error: hasErrors ? "Execution completed with errors" : undefined,
     }));
@@ -580,6 +581,7 @@ async function processExecution(queueEntry: any) {
     try {
       store.commit(events.executionCompleted({
         queueId: queueEntry.id,
+        cellId: queueEntry.cellId,
         status: "error",
         error: error instanceof Error ? error.message : String(error),
       }));
@@ -624,6 +626,7 @@ assignedWorkSubscription = store.subscribe(assignedWorkQuery$ as any, {
           try {
             store.commit(events.executionCompleted({
               queueId: queueEntry.id,
+              cellId: queueEntry.cellId,
               status: "error",
               error: error instanceof Error ? error.message : String(error),
             }));

@@ -185,6 +185,7 @@ describe.skip("End-to-End Execution Flow", () => {
       store.commit(
         events.executionCompleted({
           queueId,
+          cellId,
           status: "success",
         }),
       );
@@ -303,6 +304,7 @@ describe.skip("End-to-End Execution Flow", () => {
       store.commit(
         events.executionCompleted({
           queueId,
+          cellId,
           status: "error",
           error: "ValueError: Test error",
         }),
@@ -423,6 +425,7 @@ describe.skip("End-to-End Execution Flow", () => {
         store.commit(
           events.executionCompleted({
             queueId,
+            cellId: cellIds[i],
             status: "success",
           }),
         );
