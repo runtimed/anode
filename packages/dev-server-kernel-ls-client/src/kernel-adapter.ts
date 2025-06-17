@@ -501,6 +501,7 @@ async function processExecution(queueEntry: any) {
     // Mark execution as started
     store.commit(events.executionStarted({
       queueId: queueEntry.id,
+      cellId: queueEntry.cellId,
       kernelSessionId: SESSION_ID,
     }));
 

@@ -156,6 +156,7 @@ describe.skip("End-to-End Execution Flow", () => {
       store.commit(
         events.executionStarted({
           queueId,
+          cellId,
           kernelSessionId: sessionId,
         }),
       );
@@ -277,6 +278,7 @@ describe.skip("End-to-End Execution Flow", () => {
       store.commit(
         events.executionStarted({
           queueId,
+          cellId,
           kernelSessionId: sessionId,
         }),
       );
@@ -391,7 +393,7 @@ describe.skip("End-to-End Execution Flow", () => {
       });
 
       // Assign executions to different sessions
-      cells.forEach(({ queueId }, index) => {
+      cells.forEach(({ queueId, cellId }, index) => {
         const sessionIndex = index % sessions.length;
         const { sessionId: sid } = sessions[sessionIndex];
 
@@ -405,6 +407,7 @@ describe.skip("End-to-End Execution Flow", () => {
         store.commit(
           events.executionStarted({
             queueId,
+            cellId,
             kernelSessionId: sid,
           }),
         );
@@ -425,7 +428,7 @@ describe.skip("End-to-End Execution Flow", () => {
         store.commit(
           events.executionCompleted({
             queueId,
-            cellId: cellIds[i],
+            cellId,
             status: "success",
           }),
         );
@@ -663,6 +666,7 @@ describe.skip("End-to-End Execution Flow", () => {
       store.commit(
         events.executionStarted({
           queueId,
+          cellId,
           kernelSessionId: sessionId,
         }),
       );
