@@ -121,7 +121,8 @@ describe('Kernel Adapter', () => {
       // Send heartbeat with busy status
       store.commit(events.kernelSessionHeartbeat({
         sessionId,
-        status: 'busy'
+        status: 'busy',
+        timestamp: new Date(),
       }))
 
       const sessions = store.query(tables.kernelSessions.select())
@@ -322,7 +323,7 @@ describe('Kernel Adapter', () => {
       subscription()
     })
 
-    it.skip('should handle subscription errors gracefully', async () => {
+    it('should handle subscription errors gracefully', async () => {
       const errorCallback = vi.fn()
 
       // Create query that might have issues (simulate error conditions)

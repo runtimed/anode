@@ -135,6 +135,7 @@ export const mockEvents = {
     args: {
       sessionId: mockKernelSession.sessionId,
       status: "ready" as const,
+      timestamp: new Date(),
     },
   },
   kernelSessionTerminated: {
