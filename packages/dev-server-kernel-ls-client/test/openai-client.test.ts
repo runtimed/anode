@@ -1,6 +1,13 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { OpenAIClient } from '../src/openai-client.js';
 
+// System prompts for testing
+const DEFAULT_SYSTEM_PROMPT = 'You are a helpful AI assistant in a Jupyter-like notebook environment. You have access to tools that let you create new cells in the notebook.\n\nWhen users ask you to:\n- Create code examples\n- Add new content to the notebook\n- Show implementations\n- Create cells with specific content\n\nYou MUST use the create_cell function to actually create the cells. Do not just describe what the code would look like - create it using the tools available to you.\n\nIMPORTANT: Always prefer using tools over just providing text descriptions when the user wants content added to their notebook.\n\nFor positioning: Use "after_current" by default so new cells appear right after the AI cell. Only use "at_end" if specifically requested.';
+
+const STREAMING_SYSTEM_PROMPT = 'You are a helpful AI assistant in a Jupyter-like notebook environment. You have access to tools that let you create new cells in the notebook.\n\nWhen users ask you to:\n- Create code examples\n- Add new content to the notebook\n- Show implementations\n- Create cells with specific content\n\nYou MUST use the create_cell function to actually create the cells. Do not just describe what the code would look like - create it using the tools available to you.\n\nIMPORTANT: Always prefer using tools over just providing text descriptions when the user wants content added to their notebook.';
+
+const SIMPLE_SYSTEM_PROMPT = 'You are a helpful AI assistant in a Jupyter-like notebook environment. Provide clear, concise responses and include code examples when appropriate.';
+
 // Mock OpenAI module
 vi.mock('openai', () => {
   return {
@@ -104,7 +111,7 @@ describe('OpenAI Client', () => {
         messages: [
           {
             role: 'system',
-            content: 'You are a helpful AI assistant in a Jupyter-like notebook environment. Provide clear, concise responses and include code examples when appropriate.'
+            content: DEFAULT_SYSTEM_PROMPT
           },
           {
             role: 'user',
@@ -135,7 +142,7 @@ describe('OpenAI Client', () => {
                   position: {
                     type: 'string',
                     enum: ['after_current', 'before_current', 'at_end'],
-                    description: 'Where to place the new cell relative to the current AI cell',
+                    description: 'Where to place the new cell. Use "after_current" (default) to place right after the AI cell, "before_current" to place before it, or "at_end" only when specifically requested',
                     default: 'after_current'
                   }
                 },
@@ -263,7 +270,7 @@ describe('OpenAI Client', () => {
                   position: {
                     type: 'string',
                     enum: ['after_current', 'before_current', 'at_end'],
-                    description: 'Where to place the new cell relative to the current AI cell',
+                    description: 'Where to place the new cell. Use "after_current" (default) to place right after the AI cell, "before_current" to place before it, or "at_end" only when specifically requested',
                     default: 'after_current'
                   }
                 },
@@ -341,7 +348,7 @@ describe('OpenAI Client', () => {
         messages: [
           {
             role: 'system',
-            content: 'You are a helpful AI assistant in a Jupyter-like notebook environment. Provide clear, concise responses and include code examples when appropriate.'
+            content: STREAMING_SYSTEM_PROMPT
           },
           {
             role: 'user',
@@ -475,7 +482,7 @@ describe('OpenAI Client', () => {
         messages: [
           {
             role: 'system',
-            content: 'You are a helpful AI assistant in a Jupyter-like notebook environment. Provide clear, concise responses and include code examples when appropriate.'
+            content: DEFAULT_SYSTEM_PROMPT
           },
           {
             role: 'user',
@@ -506,7 +513,7 @@ describe('OpenAI Client', () => {
                   position: {
                     type: 'string',
                     enum: ['after_current', 'before_current', 'at_end'],
-                    description: 'Where to place the new cell relative to the current AI cell',
+                    description: 'Where to place the new cell. Use "after_current" (default) to place right after the AI cell, "before_current" to place before it, or "at_end" only when specifically requested',
                     default: 'after_current'
                   }
                 },
@@ -581,11 +588,11 @@ describe('OpenAI Client', () => {
       expect(result[0].data['text/markdown']).toBe('Regular response without tools');
 
       expect(mockOpenAI.chat.completions.create).toHaveBeenCalledWith({
-        model: 'gpt-4',
+        model: 'gpt-4o-mini',
         messages: [
           {
             role: 'system',
-            content: 'You are a helpful AI assistant in a Jupyter-like notebook environment. Provide clear, concise responses and include code examples when appropriate.'
+            content: DEFAULT_SYSTEM_PROMPT
           },
           {
             role: 'user',
