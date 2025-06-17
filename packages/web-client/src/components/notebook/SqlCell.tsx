@@ -338,7 +338,7 @@ export const SqlCell: React.FC<SqlCellProps> = ({
       {/* Cell Content with Left Gutter Play Button */}
       <div className="relative">
         {/* Play Button Breaking Through Left Border */}
-        <div className="absolute -left-3 z-10" style={{ top: '0.375rem' }}>
+        <div className="absolute -left-3 z-10" style={{ top: cell.sourceVisible ? '0.375rem' : '-1.5rem' }}>
           <Button
             variant="ghost"
             size="sm"
