@@ -343,17 +343,7 @@ export const AiCell: React.FC<AiCellProps> = ({
           >
             {cell.sourceVisible ? <Eye className="h-3 w-3" /> : <EyeOff className="h-3 w-3" />}
           </Button>
-          {(outputs.length > 0 || cell.executionState === 'running' || cell.executionState === 'queued') && (
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={toggleOutputVisibility}
-              className={`h-7 w-7 p-0 hover:bg-muted/80 ${cell.outputVisible ? '' : 'text-muted-foreground/60'}`}
-              title="Toggle output visibility"
-            >
-              {cell.outputVisible ? <Eye className="h-3 w-3" /> : <EyeOff className="h-3 w-3" />}
-            </Button>
-          )}
+
           {/* Separator */}
           <div className="w-px h-4 bg-border/50 mx-1" />
           <Button
@@ -446,14 +436,27 @@ export const AiCell: React.FC<AiCellProps> = ({
       {/* Execution Summary - appears after input */}
       {(cell.executionCount || cell.executionState === 'running' || cell.executionState === 'queued') && (
         <div className="mt-1 pl-6 pr-4">
-          <div className="text-xs text-muted-foreground pb-1">
-            {cell.executionState === 'running' ? (
-              'Generating...'
-            ) : cell.executionState === 'queued' ? (
-              'Queued'
-            ) : cell.executionCount ? (
-              '1.2s' /* TODO: Gather execution time */
-            ) : null}
+          <div className="flex items-center justify-between text-xs text-muted-foreground pb-1">
+            <span>
+              {cell.executionState === 'running' ? (
+                'Generating...'
+              ) : cell.executionState === 'queued' ? (
+                'Queued'
+              ) : cell.executionCount ? (
+                '1.2s' /* TODO: Gather execution time */
+              ) : null}
+            </span>
+            {outputs.length > 0 && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={toggleOutputVisibility}
+                className={`h-5 w-5 p-0 hover:bg-muted/80 ${cell.outputVisible ? '' : 'text-muted-foreground/60'}`}
+                title="Toggle output visibility"
+              >
+                {cell.outputVisible ? <Eye className="h-3 w-3" /> : <EyeOff className="h-3 w-3" />}
+              </Button>
+            )}
           </div>
         </div>
       )}

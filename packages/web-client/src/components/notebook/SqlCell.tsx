@@ -293,17 +293,7 @@ export const SqlCell: React.FC<SqlCellProps> = ({
           >
             {cell.sourceVisible ? <Eye className="h-3 w-3" /> : <EyeOff className="h-3 w-3" />}
           </Button>
-          {cell.sqlResultData && (
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={toggleOutputVisibility}
-              className={`h-7 w-7 p-0 hover:bg-muted/80 ${cell.outputVisible ? '' : 'text-muted-foreground/60'}`}
-              title="Toggle output visibility"
-            >
-              {cell.outputVisible ? <Eye className="h-3 w-3" /> : <EyeOff className="h-3 w-3" />}
-            </Button>
-          )}
+
           {/* Separator */}
           <div className="w-px h-4 bg-border/50 mx-1" />
           <Button
@@ -396,14 +386,27 @@ export const SqlCell: React.FC<SqlCellProps> = ({
       {/* Execution Summary - appears after input */}
       {(cell.executionCount || cell.executionState === 'running' || cell.executionState === 'queued') && (
         <div className="mt-1 pl-6 pr-4">
-          <div className="text-xs text-muted-foreground pb-1">
-            {cell.executionState === 'running' ? (
-              'Running query...'
-            ) : cell.executionState === 'queued' ? (
-              'Queued'
-            ) : cell.executionCount ? (
-              '42ms' /* TODO: Use actual execution time from sqlResultData */
-            ) : null}
+          <div className="flex items-center justify-between text-xs text-muted-foreground pb-1">
+            <span>
+              {cell.executionState === 'running' ? (
+                'Running query...'
+              ) : cell.executionState === 'queued' ? (
+                'Queued'
+              ) : cell.executionCount ? (
+                '42ms' /* TODO: Use actual execution time from sqlResultData */
+              ) : null}
+            </span>
+            {cell.sqlResultData && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={toggleOutputVisibility}
+                className={`h-5 w-5 p-0 hover:bg-muted/80 ${cell.outputVisible ? '' : 'text-muted-foreground/60'}`}
+                title="Toggle output visibility"
+              >
+                {cell.outputVisible ? <Eye className="h-3 w-3" /> : <EyeOff className="h-3 w-3" />}
+              </Button>
+            )}
           </div>
         </div>
       )}

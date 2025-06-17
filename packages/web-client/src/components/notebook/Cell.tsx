@@ -339,21 +339,7 @@ export const Cell: React.FC<CellProps> = ({
               </TooltipTrigger>
               <TooltipContent>Toggle source visibility</TooltipContent>
             </Tooltip>
-            {(outputs.length > 0 || cell.executionState === 'running' || cell.executionState === 'queued') && (
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={toggleOutputVisibility}
-                    className={`h-7 w-7 p-0 hover:bg-muted/80 ${cell.outputVisible ? '' : 'text-muted-foreground/60'}`}
-                  >
-                    {cell.outputVisible ? <Eye className="h-3 w-3" /> : <EyeOff className="h-3 w-3" />}
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent>Toggle output visibility</TooltipContent>
-              </Tooltip>
-            )}
+
             {/* Separator */}
             <div className="w-px h-4 bg-border/50 mx-1" />
             <Tooltip>
@@ -471,14 +457,33 @@ export const Cell: React.FC<CellProps> = ({
       {/* Execution Summary - appears after input */}
       {cell.cellType === 'code' && (cell.executionCount || cell.executionState === 'running' || cell.executionState === 'queued') && (
         <div className="mt-1 pl-6 pr-4">
-          <div className="text-xs text-muted-foreground pb-1">
-            {cell.executionState === 'running' ? (
-              'Running...'
-            ) : cell.executionState === 'queued' ? (
-              'Queued'
-            ) : cell.executionCount ? (
-              '0.3s' /* TODO: Gather execution time */
-            ) : null}
+          <div className="flex items-center justify-between text-xs text-muted-foreground pb-1">
+            <span>
+              {cell.executionState === 'running' ? (
+                'Running...'
+              ) : cell.executionState === 'queued' ? (
+                'Queued'
+              ) : cell.executionCount ? (
+                '0.3s' /* TODO: Gather execution time */
+              ) : null}
+            </span>
+            {(outputs.length > 0 || cell.executionState === 'running') && (
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={toggleOutputVisibility}
+                      className={`h-5 w-5 p-0 hover:bg-muted/80 ${cell.outputVisible ? '' : 'text-muted-foreground/60'}`}
+                    >
+                      {cell.outputVisible ? <Eye className="h-3 w-3" /> : <EyeOff className="h-3 w-3" />}
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>Toggle output visibility</TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            )}
           </div>
         </div>
       )}
