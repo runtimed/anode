@@ -143,10 +143,10 @@ See [ROADMAP.md](./ROADMAP.md) for detailed development plans and milestones.
 ## Documentation
 
 For comprehensive documentation, see the [docs](./docs/) directory:
-- **[OpenAI Integration](./docs/OPENAI_INTEGRATION.md)** - AI setup and usage guide
-- **[Display System Guide](./docs/DISPLAY_SYSTEM.md)** - Complete technical documentation
+- **[OpenAI Integration](./docs/ai-features.md)** - AI setup and usage guide
+- **[Display System Guide](./docs/display-system.md)** - Complete technical documentation
 - **[Display Examples](./docs/display-examples.md)** - Practical usage examples
-- **[UI Design Guidelines](./docs/UI_DESIGN.md)** - Interface design principles
+- **[UI Design Guidelines](./docs/ui-design.md)** - Interface design principles
 - **[Testing Strategy](./docs/TESTING.md)** - Current testing approach and gaps
 
 ## Contributing
