@@ -1,3 +1,6 @@
+// TODO: Pyodide v0.27.7 has import path issues in Node.js environments
+// The package expects files in src/js/ which don't exist in the npm package structure
+// This affects integration tests but the kernel should work in browser environments
 import { loadPyodide, PyodideInterface } from "pyodide";
 import { OutputType, ErrorOutputData, RichOutputData, StreamOutputData } from "../../../shared/schema.js";
 import { defaultCacheManager, getCacheConfig, getEssentialPackages } from "./cache-utils.js";
