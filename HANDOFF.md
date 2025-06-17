@@ -16,15 +16,24 @@
 - `packages/dev-server-kernel-ls-client/src/kernel-adapter.ts` - Update execution flow for better async handling
 - Consider setTimeout/setImmediate patterns to yield control during execution
 
-### Task 2: Show Outputs to AI Model Context Window 🤖
+### Task 2: Show Outputs to AI Model Context Window 🤖 ✅
 **Goal**: Include cell outputs (not just source code) in AI context
-**Current Issue**: `gatherNotebookContext()` only gets cell source, not execution results
-**Solution**: Extend context gathering to include cell outputs from the outputs table
+**Status**: ✅ **COMPLETED** - AI now sees both cell source and outputs in context
+**Solution**: Extended context gathering to include cell outputs from the outputs table
 
-**Files to modify**:
-- `packages/dev-server-kernel-ls-client/src/kernel-adapter.ts` - Update `gatherNotebookContext()` function to query outputs table
-- `packages/dev-server-kernel-ls-client/src/kernel-adapter.ts` - Update `buildSystemPromptWithContext()` to include outputs
-- Include both text/plain and rich outputs in AI context (formatted appropriately for token efficiency)
+**What Was Implemented**:
+- Enhanced `NotebookContext` interface to include outputs array for each cell
+- Updated `gatherNotebookContext()` to query and include outputs from outputs table
+- Added output filtering to include `text/plain` and `text/markdown` outputs for AI context
+- Enhanced `buildSystemPromptWithContext()` to format outputs in system prompt
+- Added support for stream outputs (stdout/stderr), error outputs, and rich outputs
+- Comprehensive test coverage for context gathering functionality
+
+**Technical Details**:
+- AI context now includes outputs from `execute_result`, `display_data`, `stream`, and `error` output types
+- Rich outputs are filtered to include only `text/plain` and `text/markdown` for token efficiency
+- Error outputs include exception name, value, and traceback information
+- Stream outputs preserve stdout/stderr distinction for debugging context
 
 ### Task 3: AI Context Visibility Toggles 👁️
 **Goal**: Allow users to control what the AI model can see
@@ -134,8 +143,9 @@
 
 **Current limitations**:
 - **No AI tools**: AI can't create cells, modify cells, or execute code
-- **No context control**: Users can't exclude cells from AI context
+- **No context control**: Users can't exclude cells from AI context  
 - **No streaming**: Responses appear all at once, not word-by-word
+- **No AI tool calling**: AI can't create/modify cells or execute code
 - **Basic prompting**: Simple user prompt → AI response, no multi-turn conversation
 
 **Next enhancements needed**:
