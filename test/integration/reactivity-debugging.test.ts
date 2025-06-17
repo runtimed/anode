@@ -182,7 +182,7 @@ describe("Reactivity Debugging", () => {
       });
     });
 
-    it.skip("should handle subscription errors without affecting other subscriptions", async () => {
+    it("should handle subscription errors without affecting other subscriptions", async () => {
       const goodCallback = vi.fn();
       const errorCallback = vi.fn();
 
@@ -436,7 +436,7 @@ describe("Reactivity Debugging", () => {
   });
 
   describe("Memory and Performance", () => {
-    it.skip("should not leak memory with frequent subscription changes", async () => {
+    it("should not leak memory with frequent subscription changes", async () => {
       const subscriptionCycles = 10;
       const operationsPerCycle = 5;
 
@@ -516,6 +516,7 @@ describe("Reactivity Debugging", () => {
             events.kernelSessionHeartbeat({
               sessionId: `high-freq-session-${i % 3}`, // Cycle through 3 sessions
               status: i % 2 === 0 ? "ready" : "busy",
+              timestamp: new Date(),
             }),
           );
         }, i * heartbeatInterval);

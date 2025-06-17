@@ -27,19 +27,43 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({ onNewNotebook })
   const [localTitle, setLocalTitle] = React.useState(notebook?.title || '')
   const [showKernelHelper, setShowKernelHelper] = React.useState(false)
   const [focusedCellId, setFocusedCellId] = React.useState<string | null>(null)
+  const [currentTime, setCurrentTime] = React.useState(new Date())
 
   const currentNotebookId = getCurrentNotebookId()
   const kernelCommand = `NOTEBOOK_ID=${currentNotebookId} pnpm dev:kernel`
 
-  // Check kernel status
-  const activeKernel = kernelSessions.find((session: KernelSessionData) => session.status === 'ready')
-  const hasActiveKernel = Boolean(activeKernel)
+  // Check kernel status with heartbeat-based health assessment
+  const getKernelHealth = (session: KernelSessionData) => {
+    if (!session.lastHeartbeat) return 'unknown'
+    const now = new Date()
+    const lastHeartbeat = new Date(session.lastHeartbeat)
+    const diffMs = now.getTime() - lastHeartbeat.getTime()
+
+    if (diffMs > 300000) return 'stale' // 5+ minutes
+    if (diffMs > 60000) return 'warning' // 1+ minute
+    return 'healthy'
+  }
+
+  const activeKernel = kernelSessions.find((session: KernelSessionData) =>
+    session.status === 'ready' || session.status === 'busy'
+  )
+  const hasActiveKernel = Boolean(activeKernel && getKernelHealth(activeKernel) !== 'stale')
+  const kernelHealth = activeKernel ? getKernelHealth(activeKernel) : 'disconnected'
   const kernelStatus = activeKernel?.status || (kernelSessions.length > 0 ? kernelSessions[0].status : 'disconnected')
 
   const copyKernelCommand = useCallback(() => {
     navigator.clipboard.writeText(kernelCommand)
     // Could add a toast notification here
   }, [kernelCommand])
+
+  // Update current time every 10 seconds for heartbeat display
+  React.useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentTime(new Date())
+    }, 10000) // Update every 10 seconds
+
+    return () => clearInterval(interval)
+  }, [])
 
   React.useEffect(() => {
     if (notebook?.title) {
@@ -259,8 +283,9 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({ onNewNotebook })
                 <span className="capitalize">{notebook.kernelType}</span>
                 <Circle
                   className={`h-2 w-2 fill-current ${
-                    hasActiveKernel ? 'text-green-500' :
-                    kernelStatus === 'starting' ? 'text-amber-500' :
+                    hasActiveKernel && kernelHealth === 'healthy' ? 'text-green-500' :
+                    hasActiveKernel && kernelHealth === 'warning' ? 'text-amber-500' :
+                    kernelStatus === 'starting' ? 'text-blue-500' :
                     'text-red-500'
                   }`}
                 />
@@ -284,17 +309,21 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({ onNewNotebook })
                   Kernel Status
                   <Circle
                     className={`h-3 w-3 fill-current ${
-                      hasActiveKernel ? 'text-green-500' :
-                      kernelStatus === 'starting' ? 'text-amber-500' :
+                      hasActiveKernel && kernelHealth === 'healthy' ? 'text-green-500' :
+                      hasActiveKernel && kernelHealth === 'warning' ? 'text-amber-500' :
+                      kernelStatus === 'starting' ? 'text-blue-500' :
                       'text-red-500'
                     }`}
                   />
                   <span className={`text-xs font-normal ${
-                    hasActiveKernel ? 'text-green-600' :
-                    kernelStatus === 'starting' ? 'text-amber-600' :
+                    hasActiveKernel && kernelHealth === 'healthy' ? 'text-green-600' :
+                    hasActiveKernel && kernelHealth === 'warning' ? 'text-amber-600' :
+                    kernelStatus === 'starting' ? 'text-blue-600' :
                     'text-red-600'
                   }`}>
-                    {hasActiveKernel ? 'Connected' :
+                    {hasActiveKernel && kernelHealth === 'healthy' ? 'Connected' :
+                     hasActiveKernel && kernelHealth === 'warning' ? 'Connected (Slow)' :
+                     hasActiveKernel && kernelHealth === 'stale' ? 'Connected (Stale)' :
                      kernelStatus === 'starting' ? 'Starting' :
                      'Disconnected'}
                   </span>
@@ -342,12 +371,97 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({ onNewNotebook })
                     <span>{activeKernel.kernelType}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-muted-foreground">Started:</span>
-                    {/* <span>{new Date(activeKernel.startedAt).toLocaleTimeString()}</span> */}
-                  </div>
-                  <div className="flex justify-between">
                     <span className="text-muted-foreground">Status:</span>
-                    <span>{activeKernel.status}</span>
+                    <span className={`font-medium ${
+                      activeKernel.status === 'ready' ? 'text-green-600' :
+                      activeKernel.status === 'busy' ? 'text-amber-600' :
+                      'text-red-600'
+                    }`}>
+                      {activeKernel.status === 'ready' ? 'Ready' :
+                       activeKernel.status === 'busy' ? 'Busy' :
+                       activeKernel.status.charAt(0).toUpperCase() + activeKernel.status.slice(1)}
+                    </span>
+                  </div>
+                  {activeKernel.lastHeartbeat && (
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Last Heartbeat:</span>
+                      <span className="text-xs">
+                        {(() => {
+                          const lastHeartbeat = new Date(activeKernel.lastHeartbeat);
+                          const now = currentTime;
+                          const diffMs = now.getTime() - lastHeartbeat.getTime();
+                          const diffSeconds = Math.floor(diffMs / 1000);
+
+                          if (diffSeconds < 60) {
+                            return `${diffSeconds}s ago`;
+                          } else if (diffSeconds < 3600) {
+                            return `${Math.floor(diffSeconds / 60)}m ago`;
+                          } else {
+                            return lastHeartbeat.toLocaleTimeString();
+                          }
+                        })()}
+                        {(() => {
+                          const lastHeartbeat = new Date(activeKernel.lastHeartbeat);
+                          const now = currentTime;
+                          const diffMs = now.getTime() - lastHeartbeat.getTime();
+
+                          if (diffMs > 60000) { // More than 1 minute
+                            return <span className="ml-1 text-amber-500">⚠️</span>;
+                          } else if (diffMs > 300000) { // More than 5 minutes
+                            return <span className="ml-1 text-red-500">❌</span>;
+                          } else {
+                            return <span className="ml-1 text-green-500">✅</span>;
+                          }
+                        })()}
+                      </span>
+                    </div>
+                  )}
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Capabilities:</span>
+                    <div className="flex gap-1">
+                      {activeKernel.canExecuteCode && (
+                        <span className="bg-blue-100 text-blue-800 text-xs px-1 rounded">Code</span>
+                      )}
+                      {activeKernel.canExecuteSql && (
+                        <span className="bg-purple-100 text-purple-800 text-xs px-1 rounded">SQL</span>
+                      )}
+                      {activeKernel.canExecuteAi && (
+                        <span className="bg-green-100 text-green-800 text-xs px-1 rounded">AI</span>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Show all kernel sessions for debugging */}
+              {kernelSessions.length > 1 && (
+                <div className="mt-4 pt-4 border-t">
+                  <h5 className="text-xs font-medium text-muted-foreground mb-2">All Sessions:</h5>
+                  <div className="space-y-1">
+                    {kernelSessions.map((session: KernelSessionData) => (
+                      <div key={session.sessionId} className="flex justify-between items-center text-xs">
+                        <code className="bg-muted px-1 rounded">{session.sessionId.slice(-8)}</code>
+                        <div className="flex items-center gap-2">
+                          <span className={`px-1 rounded ${
+                            session.status === 'ready' ? 'bg-green-100 text-green-800' :
+                            session.status === 'busy' ? 'bg-amber-100 text-amber-800' :
+                            session.status === 'terminated' ? 'bg-red-100 text-red-800' :
+                            'bg-gray-100 text-gray-800'
+                          }`}>
+                            {session.status}
+                          </span>
+                          {session.lastHeartbeat && (
+                            <span className="text-muted-foreground">
+                              {(() => {
+                                const diffMs = currentTime.getTime() - new Date(session.lastHeartbeat).getTime();
+                                const diffSeconds = Math.floor(diffMs / 1000);
+                                return diffSeconds < 60 ? `${diffSeconds}s` : `${Math.floor(diffSeconds / 60)}m`;
+                              })()}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    ))}
                   </div>
                 </div>
               )}

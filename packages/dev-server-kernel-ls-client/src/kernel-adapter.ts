@@ -692,6 +692,7 @@ const heartbeatInterval = setInterval(() => {
     store.commit(events.kernelSessionHeartbeat({
       sessionId: SESSION_ID,
       status: "ready",
+      timestamp: new Date(),
     }));
     console.log("💓 Heartbeat sent successfully");
   } catch (error) {

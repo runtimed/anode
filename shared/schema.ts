@@ -101,6 +101,9 @@ export const tables = {
       canExecuteCode: State.SQLite.boolean({ default: false }),
       canExecuteSql: State.SQLite.boolean({ default: false }),
       canExecuteAi: State.SQLite.boolean({ default: false }),
+
+      // Heartbeat tracking
+      lastHeartbeat: State.SQLite.datetime({ nullable: true }),
     },
   }),
 
@@ -245,6 +248,7 @@ export const events = {
     schema: Schema.Struct({
       sessionId: Schema.String,
       status: Schema.Literal("ready", "busy"),
+      timestamp: Schema.Date,
     }),
   }),
 
@@ -423,10 +427,11 @@ const materializers = State.SQLite.materializers(events, {
       canExecuteAi: capabilities.canExecuteAi,
     }),
 
-  "v1.KernelSessionHeartbeat": ({ sessionId, status }) =>
+  "v1.KernelSessionHeartbeat": ({ sessionId, status, timestamp }) =>
     tables.kernelSessions
       .update({
         status: status === "ready" ? "ready" : "busy",
+        lastHeartbeat: timestamp,
       })
       .where({ sessionId }),
 

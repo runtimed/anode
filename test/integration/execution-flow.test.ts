@@ -22,7 +22,7 @@ vi.mock("pyodide", () => ({
   loadPyodide: vi.fn(() => Promise.resolve(mockPyodide)),
 }));
 
-describe.skip("End-to-End Execution Flow", () => {
+describe("End-to-End Execution Flow", () => {
   let store: any;
   let storeId: string;
   let sessionId: string;
@@ -702,7 +702,7 @@ describe.skip("End-to-End Execution Flow", () => {
 
       expect(oldSession.status).toBe("terminated");
       expect(oldSession.isActive).toBe(false);
-      expect(newSession.status).toBe("starting");
+      expect(newSession.status).toBe("ready");
       expect(newSession.isActive).toBe(true);
     });
 
@@ -730,7 +730,8 @@ describe.skip("End-to-End Execution Flow", () => {
         store.commit(
           (events as any).kernelSessionHeartbeat({
             sessionId,
-            status: i % 2 === 0 ? "ready" : "busy",
+            status: i % 2 === 1 ? "ready" : "busy",
+            timestamp: heartbeatTime,
           }),
         );
       }
