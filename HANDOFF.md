@@ -14,6 +14,7 @@
 
 #### Python Execution
 - **Basic Python execution** - Code cells run Python via Pyodide (manual kernel startup)
+- **HTTPS support** - Full HTTPS requests work with Node.js v24+ (requests, pandas.read_csv, urllib3)
 - **Error handling** - Python exceptions properly captured and displayed
 - **Text output** - print() statements and basic stdout/stderr capture
 - **Execution queue** - Proper job queuing and status tracking
