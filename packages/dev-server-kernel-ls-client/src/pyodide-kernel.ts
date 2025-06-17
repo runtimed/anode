@@ -1,5 +1,6 @@
 import { loadPyodide, PyodideInterface } from "pyodide";
 import { OutputType, ErrorOutputData, RichOutputData, StreamOutputData } from "../../../shared/schema.js";
+import { defaultCacheManager, getCacheConfig, getEssentialPackages } from "./cache-utils.js";
 
 export interface OutputData {
   type: OutputType;
@@ -26,19 +27,56 @@ export class PyodideKernel {
       `🐍 Initializing Pyodide kernel for notebook ${this.notebookId}`,
     );
 
-    this.pyodide = await loadPyodide({
-      stdout: (text: string) => {
-        console.log("[py stdout]:", text);
-        this.addStreamOutput("stdout", text);
-      },
-      stderr: (text: string) => {
-        console.error("[py stderr]:", text);
-        this.addStreamOutput("stderr", text);
-      },
-    });
+    try {
+      // Ensure cache directory exists
+      await defaultCacheManager.ensureCacheDir();
 
-    // Install IPython and common packages
-    await this.pyodide!.loadPackage(["ipython", "matplotlib", "numpy", "pandas"]);
+      // Get cache configuration
+      const cacheConfig = getCacheConfig();
+
+      // Get essential packages for initialization
+      const essentialPackages = getEssentialPackages();
+
+      console.log(`📦 Using package cache: ${cacheConfig.packageCacheDir}`);
+      console.log(`📦 Will load packages: ${essentialPackages.join(', ')}`);
+
+      this.pyodide = await loadPyodide({
+        ...cacheConfig,  // Cache packages locally for faster subsequent loads
+        stdout: (text: string) => {
+          console.log("[py stdout]:", text);
+          this.addStreamOutput("stdout", text);
+        },
+        stderr: (text: string) => {
+          console.error("[py stderr]:", text);
+          this.addStreamOutput("stderr", text);
+        },
+      });
+
+      // Load essential packages after Pyodide initialization to avoid Node.js stack issues
+      console.log(`📦 Loading essential packages...`);
+      try {
+        await this.pyodide!.loadPackage(essentialPackages);
+        console.log(`✅ Successfully loaded ${essentialPackages.length} packages`);
+      } catch (packageError) {
+        console.warn(`⚠️ Some packages failed to load:`, packageError);
+        // Try loading packages individually to identify which ones fail
+        for (const pkg of essentialPackages) {
+          try {
+            await this.pyodide!.loadPackage([pkg]);
+            console.log(`✅ Loaded ${pkg}`);
+          } catch (err) {
+            console.warn(`❌ Failed to load ${pkg}:`, err);
+          }
+        }
+      }
+
+      // Log cache statistics
+      const cacheStats = await defaultCacheManager.getCacheStats();
+      console.log(`📊 Cache stats: ${cacheStats.packageCount} packages, ${cacheStats.totalSizeMB}MB`);
+    } catch (error) {
+      console.error("❌ Failed to initialize Pyodide kernel:", error);
+      throw error;
+    }
 
     // Set up the IPython environment with custom display hooks
     await this.pyodide!.runPythonAsync(`
