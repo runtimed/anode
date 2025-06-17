@@ -1,4 +1,3 @@
-// @ts-nocheck
 import { createServer } from "http";
 import { URL } from "url";
 
