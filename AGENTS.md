@@ -112,6 +112,67 @@ pnpm cache:clear       # Clear package cache
 - **Single source of truth**: No compiled artifacts needed - TypeScript handles type checking from source
 - **No timestamp fields** - LiveStore handles timing automatically
 
+### ⚠️ CRITICAL: Materializer Determinism Requirements
+
+**NEVER use `ctx.query()` in materializers** - This was the root cause of kernel restart bug #34.
+
+LiveStore requires all materializers to be **pure functions without side effects**. Any data needed by a materializer must be passed via the event payload, not looked up during materialization.
+
+**What caused the bug:**
+```typescript
+// ❌ WRONG - This causes LiveStore.UnexpectedError materializer hash mismatch
+"v1.ExecutionCompleted": ({ queueId }, ctx) => {
+  const queueEntries = ctx.query(
+    tables.executionQueue.select().where({ id: queueId }).limit(1)
+  );
+  // ... rest of materializer
+}
+```
+
+**Correct approach:**
+```typescript
+// ✅ CORRECT - All needed data in event payload
+"v1.ExecutionCompleted": ({ queueId, cellId, status }) => [
+  tables.executionQueue.update({ 
+    status: status === "success" ? "completed" : "failed" 
+  }).where({ id: queueId }),
+  tables.cells.update({ 
+    executionState: status === "success" ? "completed" : "error" 
+  }).where({ id: cellId }),
+]
+```
+
+**Fixed commits for reference:**
+- `6e0fb4f`: Fixed ExecutionCompleted/ExecutionCancelled materializers
+- `a1bf20d`: Fixed ExecutionStarted materializer
+
+**Rule**: If you need data in a materializer, add it to the event schema and pass it when committing the event. Materializers must be deterministic and reproducible.
+
+### Recent Critical Fixes (December 2024)
+
+**Kernel Restart Bug (#34) - RESOLVED** ✅
+
+The project recently resolved a major stability issue where 3rd+ kernel sessions would fail to receive work assignments due to LiveStore materializer hash mismatches. This was caused by non-deterministic materializers using `ctx.query()` calls.
+
+**What was broken:**
+- ExecutionCompleted, ExecutionCancelled, and ExecutionStarted materializers were using `ctx.query()` 
+- This made them non-deterministic, causing LiveStore to shut down with "UnexpectedError materializer hash mismatch"
+- Kernel restarts would accumulate terminated sessions and eventually fail
+
+**How it was fixed (commits 6e0fb4f and a1bf20d):**
+1. **Added cellId to event schemas**: ExecutionCompleted, ExecutionCancelled, ExecutionStarted now include `cellId` in payload
+2. **Removed all ctx.query() calls**: Materializers now receive all needed data via event payload
+3. **Updated all event commits**: All places that commit these events now pass `cellId` explicitly
+4. **Made materializers pure functions**: No side effects, deterministic output for same input
+
+**Impact:** Kernel sessions are now reliable across multiple restarts, enabling future automated kernel management.
+
+**For Future Development:**
+- Always check that new materializers are pure functions
+- Never use `ctx.query()` in materializers - pass data via event payload
+- Reference these commits when adding new execution-related events
+- Test kernel restart scenarios when modifying execution flow
+
 ### Local-First Architecture
 - All data operations happen locally first
 - Events synced across clients via document worker
@@ -214,6 +275,8 @@ pnpm cache:warm-up   # Pre-loads numpy, pandas, matplotlib, requests, etc.
 ## Important Development Notes
 
 **Do NOT use manual timestamps in code or events.** LiveStore automatically handles all timing through its event sourcing system. Focus development on features and architecture rather than timestamp management.
+
+**⚠️ CRITICAL: Do NOT use `ctx.query()` in materializers.** This causes LiveStore materializer hash mismatches and kernel restart failures (see bug #34 - RESOLVED in commits 6e0fb4f and a1bf20d). All materializers must be pure functions with all needed data passed via event payload.
 
 **Testing is Critical**: Many claims about functionality need verification through proper integration tests. Core features exist but integration testing is minimal.
 

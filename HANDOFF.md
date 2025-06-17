@@ -60,7 +60,7 @@
 
 ## Current Work State
 
-**Status**: 🚧 **Working Prototype** - Core collaborative editing, Python execution, and basic AI integration functional, rich outputs need verification
+**Status**: 🚧 **Working Prototype** - Core collaborative editing, Python execution, and basic AI integration functional, rich outputs need verification. Major kernel restart bug (#34) resolved.
 
 ### What's Actually Working ✅
 
@@ -72,6 +72,7 @@
 
 #### Python Execution
 - **Basic Python execution** - Code cells run Python via Pyodide (manual kernel startup)
+- **Kernel session reliability** - Fixed materializer side effects causing restart failures (#34) ✅
 - **Error handling** - Python exceptions properly captured and displayed
 - **Text output** - print() statements and basic stdout/stderr capture
 - **Execution queue** - Proper job queuing and status tracking
@@ -144,7 +145,7 @@
 - Streaming responses for better UX
 - Multi-turn conversation support
 
-### Priority 3: MCP Integration Foundation 🔮 LONG-TERM
+### Priority 4: MCP Integration Foundation 🔮 LONG-TERM
 **Status**: 🎯 **Architecture planning**
 
 **Goal**: Connect to Model Context Protocol providers for extensible AI tooling
@@ -169,23 +170,26 @@
 **Estimated effort**: 1-2 months (after tool calling foundation)
 **Impact**: Enables unlimited AI tool extensibility through Python ecosystem
 
-### Priority 4: Auto Kernel Management (High Impact)
+### Priority 3: Auto Kernel Management (High Impact) 🚀 UPGRADED
 **Current friction**: Manual `NOTEBOOK_ID=xyz pnpm dev:kernel` per notebook
 
 **Goal**: One-click notebook startup with automatic kernel lifecycle
+
+**Foundation now solid**: With kernel restart bug (#34) fixed, automated management is much more viable
 
 **Next actions**:
 - Modify `pnpm dev` to auto-spawn kernels per notebook
 - Add kernel health monitoring and restart capability
 - Better error messages when kernels fail or disconnect
+- Leverage fixed kernel session reliability for robust auto-restart
 
 **Files to modify**:
 - Root `package.json` - Update dev script
 - `packages/web-client/src/components/notebook/NotebookViewer.tsx` - Status display
 - Add kernel process management utilities
 
-**Estimated effort**: 2-3 hours
-**Impact**: Removes major user friction
+**Estimated effort**: 2-3 hours (reduced due to fixed foundation)
+**Impact**: Removes major user friction + leverages recent reliability improvements
 
 ### Priority 5: Rich Output Verification (Medium)
 **Current state**: Code exists but integration unclear
@@ -262,7 +266,11 @@ pnpm test               # Full test suite (27 passing, 13 skipped)
 - **Performance claims unverified**: Need integration tests to validate speed/output claims
 
 ### Known Critical Issues
-- **🐛 Kernel Restart Bug**: 3rd+ kernel sessions fail to receive work assignments due to LiveStore web client shutdowns when multiple terminated sessions accumulate (see https://github.com/rgbkrk/anode/issues/34 and branch `annoying-multiples-bug`)
+- **None currently identified** - Major kernel restart bug (#34) resolved by cleaning up side effects in materializers
+
+### Recent Fixes ✅
+- **Kernel restart bug (#34)** - Fixed materializer side effects that caused 3rd+ kernel sessions to fail work assignments
+- **LiveStore web client shutdowns** - Resolved accumulation of terminated sessions causing kernel communication failures
 
 ### Schema & Architecture Notes
 - All packages use direct TypeScript imports: `../../../shared/schema.js`

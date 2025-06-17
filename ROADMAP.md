@@ -2,7 +2,7 @@
 
 **Vision**: A real-time collaborative notebook system enabling seamless AI ↔ Python ↔ User interactions through local-first architecture.
 
-**Current Status**: Core prototype with collaborative editing, basic Python execution, and AI integration with context awareness working. AI tool calling and rich outputs in active development.
+**Current Status**: Core prototype with collaborative editing, basic Python execution, and AI integration with context awareness working. Major kernel restart bug (#34) resolved by fixing materializer side effects. AI tool calling and rich outputs in active development.
 
 ## Foundation Complete ✅
 
@@ -10,6 +10,7 @@
 - **LiveStore event-sourcing** - Real-time collaborative state management
 - **Direct TypeScript schema** - No build complexity, full type safety
 - **Reactive execution queue** - Kernel work detection without polling
+- **Reliable kernel sessions** - Fixed materializer side effects, stable multi-session operation
 - **Cell management** - Create, edit, move, delete with proper state sync
 - **Basic Python execution** - Code cells run via Pyodide (manual kernel startup)
 
@@ -54,6 +55,7 @@
 ### Automated Kernel Management
 **Goal**: Remove manual `NOTEBOOK_ID=xyz pnpm dev:kernel` friction
 
+- [x] **Kernel session reliability** - Fixed materializer side effects causing restart failures (#34)
 - [ ] **Auto-spawning kernels** - One-click notebook startup
 - [ ] **Kernel health monitoring** - Detect failures and restart
 - [ ] **Better status UI** - Clear feedback on kernel state
