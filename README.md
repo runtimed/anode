@@ -17,9 +17,8 @@ A real-time collaborative notebook system built on LiveStore, focusing on seamle
 
 ### 1. Install and Configure
 ```bash
-pnpm install
-cp .env.example .env
-# Optional: Edit .env and uncomment OPENAI_API_KEY if you want real AI responses
+pnpm install  # Automatically creates .env files with defaults
+# Optional: Add OpenAI API key to packages/dev-server-kernel-ls-client/.env
 pnpm dev  # Starts web client + sync backend
 ```
 
@@ -51,7 +50,7 @@ pnpm dev:kernel
 
 ### 6. Try AI Integration (Optional)
 ```bash
-# Edit .env and uncomment/set your OpenAI API key:
+# Edit packages/dev-server-kernel-ls-client/.env and uncomment/set your OpenAI API key:
 # OPENAI_API_KEY=sk-your-key-here
 
 # Restart kernel to pick up the API key (use UI command)
@@ -59,6 +58,7 @@ NOTEBOOK_ID=your-notebook-id pnpm dev:kernel
 ```
 - Add an AI cell and ask questions about your data
 - Falls back to mock responses if no API key is set
+- API keys are kept server-side for security
 
 ## Current Status
 
@@ -93,6 +93,9 @@ NOTEBOOK_ID=your-notebook-id pnpm dev:kernel
 ## Development Commands
 
 ```bash
+# Setup (run manually if needed)
+pnpm setup               # Create .env files with defaults
+
 # Core development workflow
 pnpm dev                 # Start web + sync
 # Get kernel command from notebook UI, then:
@@ -121,10 +124,11 @@ See [ROADMAP.md](./ROADMAP.md) for detailed development plans and milestones.
 
 | Problem | Solution |
 |---------|----------|
+| Missing .env files | Run `pnpm setup` to auto-create with defaults |
 | Schema version mismatches | Ensure all services (web, kernel, sync) are restarted after schema changes |
 | Type errors | TypeScript catches invalid queries at compile time - check column names |
 | Execution not working | Use kernel command from notebook UI or check `.env` configuration |
-| AI cells showing mock responses | Uncomment and set `OPENAI_API_KEY` in `.env`, restart kernel |
+| AI cells showing mock responses | Set `OPENAI_API_KEY` in `packages/dev-server-kernel-ls-client/.env`, restart kernel |
 | Stale state | Run `pnpm reset-storage` |
 | Slow execution | Should be instant - check kernel logs |
 
