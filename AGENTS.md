@@ -126,7 +126,7 @@ pnpm cache:clear       # Clear package cache
 
 ## File Structure
 ```
-anode2/
+anode/
 ├── shared/
 │   └── schema.ts         # LiveStore schema - TypeScript source directly imported by all packages
 ├── packages/
@@ -135,10 +135,10 @@ anode2/
 │   └── dev-server-kernel-ls-client/  # Python kernel server
 ├── docs/                 # Documentation directory
 │   ├── README.md         # Documentation index
-│   ├── OPENAI_INTEGRATION.md # AI setup and usage guide
-│   ├── DISPLAY_SYSTEM.md # Display system architecture
+│   ├── ai-features.md        # AI setup and usage guide
+│   ├── display-system.md # Display system architecture
 │   ├── TESTING.md        # Testing strategy and gaps
-│   ├── UI_DESIGN.md      # Interface design guidelines
+│   ├── ui-design.md      # Interface design guidelines
 │   └── display-examples.md # Practical usage examples
 ├── HANDOFF.md           # Current work state and priorities
 ├── ROADMAP.md           # Long-term vision and milestones

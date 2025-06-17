@@ -1,5 +1,63 @@
 # Development Handoff
 
+## Today's Priority Tasks (Current Session)
+
+**Focus**: Async Python execution, AI context integration, and visibility controls
+
+✅ **Documentation fixes completed**: Updated all file references (mod-reactive.ts → kernel-adapter.ts, OPENAI_INTEGRATION.md → ai-features.md, etc.)
+
+### Task 1: Switch to Async Python Code Execution ⏳
+**Goal**: Make Python code execution truly asynchronous in the kernel
+**Current Issue**: Python execution may block during long-running operations
+**Solution**: Enhance PyodideKernel with better async patterns and execution queuing
+
+**Files to modify**:
+- `packages/dev-server-kernel-ls-client/src/pyodide-kernel.ts` - Enhance async execution with proper yielding
+- `packages/dev-server-kernel-ls-client/src/kernel-adapter.ts` - Update execution flow for better async handling
+- Consider setTimeout/setImmediate patterns to yield control during execution
+
+### Task 2: Show Outputs to AI Model Context Window 🤖
+**Goal**: Include cell outputs (not just source code) in AI context
+**Current Issue**: `gatherNotebookContext()` only gets cell source, not execution results
+**Solution**: Extend context gathering to include cell outputs from the outputs table
+
+**Files to modify**:
+- `packages/dev-server-kernel-ls-client/src/kernel-adapter.ts` - Update `gatherNotebookContext()` function to query outputs table
+- `packages/dev-server-kernel-ls-client/src/kernel-adapter.ts` - Update `buildSystemPromptWithContext()` to include outputs
+- Include both text/plain and rich outputs in AI context (formatted appropriately for token efficiency)
+
+### Task 3: AI Context Visibility Toggles 👁️
+**Goal**: Allow users to control what the AI model can see
+**Solution**: Add per-cell toggles for AI context inclusion
+
+**Features needed**:
+- Toggle to hide/show cell source from AI context
+- Toggle to hide/show cell outputs from AI context  
+- Visual indicators showing what AI can see
+- Default: all cells visible to AI
+
+**Files to modify**:
+- `shared/schema.ts` - Add `aiContextVisible` and `aiOutputsVisible` boolean fields to cells table
+- `packages/web-client/src/components/notebook/CodeCell.tsx` - Add context visibility toggle buttons
+- `packages/web-client/src/components/notebook/AiCell.tsx` - Add visibility indicators
+- `packages/dev-server-kernel-ls-client/src/kernel-adapter.ts` - Filter cells in `gatherNotebookContext()` based on visibility settings
+
+### Task 4: Source/Output Display Toggles 📱
+**Goal**: Allow users to collapse/expand source code and outputs
+**Solution**: Add UI toggles for cell content visibility
+
+**Features needed**:
+- Toggle to collapse/expand source code display
+- Toggle to collapse/expand output display
+- Preserve toggle state per user (using uiState table)
+- Keyboard shortcuts for quick toggling
+
+**Files to modify**:
+- `shared/schema.ts` - Add collapsed state fields to uiState schema per cell
+- `packages/web-client/src/components/notebook/CodeCell.tsx` - Add collapse/expand buttons for source
+- `packages/web-client/src/components/notebook/RichOutput.tsx` - Add collapse/expand buttons for outputs
+- CSS classes for smooth expand/collapse animations with max-height transitions
+
 ## Current Work State
 
 **Status**: 🚧 **Working Prototype** - Core collaborative editing, Python execution, and basic AI integration functional, rich outputs need verification
@@ -40,7 +98,7 @@
 - **Stream consolidation** - Output buffering and formatting logic present but unverified
 - **Performance claims** - "Zero-latency" and rich output rendering need real testing
 
-## Immediate Next Steps
+## After Today's Tasks - Next Development Priorities
 
 ### Priority 1: Integration Testing (Critical)
 **Current gap**: Core functionality exists but lacks verification
@@ -71,7 +129,7 @@
 - Rich markdown output with metadata tracking (token usage, model info)
 - Automatic fallback to mock responses for development without API key
 - Full test coverage with 11 passing tests
-- Documentation at `docs/OPENAI_INTEGRATION.md`
+- Documentation at `docs/ai-features.md`
 
 **Current limitations**:
 - **No AI tools**: AI can't create cells, modify cells, or execute code
@@ -227,10 +285,10 @@ pnpm test               # Full test suite (27 passing, 13 skipped)
 
 ### AI Integration Complete (Basic)
 - `packages/dev-server-kernel-ls-client/src/openai-client.ts` - OpenAI API client
-- `packages/dev-server-kernel-ls-client/src/mod-reactive.ts` - AI integration point
+- `packages/dev-server-kernel-ls-client/src/kernel-adapter.ts` - AI integration point
 - `packages/web-client/src/components/notebook/AiCell.tsx` - AI UI components
 - `packages/dev-server-kernel-ls-client/test/openai-client.test.ts` - Comprehensive tests
-- `docs/OPENAI_INTEGRATION.md` - Setup and usage documentation
+- `docs/ai-features.md` - Setup and usage documentation
 
 ## Development Commands
 
@@ -254,10 +312,10 @@ pnpm reset-storage                       # Clear all local data
 ```
 docs/
 ├── README.md                 # Documentation index and overview
-├── DISPLAY_SYSTEM.md         # Complete technical guide (Phase 1)
+├── display-system.md         # Complete technical guide (Phase 1)
 ├── display-examples.md       # Practical usage examples  
 ├── TESTING.md               # Comprehensive testing guide
-└── UI_DESIGN.md             # Interface design guidelines
+└── ui-design.md             # Interface design guidelines
 ```
 
 ## Development Phases
@@ -295,7 +353,7 @@ docs/
 
 ## Critical Issues to Resolve
 
-1. **🔥 Kernel Restart Bug** - Multiple kernel restarts break execution (see `KERNEL_RESTART_BUG.md`)
+1. **🔥 Kernel Restart Bug** - Multiple kernel restarts break execution (see https://github.com/rgbkrk/anode/issues/34 and branch `annoying-multiples-bug`)
    - **Impact**: Blocks production deployment, breaks user workflow
    - **Workaround**: Full page refresh required after 2 kernel restarts
    - **Investigation needed**: LiveStore multiple store conflicts
@@ -324,4 +382,4 @@ docs/
 
 **Key Insight**: The LiveStore foundation is solid. AI integration is working with context awareness but needs tool calling capabilities. Python execution works but needs verification. Rich outputs need real testing.
 
-Priority: **AI Tool Calling & Context Controls → Integration Testing → Auto Kernels → Rich Output Verification → MCP Integration**
+Priority: **Today's Tasks (Async + Context + Toggles) → AI Tool Calling & Context Controls → Integration Testing → Auto Kernels → Rich Output Verification → MCP Integration**
