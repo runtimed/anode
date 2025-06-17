@@ -8,6 +8,7 @@ This directory contains comprehensive documentation for the Anode project - a re
 - **[Display System](./DISPLAY_SYSTEM.md)** - Complete guide to Anode's enhanced IPython display system
 - **[Display Examples](./display-examples.md)** - Practical examples and usage patterns for rich outputs
 - **[UI Design](./UI_DESIGN.md)** - Design principles and interface guidelines
+- **[Completion System Proposal](./COMPLETION_SYSTEM_PROPOSAL.md)** - Architecture proposal for interactive code completions
 
 ### 🏗️ Architecture Overview
 
@@ -56,12 +57,13 @@ Core collaborative editing, Python execution, and basic AI integration functiona
 
 ```
 docs/
-├── README.md                 # This file - documentation index
-├── OPENAI_INTEGRATION.md     # AI setup and usage guide
-├── DISPLAY_SYSTEM.md         # Display system architecture (aspirational)
-├── TESTING.md               # Testing strategy and current gaps
-├── display-examples.md       # Practical usage examples
-└── UI_DESIGN.md             # Interface design guidelines
+├── README.md                        # This file - documentation index
+├── OPENAI_INTEGRATION.md            # AI setup and usage guide
+├── DISPLAY_SYSTEM.md                # Display system architecture (aspirational)
+├── TESTING.md                       # Testing strategy and current gaps
+├── display-examples.md              # Practical usage examples
+├── UI_DESIGN.md                     # Interface design guidelines
+└── COMPLETION_SYSTEM_PROPOSAL.md    # Interactive code completion architecture
 ```
 
 ### 🔧 For Developers
