@@ -1,8 +1,8 @@
 # Interactive Code Completion System Proposal
 
-**Status**: Draft Proposal  
-**Author**: Development Team  
-**Date**: December 2024  
+**Status**: Draft Proposal
+**Author**: Development Team
+**Date**: December 2024
 
 ## Overview
 
@@ -13,7 +13,7 @@ This document proposes an architecture for implementing interactive code complet
 Anode is designed as a local-first collaborative notebook system with a security-conscious "no inbound ports" architecture where:
 
 - **Web clients** connect to Cloudflare Workers sync backend
-- **Kernel servers** (potentially on GPU infrastructure) make outbound-only connections
+- **Kernel servers** make outbound-only connections
 - **All coordination** happens through LiveStore event synchronization
 
 Traditional completion systems use request-response patterns with direct HTTP connections, which conflicts with our security model.
@@ -57,14 +57,14 @@ notebook-1750103266697-6y9q7nvc0v4-completions  # Completion-specific store
 const NOTEBOOK_ID = process.env.NOTEBOOK_ID;
 const COMPLETION_STORE_ID = `${NOTEBOOK_ID}-completions`;
 
-const notebookStore = await createStorePromise({ 
-  storeId: NOTEBOOK_ID, 
-  schema: notebookSchema 
+const notebookStore = await createStorePromise({
+  storeId: NOTEBOOK_ID,
+  schema: notebookSchema
 });
 
-const completionStore = await createStorePromise({ 
-  storeId: COMPLETION_STORE_ID, 
-  schema: completionSchema 
+const completionStore = await createStorePromise({
+  storeId: COMPLETION_STORE_ID,
+  schema: completionSchema
 });
 ```
 
@@ -122,7 +122,7 @@ const completionEvents = {
 // Browser-side cleanup
 const cleanupOldCompletionStores = async () => {
   const opfsRoot = await navigator.storage.getDirectory();
-  
+
   for await (const [name, handle] of opfsRoot.entries()) {
     if (name.includes('-completions@') && isOlderThan(name, 7)) {
       await opfsRoot.removeEntry(name, { recursive: true });
