@@ -7,6 +7,7 @@
 import { makeAdapter } from "@livestore/adapter-node";
 import { createStorePromise, queryDb } from "@livestore/livestore";
 import { makeCfSync } from "@livestore/sync-cf";
+import { randomUUID } from "crypto";
 
 // Import the same schema used by the web client so we share events/tables.
 import { events, schema, tables, CellData, ExecutionQueueData, KernelSessionData } from "../../../shared/schema.js";
@@ -230,10 +231,67 @@ ${cell.source}
   return systemPrompt;
 }
 
+// Helper function to calculate new cell position
+function calculateNewCellPosition(store: any, currentCell: CellData, placement: string): number {
+  const allCells = store.query(queryDb(tables.cells.select().orderBy('position', 'asc'))) as CellData[];
+
+  switch (placement) {
+    case 'before_current':
+      return currentCell.position - 0.1;
+    case 'at_end':
+      const maxPosition = allCells.length > 0 ? Math.max(...allCells.map(c => c.position)) : 0;
+      return maxPosition + 1;
+    case 'after_current':
+    default:
+      return currentCell.position + 0.1;
+  }
+}
+
+// Tool execution handler
+async function handleToolCall(store: any, currentCell: CellData, toolCall: { id: string; name: string; arguments: any }): Promise<void> {
+  const { name, arguments: args } = toolCall;
+
+  switch (name) {
+    case 'create_cell':
+      const { cellType, content, position = 'after_current' } = args;
+
+      // Calculate position for new cell
+      const newPosition = calculateNewCellPosition(store, currentCell, position);
+
+      // Generate unique cell ID
+      const newCellId = `cell-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+
+      console.log(`🔧 Creating ${cellType} cell at position ${newPosition}`);
+
+      // Create the new cell
+      store.commit(events.cellCreated({
+        id: newCellId,
+        cellType: cellType as any,
+        position: newPosition,
+        createdBy: `ai-assistant-${SESSION_ID}`,
+      }));
+
+      // Set the cell source if provided
+      if (content) {
+        store.commit(events.cellSourceChanged({
+          id: newCellId,
+          source: content,
+          modifiedBy: `ai-assistant-${SESSION_ID}`,
+        }));
+      }
+
+      console.log(`✅ Created cell ${newCellId} with ${content.length} characters`);
+      break;
+
+    default:
+      console.warn(`⚠️ Unknown tool: ${name}`);
+  }
+}
+
 // Generate fake AI response for testing with rich output support
 async function generateFakeAiResponse(cell: any, context?: NotebookContext): Promise<any[]> {
   const provider = cell.aiProvider || 'openai';
-  const model = cell.aiModel || 'gpt-4';
+  const model = cell.aiModel || 'gpt-4o-mini';
   const prompt = cell.source || '';
 
   // Simulate AI thinking time
@@ -467,9 +525,15 @@ async function processExecution(queueEntry: any) {
       // Use real OpenAI API if configured, otherwise fall back to mock
       if (openaiClient.isReady() && (cell.aiProvider === 'openai' || !cell.aiProvider)) {
         outputs = await openaiClient.generateResponse(cell.source || '', {
-          model: cell.aiModel || 'gpt-4',
+          model: cell.aiModel || 'gpt-4o-mini',
           provider: cell.aiProvider || 'openai',
-          systemPrompt: buildSystemPromptWithContext(context)
+          systemPrompt: buildSystemPromptWithContext(context),
+          enableTools: true,
+          currentCellId: cell.id,
+          onToolCall: async (toolCall) => {
+            console.log(`🔧 AI requested tool call: ${toolCall.name}`);
+            await handleToolCall(store, cell, toolCall);
+          }
         });
       } else {
         // Generate fake AI response for development/testing
@@ -488,7 +552,7 @@ async function processExecution(queueEntry: any) {
     // Emit outputs with metadata support
     outputs.forEach((output, idx) => {
       store.commit(events.cellOutputAdded({
-        id: crypto.randomUUID(),
+        id: randomUUID(),
         cellId: cell.id,
         outputType: output.type as any,
         data: output.data,

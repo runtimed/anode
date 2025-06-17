@@ -3,6 +3,7 @@ import ReactMarkdown from 'react-markdown'
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter'
 import { oneLight } from 'react-syntax-highlighter/dist/esm/styles/prism'
 import { StreamOutputData } from '../../../../../shared/schema.js'
+import { FilePlus, Edit, ChevronDown, Info } from 'lucide-react'
 import './RichOutput.css'
 
 interface RichOutputProps {
@@ -18,10 +19,49 @@ interface OutputData {
   'image/svg+xml'?: string
   'image/svg'?: string
   'application/json'?: unknown
+  'application/vnd.anode.aitool+json'?: ToolCallData
   [key: string]: unknown
 }
 
+interface ToolCallData {
+  tool_call_id: string
+  tool_name: string
+  arguments: Record<string, any>
+  status: 'success' | 'error'
+  timestamp: string
+  execution_time_ms?: number
+}
 
+
+// Tool icon and action mapping for AI tools
+const getToolConfig = (toolName: string, status: 'success' | 'error') => {
+  const toolConfigs: Record<string, { icon: React.ComponentType<any>; verb: string; pastVerb: string; label: string }> = {
+    'create_cell': {
+      icon: FilePlus,
+      verb: 'Creating',
+      pastVerb: 'Created',
+      label: 'cell'
+    },
+    'modify_cell': {
+      icon: Edit,
+      verb: 'Modifying',
+      pastVerb: 'Modified',
+      label: 'cell'
+    },
+  }
+
+  const config = toolConfigs[toolName] || {
+    icon: Info,
+    verb: 'Executing',
+    pastVerb: 'Executed',
+    label: 'tool'
+  }
+
+  return {
+    ...config,
+    displayVerb: status === 'success' ? config.pastVerb : config.verb
+  }
+}
 
 export const RichOutput: React.FC<RichOutputProps> = ({
   data,
@@ -46,6 +86,7 @@ export const RichOutput: React.FC<RichOutputProps> = ({
   // Determine the best media type to render, in order of preference
   const getPreferredMediaType = (): string | null => {
     const preferenceOrder = [
+      'application/vnd.anode.aitool+json',
       'text/markdown',
       'text/html',
       'image/svg+xml',
@@ -75,6 +116,51 @@ export const RichOutput: React.FC<RichOutputProps> = ({
 
   const renderContent = () => {
     switch (mediaType) {
+      case 'application/vnd.anode.aitool+json':
+        const toolData = outputData[mediaType] as ToolCallData
+        const isSuccess = toolData.status === 'success'
+        const toolConfig = getToolConfig(toolData.tool_name, toolData.status)
+        const ToolIcon = toolConfig.icon
+
+        return (
+          <div className="py-2">
+            {Object.keys(toolData.arguments).length > 0 ? (
+              <details className="group">
+                <summary className="cursor-pointer flex items-center gap-2 text-sm hover:bg-muted/20 -m-1 p-1 rounded">
+                  <ToolIcon className={`h-4 w-4 ${isSuccess ? 'text-green-500' : 'text-red-500'}`} />
+                  <span className="text-muted-foreground flex-1">
+                    {toolConfig.displayVerb} {toolConfig.label}
+                  </span>
+                  <ChevronDown className="h-3 w-3 text-muted-foreground group-open:rotate-180 transition-transform" />
+                </summary>
+                <div className="mt-2 ml-6 p-3 bg-card/30 rounded border border-border/50 text-xs">
+                  <div className="text-muted-foreground mb-2">
+                    {new Date(toolData.timestamp).toLocaleTimeString()}
+                  </div>
+                  <SyntaxHighlighter
+                    language="json"
+                    style={oneLight}
+                    customStyle={{
+                      margin: 0,
+                      background: 'transparent',
+                      fontSize: '0.75rem'
+                    }}
+                  >
+                    {JSON.stringify(toolData.arguments, null, 2)}
+                  </SyntaxHighlighter>
+                </div>
+              </details>
+            ) : (
+              <div className="flex items-center gap-2 text-sm">
+                <ToolIcon className={`h-4 w-4 ${isSuccess ? 'text-green-500' : 'text-red-500'}`} />
+                <span className="text-muted-foreground">
+                  {toolConfig.displayVerb} {toolConfig.label}
+                </span>
+              </div>
+            )}
+          </div>
+        )
+
       case 'text/markdown':
         return (
           <div className="prose prose-sm max-w-none prose-gray">

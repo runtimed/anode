@@ -1,6 +1,13 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { OpenAIClient } from '../src/openai-client.js';
 
+// System prompts for testing
+const DEFAULT_SYSTEM_PROMPT = 'You are a helpful AI assistant in a Jupyter-like notebook environment. You have access to tools that let you create new cells in the notebook.\n\nWhen users ask you to:\n- Create code examples\n- Add new content to the notebook\n- Show implementations\n- Create cells with specific content\n\nYou MUST use the create_cell function to actually create the cells. Do not just describe what the code would look like - create it using the tools available to you.\n\nIMPORTANT: Always prefer using tools over just providing text descriptions when the user wants content added to their notebook.\n\nFor positioning: Use "after_current" by default so new cells appear right after the AI cell. Only use "at_end" if specifically requested.';
+
+const STREAMING_SYSTEM_PROMPT = 'You are a helpful AI assistant in a Jupyter-like notebook environment. You have access to tools that let you create new cells in the notebook.\n\nWhen users ask you to:\n- Create code examples\n- Add new content to the notebook\n- Show implementations\n- Create cells with specific content\n\nYou MUST use the create_cell function to actually create the cells. Do not just describe what the code would look like - create it using the tools available to you.\n\nIMPORTANT: Always prefer using tools over just providing text descriptions when the user wants content added to their notebook.';
+
+const SIMPLE_SYSTEM_PROMPT = 'You are a helpful AI assistant in a Jupyter-like notebook environment. Provide clear, concise responses and include code examples when appropriate.';
+
 // Mock OpenAI module
 vi.mock('openai', () => {
   return {
@@ -90,7 +97,7 @@ describe('OpenAI Client', () => {
         metadata: {
           'anode/ai_response': true,
           'anode/ai_provider': 'openai',
-          'anode/ai_model': 'gpt-4',
+          'anode/ai_model': 'gpt-4o-mini',
           'anode/ai_usage': {
             prompt_tokens: 10,
             completion_tokens: 20,
@@ -100,11 +107,11 @@ describe('OpenAI Client', () => {
       });
 
       expect(mockOpenAI.chat.completions.create).toHaveBeenCalledWith({
-        model: 'gpt-4',
+        model: 'gpt-4o-mini',
         messages: [
           {
             role: 'system',
-            content: 'You are a helpful AI assistant in a Jupyter-like notebook environment. Provide clear, concise responses and include code examples when appropriate.'
+            content: DEFAULT_SYSTEM_PROMPT
           },
           {
             role: 'user',
@@ -113,7 +120,38 @@ describe('OpenAI Client', () => {
         ],
         max_tokens: 2000,
         temperature: 0.7,
-        stream: false
+        stream: false,
+        tools: [
+          {
+            type: 'function',
+            function: {
+              name: 'create_cell',
+              description: 'Create a new cell in the notebook at a specified position. Use this when you want to add new code, markdown, or other content to help the user.',
+              parameters: {
+                type: 'object',
+                properties: {
+                  cellType: {
+                    type: 'string',
+                    enum: ['code', 'markdown', 'ai', 'sql'],
+                    description: 'The type of cell to create'
+                  },
+                  content: {
+                    type: 'string',
+                    description: 'The content/source code for the cell'
+                  },
+                  position: {
+                    type: 'string',
+                    enum: ['after_current', 'before_current', 'at_end'],
+                    description: 'Where to place the new cell. Use "after_current" (default) to place right after the AI cell, "before_current" to place before it, or "at_end" only when specifically requested',
+                    default: 'after_current'
+                  }
+                },
+                required: ['cellType', 'content']
+              }
+            }
+          }
+        ],
+        tool_choice: 'auto'
       });
     });
 
@@ -210,7 +248,38 @@ describe('OpenAI Client', () => {
         ],
         max_tokens: 1000,
         temperature: 0.5,
-        stream: false
+        stream: false,
+        tools: [
+          {
+            type: 'function',
+            function: {
+              name: 'create_cell',
+              description: 'Create a new cell in the notebook at a specified position. Use this when you want to add new code, markdown, or other content to help the user.',
+              parameters: {
+                type: 'object',
+                properties: {
+                  cellType: {
+                    type: 'string',
+                    enum: ['code', 'markdown', 'ai', 'sql'],
+                    description: 'The type of cell to create'
+                  },
+                  content: {
+                    type: 'string',
+                    description: 'The content/source code for the cell'
+                  },
+                  position: {
+                    type: 'string',
+                    enum: ['after_current', 'before_current', 'at_end'],
+                    description: 'Where to place the new cell. Use "after_current" (default) to place right after the AI cell, "before_current" to place before it, or "at_end" only when specifically requested',
+                    default: 'after_current'
+                  }
+                },
+                required: ['cellType', 'content']
+              }
+            }
+          }
+        ],
+        tool_choice: 'auto'
       });
     });
   });
@@ -269,17 +338,17 @@ describe('OpenAI Client', () => {
         metadata: {
           'anode/ai_response': true,
           'anode/ai_provider': 'openai',
-          'anode/ai_model': 'gpt-4',
+          'anode/ai_model': 'gpt-4o-mini',
           'anode/ai_streaming': true
         }
       });
 
       expect(mockOpenAI.chat.completions.create).toHaveBeenCalledWith({
-        model: 'gpt-4',
+        model: 'gpt-4o-mini',
         messages: [
           {
             role: 'system',
-            content: 'You are a helpful AI assistant in a Jupyter-like notebook environment. Provide clear, concise responses and include code examples when appropriate.'
+            content: STREAMING_SYSTEM_PROMPT
           },
           {
             role: 'user',
@@ -331,6 +400,260 @@ describe('OpenAI Client', () => {
 
         expect(result[0].evalue).toBe(`OpenAI API Error: ${testCase.expectedMessage}`);
       }
+    });
+  });
+
+  describe('Tool Calling', () => {
+    beforeEach(() => {
+      client.configure({ apiKey: 'test-key' });
+    });
+
+    it('should handle tool calls with create_cell', async () => {
+      const mockResponse = {
+        choices: [
+          {
+            message: {
+              content: 'I\'ll create a new code cell for you.',
+              tool_calls: [
+                {
+                  id: 'call_123',
+                  type: 'function',
+                  function: {
+                    name: 'create_cell',
+                    arguments: JSON.stringify({
+                      cellType: 'code',
+                      content: 'print("Hello from AI!")',
+                      position: 'after_current'
+                    })
+                  }
+                }
+              ]
+            }
+          }
+        ],
+        usage: {
+          prompt_tokens: 15,
+          completion_tokens: 25,
+          total_tokens: 40
+        }
+      };
+
+      mockOpenAI.chat.completions.create.mockResolvedValue(mockResponse);
+
+      const toolCalls: any[] = [];
+      const onToolCall = vi.fn(async (toolCall) => {
+        toolCalls.push(toolCall);
+      });
+
+      const result = await client.generateResponse('Create a hello world cell', {
+        enableTools: true,
+        onToolCall
+      });
+
+      expect(onToolCall).toHaveBeenCalledTimes(1);
+      expect(onToolCall).toHaveBeenCalledWith({
+        id: 'call_123',
+        name: 'create_cell',
+        arguments: {
+          cellType: 'code',
+          content: 'print("Hello from AI!")',
+          position: 'after_current'
+        }
+      });
+
+      expect(result).toHaveLength(2);
+
+      // First output: tool confirmation
+      expect(result[0].type).toBe('display_data');
+      expect(result[0].data['application/vnd.anode.aitool+json']).toBeDefined();
+      expect(result[0].data['application/vnd.anode.aitool+json'].tool_name).toBe('create_cell');
+      expect(result[0].data['application/vnd.anode.aitool+json'].status).toBe('success');
+      expect(result[0].data['text/markdown']).toContain('Tool executed');
+      expect(result[0].data['text/markdown']).toContain('create_cell');
+      expect(result[0].metadata['anode/tool_call']).toBe(true);
+
+      // Second output: AI response
+      expect(result[1].type).toBe('display_data');
+      expect(result[1].data['text/markdown']).toBe('I\'ll create a new code cell for you.');
+      expect(result[1].metadata['anode/ai_with_tools']).toBe(true);
+
+      expect(mockOpenAI.chat.completions.create).toHaveBeenCalledWith({
+        model: 'gpt-4o-mini',
+        messages: [
+          {
+            role: 'system',
+            content: DEFAULT_SYSTEM_PROMPT
+          },
+          {
+            role: 'user',
+            content: 'Create a hello world cell'
+          }
+        ],
+        max_tokens: 2000,
+        temperature: 0.7,
+        stream: false,
+        tools: [
+          {
+            type: 'function',
+            function: {
+              name: 'create_cell',
+              description: 'Create a new cell in the notebook at a specified position. Use this when you want to add new code, markdown, or other content to help the user.',
+              parameters: {
+                type: 'object',
+                properties: {
+                  cellType: {
+                    type: 'string',
+                    enum: ['code', 'markdown', 'ai', 'sql'],
+                    description: 'The type of cell to create'
+                  },
+                  content: {
+                    type: 'string',
+                    description: 'The content/source code for the cell'
+                  },
+                  position: {
+                    type: 'string',
+                    enum: ['after_current', 'before_current', 'at_end'],
+                    description: 'Where to place the new cell. Use "after_current" (default) to place right after the AI cell, "before_current" to place before it, or "at_end" only when specifically requested',
+                    default: 'after_current'
+                  }
+                },
+                required: ['cellType', 'content']
+              }
+            }
+          }
+        ],
+        tool_choice: 'auto'
+      });
+    });
+
+    it('should handle tool call errors gracefully', async () => {
+      const mockResponse = {
+        choices: [
+          {
+            message: {
+              content: null,
+              tool_calls: [
+                {
+                  id: 'call_456',
+                  type: 'function',
+                  function: {
+                    name: 'create_cell',
+                    arguments: 'invalid json'
+                  }
+                }
+              ]
+            }
+          }
+        ]
+      };
+
+      mockOpenAI.chat.completions.create.mockResolvedValue(mockResponse);
+
+      const onToolCall = vi.fn(async () => {
+        throw new Error('Tool execution failed');
+      });
+
+      const result = await client.generateResponse('Create a cell', {
+        enableTools: true,
+        onToolCall
+      });
+
+      expect(result).toHaveLength(1);
+      expect(result[0].type).toBe('display_data');
+      expect(result[0].data['application/vnd.anode.aitool+json']).toBeDefined();
+      expect(result[0].data['application/vnd.anode.aitool+json'].status).toBe('error');
+      expect(result[0].data['text/markdown']).toContain('Tool failed');
+      expect(result[0].metadata['anode/tool_error']).toBe(true);
+    });
+
+    it('should work without tools when disabled', async () => {
+      const mockResponse = {
+        choices: [
+          {
+            message: {
+              content: 'Regular response without tools'
+            }
+          }
+        ]
+      };
+
+      mockOpenAI.chat.completions.create.mockResolvedValue(mockResponse);
+
+      const result = await client.generateResponse('Test prompt', {
+        enableTools: false
+      });
+
+      expect(result).toHaveLength(1);
+      expect(result[0].type).toBe('display_data');
+      expect(result[0].data['text/markdown']).toBe('Regular response without tools');
+
+      expect(mockOpenAI.chat.completions.create).toHaveBeenCalledWith({
+        model: 'gpt-4o-mini',
+        messages: [
+          {
+            role: 'system',
+            content: DEFAULT_SYSTEM_PROMPT
+          },
+          {
+            role: 'user',
+            content: 'Test prompt'
+          }
+        ],
+        max_tokens: 2000,
+        temperature: 0.7,
+        stream: false,
+        tools: undefined,
+        tool_choice: undefined
+      });
+    });
+
+    it('should handle multiple tool calls', async () => {
+      const mockResponse = {
+        choices: [
+          {
+            message: {
+              content: 'I\'ll create two cells for you.',
+              tool_calls: [
+                {
+                  id: 'call_1',
+                  type: 'function',
+                  function: {
+                    name: 'create_cell',
+                    arguments: JSON.stringify({
+                      cellType: 'markdown',
+                      content: '# Header',
+                      position: 'after_current'
+                    })
+                  }
+                },
+                {
+                  id: 'call_2',
+                  type: 'function',
+                  function: {
+                    name: 'create_cell',
+                    arguments: JSON.stringify({
+                      cellType: 'code',
+                      content: 'print("test")',
+                      position: 'after_current'
+                    })
+                  }
+                }
+              ]
+            }
+          }
+        ]
+      };
+
+      mockOpenAI.chat.completions.create.mockResolvedValue(mockResponse);
+
+      const onToolCall = vi.fn();
+      const result = await client.generateResponse('Create cells', {
+        enableTools: true,
+        onToolCall
+      });
+
+      expect(onToolCall).toHaveBeenCalledTimes(2);
+      expect(result).toHaveLength(3); // 2 tool confirmations + 1 text response
     });
   });
 });
