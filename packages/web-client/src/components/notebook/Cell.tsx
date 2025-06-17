@@ -17,7 +17,7 @@ import { SqlCell } from './SqlCell.js'
 import { AiCell } from './AiCell.js'
 import { RichOutput } from './RichOutput.js'
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
-import { Play, ChevronUp, ChevronDown, Plus, X, Code, FileText, Database, Bot, Eye, EyeOff } from 'lucide-react'
+import { Play, ChevronUp, ChevronDown, Plus, X, Code, FileText, Database, Bot } from 'lucide-react'
 
 type CellType = typeof tables.cells.Type
 
@@ -334,10 +334,10 @@ export const Cell: React.FC<CellProps> = ({
                   onClick={toggleSourceVisibility}
                   className={`h-7 w-7 p-0 hover:bg-muted/80 ${cell.sourceVisible ? '' : 'text-muted-foreground/60'}`}
                 >
-                  {cell.sourceVisible ? <Eye className="h-3 w-3" /> : <EyeOff className="h-3 w-3" />}
+                  {cell.sourceVisible ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
                 </Button>
               </TooltipTrigger>
-              <TooltipContent>Toggle source visibility</TooltipContent>
+              <TooltipContent>{cell.sourceVisible ? 'Hide source' : 'Show source'}</TooltipContent>
             </Tooltip>
 
             {/* Separator */}
@@ -475,12 +475,16 @@ export const Cell: React.FC<CellProps> = ({
                       variant="ghost"
                       size="sm"
                       onClick={toggleOutputVisibility}
-                      className={`h-5 w-5 p-0 hover:bg-muted/80 ${cell.outputVisible ? '' : 'text-muted-foreground/60'}`}
+                      className={`h-5 w-5 p-0 hover:bg-muted/80 transition-opacity ${
+                        autoFocus
+                          ? 'opacity-100'
+                          : 'opacity-0 group-hover:opacity-100'
+                      } ${cell.outputVisible ? '' : 'text-muted-foreground/60'}`}
                     >
-                      {cell.outputVisible ? <Eye className="h-3 w-3" /> : <EyeOff className="h-3 w-3" />}
+                      {cell.outputVisible ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
                     </Button>
                   </TooltipTrigger>
-                  <TooltipContent>Toggle output visibility</TooltipContent>
+                  <TooltipContent>{cell.outputVisible ? 'Hide output' : 'Show output'}</TooltipContent>
                 </Tooltip>
               </TooltipProvider>
             )}

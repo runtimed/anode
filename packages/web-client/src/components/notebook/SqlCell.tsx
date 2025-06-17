@@ -10,7 +10,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu'
-import { Play, ChevronUp, ChevronDown, Plus, X, Database, Code, FileText, Bot, Eye, EyeOff } from 'lucide-react'
+import { Play, ChevronUp, ChevronDown, Plus, X, Database, Code, FileText, Bot } from 'lucide-react'
 
 interface SqlCellProps {
   cell: typeof tables.cells.Type
@@ -289,9 +289,9 @@ export const SqlCell: React.FC<SqlCellProps> = ({
             size="sm"
             onClick={toggleSourceVisibility}
             className={`h-7 w-7 p-0 hover:bg-muted/80 ${cell.sourceVisible ? '' : 'text-muted-foreground/60'}`}
-            title="Toggle source visibility"
+            title={cell.sourceVisible ? 'Hide source' : 'Show source'}
           >
-            {cell.sourceVisible ? <Eye className="h-3 w-3" /> : <EyeOff className="h-3 w-3" />}
+            {cell.sourceVisible ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
           </Button>
 
           {/* Separator */}
@@ -401,10 +401,14 @@ export const SqlCell: React.FC<SqlCellProps> = ({
                 variant="ghost"
                 size="sm"
                 onClick={toggleOutputVisibility}
-                className={`h-5 w-5 p-0 hover:bg-muted/80 ${cell.outputVisible ? '' : 'text-muted-foreground/60'}`}
-                title="Toggle output visibility"
+                className={`h-5 w-5 p-0 hover:bg-muted/80 transition-opacity ${
+                  autoFocus
+                    ? 'opacity-100'
+                    : 'opacity-0 group-hover:opacity-100'
+                } ${cell.outputVisible ? '' : 'text-muted-foreground/60'}`}
+                title={cell.outputVisible ? 'Hide output' : 'Show output'}
               >
-                {cell.outputVisible ? <Eye className="h-3 w-3" /> : <EyeOff className="h-3 w-3" />}
+                {cell.outputVisible ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
               </Button>
             )}
           </div>
