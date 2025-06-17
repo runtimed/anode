@@ -93,10 +93,19 @@ AI responses are rendered as rich markdown with support for:
 ### Context Awareness
 
 AI cells have access to your notebook context and can:
-- Reference previous code cells
-- Analyze data and outputs
-- Suggest next steps
-- Debug errors
+- Reference previous code cells and their source code
+- **Analyze cell outputs and execution results** 
+- See text outputs, data visualizations, and error messages
+- Suggest next steps based on actual execution results
+- Debug errors with full traceback information
+- Understand the current state of variables and data
+
+The AI context includes:
+- **Source code** from all previous cells
+- **Text outputs** (stdout/stderr) from code execution
+- **Rich outputs** like pandas DataFrames, matplotlib plots (as text representations)
+- **Error information** including exception types, messages, and tracebacks
+- **Execution state** to understand what has been run successfully
 
 ### Token Usage Tracking
 
@@ -197,6 +206,39 @@ Approximate token costs:
 
 ## Advanced Features
 
+### Output Context Integration
+
+**New Feature**: AI cells now have full visibility into cell outputs, not just source code.
+
+When you execute code cells, their outputs become part of the AI context:
+
+```python
+# Cell 1
+import pandas as pd
+df = pd.DataFrame({'name': ['Alice', 'Bob'], 'age': [25, 30]})
+print(f"Created DataFrame with {len(df)} rows")
+df.head()
+```
+
+```
+Output: Created DataFrame with 2 rows
+   name  age
+0  Alice   25
+1   Bob   30
+```
+
+```python
+# Cell 2 (AI Cell)
+# Prompt: "Analyze the DataFrame and suggest visualizations"
+# The AI can now see both the code AND the actual DataFrame output
+```
+
+The AI will receive context including:
+- The source code that created the DataFrame
+- The print statement output showing 2 rows
+- The actual DataFrame display showing the data structure
+- This enables much more accurate and relevant suggestions
+
 ### Streaming Responses (Future)
 
 Support for streaming AI responses is implemented and ready for future UI integration:
@@ -245,12 +287,19 @@ For issues with:
 
 ## What's Next
 
-The OpenAI integration provides a solid foundation for AI-powered notebooks. Future enhancements will include:
+The OpenAI integration provides a solid foundation for AI-powered notebooks. Recent enhancements include:
 
+✅ **Output Context Integration** - AI can now see cell outputs and execution results
+✅ **Rich Error Context** - AI receives full traceback information for debugging
+✅ **Execution State Awareness** - AI understands what code has been run and its results
+
+Future enhancements will include:
+
+- **AI Tool Calling** - Allow AI to create cells, modify content, and execute code
+- **Context Visibility Controls** - Let users control what the AI can see
 - Real-time streaming responses
-- Code execution suggestions  
-- Automatic data analysis
 - Multi-turn conversations
 - Custom AI assistants
+- **MCP Integration** - Model Context Protocol support for extensible AI tooling
 
 Happy coding with AI! 🤖✨

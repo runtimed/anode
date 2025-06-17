@@ -10,7 +10,7 @@ import { makeCfSync } from "@livestore/sync-cf";
 import { randomUUID } from "crypto";
 
 // Import the same schema used by the web client so we share events/tables.
-import { events, schema, tables, CellData, ExecutionQueueData, KernelSessionData } from "../../../shared/schema.js";
+import { events, schema, tables, CellData, ExecutionQueueData, KernelSessionData, OutputData } from "../../../shared/schema.js";
 import { PyodideKernel } from "./pyodide-kernel.js";
 import { openaiClient } from "./openai-client.js";
 
@@ -161,6 +161,10 @@ interface NotebookContext {
     cellType: string;
     source: string;
     position: number;
+    outputs: Array<{
+      outputType: string;
+      data: any;
+    }>;
   }>;
   totalCells: number;
   currentCellPosition: number;
@@ -183,13 +187,60 @@ async function gatherNotebookContext(store: any, currentCell: CellData): Promise
   const allCellsQuery = queryDb(tables.cells.select());
   const allCells = store.query(allCellsQuery);
 
-  return {
-    previousCells: previousCells.map((cell: CellData) => ({
+  // Get outputs for all previous cells
+  const previousCellsWithOutputs = previousCells.map((cell: CellData) => {
+    const outputsQuery = queryDb(
+      tables.outputs.select()
+        .where({ cellId: cell.id })
+        .orderBy('position', 'asc')
+    );
+    const outputs = store.query(outputsQuery);
+
+    // Filter outputs to only include text/plain and text/markdown for AI context
+    const filteredOutputs = outputs.map((output: any) => {
+      const outputData = output.data;
+      const filteredData: any = {};
+
+      // Include text/plain and text/markdown outputs
+      if (outputData && typeof outputData === 'object') {
+        if (outputData['text/plain']) {
+          filteredData['text/plain'] = outputData['text/plain'];
+        }
+        if (outputData['text/markdown']) {
+          filteredData['text/markdown'] = outputData['text/markdown'];
+        }
+        // For stream outputs, include the text directly
+        if (outputData.text && outputData.name) {
+          filteredData.text = outputData.text;
+          filteredData.name = outputData.name;
+        }
+        // For error outputs, include error info
+        if (outputData.ename && outputData.evalue) {
+          filteredData.ename = outputData.ename;
+          filteredData.evalue = outputData.evalue;
+          if (outputData.traceback) {
+            filteredData.traceback = outputData.traceback;
+          }
+        }
+      }
+
+      return {
+        outputType: output.outputType,
+        data: Object.keys(filteredData).length > 0 ? filteredData : outputData
+      };
+    });
+
+    return {
       id: cell.id,
       cellType: cell.cellType,
       source: cell.source || '',
-      position: cell.position
-    })),
+      position: cell.position,
+      outputs: filteredOutputs
+    };
+  });
+
+  return {
+    previousCells: previousCellsWithOutputs,
     totalCells: allCells.length,
     currentCellPosition: currentCell.position
   };
@@ -217,6 +268,45 @@ Cell ${index + 1} (Position ${cell.position}, Type: ${cell.cellType}):
 ${cell.source}
 \`\`\`
 `;
+
+      // Include outputs if they exist
+      if (cell.outputs && cell.outputs.length > 0) {
+        systemPrompt += `
+Output:
+`;
+        cell.outputs.forEach((output) => {
+          if (output.outputType === 'stream') {
+            // Handle stream outputs (stdout/stderr)
+            if (output.data.text) {
+              systemPrompt += `\`\`\`
+${output.data.text}
+\`\`\`
+`;
+            }
+          } else if (output.outputType === 'error') {
+            // Handle error outputs
+            if (output.data.ename && output.data.evalue) {
+              systemPrompt += `\`\`\`
+Error: ${output.data.ename}: ${output.data.evalue}
+\`\`\`
+`;
+            }
+          } else if (output.outputType === 'execute_result' || output.outputType === 'display_data') {
+            // Handle rich outputs
+            if (output.data['text/plain']) {
+              systemPrompt += `\`\`\`
+${output.data['text/plain']}
+\`\`\`
+`;
+            }
+            if (output.data['text/markdown']) {
+              systemPrompt += `
+${output.data['text/markdown']}
+`;
+            }
+          }
+        });
+      }
     });
   }
 
@@ -225,6 +315,7 @@ ${cell.source}
 - Provide clear, concise responses and include code examples when appropriate
 - Reference previous cells when relevant to provide context-aware assistance
 - If you see variables, functions, or data structures defined in previous cells, you can reference them
+- You can see the outputs from previous code executions to understand the current state
 - Help with debugging, optimization, or extending the existing code
 - Suggest next steps based on the notebook's progression`;
 
