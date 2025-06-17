@@ -5,10 +5,19 @@ This directory contains comprehensive documentation for the Anode project - a re
 ## Quick Navigation
 
 ### 📖 Core Documentation
-- **[Display System](./DISPLAY_SYSTEM.md)** - Complete guide to Anode's enhanced IPython display system
+- **[Display System](./display-system.md)** - Complete guide to Anode's enhanced IPython display system
 - **[Display Examples](./display-examples.md)** - Practical examples and usage patterns for rich outputs
-- **[UI Design](./UI_DESIGN.md)** - Design principles and interface guidelines
-- **[Completion System Proposal](./COMPLETION_SYSTEM_PROPOSAL.md)** - Architecture proposal for interactive code completions
+- **[UI Design](./ui-design.md)** - Design principles and interface guidelines
+- **[AI Features](./ai-features.md)** - AI integration setup and capabilities
+- **[Testing](./testing.md)** - Testing strategy and current gaps
+
+### 📋 Proposals
+- **[Completion System](./proposals/completion-system.md)** - Architecture proposal for interactive code completions
+- **[AI Tool Calling](./proposals/ai-tool-calling.md)** - OpenAI function calling for notebook manipulation
+- **[MCP Integration](./proposals/mcp-integration.md)** - Model Context Protocol vs Python functions analysis
+- **[Updateable Outputs](./proposals/updateable-outputs.md)** - Jupyter-compatible display updates and stream merging
+- **[Kernel Management](./proposals/kernel-management.md)** - Automated kernel provisioning and lifecycle
+- **[AI Context Controls](./proposals/ai-context-controls.md)** - User controls for AI context inclusion/exclusion
 
 ### 🏗️ Architecture Overview
 
@@ -57,22 +66,28 @@ Core collaborative editing, Python execution, and basic AI integration functiona
 
 ```
 docs/
-├── README.md                        # This file - documentation index
-├── OPENAI_INTEGRATION.md            # AI setup and usage guide
-├── DISPLAY_SYSTEM.md                # Display system architecture (aspirational)
-├── TESTING.md                       # Testing strategy and current gaps
-├── display-examples.md              # Practical usage examples
-├── UI_DESIGN.md                     # Interface design guidelines
-└── COMPLETION_SYSTEM_PROPOSAL.md    # Interactive code completion architecture
+├── README.md                 # This file - documentation index
+├── ai-features.md           # AI integration setup and capabilities
+├── display-system.md        # Display system architecture (aspirational)
+├── testing.md              # Testing strategy and current gaps
+├── display-examples.md      # Practical usage examples
+├── ui-design.md            # Interface design guidelines
+└── proposals/
+    ├── completion-system.md    # Interactive code completion architecture
+    ├── ai-tool-calling.md      # OpenAI function calling for AI-notebook interaction
+    ├── mcp-integration.md      # Model Context Protocol integration analysis
+    ├── updateable-outputs.md   # Jupyter-compatible output updates
+    ├── kernel-management.md    # Automated kernel provisioning and lifecycle
+    └── ai-context-controls.md  # User controls for AI context
 ```
 
 ### 🔧 For Developers
 
 **Getting Started:**
-1. Read [OPENAI_INTEGRATION.md](./OPENAI_INTEGRATION.md) for AI setup and current capabilities
-2. Check [TESTING.md](./TESTING.md) for current test strategy and gaps
-3. Review [DISPLAY_SYSTEM.md](./DISPLAY_SYSTEM.md) for architecture goals
-4. See [UI_DESIGN.md](./UI_DESIGN.md) for interface patterns
+1. Read [ai-features.md](./ai-features.md) for AI setup and current capabilities
+2. Check [testing.md](./testing.md) for current test strategy and gaps
+3. Review [display-system.md](./display-system.md) for architecture goals
+4. See [ui-design.md](./ui-design.md) for interface patterns
 
 **Key Files:**
 - `packages/dev-server-kernel-ls-client/src/pyodide-kernel.ts` - Python execution kernel

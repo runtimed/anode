@@ -1,8 +1,7 @@
 # Interactive Code Completion System Proposal
 
 **Status**: Draft Proposal
-**Author**: Development Team
-**Date**: December 2024
+**Author**: Kyle Kelley
 
 ## Overview
 
