@@ -203,6 +203,9 @@ pnpm test               # Full test suite (27 passing, 13 skipped)
 - **No context control**: Users cannot exclude cells from AI context
 - **Performance claims unverified**: Need integration tests to validate speed/output claims
 
+### Known Critical Issues
+- **🐛 Kernel Restart Bug**: 3rd+ kernel sessions fail to receive work assignments due to LiveStore web client shutdowns when multiple terminated sessions accumulate (see https://github.com/rgbkrk/anode/issues/34 and branch `annoying-multiples-bug`)
+
 ### Schema & Architecture Notes
 - All packages use direct TypeScript imports: `../../../shared/schema.js`
 - No build step needed - changes are immediate across all packages
@@ -289,6 +292,13 @@ docs/
 - Interactive widgets and collaborative components
 - Performance optimization for large notebooks
 - Production deployment readiness
+
+## Critical Issues to Resolve
+
+1. **🔥 Kernel Restart Bug** - Multiple kernel restarts break execution (see `KERNEL_RESTART_BUG.md`)
+   - **Impact**: Blocks production deployment, breaks user workflow
+   - **Workaround**: Full page refresh required after 2 kernel restarts
+   - **Investigation needed**: LiveStore multiple store conflicts
 
 ## Quick Wins Available
 
