@@ -41,10 +41,7 @@ const NotebookApp: React.FC = () => {
     }
   }, [currentNotebook, isInitializing, store])
 
-  const createNewNotebook = () => {
-    // Navigate to clean URL which will create a new store/notebook
-    window.location.href = window.location.origin
-  }
+
 
   // Show loading while initializing
   if (!currentNotebook && isInitializing) {
@@ -67,7 +64,6 @@ const NotebookApp: React.FC = () => {
       {/* Main Content */}
       <NotebookViewer
         notebookId={currentNotebookId}
-        onNewNotebook={createNewNotebook}
       />
     </div>
   )

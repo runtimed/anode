@@ -14,10 +14,9 @@ import { getCurrentNotebookId } from '../../util/store-id.js'
 
 interface NotebookViewerProps {
   notebookId: string
-  onNewNotebook?: () => void
 }
 
-export const NotebookViewer: React.FC<NotebookViewerProps> = ({ onNewNotebook }) => {
+export const NotebookViewer: React.FC<NotebookViewerProps> = () => {
   const { store } = useStore()
   const cells = store.useQuery(queryDb(tables.cells.select().orderBy('position', 'asc'))) as CellData[]
   const notebooks = store.useQuery(queryDb(tables.notebook.select().limit(1))) as any[]
@@ -241,11 +240,12 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({ onNewNotebook })
                 Anode
               </h1>
             </div>
-            {onNewNotebook && (
-              <Button onClick={onNewNotebook} variant="outline" size="sm">
-                + New Notebook
-              </Button>
-            )}
+            <a
+              href={window.location.origin}
+              className="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-input bg-background hover:bg-accent hover:text-accent-foreground h-9 px-3"
+            >
+              + New Notebook
+            </a>
           </div>
 
           <div className="text-xs text-muted-foreground">
