@@ -18,7 +18,6 @@ const NOTEBOOK_ID = process.env.NOTEBOOK_ID ?? "demo-notebook";
 const AUTH_TOKEN = process.env.AUTH_TOKEN ?? "insecure-token-change-me";
 const SYNC_URL = process.env.LIVESTORE_SYNC_URL ?? "ws://localhost:8787";
 const KERNEL_ID = process.env.KERNEL_ID ?? `kernel-${process.pid}`;
-const INITIAL_SYNC_DELAY = parseInt(process.env.INITIAL_SYNC_DELAY ?? "2000");
 
 // Generate unique session ID for this kernel instance
 const SESSION_ID = `${KERNEL_ID}-${Date.now()}-${Math.random().toString(36).slice(2)}`;
@@ -71,16 +70,6 @@ console.log(`✅ Store created successfully`);
 const kernel = new PyodideKernel(NOTEBOOK_ID);
 await kernel.initialize();
 
-console.log(`✅ Kernel ready. Waiting ${INITIAL_SYNC_DELAY}ms for initial sync...`);
-console.log("   This prevents sequence number conflicts with existing events in the eventlog");
-
-// Wait for initial sync to complete before committing first event
-// This prevents sequence number conflicts when the kernel starts
-await new Promise(resolve => setTimeout(resolve, INITIAL_SYNC_DELAY));
-
-console.log("📝 Initial sync delay complete. Checking store state...");
-
-// Debug: Check current store state before committing
 try {
   const existingNotebooks = store.query(tables.notebook.select()) as any[];
   const existingKernelSessions = store.query(tables.kernelSessions.select()) as any[];
