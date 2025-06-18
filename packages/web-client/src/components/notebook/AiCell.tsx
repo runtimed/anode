@@ -13,7 +13,7 @@ import {
   DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu'
 import { RichOutput } from './RichOutput.js'
-import { Play, ChevronUp, ChevronDown, Plus, X, Bot, Code, FileText, Database, ArrowUp, ArrowDown } from 'lucide-react'
+import { Play, ChevronUp, ChevronDown, Plus, X, Bot, Code, FileText, Database, ArrowUp, ArrowDown, Eye, EyeOff } from 'lucide-react'
 
 interface AiCellProps {
   cell: typeof tables.cells.Type
@@ -25,6 +25,7 @@ interface AiCellProps {
   onFocusPrevious?: () => void
   autoFocus?: boolean
   onFocus?: () => void
+  contextSelectionMode?: boolean
 }
 
 export const AiCell: React.FC<AiCellProps> = ({
@@ -36,7 +37,8 @@ export const AiCell: React.FC<AiCellProps> = ({
   onFocusNext,
   onFocusPrevious,
   autoFocus = false,
-  onFocus
+  onFocus,
+  contextSelectionMode = false
 }) => {
   const { store } = useStore()
   const [localSource, setLocalSource] = useState(cell.source)
@@ -205,6 +207,13 @@ export const AiCell: React.FC<AiCellProps> = ({
     }))
   }, [cell.id, cell.outputVisible, store])
 
+  const toggleAiContextVisibility = useCallback(() => {
+    store.commit(events.cellAiContextVisibilityToggled({
+      id: cell.id,
+      aiContextVisible: !cell.aiContextVisible,
+    }))
+  }, [cell.id, cell.aiContextVisible, store])
+
   const changeProvider = useCallback((newProvider: string, newModel: string) => {
     store.commit(events.aiSettingsChanged({
       cellId: cell.id,
@@ -252,14 +261,16 @@ export const AiCell: React.FC<AiCellProps> = ({
 
   return (
     <div className={`mb-2 relative group transition-all duration-200 pt-2 ${
-        autoFocus ? 'bg-purple-50/30' : 'hover:bg-muted/10'
+        autoFocus && !contextSelectionMode ? 'bg-purple-50/30' : 'hover:bg-muted/10'
+      } ${contextSelectionMode && !cell.aiContextVisible ? 'opacity-60' : ''} ${
+        contextSelectionMode ? (cell.aiContextVisible ? 'ring-2 ring-purple-300 bg-purple-50/30' : 'ring-2 ring-gray-300 bg-gray-50/30') : ''
       }`} style={{
         position: 'relative',
       }}>
       {/* Custom left border with controlled height */}
       <div
         className={`absolute left-0 top-0 w-0.5 transition-all duration-200 ${
-          autoFocus ? 'bg-purple-500/60' : 'bg-border/30'
+          autoFocus && !contextSelectionMode ? 'bg-purple-500/60' : 'bg-border/30'
         }`}
         style={{
           height: outputs.length > 0 || cell.executionState === 'running' || cell.executionState === 'queued'
@@ -343,6 +354,18 @@ export const AiCell: React.FC<AiCellProps> = ({
           >
             {cell.sourceVisible ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
           </Button>
+
+          {contextSelectionMode && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={toggleAiContextVisibility}
+              className={`h-7 w-7 p-0 hover:bg-muted/80 ${cell.aiContextVisible ? 'text-purple-600' : 'text-gray-500'}`}
+              title={cell.aiContextVisible ? 'Hide from AI context' : 'Show in AI context'}
+            >
+              {cell.aiContextVisible ? <Eye className="h-3 w-3" /> : <EyeOff className="h-3 w-3" />}
+            </Button>
+          )}
 
           {/* Separator */}
           <div className="w-px h-4 bg-border/50 mx-1" />

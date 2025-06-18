@@ -10,7 +10,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu'
-import { Play, ChevronUp, ChevronDown, Plus, X, Database, Code, FileText, Bot, ArrowUp, ArrowDown } from 'lucide-react'
+import { Play, ChevronUp, ChevronDown, Plus, X, Database, Code, FileText, Bot, ArrowUp, ArrowDown, Eye, EyeOff } from 'lucide-react'
 
 interface SqlCellProps {
   cell: typeof tables.cells.Type
@@ -22,6 +22,7 @@ interface SqlCellProps {
   onFocusPrevious?: () => void
   autoFocus?: boolean
   onFocus?: () => void
+  contextSelectionMode?: boolean
 }
 
 export const SqlCell: React.FC<SqlCellProps> = ({
@@ -33,7 +34,8 @@ export const SqlCell: React.FC<SqlCellProps> = ({
   onFocusNext,
   onFocusPrevious,
   autoFocus = false,
-  onFocus
+  onFocus,
+  contextSelectionMode = false
 }) => {
   const { store } = useStore()
   const [localQuery, setLocalQuery] = useState(cell.source)
@@ -163,6 +165,13 @@ export const SqlCell: React.FC<SqlCellProps> = ({
     }))
   }, [cell.id, cell.outputVisible, store])
 
+  const toggleAiContextVisibility = useCallback(() => {
+    store.commit(events.cellAiContextVisibilityToggled({
+      id: cell.id,
+      aiContextVisible: !cell.aiContextVisible,
+    }))
+  }, [cell.id, cell.aiContextVisible, store])
+
   const getCellTypeIcon = () => {
     return <Database className="h-3 w-3" />
   }
@@ -227,14 +236,16 @@ export const SqlCell: React.FC<SqlCellProps> = ({
 
   return (
     <div className={`mb-2 relative group transition-all duration-200 pt-2 ${
-        autoFocus ? 'bg-blue-50/30' : 'hover:bg-muted/10'
+        autoFocus && !contextSelectionMode ? 'bg-blue-50/30' : 'hover:bg-muted/10'
+      } ${contextSelectionMode && !cell.aiContextVisible ? 'opacity-60' : ''} ${
+        contextSelectionMode ? (cell.aiContextVisible ? 'ring-2 ring-purple-300 bg-purple-50/30' : 'ring-2 ring-gray-300 bg-gray-50/30') : ''
       }`} style={{
         position: 'relative',
       }}>
       {/* Custom left border with controlled height */}
       <div
         className={`absolute left-0 top-0 w-0.5 transition-all duration-200 ${
-          autoFocus ? 'bg-blue-500/60' : 'bg-border/30'
+          autoFocus && !contextSelectionMode ? 'bg-blue-500/60' : 'bg-border/30'
         }`}
         style={{
           height: cell.sqlResultData || cell.executionState === 'running' || cell.executionState === 'queued'
@@ -293,6 +304,18 @@ export const SqlCell: React.FC<SqlCellProps> = ({
           >
             {cell.sourceVisible ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
           </Button>
+
+          {contextSelectionMode && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={toggleAiContextVisibility}
+              className={`h-7 w-7 p-0 hover:bg-muted/80 ${cell.aiContextVisible ? 'text-purple-600' : 'text-gray-500'}`}
+              title={cell.aiContextVisible ? 'Hide from AI context' : 'Show in AI context'}
+            >
+              {cell.aiContextVisible ? <Eye className="h-3 w-3" /> : <EyeOff className="h-3 w-3" />}
+            </Button>
+          )}
 
           {/* Separator */}
           <div className="w-px h-4 bg-border/50 mx-1" />

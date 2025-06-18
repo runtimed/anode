@@ -17,7 +17,7 @@ import { SqlCell } from './SqlCell.js'
 import { AiCell } from './AiCell.js'
 import { RichOutput } from './RichOutput.js'
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
-import { Play, ChevronUp, ChevronDown, Plus, X, Code, FileText, Database, Bot, ArrowUp, ArrowDown } from 'lucide-react'
+import { Play, ChevronUp, ChevronDown, Plus, X, Code, FileText, Database, Bot, ArrowUp, ArrowDown, Eye, EyeOff } from 'lucide-react'
 
 type CellType = typeof tables.cells.Type
 
@@ -33,6 +33,7 @@ interface CellProps {
   onFocusPrevious?: () => void
   autoFocus?: boolean
   onFocus?: () => void
+  contextSelectionMode?: boolean
 }
 
 export const Cell: React.FC<CellProps> = ({
@@ -44,7 +45,8 @@ export const Cell: React.FC<CellProps> = ({
   onFocusNext,
   onFocusPrevious,
   autoFocus = false,
-  onFocus
+  onFocus,
+  contextSelectionMode = false
 }) => {
   // Route to specialized cell components
   if (cell.cellType === 'sql') {
@@ -58,6 +60,7 @@ export const Cell: React.FC<CellProps> = ({
       onFocusPrevious={onFocusPrevious}
       autoFocus={autoFocus}
       onFocus={onFocus}
+      contextSelectionMode={contextSelectionMode}
     />
   }
 
@@ -72,6 +75,7 @@ export const Cell: React.FC<CellProps> = ({
       onFocusPrevious={onFocusPrevious}
       autoFocus={autoFocus}
       onFocus={onFocus}
+      contextSelectionMode={contextSelectionMode}
     />
   }
 
@@ -129,6 +133,13 @@ export const Cell: React.FC<CellProps> = ({
       outputVisible: !cell.outputVisible,
     }))
   }, [cell.id, cell.outputVisible, store])
+
+  const toggleAiContextVisibility = useCallback(() => {
+    store.commit(events.cellAiContextVisibilityToggled({
+      id: cell.id,
+      aiContextVisible: !cell.aiContextVisible,
+    }))
+  }, [cell.id, cell.aiContextVisible, store])
 
   const executeCell = useCallback(async () => {
     // Use localSource instead of cell.source to get the current typed content
@@ -271,14 +282,16 @@ export const Cell: React.FC<CellProps> = ({
 
   return (
     <div className={`mb-2 relative group transition-all duration-200 pt-2 ${
-      autoFocus ? 'bg-primary/5' : 'hover:bg-muted/10'
+      autoFocus && !contextSelectionMode ? 'bg-primary/5' : 'hover:bg-muted/10'
+    } ${contextSelectionMode && !cell.aiContextVisible ? 'opacity-60' : ''} ${
+      contextSelectionMode ? (cell.aiContextVisible ? 'ring-2 ring-purple-300 bg-purple-50/30' : 'ring-2 ring-gray-300 bg-gray-50/30') : ''
     }`} style={{
       position: 'relative',
     }}>
       {/* Custom left border with controlled height */}
       <div
         className={`absolute left-0 top-0 w-0.5 transition-all duration-200 ${
-          autoFocus ? 'bg-primary/60' : 'bg-border/30'
+          autoFocus && !contextSelectionMode ? 'bg-primary/60' : 'bg-border/30'
         }`}
         style={{
           height: outputs.length > 0 || cell.executionState === 'running' || cell.executionState === 'queued'
@@ -339,6 +352,22 @@ export const Cell: React.FC<CellProps> = ({
               </TooltipTrigger>
               <TooltipContent>{cell.sourceVisible ? 'Hide source' : 'Show source'}</TooltipContent>
             </Tooltip>
+
+            {contextSelectionMode && (
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={toggleAiContextVisibility}
+                    className={`h-7 w-7 p-0 hover:bg-muted/80 ${cell.aiContextVisible ? 'text-purple-600' : 'text-gray-500'}`}
+                  >
+                    {cell.aiContextVisible ? <Eye className="h-3 w-3" /> : <EyeOff className="h-3 w-3" />}
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>{cell.aiContextVisible ? 'Hide from AI context' : 'Show in AI context'}</TooltipContent>
+              </Tooltip>
+            )}
 
             {/* Separator */}
             <div className="w-px h-4 bg-border/50 mx-1" />

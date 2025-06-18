@@ -170,11 +170,12 @@ interface NotebookContext {
 
 // Gather context from previous cells for AI execution
 async function gatherNotebookContext(store: any, currentCell: CellData): Promise<NotebookContext> {
-  // Query all cells that come before the current cell
+  // Query all cells that come before the current cell AND are visible to AI
   const previousCellsQuery = queryDb(
     tables.cells.select()
       .where({
-        position: { op: '<', value: currentCell.position }
+        position: { op: '<', value: currentCell.position },
+        aiContextVisible: true
       })
       .orderBy('position', 'asc')
   );
@@ -251,13 +252,13 @@ function buildSystemPromptWithContext(context: NotebookContext): string {
 **Notebook Context:**
 - Total cells: ${context.totalCells}
 - Current cell position: ${context.currentCellPosition}
-- Previous cells available: ${context.previousCells.length}
+- Previous cells visible to AI: ${context.previousCells.length}
 
-**Previous Cell Contents:**
+**Previous Cell Contents (only cells marked as visible to AI):**
 `;
 
   if (context.previousCells.length === 0) {
-    systemPrompt += "No previous cells in this notebook.\n";
+    systemPrompt += "No previous cells are visible to AI in this notebook (either no previous cells exist or they have been hidden from AI context).\n";
   } else {
     context.previousCells.forEach((cell, index) => {
       systemPrompt += `
