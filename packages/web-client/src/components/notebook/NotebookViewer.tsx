@@ -3,6 +3,7 @@ import { useStore } from '@livestore/react'
 import { events, tables, CellData, KernelSessionData } from '../../../../../shared/schema.js'
 import { queryDb } from '@livestore/livestore'
 import { Cell } from './Cell.js'
+import { formatDistanceToNow } from 'date-fns'
 
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -27,7 +28,6 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({ onNewNotebook })
   const [localTitle, setLocalTitle] = React.useState(notebook?.title || '')
   const [showKernelHelper, setShowKernelHelper] = React.useState(false)
   const [focusedCellId, setFocusedCellId] = React.useState<string | null>(null)
-  const [currentTime, setCurrentTime] = React.useState(new Date())
 
   const currentNotebookId = getCurrentNotebookId()
   const kernelCommand = `NOTEBOOK_ID=${currentNotebookId} pnpm dev:kernel`
@@ -59,18 +59,20 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({ onNewNotebook })
     // Could add a toast notification here
   }, [kernelCommand])
 
-  // Update current time for heartbeat display - more frequent when kernels are active
-  React.useEffect(() => {
-    // Update every 2 seconds when we have active kernels for real-time feedback
-    // Update every 10 seconds when no active kernels to save resources
-    const updateInterval = hasActiveKernel ? 2000 : 10000
+  // Helper function to format heartbeat time
+  const formatHeartbeatTime = (heartbeatTime: Date | string | null) => {
+    if (!heartbeatTime) return 'Never'
 
-    const interval = setInterval(() => {
-      setCurrentTime(new Date())
-    }, updateInterval)
+    const heartbeat = new Date(heartbeatTime)
+    const now = new Date()
+    const diffMs = now.getTime() - heartbeat.getTime()
 
-    return () => clearInterval(interval)
-  }, [hasActiveKernel])
+    // Show "Now" for very recent heartbeats (within 2 seconds)
+    if (diffMs < 2000) return 'Now'
+
+    // Use date-fns for clean relative formatting
+    return formatDistanceToNow(heartbeat, { addSuffix: true })
+  }
 
   React.useEffect(() => {
     if (notebook?.title) {
@@ -399,34 +401,20 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({ onNewNotebook })
                   {activeKernel.lastHeartbeat && (
                     <div className="flex justify-between">
                       <span className="text-muted-foreground">Last Heartbeat:</span>
-                      <span className="text-xs">
+                      <span className="text-xs flex items-center gap-1">
+                        {formatHeartbeatTime(activeKernel.lastHeartbeat)}
                         {(() => {
+                          if (!activeKernel.lastHeartbeat) return null;
                           const lastHeartbeat = new Date(activeKernel.lastHeartbeat);
-                          const now = currentTime;
-                          const diffMs = now.getTime() - lastHeartbeat.getTime();
-                          const diffSeconds = Math.floor(diffMs / 1000);
-
-                          if (diffSeconds <= 0) {
-                            return 'Now';
-                          } else if (diffSeconds < 60) {
-                            return `${diffSeconds}s ago`;
-                          } else if (diffSeconds < 3600) {
-                            return `${Math.floor(diffSeconds / 60)}m ago`;
-                          } else {
-                            return lastHeartbeat.toLocaleTimeString();
-                          }
-                        })()}
-                        {(() => {
-                          const lastHeartbeat = new Date(activeKernel.lastHeartbeat);
-                          const now = currentTime;
+                          const now = new Date();
                           const diffMs = now.getTime() - lastHeartbeat.getTime();
 
-                          if (diffMs > 60000) { // More than 1 minute
-                            return <span className="ml-1 text-amber-500">⚠️</span>;
-                          } else if (diffMs > 300000) { // More than 5 minutes
-                            return <span className="ml-1 text-red-500">❌</span>;
+                          if (diffMs > 300000) { // More than 5 minutes
+                            return <span className="text-red-500">❌</span>;
+                          } else if (diffMs > 60000) { // More than 1 minute
+                            return <span className="text-amber-500">⚠️</span>;
                           } else {
-                            return <span className="ml-1 text-green-500">✅</span>;
+                            return <span className="text-green-500">✅</span>;
                           }
                         })()}
                       </span>
@@ -468,12 +456,7 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({ onNewNotebook })
                           </span>
                           {session.lastHeartbeat && (
                             <span className="text-muted-foreground">
-                              {(() => {
-                                const diffMs = currentTime.getTime() - new Date(session.lastHeartbeat).getTime();
-                                const diffSeconds = Math.floor(diffMs / 1000);
-                                if (diffSeconds <= 0) return 'Now';
-                                return diffSeconds < 60 ? `${diffSeconds}s` : `${Math.floor(diffSeconds / 60)}m`;
-                              })()}
+                              {formatHeartbeatTime(session.lastHeartbeat)}
                             </span>
                           )}
                         </div>
