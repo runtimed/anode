@@ -317,8 +317,8 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({ onNewNotebook })
                 onClick={() => setContextSelectionMode(!contextSelectionMode)}
                 className="flex items-center gap-2"
               >
-                <Brain className="h-4 w-4" />
-                {contextSelectionMode ? 'Exit Context Selection' : 'Select AI Context'}
+                {contextSelectionMode ? <X className="h-4 w-4" /> : <Filter className="h-4 w-4" />}
+                {contextSelectionMode ? 'Done' : 'Select Context'}
               </Button>
             </div>
           </div>
