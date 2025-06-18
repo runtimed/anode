@@ -1,10 +1,10 @@
-# AI Context Visibility Feature
+# AI Context Visibility Feature ✅ FULLY IMPLEMENTED
 
 This document describes the AI context visibility toggle feature that allows users to control which cells are included in AI model context.
 
 ## Overview
 
-The AI context visibility feature provides granular control over which notebook cells are included when sending context to AI models. This is important for:
+The AI context visibility feature provides granular control over which notebook cells are included when sending context to AI models. **This feature is now fully functional** - AI models only receive cells that are marked as visible. This is important for:
 
 - **Token efficiency**: Exclude irrelevant cells to stay within token limits
 - **Privacy**: Hide sensitive data from AI models
@@ -99,6 +99,7 @@ const toggleAiContextVisibility = useCallback(() => {
 - **All cell types**: Same default behavior for consistency
 - **Existing notebooks**: Cells created before this feature are included by default
 - **No migration needed**: New field defaults to `true` for backward compatibility
+- **Actual filtering**: AI models only receive cells where `aiContextVisible: true`
 
 ## Usage Patterns
 
@@ -125,6 +126,13 @@ const toggleAiContextVisibility = useCallback(() => {
 
 ## Future Enhancements
 
+### Completed Features ✅
+
+- **Individual cell toggles**: Eye icon controls in all cell types
+- **Visual feedback**: Opacity changes for excluded cells
+- **Actual AI filtering**: Kernel filters context based on visibility settings
+- **System prompt clarity**: AI knows when cells are hidden from context
+
 ### Planned Features
 
 - **Bulk selection mode**: Select multiple cells at once for context inclusion/exclusion
@@ -135,10 +143,21 @@ const toggleAiContextVisibility = useCallback(() => {
 
 ### Integration Points
 
-- **AI cell execution**: Only include visible cells when building AI context
+- **AI cell execution**: ✅ **IMPLEMENTED** - Only include visible cells when building AI context
 - **Context API**: Provide programmatic access to context-visible cells
 - **Export features**: Option to export only AI-context-visible cells
 - **Collaboration**: Share context visibility settings with team members
+
+## Implementation Status: COMPLETE ✅
+
+The AI context visibility feature is now **fully functional**:
+
+1. **UI Controls**: Eye icons in all cell types (Cell, SqlCell, AiCell) ✅
+2. **Visual Feedback**: Opacity changes for excluded cells ✅  
+3. **Database Schema**: `aiContextVisible` field with proper events ✅
+4. **Kernel Integration**: Context filtering in `gatherNotebookContext()` ✅
+5. **AI Model Integration**: Only visible cells sent to OpenAI/Anthropic ✅
+6. **System Prompt**: AI models informed about context filtering ✅
 
 ## Implementation Notes
 
