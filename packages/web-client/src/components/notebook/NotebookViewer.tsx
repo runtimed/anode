@@ -34,7 +34,10 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({ onNewNotebook })
 
   // Check kernel status with heartbeat-based health assessment
   const getKernelHealth = (session: KernelSessionData) => {
-    if (!session.lastHeartbeat) return 'unknown'
+    if (!session.lastHeartbeat) {
+      // If session is active but no heartbeat yet, it's connecting (not disconnected)
+      return session.isActive ? 'connecting' : 'unknown'
+    }
     const now = new Date()
     const lastHeartbeat = new Date(session.lastHeartbeat)
     const diffMs = now.getTime() - lastHeartbeat.getTime()
@@ -47,7 +50,7 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({ onNewNotebook })
   const activeKernel = kernelSessions.find((session: KernelSessionData) =>
     session.status === 'ready' || session.status === 'busy'
   )
-  const hasActiveKernel = Boolean(activeKernel && getKernelHealth(activeKernel) !== 'stale')
+  const hasActiveKernel = Boolean(activeKernel && ['healthy', 'warning', 'connecting'].includes(getKernelHealth(activeKernel)))
   const kernelHealth = activeKernel ? getKernelHealth(activeKernel) : 'disconnected'
   const kernelStatus = activeKernel?.status || (kernelSessions.length > 0 ? kernelSessions[0].status : 'disconnected')
 
@@ -285,6 +288,7 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({ onNewNotebook })
                   className={`h-2 w-2 fill-current ${
                     activeKernel && kernelHealth === 'healthy' ? 'text-green-500' :
                     activeKernel && kernelHealth === 'warning' ? 'text-amber-500' :
+                    activeKernel && kernelHealth === 'connecting' ? 'text-blue-500' :
                     activeKernel && kernelHealth === 'stale' ? 'text-amber-500' :
                     kernelStatus === 'starting' ? 'text-blue-500' :
                     'text-red-500'
@@ -312,6 +316,7 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({ onNewNotebook })
                     className={`h-2 w-2 fill-current ${
                       activeKernel && kernelHealth === 'healthy' ? 'text-green-500' :
                       activeKernel && kernelHealth === 'warning' ? 'text-amber-500' :
+                      activeKernel && kernelHealth === 'connecting' ? 'text-blue-500' :
                       activeKernel && kernelHealth === 'stale' ? 'text-amber-500' :
                       kernelStatus === 'starting' ? 'text-blue-500' :
                       'text-red-500'
@@ -320,12 +325,14 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({ onNewNotebook })
                   <span className={`text-xs ${
                       activeKernel && kernelHealth === 'healthy' ? 'text-green-600' :
                       activeKernel && kernelHealth === 'warning' ? 'text-amber-600' :
+                      activeKernel && kernelHealth === 'connecting' ? 'text-blue-600' :
                       activeKernel && kernelHealth === 'stale' ? 'text-amber-600' :
                       kernelStatus === 'starting' ? 'text-blue-600' :
                       'text-red-600'
                     }`}>
                     {activeKernel && kernelHealth === 'healthy' ? 'Connected' :
                      activeKernel && kernelHealth === 'warning' ? 'Connected (Slow)' :
+                     activeKernel && kernelHealth === 'connecting' ? 'Connecting...' :
                      activeKernel && kernelHealth === 'stale' ? 'Connected (Stale)' :
                      kernelStatus === 'starting' ? 'Starting' :
                      'Disconnected'}

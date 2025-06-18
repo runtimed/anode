@@ -94,6 +94,15 @@ try {
     },
   }));
   console.log("✅ kernelSessionStarted event committed successfully");
+
+  // Send immediate heartbeat to show UI as connected right away
+  console.log("💓 Sending immediate heartbeat for instant UI feedback...");
+  store.commit(events.kernelSessionHeartbeat({
+    sessionId: SESSION_ID,
+    status: "ready",
+    timestamp: new Date(),
+  }));
+  console.log("✅ Initial heartbeat sent successfully");
 } catch (error) {
   console.error("❌ Failed to commit kernelSessionStarted event:", error);
   if (error instanceof Error) {
@@ -781,7 +790,7 @@ const heartbeatInterval = setInterval(() => {
       console.warn("Heartbeat error stack:", error.stack);
     }
   }
-}, 30000); // Every 30 seconds
+}, 15000); // Every 15 seconds (reduced from 30s for better UI responsiveness)
 
 // Graceful shutdown
 const shutdown = async () => {
