@@ -1,6 +1,6 @@
-// Anode Runtime Orchestrator - Central coordination hub for notebook execution
+// Anode Runtime Agent - Autonomous execution agent for notebook runtime
 //
-// This orchestrates execution across multiple engines:
+// This agent orchestrates execution across multiple engines for a single notebook:
 // - Document Sync Engine (LiveStore) - Event sourcing & real-time collaboration
 // - Python Kernel (Pyodide) - Code execution with rich outputs
 // - AI Models (OpenAI/local) - Intelligent code generation and assistance
@@ -30,13 +30,13 @@ const KERNEL_ID = process.env.KERNEL_ID ?? `kernel-${process.pid}`;
 const SESSION_ID = `${KERNEL_ID}-${Date.now()}-${Math.random().toString(36).slice(2)}`;
 
 // Startup messages
-console.log(`🎛️ Runtime Orchestrator starting for notebook: ${NOTEBOOK_ID}`);
-console.log(`🔗 LiveStore event-driven orchestration ready...`);
+console.log(`🤖 Runtime Agent starting for notebook: ${NOTEBOOK_ID}`);
+console.log(`🔗 LiveStore event-driven agent ready...`);
 console.log(`🤖 AI Integration: ${process.env.OPENAI_API_KEY ? 'OpenAI API configured ✅' : 'Mock responses only - set OPENAI_API_KEY for real AI ⚠️'}`);
 console.log(``);
 console.log(`⚡ Execution flow via reactive LiveStore queries:`);
 console.log(`   1. Web client emits cellExecutionRequested event (code or AI)`);
-console.log(`   2. Runtime orchestrator reacts to queue changes via queryDb subscriptions`);
+console.log(`   2. Runtime agent reacts to queue changes via queryDb subscriptions`);
 console.log(`   3. Python code executes with Pyodide OR AI calls OpenAI API`);
 console.log(`   4. Results sent back via cellOutputAdded events`);
 console.log(`   5. All connected clients see results in real-time`);
@@ -888,13 +888,13 @@ const processShutdown = async () => {
   if (isShuttingDown) return;
   isShuttingDown = true;
 
-  console.log("🛑 Shutting down runtime orchestrator...");
-  console.log("🔗 LiveStore orchestrator will handle its own cleanup...");
+  console.log("🛑 Shutting down runtime agent...");
+  console.log("🔗 LiveStore agent will handle its own cleanup...");
 
   // Trigger the existing shutdown logic
   await shutdown();
 
-  console.log("✅ Runtime orchestrator shutdown complete");
+  console.log("✅ Runtime agent shutdown complete");
   process.exit(0);
 };
 
@@ -910,8 +910,8 @@ process.on("unhandledRejection", (reason, promise) => {
   processShutdown();
 });
 
-console.log("🎉 Runtime Orchestrator operational - LiveStore event-driven mode");
-console.log("📡 Orchestrating reactive execution flows...");
+console.log("🎉 Runtime Agent operational - LiveStore event-driven mode");
+console.log("📡 Agent ready for reactive execution flows...");
 console.log("🔌 Press Ctrl+C to stop");
 while (running && !isShuttingDown) {
   await new Promise((resolve) => setTimeout(resolve, 1000));

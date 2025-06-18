@@ -1,7 +1,7 @@
 {
   "name": "@anode/dev-server-kernel-ls-client",
   "version": "0.1.0",
-  "description": "Anode Runtime Orchestrator - Central coordination hub for notebook execution",
+  "description": "Anode Runtime Agent - Autonomous execution agent for notebook runtime",
   "type": "module",
   "main": "./dist/index.js",
   "scripts": {

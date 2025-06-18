@@ -57,7 +57,7 @@ class MockPyodideKernel {
   }
 }
 
-describe("Runtime Orchestrator", () => {
+describe("Runtime Agent", () => {
   let store: any
   let storeId: string
   let sessionId: string

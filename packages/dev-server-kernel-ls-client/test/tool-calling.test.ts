@@ -29,7 +29,7 @@ vi.mock('crypto', () => ({
 }));
 
 // Import the functions we want to test after mocking
-// Note: We can't directly test the runtime-orchestrator.ts module because it has side effects,
+// Note: We can't directly test the runtime-agent.ts module because it has side effects,
 // so we'll test the tool calling logic by creating a minimal test setup
 
 describe('Tool Calling Integration', () => {
