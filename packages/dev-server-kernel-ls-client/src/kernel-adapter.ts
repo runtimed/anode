@@ -383,8 +383,8 @@ async function generateFakeAiResponse(cell: any, context?: NotebookContext): Pro
   const model = cell.aiModel || 'gpt-4o-mini';
   const prompt = cell.source || '';
 
-  // Simulate AI thinking time
-  await new Promise(resolve => setTimeout(resolve, 1000 + Math.random() * 2000));
+  // Simulate AI thinking time (reduced for better dev experience)
+  await new Promise(resolve => setTimeout(resolve, 200 + Math.random() * 500));
 
   // Generate context-aware response
   let contextInfo = '';
@@ -826,8 +826,7 @@ const shutdown = async () => {
     console.warn("⚠️ Failed to mark session as terminated:", error);
   }
 
-  // Give a moment for the event to sync
-  await new Promise(resolve => setTimeout(resolve, 1000));
+  // Event sync is handled by reactive system - no delay needed
 
   // Shutdown store and kernel
   await store.shutdown?.();
