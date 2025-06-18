@@ -15,7 +15,8 @@ import {
 
 import { SqlCell } from './SqlCell.js'
 import { AiCell } from './AiCell.js'
-import { RichOutput } from './RichOutput.js'
+import { RichOutput } from './RichOutput'
+import { cleanAnsiCodes, cleanTraceback } from '../../util/ansi-cleaner.js'
 
 import { Play, ChevronUp, ChevronDown, Plus, X, Code, FileText, Database, Bot, ArrowUp, ArrowDown, Eye, EyeOff } from 'lucide-react'
 
@@ -515,14 +516,14 @@ export const Cell: React.FC<CellProps> = ({
                       <div className="font-mono text-sm">
                         <div className="font-semibold text-red-700 mb-1">
                           {isErrorOutput(output.data)
-                            ? `${output.data.ename}: ${output.data.evalue}`
+                            ? `${cleanAnsiCodes(output.data.ename)}: ${cleanAnsiCodes(output.data.evalue)}`
                             : 'Unknown error'}
                         </div>
                         {isErrorOutput(output.data) && output.data.traceback && (
                           <div className="mt-2 text-red-600 text-xs whitespace-pre-wrap opacity-80">
                             {Array.isArray(output.data.traceback)
-                              ? output.data.traceback.join('\n')
-                              : output.data.traceback}
+                              ? (cleanTraceback(output.data.traceback) as string[]).join('\n')
+                              : cleanTraceback(output.data.traceback) as string}
                           </div>
                         )}
                       </div>

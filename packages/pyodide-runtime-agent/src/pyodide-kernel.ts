@@ -4,6 +4,7 @@
 import { loadPyodide, PyodideInterface } from "pyodide";
 import { OutputType, ErrorOutputData, RichOutputData, StreamOutputData } from "../../../shared/schema.js";
 import { getCacheConfig, getEssentialPackages } from "./cache-utils.js";
+import stripAnsi from "strip-ansi";
 
 export interface OutputData {
   type: OutputType;
@@ -43,11 +44,13 @@ export class PyodideKernel {
         packageCacheDir,
         stdout: (text: string) => {
           console.log("[py stdout]:", text);
-          this.addStreamOutput("stdout", text);
+          // Clean ANSI escape codes at the source for cleaner UI display
+          this.addStreamOutput("stdout", stripAnsi(text));
         },
         stderr: (text: string) => {
           console.error("[py stderr]:", text);
-          this.addStreamOutput("stderr", text);
+          // Clean ANSI escape codes at the source for cleaner UI display
+          this.addStreamOutput("stderr", stripAnsi(text));
         },
       });
 
@@ -244,10 +247,11 @@ shell.displayhook.js_callback = js_execution_callback
       }
 
     } catch (err: unknown) {
+      // Clean ANSI codes from error messages and stack traces
       const errorData: ErrorOutputData = {
-        ename: (err as Error)?.name ?? "KernelError",
-        evalue: (err as Error)?.message ?? "Kernel execution failed",
-        traceback: [(err as Error)?.stack ?? ""],
+        ename: stripAnsi((err as Error)?.name ?? "KernelError"),
+        evalue: stripAnsi((err as Error)?.message ?? "Kernel execution failed"),
+        traceback: [(err as Error)?.stack ?? ""].map(line => stripAnsi(line)),
       };
 
       this.outputs.push({
@@ -311,9 +315,9 @@ shell.displayhook.js_callback = js_execution_callback
     this.outputs.push({
       type: "error",
       data: {
-        ename,
-        evalue,
-        traceback,
+        ename: stripAnsi(ename),
+        evalue: stripAnsi(evalue),
+        traceback: traceback.map(line => stripAnsi(line)),
       } as ErrorOutputData,
       position: this.outputPosition++,
     });

@@ -25,7 +25,8 @@
     "@livestore/livestore": "catalog:",
     "@livestore/sync-cf": "catalog:",
     "pyodide": "catalog:",
-    "openai": "^4.0.0"
+    "openai": "^4.0.0",
+    "strip-ansi": "catalog:"
   },
   "devDependencies": {
     "typescript": "catalog:",

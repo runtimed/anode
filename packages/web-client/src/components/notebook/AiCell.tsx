@@ -13,6 +13,7 @@ import {
   DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu'
 import { RichOutput } from './RichOutput.js'
+import { cleanAnsiCodes, cleanTraceback } from '../../util/ansi-cleaner.js'
 import { Play, ChevronUp, ChevronDown, Plus, X, Bot, Code, FileText, Database, ArrowUp, ArrowDown, Eye, EyeOff } from 'lucide-react'
 
 interface AiCellProps {
@@ -505,14 +506,14 @@ export const AiCell: React.FC<AiCellProps> = ({
                     <div className="font-mono text-sm">
                       <div className="font-semibold text-red-700 mb-1">
                         {isErrorOutput(output.data)
-                          ? `${output.data.ename}: ${output.data.evalue}`
+                          ? `${cleanAnsiCodes(output.data.ename)}: ${cleanAnsiCodes(output.data.evalue)}`
                           : 'Unknown error'}
                       </div>
                       {isErrorOutput(output.data) && output.data.traceback && (
                         <div className="mt-2 text-red-600 text-xs whitespace-pre-wrap opacity-80">
                           {Array.isArray(output.data.traceback)
-                            ? output.data.traceback.join('\n')
-                            : output.data.traceback}
+                            ? (cleanTraceback(output.data.traceback) as string[]).join('\n')
+                            : cleanTraceback(output.data.traceback) as string}
                         </div>
                       )}
                     </div>
