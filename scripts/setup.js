@@ -117,10 +117,10 @@ function showNextSteps() {
   console.log("  2. Open http://localhost:5173");
   console.log("  3. Create a notebook and get kernel command from UI");
   console.log(
-    "  4. Start kernel: NOTEBOOK_ID=your-notebook-id pnpm dev:kernel",
+    "  4. Start runtime: NOTEBOOK_ID=your-notebook-id pnpm dev:runtime",
   );
   console.log(
-    "\n💡 Optional: Add your OpenAI API key to packages/dev-server-kernel-ls-client/.env",
+    "\n💡 Optional: Add your OpenAI API key to packages/pyodide-runtime-agent/.env",
   );
   console.log("    (API keys are kept server-side for security)");
 }

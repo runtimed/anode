@@ -22,7 +22,7 @@ pnpm dev  # Starts web client + sync backend
 1. Open http://localhost:5173
 2. Create a notebook (URL will show: `?notebook=notebook-123-abc`)
 3. Click the **Kernel** button in the notebook header
-4. Copy the exact kernel command shown (e.g., `NOTEBOOK_ID=notebook-123-abc pnpm dev:kernel`)
+4. Copy the exact runtime command shown (e.g., `NOTEBOOK_ID=notebook-123-abc pnpm dev:runtime`)
 5. Run that command in a new terminal
 
 ### 4. Optional: Add AI Features

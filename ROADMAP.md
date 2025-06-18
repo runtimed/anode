@@ -53,7 +53,7 @@
 ## Short-term Goals (Next 1-2 Months)
 
 ### Automated Kernel Management
-**Goal**: Remove manual `NOTEBOOK_ID=xyz pnpm dev:kernel` friction
+**Goal**: Remove manual `NOTEBOOK_ID=xyz pnpm dev:runtime` friction
 
 - [x] **Kernel session reliability** - Fixed materializer side effects causing restart failures (#34)
 - [ ] **Auto-spawning kernels** - One-click notebook startup

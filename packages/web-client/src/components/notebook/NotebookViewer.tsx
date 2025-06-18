@@ -31,7 +31,7 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({ onNewNotebook })
   const [contextSelectionMode, setContextSelectionMode] = React.useState(false)
 
   const currentNotebookId = getCurrentNotebookId()
-  const kernelCommand = `NOTEBOOK_ID=${currentNotebookId} pnpm dev:kernel`
+  const kernelCommand = `NOTEBOOK_ID=${currentNotebookId} pnpm dev:runtime`
 
   // Check kernel status with heartbeat-based health assessment
   const getKernelHealth = (session: KernelSessionData) => {

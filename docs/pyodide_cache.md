@@ -150,7 +150,7 @@ You can also configure caching via environment variables:
 
 ```bash
 export ANODE_CACHE_DIR="/custom/cache/path"
-pnpm dev:kernel
+pnpm dev:runtime
 ```
 
 ## Development Workflow
@@ -166,7 +166,7 @@ For the best development experience:
 
 2. **Regular Development**: Start kernels normally - they'll use cached packages
    ```bash
-   NOTEBOOK_ID=your-notebook-id pnpm dev:kernel
+   NOTEBOOK_ID=your-notebook-id pnpm dev:runtime
    ```
 
 3. **Add New Packages**: Install packages as needed in notebooks

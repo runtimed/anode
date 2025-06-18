@@ -362,7 +362,7 @@ cp .env.example .env                     # Configure environment (optional: unco
 # Current workflow
 pnpm dev                                 # Web + sync
 # Get kernel command from notebook UI, then:
-NOTEBOOK_ID=notebook-id-from-ui pnpm dev:kernel
+NOTEBOOK_ID=notebook-id-from-ui pnpm dev:runtime
 
 # Testing and utilities
 pnpm test                                # Current test suite

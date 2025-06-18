@@ -12,7 +12,7 @@ cp .env.example .env
 
 # Start services
 pnpm dev
-# In another terminal: NOTEBOOK_ID=your-notebook-id pnpm dev:kernel
+# In another terminal: NOTEBOOK_ID=your-notebook-id pnpm dev:runtime
 ```
 
 ## Demo Workflow
