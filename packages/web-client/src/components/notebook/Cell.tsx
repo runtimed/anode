@@ -17,7 +17,7 @@ import { SqlCell } from './SqlCell.js'
 import { AiCell } from './AiCell.js'
 import { RichOutput } from './RichOutput.js'
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
-import { Play, ChevronUp, ChevronDown, Plus, X, Code, FileText, Database, Bot, ArrowUp, ArrowDown } from 'lucide-react'
+import { Play, ChevronUp, ChevronDown, Plus, X, Code, FileText, Database, Bot, ArrowUp, ArrowDown, Eye, EyeOff } from 'lucide-react'
 
 type CellType = typeof tables.cells.Type
 
@@ -129,6 +129,13 @@ export const Cell: React.FC<CellProps> = ({
       outputVisible: !cell.outputVisible,
     }))
   }, [cell.id, cell.outputVisible, store])
+
+  const toggleAiContextVisibility = useCallback(() => {
+    store.commit(events.cellAiContextVisibilityToggled({
+      id: cell.id,
+      aiContextVisible: !cell.aiContextVisible,
+    }))
+  }, [cell.id, cell.aiContextVisible, store])
 
   const executeCell = useCallback(async () => {
     // Use localSource instead of cell.source to get the current typed content
@@ -272,7 +279,7 @@ export const Cell: React.FC<CellProps> = ({
   return (
     <div className={`mb-2 relative group transition-all duration-200 pt-2 ${
       autoFocus ? 'bg-primary/5' : 'hover:bg-muted/10'
-    }`} style={{
+    } ${!cell.aiContextVisible ? 'opacity-60' : ''}`} style={{
       position: 'relative',
     }}>
       {/* Custom left border with controlled height */}
@@ -338,6 +345,20 @@ export const Cell: React.FC<CellProps> = ({
                 </Button>
               </TooltipTrigger>
               <TooltipContent>{cell.sourceVisible ? 'Hide source' : 'Show source'}</TooltipContent>
+            </Tooltip>
+
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={toggleAiContextVisibility}
+                  className={`h-7 w-7 p-0 hover:bg-muted/80 ${cell.aiContextVisible ? '' : 'text-muted-foreground/60'}`}
+                >
+                  {cell.aiContextVisible ? <Eye className="h-3 w-3" /> : <EyeOff className="h-3 w-3" />}
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>{cell.aiContextVisible ? 'Hide from AI context' : 'Show in AI context'}</TooltipContent>
             </Tooltip>
 
             {/* Separator */}

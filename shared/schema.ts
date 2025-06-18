@@ -59,6 +59,7 @@ export const tables = {
       // Display visibility controls
       sourceVisible: State.SQLite.boolean({ default: true }),
       outputVisible: State.SQLite.boolean({ default: true }),
+      aiContextVisible: State.SQLite.boolean({ default: true }),
 
       createdBy: State.SQLite.text(),
     },
@@ -245,6 +246,14 @@ export const events = {
     schema: Schema.Struct({
       id: Schema.String,
       outputVisible: Schema.Boolean,
+    }),
+  }),
+
+  cellAiContextVisibilityToggled: Events.synced({
+    name: "v1.CellAiContextVisibilityToggled",
+    schema: Schema.Struct({
+      id: Schema.String,
+      aiContextVisible: Schema.Boolean,
     }),
   }),
 
@@ -435,6 +444,9 @@ const materializers = State.SQLite.materializers(events, {
 
   "v1.CellOutputVisibilityToggled": ({ id, outputVisible }) =>
     tables.cells.update({ outputVisible }).where({ id }),
+
+  "v1.CellAiContextVisibilityToggled": ({ id, aiContextVisible }) =>
+    tables.cells.update({ aiContextVisible }).where({ id }),
 
   // Kernel lifecycle materializers
   "v1.KernelSessionStarted": ({
