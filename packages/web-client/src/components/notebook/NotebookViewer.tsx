@@ -55,6 +55,16 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({ onNewNotebook })
   const kernelHealth = activeKernel ? getKernelHealth(activeKernel) : 'disconnected'
   const kernelStatus = activeKernel?.status || (kernelSessions.length > 0 ? kernelSessions[0].status : 'disconnected')
 
+  const toggleCellAiContext = useCallback((cellId: string) => {
+    const cell = cells.find((c: CellData) => c.id === cellId)
+    if (cell) {
+      store.commit(events.cellAiContextVisibilityToggled({
+        id: cellId,
+        aiContextVisible: !cell.aiContextVisible,
+      }))
+    }
+  }, [cells, store])
+
   const copyKernelCommand = useCallback(() => {
     navigator.clipboard.writeText(kernelCommand)
     // Could add a toast notification here
@@ -580,6 +590,40 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({ onNewNotebook })
           </div>
         </div>
       </div>
+
+      {/* Context Selection Gutter */}
+      {contextSelectionMode && (
+        <div className="fixed right-4 top-20 bottom-4 w-12 z-10">
+          <div className="h-full bg-purple-100/50 border-2 border-purple-200 rounded-lg p-2">
+            {/* Purple selection indicators for each cell */}
+            {sortedCells.map((cell: CellData, index: number) => (
+              <div
+                key={cell.id}
+                className="mb-3 flex justify-center"
+                style={{
+                  marginTop: index === 0 ? '0' : '2rem'
+                }}
+              >
+                <button
+                  onClick={() => toggleCellAiContext(cell.id)}
+                  className={`w-6 h-6 rounded-full border-2 transition-all ${
+                    cell.aiContextVisible
+                      ? 'bg-purple-500 border-purple-600 shadow-lg'
+                      : 'bg-white border-purple-300 hover:border-purple-400'
+                  }`}
+                  title={cell.aiContextVisible ? 'Included in AI context' : 'Excluded from AI context'}
+                >
+                  {cell.aiContextVisible && (
+                    <div className="w-full h-full flex items-center justify-center">
+                      <div className="w-2 h-2 bg-white rounded-full" />
+                    </div>
+                  )}
+                </button>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   )
 }
