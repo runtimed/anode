@@ -475,19 +475,26 @@ export const Cell: React.FC<CellProps> = ({
               ) : null}
             </span>
             {(outputs.length > 0 || cell.executionState === 'running') && (
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={toggleOutputVisibility}
-                className={`h-5 w-5 p-0 hover:bg-muted/80 transition-opacity ${
-                  autoFocus
-                    ? 'opacity-100'
-                    : 'opacity-0 group-hover:opacity-100'
-                } ${cell.outputVisible ? '' : 'text-muted-foreground/60'}`}
-                title={cell.outputVisible ? 'Hide output' : 'Show output'}
-              >
-                {cell.outputVisible ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
-              </Button>
+              <div className="flex items-center gap-2">
+                {!cell.outputVisible && outputs.length > 0 && (
+                  <span className="text-xs text-muted-foreground">
+                    {outputs.length === 1 ? '1 output hidden' : `${outputs.length} outputs hidden`}
+                  </span>
+                )}
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={toggleOutputVisibility}
+                  className={`h-5 w-5 p-0 hover:bg-muted/80 transition-opacity ${
+                    autoFocus
+                      ? 'opacity-100'
+                      : 'opacity-0 group-hover:opacity-100'
+                  } ${cell.outputVisible ? '' : 'text-muted-foreground/60'}`}
+                  title={cell.outputVisible ? 'Hide output' : 'Show output'}
+                >
+                  {cell.outputVisible ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
+                </Button>
+              </div>
             )}
           </div>
         </div>
@@ -541,6 +548,8 @@ export const Cell: React.FC<CellProps> = ({
               ))}
         </div>
       )}
+
+
     </div>
   )
 }

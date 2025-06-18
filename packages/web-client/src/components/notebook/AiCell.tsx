@@ -474,19 +474,26 @@ export const AiCell: React.FC<AiCellProps> = ({
               ) : null}
             </span>
             {outputs.length > 0 && (
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={toggleOutputVisibility}
-                className={`h-5 w-5 p-0 hover:bg-muted/80 transition-opacity ${
-                  autoFocus
-                    ? 'opacity-100'
-                    : 'opacity-0 group-hover:opacity-100'
-                } ${cell.outputVisible ? '' : 'text-muted-foreground/60'}`}
-                title={cell.outputVisible ? 'Hide output' : 'Show output'}
-              >
-                {cell.outputVisible ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
-              </Button>
+              <div className="flex items-center gap-2">
+                {!cell.outputVisible && (
+                  <span className="text-xs text-muted-foreground">
+                    AI response hidden
+                  </span>
+                )}
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={toggleOutputVisibility}
+                  className={`h-5 w-5 p-0 hover:bg-muted/80 transition-opacity ${
+                    autoFocus
+                      ? 'opacity-100'
+                      : 'opacity-0 group-hover:opacity-100'
+                  } ${cell.outputVisible ? '' : 'text-muted-foreground/60'}`}
+                  title={cell.outputVisible ? 'Hide output' : 'Show output'}
+                >
+                  {cell.outputVisible ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
+                </Button>
+              </div>
             )}
           </div>
         </div>
