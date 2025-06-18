@@ -59,14 +59,18 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({ onNewNotebook })
     // Could add a toast notification here
   }, [kernelCommand])
 
-  // Update current time every 10 seconds for heartbeat display
+  // Update current time for heartbeat display - more frequent when kernels are active
   React.useEffect(() => {
+    // Update every 2 seconds when we have active kernels for real-time feedback
+    // Update every 10 seconds when no active kernels to save resources
+    const updateInterval = hasActiveKernel ? 2000 : 10000
+
     const interval = setInterval(() => {
       setCurrentTime(new Date())
-    }, 10000) // Update every 10 seconds
+    }, updateInterval)
 
     return () => clearInterval(interval)
-  }, [])
+  }, [hasActiveKernel])
 
   React.useEffect(() => {
     if (notebook?.title) {
@@ -402,7 +406,9 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({ onNewNotebook })
                           const diffMs = now.getTime() - lastHeartbeat.getTime();
                           const diffSeconds = Math.floor(diffMs / 1000);
 
-                          if (diffSeconds < 60) {
+                          if (diffSeconds <= 0) {
+                            return 'Now';
+                          } else if (diffSeconds < 60) {
                             return `${diffSeconds}s ago`;
                           } else if (diffSeconds < 3600) {
                             return `${Math.floor(diffSeconds / 60)}m ago`;
@@ -465,6 +471,7 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({ onNewNotebook })
                               {(() => {
                                 const diffMs = currentTime.getTime() - new Date(session.lastHeartbeat).getTime();
                                 const diffSeconds = Math.floor(diffMs / 1000);
+                                if (diffSeconds <= 0) return 'Now';
                                 return diffSeconds < 60 ? `${diffSeconds}s` : `${Math.floor(diffSeconds / 60)}m`;
                               })()}
                             </span>
