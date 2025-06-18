@@ -37,7 +37,6 @@
     "type-check:runtime": "pnpm --filter @anode/pyodide-runtime-agent type-check",
     "lint:runtime": "pnpm --filter @anode/pyodide-runtime-agent lint",
     "check": "pnpm type-check && pnpm lint",
-    "reset-storage": "node reset-local-storage.cjs",
     "start": "echo 'Use pnpm dev to start core services. For Python execution, start runtime with: NOTEBOOK_ID=your-notebook-id pnpm dev:runtime'"
   },
   "devDependencies": {
