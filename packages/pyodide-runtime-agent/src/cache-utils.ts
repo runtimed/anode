@@ -22,6 +22,7 @@ export function getEssentialPackages(): string[] {
     "scikit-learn", // Machine learning
     "altair",     // Statistical visualization
     "geopandas",  // Geospatial data analysis
+    "rich",       // Beautiful terminal output with colors
   ];
 }
 

@@ -57,3 +57,5 @@ catalog:
   "@cloudflare/workers-types": ^4.20250106.0
   concurrently: ^9.1.2
   "@overengineering/fps-meter": 0.1.2
+  strip-ansi: ^7.1.0
+  ansi-to-react: ^6.1.6

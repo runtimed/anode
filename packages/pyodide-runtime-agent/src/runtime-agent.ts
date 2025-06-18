@@ -20,6 +20,7 @@ import { randomUUID } from "crypto";
 import { events, schema, tables, CellData, ExecutionQueueData, KernelSessionData, OutputData } from "../../../shared/schema.js";
 import { PyodideKernel } from "./pyodide-kernel.js";
 import { openaiClient } from "./openai-client.js";
+import stripAnsi from "strip-ansi";
 
 const NOTEBOOK_ID = process.env.NOTEBOOK_ID ?? "demo-notebook";
 const AUTH_TOKEN = process.env.AUTH_TOKEN ?? "insecure-token-change-me";
@@ -302,26 +303,26 @@ Output:
 `;
         cell.outputs.forEach((output) => {
           if (output.outputType === 'stream') {
-            // Handle stream outputs (stdout/stderr)
+            // Handle stream outputs (stdout/stderr) - clean ANSI for AI consumption
             if (output.data.text) {
               systemPrompt += `\`\`\`
-${output.data.text}
+${stripAnsi(output.data.text)}
 \`\`\`
 `;
             }
           } else if (output.outputType === 'error') {
-            // Handle error outputs
+            // Handle error outputs - clean ANSI for AI consumption
             if (output.data.ename && output.data.evalue) {
               systemPrompt += `\`\`\`
-Error: ${output.data.ename}: ${output.data.evalue}
+Error: ${stripAnsi(output.data.ename)}: ${stripAnsi(output.data.evalue)}
 \`\`\`
 `;
             }
           } else if (output.outputType === 'execute_result' || output.outputType === 'display_data') {
-            // Handle rich outputs
+            // Handle rich outputs - clean ANSI for AI consumption
             if (output.data['text/plain']) {
               systemPrompt += `\`\`\`
-${output.data['text/plain']}
+${stripAnsi(output.data['text/plain'])}
 \`\`\`
 `;
             }

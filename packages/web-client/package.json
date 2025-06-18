@@ -31,6 +31,8 @@
     "react-dom": "catalog:",
     "react-markdown": "^10.1.0",
     "react-syntax-highlighter": "^15.6.1",
+    "strip-ansi": "catalog:",
+    "ansi-to-react": "catalog:",
     "tailwind-merge": "catalog:",
     "tw-animate-css": "catalog:"
   },
