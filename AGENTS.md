@@ -148,7 +148,7 @@ LiveStore requires all materializers to be **pure functions without side effects
 
 **Rule**: If you need data in a materializer, add it to the event schema and pass it when committing the event. Materializers must be deterministic and reproducible.
 
-### Recent Critical Fixes (December 2024)
+### Recent Critical Fixes (June 2025)
 
 **Kernel Restart Bug (#34) - RESOLVED** ✅
 
