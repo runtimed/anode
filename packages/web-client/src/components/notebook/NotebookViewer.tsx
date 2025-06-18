@@ -7,7 +7,7 @@ import { formatDistanceToNow } from 'date-fns'
 
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { Copy, Terminal, Circle, Plus, FileText, Database, Bot, Code } from 'lucide-react'
+import { Copy, Terminal, Circle, Plus, FileText, Database, Bot, Code, Filter, X } from 'lucide-react'
 import { getCurrentNotebookId } from '../../util/store-id.js'
 
 
@@ -28,6 +28,7 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({ onNewNotebook })
   const [localTitle, setLocalTitle] = React.useState(notebook?.title || '')
   const [showKernelHelper, setShowKernelHelper] = React.useState(false)
   const [focusedCellId, setFocusedCellId] = React.useState<string | null>(null)
+  const [contextSelectionMode, setContextSelectionMode] = React.useState(false)
 
   const currentNotebookId = getCurrentNotebookId()
   const kernelCommand = `NOTEBOOK_ID=${currentNotebookId} pnpm dev:kernel`
@@ -308,6 +309,15 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({ onNewNotebook })
               >
                 <span>{sortedCells.length} cells</span>
               </Button>
+              <Button
+                variant={contextSelectionMode ? "default" : "outline"}
+                size="sm"
+                onClick={() => setContextSelectionMode(!contextSelectionMode)}
+                className="flex items-center gap-2"
+              >
+                <Brain className="h-4 w-4" />
+                {contextSelectionMode ? 'Exit Context Selection' : 'Select AI Context'}
+              </Button>
             </div>
           </div>
         </div>
@@ -523,7 +533,8 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({ onNewNotebook })
               onFocusNext={() => focusNextCell(cell.id)}
               onFocusPrevious={() => focusPreviousCell(cell.id)}
               onFocus={() => focusCell(cell.id)}
-              autoFocus={focusedCellId === cell.id}
+              autoFocus={cell.id === focusedCellId}
+              contextSelectionMode={contextSelectionMode}
             />
           ))
         )}

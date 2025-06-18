@@ -22,6 +22,7 @@ interface SqlCellProps {
   onFocusPrevious?: () => void
   autoFocus?: boolean
   onFocus?: () => void
+  contextSelectionMode?: boolean
 }
 
 export const SqlCell: React.FC<SqlCellProps> = ({
@@ -33,7 +34,8 @@ export const SqlCell: React.FC<SqlCellProps> = ({
   onFocusNext,
   onFocusPrevious,
   autoFocus = false,
-  onFocus
+  onFocus,
+  contextSelectionMode = false
 }) => {
   const { store } = useStore()
   const [localQuery, setLocalQuery] = useState(cell.source)
@@ -301,15 +303,17 @@ export const SqlCell: React.FC<SqlCellProps> = ({
             {cell.sourceVisible ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
           </Button>
 
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={toggleAiContextVisibility}
-            className={`h-7 w-7 p-0 hover:bg-muted/80 ${cell.aiContextVisible ? '' : 'text-muted-foreground/60'}`}
-            title={cell.aiContextVisible ? 'Hide from AI context' : 'Show in AI context'}
-          >
-            {cell.aiContextVisible ? <Eye className="h-3 w-3" /> : <EyeOff className="h-3 w-3" />}
-          </Button>
+          {contextSelectionMode && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={toggleAiContextVisibility}
+              className={`h-7 w-7 p-0 hover:bg-muted/80 ${cell.aiContextVisible ? '' : 'text-muted-foreground/60'}`}
+              title={cell.aiContextVisible ? 'Hide from AI context' : 'Show in AI context'}
+            >
+              {cell.aiContextVisible ? <Eye className="h-3 w-3" /> : <EyeOff className="h-3 w-3" />}
+            </Button>
+          )}
 
           {/* Separator */}
           <div className="w-px h-4 bg-border/50 mx-1" />

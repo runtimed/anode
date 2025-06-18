@@ -33,6 +33,7 @@ interface CellProps {
   onFocusPrevious?: () => void
   autoFocus?: boolean
   onFocus?: () => void
+  contextSelectionMode?: boolean
 }
 
 export const Cell: React.FC<CellProps> = ({
@@ -44,7 +45,8 @@ export const Cell: React.FC<CellProps> = ({
   onFocusNext,
   onFocusPrevious,
   autoFocus = false,
-  onFocus
+  onFocus,
+  contextSelectionMode = false
 }) => {
   // Route to specialized cell components
   if (cell.cellType === 'sql') {
@@ -58,6 +60,7 @@ export const Cell: React.FC<CellProps> = ({
       onFocusPrevious={onFocusPrevious}
       autoFocus={autoFocus}
       onFocus={onFocus}
+      contextSelectionMode={contextSelectionMode}
     />
   }
 
@@ -72,6 +75,7 @@ export const Cell: React.FC<CellProps> = ({
       onFocusPrevious={onFocusPrevious}
       autoFocus={autoFocus}
       onFocus={onFocus}
+      contextSelectionMode={contextSelectionMode}
     />
   }
 
@@ -347,19 +351,21 @@ export const Cell: React.FC<CellProps> = ({
               <TooltipContent>{cell.sourceVisible ? 'Hide source' : 'Show source'}</TooltipContent>
             </Tooltip>
 
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={toggleAiContextVisibility}
-                  className={`h-7 w-7 p-0 hover:bg-muted/80 ${cell.aiContextVisible ? '' : 'text-muted-foreground/60'}`}
-                >
-                  {cell.aiContextVisible ? <Eye className="h-3 w-3" /> : <EyeOff className="h-3 w-3" />}
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent>{cell.aiContextVisible ? 'Hide from AI context' : 'Show in AI context'}</TooltipContent>
-            </Tooltip>
+            {contextSelectionMode && (
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={toggleAiContextVisibility}
+                    className={`h-7 w-7 p-0 hover:bg-muted/80 ${cell.aiContextVisible ? '' : 'text-muted-foreground/60'}`}
+                  >
+                    {cell.aiContextVisible ? <Eye className="h-3 w-3" /> : <EyeOff className="h-3 w-3" />}
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>{cell.aiContextVisible ? 'Hide from AI context' : 'Show in AI context'}</TooltipContent>
+              </Tooltip>
+            )}
 
             {/* Separator */}
             <div className="w-px h-4 bg-border/50 mx-1" />
