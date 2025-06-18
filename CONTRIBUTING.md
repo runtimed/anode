@@ -22,11 +22,11 @@ pnpm dev  # Starts web client + sync backend
 1. Open http://localhost:5173
 2. Create a notebook (URL will show: `?notebook=notebook-123-abc`)
 3. Click the **Kernel** button in the notebook header
-4. Copy the exact kernel command shown (e.g., `NOTEBOOK_ID=notebook-123-abc pnpm dev:kernel`)
+4. Copy the exact runtime command shown (e.g., `NOTEBOOK_ID=notebook-123-abc pnpm dev:runtime`)
 5. Run that command in a new terminal
 
 ### 4. Optional: Add AI Features
-Edit `packages/dev-server-kernel-ls-client/.env` and uncomment the OpenAI API key line:
+Edit `packages/pyodide-runtime-agent/.env` and uncomment the OpenAI API key line:
 ```bash
 # Uncomment and add your key:
 OPENAI_API_KEY=sk-your-key-here
@@ -71,7 +71,7 @@ anode/
 ├── packages/
 │   ├── web-client/     # React web application
 │   ├── docworker/      # Cloudflare Worker sync backend
-│   └── dev-server-kernel-ls-client/  # Python kernel server
+│   └── pyodide-runtime-agent/  # Python kernel server
 ├── docs/               # Documentation
 ├── scripts/            # Development scripts
 └── CONTRIBUTING.md     # This file
@@ -87,7 +87,7 @@ The setup script automatically creates separate `.env` files for security:
 VITE_LIVESTORE_SYNC_URL=ws://localhost:8787
 ```
 
-**Kernel Server** (`packages/dev-server-kernel-ls-client/.env`) - Server-only variables:
+**Kernel Server** (`packages/pyodide-runtime-agent/.env`) - Server-only variables:
 ```bash
 # LiveStore Sync Backend URL (for kernel server connection)
 LIVESTORE_SYNC_URL=ws://localhost:8787

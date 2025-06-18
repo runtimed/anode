@@ -15,7 +15,7 @@ Users must manually start kernels for each notebook:
 
 ```bash
 # Current manual process
-NOTEBOOK_ID=notebook-1750103266697-6y9q7nvc0v4 pnpm dev:kernel
+NOTEBOOK_ID=notebook-1750103266697-6y9q7nvc0v4 pnpm dev:runtime
 ```
 
 ### Problems with Current Approach
@@ -125,7 +125,7 @@ class ProcessKernelManager {
   private kernels = new Map<string, ChildProcess>();
   
   async startKernel(notebookId: string): Promise<ProcessKernel> {
-    const kernelProcess = spawn('pnpm', ['dev:kernel'], {
+    const kernelProcess = spawn('pnpm', ['dev:runtime'], {
       env: {
         ...process.env,
         NOTEBOOK_ID: notebookId,

@@ -57,7 +57,7 @@ class MockPyodideKernel {
   }
 }
 
-describe('Kernel Adapter', () => {
+describe("Runtime Agent", () => {
   let store: any
   let storeId: string
   let sessionId: string
@@ -83,8 +83,8 @@ describe('Kernel Adapter', () => {
     await cleanupResources(store)
   })
 
-  describe('Kernel Session Management', () => {
-    it('should register kernel session on startup', async () => {
+  describe("Kernel Session Management", () => {
+    it("should register kernel session on startup", async () => {
       // Simulate kernel session startup
       store.commit(events.kernelSessionStarted({
         sessionId,

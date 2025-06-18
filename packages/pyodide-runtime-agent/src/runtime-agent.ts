@@ -1,8 +1,15 @@
-// LiveStore <-> Pyodide kernel adapter with REACTIVE architecture
-// Key changes from polling version:
-// 1. Use queryDb() for reactive queries instead of polling intervals
-// 2. Subscribe to execution queue changes with proper lifecycle management
-// 3. Maintain same event flow but react automatically to data changes
+// Anode Runtime Agent - Autonomous execution agent for notebook runtime
+//
+// This agent orchestrates execution across multiple engines for a single notebook:
+// - Document Sync Engine (LiveStore) - Event sourcing & real-time collaboration
+// - Python Kernel (Pyodide) - Code execution with rich outputs
+// - AI Models (OpenAI/local) - Intelligent code generation and assistance
+// - Future execution engines (SQL, GraphQL, Mermaid, etc.)
+//
+// Architecture: Event-driven reactive execution using LiveStore queries
+// - Reactive subscriptions to execution queue changes
+// - Event sourcing flow with automatic data change reactions
+// - Graceful lifecycle management and cleanup
 
 import { makeAdapter } from "@livestore/adapter-node";
 import { createStorePromise, queryDb } from "@livestore/livestore";
@@ -22,12 +29,23 @@ const KERNEL_ID = process.env.KERNEL_ID ?? `kernel-${process.pid}`;
 // Generate unique session ID for this kernel instance
 const SESSION_ID = `${KERNEL_ID}-${Date.now()}-${Math.random().toString(36).slice(2)}`;
 
-console.log(`🔗 Starting REACTIVE kernel adapter for notebook '${NOTEBOOK_ID}'`);
+// Startup messages
+console.log(`🤖 Runtime Agent starting for notebook: ${NOTEBOOK_ID}`);
+console.log(`🔗 LiveStore event-driven agent ready...`);
+console.log(`🤖 AI Integration: ${process.env.OPENAI_API_KEY ? 'OpenAI API configured ✅' : 'Mock responses only - set OPENAI_API_KEY for real AI ⚠️'}`);
+console.log(``);
+console.log(`⚡ Execution flow via reactive LiveStore queries:`);
+console.log(`   1. Web client emits cellExecutionRequested event (code or AI)`);
+console.log(`   2. Runtime agent reacts to queue changes via queryDb subscriptions`);
+console.log(`   3. Python code executes with Pyodide OR AI calls OpenAI API`);
+console.log(`   4. Results sent back via cellOutputAdded events`);
+console.log(`   5. All connected clients see results in real-time`);
+console.log(``);
 console.log(`📝 Store ID: ${NOTEBOOK_ID} (same as notebook ID)`);
 console.log(`🎯 Kernel ID: ${KERNEL_ID}`);
 console.log(`🎫 Session ID: ${SESSION_ID}`);
 console.log(`🔄 Sync URL: ${SYNC_URL}`);
-console.log(`⚡ Using reactive queries instead of polling`);
+console.log(`⚡ Event-driven reactive execution architecture`);
 console.log(`🤖 AI cell support: enabled (${openaiClient.isReady() ? 'OpenAI configured' : 'mock responses only - set OPENAI_API_KEY for real AI'})`);
 
 const adapter = makeAdapter({
@@ -67,17 +85,26 @@ const store = await createStorePromise({
 });
 console.log(`✅ Store created successfully`);
 
+// Initialize kernel and register session in parallel where possible
 const kernel = new PyodideKernel(NOTEBOOK_ID);
-await kernel.initialize();
 
-try {
-  const existingNotebooks = store.query(tables.notebook.select()) as any[];
-  const existingKernelSessions = store.query(tables.kernelSessions.select()) as any[];
-  console.log(`📊 Store state: ${existingNotebooks.length} notebooks, ${existingKernelSessions.length} kernel sessions`);
-} catch (error) {
-  console.log("⚠️ Could not query store state:", error);
-}
+// Start kernel initialization and store state query in parallel
+const [_, storeState] = await Promise.all([
+  kernel.initialize(),
+  // Query store state in parallel with kernel initialization
+  Promise.resolve().then(() => {
+    try {
+      const existingNotebooks = store.query(tables.notebook.select()) as any[];
+      const existingKernelSessions = store.query(tables.kernelSessions.select()) as any[];
+      return { notebooks: existingNotebooks.length, sessions: existingKernelSessions.length };
+    } catch (error) {
+      console.log("⚠️ Could not query store state:", error);
+      return { notebooks: 0, sessions: 0 };
+    }
+  })
+]);
 
+console.log(`📊 Store state: ${storeState.notebooks} notebooks, ${storeState.sessions} kernel sessions`);
 console.log("📝 Registering kernel session...");
 
 // Register this kernel session
@@ -867,7 +894,43 @@ console.log("  • Pending work → automatic claiming");
 console.log("🔌 Press Ctrl+C to stop");
 
 // Keep process alive
-let running = true;
+let running = false;
+
+// =============================================================================
+// PROCESS LIFECYCLE MANAGEMENT
+// =============================================================================
+
+// Graceful shutdown (reuse existing isShuttingDown variable)
+
+const processShutdown = async () => {
+  if (isShuttingDown) return;
+  isShuttingDown = true;
+
+  console.log("🛑 Shutting down runtime agent...");
+  console.log("🔗 LiveStore agent will handle its own cleanup...");
+
+  // Trigger the existing shutdown logic
+  await shutdown();
+
+  console.log("✅ Runtime agent shutdown complete");
+  process.exit(0);
+};
+
+// Handle shutdown signals
+process.on("SIGINT", processShutdown);
+process.on("SIGTERM", processShutdown);
+process.on("uncaughtException", (error) => {
+  console.error("💥 Uncaught exception:", error);
+  processShutdown();
+});
+process.on("unhandledRejection", (reason, promise) => {
+  console.error("💥 Unhandled rejection at:", promise, "reason:", reason);
+  processShutdown();
+});
+
+console.log("🎉 Runtime Agent operational - LiveStore event-driven mode");
+console.log("📡 Agent ready for reactive execution flows...");
+console.log("🔌 Press Ctrl+C to stop");
 while (running && !isShuttingDown) {
   await new Promise((resolve) => setTimeout(resolve, 1000));
 }

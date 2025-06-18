@@ -4,7 +4,7 @@
 
 **Focus**: Async Python execution, AI context integration, and visibility controls
 
-✅ **Documentation fixes completed**: Updated all file references (mod-reactive.ts → kernel-adapter.ts, OPENAI_INTEGRATION.md → ai-features.md, etc.)
+✅ **Documentation fixes completed**: Updated all file references (mod-reactive.ts → runtime-agent.ts, OPENAI_INTEGRATION.md → ai-features.md, etc.)
 ✅ **Task 4 completed**: Source/Output Display Toggles implemented and ready for review
 
 ## MAJOR PROGRESS COMPLETED (June 2025) ✅
@@ -28,26 +28,26 @@ Based on recent git commits, significant progress has been made on all priority 
 
 **✅ Task 4: Source/Output Display Toggles** - Already completed as part of Task 3
 
-**✅ Major Bug Fix: Kernel Restart Issue (#34)** - Commits `6e0fb4f` and `a1bf20d` resolved:
-- Fixed LiveStore materializer hash mismatches causing kernel failures
+**✅ Major Bug Fix: Runtime Restart Issue (#34)** - Commits `6e0fb4f` and `a1bf20d` resolved:
+- Fixed LiveStore materializer hash mismatches causing runtime failures
 - Made ExecutionCompleted/ExecutionCancelled materializers deterministic
 - Removed non-deterministic `ctx.query()` calls from materializers
-- Kernel sessions now reliable across multiple restarts
+- Runtime sessions now reliable across multiple restarts
 
-**✅ UI Polish & Timing Improvements** - Commit `fbac4ce` enhanced kernel connection UX:
-- Fixed red button showing despite connected kernel
-- Added immediate heartbeat on kernel startup for instant feedback
-- Improved kernel status display with better visual feedback
+**✅ UI Polish & Timing Improvements** - Commit `fbac4ce` enhanced runtime connection UX:
+- Fixed red button showing despite connected runtime
+- Added immediate heartbeat on runtime startup for instant feedback
+- Improved runtime status display with better visual feedback
 - Reduced AI mock delay for better development UX
 
 ### Task 1: Switch to Async Python Code Execution ✅ COMPLETED
-**Goal**: Make Python code execution truly asynchronous in the kernel
+**Goal**: Make Python code execution truly asynchronous in the runtime
 **Current Issue**: Python execution may block during long-running operations
 **Solution**: Enhance PyodideKernel with better async patterns and execution queuing
 
 **Files to modify**:
-- `packages/dev-server-kernel-ls-client/src/pyodide-kernel.ts` - Enhance async execution with proper yielding
-- `packages/dev-server-kernel-ls-client/src/kernel-adapter.ts` - Update execution flow for better async handling
+- `packages/pyodide-runtime-agent/src/pyodide-kernel.ts` - Enhance async execution with proper yielding
+- `packages/pyodide-runtime-agent/src/runtime-agent.ts` - Update execution flow for better async handling
 - Consider setTimeout/setImmediate patterns to yield control during execution
 
 ### Task 2: Show Outputs to AI Model Context Window 🤖 ✅ COMPLETED
@@ -83,7 +83,7 @@ Based on recent git commits, significant progress has been made on all priority 
 - `shared/schema.ts` - Add `aiContextVisible` and `aiOutputsVisible` boolean fields to cells table
 - `packages/web-client/src/components/notebook/CodeCell.tsx` - Add context visibility toggle buttons
 - `packages/web-client/src/components/notebook/AiCell.tsx` - Add visibility indicators
-- `packages/dev-server-kernel-ls-client/src/kernel-adapter.ts` - Filter cells in `gatherNotebookContext()` based on visibility settings
+- `packages/pyodide-runtime-agent/src/runtime-agent.ts` - Filter cells in `gatherNotebookContext()` based on visibility settings
 
 ### Task 4: Source/Output Display Toggles ✅ COMPLETED
 **Goal**: Allow users to collapse/expand source code and outputs
@@ -109,19 +109,19 @@ Based on recent git commits, significant progress has been made on all priority 
 
 ## Current Work State - MAJOR PROGRESS MADE ✅
 
-**Status**: 🚧 **Working Prototype** - Core collaborative editing, Python execution, and basic AI integration functional, rich outputs need verification. Major kernel restart bug (#34) resolved.
+**Status**: 🚧 **Working Prototype** - Core collaborative editing, Python execution, and basic AI integration functional, rich outputs need verification. Major runtime restart bug (#34) resolved.
 
 ### What's Actually Working ✅
 
 #### Core Collaborative System
 - **LiveStore integration** - Event-sourcing with real-time collaboration working reliably
 - **Schema architecture** - Direct TypeScript imports across all packages with full type safety
-- **Reactive subscriptions** - Kernel work detection without polling delays
+- **Reactive subscriptions** - Runtime work detection without polling delays
 - **Cell management** - Create, edit, move, delete cells with proper state sync
 
 #### Python Execution
-- **Basic Python execution** - Code cells run Python via Pyodide (manual kernel startup)
-- **Kernel session reliability** - Fixed materializer side effects causing restart failures (#34) ✅
+- **Basic Python execution** - Code cells run Python via Pyodide (manual runtime startup)
+- **Runtime session reliability** - Fixed materializer side effects causing restart failures (#34) ✅
 - **Error handling** - Python exceptions properly captured and displayed
 - **Text output** - print() statements and basic stdout/stderr capture
 - **Execution queue** - Proper job queuing and status tracking
@@ -162,13 +162,13 @@ Based on recent git commits, significant progress has been made on all priority 
 - ✅ Tool calling test infrastructure in place
 
 **Next Steps**:
-- Implement `create_cell` function calling handler in kernel-adapter
+- Implement `create_cell` function calling handler in runtime-agent
 - Add `modify_cell` and `execute_cell` tool functions
 - Create user confirmation flow for AI actions
 - Add AI-generated content indicators in UI
 
 **Files to modify**:
-- `packages/dev-server-kernel-ls-client/src/kernel-adapter.ts` - Add tool handlers
+- `packages/pyodide-runtime-agent/src/runtime-agent.ts` - Add tool handlers
 - `packages/web-client/src/components/notebook/AiCell.tsx` - Add confirmation UI
 - `shared/schema.ts` - Add AI action events if needed
 
@@ -189,7 +189,7 @@ Based on recent git commits, significant progress has been made on all priority 
 - Output filtering and context integration
 
 **Key Test Areas**:
-- `packages/dev-server-kernel-ls-client/test/pyodide-integration.test.ts` - Real execution tests
+- `packages/pyodide-runtime-agent/test/pyodide-integration.test.ts` - Real execution tests
 - Rich output rendering in browser environment
 - AI context integration with real outputs
 - Performance under load and with large outputs
@@ -205,7 +205,7 @@ Based on recent git commits, significant progress has been made on all priority 
 **Goal**: Connect to Model Context Protocol providers for extensible AI tooling
 
 **Key Concepts**:
-- **Local MCP Registry**: Discover and manage MCP providers via Python kernel
+- **Local MCP Registry**: Discover and manage MCP providers via Python runtime
 - **Tool Routing**: Seamlessly route AI tool calls between built-in notebook tools and MCP providers
 - **Python Integration**: Use Python introspection to discover MCP-compatible modules
 - **Unified Interface**: Single AI interface that can access both notebook and external tools
@@ -213,34 +213,34 @@ Based on recent git commits, significant progress has been made on all priority 
 **Implementation Strategy**:
 1. Start with built-in notebook tools (`create_cell`, `modify_cell`)
 2. Design MCP registry architecture for future extension
-3. Add Python kernel discovery of MCP-compatible modules
+3. Add Python runtime discovery of MCP-compatible modules
 4. Implement tool routing between notebook and MCP providers
 
 **Files to create/modify**:
-- `packages/dev-server-kernel-ls-client/src/mcp-registry.ts` - MCP provider management
-- `packages/dev-server-kernel-ls-client/src/pyodide-kernel.ts` - Python MCP discovery
+- `packages/pyodide-runtime-agent/src/mcp-registry.ts` - MCP provider management
+- `packages/pyodide-runtime-agent/src/pyodide-kernel.ts` - Python MCP discovery
 - Enhanced tool routing in reactive system
 
 **Estimated effort**: 1-2 months (after tool calling foundation)
 **Impact**: Enables unlimited AI tool extensibility through Python ecosystem
 
-### Priority 4: Auto Kernel Management (Medium Priority) 🔧 TIMING IMPROVED
-**Current friction**: Manual `NOTEBOOK_ID=xyz pnpm dev:kernel` per notebook
+### Priority 4: Auto Runtime Management (Medium Priority) 🔧 TIMING IMPROVED
+**Current friction**: Manual `NOTEBOOK_ID=xyz pnpm dev:runtime` per notebook
 
-**Goal**: One-click notebook startup with automatic kernel lifecycle
+**Goal**: One-click notebook startup with automatic runtime lifecycle
 
-**Foundation now solid**: With kernel restart bug (#34) fixed, automated management is much more viable
+**Foundation now solid**: With runtime restart bug (#34) fixed, automated management is much more viable
 
 **Next actions**:
-- Modify `pnpm dev` to auto-spawn kernels per notebook
-- Add kernel health monitoring and restart capability
-- Better error messages when kernels fail or disconnect
-- Leverage fixed kernel session reliability for robust auto-restart
+- Modify `pnpm dev` to auto-spawn runtimes per notebook
+- Add runtime health monitoring and restart capability
+- Better error messages when runtimes fail or disconnect
+- Leverage fixed runtime session reliability for robust auto-restart
 
 **Files to modify**:
 - Root `package.json` - Update dev script
 - `packages/web-client/src/components/notebook/NotebookViewer.tsx` - Status display
-- Add kernel process management utilities
+- Add runtime process management utilities
 
 **Estimated effort**: 2-3 hours (reduced due to fixed foundation)
 **Impact**: Removes major user friction + leverages recent reliability improvements
@@ -257,7 +257,7 @@ Based on recent git commits, significant progress has been made on all priority 
 - Document what rich outputs are supported
 
 **Files to modify**:
-- `packages/dev-server-kernel-ls-client/src/pyodide-kernel.ts` - Display system
+- `packages/pyodide-runtime-agent/src/pyodide-kernel.ts` - Display system
 - Add rich output examples and tests
 - Document supported output types
 
@@ -270,7 +270,7 @@ Based on recent git commits, significant progress has been made on all priority 
 **Goal**: Professional error handling and user feedback
 
 **Next actions**:
-- Better kernel failure messages
+- Better runtime failure messages
 - Execution timeout handling
 - Clear status indicators for all operations
 - Graceful degradation when kernel unavailable
@@ -341,15 +341,15 @@ pnpm test               # Full test suite (27 passing, 13 skipped)
 ## Major Files Recently Enhanced
 
 ### AI Integration & Context System ✅
-- `packages/dev-server-kernel-ls-client/src/pyodide-kernel.ts` - **Main implementation**
+- `packages/pyodide-runtime-agent/src/pyodide-kernel.ts` - **Main implementation**
 - `packages/web-client/src/components/notebook/RichOutput.tsx` - Output rendering
 - `shared/schema.ts` - Output type definitions
 
 ### Visibility Controls & UI Polish ✅
-- `packages/dev-server-kernel-ls-client/src/openai-client.ts` - OpenAI API client
-- `packages/dev-server-kernel-ls-client/src/kernel-adapter.ts` - AI integration point
+- `packages/pyodide-runtime-agent/src/openai-client.ts` - OpenAI API client
+- `packages/pyodide-runtime-agent/src/runtime-agent.ts` - AI integration point
 - `packages/web-client/src/components/notebook/AiCell.tsx` - AI UI components
-- `packages/dev-server-kernel-ls-client/test/openai-client.test.ts` - Comprehensive tests
+- `packages/pyodide-runtime-agent/test/openai-client.test.ts` - Comprehensive tests
 - `docs/ai-features.md` - Setup and usage documentation
 
 ## Development Commands
@@ -362,7 +362,7 @@ cp .env.example .env                     # Configure environment (optional: unco
 # Current workflow
 pnpm dev                                 # Web + sync
 # Get kernel command from notebook UI, then:
-NOTEBOOK_ID=notebook-id-from-ui pnpm dev:kernel
+NOTEBOOK_ID=notebook-id-from-ui pnpm dev:runtime
 
 # Testing and utilities
 pnpm test                                # Current test suite
@@ -407,7 +407,7 @@ docs/
 - Performance optimization for large notebooks
 
 **Phase 4: MCP Integration & Advanced Features**
-- Model Context Protocol integration via Python kernel
+- Model Context Protocol integration via Python runtime
 - SQL cells with database connections
 - Interactive widgets and collaborative components
 - Performance optimization for large notebooks
@@ -415,16 +415,16 @@ docs/
 
 ## Critical Issues - PROGRESS UPDATE
 
-1. **🔥 Kernel Restart Bug** - Multiple kernel restarts break execution (see https://github.com/rgbkrk/anode/issues/34 and branch `annoying-multiples-bug`)
+1. **🔥 Runtime Restart Bug** - Multiple runtime restarts break execution (see https://github.com/rgbkrk/anode/issues/34 and branch `annoying-multiples-bug`)
    - **Impact**: Blocks production deployment, breaks user workflow
-   - **Workaround**: Full page refresh required after 2 kernel restarts
+   - **Workaround**: Full page refresh required after 2 runtime restarts
    - **Investigation needed**: LiveStore multiple store conflicts
 
 ## Quick Wins Available
 
 1. **Integration tests** - Verify Python execution actually works (2-3 hours)
-2. **Auto-kernel startup** - Remove manual NOTEBOOK_ID friction (1-2 hours)
-3. **Better error messaging** - Clear status when kernels fail (1 hour)
+2. **Auto-runtime startup** - Remove manual NOTEBOOK_ID friction (1-2 hours)
+3. **Better error messaging** - Clear status when runtimes fail (1 hour)
 4. **Rich output verification** - Test matplotlib/pandas claims (2-3 hours)
 
 ## What's Working Well
@@ -445,15 +445,15 @@ docs/
 2. **✅ AI Output Context Integration** - AI now sees execution results, not just source code  
 3. **✅ AI Context Visibility Toggles** - Users can control what AI sees per cell
 4. **✅ Source/Output Display Toggles** - Clean UI for showing/hiding content
-5. **✅ Major Bug Fix** - Kernel restart reliability issue (#34) resolved
-6. **✅ UI Polish** - Better kernel connection feedback and timing
+5. **✅ Major Bug Fix** - Runtime restart reliability issue (#34) resolved
+6. **✅ UI Polish** - Better runtime connection feedback and timing
 
 ### Current System Status
 - **Collaborative notebook editing**: ✅ Rock solid with LiveStore
 - **Python execution**: ✅ Working async with Pyodide
 - **AI integration**: ✅ OpenAI API with context and visibility controls
 - **Rich outputs**: 🚧 Architecture in place, needs integration testing
-- **Kernel management**: 🔧 Reliable foundation, manual startup still needed
+- **Runtime management**: 🔧 Reliable foundation, manual startup still needed
 
 ## Next Developer Success Path - UPDATED
 
@@ -463,4 +463,4 @@ docs/
 
 **Key Insight**: The LiveStore foundation is solid. AI integration is working with context awareness but needs tool calling capabilities. Python execution works but needs verification. Rich outputs need real testing.
 
-Priority: **Today's Tasks (Async + Context + Toggles) → AI Tool Calling & Context Controls → Integration Testing → Auto Kernels → Rich Output Verification → MCP Integration**
+Priority: **Today's Tasks (Async + Context + Toggles) → AI Tool Calling & Context Controls → Integration Testing → Auto Runtimes → Rich Output Verification → MCP Integration**

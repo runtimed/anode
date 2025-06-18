@@ -17,7 +17,7 @@ Anode is a real-time collaborative notebook system built on LiveStore, an event-
 - **Shared Schema** (`shared/schema.ts`): LiveStore schema definitions (events, state, materializers) - TypeScript source file directly imported by all packages with full type inference
 - **Web Client** (`@anode/web-client`): React-based web interface
 - **Document Worker** (`@anode/docworker`): Cloudflare Worker for sync backend
-- **Kernel Client** (`@anode/dev-server-kernel-ls-client`): Python execution server (manual start per notebook)
+- **Pyodide Runtime Agent** (`@anode/pyodide-runtime-agent`): Python execution server (manual start per notebook)
 
 ## Key Dependencies
 
@@ -30,10 +30,10 @@ Anode is a real-time collaborative notebook system built on LiveStore, an event-
 
 ### What's Actually Working ✅
 - ✅ **LiveStore integration** - Event-sourcing with real-time collaboration working reliably
-- ✅ **Basic Python execution** - Code cells run Python via Pyodide (manual kernel startup)
+- ✅ **Basic Python execution** - Code cells run Python via Pyodide (manual runtime startup)
 - ✅ **Real-time collaboration** - Multiple users can edit notebooks simultaneously
 - ✅ **Cell management** - Create, edit, move, delete cells with proper state sync
-- ✅ **Reactive architecture** - Kernel work detection without polling delays
+- ✅ **Reactive architecture** - Runtime work detection without polling delays
 - ✅ **Text output handling** - Basic print statements and error display
 - ✅ **AI integration** - OpenAI API responses when OPENAI_API_KEY is set, graceful fallback to mock
 - ✅ **Offline-first operation** - Works without network, syncs when connected
@@ -44,14 +44,14 @@ Anode is a real-time collaborative notebook system built on LiveStore, an event-
 - 🚧 **Context inclusion controls** - Users can't exclude cells from AI context
 - 🚧 **MCP integration** - No Model Context Protocol support for extensible AI tools
 - 🚧 **Display system** - Matplotlib, pandas support partially implemented
-- 🚧 **Automated kernel management** - Manual startup creates friction
+- 🚧 **Automated runtime management** - Manual startup creates friction
 
 ### Core Architecture Features
 - `NOTEBOOK_ID = STORE_ID`: Each notebook gets its own LiveStore database
 - **Event-sourced state**: All changes flow through LiveStore events
 - **Reactive execution**: `executionRequested` → `executionAssigned` → `executionStarted` → `executionCompleted`
 - **Direct TypeScript schema**: No build step, imports work across packages
-- **Session-based kernels**: Each kernel restart gets unique `sessionId`
+- **Session-based runtimes**: Each runtime restart gets unique `sessionId`
 
 ## Development Commands
 
@@ -62,9 +62,9 @@ cp .env.example .env     # Configure environment (optional: uncomment OPENAI_API
 # Start core services (web + sync)
 pnpm dev
 
-# Start kernel (get command from notebook UI)
-# Get kernel command from notebook UI, then:
-NOTEBOOK_ID=notebook-id-from-ui pnpm dev:kernel
+# Start runtime (get command from notebook UI)
+# Get runtime command from notebook UI, then:
+NOTEBOOK_ID=notebook-id-from-ui pnpm dev:runtime
 
 # Utilities
 pnpm reset-storage  # Clear all local storage
@@ -83,7 +83,7 @@ pnpm cache:clear       # Clear package cache
 ### Phase 1: Prove It Works (Next 2 weeks)
 - **Integration Testing** - Real Pyodide tests to verify Python execution claims
 - **Rich Output Verification** - Test matplotlib, pandas, IPython.display actually work
-- **Automated Kernel Management** - Remove manual `NOTEBOOK_ID=xyz pnpm dev:kernel` friction
+- **Automated Runtime Management** - Remove manual `NOTEBOOK_ID=xyz pnpm dev:runtime` friction
 - **Error Handling** - Better user feedback when things fail
 
 ### Phase 2: AI Tool Calling & Context Controls (Next 1-2 months)
@@ -94,7 +94,7 @@ pnpm cache:clear       # Clear package cache
 - **Package Cache Optimization** - Smart pre-loading and shared team caches
 
 ### Phase 3: Advanced Features (Next 2-3 months)
-- **MCP Integration** - Model Context Protocol support for extensible AI tooling via Python kernel
+- **MCP Integration** - Model Context Protocol support for extensible AI tooling via Python runtime
 - **SQL Cell Implementation** - Database connections and query results
 - **Interactive Widgets** - IPython widgets support for collaborative elements
 - **Authentication System** - Google OAuth with proper session management
@@ -114,7 +114,7 @@ pnpm cache:clear       # Clear package cache
 
 ### ⚠️ CRITICAL: Materializer Determinism Requirements
 
-**NEVER use `ctx.query()` in materializers** - This was the root cause of kernel restart bug #34.
+**NEVER use `ctx.query()` in materializers** - This was the root cause of runtime restart bug #34.
 
 LiveStore requires all materializers to be **pure functions without side effects**. Any data needed by a materializer must be passed via the event payload, not looked up during materialization.
 
@@ -150,14 +150,14 @@ LiveStore requires all materializers to be **pure functions without side effects
 
 ### Recent Critical Fixes (June 2025)
 
-**Kernel Restart Bug (#34) - RESOLVED** ✅
+**Runtime Restart Bug (#34) - RESOLVED** ✅
 
-The project recently resolved a major stability issue where 3rd+ kernel sessions would fail to receive work assignments due to LiveStore materializer hash mismatches. This was caused by non-deterministic materializers using `ctx.query()` calls.
+The project recently resolved a major stability issue where 3rd+ runtime sessions would fail to receive work assignments due to LiveStore materializer hash mismatches. This was caused by non-deterministic materializers using `ctx.query()` calls.
 
 **What was broken:**
 - ExecutionCompleted, ExecutionCancelled, and ExecutionStarted materializers were using `ctx.query()` 
 - This made them non-deterministic, causing LiveStore to shut down with "UnexpectedError materializer hash mismatch"
-- Kernel restarts would accumulate terminated sessions and eventually fail
+- Runtime restarts would accumulate terminated sessions and eventually fail
 
 **How it was fixed (commits 6e0fb4f and a1bf20d):**
 1. **Added cellId to event schemas**: ExecutionCompleted, ExecutionCancelled, ExecutionStarted now include `cellId` in payload
@@ -165,13 +165,13 @@ The project recently resolved a major stability issue where 3rd+ kernel sessions
 3. **Updated all event commits**: All places that commit these events now pass `cellId` explicitly
 4. **Made materializers pure functions**: No side effects, deterministic output for same input
 
-**Impact:** Kernel sessions are now reliable across multiple restarts, enabling future automated kernel management.
+**Impact:** Runtime sessions are now reliable across multiple restarts, enabling future automated runtime management.
 
 **For Future Development:**
 - Always check that new materializers are pure functions
 - Never use `ctx.query()` in materializers - pass data via event payload
 - Reference these commits when adding new execution-related events
-- Test kernel restart scenarios when modifying execution flow
+- Test runtime restart scenarios when modifying execution flow
 
 ### Local-First Architecture
 - All data operations happen locally first
@@ -193,7 +193,7 @@ anode/
 ├── packages/
 │   ├── web-client/       # React web application
 │   ├── docworker/        # Cloudflare Worker sync backend
-│   └── dev-server-kernel-ls-client/  # Python kernel server
+│   └── pyodide-runtime-agent/  # Python runtime server
 ├── docs/                 # Documentation directory
 │   ├── README.md         # Documentation index
 │   ├── ai-features.md        # AI setup and usage guide
@@ -224,14 +224,14 @@ anode/
 - **Event sourcing** enables powerful undo/redo and conflict resolution
 - **Direct function calls** approach eliminates quote escaping complexity
 - **Unified execution system** makes all cell types work through same queue
-- **Manual kernel startup** creates significant user friction
+- **Manual runtime startup** creates significant user friction
 
 ### Immediate Technical Goals
 - **AI tool calling infrastructure** - Enable AI to create/modify cells using OpenAI function calling
 - **Context inclusion controls** - Let users control what cells AI can see for context
 - **Integration testing** to verify Python execution and rich outputs actually work
-- **MCP integration foundation** - Architecture for Model Context Protocol providers via Python kernel
-- **Automated kernel management** to remove manual startup friction
+- **MCP integration foundation** - Architecture for Model Context Protocol providers via Python runtime
+- **Automated runtime management** to remove manual startup friction
 - **Better error handling** for improved user experience
 
 ### Communication Style
@@ -245,7 +245,7 @@ anode/
 **User Environment**: The user will typically have:
 - Web client running in one tab (`pnpm dev`)
 - Wrangler server running in another tab 
-- Manual kernel startup as needed (`NOTEBOOK_ID=xyz pnpm dev:kernel`)
+- Manual runtime startup as needed (`NOTEBOOK_ID=xyz pnpm dev:runtime`)
 
 **Checking Work**: If you need to verify changes:
 ```bash
@@ -268,8 +268,8 @@ pnpm dev             # Web client + sync backend
 # Warm up package cache for faster Python execution (recommended)
 pnpm cache:warm-up   # Pre-loads numpy, pandas, matplotlib, requests, etc.
 
-# In separate terminal, get kernel command from notebook UI
-# Then run: NOTEBOOK_ID=notebook-id-from-ui pnpm dev:kernel
+# In separate terminal, get runtime command from notebook UI
+# Then run: NOTEBOOK_ID=notebook-id-from-ui pnpm dev:runtime
 ```
 
 ## Important Development Notes

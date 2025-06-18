@@ -2,7 +2,7 @@
 
 **Vision**: A real-time collaborative notebook system enabling seamless AI ↔ Python ↔ User interactions through local-first architecture.
 
-**Current Status**: Core prototype with collaborative editing, basic Python execution, and AI integration with context awareness working. Major kernel restart bug (#34) resolved by fixing materializer side effects. AI tool calling and rich outputs in active development.
+**Current Status**: Core prototype with collaborative editing, basic Python execution, and AI integration with context awareness working. Major runtime restart bug (#34) resolved by fixing materializer side effects. AI tool calling and rich outputs in active development.
 
 ## Foundation Complete ✅
 
@@ -53,7 +53,7 @@
 ## Short-term Goals (Next 1-2 Months)
 
 ### Automated Kernel Management
-**Goal**: Remove manual `NOTEBOOK_ID=xyz pnpm dev:kernel` friction
+**Goal**: Remove manual `NOTEBOOK_ID=xyz pnpm dev:runtime` friction
 
 - [x] **Kernel session reliability** - Fixed materializer side effects causing restart failures (#34)
 - [ ] **Auto-spawning kernels** - One-click notebook startup

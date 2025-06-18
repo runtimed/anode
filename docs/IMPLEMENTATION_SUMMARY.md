@@ -126,13 +126,13 @@ The implementation leverages Anode's LiveStore architecture:
 
 ## Files Modified
 
-1. **`packages/dev-server-kernel-ls-client/src/kernel-adapter.ts`**
+1. **`packages/pyodide-runtime-agent/src/runtime-agent.ts`**
    - Enhanced `NotebookContext` interface
    - Updated `gatherNotebookContext()` function
    - Improved `buildSystemPromptWithContext()` function
    - Added proper imports for `OutputData` type
 
-2. **`packages/dev-server-kernel-ls-client/test/kernel-adapter.test.ts`**
+2. **`packages/pyodide-runtime-agent/test/runtime-agent.test.ts`**
    - Added comprehensive test suite for AI context gathering
    - Tests cover various output types and edge cases
    - Validates context structure and output filtering

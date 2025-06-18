@@ -35,9 +35,9 @@ The `.env` file contains all configuration needed for Anode, including sync URLs
 # Start web client and sync backend
 pnpm dev
 
-# In another terminal, get kernel command from notebook UI
-# Get kernel command from notebook UI, then:
-NOTEBOOK_ID=notebook-id-from-ui pnpm dev:kernel
+# In another terminal, get runtime command from notebook UI
+# Get runtime command from notebook UI, then:
+NOTEBOOK_ID=notebook-id-from-ui pnpm dev:runtime
 ```
 
 You should see confirmation that OpenAI is configured:

@@ -79,18 +79,25 @@ export class PyodideCacheManager {
   }
 
   /**
-   * Get cache size in MB
+   * Get cache size in MB - optimized with parallel file stats
    */
   async getCacheSize(): Promise<number> {
     try {
       const files = await fs.readdir(this.cacheDir);
-      let totalSize = 0;
 
-      for (const file of files) {
-        const filePath = path.join(this.cacheDir, file);
-        const stats = await fs.stat(filePath);
-        totalSize += stats.size;
-      }
+      // Get file stats in parallel for better performance
+      const statResults = await Promise.allSettled(
+        files.map(file =>
+          fs.stat(path.join(this.cacheDir, file))
+        )
+      );
+
+      let totalSize = 0;
+      statResults.forEach(result => {
+        if (result.status === 'fulfilled') {
+          totalSize += result.value.size;
+        }
+      });
 
       // Convert to MB with better precision for small files
       const sizeMB = totalSize / (1024 * 1024);
@@ -152,7 +159,7 @@ export class PyodideCacheManager {
   }
 
   /**
-   * Get cache statistics
+   * Get cache statistics - optimized with parallel operations
    */
   async getCacheStats(): Promise<{
     cacheDir: string;
@@ -160,8 +167,11 @@ export class PyodideCacheManager {
     totalSizeMB: number;
     packages: string[];
   }> {
-    const packages = await this.listCachedPackages();
-    const totalSizeMB = await this.getCacheSize();
+    // Run package listing and size calculation in parallel
+    const [packages, totalSizeMB] = await Promise.all([
+      this.listCachedPackages(),
+      this.getCacheSize()
+    ]);
 
     return {
       cacheDir: this.cacheDir,
@@ -189,11 +199,14 @@ export class PyodideCacheManager {
   ]): Promise<void> {
     console.log(`🔥 Warming up package cache with ${packages.length} packages...`);
 
-    // This would require importing and using Pyodide temporarily
-    // For now, just ensure the cache directory exists
-    await this.ensureCacheDir();
+    // Ensure cache directory exists and get current stats in parallel
+    const [_, currentStats] = await Promise.all([
+      this.ensureCacheDir(),
+      this.getCacheStats()
+    ]);
 
     console.log(`📁 Cache directory ready: ${this.cacheDir}`);
+    console.log(`📊 Current cache: ${currentStats.packageCount} packages, ${currentStats.totalSizeMB}MB`);
     console.log(`📦 Packages to cache: ${packages.join(', ')}`);
     console.log(`💡 Packages will be cached on first use by Pyodide`);
   }
@@ -239,8 +252,28 @@ export class PyodideCacheManager {
  */
 export const defaultCacheManager = new PyodideCacheManager();
 
+// Pre-warm cache setup during module load for faster subsequent calls
+const cachePreWarmPromise = defaultCacheManager.ensureCacheDir()
+  .then(() => defaultCacheManager.getCacheStats())
+  .then(stats => {
+    console.log(`📦 Cache pre-warmed: ${stats.packageCount} packages, ${stats.totalSizeMB}MB ready`);
+    return stats;
+  })
+  .catch(error => {
+    console.warn("⚠️ Cache pre-warm failed:", error);
+    return null;
+  });
+
+/**
+ * Get the pre-warmed cache stats (non-blocking)
+ */
+export async function getPreWarmedCacheStats() {
+  return await cachePreWarmPromise;
+}
+
 /**
  * Get cache configuration for Pyodide loadPyodide() options
+ * Uses pre-warmed cache when available
  */
 export function getCacheConfig(customCacheDir?: string): { packageCacheDir: string } {
   const cacheManager = customCacheDir
@@ -249,6 +282,25 @@ export function getCacheConfig(customCacheDir?: string): { packageCacheDir: stri
 
   return {
     packageCacheDir: cacheManager.getCacheDir(),
+  };
+}
+
+/**
+ * Get cache configuration with pre-warmed setup
+ */
+export async function getCacheConfigWithPreWarm(customCacheDir?: string): Promise<{ packageCacheDir: string; stats: any }> {
+  const cacheManager = customCacheDir
+    ? new PyodideCacheManager(customCacheDir)
+    : defaultCacheManager;
+
+  const [stats] = await Promise.all([
+    customCacheDir ? cacheManager.getCacheStats() : getPreWarmedCacheStats(),
+    customCacheDir ? cacheManager.ensureCacheDir() : Promise.resolve()
+  ]);
+
+  return {
+    packageCacheDir: cacheManager.getCacheDir(),
+    stats
   };
 }
 

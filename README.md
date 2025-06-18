@@ -18,7 +18,7 @@ A real-time collaborative notebook system built on LiveStore, focusing on seamle
 ### 1. Install and Configure
 ```bash
 pnpm install  # Automatically creates .env files with defaults
-# Optional: Add OpenAI API key to packages/dev-server-kernel-ls-client/.env
+# Optional: Add OpenAI API key to packages/pyodide-runtime-agent/.env
 pnpm dev  # Starts web client + sync backend
 ```
 
@@ -29,17 +29,17 @@ pnpm dev  # Starts web client + sync backend
 
 ### 3. Enable Python Execution
 ```bash
-# In new terminal - start kernel for current notebook
+# In new terminal - start runtime for current notebook
 # Get the exact command from the UI (see step 4)
-pnpm dev:kernel
+pnpm dev:runtime
 ```
 
-**Important**: Always use the kernel command suggested in the notebook UI for proper notebook ID matching.
+**Important**: Always use the runtime command suggested in the notebook UI for proper notebook ID matching.
 
-### 4. Get Kernel Command from UI
+### 4. Get Runtime Command from UI
 - Open the notebook interface
-- Click the **Kernel** button in the notebook header
-- Copy the exact `NOTEBOOK_ID=xxx pnpm dev:kernel` command shown
+- Click the **Runtime** button in the notebook header
+- Copy the exact `NOTEBOOK_ID=xxx pnpm dev:runtime` command shown
 - Run that command in your terminal
 
 ### 5. Execute Code
@@ -50,11 +50,11 @@ pnpm dev:kernel
 
 ### 6. Try AI Integration (Optional)
 ```bash
-# Edit packages/dev-server-kernel-ls-client/.env and uncomment/set your OpenAI API key:
+# Edit packages/pyodide-runtime-agent/.env and uncomment/set your OpenAI API key:
 # OPENAI_API_KEY=sk-your-key-here
 
-# Restart kernel to pick up the API key (use UI command)
-NOTEBOOK_ID=your-notebook-id pnpm dev:kernel
+# Restart runtime to pick up the API key (use UI command)
+NOTEBOOK_ID=your-notebook-id pnpm dev:runtime
 ```
 - Add an AI cell and ask questions about your data
 - Falls back to mock responses if no API key is set
@@ -65,7 +65,7 @@ NOTEBOOK_ID=your-notebook-id pnpm dev:kernel
 ### What's Working ✅
 - **Real-time collaborative editing** - Multiple users can edit notebooks simultaneously
 - **LiveStore event-sourcing** - Robust data synchronization and state management
-- **Python execution** - Code cells execute Python via Pyodide (manual kernel startup required)
+- **Python execution** - Code cells execute Python via Pyodide (manual runtime startup required)
 - **AI integration** - Real OpenAI API responses when OPENAI_API_KEY is set, graceful fallback to mock
 - **Cell management** - Create, edit, move, and delete code/markdown/AI cells
 - **Basic output display** - Text output and error handling
@@ -76,7 +76,7 @@ NOTEBOOK_ID=your-notebook-id pnpm dev:kernel
 - **Rich output rendering** - HTML tables, SVG plots, matplotlib integration (needs verification)
 - **Enhanced AI features** - Notebook context awareness, tools for modifying cells
 - **Enhanced display system** - Full IPython.display compatibility (needs verification)
-- **Automated kernel management** - One-click notebook startup
+- **Automated runtime management** - One-click notebook startup
 
 ### Planned 📋
 - **SQL cell execution** - Database connections and query results
@@ -85,10 +85,10 @@ NOTEBOOK_ID=your-notebook-id pnpm dev:kernel
 - **Performance optimization** - Large notebook handling
 
 ### Known Limitations ⚠️
-- Manual kernel startup required per notebook (`NOTEBOOK_ID=xyz pnpm dev:kernel`)
+- Manual runtime startup required per notebook (`NOTEBOOK_ID=xyz pnpm dev:runtime`)
 - Rich outputs (matplotlib, pandas) not fully verified in integration tests
 - AI has no notebook context awareness or tools to modify notebook
-- Limited error handling for kernel failures
+- Limited error handling for runtime failures
 
 ## Development Commands
 
@@ -98,8 +98,8 @@ pnpm setup               # Create .env files with defaults
 
 # Core development workflow
 pnpm dev                 # Start web + sync
-# Get kernel command from notebook UI, then:
-NOTEBOOK_ID=notebook-id-from-ui pnpm dev:kernel
+# Get runtime command from notebook UI, then:
+NOTEBOOK_ID=notebook-id-from-ui pnpm dev:runtime
 
 # Utilities
 pnpm reset-storage       # Clear all local data
@@ -111,8 +111,8 @@ See [ROADMAP.md](./ROADMAP.md) for detailed development plans and milestones.
 
 ### Immediate Priorities
 1. **Rich Output Verification** - Integration tests for matplotlib, pandas, and display system
-2. **Kernel Management** - Automated startup and health monitoring
-3. **Error Handling** - Better kernel failure recovery and user feedback
+2. **Runtime Management** - Automated startup and health monitoring
+3. **Error Handling** - Better runtime failure recovery and user feedback
 
 ### Next Milestones
 - Enhanced AI integration (notebook context awareness, tools for modifying cells)
@@ -125,12 +125,12 @@ See [ROADMAP.md](./ROADMAP.md) for detailed development plans and milestones.
 | Problem | Solution |
 |---------|----------|
 | Missing .env files | Run `pnpm setup` to auto-create with defaults |
-| Schema version mismatches | Ensure all services (web, kernel, sync) are restarted after schema changes |
+| Schema version mismatches | Ensure all services (web, runtime, sync) are restarted after schema changes |
 | Type errors | TypeScript catches invalid queries at compile time - check column names |
-| Execution not working | Use kernel command from notebook UI or check `.env` configuration |
-| AI cells showing mock responses | Set `OPENAI_API_KEY` in `packages/dev-server-kernel-ls-client/.env`, restart kernel |
+| Execution not working | Use runtime command from notebook UI or check `.env` configuration |
+| AI cells showing mock responses | Set `OPENAI_API_KEY` in `packages/pyodide-runtime-agent/.env`, restart runtime |
 | Stale state | Run `pnpm reset-storage` |
-| Slow execution | Should be instant - check kernel logs |
+| Slow execution | Should be instant - check runtime logs |
 
 ## Architecture Highlights
 
@@ -138,11 +138,11 @@ See [ROADMAP.md](./ROADMAP.md) for detailed development plans and milestones.
 
 **Direct TypeScript Schema**: The `shared/schema.ts` file is imported directly across all packages with full type inference, eliminating build complexity.
 
-**Reactive Architecture**: Kernels use LiveStore's reactive subscriptions instead of polling for instant work detection.
+**Reactive Architecture**: Runtimes use LiveStore's reactive subscriptions instead of polling for instant work detection.
 
 **Local-First Design**: Everything works offline first, syncs when connected. Your work is never lost.
 
-**Modular Kernel System**: Python execution runs in separate processes that can be started per notebook as needed.
+**Modular Runtime System**: Python execution runs in separate processes that can be started per notebook as needed.
 
 ## Documentation
 
@@ -157,7 +157,7 @@ For comprehensive documentation, see the [docs](./docs/) directory:
 
 Anode is an open source project focused on developer experience. Key areas for contribution:
 - **Integration testing** - Verify Python execution and rich output rendering
-- **Kernel management** - Automated startup and health monitoring
+- **Runtime management** - Automated startup and health monitoring
 - **Rich output system** - Complete matplotlib, pandas, and IPython.display integration
 - **Error handling** - Better user feedback and recovery from failures
 - **Performance testing** - Validate claims about execution speed and memory usage
