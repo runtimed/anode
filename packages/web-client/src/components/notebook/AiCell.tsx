@@ -532,6 +532,17 @@ export const AiCell: React.FC<AiCellProps> = ({
         </div>
       )}
 
+      {/* Hidden Output Indicator for AI Cells */}
+      {!cell.outputVisible && outputs.length > 0 && (
+        <div className="mt-1 pl-6 pr-4">
+          <div
+            className="py-2 text-sm text-muted-foreground cursor-pointer hover:text-foreground transition-colors"
+            onClick={toggleOutputVisibility}
+          >
+            AI response hidden
+          </div>
+        </div>
+      )}
 
     </div>
   )

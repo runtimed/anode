@@ -573,6 +573,18 @@ export const Cell: React.FC<CellProps> = ({
               ))}
         </div>
       )}
+
+      {/* Hidden Output Indicator for Code Cells */}
+      {cell.cellType === 'code' && !cell.outputVisible && outputs.length > 0 && (
+        <div className="mt-1 pl-6 pr-4">
+          <div
+            className="py-2 text-sm text-muted-foreground cursor-pointer hover:text-foreground transition-colors"
+            onClick={toggleOutputVisibility}
+          >
+            {outputs.length === 1 ? '1 output hidden' : `${outputs.length} outputs hidden`}
+          </div>
+        </div>
+      )}
     </div>
   )
 }
