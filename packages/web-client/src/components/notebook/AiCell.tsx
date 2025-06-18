@@ -13,7 +13,7 @@ import {
   DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu'
 import { RichOutput } from './RichOutput.js'
-import { Play, ChevronUp, ChevronDown, Plus, X, Bot, Code, FileText, Database, ArrowUp, ArrowDown } from 'lucide-react'
+import { Play, ChevronUp, ChevronDown, Plus, X, Bot, Code, FileText, Database, ArrowUp, ArrowDown, Loader2, Eye, EyeOff } from 'lucide-react'
 
 interface AiCellProps {
   cell: typeof tables.cells.Type
@@ -205,6 +205,13 @@ export const AiCell: React.FC<AiCellProps> = ({
     }))
   }, [cell.id, cell.outputVisible, store])
 
+  const toggleAiContextVisibility = useCallback(() => {
+    store.commit(events.cellAiContextVisibilityToggled({
+      id: cell.id,
+      aiContextVisible: !cell.aiContextVisible,
+    }))
+  }, [cell.id, cell.aiContextVisible, store])
+
   const changeProvider = useCallback((newProvider: string, newModel: string) => {
     store.commit(events.aiSettingsChanged({
       cellId: cell.id,
@@ -253,7 +260,7 @@ export const AiCell: React.FC<AiCellProps> = ({
   return (
     <div className={`mb-2 relative group transition-all duration-200 pt-2 ${
         autoFocus ? 'bg-purple-50/30' : 'hover:bg-muted/10'
-      }`} style={{
+      } ${!cell.aiContextVisible ? 'opacity-60' : ''}`} style={{
         position: 'relative',
       }}>
       {/* Custom left border with controlled height */}
@@ -342,6 +349,16 @@ export const AiCell: React.FC<AiCellProps> = ({
             title={cell.sourceVisible ? 'Hide source' : 'Show source'}
           >
             {cell.sourceVisible ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
+          </Button>
+
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={toggleAiContextVisibility}
+            className={`h-7 w-7 p-0 hover:bg-muted/80 ${cell.aiContextVisible ? '' : 'text-muted-foreground/60'}`}
+            title={cell.aiContextVisible ? 'Hide from AI context' : 'Show in AI context'}
+          >
+            {cell.aiContextVisible ? <Eye className="h-3 w-3" /> : <EyeOff className="h-3 w-3" />}
           </Button>
 
           {/* Separator */}
