@@ -487,19 +487,26 @@ export const Cell: React.FC<CellProps> = ({
       {cell.cellType === 'code' && (cell.executionCount || cell.executionState === 'running' || cell.executionState === 'queued') && (
         <div className="mt-1 pl-6 pr-4">
           <div className="flex items-center justify-between text-xs text-muted-foreground pb-1">
-            <span>
-              {cell.executionState === 'running' ? (
-                'Running...'
-              ) : cell.executionState === 'queued' ? (
-                'Queued'
-              ) : cell.executionCount ? (
-                cell.lastExecutionDurationMs
-                  ? `${cell.lastExecutionDurationMs < 1000
-                      ? `${cell.lastExecutionDurationMs}ms`
-                      : `${(cell.lastExecutionDurationMs / 1000).toFixed(1)}s`}`
-                  : 'Completed'
-              ) : null}
-            </span>
+            <div className="flex items-center gap-2">
+              <span>
+                {cell.executionState === 'running' ? (
+                  'Running...'
+                ) : cell.executionState === 'queued' ? (
+                  'Queued'
+                ) : cell.executionCount ? (
+                  cell.lastExecutionDurationMs
+                    ? `${cell.lastExecutionDurationMs < 1000
+                        ? `${cell.lastExecutionDurationMs}ms`
+                        : `${(cell.lastExecutionDurationMs / 1000).toFixed(1)}s`}`
+                    : 'Completed'
+                ) : null}
+              </span>
+              {!cell.outputVisible && outputs.length > 0 && (
+                <span className="text-xs text-muted-foreground">
+                  {outputs.length === 1 ? '1 output hidden' : `${outputs.length} outputs hidden`}
+                </span>
+              )}
+            </div>
             {(outputs.length > 0 || cell.executionState === 'running') && (
               <TooltipProvider>
                 <Tooltip>
@@ -574,17 +581,7 @@ export const Cell: React.FC<CellProps> = ({
         </div>
       )}
 
-      {/* Hidden Output Indicator for Code Cells */}
-      {cell.cellType === 'code' && !cell.outputVisible && outputs.length > 0 && (
-        <div className="mt-1 pl-6 pr-4">
-          <div
-            className="py-2 text-sm text-muted-foreground cursor-pointer hover:text-foreground transition-colors"
-            onClick={toggleOutputVisibility}
-          >
-            {outputs.length === 1 ? '1 output hidden' : `${outputs.length} outputs hidden`}
-          </div>
-        </div>
-      )}
+
     </div>
   )
 }

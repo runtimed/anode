@@ -460,19 +460,26 @@ export const AiCell: React.FC<AiCellProps> = ({
       {(cell.executionCount || cell.executionState === 'running' || cell.executionState === 'queued') && (
         <div className="mt-1 pl-6 pr-4">
           <div className="flex items-center justify-between text-xs text-muted-foreground pb-1">
-            <span>
-              {cell.executionState === 'running' ? (
-                'Generating...'
-              ) : cell.executionState === 'queued' ? (
-                'Queued'
-              ) : cell.executionCount ? (
-                cell.lastExecutionDurationMs
-                  ? `${cell.lastExecutionDurationMs < 1000
-                      ? `${cell.lastExecutionDurationMs}ms`
-                      : `${(cell.lastExecutionDurationMs / 1000).toFixed(1)}s`}`
-                  : 'Completed'
-              ) : null}
-            </span>
+            <div className="flex items-center gap-2">
+              <span>
+                {cell.executionState === 'running' ? (
+                  'Generating...'
+                ) : cell.executionState === 'queued' ? (
+                  'Queued'
+                ) : cell.executionCount ? (
+                  cell.lastExecutionDurationMs
+                    ? `${cell.lastExecutionDurationMs < 1000
+                        ? `${cell.lastExecutionDurationMs}ms`
+                        : `${(cell.lastExecutionDurationMs / 1000).toFixed(1)}s`}`
+                    : 'Completed'
+                ) : null}
+              </span>
+              {!cell.outputVisible && outputs.length > 0 && (
+                <span className="text-xs text-muted-foreground">
+                  AI response hidden
+                </span>
+              )}
+            </div>
             {outputs.length > 0 && (
               <Button
                 variant="ghost"
@@ -532,17 +539,7 @@ export const AiCell: React.FC<AiCellProps> = ({
         </div>
       )}
 
-      {/* Hidden Output Indicator for AI Cells */}
-      {!cell.outputVisible && outputs.length > 0 && (
-        <div className="mt-1 pl-6 pr-4">
-          <div
-            className="py-2 text-sm text-muted-foreground cursor-pointer hover:text-foreground transition-colors"
-            onClick={toggleOutputVisibility}
-          >
-            AI response hidden
-          </div>
-        </div>
-      )}
+
 
     </div>
   )
