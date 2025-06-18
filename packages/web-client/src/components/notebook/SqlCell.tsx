@@ -236,8 +236,8 @@ export const SqlCell: React.FC<SqlCellProps> = ({
 
   return (
     <div className={`mb-2 relative group transition-all duration-200 pt-2 ${
-        autoFocus ? 'bg-blue-50/30' : 'hover:bg-muted/10'
-      } ${!cell.aiContextVisible ? 'opacity-60' : ''} ${
+        autoFocus && !contextSelectionMode ? 'bg-blue-50/30' : 'hover:bg-muted/10'
+      } ${contextSelectionMode && !cell.aiContextVisible ? 'opacity-60' : ''} ${
         contextSelectionMode ? (cell.aiContextVisible ? 'ring-2 ring-purple-300 bg-purple-50/30' : 'ring-2 ring-gray-300 bg-gray-50/30') : ''
       }`} style={{
         position: 'relative',
@@ -245,7 +245,7 @@ export const SqlCell: React.FC<SqlCellProps> = ({
       {/* Custom left border with controlled height */}
       <div
         className={`absolute left-0 top-0 w-0.5 transition-all duration-200 ${
-          autoFocus ? 'bg-blue-500/60' : 'bg-border/30'
+          autoFocus && !contextSelectionMode ? 'bg-blue-500/60' : 'bg-border/30'
         }`}
         style={{
           height: cell.sqlResultData || cell.executionState === 'running' || cell.executionState === 'queued'
