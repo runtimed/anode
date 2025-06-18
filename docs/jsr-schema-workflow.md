@@ -87,6 +87,8 @@ import { schema, tables, events } from "jsr:@anode/schema";
 import { schema } from "jsr:@anode/schema@^0.1.0";
 ```
 
+**Note**: Currently requires `--allow-slow-types` flag due to LiveStore's complex type exports. See [livestorejs/livestore#383](https://github.com/livestorejs/livestore/issues/383) for status.
+
 ### Node.js Projects (with pnpm 10.9+)
 
 ```bash
@@ -119,6 +121,8 @@ The JSR publishing can be integrated into CI:
   env:
     DENO_DEPLOY_TOKEN: ${{ secrets.DENO_DEPLOY_TOKEN }}
 ```
+
+**Note**: The publish script automatically uses `--allow-slow-types` to handle LiveStore's current JSR compatibility limitations.
 
 ## Versioning Strategy
 
@@ -160,6 +164,7 @@ Common issues:
 - **Authentication**: Ensure `deno login` is configured
 - **Network**: Check internet connection
 - **Permissions**: Verify JSR organization access
+- **Slow Types Warning**: Expected due to LiveStore complexity - automatically handled with `--allow-slow-types`
 
 ### Version Conflicts
 
@@ -192,6 +197,9 @@ A: JSR provides better TypeScript support and is designed for modern JS/TS modul
 
 **Q: Can I use the schema in non-Deno, non-Node projects?**
 A: Yes! JSR packages work in browsers and any modern JavaScript runtime.
+
+**Q: What does the "slow types" warning mean?**
+A: LiveStore's complex type exports require JSR's `--allow-slow-types` flag. This means slightly slower TypeScript performance and no automatic `.d.ts` generation for Node.js, but full functionality is preserved. See [livestorejs/livestore#383](https://github.com/livestorejs/livestore/issues/383).
 
 **Q: What if JSR is down?**
 A: The monorepo continues working normally since it uses the local schema. Only external projects are affected.
