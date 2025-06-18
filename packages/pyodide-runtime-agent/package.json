@@ -1,7 +1,7 @@
 {
-  "name": "@anode/dev-server-kernel-ls-client",
+  "name": "@anode/pyodide-runtime-agent",
   "version": "0.1.0",
-  "description": "Anode Runtime Agent - Autonomous execution agent for notebook runtime",
+  "description": "Anode Pyodide Runtime Agent - Autonomous execution agent using Pyodide for notebook runtime",
   "type": "module",
   "main": "./dist/index.js",
   "scripts": {

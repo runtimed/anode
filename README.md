@@ -18,7 +18,7 @@ A real-time collaborative notebook system built on LiveStore, focusing on seamle
 ### 1. Install and Configure
 ```bash
 pnpm install  # Automatically creates .env files with defaults
-# Optional: Add OpenAI API key to packages/dev-server-kernel-ls-client/.env
+# Optional: Add OpenAI API key to packages/pyodide-runtime-agent/.env
 pnpm dev  # Starts web client + sync backend
 ```
 
@@ -50,7 +50,7 @@ pnpm dev:kernel
 
 ### 6. Try AI Integration (Optional)
 ```bash
-# Edit packages/dev-server-kernel-ls-client/.env and uncomment/set your OpenAI API key:
+# Edit packages/pyodide-runtime-agent/.env and uncomment/set your OpenAI API key:
 # OPENAI_API_KEY=sk-your-key-here
 
 # Restart kernel to pick up the API key (use UI command)
@@ -128,7 +128,7 @@ See [ROADMAP.md](./ROADMAP.md) for detailed development plans and milestones.
 | Schema version mismatches | Ensure all services (web, kernel, sync) are restarted after schema changes |
 | Type errors | TypeScript catches invalid queries at compile time - check column names |
 | Execution not working | Use kernel command from notebook UI or check `.env` configuration |
-| AI cells showing mock responses | Set `OPENAI_API_KEY` in `packages/dev-server-kernel-ls-client/.env`, restart kernel |
+| AI cells showing mock responses | Set `OPENAI_API_KEY` in `packages/pyodide-runtime-agent/.env`, restart kernel |
 | Stale state | Run `pnpm reset-storage` |
 | Slow execution | Should be instant - check kernel logs |
 

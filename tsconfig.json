@@ -19,6 +19,6 @@
   "references": [
     { "path": "./packages/web-client" },
     { "path": "./packages/docworker" },
-    { "path": "./packages/dev-server-kernel-ls-client" }
+    { "path": "./packages/pyodide-runtime-agent" }
   ]
 }

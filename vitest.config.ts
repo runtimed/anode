@@ -74,9 +74,9 @@ export default defineConfig({
     alias: {
       "@anode/web-client": path.resolve(__dirname, "./packages/web-client/src"),
       "@anode/docworker": path.resolve(__dirname, "./packages/docworker/src"),
-      "@anode/dev-server-kernel-ls-client": path.resolve(
+      "@anode/pyodide-runtime-agent": path.resolve(
         __dirname,
-        "./packages/dev-server-kernel-ls-client/src",
+        "./packages/pyodide-runtime-agent/src",
       ),
     },
     extensions: [".ts", ".tsx", ".js", ".jsx", ".json"],

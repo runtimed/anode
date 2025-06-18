@@ -46,8 +46,8 @@ Based on recent git commits, significant progress has been made on all priority 
 **Solution**: Enhance PyodideKernel with better async patterns and execution queuing
 
 **Files to modify**:
-- `packages/dev-server-kernel-ls-client/src/pyodide-kernel.ts` - Enhance async execution with proper yielding
-- `packages/dev-server-kernel-ls-client/src/kernel-adapter.ts` - Update execution flow for better async handling
+- `packages/pyodide-runtime-agent/src/pyodide-kernel.ts` - Enhance async execution with proper yielding
+- `packages/pyodide-runtime-agent/src/runtime-agent.ts` - Update execution flow for better async handling
 - Consider setTimeout/setImmediate patterns to yield control during execution
 
 ### Task 2: Show Outputs to AI Model Context Window 🤖 ✅ COMPLETED
@@ -83,7 +83,7 @@ Based on recent git commits, significant progress has been made on all priority 
 - `shared/schema.ts` - Add `aiContextVisible` and `aiOutputsVisible` boolean fields to cells table
 - `packages/web-client/src/components/notebook/CodeCell.tsx` - Add context visibility toggle buttons
 - `packages/web-client/src/components/notebook/AiCell.tsx` - Add visibility indicators
-- `packages/dev-server-kernel-ls-client/src/kernel-adapter.ts` - Filter cells in `gatherNotebookContext()` based on visibility settings
+- `packages/pyodide-runtime-agent/src/runtime-agent.ts` - Filter cells in `gatherNotebookContext()` based on visibility settings
 
 ### Task 4: Source/Output Display Toggles ✅ COMPLETED
 **Goal**: Allow users to collapse/expand source code and outputs
@@ -168,7 +168,7 @@ Based on recent git commits, significant progress has been made on all priority 
 - Add AI-generated content indicators in UI
 
 **Files to modify**:
-- `packages/dev-server-kernel-ls-client/src/kernel-adapter.ts` - Add tool handlers
+- `packages/pyodide-runtime-agent/src/runtime-agent.ts` - Add tool handlers
 - `packages/web-client/src/components/notebook/AiCell.tsx` - Add confirmation UI
 - `shared/schema.ts` - Add AI action events if needed
 
@@ -189,7 +189,7 @@ Based on recent git commits, significant progress has been made on all priority 
 - Output filtering and context integration
 
 **Key Test Areas**:
-- `packages/dev-server-kernel-ls-client/test/pyodide-integration.test.ts` - Real execution tests
+- `packages/pyodide-runtime-agent/test/pyodide-integration.test.ts` - Real execution tests
 - Rich output rendering in browser environment
 - AI context integration with real outputs
 - Performance under load and with large outputs
@@ -217,8 +217,8 @@ Based on recent git commits, significant progress has been made on all priority 
 4. Implement tool routing between notebook and MCP providers
 
 **Files to create/modify**:
-- `packages/dev-server-kernel-ls-client/src/mcp-registry.ts` - MCP provider management
-- `packages/dev-server-kernel-ls-client/src/pyodide-kernel.ts` - Python MCP discovery
+- `packages/pyodide-runtime-agent/src/mcp-registry.ts` - MCP provider management
+- `packages/pyodide-runtime-agent/src/pyodide-kernel.ts` - Python MCP discovery
 - Enhanced tool routing in reactive system
 
 **Estimated effort**: 1-2 months (after tool calling foundation)
@@ -257,7 +257,7 @@ Based on recent git commits, significant progress has been made on all priority 
 - Document what rich outputs are supported
 
 **Files to modify**:
-- `packages/dev-server-kernel-ls-client/src/pyodide-kernel.ts` - Display system
+- `packages/pyodide-runtime-agent/src/pyodide-kernel.ts` - Display system
 - Add rich output examples and tests
 - Document supported output types
 
@@ -341,15 +341,15 @@ pnpm test               # Full test suite (27 passing, 13 skipped)
 ## Major Files Recently Enhanced
 
 ### AI Integration & Context System ✅
-- `packages/dev-server-kernel-ls-client/src/pyodide-kernel.ts` - **Main implementation**
+- `packages/pyodide-runtime-agent/src/pyodide-kernel.ts` - **Main implementation**
 - `packages/web-client/src/components/notebook/RichOutput.tsx` - Output rendering
 - `shared/schema.ts` - Output type definitions
 
 ### Visibility Controls & UI Polish ✅
-- `packages/dev-server-kernel-ls-client/src/openai-client.ts` - OpenAI API client
-- `packages/dev-server-kernel-ls-client/src/kernel-adapter.ts` - AI integration point
+- `packages/pyodide-runtime-agent/src/openai-client.ts` - OpenAI API client
+- `packages/pyodide-runtime-agent/src/runtime-agent.ts` - AI integration point
 - `packages/web-client/src/components/notebook/AiCell.tsx` - AI UI components
-- `packages/dev-server-kernel-ls-client/test/openai-client.test.ts` - Comprehensive tests
+- `packages/pyodide-runtime-agent/test/openai-client.test.ts` - Comprehensive tests
 - `docs/ai-features.md` - Setup and usage documentation
 
 ## Development Commands

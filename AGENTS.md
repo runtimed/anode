@@ -17,7 +17,7 @@ Anode is a real-time collaborative notebook system built on LiveStore, an event-
 - **Shared Schema** (`shared/schema.ts`): LiveStore schema definitions (events, state, materializers) - TypeScript source file directly imported by all packages with full type inference
 - **Web Client** (`@anode/web-client`): React-based web interface
 - **Document Worker** (`@anode/docworker`): Cloudflare Worker for sync backend
-- **Kernel Client** (`@anode/dev-server-kernel-ls-client`): Python execution server (manual start per notebook)
+- **Pyodide Runtime Agent** (`@anode/pyodide-runtime-agent`): Python execution server (manual start per notebook)
 
 ## Key Dependencies
 
@@ -193,7 +193,7 @@ anode/
 ├── packages/
 │   ├── web-client/       # React web application
 │   ├── docworker/        # Cloudflare Worker sync backend
-│   └── dev-server-kernel-ls-client/  # Python kernel server
+│   └── pyodide-runtime-agent/  # Python kernel server
 ├── docs/                 # Documentation directory
 │   ├── README.md         # Documentation index
 │   ├── ai-features.md        # AI setup and usage guide

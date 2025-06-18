@@ -90,8 +90,8 @@ docs/
 4. See [ui-design.md](./ui-design.md) for interface patterns
 
 **Key Files:**
-- `packages/dev-server-kernel-ls-client/src/pyodide-kernel.ts` - Python execution kernel
-- `packages/dev-server-kernel-ls-client/src/openai-client.ts` - OpenAI API integration
+- `packages/pyodide-runtime-agent/src/pyodide-kernel.ts` - Python execution kernel
+- `packages/pyodide-runtime-agent/src/openai-client.ts` - OpenAI API integration
 - `packages/web-client/src/components/notebook/RichOutput.tsx` - Output rendering
 - `packages/web-client/src/components/notebook/AiCell.tsx` - AI cell interface
 - `shared/schema.ts` - LiveStore event definitions
