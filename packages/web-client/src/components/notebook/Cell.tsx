@@ -487,46 +487,46 @@ export const Cell: React.FC<CellProps> = ({
       {cell.cellType === 'code' && (cell.executionCount || cell.executionState === 'running' || cell.executionState === 'queued') && (
         <div className="mt-1 pl-6 pr-4">
           <div className="flex items-center justify-between text-xs text-muted-foreground pb-1">
-            <div className="flex items-center gap-2">
-              <span>
-                {cell.executionState === 'running' ? (
-                  'Running...'
-                ) : cell.executionState === 'queued' ? (
-                  'Queued'
-                ) : cell.executionCount ? (
-                  cell.lastExecutionDurationMs
-                    ? `${cell.lastExecutionDurationMs < 1000
-                        ? `${cell.lastExecutionDurationMs}ms`
-                        : `${(cell.lastExecutionDurationMs / 1000).toFixed(1)}s`}`
-                    : 'Completed'
-                ) : null}
-              </span>
-              {!cell.outputVisible && outputs.length > 0 && (
-                <span className="text-xs text-muted-foreground">
-                  {outputs.length === 1 ? '1 output hidden' : `${outputs.length} outputs hidden`}
-                </span>
-              )}
-            </div>
+            <span>
+              {cell.executionState === 'running' ? (
+                'Running...'
+              ) : cell.executionState === 'queued' ? (
+                'Queued'
+              ) : cell.executionCount ? (
+                cell.lastExecutionDurationMs
+                  ? `${cell.lastExecutionDurationMs < 1000
+                      ? `${cell.lastExecutionDurationMs}ms`
+                      : `${(cell.lastExecutionDurationMs / 1000).toFixed(1)}s`}`
+                  : 'Completed'
+              ) : null}
+            </span>
             {(outputs.length > 0 || cell.executionState === 'running') && (
-              <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={toggleOutputVisibility}
-                      className={`h-5 w-5 p-0 hover:bg-muted/80 transition-opacity ${
-                        autoFocus
-                          ? 'opacity-100'
-                          : 'opacity-0 group-hover:opacity-100'
-                      } ${cell.outputVisible ? '' : 'text-muted-foreground/60'}`}
-                    >
-                      {cell.outputVisible ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent>{cell.outputVisible ? 'Hide output' : 'Show output'}</TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
+              <div className="flex items-center gap-2">
+                {!cell.outputVisible && outputs.length > 0 && (
+                  <span className="text-xs text-muted-foreground">
+                    {outputs.length === 1 ? '1 output hidden' : `${outputs.length} outputs hidden`}
+                  </span>
+                )}
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={toggleOutputVisibility}
+                        className={`h-5 w-5 p-0 hover:bg-muted/80 transition-opacity ${
+                          autoFocus
+                            ? 'opacity-100'
+                            : 'opacity-0 group-hover:opacity-100'
+                        } ${cell.outputVisible ? '' : 'text-muted-foreground/60'}`}
+                      >
+                        {cell.outputVisible ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>{cell.outputVisible ? 'Hide output' : 'Show output'}</TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              </div>
             )}
           </div>
         </div>
