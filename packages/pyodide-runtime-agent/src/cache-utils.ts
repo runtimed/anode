@@ -18,7 +18,6 @@ export function getEssentialPackages(): string[] {
     "scipy",      // Scientific computing
     "sympy",      // Symbolic mathematics
     "bokeh",      // Interactive visualization
-    "plotly",     // Plotting library
     "scikit-learn", // Machine learning
     "altair",     // Statistical visualization
     "geopandas",  // Geospatial data analysis
