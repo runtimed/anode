@@ -540,7 +540,6 @@ export const AiCell: React.FC<AiCellProps> = ({
       )}
 
 
-
     </div>
   )
 }
