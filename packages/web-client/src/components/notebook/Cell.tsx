@@ -16,7 +16,7 @@ import {
 import { SqlCell } from './SqlCell.js'
 import { AiCell } from './AiCell.js'
 import { RichOutput } from './RichOutput.js'
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
+
 import { Play, ChevronUp, ChevronDown, Plus, X, Code, FileText, Database, Bot, ArrowUp, ArrowDown, Eye, EyeOff } from 'lucide-react'
 
 type CellType = typeof tables.cells.Type
@@ -336,95 +336,69 @@ export const Cell: React.FC<CellProps> = ({
         </div>
 
         {/* Cell Controls - visible on hover */}
-        <TooltipProvider>
-          <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
+        <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
             {/* Visibility Toggles */}
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={toggleSourceVisibility}
-                  className={`h-7 w-7 p-0 hover:bg-muted/80 ${cell.sourceVisible ? '' : 'text-muted-foreground/60'}`}
-                >
-                  {cell.sourceVisible ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent>{cell.sourceVisible ? 'Hide source' : 'Show source'}</TooltipContent>
-            </Tooltip>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={toggleSourceVisibility}
+              className={`h-7 w-7 p-0 hover:bg-muted/80 ${cell.sourceVisible ? '' : 'text-muted-foreground/60'}`}
+              title={cell.sourceVisible ? 'Hide source' : 'Show source'}
+            >
+              {cell.sourceVisible ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
+            </Button>
 
             {contextSelectionMode && (
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={toggleAiContextVisibility}
-                    className={`h-7 w-7 p-0 hover:bg-muted/80 ${cell.aiContextVisible ? 'text-purple-600' : 'text-gray-500'}`}
-                  >
-                    {cell.aiContextVisible ? <Eye className="h-3 w-3" /> : <EyeOff className="h-3 w-3" />}
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent>{cell.aiContextVisible ? 'Hide from AI context' : 'Show in AI context'}</TooltipContent>
-              </Tooltip>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={toggleAiContextVisibility}
+                className={`h-7 w-7 p-0 hover:bg-muted/80 ${cell.aiContextVisible ? 'text-purple-600' : 'text-gray-500'}`}
+                title={cell.aiContextVisible ? 'Hide from AI context' : 'Show in AI context'}
+              >
+                {cell.aiContextVisible ? <Eye className="h-3 w-3" /> : <EyeOff className="h-3 w-3" />}
+              </Button>
             )}
 
             {/* Separator */}
             <div className="w-px h-4 bg-border/50 mx-1" />
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={onMoveUp}
-                  className="h-7 w-7 p-0 hover:bg-muted/80"
-                >
-                  <ArrowUp className="h-3 w-3" />
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent>Move cell up</TooltipContent>
-            </Tooltip>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={onMoveDown}
-                  className="h-7 w-7 p-0 hover:bg-muted/80"
-                >
-                  <ArrowDown className="h-3 w-3" />
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent>Move cell down</TooltipContent>
-            </Tooltip>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={onAddCell}
-                  className="h-7 w-7 p-0 hover:bg-muted/80"
-                >
-                  <Plus className="h-3 w-3" />
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent>Add cell below</TooltipContent>
-            </Tooltip>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={onDeleteCell}
-                  className="h-7 w-7 p-0 text-muted-foreground hover:text-destructive hover:bg-destructive/10"
-                >
-                  <X className="h-3 w-3" />
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent>Delete cell</TooltipContent>
-            </Tooltip>
-          </div>
-        </TooltipProvider>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={onMoveUp}
+              className="h-7 w-7 p-0 hover:bg-muted/80"
+              title="Move cell up"
+            >
+              <ArrowUp className="h-3 w-3" />
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={onMoveDown}
+              className="h-7 w-7 p-0 hover:bg-muted/80"
+              title="Move cell down"
+            >
+              <ArrowDown className="h-3 w-3" />
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={onAddCell}
+              className="h-7 w-7 p-0 hover:bg-muted/80"
+              title="Add cell below"
+            >
+              <Plus className="h-3 w-3" />
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={onDeleteCell}
+              className="h-7 w-7 p-0 text-muted-foreground hover:text-destructive hover:bg-destructive/10"
+              title="Delete cell"
+            >
+              <X className="h-3 w-3" />
+            </Button>
+        </div>
       </div>
 
       {/* Cell Content with Left Gutter Play Button */}
@@ -501,25 +475,19 @@ export const Cell: React.FC<CellProps> = ({
               ) : null}
             </span>
             {(outputs.length > 0 || cell.executionState === 'running') && (
-              <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={toggleOutputVisibility}
-                      className={`h-5 w-5 p-0 hover:bg-muted/80 transition-opacity ${
-                        autoFocus
-                          ? 'opacity-100'
-                          : 'opacity-0 group-hover:opacity-100'
-                      } ${cell.outputVisible ? '' : 'text-muted-foreground/60'}`}
-                    >
-                      {cell.outputVisible ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent>{cell.outputVisible ? 'Hide output' : 'Show output'}</TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={toggleOutputVisibility}
+                className={`h-5 w-5 p-0 hover:bg-muted/80 transition-opacity ${
+                  autoFocus
+                    ? 'opacity-100'
+                    : 'opacity-0 group-hover:opacity-100'
+                } ${cell.outputVisible ? '' : 'text-muted-foreground/60'}`}
+                title={cell.outputVisible ? 'Hide output' : 'Show output'}
+              >
+                {cell.outputVisible ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
+              </Button>
             )}
           </div>
         </div>
