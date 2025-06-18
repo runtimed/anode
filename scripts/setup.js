@@ -16,7 +16,7 @@ function createEnvFiles() {
   const kernelEnvPath = join(
     projectRoot,
     "packages",
-    "dev-server-kernel-ls-client",
+    "pyodide-runtime-agent",
     ".env",
   );
 
