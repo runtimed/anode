@@ -28,6 +28,7 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({ onNewNotebook })
   const [localTitle, setLocalTitle] = React.useState(notebook?.title || '')
   const [showKernelHelper, setShowKernelHelper] = React.useState(false)
   const [focusedCellId, setFocusedCellId] = React.useState<string | null>(null)
+  const [showKernelDetails, setShowKernelDetails] = React.useState(true)
 
   const currentNotebookId = getCurrentNotebookId()
   const kernelCommand = `NOTEBOOK_ID=${currentNotebookId} pnpm dev:kernel`
@@ -79,6 +80,16 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({ onNewNotebook })
       setLocalTitle(notebook.title)
     }
   }, [notebook?.title])
+
+  // Auto-hide kernel details after 10 seconds when connected
+  React.useEffect(() => {
+    if (hasActiveKernel && kernelHealth === 'healthy' && showKernelDetails) {
+      const timer = setTimeout(() => {
+        setShowKernelDetails(false)
+      }, 10000)
+      return () => clearTimeout(timer)
+    }
+  }, [hasActiveKernel, kernelHealth, showKernelDetails])
 
   const updateTitle = useCallback(() => {
     if (notebook && localTitle !== notebook.title) {
@@ -343,6 +354,16 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({ onNewNotebook })
                      kernelStatus === 'starting' ? 'Starting' :
                      'Disconnected'}
                   </span>
+                  {hasActiveKernel && !showKernelDetails && (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setShowKernelDetails(true)}
+                      className="h-5 px-1 text-xs text-muted-foreground hover:text-foreground"
+                    >
+                      Details
+                    </Button>
+                  )}
                 </h4>
                 <Button
                   variant="ghost"
@@ -376,11 +397,23 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({ onNewNotebook })
                 </>
               )}
 
-              {hasActiveKernel && activeKernel && (
+              {hasActiveKernel && activeKernel && showKernelDetails && (
                 <div className="text-sm space-y-2">
-                  <div className="flex justify-between">
+                  <div className="flex justify-between items-center">
                     <span className="text-muted-foreground">Session ID:</span>
-                    <code className="bg-muted px-1 rounded text-xs">{activeKernel.sessionId}</code>
+                    <div className="flex items-center gap-1">
+                      <code className="bg-muted px-1 rounded text-xs" title={activeKernel.sessionId}>
+                        {activeKernel.sessionId.slice(0, 8)}...
+                      </code>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => navigator.clipboard.writeText(activeKernel.sessionId)}
+                        className="h-6 w-6 p-0"
+                      >
+                        <Copy className="h-3 w-3" />
+                      </Button>
+                    </div>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Kernel Type:</span>
