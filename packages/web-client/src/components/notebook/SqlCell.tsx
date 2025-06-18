@@ -237,7 +237,9 @@ export const SqlCell: React.FC<SqlCellProps> = ({
   return (
     <div className={`mb-2 relative group transition-all duration-200 pt-2 ${
         autoFocus ? 'bg-blue-50/30' : 'hover:bg-muted/10'
-      } ${!cell.aiContextVisible ? 'opacity-60' : ''}`} style={{
+      } ${!cell.aiContextVisible ? 'opacity-60' : ''} ${
+        contextSelectionMode ? (cell.aiContextVisible ? 'ring-2 ring-purple-300 bg-purple-50/30' : 'ring-2 ring-gray-300 bg-gray-50/30') : ''
+      }`} style={{
         position: 'relative',
       }}>
       {/* Custom left border with controlled height */}
@@ -308,7 +310,7 @@ export const SqlCell: React.FC<SqlCellProps> = ({
               variant="ghost"
               size="sm"
               onClick={toggleAiContextVisibility}
-              className={`h-7 w-7 p-0 hover:bg-muted/80 ${cell.aiContextVisible ? '' : 'text-muted-foreground/60'}`}
+              className={`h-7 w-7 p-0 hover:bg-muted/80 ${cell.aiContextVisible ? 'text-purple-600' : 'text-gray-500'}`}
               title={cell.aiContextVisible ? 'Hide from AI context' : 'Show in AI context'}
             >
               {cell.aiContextVisible ? <Eye className="h-3 w-3" /> : <EyeOff className="h-3 w-3" />}

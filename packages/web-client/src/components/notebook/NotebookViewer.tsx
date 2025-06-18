@@ -55,15 +55,7 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({ onNewNotebook })
   const kernelHealth = activeKernel ? getKernelHealth(activeKernel) : 'disconnected'
   const kernelStatus = activeKernel?.status || (kernelSessions.length > 0 ? kernelSessions[0].status : 'disconnected')
 
-  const toggleCellAiContext = useCallback((cellId: string) => {
-    const cell = cells.find((c: CellData) => c.id === cellId)
-    if (cell) {
-      store.commit(events.cellAiContextVisibilityToggled({
-        id: cellId,
-        aiContextVisible: !cell.aiContextVisible,
-      }))
-    }
-  }, [cells, store])
+
 
   const copyKernelCommand = useCallback(() => {
     navigator.clipboard.writeText(kernelCommand)
@@ -591,65 +583,7 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({ onNewNotebook })
         </div>
       </div>
 
-      {/* Context Selection Gutter */}
-      {contextSelectionMode && (
-        <div className="fixed right-6 top-32 bottom-8 w-16 z-10">
-          <div className="h-full bg-purple-50/80 border-2 border-purple-200/60 rounded-xl p-3 backdrop-blur-sm shadow-lg">
-            <div className="flex flex-col items-center space-y-4">
-              {/* Header */}
-              <div className="text-xs font-medium text-purple-700 text-center">
-                AI Context
-              </div>
 
-              {/* Selection indicators with connecting line */}
-              <div className="flex flex-col space-y-6 flex-1 justify-start pt-2 relative">
-                {/* Connecting line for selected cells */}
-                <div className="absolute left-1/2 top-0 bottom-0 w-0.5 bg-purple-300 transform -translate-x-px" />
-
-                {sortedCells.map((cell: CellData, index: number) => {
-                  const isSelected = cell.aiContextVisible
-                  const nextCell = sortedCells[index + 1]
-                  const hasSelectedConnection = isSelected && nextCell?.aiContextVisible
-
-                  return (
-                    <div key={cell.id} className="flex justify-center relative">
-                      <button
-                        onClick={() => toggleCellAiContext(cell.id)}
-                        className={`w-8 h-8 rounded-full border-2 transition-all duration-200 hover:scale-105 relative z-10 ${
-                          isSelected
-                            ? 'bg-purple-500 border-purple-600 shadow-md'
-                            : 'bg-white border-purple-300 hover:border-purple-400 hover:bg-purple-50'
-                        }`}
-                        title={`Cell ${index + 1}: ${isSelected ? 'Included in AI context' : 'Excluded from AI context'}`}
-                      >
-                        {isSelected ? (
-                          <div className="w-full h-full flex items-center justify-center">
-                            <div className="w-3 h-3 bg-white rounded-full" />
-                          </div>
-                        ) : (
-                          <div className="w-full h-full flex items-center justify-center">
-                            <div className="w-2 h-2 border border-purple-400 rounded-full" />
-                          </div>
-                        )}
-                      </button>
-
-                      {/* Highlighted connection segment */}
-                      {hasSelectedConnection && (
-                        <div className="absolute left-1/2 top-8 w-0.5 h-6 bg-purple-500 transform -translate-x-px" />
-                      )}
-                    </div>
-                  )
-                })}
-              </div>
-
-              {/* Footer with count */}
-              <div className="text-xs text-purple-600 text-center mt-2">
-                {sortedCells.filter(c => c.aiContextVisible).length} / {sortedCells.length}
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   )
 }
