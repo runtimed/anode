@@ -115,6 +115,7 @@ export const mockEvents = {
       queueId: mockExecutionQueueEntry.id,
       cellId: mockCellData.id,
       kernelSessionId: mockKernelSession.sessionId,
+      startedAt: new Date(),
     },
   },
   executionCompleted: {
@@ -124,6 +125,8 @@ export const mockEvents = {
       cellId: mockCellData.id,
       status: "success" as const,
       error: null,
+      completedAt: new Date(),
+      executionDurationMs: 100,
     },
   },
   kernelSessionStarted: {

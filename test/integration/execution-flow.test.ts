@@ -158,6 +158,7 @@ describe("End-to-End Execution Flow", () => {
           queueId,
           cellId,
           kernelSessionId: sessionId,
+          startedAt: new Date(),
         }),
       );
 
@@ -188,6 +189,8 @@ describe("End-to-End Execution Flow", () => {
           queueId,
           cellId,
           status: "success",
+          completedAt: new Date(),
+          executionDurationMs: 150,
         }),
       );
 
@@ -280,6 +283,7 @@ describe("End-to-End Execution Flow", () => {
           queueId,
           cellId,
           kernelSessionId: sessionId,
+          startedAt: new Date(),
         }),
       );
 
@@ -309,6 +313,8 @@ describe("End-to-End Execution Flow", () => {
           cellId,
           status: "error",
           error: "ValueError: Test error",
+          completedAt: new Date(),
+          executionDurationMs: 75,
         }),
       );
 
@@ -409,6 +415,7 @@ describe("End-to-End Execution Flow", () => {
             queueId,
             cellId,
             kernelSessionId: sid,
+            startedAt: new Date(),
           }),
         );
       });
@@ -430,6 +437,8 @@ describe("End-to-End Execution Flow", () => {
             queueId,
             cellId,
             status: "success",
+            completedAt: new Date(),
+            executionDurationMs: 120,
           }),
         );
       });
@@ -668,6 +677,7 @@ describe("End-to-End Execution Flow", () => {
           queueId,
           cellId,
           kernelSessionId: sessionId,
+          startedAt: new Date(),
         }),
       );
 

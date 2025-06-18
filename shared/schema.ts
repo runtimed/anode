@@ -46,6 +46,7 @@ export const tables = {
         ),
       }),
       assignedKernelSession: State.SQLite.text({ nullable: true }), // Which kernel session is handling this
+      lastExecutionDurationMs: State.SQLite.integer({ nullable: true }), // Duration of last execution in milliseconds
 
       // SQL-specific fields
       sqlConnectionId: State.SQLite.text({ nullable: true }),
@@ -139,6 +140,11 @@ export const tables = {
       priority: State.SQLite.integer({ default: 0 }), // Higher = more important
       retryCount: State.SQLite.integer({ default: 0 }),
       maxRetries: State.SQLite.integer({ default: 3 }),
+
+      // Execution timing
+      startedAt: State.SQLite.datetime({ nullable: true }),
+      completedAt: State.SQLite.datetime({ nullable: true }),
+      executionDurationMs: State.SQLite.integer({ nullable: true }),
     },
   }),
 
@@ -315,6 +321,7 @@ export const events = {
       queueId: Schema.String,
       cellId: Schema.String,
       kernelSessionId: Schema.String,
+      startedAt: Schema.Date,
     }),
   }),
 
@@ -325,6 +332,8 @@ export const events = {
       cellId: Schema.String,
       status: Schema.Literal("success", "error", "cancelled"),
       error: Schema.optional(Schema.String),
+      completedAt: Schema.Date,
+      executionDurationMs: Schema.Number,
     }),
   }),
 
@@ -514,10 +523,13 @@ const materializers = State.SQLite.materializers(events, {
       })
       .where({ id: queueId }),
 
-  "v1.ExecutionStarted": ({ queueId, cellId }) => [
+  "v1.ExecutionStarted": ({ queueId, cellId, startedAt }) => [
     // Update execution queue
     tables.executionQueue
-      .update({ status: "executing" })
+      .update({
+        status: "executing",
+        startedAt: startedAt,
+      })
       .where({ id: queueId }),
     // Update cell execution state
     tables.cells
@@ -527,17 +539,26 @@ const materializers = State.SQLite.materializers(events, {
       .where({ id: cellId }),
   ],
 
-  "v1.ExecutionCompleted": ({ queueId, cellId, status }) => [
+  "v1.ExecutionCompleted": ({
+    queueId,
+    cellId,
+    status,
+    completedAt,
+    executionDurationMs,
+  }) => [
     // Update execution queue
     tables.executionQueue
       .update({
         status: status === "success" ? "completed" : "failed",
+        completedAt: completedAt,
+        executionDurationMs: executionDurationMs,
       })
       .where({ id: queueId }),
     // Update cell execution state
     tables.cells
       .update({
         executionState: status === "success" ? "completed" : "error",
+        lastExecutionDurationMs: executionDurationMs,
       })
       .where({ id: cellId }),
   ],

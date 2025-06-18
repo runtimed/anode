@@ -140,6 +140,7 @@ describe("Edge Cases and Stress Tests", () => {
             queueId: queueIds[i],
             cellId: cellIds[i],
             kernelSessionId: sessionId,
+            startedAt: new Date(),
           }),
         );
 
@@ -148,6 +149,8 @@ describe("Edge Cases and Stress Tests", () => {
             queueId: queueIds[i],
             cellId: cellIds[i],
             status: "success",
+            completedAt: new Date(),
+            executionDurationMs: 100,
           }),
         );
       }
@@ -511,6 +514,7 @@ describe("Edge Cases and Stress Tests", () => {
           queueId,
           cellId,
           kernelSessionId: sessionId,
+          startedAt: new Date(),
         }),
       );
 
@@ -522,6 +526,8 @@ describe("Edge Cases and Stress Tests", () => {
           status: "error",
           error:
             "Simulated execution error with special chars: 🚨💥 Error message",
+          completedAt: new Date(),
+          executionDurationMs: 50,
         }),
       );
 
@@ -580,6 +586,7 @@ describe("Edge Cases and Stress Tests", () => {
           queueId,
           cellId,
           kernelSessionId: sessionId,
+          startedAt: new Date(),
         }),
       );
 
@@ -811,6 +818,7 @@ describe("Edge Cases and Stress Tests", () => {
           queueId,
           cellId,
           kernelSessionId: sessionId,
+          startedAt: new Date(),
         }),
       );
 
@@ -822,6 +830,8 @@ describe("Edge Cases and Stress Tests", () => {
           queueId,
           cellId,
           status: "success",
+          completedAt: new Date(),
+          executionDurationMs: 200,
         }),
       );
 
