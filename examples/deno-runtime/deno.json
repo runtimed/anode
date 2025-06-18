@@ -1,0 +1,29 @@
+{
+  "compilerOptions": {
+    "strict": true,
+    "lib": ["ESNext", "DOM"],
+    "target": "ES2022"
+  },
+  "tasks": {
+    "dev": "deno run --allow-net --allow-read --allow-write --watch runtime.ts",
+    "start": "deno run --allow-net --allow-read --allow-write runtime.ts"
+  },
+  "imports": {
+    "@anode/schema": "jsr:@anode/schema@^0.1.0",
+    "@livestore/livestore": "npm:@livestore/livestore@^0.25.0",
+    "@livestore/adapter-node": "npm:@livestore/adapter-node@^0.25.0"
+  },
+  "lint": {
+    "rules": {
+      "tags": ["recommended"]
+    }
+  },
+  "fmt": {
+    "useTabs": false,
+    "lineWidth": 100,
+    "indentWidth": 2,
+    "semiColons": true,
+    "singleQuote": false,
+    "proseWrap": "preserve"
+  }
+}

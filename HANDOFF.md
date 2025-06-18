@@ -199,6 +199,45 @@ Based on recent git commits, significant progress has been made on all priority 
 **Estimated effort**: 6-8 hours
 **Impact**: Verifies core value proposition and identifies real functionality gaps
 
+### Priority 2.5: JSR Schema Architecture (NEWLY IMPLEMENTED) 📦
+**Status**: Architecture implemented, ready for publishing
+
+**Goal**: Enable clean separation between Node.js monorepo and Deno runtime
+
+**What's Ready**:
+- ✅ JSR package structure in `packages/schema-jsr/`
+- ✅ Automated publishing script with version management
+- ✅ Development workflow documentation
+- ✅ Example Deno runtime showing usage
+- ✅ pnpm workspace integration for JSR dependencies
+
+**Architecture Benefits**:
+- **Clean LSP separation**: No TypeScript/Node/Deno conflicts in monorepo
+- **External runtime support**: Deno-based pyodide-runtime-agent can live in separate repo
+- **Versioned schema sharing**: Proper dependency management between projects
+- **Future extensibility**: Other tools can consume schema via JSR
+
+**Implementation Details**:
+- Source of truth: `shared/schema.ts` (unchanged for monorepo)
+- JSR package: `packages/schema-jsr/` (auto-generated from source)
+- Publishing: `pnpm publish:schema` (automated with version bumping)
+- External usage: `import { schema } from "jsr:@anode/schema"`
+
+**Next Steps**:
+1. First JSR publish: `pnpm publish:schema`
+2. Move pyodide-runtime-agent to separate Deno repository
+3. Update runtime to consume JSR schema
+4. Verify end-to-end integration
+
+**Files**:
+- `packages/schema-jsr/deno.json` - JSR package configuration
+- `scripts/publish-schema.mjs` - Automated publishing workflow
+- `docs/jsr-schema-workflow.md` - Contributor guide
+- `examples/deno-runtime/` - Example external runtime
+
+**Estimated effort**: 2-3 hours to complete first publish and runtime migration
+**Impact**: Eliminates LSP conflicts, enables clean Deno runtime architecture
+
 ### Priority 3: MCP Integration Foundation 🔮 LONG-TERM
 **Status**: 🎯 **Architecture planning**
 
