@@ -41,7 +41,7 @@ Core collaborative editing, Python execution, and basic AI integration functiona
 🚧 **Needs Enhancement:**
 - Rich output rendering (matplotlib, pandas HTML tables) - needs verification
 - Enhanced AI features - notebook context awareness, tools for modifying cells
-- Automated kernel management
+- Automated runtime management
 - Comprehensive testing of display system
 
 ### 🎯 Next Priorities
@@ -49,7 +49,7 @@ Core collaborative editing, Python execution, and basic AI integration functiona
 **Immediate Focus:**
 - Integration testing to verify Python execution and rich outputs
 - Enhanced AI integration (notebook context awareness, tools for modifying cells)
-- Automated kernel management to remove manual startup friction
+- Automated runtime management to remove manual startup friction
 - Rich output verification (matplotlib SVG, pandas HTML)
 
 **AI Integration Status:**
@@ -77,7 +77,7 @@ docs/
     ├── ai-tool-calling.md      # OpenAI function calling for AI-notebook interaction
     ├── mcp-integration.md      # Model Context Protocol integration analysis
     ├── updateable-outputs.md   # Jupyter-compatible output updates
-    ├── kernel-management.md    # Automated kernel provisioning and lifecycle
+    ├── runtime-management.md    # Automated runtime provisioning and lifecycle
     └── ai-context-controls.md  # User controls for AI context
 ```
 
@@ -90,7 +90,7 @@ docs/
 4. See [ui-design.md](./ui-design.md) for interface patterns
 
 **Key Files:**
-- `packages/pyodide-runtime-agent/src/pyodide-kernel.ts` - Python execution kernel
+- `packages/pyodide-runtime-agent/src/pyodide-kernel.ts` - Python execution runtime
 - `packages/pyodide-runtime-agent/src/openai-client.ts` - OpenAI API integration
 - `packages/web-client/src/components/notebook/RichOutput.tsx` - Output rendering
 - `packages/web-client/src/components/notebook/AiCell.tsx` - AI cell interface
@@ -100,11 +100,11 @@ docs/
 ```bash
 # Start development environment
 pnpm dev                 # Web client + sync backend
-NOTEBOOK_ID=test pnpm dev:kernel  # Python kernel (manual per notebook)
+NOTEBOOK_ID=test pnpm dev:runtime  # Python runtime (manual per notebook)
 
 # Testing
 pnpm test               # Current test suite (mostly smoke tests)
-pnpm test:kernel        # Kernel tests (mocked Pyodide)
+pnpm test:runtime        # Runtime tests (mocked Pyodide)
 ```
 
 ### 🧠 Design Philosophy
@@ -135,7 +135,7 @@ When working on the display system:
 - Integration testing for Python execution
 - Matplotlib and pandas display verification
 - Enhanced AI integration (context awareness, notebook tools)
-- Automated kernel management
+- Automated runtime management
 
 **Phase 3: Advanced Features**
 - Interactive widgets and collaborative components
