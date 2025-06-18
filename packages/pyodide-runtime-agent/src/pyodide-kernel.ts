@@ -51,6 +51,59 @@ export class PyodideKernel {
         },
       });
 
+      // Configure terminal environment for color support
+      console.log(`🎨 Configuring terminal environment for rich colors...`);
+      this.pyodide.runPython(`
+import os
+import sys
+
+# Set environment variables to enable terminal colors
+os.environ['TERM'] = 'xterm-256color'
+os.environ['FORCE_COLOR'] = '1'
+os.environ['COLORTERM'] = 'truecolor'
+os.environ['CLICOLOR'] = '1'
+os.environ['CLICOLOR_FORCE'] = '1'
+
+# Mock sys.stdout.isatty() to return True for color detection
+class ColorfulStdout:
+    def __init__(self, original):
+        self._original = original
+
+    def __getattr__(self, name):
+        return getattr(self._original, name)
+
+    def isatty(self):
+        return True
+
+    def write(self, text):
+        return self._original.write(text)
+
+    def flush(self):
+        return self._original.flush()
+
+class ColorfulStderr:
+    def __init__(self, original):
+        self._original = original
+
+    def __getattr__(self, name):
+        return getattr(self._original, name)
+
+    def isatty(self):
+        return True
+
+    def write(self, text):
+        return self._original.write(text)
+
+    def flush(self):
+        return self._original.flush()
+
+# Replace stdout and stderr with colorful versions
+sys.stdout = ColorfulStdout(sys.stdout)
+sys.stderr = ColorfulStderr(sys.stderr)
+
+print("✅ Terminal environment configured for colors!")
+      `);
+
       // Load essential packages after Pyodide initialization
       console.log(`📦 Loading essential packages...`);
       try {
