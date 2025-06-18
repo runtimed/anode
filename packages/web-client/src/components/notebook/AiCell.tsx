@@ -466,7 +466,11 @@ export const AiCell: React.FC<AiCellProps> = ({
               ) : cell.executionState === 'queued' ? (
                 'Queued'
               ) : cell.executionCount ? (
-                '1.2s' /* TODO: Gather execution time */
+                cell.lastExecutionDurationMs
+                  ? `${cell.lastExecutionDurationMs < 1000
+                      ? `${cell.lastExecutionDurationMs}ms`
+                      : `${(cell.lastExecutionDurationMs / 1000).toFixed(1)}s`}`
+                  : 'Completed'
               ) : null}
             </span>
             {outputs.length > 0 && (
