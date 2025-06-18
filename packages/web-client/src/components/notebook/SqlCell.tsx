@@ -416,7 +416,11 @@ export const SqlCell: React.FC<SqlCellProps> = ({
               ) : cell.executionState === 'queued' ? (
                 'Queued'
               ) : cell.executionCount ? (
-                '42ms' /* TODO: Use actual execution time from sqlResultData */
+                cell.lastExecutionDurationMs
+                  ? `${cell.lastExecutionDurationMs < 1000
+                      ? `${cell.lastExecutionDurationMs}ms`
+                      : `${(cell.lastExecutionDurationMs / 1000).toFixed(1)}s`}`
+                  : 'Completed'
               ) : null}
             </span>
             {cell.sqlResultData && (

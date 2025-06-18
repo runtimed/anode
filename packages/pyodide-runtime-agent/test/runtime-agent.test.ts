@@ -203,6 +203,7 @@ describe("Runtime Agent", () => {
         queueId,
         cellId,
         kernelSessionId: sessionId,
+        startedAt: new Date(),
       }))
 
       // Complete execution
@@ -210,6 +211,8 @@ describe("Runtime Agent", () => {
         queueId,
         cellId,
         status: 'success',
+        completedAt: new Date(),
+        executionDurationMs: 100,
       }))
 
       const queueEntries = store.query(tables.executionQueue.select())
@@ -388,7 +391,9 @@ describe("Runtime Agent", () => {
           store.commit(events.executionCompleted({
             queueId,
             cellId: `cell-${i}`,
-            status: 'success'
+            status: 'success',
+            completedAt: new Date(),
+            executionDurationMs: 50,
           }))
         }
       }

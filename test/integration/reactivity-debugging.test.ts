@@ -101,6 +101,7 @@ describe("Reactivity Debugging", () => {
           queueId,
           cellId,
           kernelSessionId: sessionId,
+          startedAt: new Date(),
         }),
       );
 
@@ -171,6 +172,8 @@ describe("Reactivity Debugging", () => {
           queueId: "multi-sub-queue",
           cellId: "multi-sub-cell",
           status: "success",
+          completedAt: new Date(),
+          executionDurationMs: 100,
         }),
       );
 

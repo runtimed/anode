@@ -493,7 +493,11 @@ export const Cell: React.FC<CellProps> = ({
               ) : cell.executionState === 'queued' ? (
                 'Queued'
               ) : cell.executionCount ? (
-                '0.3s' /* TODO: Gather execution time */
+                cell.lastExecutionDurationMs
+                  ? `${cell.lastExecutionDurationMs < 1000
+                      ? `${cell.lastExecutionDurationMs}ms`
+                      : `${(cell.lastExecutionDurationMs / 1000).toFixed(1)}s`}`
+                  : 'Completed'
               ) : null}
             </span>
             {(outputs.length > 0 || cell.executionState === 'running') && (

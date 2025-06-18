@@ -604,6 +604,8 @@ Here's an example of how I can provide visual responses:`,
 async function processExecution(queueEntry: any) {
   console.log(`⚡ Processing execution ${queueEntry.id} for cell ${queueEntry.cellId}`);
 
+  const executionStartTime = new Date();
+
   try {
     // Get the cell details
     const cells = store.query(
@@ -615,11 +617,12 @@ async function processExecution(queueEntry: any) {
       throw new Error(`Cell ${queueEntry.cellId} not found`);
     }
 
-    // Mark execution as started
+    // Mark execution as started with timing
     store.commit(events.executionStarted({
       queueId: queueEntry.id,
       cellId: queueEntry.cellId,
       kernelSessionId: SESSION_ID,
+      startedAt: executionStartTime,
     }));
 
     // Clear previous outputs
@@ -679,29 +682,39 @@ async function processExecution(queueEntry: any) {
       }));
     });
 
-    // Mark execution as completed
+    // Mark execution as completed with timing
+    const executionEndTime = new Date();
+    const executionDurationMs = executionEndTime.getTime() - executionStartTime.getTime();
     const hasErrors = outputs.some(o => o.type === "error");
+
     store.commit(events.executionCompleted({
       queueId: queueEntry.id,
       cellId: queueEntry.cellId,
       status: hasErrors ? "error" : "success",
       error: hasErrors ? "Execution completed with errors" : undefined,
+      completedAt: executionEndTime,
+      executionDurationMs: executionDurationMs,
     }));
 
-    console.log(`✅ Execution ${queueEntry.id} completed (${hasErrors ? 'with errors' : 'success'})`);
+    console.log(`✅ Execution ${queueEntry.id} completed in ${executionDurationMs}ms (${hasErrors ? 'with errors' : 'success'})`);
   } catch (error) {
     console.error(`❌ Error in processExecution for ${queueEntry.id}:`, error);
     if (error instanceof Error) {
       console.error("Stack trace:", error.stack);
     }
 
-    // Mark execution as failed
+    // Mark execution as failed with timing
     try {
+      const executionEndTime = new Date();
+      const executionDurationMs = executionEndTime.getTime() - executionStartTime.getTime();
+
       store.commit(events.executionCompleted({
         queueId: queueEntry.id,
         cellId: queueEntry.cellId,
         status: "error",
         error: error instanceof Error ? error.message : String(error),
+        completedAt: executionEndTime,
+        executionDurationMs: executionDurationMs,
       }));
     } catch (commitError) {
       console.error(`💥 Failed to mark execution as failed:`, commitError);
@@ -742,11 +755,16 @@ assignedWorkSubscription = store.subscribe(assignedWorkQuery$ as any, {
 
           // Mark as failed
           try {
+            const errorEndTime = new Date();
+            const errorDurationMs = errorEndTime.getTime() - Date.now(); // Rough estimate since we don't have start time here
+
             store.commit(events.executionCompleted({
               queueId: queueEntry.id,
               cellId: queueEntry.cellId,
               status: "error",
               error: error instanceof Error ? error.message : String(error),
+              completedAt: errorEndTime,
+              executionDurationMs: Math.max(0, errorDurationMs),
             }));
           } catch (commitError) {
             console.error(`💥 Failed to mark execution as failed:`, commitError);
