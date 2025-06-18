@@ -185,18 +185,7 @@ export class PyodideCacheManager {
    * Warm up cache by pre-loading common packages
    * This is useful for CI/CD or development environment setup
    */
-  async warmUpCache(packages: string[] = [
-    "ipython",
-    "matplotlib",
-    "numpy",
-    "pandas",
-    "requests",
-    "micropip",
-    "scipy",
-    "sympy",
-    "bokeh",
-    "plotly"
-  ]): Promise<void> {
+  async warmUpCache(packages: string[] = getCommonPackages()): Promise<void> {
     console.log(`🔥 Warming up package cache with ${packages.length} packages...`);
 
     // Ensure cache directory exists and get current stats in parallel
@@ -313,6 +302,7 @@ export function getCommonPackages(): string[] {
     "matplotlib",
     "numpy",
     "pandas",
+    "polars",     // Fast DataFrames
     "requests",
     "micropip",
     "scipy",      // Scientific computing
@@ -331,6 +321,7 @@ export function getEssentialPackages(): string[] {
     "matplotlib",
     "numpy",
     "pandas",
+    "polars",     // Fast DataFrames
     "requests",
     "micropip",
   ];

@@ -226,7 +226,7 @@ Examples:
   pnpm cache-cli stats --cache-dir /custom/path
 
 Package Sets:
-  Essential: ipython, matplotlib, numpy, pandas, requests, micropip
+  Essential: ipython, matplotlib, numpy, pandas, polars, requests, micropip
   Common:    Essential + scipy, sympy, bokeh, plotly
 `);
 }
