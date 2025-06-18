@@ -13,6 +13,7 @@ export function getEssentialPackages(): string[] {
     "pandas",
     "polars",     // Fast DataFrames
     "duckdb",     // SQL analytics
+    "pyarrow",    // Arrow format for polars/duckdb interop
     "requests",
     "micropip",
     "scipy",      // Scientific computing
