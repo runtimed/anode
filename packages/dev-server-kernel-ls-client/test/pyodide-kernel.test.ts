@@ -19,7 +19,7 @@ vi.mock('pyodide', () => ({
  *
  * Note: Comprehensive testing of the enhanced display system is done in:
  * - enhanced-display-system.ts (22 integration tests covering real functionality)
- * - kernel-adapter.test.ts (LiveStore integration tests)
+ * - runtime-orchestrator.test.ts (LiveStore integration tests)
  *
  * These smoke tests just verify basic kernel lifecycle with proper mocking.
  */
@@ -98,7 +98,7 @@ describe('PyodideKernel - Smoke Tests', () => {
  *    including IPython integration, rich outputs, stream consolidation, etc.
  *    This is where the real kernel functionality is validated.
  *
- * 2. kernel-adapter.test.ts - Tests LiveStore integration and reactive
+ * 2. runtime-orchestrator.test.ts - Tests LiveStore integration and reactive
  *    execution patterns with the kernel.
  *
  * These smoke tests just ensure basic object construction and lifecycle

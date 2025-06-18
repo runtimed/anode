@@ -3,7 +3,7 @@
 // This affects integration tests but the kernel should work in browser environments
 import { loadPyodide, PyodideInterface } from "pyodide";
 import { OutputType, ErrorOutputData, RichOutputData, StreamOutputData } from "../../../shared/schema.js";
-import { defaultCacheManager, getCacheConfig, getEssentialPackages } from "./cache-utils.js";
+import { defaultCacheManager, getCacheConfigWithPreWarm, getEssentialPackages } from "./cache-utils.js";
 
 export interface OutputData {
   type: OutputType;
@@ -31,58 +31,71 @@ export class PyodideKernel {
     );
 
     try {
-      // Ensure cache directory exists
-      await defaultCacheManager.ensureCacheDir();
-
-      // Get cache configuration
-      const cacheConfig = getCacheConfig();
-
-      // Get essential packages for initialization
+      // Get essential packages list
       const essentialPackages = getEssentialPackages();
-
-      console.log(`📦 Using package cache: ${cacheConfig.packageCacheDir}`);
       console.log(`📦 Will load packages: ${essentialPackages.join(', ')}`);
 
-      this.pyodide = await loadPyodide({
-        ...cacheConfig,  // Cache packages locally for faster subsequent loads
-        stdout: (text: string) => {
-          console.log("[py stdout]:", text);
-          this.addStreamOutput("stdout", text);
-        },
-        stderr: (text: string) => {
-          console.error("[py stderr]:", text);
-          this.addStreamOutput("stderr", text);
-        },
-      });
+      // Run pre-warmed cache config and Pyodide loading in parallel
+      const [cacheSetupResult, pyodideInstance] = await Promise.all([
+        // Pre-warmed cache setup
+        getCacheConfigWithPreWarm().then(({ packageCacheDir, stats }) => {
+          console.log(`📦 Using pre-warmed cache: ${packageCacheDir}`);
+          if (stats) {
+            console.log(`📊 Cache ready: ${stats.packageCount} packages, ${stats.totalSizeMB}MB`);
+          }
+          return { packageCacheDir, stats };
+        }),
+        // Pyodide loading with pre-warmed cache
+        getCacheConfigWithPreWarm().then(({ packageCacheDir }) =>
+          loadPyodide({
+            packageCacheDir,  // Use pre-warmed cache for faster loads
+            stdout: (text: string) => {
+              console.log("[py stdout]:", text);
+              this.addStreamOutput("stdout", text);
+            },
+            stderr: (text: string) => {
+              console.error("[py stderr]:", text);
+              this.addStreamOutput("stderr", text);
+            },
+          })
+        )
+      ]);
 
-      // Load essential packages after Pyodide initialization to avoid Node.js stack issues
+      this.pyodide = pyodideInstance;
+
+      // Load essential packages after Pyodide initialization
       console.log(`📦 Loading essential packages...`);
       try {
-        await this.pyodide!.loadPackage(essentialPackages);
+        await this.pyodide.loadPackage(essentialPackages);
         console.log(`✅ Successfully loaded ${essentialPackages.length} packages`);
       } catch (packageError) {
         console.warn(`⚠️ Some packages failed to load:`, packageError);
         // Try loading packages individually to identify which ones fail
-        for (const pkg of essentialPackages) {
-          try {
-            await this.pyodide!.loadPackage([pkg]);
-            console.log(`✅ Loaded ${pkg}`);
-          } catch (err) {
-            console.warn(`❌ Failed to load ${pkg}:`, err);
-          }
-        }
-      }
+        const packageResults = await Promise.allSettled(
+          essentialPackages.map(pkg =>
+            this.pyodide!.loadPackage([pkg]).then(() => ({ pkg, success: true }))
+              .catch(err => ({ pkg, success: false, error: err }))
+          )
+        );
 
-      // Log cache statistics
-      const cacheStats = await defaultCacheManager.getCacheStats();
-      console.log(`📊 Cache stats: ${cacheStats.packageCount} packages, ${cacheStats.totalSizeMB}MB`);
+        packageResults.forEach(result => {
+          if (result.status === 'fulfilled') {
+            const value = result.value;
+            if (value.success) {
+              console.log(`✅ Loaded ${value.pkg}`);
+            } else {
+              console.warn(`❌ Failed to load ${value.pkg}:`, 'error' in value ? value.error : 'Unknown error');
+            }
+          }
+        });
+      }
     } catch (error) {
       console.error("❌ Failed to initialize Pyodide kernel:", error);
       throw error;
     }
 
     // Set up the IPython environment with custom display hooks
-    await this.pyodide!.runPythonAsync(`
+    await this.pyodide.runPythonAsync(`
 import sys
 import io
 import json
