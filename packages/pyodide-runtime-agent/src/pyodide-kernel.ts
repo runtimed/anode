@@ -3,7 +3,7 @@
 // This affects integration tests but the kernel should work in browser environments
 import { loadPyodide, PyodideInterface } from "pyodide";
 import { OutputType, ErrorOutputData, RichOutputData, StreamOutputData } from "../../../shared/schema.js";
-import { defaultCacheManager, getCacheConfigWithPreWarm, getEssentialPackages } from "./cache-utils.js";
+import { getCacheConfig, getEssentialPackages } from "./cache-utils.js";
 
 export interface OutputData {
   type: OutputType;
@@ -35,33 +35,21 @@ export class PyodideKernel {
       const essentialPackages = getEssentialPackages();
       console.log(`📦 Will load packages: ${essentialPackages.join(', ')}`);
 
-      // Run pre-warmed cache config and Pyodide loading in parallel
-      const [cacheSetupResult, pyodideInstance] = await Promise.all([
-        // Pre-warmed cache setup
-        getCacheConfigWithPreWarm().then(({ packageCacheDir, stats }) => {
-          console.log(`📦 Using pre-warmed cache: ${packageCacheDir}`);
-          if (stats) {
-            console.log(`📊 Cache ready: ${stats.packageCount} packages, ${stats.totalSizeMB}MB`);
-          }
-          return { packageCacheDir, stats };
-        }),
-        // Pyodide loading with pre-warmed cache
-        getCacheConfigWithPreWarm().then(({ packageCacheDir }) =>
-          loadPyodide({
-            packageCacheDir,  // Use pre-warmed cache for faster loads
-            stdout: (text: string) => {
-              console.log("[py stdout]:", text);
-              this.addStreamOutput("stdout", text);
-            },
-            stderr: (text: string) => {
-              console.error("[py stderr]:", text);
-              this.addStreamOutput("stderr", text);
-            },
-          })
-        )
-      ]);
+      // Load Pyodide with cache directory
+      const { packageCacheDir } = getCacheConfig();
+      console.log(`📦 Using cache directory: ${packageCacheDir}`);
 
-      this.pyodide = pyodideInstance;
+      this.pyodide = await loadPyodide({
+        packageCacheDir,
+        stdout: (text: string) => {
+          console.log("[py stdout]:", text);
+          this.addStreamOutput("stdout", text);
+        },
+        stderr: (text: string) => {
+          console.error("[py stderr]:", text);
+          this.addStreamOutput("stderr", text);
+        },
+      });
 
       // Load essential packages after Pyodide initialization
       console.log(`📦 Loading essential packages...`);

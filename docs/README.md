@@ -5,6 +5,7 @@ This directory contains comprehensive documentation for the Anode project - a re
 ## Quick Navigation
 
 ### 📖 Core Documentation
+- **[Runtime Agent Architecture](./runtime-agent-architecture.md)** - Core system design and product vision
 - **[Display System](./display-system.md)** - Complete guide to Anode's enhanced IPython display system
 - **[Display Examples](./display-examples.md)** - Practical examples and usage patterns for rich outputs
 - **[UI Design](./ui-design.md)** - Design principles and interface guidelines
@@ -21,7 +22,16 @@ This directory contains comprehensive documentation for the Anode project - a re
 
 ### 🏗️ Architecture Overview
 
-Anode combines three key technologies:
+Anode is built around the **Runtime Agent** - a dual-purpose system that serves as both a computational backend and an AI assistant. The Runtime Agent provides:
+
+- **System Agent**: Manages Python execution, database connections, and document state
+- **AI Agent**: Provides context-aware assistance with notebook development
+- **Security**: Keeps credentials server-side with automatic masking
+- **Isolation**: Each notebook gets its own runtime agent instance
+
+See **[Runtime Agent Architecture](./runtime-agent-architecture.md)** for the complete design vision.
+
+**Key Technologies:**
 - **LiveStore**: Event-sourcing based local-first data synchronization
 - **IPython**: Full Jupyter-compatible display system with custom hooks
 - **React**: Modern web interface with real-time collaborative editing
@@ -66,28 +76,30 @@ Core collaborative editing, Python execution, and basic AI integration functiona
 
 ```
 docs/
-├── README.md                 # This file - documentation index
-├── ai-features.md           # AI integration setup and capabilities
-├── display-system.md        # Display system architecture (aspirational)
-├── testing.md              # Testing strategy and current gaps
-├── display-examples.md      # Practical usage examples
-├── ui-design.md            # Interface design guidelines
+├── README.md                    # This file - documentation index
+├── runtime-agent-architecture.md # Core system design and product vision
+├── ai-features.md              # AI integration setup and capabilities
+├── display-system.md           # Display system architecture (aspirational)
+├── testing.md                  # Testing strategy and current gaps
+├── display-examples.md         # Practical usage examples
+├── ui-design.md               # Interface design guidelines
 └── proposals/
-    ├── completion-system.md    # Interactive code completion architecture
-    ├── ai-tool-calling.md      # OpenAI function calling for AI-notebook interaction
-    ├── mcp-integration.md      # Model Context Protocol integration analysis
-    ├── updateable-outputs.md   # Jupyter-compatible output updates
-    ├── runtime-management.md    # Automated runtime provisioning and lifecycle
-    └── ai-context-controls.md  # User controls for AI context
+    ├── completion-system.md       # Interactive code completion architecture
+    ├── ai-tool-calling.md         # OpenAI function calling for AI-notebook interaction
+    ├── mcp-integration.md         # Model Context Protocol integration analysis
+    ├── updateable-outputs.md      # Jupyter-compatible output updates
+    ├── runtime-management.md      # Automated runtime provisioning and lifecycle
+    └── ai-context-controls.md     # User controls for AI context
 ```
 
 ### 🔧 For Developers
 
 **Getting Started:**
-1. Read [ai-features.md](./ai-features.md) for AI setup and current capabilities
-2. Check [testing.md](./testing.md) for current test strategy and gaps
-3. Review [display-system.md](./display-system.md) for architecture goals
-4. See [ui-design.md](./ui-design.md) for interface patterns
+1. Read [runtime-agent-architecture.md](./runtime-agent-architecture.md) for the core system design
+2. Check [ai-features.md](./ai-features.md) for AI setup and current capabilities
+3. Review [testing.md](./testing.md) for current test strategy and gaps
+4. See [display-system.md](./display-system.md) for display system architecture
+5. Review [ui-design.md](./ui-design.md) for interface patterns
 
 **Key Files:**
 - `packages/pyodide-runtime-agent/src/pyodide-kernel.ts` - Python execution runtime

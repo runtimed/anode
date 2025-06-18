@@ -38,12 +38,6 @@
     "lint:runtime": "pnpm --filter @anode/pyodide-runtime-agent lint",
     "check": "pnpm type-check && pnpm lint",
     "reset-storage": "node reset-local-storage.cjs",
-    "cache:warm-up": "pnpm --filter @anode/pyodide-runtime-agent cache:warm-up",
-    "cache:warm-up:common": "pnpm --filter @anode/pyodide-runtime-agent cache:warm-up:common",
-    "cache:stats": "pnpm --filter @anode/pyodide-runtime-agent cache:stats",
-    "cache:list": "pnpm --filter @anode/pyodide-runtime-agent cache:list",
-    "cache:clear": "pnpm --filter @anode/pyodide-runtime-agent cache:clear",
-    "cache:cleanup": "pnpm --filter @anode/pyodide-runtime-agent cache:cleanup",
     "start": "echo 'Use pnpm dev to start core services. For Python execution, start runtime with: NOTEBOOK_ID=your-notebook-id pnpm dev:runtime'"
   },
   "devDependencies": {
