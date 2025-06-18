@@ -3,6 +3,7 @@ import { useStore } from '@livestore/react'
 import { events, tables, CellData, KernelSessionData } from '../../../../../shared/schema.js'
 import { queryDb } from '@livestore/livestore'
 import { Cell } from './Cell.js'
+import { formatDistanceToNow } from 'date-fns'
 
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -27,14 +28,16 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({ onNewNotebook })
   const [localTitle, setLocalTitle] = React.useState(notebook?.title || '')
   const [showKernelHelper, setShowKernelHelper] = React.useState(false)
   const [focusedCellId, setFocusedCellId] = React.useState<string | null>(null)
-  const [currentTime, setCurrentTime] = React.useState(new Date())
 
   const currentNotebookId = getCurrentNotebookId()
   const kernelCommand = `NOTEBOOK_ID=${currentNotebookId} pnpm dev:kernel`
 
   // Check kernel status with heartbeat-based health assessment
   const getKernelHealth = (session: KernelSessionData) => {
-    if (!session.lastHeartbeat) return 'unknown'
+    if (!session.lastHeartbeat) {
+      // If session is active but no heartbeat yet, it's connecting (not disconnected)
+      return session.isActive ? 'connecting' : 'unknown'
+    }
     const now = new Date()
     const lastHeartbeat = new Date(session.lastHeartbeat)
     const diffMs = now.getTime() - lastHeartbeat.getTime()
@@ -47,7 +50,7 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({ onNewNotebook })
   const activeKernel = kernelSessions.find((session: KernelSessionData) =>
     session.status === 'ready' || session.status === 'busy'
   )
-  const hasActiveKernel = Boolean(activeKernel && getKernelHealth(activeKernel) !== 'stale')
+  const hasActiveKernel = Boolean(activeKernel && ['healthy', 'warning', 'connecting'].includes(getKernelHealth(activeKernel)))
   const kernelHealth = activeKernel ? getKernelHealth(activeKernel) : 'disconnected'
   const kernelStatus = activeKernel?.status || (kernelSessions.length > 0 ? kernelSessions[0].status : 'disconnected')
 
@@ -56,14 +59,20 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({ onNewNotebook })
     // Could add a toast notification here
   }, [kernelCommand])
 
-  // Update current time every 10 seconds for heartbeat display
-  React.useEffect(() => {
-    const interval = setInterval(() => {
-      setCurrentTime(new Date())
-    }, 10000) // Update every 10 seconds
+  // Helper function to format heartbeat time
+  const formatHeartbeatTime = (heartbeatTime: Date | string | null) => {
+    if (!heartbeatTime) return 'Never'
 
-    return () => clearInterval(interval)
-  }, [])
+    const heartbeat = new Date(heartbeatTime)
+    const now = new Date()
+    const diffMs = now.getTime() - heartbeat.getTime()
+
+    // Show "Now" for very recent heartbeats (within 2 seconds)
+    if (diffMs < 2000) return 'Now'
+
+    // Use date-fns for clean relative formatting
+    return formatDistanceToNow(heartbeat, { addSuffix: true })
+  }
 
   React.useEffect(() => {
     if (notebook?.title) {
@@ -285,6 +294,7 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({ onNewNotebook })
                   className={`h-2 w-2 fill-current ${
                     activeKernel && kernelHealth === 'healthy' ? 'text-green-500' :
                     activeKernel && kernelHealth === 'warning' ? 'text-amber-500' :
+                    activeKernel && kernelHealth === 'connecting' ? 'text-blue-500' :
                     activeKernel && kernelHealth === 'stale' ? 'text-amber-500' :
                     kernelStatus === 'starting' ? 'text-blue-500' :
                     'text-red-500'
@@ -312,6 +322,7 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({ onNewNotebook })
                     className={`h-2 w-2 fill-current ${
                       activeKernel && kernelHealth === 'healthy' ? 'text-green-500' :
                       activeKernel && kernelHealth === 'warning' ? 'text-amber-500' :
+                      activeKernel && kernelHealth === 'connecting' ? 'text-blue-500' :
                       activeKernel && kernelHealth === 'stale' ? 'text-amber-500' :
                       kernelStatus === 'starting' ? 'text-blue-500' :
                       'text-red-500'
@@ -320,12 +331,14 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({ onNewNotebook })
                   <span className={`text-xs ${
                       activeKernel && kernelHealth === 'healthy' ? 'text-green-600' :
                       activeKernel && kernelHealth === 'warning' ? 'text-amber-600' :
+                      activeKernel && kernelHealth === 'connecting' ? 'text-blue-600' :
                       activeKernel && kernelHealth === 'stale' ? 'text-amber-600' :
                       kernelStatus === 'starting' ? 'text-blue-600' :
                       'text-red-600'
                     }`}>
                     {activeKernel && kernelHealth === 'healthy' ? 'Connected' :
                      activeKernel && kernelHealth === 'warning' ? 'Connected (Slow)' :
+                     activeKernel && kernelHealth === 'connecting' ? 'Connecting...' :
                      activeKernel && kernelHealth === 'stale' ? 'Connected (Stale)' :
                      kernelStatus === 'starting' ? 'Starting' :
                      'Disconnected'}
@@ -388,34 +401,8 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({ onNewNotebook })
                   {activeKernel.lastHeartbeat && (
                     <div className="flex justify-between">
                       <span className="text-muted-foreground">Last Heartbeat:</span>
-                      <span className="text-xs">
-                        {(() => {
-                          const lastHeartbeat = new Date(activeKernel.lastHeartbeat);
-                          const now = currentTime;
-                          const diffMs = now.getTime() - lastHeartbeat.getTime();
-                          const diffSeconds = Math.floor(diffMs / 1000);
-
-                          if (diffSeconds < 60) {
-                            return `${diffSeconds}s ago`;
-                          } else if (diffSeconds < 3600) {
-                            return `${Math.floor(diffSeconds / 60)}m ago`;
-                          } else {
-                            return lastHeartbeat.toLocaleTimeString();
-                          }
-                        })()}
-                        {(() => {
-                          const lastHeartbeat = new Date(activeKernel.lastHeartbeat);
-                          const now = currentTime;
-                          const diffMs = now.getTime() - lastHeartbeat.getTime();
-
-                          if (diffMs > 60000) { // More than 1 minute
-                            return <span className="ml-1 text-amber-500">⚠️</span>;
-                          } else if (diffMs > 300000) { // More than 5 minutes
-                            return <span className="ml-1 text-red-500">❌</span>;
-                          } else {
-                            return <span className="ml-1 text-green-500">✅</span>;
-                          }
-                        })()}
+                      <span className="text-xs flex items-center gap-1">
+                        {formatHeartbeatTime(activeKernel.lastHeartbeat)}
                       </span>
                     </div>
                   )}
@@ -455,11 +442,7 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({ onNewNotebook })
                           </span>
                           {session.lastHeartbeat && (
                             <span className="text-muted-foreground">
-                              {(() => {
-                                const diffMs = currentTime.getTime() - new Date(session.lastHeartbeat).getTime();
-                                const diffSeconds = Math.floor(diffMs / 1000);
-                                return diffSeconds < 60 ? `${diffSeconds}s` : `${Math.floor(diffSeconds / 60)}m`;
-                              })()}
+                              {formatHeartbeatTime(session.lastHeartbeat)}
                             </span>
                           )}
                         </div>
