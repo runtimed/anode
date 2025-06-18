@@ -13,7 +13,7 @@ import {
   DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu'
 import { RichOutput } from './RichOutput.js'
-import { cleanAnsiCodes, cleanTraceback } from '../../util/ansi-cleaner.js'
+import { AnsiErrorOutput } from './AnsiOutput.js'
 import { Play, ChevronUp, ChevronDown, Plus, X, Bot, Code, FileText, Database, ArrowUp, ArrowDown, Eye, EyeOff } from 'lucide-react'
 
 interface AiCellProps {
@@ -501,23 +501,12 @@ export const AiCell: React.FC<AiCellProps> = ({
             .map((output: OutputData, index: number) => (
               <div key={output.id} className={index > 0 ? "border-t border-border/30 mt-2 pt-2" : ""}>
                 {output.outputType === 'error' ? (
-                  // Keep special error handling for better UX
-                  <div className="py-3 border-l-2 border-red-200 pl-1">
-                    <div className="font-mono text-sm">
-                      <div className="font-semibold text-red-700 mb-1">
-                        {isErrorOutput(output.data)
-                          ? `${cleanAnsiCodes(output.data.ename)}: ${cleanAnsiCodes(output.data.evalue)}`
-                          : 'Unknown error'}
-                      </div>
-                      {isErrorOutput(output.data) && output.data.traceback && (
-                        <div className="mt-2 text-red-600 text-xs whitespace-pre-wrap opacity-80">
-                          {Array.isArray(output.data.traceback)
-                            ? (cleanTraceback(output.data.traceback) as string[]).join('\n')
-                            : cleanTraceback(output.data.traceback) as string}
-                        </div>
-                      )}
-                    </div>
-                  </div>
+                  // Use AnsiErrorOutput for colored error rendering
+                  <AnsiErrorOutput
+                    ename={isErrorOutput(output.data) ? output.data.ename : undefined}
+                    evalue={isErrorOutput(output.data) ? output.data.evalue : undefined}
+                    traceback={isErrorOutput(output.data) ? output.data.traceback : undefined}
+                  />
                 ) : (
                   // Use RichOutput for all other output types
                   <div className="py-2">

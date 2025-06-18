@@ -4,7 +4,7 @@ import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter'
 import { oneLight } from 'react-syntax-highlighter/dist/esm/styles/prism'
 import { StreamOutputData } from '../../../../../shared/schema.js'
 import { FilePlus, Edit, ChevronDown, Info } from 'lucide-react'
-import { cleanStreamOutput } from '../../util/ansi-cleaner.js'
+import { AnsiStreamOutput } from './AnsiOutput.js'
 import './RichOutput.css'
 
 interface RichOutputProps {
@@ -71,14 +71,12 @@ export const RichOutput: React.FC<RichOutputProps> = ({
   // Handle stream outputs specially
   if (outputType === 'stream') {
     const streamData = data as unknown as StreamOutputData
-    const isStderr = streamData.name === 'stderr'
 
     return (
-      <div className={`py-2 ${isStderr ? 'text-red-600' : 'text-gray-700'}`}>
-        <div className="font-mono text-sm whitespace-pre-wrap leading-relaxed">
-          {cleanStreamOutput(streamData.text)}
-        </div>
-      </div>
+      <AnsiStreamOutput
+        text={streamData.text}
+        streamName={streamData.name}
+      />
     )
   }
 
