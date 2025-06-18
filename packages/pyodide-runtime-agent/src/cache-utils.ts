@@ -303,12 +303,16 @@ export function getCommonPackages(): string[] {
     "numpy",
     "pandas",
     "polars",     // Fast DataFrames
+    "duckdb",     // SQL analytics
     "requests",
     "micropip",
     "scipy",      // Scientific computing
     "sympy",      // Symbolic mathematics
     "bokeh",      // Interactive visualization
     "plotly",     // Plotting library
+    "scikit-learn", // Machine learning
+    "altair",     // Statistical visualization
+    "geopandas",  // Geospatial data analysis
   ];
 }
 
@@ -322,6 +326,7 @@ export function getEssentialPackages(): string[] {
     "numpy",
     "pandas",
     "polars",     // Fast DataFrames
+    "duckdb",     // SQL analytics
     "requests",
     "micropip",
   ];
