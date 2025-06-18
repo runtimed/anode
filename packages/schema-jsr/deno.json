@@ -11,11 +11,17 @@
     ".": "./schema.ts"
   },
   "publish": {
-    "include": ["schema.ts", "README.md"]
+    "include": [
+      "schema.ts",
+      "README.md"
+    ]
   },
   "compilerOptions": {
     "strict": true,
-    "lib": ["ESNext", "DOM"],
+    "lib": [
+      "ESNext",
+      "DOM"
+    ],
     "target": "ES2022"
   },
   "imports": {

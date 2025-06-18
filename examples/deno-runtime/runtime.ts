@@ -1,9 +1,11 @@
 #!/usr/bin/env -S deno run --allow-net --allow-read --allow-write
+/// <reference lib="deno.ns" />
 
-// Example Deno runtime using JSR-published schema
-import { schema, tables, events } from "jsr:@anode/schema";
-import { createStorePromise } from "npm:@livestore/livestore@^0.25.0";
-import { makeAdapter } from "npm:@livestore/adapter-node@^0.25.0";
+// Example Deno runtime using local schema for testing
+// In production, use: import { schema, tables, events } from "jsr:@anode/schema";
+import { schema, tables, events } from "../../packages/schema-jsr/schema.ts";
+import { createStorePromise, queryDb } from "npm:@livestore/livestore@^0.3.1";
+import { makeAdapter } from "npm:@livestore/adapter-node@^0.3.1";
 
 console.log("🦕 Deno Runtime Agent - Using JSR Schema");
 console.log("=====================================");
@@ -20,7 +22,7 @@ console.log(`📔 Connecting to notebook: ${notebookId}`);
 
 // Create the store using JSR schema
 const adapter = makeAdapter({
-  databaseUrl: `sqlite:./data/${notebookId}.db`,
+  storage: { type: "in-memory" },
 });
 
 const store = await createStorePromise({
@@ -31,87 +33,93 @@ const store = await createStorePromise({
 
 console.log("✅ Store connected successfully");
 
-// Example: Listen for execution requests
-const executionSubscription = store.query(
-  tables.executionQueue
-    .select()
-    .where({ status: "pending" })
-).subscribe({
-  next: (pendingExecutions) => {
-    if (pendingExecutions.length > 0) {
-      console.log(`🔄 Found ${pendingExecutions.length} pending executions`);
+// Example: Check for pending executions
+const pendingExecutionsQuery = queryDb(
+  tables.executionQueue.select().where({ status: "pending" }),
+);
 
-      for (const execution of pendingExecutions) {
-        console.log(`  - Cell ${execution.cellId}: ${execution.code.slice(0, 50)}...`);
+function checkPendingExecutions() {
+  const pendingExecutions = store.query(pendingExecutionsQuery);
 
-        // Example execution simulation
-        setTimeout(() => {
-          store.commit(events.ExecutionStarted({
+  if (pendingExecutions.length > 0) {
+    console.log(`🔄 Found ${pendingExecutions.length} pending executions`);
+
+    for (const execution of pendingExecutions) {
+      // Get the cell to show its code
+      const cellQuery = queryDb(
+        tables.cells.select().where({ id: execution.cellId }),
+      );
+      const cells = store.query(cellQuery);
+      const cell = cells[0];
+      const codePreview = cell ? cell.source.slice(0, 50) : "unknown";
+
+      console.log(`  - Cell ${execution.cellId}: ${codePreview}...`);
+
+      // Example execution simulation
+      setTimeout(() => {
+        store.commit(
+          events.executionStarted({
             queueId: execution.id,
             cellId: execution.cellId,
-            sessionId: "deno-session-123",
-            startedAt: new Date().toISOString(),
-          }));
+            kernelSessionId: "deno-session-123",
+            startedAt: new Date(),
+          }),
+        );
 
-          // Simulate execution completion
-          setTimeout(() => {
-            store.commit(events.ExecutionCompleted({
+        // Simulate adding output first
+        setTimeout(() => {
+          store.commit(
+            events.cellOutputAdded({
+              id: `output-${Date.now()}`,
+              cellId: execution.cellId,
+              outputType: "stream",
+              data: {
+                name: "stdout",
+                text: "Hello from Deno runtime! 🦕\n",
+              },
+              metadata: {},
+              position: 0,
+            }),
+          );
+
+          // Then mark execution as completed
+          store.commit(
+            events.executionCompleted({
               queueId: execution.id,
               cellId: execution.cellId,
               status: "success",
-              outputs: [{
-                type: "stream",
-                data: {
-                  name: "stdout",
-                  text: "Hello from Deno runtime! 🦕\n"
-                }
-              }],
-              completedAt: new Date().toISOString(),
-            }));
-          }, 1000);
-        }, 500);
-      }
+              completedAt: new Date(),
+              executionDurationMs: 1000,
+            }),
+          );
+        }, 1000);
+      }, 500);
     }
-  },
-  error: (error) => {
-    console.error("❌ Execution subscription error:", error);
   }
-});
+}
 
-// Example: Monitor notebook metadata
-const notebookSubscription = store.query(
-  tables.notebook.select()
-).subscribe({
-  next: (notebooks) => {
-    if (notebooks.length > 0) {
-      const notebook = notebooks[0];
-      console.log(`📖 Notebook: "${notebook.title}" (${notebook.kernelType})`);
-    }
-  }
-});
+// Example: Get notebook metadata
+const notebookQuery = queryDb(tables.notebook.select());
+const notebooks = store.query(notebookQuery);
+if (notebooks.length > 0) {
+  const notebook = notebooks[0];
+  console.log(`📖 Notebook: "${notebook.title}" (${notebook.kernelType})`);
+}
 
 // Example: List all cells
-const cellsSubscription = store.query(
-  tables.cells
-    .select()
-    .orderBy({ position: "asc" })
-).subscribe({
-  next: (cells) => {
-    console.log(`📝 Found ${cells.length} cells in notebook`);
-    cells.forEach((cell, index) => {
-      const preview = cell.source.slice(0, 30).replace(/\n/g, " ");
-      console.log(`  ${index + 1}. [${cell.cellType}] ${preview}${cell.source.length > 30 ? "..." : ""}`);
-    });
-  }
+const cellsQuery = queryDb(tables.cells.select().orderBy("position", "asc"));
+const cells = store.query(cellsQuery);
+console.log(`📝 Found ${cells.length} cells in notebook`);
+cells.forEach((cell, index) => {
+  const preview = cell.source.slice(0, 30).replace(/\n/g, " ");
+  console.log(
+    `  ${index + 1}. [${cell.cellType}] ${preview}${cell.source.length > 30 ? "..." : ""}`,
+  );
 });
 
 // Graceful shutdown
 const shutdown = () => {
   console.log("\n🔄 Shutting down runtime...");
-  executionSubscription.unsubscribe();
-  notebookSubscription.unsubscribe();
-  cellsSubscription.unsubscribe();
-  store.close();
   console.log("✅ Runtime shut down cleanly");
   Deno.exit(0);
 };
@@ -123,7 +131,11 @@ Deno.addSignalListener("SIGTERM", shutdown);
 console.log("🚀 Deno runtime is running...");
 console.log("   Press Ctrl+C to stop");
 
-// Keep the runtime alive
+// Check for work periodically
+checkPendingExecutions();
+setInterval(checkPendingExecutions, 2000);
+
+// Keep the runtime alive with heartbeat
 setInterval(() => {
-  // Heartbeat - could be used for health checks
-}, 5000);
+  console.log("💓 Runtime heartbeat");
+}, 30000);

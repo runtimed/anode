@@ -1,7 +1,7 @@
 {
   "compilerOptions": {
     "strict": true,
-    "lib": ["ESNext", "DOM"],
+    "lib": ["ESNext", "DOM", "deno.ns"],
     "target": "ES2022"
   },
   "tasks": {
@@ -10,8 +10,8 @@
   },
   "imports": {
     "@anode/schema": "jsr:@anode/schema@^0.1.0",
-    "@livestore/livestore": "npm:@livestore/livestore@^0.25.0",
-    "@livestore/adapter-node": "npm:@livestore/adapter-node@^0.25.0"
+    "@livestore/livestore": "npm:@livestore/livestore@^0.3.1",
+    "@livestore/adapter-node": "npm:@livestore/adapter-node@^0.3.1"
   },
   "lint": {
     "rules": {
