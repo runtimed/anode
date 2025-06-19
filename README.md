@@ -60,6 +60,39 @@ NOTEBOOK_ID=your-notebook-id pnpm dev:runtime
 - Falls back to mock responses if no API key is set
 - API keys are kept server-side for security
 
+## Using Deployed Cloudflare Workers (Optional)
+
+Instead of running everything locally, you can use a deployed Cloudflare Worker for sync while keeping the web client and runtime local. This enables testing real-time collaboration across devices.
+
+### Quick Setup for Deployed Worker
+
+1. **Get deployment details** from your team (worker URL and auth token)
+
+2. **Update web client config** in `packages/web-client/.env`:
+   ```env
+   VITE_LIVESTORE_SYNC_URL=https://your-worker.workers.dev
+   VITE_AUTH_TOKEN=your-secure-token
+   ```
+
+3. **Update runtime config** in `packages/pyodide-runtime-agent/.env`:
+   ```env
+   LIVESTORE_SYNC_URL=https://your-worker.workers.dev
+   AUTH_TOKEN=your-secure-token
+   ```
+
+4. **Start services** (no local docworker needed):
+   ```bash
+   pnpm dev:web-only  # Web client connects to deployed worker
+   NOTEBOOK_ID=test-notebook pnpm dev:runtime
+   ```
+
+5. **Test collaboration** by opening the web client on multiple devices/browsers
+
+### Benefits
+- Real-time sync through Cloudflare's global network
+- Test collaboration across devices on your network
+- No need to run local sync backend
+
 ## Current Status
 
 ### What's Working ✅

@@ -1,7 +1,15 @@
-name = "websocket-server"
+# Anode Docworker - Cloudflare Worker Configuration
+#
+# To deploy your own worker:
+# 1. Create D1 database: pnpm wrangler d1 create your-database-name
+# 2. Update database_id below with the real ID from step 1
+# 3. Optionally change the worker name
+# 4. Deploy: pnpm wrangler deploy
+# 5. Set secrets: pnpm wrangler secret put AUTH_TOKEN
+
+name = "anode-docworker"
 main = "./src/index.ts"
 compatibility_date = "2025-05-08"
-# compatibility_flags = ["nodejs_compat"]
 
 [[durable_objects.bindings]]
 name = "WEBSOCKET_SERVER"
@@ -9,14 +17,34 @@ class_name = "WebSocketServer"
 
 [[migrations]]
 tag = "v1"
-new_classes = ["WebSocketServer"]
+new_sqlite_classes = ["WebSocketServer"]
 
+# Default development environment
 [[d1_databases]]
 binding = "DB"
-database_name = "livestore-sync-cf-demo"
-database_id = "1c9b5dae-f1fa-49d8-83fa-7bd5b39c4121"
-# database_id = "${LIVESTORE_CF_SYNC_DATABASE_ID}"
+database_name = "anode-docworker-dev-db"
+# IMPORTANT: Replace this fake ID with your real database ID
+# Create database with: pnpm wrangler d1 create anode-docworker-dev-db
+database_id = "00000000-0000-0000-0000-000000000000"
 
 [vars]
-# should be set via CF dashboard (as secret)
-# ADMIN_SECRET = "..."
+# Environment variables (non-sensitive)
+DEPLOYMENT_ENV = "development"
+
+# Prototype environment (using existing database)
+[env.prototype]
+[[env.prototype.durable_objects.bindings]]
+name = "WEBSOCKET_SERVER"
+class_name = "WebSocketServer"
+
+[[env.prototype.d1_databases]]
+binding = "DB"
+database_name = "anode-docworker-prototype-db"
+database_id = "5339094f-f406-4236-97c3-ada460373f18"
+
+[env.prototype.vars]
+DEPLOYMENT_ENV = "prototype"
+
+# Secrets to be set per environment via: pnpm wrangler secret put SECRET_NAME --env ENV_NAME
+# Required for all environments:
+# - AUTH_TOKEN: Authentication token for client connections
