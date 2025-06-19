@@ -14,20 +14,14 @@ Anode now supports real OpenAI API integration for AI cells, providing powerful 
 
 ### 2. Configure the API Key
 
-Copy the example environment file and add your API key:
+The OpenAI API key is configured in the pyodide runtime agent package. If you don't already have your OpenAI API key set in your environment, edit the runtime agent's configuration:
 
 ```bash
-cp .env.example .env
-```
-
-Edit `.env` and add your OpenAI API key:
-
-```bash
-# .env
+# Edit packages/pyodide-runtime-agent/.env and set your OpenAI API key:
 OPENAI_API_KEY=sk-your-actual-api-key-here
 ```
 
-The `.env` file contains all configuration needed for Anode, including sync URLs and kernel settings.
+The `pnpm install` command automatically creates `.env` files for each package with sensible defaults.
 
 ### 3. Start the Services
 
@@ -44,6 +38,8 @@ You should see confirmation that OpenAI is configured:
 ```
 🤖 AI cell support: enabled (OpenAI configured ✅)
 ```
+
+**Note**: If you already have `OPENAI_API_KEY` set in your environment, the runtime will use that automatically.
 
 **Important**: Always use the kernel command provided in the notebook UI to ensure proper notebook ID matching.
 
@@ -144,8 +140,8 @@ await openaiClient.generateResponse(prompt, {
 ### Common Issues
 
 **"OpenAI client not configured"**
-- Check that `OPENAI_API_KEY` is set correctly in `.env`
-- Restart the kernel service after updating the `.env` file
+- Check that `OPENAI_API_KEY` is set in your environment or in `packages/pyodide-runtime-agent/.env`
+- Restart the kernel service after updating the environment
 
 **"Invalid API key"**
 - Verify your API key is correct
@@ -193,8 +189,8 @@ Approximate token costs:
 
 ### API Key Protection
 
-- **Never commit** API keys to version control (`.env` is in `.gitignore`)
-- **Use the `.env` file** for local development
+- **Never commit** API keys to version control (package `.env` files are in `.gitignore`)
+- **Use environment variables** or package `.env` files for local development
 - **Rotate keys** regularly
 - **Limit key permissions** if available
 

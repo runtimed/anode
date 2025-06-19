@@ -6,9 +6,11 @@ This example demonstrates how AI cells can now see and analyze cell outputs, not
 
 1. Start Anode with OpenAI configured:
 ```bash
-# Copy environment and add your OpenAI API key
-cp .env.example .env
-# Edit .env to add: OPENAI_API_KEY=sk-your-key-here
+# Setup will automatically create package .env files
+pnpm install
+
+# If you don't have OPENAI_API_KEY in your environment, configure it:
+# Edit packages/pyodide-runtime-agent/.env to add: OPENAI_API_KEY=sk-your-key-here
 
 # Start services
 pnpm dev
