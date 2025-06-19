@@ -1,0 +1,50 @@
+# Cloudflare Pages Configuration for Anode Web Client
+#
+# This file configures Cloudflare Pages to build and deploy the web client
+# The sync backend runs on a separate Cloudflare Worker
+#
+# Deployment setup:
+# 1. Connect this repo to Cloudflare Pages
+# 2. Set build command: cd packages/web-client && pnpm build
+# 3. Set build output directory: packages/web-client/dist
+# 4. Set environment variables in Pages dashboard
+
+[build]
+command = "cd packages/web-client && pnpm build"
+publish = "packages/web-client/dist"
+
+[build.environment]
+NODE_VERSION = "18"
+PNPM_VERSION = "8"
+
+# Environment variables for different deployments
+# These should be set in the Cloudflare Pages dashboard
+#
+# Production environment variables:
+# VITE_LIVESTORE_SYNC_URL = "wss://anode-docworker.rgbkrk.workers.dev/api"
+# VITE_GOOGLE_AUTH_ENABLED = "true"
+# VITE_GOOGLE_CLIENT_ID = "94663405566-1go7jlpd2ar9u9urbfirmtjv1bm0tcis.apps.googleusercontent.com"
+#
+# Preview/Development environment variables:
+# VITE_LIVESTORE_SYNC_URL = "ws://localhost:8787/api"
+# VITE_GOOGLE_AUTH_ENABLED = "false"
+# VITE_AUTH_TOKEN = "insecure-token-change-me"
+
+# Redirects and headers
+[[redirects]]
+from = "/*"
+to = "/index.html"
+status = 200
+force = false
+
+[[headers]]
+for = "/*"
+[headers.values]
+X-Frame-Options = "DENY"
+X-Content-Type-Options = "nosniff"
+Referrer-Policy = "strict-origin-when-cross-origin"
+
+[[headers]]
+for = "/assets/*"
+[headers.values]
+Cache-Control = "public, max-age=31536000, immutable"

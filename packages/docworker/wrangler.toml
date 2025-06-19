@@ -12,11 +12,7 @@ name = "anode-docworker"
 main = "./src/index.ts"
 compatibility_date = "2025-05-08"
 
-# Static assets configuration - serve web client
-[assets]
-directory = "../web-client/dist"
-binding = "ASSETS"
-not_found_handling = "single-page-application"
+# Static assets removed - web client now served by Cloudflare Pages
 
 [[durable_objects.bindings]]
 name = "WEBSOCKET_SERVER"
@@ -35,14 +31,11 @@ database_id = "local"
 [vars]
 # Environment variables (non-sensitive)
 DEPLOYMENT_ENV = "development"
-# Web client environment variables for development
-VITE_LIVESTORE_SYNC_URL = "ws://localhost:8787/api"
-VITE_GOOGLE_AUTH_ENABLED = "false"
-VITE_AUTH_TOKEN = "insecure-token-change-me"
+# Worker only serves API endpoints - no web client vars needed
 
 # Production environment
 [env.production]
-name = "anode"
+name = "anode-docworker"
 
 [[env.production.durable_objects.bindings]]
 name = "WEBSOCKET_SERVER"
@@ -55,10 +48,8 @@ database_id = "5339094f-f406-4236-97c3-ada460373f18"
 
 [env.production.vars]
 DEPLOYMENT_ENV = "production"
-# Web client environment variables
-VITE_LIVESTORE_SYNC_URL = "/api"
-VITE_GOOGLE_AUTH_ENABLED = "true"
-VITE_GOOGLE_CLIENT_ID = "94663405566-1go7jlpd2ar9u9urbfirmtjv1bm0tcis.apps.googleusercontent.com"
+GOOGLE_CLIENT_ID = "94663405566-1go7jlpd2ar9u9urbfirmtjv1bm0tcis.apps.googleusercontent.com"
+# Worker only serves API endpoints - web client vars moved to Pages
 
 # Secrets to be set per environment via: pnpm wrangler secret put SECRET_NAME [--env ENV_NAME]
 # For local development:
