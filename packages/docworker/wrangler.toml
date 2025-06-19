@@ -33,6 +33,8 @@ DEPLOYMENT_ENV = "development"
 
 # Prototype environment (using existing database)
 [env.prototype]
+name = "anode-docworker-prototype"
+
 [[env.prototype.durable_objects.bindings]]
 name = "WEBSOCKET_SERVER"
 class_name = "WebSocketServer"

@@ -149,3 +149,6 @@ pyodide-cache/
 
 # LiveStore tmp directories
 tmp/
+
+# Local network configuration
+Caddyfile
