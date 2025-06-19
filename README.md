@@ -24,6 +24,11 @@ pnpm dev:web-only
 pnpm dev:sync-only
 ```
 
+The install process creates `.env` files for:
+- `packages/web-client/.env` - Web client configuration (VITE_* vars exposed to browser)
+- `packages/pyodide-runtime-agent/.env` - Runtime server configuration (server-only vars)
+- `packages/docworker/.env` - Local docworker authentication (for development only)
+
 ### 2. Create Your First Notebook
 1. Open http://localhost:5173
 2. URL automatically gets notebook ID: `?notebook=notebook-123-abc`
@@ -86,6 +91,8 @@ Instead of running everything locally, you can use a deployed Cloudflare Worker 
 - Test collaboration across devices on your network
 - No need to run local sync backend
 
+**Note**: When using deployed workers, the local `packages/docworker/.env` file is not used since authentication happens via Cloudflare secrets.
+
 ## Current Status
 
 ### What's Working ✅
@@ -130,6 +137,13 @@ NOTEBOOK_ID=notebook-id-from-ui pnpm dev:runtime
 # Utilities
 pnpm reset-storage       # Clear all local data
 ```
+
+### Environment Files Created
+
+The setup process creates these `.env` files:
+- `packages/web-client/.env` - Client configuration (sync URL, auth token, Google OAuth)
+- `packages/pyodide-runtime-agent/.env` - Runtime configuration (sync URL, auth token, OpenAI API key)
+- `packages/docworker/.env` - Local development auth token (production uses Cloudflare secrets)
 
 ## Development Roadmap
 
