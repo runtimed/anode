@@ -4,13 +4,13 @@
 # 1. Create D1 database: pnpm wrangler d1 create your-database-name
 # 2. Update database_id below with the real ID from step 1
 # 3. Optionally change the worker name
-# 4. Deploy: pnpm wrangler deploy
-# 5. Set secrets: pnpm wrangler secret put AUTH_TOKEN
+# 4. Deploy: pnpm wrangler deploy --env production
+# 5. Set secrets: pnpm wrangler secret put AUTH_TOKEN --env production
 
-name = "anode-docworker-prototype"
+# Default environment (local development)
+name = "anode-docworker"
 main = "./src/index.ts"
 compatibility_date = "2025-05-08"
-
 
 [[durable_objects.bindings]]
 name = "WEBSOCKET_SERVER"
@@ -20,38 +20,38 @@ class_name = "WebSocketServer"
 tag = "v1"
 new_sqlite_classes = ["WebSocketServer"]
 
-# Production/prototype environment (using existing database)
 [[d1_databases]]
+binding = "DB"
+database_name = "anode-docworker-dev-db"
+# Local development uses local SQLite in .wrangler/ - database_id is ignored
+database_id = "local"
+
+[vars]
+# Environment variables (non-sensitive)
+DEPLOYMENT_ENV = "development"
+AUTH_TOKEN = "insecure-token-change-me"
+
+# Production/prototype environment
+[env.production]
+name = "anode-docworker-prototype"
+
+[[env.production.durable_objects.bindings]]
+name = "WEBSOCKET_SERVER"
+class_name = "WebSocketServer"
+
+[[env.production.d1_databases]]
 binding = "DB"
 database_name = "anode-docworker-prototype-db"
 database_id = "5339094f-f406-4236-97c3-ada460373f18"
 
-[vars]
-# Environment variables (non-sensitive)
+[env.production.vars]
 DEPLOYMENT_ENV = "prototype"
 
-# Development environment (for local development)
-[env.development]
-name = "anode-docworker"
-
-
-[[env.development.durable_objects.bindings]]
-name = "WEBSOCKET_SERVER"
-class_name = "WebSocketServer"
-
-[[env.development.d1_databases]]
-binding = "DB"
-database_name = "anode-docworker-dev-db"
-# IMPORTANT: Replace this fake ID with your real database ID
-# Create database with: pnpm wrangler d1 create anode-docworker-dev-db
-database_id = "00000000-0000-0000-0000-000000000000"
-
-[env.development.vars]
-DEPLOYMENT_ENV = "development"
-
-# Secrets to be set per environment via: pnpm wrangler secret put SECRET_NAME --env ENV_NAME
-# Required for all environments:
-# - AUTH_TOKEN: Fallback authentication token for client connections (local dev)
+# Secrets to be set per environment via: pnpm wrangler secret put SECRET_NAME [--env ENV_NAME]
+# For local development:
+# - AUTH_TOKEN: Set via: echo "insecure-token-change-me" | pnpm wrangler secret put AUTH_TOKEN
+# For production:
+# - AUTH_TOKEN: Set via: echo "your-secure-token" | pnpm wrangler secret put AUTH_TOKEN --env production
 # Optional for production:
 # - GOOGLE_CLIENT_ID: Google OAuth client ID for production authentication
 # - GOOGLE_CLIENT_SECRET: Google OAuth client secret (optional, improves validation)
