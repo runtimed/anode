@@ -55,14 +55,23 @@ async function validateGoogleToken(token: string, clientId: string): Promise<Goo
   }
 }
 
-async function validateAuthPayload(payload: AuthPayload, env: any): Promise<void> {
+async function validateAuthPayload(payload: AuthPayload & { kernel?: boolean }, env: any): Promise<void> {
   if (!payload?.authToken) {
     throw new Error('Missing auth token')
   }
 
   const token = payload.authToken
 
-  // First try Google OAuth validation if enabled
+  // For runtime agents, always allow service token authentication
+  if (payload.kernel === true) {
+    if (env.AUTH_TOKEN && token === env.AUTH_TOKEN) {
+      console.log('Authenticated runtime agent with service token')
+      return
+    }
+    throw new Error('Invalid service token for runtime agent')
+  }
+
+  // For regular users, try Google OAuth first if enabled
   if (env.GOOGLE_CLIENT_ID) {
     const googlePayload = await validateGoogleToken(token, env.GOOGLE_CLIENT_ID)
     if (googlePayload) {
