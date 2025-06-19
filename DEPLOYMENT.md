@@ -26,7 +26,7 @@ cd packages/docworker
 pnpm wrangler deploy --env production
 ```
 
-This deploys to: `https://anode.rgbkrk.workers.dev`
+This deploys to: `https://anode-docworker.rgbkrk.workers.dev`
 
 **Required secrets:**
 ```bash
@@ -41,13 +41,13 @@ The web client is served from Cloudflare Pages with static assets.
 cd packages/web-client
 
 # Build with production environment variables
-VITE_LIVESTORE_SYNC_URL="wss://anode.rgbkrk.workers.dev/api" \
+VITE_LIVESTORE_SYNC_URL="wss://anode-docworker.rgbkrk.workers.dev/api" \
 VITE_GOOGLE_AUTH_ENABLED="true" \
 VITE_GOOGLE_CLIENT_ID="94663405566-1go7jlpd2ar9u9urbfirmtjv1bm0tcis.apps.googleusercontent.com" \
 pnpm build
 
 # Deploy to Pages
-pnpm wrangler pages deploy dist --project-name anode-web
+pnpm wrangler pages deploy dist --project-name anode
 ```
 
 ## Environment Variables
@@ -63,7 +63,7 @@ Set in `packages/docworker/wrangler.toml`:
 
 These should be set in the Cloudflare Pages dashboard or passed during build:
 
-- `VITE_LIVESTORE_SYNC_URL`: `"wss://anode.rgbkrk.workers.dev/api"`
+- `VITE_LIVESTORE_SYNC_URL`: `"wss://anode-docworker.rgbkrk.workers.dev/api"`
 - `VITE_GOOGLE_AUTH_ENABLED`: `"true"`
 - `VITE_GOOGLE_CLIENT_ID`: Your Google OAuth client ID
 
@@ -130,10 +130,10 @@ jobs:
       - run: pnpm install
       - run: cd packages/web-client && pnpm build
         env:
-          VITE_LIVESTORE_SYNC_URL: "wss://anode.rgbkrk.workers.dev/api"
+          VITE_LIVESTORE_SYNC_URL: "wss://anode-docworker.rgbkrk.workers.dev/api"
           VITE_GOOGLE_AUTH_ENABLED: "true"
           VITE_GOOGLE_CLIENT_ID: "94663405566-1go7jlpd2ar9u9urbfirmtjv1bm0tcis.apps.googleusercontent.com"
-      - run: cd packages/web-client && pnpm wrangler pages deploy dist --project-name anode-web
+      - run: cd packages/web-client && pnpm wrangler pages deploy dist --project-name anode
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
 ```
@@ -170,7 +170,7 @@ Ensure `AUTH_TOKEN` secret is set on the Worker and matches the client configura
 
 ## URLs
 
-- **Production Web Client**: https://anode-web.pages.dev
-- **Production Sync Backend**: https://anode.rgbkrk.workers.dev
+- **Production Web Client**: https://anode.pages.dev
+- **Production Sync Backend**: https://anode-docworker.rgbkrk.workers.dev
 - **Local Web Client**: http://localhost:5173
 - **Local Sync Backend**: http://localhost:8787

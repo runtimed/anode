@@ -115,7 +115,7 @@ export default {
       return worker.fetch(request, env, ctx)
     }
 
-    // Serve static assets (React app)
-    return env.ASSETS.fetch(request)
+    // Return 404 for non-API routes (web client now served by Pages)
+    return new Response('Not Found', { status: 404 })
   }
 }

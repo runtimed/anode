@@ -35,7 +35,7 @@ DEPLOYMENT_ENV = "development"
 
 # Production environment
 [env.production]
-name = "anode"
+name = "anode-docworker"
 
 [[env.production.durable_objects.bindings]]
 name = "WEBSOCKET_SERVER"
