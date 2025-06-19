@@ -7,7 +7,7 @@
 # 4. Deploy: pnpm wrangler deploy
 # 5. Set secrets: pnpm wrangler secret put AUTH_TOKEN
 
-name = "anode-docworker"
+name = "anode-docworker-prototype"
 main = "./src/index.ts"
 compatibility_date = "2025-05-08"
 
@@ -20,34 +20,34 @@ class_name = "WebSocketServer"
 tag = "v1"
 new_sqlite_classes = ["WebSocketServer"]
 
-# Default development environment
+# Production/prototype environment (using existing database)
 [[d1_databases]]
+binding = "DB"
+database_name = "anode-docworker-prototype-db"
+database_id = "5339094f-f406-4236-97c3-ada460373f18"
+
+[vars]
+# Environment variables (non-sensitive)
+DEPLOYMENT_ENV = "prototype"
+
+# Development environment (for local development)
+[env.development]
+name = "anode-docworker"
+
+
+[[env.development.durable_objects.bindings]]
+name = "WEBSOCKET_SERVER"
+class_name = "WebSocketServer"
+
+[[env.development.d1_databases]]
 binding = "DB"
 database_name = "anode-docworker-dev-db"
 # IMPORTANT: Replace this fake ID with your real database ID
 # Create database with: pnpm wrangler d1 create anode-docworker-dev-db
 database_id = "00000000-0000-0000-0000-000000000000"
 
-[vars]
-# Environment variables (non-sensitive)
+[env.development.vars]
 DEPLOYMENT_ENV = "development"
-
-# Prototype environment (using existing database)
-[env.prototype]
-name = "anode-docworker-prototype"
-
-
-[[env.prototype.durable_objects.bindings]]
-name = "WEBSOCKET_SERVER"
-class_name = "WebSocketServer"
-
-[[env.prototype.d1_databases]]
-binding = "DB"
-database_name = "anode-docworker-prototype-db"
-database_id = "5339094f-f406-4236-97c3-ada460373f18"
-
-[env.prototype.vars]
-DEPLOYMENT_ENV = "prototype"
 
 # Secrets to be set per environment via: pnpm wrangler secret put SECRET_NAME --env ENV_NAME
 # Required for all environments:
