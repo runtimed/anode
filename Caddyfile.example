@@ -1,0 +1,22 @@
+# Simple Caddyfile for local network HTTPS access
+# Binds directly to your local IP address
+#
+# Usage:
+# 1. Copy this file to 'Caddyfile' (without .example extension)
+# 2. Replace 192.168.1.100 with your actual local IP address
+# 3. Run: pnpm dev:caddy
+
+192.168.1.100:8443 {
+	# Proxy to your Vite dev server
+	reverse_proxy localhost:5173
+
+	# Use internal CA for self-signed certificate
+	tls internal
+
+	# Enable CORS for local development
+	header {
+		Access-Control-Allow-Origin *
+		Access-Control-Allow-Methods "GET, POST, PUT, DELETE, OPTIONS"
+		Access-Control-Allow-Headers "Content-Type, Authorization"
+	}
+}

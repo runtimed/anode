@@ -13,6 +13,7 @@ export default {
   fetch: async (request: Request, env: any, ctx: ExecutionContext) => {
     const worker = makeWorker({
       validatePayload: (payload: any) => {
+
         if (payload?.authToken !== env.AUTH_TOKEN) {
           throw new Error('Invalid auth token')
         }
