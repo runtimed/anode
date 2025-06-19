@@ -101,12 +101,21 @@ export class WebSocketServer extends makeDurableObject({
 
 export default {
   fetch: async (request: Request, env: any, ctx: ExecutionContext) => {
-    const worker = makeWorker({
-      validatePayload: async (payload: any) => {
-        await validateAuthPayload(payload, env)
-      },
-      enableCORS: true,
-    })
-    return worker.fetch(request, env, ctx)
+    const url = new URL(request.url)
+
+    // Handle API routes (WebSocket and LiveStore sync)
+    if (url.pathname.startsWith('/api/') ||
+        request.headers.get('upgrade') === 'websocket') {
+      const worker = makeWorker({
+        validatePayload: async (payload: any) => {
+          await validateAuthPayload(payload, env)
+        },
+        enableCORS: true,
+      })
+      return worker.fetch(request, env, ctx)
+    }
+
+    // Serve static assets (React app)
+    return env.ASSETS.fetch(request)
   }
 }
