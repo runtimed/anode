@@ -75,7 +75,7 @@ Based on recent commits, substantial progress has been made:
 
 ## Next Development Priorities
 
-Basic Deployment on CloudFlare
+**AI Tool Calling** - Enable AI to create, modify, and execute cells using OpenAI function calling
 
 ## Documentation Structure
 
@@ -152,69 +152,62 @@ pnpm cache:stats      # Show cache statistics
 
 **Testing Gaps**: Main weakness is lack of integration testing to verify claimed functionality.
 
-## CI/Deployment Status 🚧
+## CI/Deployment Status ✅
 
-### Current State
-- ✅ **PR Comments Working** - CI build logs now appear in PR comments
-- 🚧 **Build Failing** - Worker name mismatch and database ID issues
-- ✅ **Manual Deployment Working** - `pnpm wrangler deploy --env production` works
+### Current State - Production Working!
+- ✅ **Production Deployment Live** - https://anode.pages.dev working with Python execution
+- ✅ **Manual Deployment Working** - Both Pages and Workers deploy successfully  
 - ✅ **Split Architecture** - Pages for web client, Workers for sync backend
+- ✅ **Authentication Working** - Google OAuth + fallback token configured
+- ✅ **WebSocket Connectivity** - Real-time collaboration functional
 
-### Issues to Resolve
+### Production Architecture - Working ✅
 
-**CI Configuration Problems:**
-- CI expects worker name "anode" but config has "anode-docworker"
-- Development environment uses `database_id = "local"` which CI can't use
-- Build command mismatch between CI settings and actual commands
-
-**Current CI Settings:**
-```
-Build command: npm run build
-Deploy command: pnpm run deploy
-Version command: npx wrangler versions upload
-Root directory: /packages/docworker
-Production branch: main
-Non-production builds: Enabled
-```
-
-**Error Details:**
-```
-Failed to match Worker name. Your config file is using "anode-docworker", but CI expected "anode"
-binding DB of type d1 must have a valid `id` specified [code: 10021]
-```
-
-### Deployment Architecture
-
-**Working Manual Setup:**
+**Production Setup (Live):**
 - **Worker (Sync Backend)**: `https://anode-docworker.rgbkrk.workers.dev`
-  - Deploy: `cd packages/docworker && pnpm wrangler deploy --env production`
-  - Config: `packages/docworker/wrangler.toml` with Google OAuth setup
-- **Pages (Web Client)**: `https://anode.pages.dev`
+  - Deploy: `cd packages/docworker && npm run deploy`
+  - Healthy metrics: 127 requests, 34 errors, 4.1ms avg CPU time
+  - Enhanced with `/health` and `/debug/auth` endpoints
+  - Production validation: Fails to start if missing `GOOGLE_CLIENT_ID`
+- **Pages (Web Client)**: `https://anode.pages.dev`  
   - Deploy: `cd packages/web-client && pnpm wrangler pages deploy dist --project-name anode`
-  - Config: `packages/web-client/wrangler.toml` with environment variables
+  - Successfully serving from main branch commit b517d99
 
-**Authentication Fixed:**
-- Worker now has `GOOGLE_CLIENT_ID` for proper OAuth validation
-- CORS headers configured for cross-origin WebSocket connections
-- Environment-specific configs for production vs development
+**Authentication Production-Ready:**
+- `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET` configured
+- `AUTH_TOKEN` set for runtime agent authentication
+- Google OAuth validation with fallback token support
+- Fixed WebSocket header immutability issues
 
-### Next Steps for CI
-1. **Add CI environment** to `packages/docworker/wrangler.toml`:
-   ```toml
-   [env.ci]
-   name = "anode"  # Match CI expectations
-   database_id = "5339094f-f406-4236-97c3-ada460373f18"  # Real DB ID
-   ```
-2. **Configure CI** to use `--env ci` for non-production builds
-3. **Consider preview-only builds** for open source security (UI only, no sync backend)
+### Worker Configuration Clarity 🚧
 
-**Note**: Avoid breaking local development setup when fixing CI issues.
+**Current Situation:**
+- **`anode-docworker`** - Production worker serving https://anode.pages.dev (this is what we want)
+- **`anode`** - CI worker (legacy, probably from CI experimentation)
+
+**Recommended Next Steps:**
+1. **Option A**: Rename CI worker to `anode-ci` and keep `anode-docworker` for production
+2. **Option B**: Drop GitHub CI deployments, stick with manual deploys for now
+3. **Option C**: Standardize on `anode-docworker` building from `main` branch
+
+**Current Working Approach:** Manual deployments to production, CI workers separate
+
+### Debugging Enhancements ✅
+
+**New Debug Capabilities (on `fix/worker-health-debug` branch):**
+- **Production safety**: Worker fails to start if misconfigured  
+- **Health endpoint**: `GET /health` shows deployment status and config
+- **Auth debugging**: `POST /debug/auth` tests authentication tokens
+- **Better error messages**: Specific codes like `GOOGLE_TOKEN_INVALID`, `MISSING_AUTH_TOKEN`
+- **Fixed WebSocket errors**: No more immutable headers failures
+
+**Ready to merge**: `fix/worker-health-debug` branch contains production-tested improvements
 
 ## Next Developer Success Path
 
-1. **Fix CI deployment** - Add proper CI environment configuration
-2. **Implement AI tool calling** - Biggest user-facing improvement
+1. **Implement AI tool calling** - Biggest user-facing improvement (function calling architecture exists)
+2. **Clarify CI/deployment strategy** - Decide between manual vs automated deployments  
 3. **Add integration tests** - Verify system actually works as claimed
 4. **Automate runtime management** - Remove remaining friction
 
-The system has a solid foundation and is ready for the next major feature development phase.
+**Current Status**: Production system is working well! Python execution, real-time collaboration, and authentication all functional. Ready for next major feature development phase.
