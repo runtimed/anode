@@ -1,5 +1,18 @@
 import { makeDurableObject, makeWorker } from '@livestore/sync-cf/cf-worker'
 
+// Validate production environment requirements at startup
+function validateProductionEnvironment(env: any): void {
+  if (env.DEPLOYMENT_ENV === 'production') {
+    if (!env.GOOGLE_CLIENT_ID) {
+      throw new Error('STARTUP_ERROR: GOOGLE_CLIENT_ID is required when DEPLOYMENT_ENV is production')
+    }
+    if (!env.GOOGLE_CLIENT_SECRET) {
+      console.warn('⚠️ GOOGLE_CLIENT_SECRET not set in production - Google OAuth validation may be limited')
+    }
+    console.log('✅ Production environment validation passed')
+  }
+}
+
 interface AuthPayload {
   authToken: string
 }
@@ -44,7 +57,9 @@ async function validateGoogleToken(token: string, clientId: string): Promise<Goo
     // Check expiration (Google's endpoint already validates this, but double-check)
     const now = Math.floor(Date.now() / 1000)
     if (tokenInfo.exp < now) {
-      console.error('Token expired')
+      const expirationTime = new Date(tokenInfo.exp * 1000).toISOString()
+      const currentTime = new Date(now * 1000).toISOString()
+      console.error(`Token expired at ${expirationTime}, current time: ${currentTime}`)
       return null
     }
 
@@ -66,7 +81,7 @@ async function validateAuthPayload(payload: AuthPayload & { kernel?: boolean }, 
 
   if (!payload?.authToken) {
     console.error('❌ Missing auth token in payload')
-    throw new Error('Missing auth token')
+    throw new Error('MISSING_AUTH_TOKEN: No authentication token provided. Please sign in to continue.')
   }
 
   const token = payload.authToken
@@ -84,7 +99,7 @@ async function validateAuthPayload(payload: AuthPayload & { kernel?: boolean }, 
       return
     }
     console.error('❌ Invalid service token for runtime agent')
-    throw new Error('Invalid service token for runtime agent')
+    throw new Error('INVALID_SERVICE_TOKEN: Runtime agent authentication failed. Check AUTH_TOKEN configuration.')
   }
 
   // For regular users, try Google OAuth first if enabled
@@ -106,7 +121,13 @@ async function validateAuthPayload(payload: AuthPayload & { kernel?: boolean }, 
   }
 
   console.error('❌ All authentication methods failed')
-  throw new Error('Invalid auth token')
+
+  // Provide specific error based on token type
+  if (token.startsWith('eyJ')) {
+    throw new Error('GOOGLE_TOKEN_INVALID: Google authentication token expired or invalid. Please refresh the page to sign in again.')
+  } else {
+    throw new Error('INVALID_AUTH_TOKEN: Authentication failed. Please check your credentials and try again.')
+  }
 }
 
 export class WebSocketServer extends makeDurableObject({
@@ -120,6 +141,25 @@ export class WebSocketServer extends makeDurableObject({
 
 export default {
   fetch: async (request: Request, env: any, ctx: ExecutionContext) => {
+    // Validate environment on first request
+    try {
+      validateProductionEnvironment(env)
+    } catch (error: any) {
+      console.error('💥 Startup validation failed:', error.message)
+      return new Response(JSON.stringify({
+        error: 'STARTUP_VALIDATION_FAILED',
+        message: error.message,
+        deployment_env: env.DEPLOYMENT_ENV,
+        timestamp: new Date().toISOString()
+      }), {
+        status: 500,
+        headers: {
+          'Content-Type': 'application/json',
+          'Access-Control-Allow-Origin': '*',
+        }
+      })
+    }
+
     const url = new URL(request.url)
 
     console.log('🔍 Worker request received:', {
@@ -131,6 +171,29 @@ export default {
       userAgent: request.headers.get('user-agent'),
       timestamp: new Date().toISOString()
     })
+
+    // Handle health endpoint
+    if (url.pathname === '/health') {
+      return new Response(JSON.stringify({
+        status: 'healthy',
+        deployment_env: env.DEPLOYMENT_ENV || 'development',
+        timestamp: new Date().toISOString(),
+        config: {
+          has_google_client_id: !!env.GOOGLE_CLIENT_ID,
+          has_google_client_secret: !!env.GOOGLE_CLIENT_SECRET,
+          has_auth_token: !!env.AUTH_TOKEN,
+          google_client_id_partial: env.GOOGLE_CLIENT_ID ? env.GOOGLE_CLIENT_ID.substring(0, 20) + '...' : null
+        }
+      }), {
+        status: 200,
+        headers: {
+          'Content-Type': 'application/json',
+          'Access-Control-Allow-Origin': '*',
+          'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+          'Access-Control-Allow-Headers': '*',
+        }
+      })
+    }
 
     // Handle CORS preflight for all requests
     if (request.method === 'OPTIONS') {
@@ -162,8 +225,13 @@ export default {
             authTokenLength: payload?.authToken?.length || 0,
             isKernel: payload?.kernel === true
           })
-          await validateAuthPayload(payload, env)
-          console.log('✅ Payload validation successful')
+          try {
+            await validateAuthPayload(payload, env)
+            console.log('✅ Payload validation successful')
+          } catch (error: any) {
+            console.error('🚫 Authentication failed:', error.message)
+            throw error
+          }
         },
         enableCORS: true,
       })
@@ -176,15 +244,95 @@ export default {
           headers: Object.fromEntries(response.headers.entries())
         })
 
-        // Add CORS headers to all responses
-        response.headers.set('Access-Control-Allow-Origin', '*')
-        response.headers.set('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS')
-        response.headers.set('Access-Control-Allow-Headers', '*')
+        // Don't modify headers for WebSocket upgrade responses (status 101)
+        // The headers are immutable after protocol switch
+        if (response.status !== 101) {
+          // Add CORS headers to non-WebSocket responses
+          response.headers.set('Access-Control-Allow-Origin', '*')
+          response.headers.set('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS')
+          response.headers.set('Access-Control-Allow-Headers', '*')
+        }
 
         return response
       } catch (error) {
         console.error('❌ Error in LiveStore worker:', error)
         throw error
+      }
+    }
+
+    // Handle debug endpoints
+    if (url.pathname === '/debug/auth' && request.method === 'POST') {
+      console.log('🔧 Debug auth endpoint called')
+      try {
+        const body = await request.json() as { authToken?: string }
+        const authToken = body.authToken
+
+        if (!authToken) {
+          return new Response(JSON.stringify({
+            error: 'MISSING_AUTH_TOKEN',
+            message: 'No authToken provided in request body',
+            timestamp: new Date().toISOString()
+          }), {
+            status: 400,
+            headers: {
+              'Content-Type': 'application/json',
+              'Access-Control-Allow-Origin': '*',
+              'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+              'Access-Control-Allow-Headers': '*',
+            }
+          })
+        }
+
+        // Test authentication
+        try {
+          await validateAuthPayload({ authToken }, env)
+          return new Response(JSON.stringify({
+            success: true,
+            message: 'Authentication successful',
+            tokenType: authToken.startsWith('eyJ') ? 'Google JWT' : 'Service Token',
+            timestamp: new Date().toISOString()
+          }), {
+            status: 200,
+            headers: {
+              'Content-Type': 'application/json',
+              'Access-Control-Allow-Origin': '*',
+              'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+              'Access-Control-Allow-Headers': '*',
+            }
+          })
+        } catch (authError: any) {
+          return new Response(JSON.stringify({
+            error: 'AUTHENTICATION_FAILED',
+            message: authError.message,
+            tokenType: authToken.startsWith('eyJ') ? 'Google JWT' : 'Service Token',
+            timestamp: new Date().toISOString(),
+            hasGoogleClientId: !!env.GOOGLE_CLIENT_ID,
+            hasGoogleClientSecret: !!env.GOOGLE_CLIENT_SECRET,
+            hasAuthToken: !!env.AUTH_TOKEN
+          }), {
+            status: 401,
+            headers: {
+              'Content-Type': 'application/json',
+              'Access-Control-Allow-Origin': '*',
+              'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+              'Access-Control-Allow-Headers': '*',
+            }
+          })
+        }
+      } catch (parseError) {
+        return new Response(JSON.stringify({
+          error: 'INVALID_REQUEST',
+          message: 'Invalid JSON in request body',
+          timestamp: new Date().toISOString()
+        }), {
+          status: 400,
+          headers: {
+            'Content-Type': 'application/json',
+            'Access-Control-Allow-Origin': '*',
+            'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+            'Access-Control-Allow-Headers': '*',
+          }
+        })
       }
     }
 
