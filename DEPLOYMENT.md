@@ -40,10 +40,10 @@ The web client is served from Cloudflare Pages with static assets.
 ```bash
 cd packages/web-client
 
-# Build for production (uses .env.production)
-pnpm build:prod
+# Build for production
+pnpm build
 
-# Deploy to Pages
+# Deploy to Pages (uses wrangler.toml configuration)
 pnpm wrangler pages deploy dist --project-name anode --commit-dirty=true
 ```
 
@@ -59,15 +59,12 @@ Set in `packages/docworker/wrangler.toml`:
 
 ### Pages Environment Variables
 
-Pages environment variables are set via `.env` files in the web client:
+Pages environment variables are configured in `packages/web-client/wrangler.toml`:
 
-- **Production** (`.env.production`): Points to production worker
-- **Development** (`.env.development`): Points to local development server
+- **Production** (`[vars]` section): Points to production worker
+- **Preview** (`[env.preview.vars]` section): Points to local development server
 
-Available build commands:
-- `pnpm build` - Default build (uses NODE_ENV)
-- `pnpm build:prod` - Production build
-- `pnpm build:dev` - Development build
+The web client also supports `.env` files for local development overrides.
 
 ## Local Development
 
@@ -130,7 +127,7 @@ jobs:
           node-version: 18
           cache: 'pnpm'
       - run: pnpm install
-      - run: cd packages/web-client && pnpm build:prod
+      - run: cd packages/web-client && pnpm build
       - run: cd packages/web-client && pnpm wrangler pages deploy dist --project-name anode
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
@@ -143,10 +140,10 @@ Alternatively, you can connect the repository directly to Cloudflare Pages:
 1. Go to Cloudflare Pages dashboard
 2. Connect to Git repository
 3. Set build settings:
-   - **Build command**: `cd packages/web-client && pnpm build:prod`
+   - **Build command**: `cd packages/web-client && pnpm build`
    - **Build output directory**: `packages/web-client/dist`
    - **Root directory**: Leave empty
-4. Environment variables are read from `.env.production` during build
+4. Environment variables are configured in `wrangler.toml`
 
 ## Troubleshooting
 
