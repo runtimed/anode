@@ -29,28 +29,19 @@ pnpm dev:sync-only
 2. URL automatically gets notebook ID: `?notebook=notebook-123-abc`
 3. Start creating cells and editing
 
-### 3. Enable Python Execution
-```bash
-# In new terminal - start runtime for current notebook
-# Get the exact command from the UI (see step 4)
-pnpm dev:runtime
-```
-
-**Important**: Always use the runtime command suggested in the notebook UI for proper notebook ID matching.
-
-### 4. Get Runtime Command from UI
+### 3. Get Runtime Command from UI
 - Open the notebook interface
 - Click the **Runtime** button in the notebook header
 - Copy the exact `NOTEBOOK_ID=xxx pnpm dev:runtime` command shown
 - Run that command in your terminal
 
-### 5. Execute Code
+### 4. Execute Code
 - Add a code cell in the web interface
 - Write Python: `import numpy as np; np.random.random(5)`
 - Press **Ctrl+Enter** or click **Run**
 - See results appear instantly
 
-### 6. Try AI Integration (Optional)
+### 5. Try AI Integration (Optional)
 ```bash
 # Edit packages/pyodide-runtime-agent/.env and uncomment/set your OpenAI API key:
 # OPENAI_API_KEY=sk-your-key-here
