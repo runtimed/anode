@@ -103,6 +103,19 @@ export default {
   fetch: async (request: Request, env: any, ctx: ExecutionContext) => {
     const url = new URL(request.url)
 
+    // Handle CORS preflight for all requests
+    if (request.method === 'OPTIONS') {
+      return new Response(null, {
+        status: 204,
+        headers: {
+          'Access-Control-Allow-Origin': '*',
+          'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+          'Access-Control-Allow-Headers': '*',
+          'Access-Control-Max-Age': '86400',
+        },
+      })
+    }
+
     // Handle API routes (WebSocket and LiveStore sync)
     if (url.pathname.startsWith('/api/') ||
         request.headers.get('upgrade') === 'websocket') {
@@ -112,10 +125,24 @@ export default {
         },
         enableCORS: true,
       })
-      return worker.fetch(request, env, ctx)
+      const response = await worker.fetch(request, env, ctx)
+
+      // Add CORS headers to all responses
+      response.headers.set('Access-Control-Allow-Origin', '*')
+      response.headers.set('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS')
+      response.headers.set('Access-Control-Allow-Headers', '*')
+
+      return response
     }
 
     // Return 404 for non-API routes (web client now served by Pages)
-    return new Response('Not Found', { status: 404 })
+    return new Response('Not Found', {
+      status: 404,
+      headers: {
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+        'Access-Control-Allow-Headers': '*',
+      }
+    })
   }
 }
