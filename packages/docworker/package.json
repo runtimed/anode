@@ -12,11 +12,12 @@
     "lint": "tsc --noEmit"
   },
   "dependencies": {
-    "@livestore/sync-cf": "catalog:"
+    "@livestore/sync-cf": "catalog:",
+    "google-auth-library": "^10.1.0"
   },
   "devDependencies": {
-    "wrangler": "catalog:",
     "@cloudflare/workers-types": "catalog:",
-    "typescript": "catalog:"
+    "typescript": "catalog:",
+    "wrangler": "catalog:"
   }
 }

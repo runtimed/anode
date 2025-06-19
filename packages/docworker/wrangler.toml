@@ -49,4 +49,6 @@ DEPLOYMENT_ENV = "prototype"
 
 # Secrets to be set per environment via: pnpm wrangler secret put SECRET_NAME --env ENV_NAME
 # Required for all environments:
-# - AUTH_TOKEN: Authentication token for client connections
+# - AUTH_TOKEN: Fallback authentication token for client connections (local dev)
+# Optional for production:
+# - GOOGLE_CLIENT_ID: Google OAuth client ID for production authentication
