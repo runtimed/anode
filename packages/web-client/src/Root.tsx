@@ -7,11 +7,14 @@ import React, { useState, useEffect } from 'react'
 import { unstable_batchedUpdates as batchUpdates } from 'react-dom'
 
 import { NotebookViewer } from './components/notebook/NotebookViewer.js'
+import { AuthGuard } from './components/auth/AuthGuard.js'
+import { UserProfile } from './components/auth/UserProfile.js'
 import LiveStoreWorker from './livestore.worker?worker'
 import { schema, events, tables } from '../../../shared/schema.js'
 import { getStoreId, getCurrentNotebookId } from './util/store-id.js'
 import { useStore } from '@livestore/react'
 import { queryDb } from '@livestore/livestore'
+import { getCurrentAuthToken } from './auth/google-auth.js'
 
 const NotebookApp: React.FC = () => {
   // In the simplified architecture, we always show the current notebook
@@ -34,7 +37,7 @@ const NotebookApp: React.FC = () => {
       store.commit(events.notebookInitialized({
         id: notebookId,
         title,
-        ownerId: 'current-user', // TODO: get from auth
+        ownerId: 'current-user', // TODO: get from auth context
       }))
 
       setIsInitializing(false)
@@ -61,6 +64,16 @@ const NotebookApp: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-background">
+      {/* Header with user profile */}
+      <div className="border-b border-gray-200 bg-white">
+        <div className="flex justify-between items-center px-4 py-2">
+          <h1 className="text-lg font-semibold text-gray-900">
+            Anode Notebooks
+          </h1>
+          <UserProfile />
+        </div>
+      </div>
+
       {/* Main Content */}
       <NotebookViewer
         notebookId={currentNotebookId}
@@ -106,11 +119,13 @@ export const App: React.FC = () => (
     )}
     batchUpdates={batchUpdates}
     storeId={storeId}
-    syncPayload={{ authToken: import.meta.env.VITE_AUTH_TOKEN }}
+    syncPayload={{ authToken: getCurrentAuthToken() }}
   >
-    <div style={{ top: 0, right: 0, position: 'absolute', background: '#333', zIndex: 50 }}>
+    <div style={{ bottom: 0, right: 0, position: 'fixed', background: '#333', zIndex: 50 }}>
       <FPSMeter height={40} />
     </div>
-    <NotebookApp />
+    <AuthGuard>
+      <NotebookApp />
+    </AuthGuard>
   </LiveStoreProvider>
 )

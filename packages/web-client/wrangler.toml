@@ -1,0 +1,19 @@
+# Anode Web Client - Cloudflare Pages Configuration
+#
+# Deploy to anode.pages.dev with prototype environment
+
+name = "anode"
+compatibility_date = "2025-06-19"
+
+# Pages-specific configuration
+pages_build_output_dir = "dist"
+
+# Environment variables for production deployment
+[env.production.vars]
+VITE_LIVESTORE_SYNC_URL = "wss://anode-docworker-prototype.rgbkrk.workers.dev"
+VITE_GOOGLE_AUTH_ENABLED = "true"
+VITE_GOOGLE_CLIENT_ID = "94663405566-1go7jlpd2ar9u9urbfirmtjv1bm0tcis.apps.googleusercontent.com"
+VITE_AUTH_TOKEN = "insecure-token-change-me"
+
+# Note: Google Client ID is public (exposed to browsers), so it's fine to put in vars
+# AUTH_TOKEN is also just a fallback for local dev, not really sensitive in this context

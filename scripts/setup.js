@@ -30,6 +30,14 @@ function createEnvFiles() {
 
 # LiveStore Sync Backend URL
 VITE_LIVESTORE_SYNC_URL=ws://localhost:8787
+
+# Google OAuth Configuration (optional - enables authentication)
+# Get these from: https://console.developers.google.com/
+# VITE_GOOGLE_CLIENT_ID=your-google-client-id.apps.googleusercontent.com
+# VITE_GOOGLE_AUTH_ENABLED=true
+
+# Fallback auth token for local development (when Google OAuth disabled)
+VITE_AUTH_TOKEN=insecure-token-change-me
 `;
     writeFileSync(webClientEnvPath, webClientEnvContent);
     created.push("web client");
@@ -48,7 +56,7 @@ LIVESTORE_SYNC_URL=ws://localhost:8787
 # Get your key from: https://platform.openai.com/api-keys
 # OPENAI_API_KEY=your-openai-api-key-here
 
-# Authentication token for sync backend
+# Authentication token for sync backend (fallback when Google OAuth not used)
 AUTH_TOKEN=insecure-token-change-me
 `;
     writeFileSync(kernelEnvPath, kernelEnvContent);
@@ -119,10 +127,17 @@ function showNextSteps() {
   console.log(
     "  4. Start runtime: NOTEBOOK_ID=your-notebook-id pnpm dev:runtime",
   );
+  console.log("\n💡 Optional Setup:");
   console.log(
-    "\n💡 Optional: Add your OpenAI API key to packages/pyodide-runtime-agent/.env",
+    "    - Add OpenAI API key to packages/pyodide-runtime-agent/.env",
   );
-  console.log("    (API keys are kept server-side for security)");
+  console.log(
+    "    - Enable Google OAuth by setting VITE_GOOGLE_CLIENT_ID in packages/web-client/.env",
+  );
+  console.log(
+    "    - Set GOOGLE_CLIENT_ID secret in Cloudflare Worker for production",
+  );
+  console.log("    (All secrets are kept server-side for security)");
 }
 
 function main() {

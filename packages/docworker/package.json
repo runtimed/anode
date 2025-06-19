@@ -15,8 +15,8 @@
     "@livestore/sync-cf": "catalog:"
   },
   "devDependencies": {
-    "wrangler": "catalog:",
     "@cloudflare/workers-types": "catalog:",
-    "typescript": "catalog:"
+    "typescript": "catalog:",
+    "wrangler": "catalog:"
   }
 }
