@@ -58,6 +58,26 @@ export const useGoogleAuth = (): AuthState & {
     }
 
     initializeAuth()
+
+    // Listen for auth state changes
+    const handleAuthChange = async () => {
+      const user = await googleAuthManager.getCurrentUser()
+      const token = googleAuthManager.getToken()
+
+      if (user && token) {
+        setAuthState({
+          isAuthenticated: true,
+          user,
+          token,
+          isLoading: false,
+          error: null
+        })
+      }
+    }
+
+    // Set up periodic check for auth changes
+    const interval = setInterval(handleAuthChange, 1000)
+    return () => clearInterval(interval)
   }, [])
 
   const signIn = useCallback(async () => {
@@ -134,19 +154,6 @@ export const useGoogleAuth = (): AuthState & {
       }))
     }
   }, [])
-
-  // Auto-refresh token periodically
-  useEffect(() => {
-    if (!authState.isAuthenticated || !googleAuthManager.isEnabled()) {
-      return
-    }
-
-    const interval = setInterval(() => {
-      refreshToken()
-    }, 50 * 60 * 1000) // Refresh every 50 minutes
-
-    return () => clearInterval(interval)
-  }, [authState.isAuthenticated, refreshToken])
 
   return {
     ...authState,

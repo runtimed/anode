@@ -3,7 +3,6 @@ import Cookies from 'js-cookie'
 export interface GoogleAuthConfig {
   clientId: string
   enabled: boolean
-  scopes: string[]
 }
 
 export interface AuthUser {
@@ -21,10 +20,25 @@ export interface AuthState {
   error: string | null
 }
 
+declare global {
+  interface Window {
+    google: {
+      accounts: {
+        id: {
+          initialize: (config: any) => void
+          prompt: () => void
+          renderButton: (parent: HTMLElement, options: any) => void
+          disableAutoSelect: () => void
+        }
+      }
+    }
+  }
+}
+
 class GoogleAuthManager {
   private config: GoogleAuthConfig
-  private gapi: any = null
-  private auth2: any = null
+  private currentUser: AuthUser | null = null
+  private currentToken: string | null = null
 
   constructor(config: GoogleAuthConfig) {
     this.config = config
@@ -36,31 +50,65 @@ class GoogleAuthManager {
     }
 
     return new Promise((resolve, reject) => {
-      // Load Google API
-      if (typeof window !== 'undefined' && !window.gapi) {
+      // Load Google Identity Services
+      if (typeof window !== 'undefined' && !window.google) {
         const script = document.createElement('script')
-        script.src = 'https://apis.google.com/js/api.js'
+        script.src = 'https://accounts.google.com/gsi/client'
         script.onload = () => {
-          window.gapi.load('auth2', () => {
-            this.initAuth2().then(resolve).catch(reject)
-          })
+          this.initGoogleIdentity().then(resolve).catch(reject)
         }
         script.onerror = reject
         document.head.appendChild(script)
-      } else if (window.gapi) {
-        window.gapi.load('auth2', () => {
-          this.initAuth2().then(resolve).catch(reject)
-        })
+      } else if (window.google) {
+        this.initGoogleIdentity().then(resolve).catch(reject)
       }
     })
   }
 
-  private async initAuth2(): Promise<void> {
-    this.gapi = window.gapi
-    this.auth2 = await this.gapi.auth2.init({
+  private async initGoogleIdentity(): Promise<void> {
+    window.google.accounts.id.initialize({
       client_id: this.config.clientId,
-      scope: this.config.scopes.join(' ')
+      callback: this.handleCredentialResponse.bind(this),
+      auto_select: false,
+      cancel_on_tap_outside: false
     })
+  }
+
+  private handleCredentialResponse(response: any): void {
+    if (response.credential) {
+      // Parse JWT payload to get user info
+      const payload = this.parseJWT(response.credential)
+      if (payload) {
+        this.currentUser = {
+          id: payload.sub,
+          email: payload.email,
+          name: payload.name,
+          picture: payload.picture
+        }
+        this.currentToken = response.credential
+
+        // Store the token in a secure cookie
+        Cookies.set('google_auth_token', response.credential, {
+          secure: location.protocol === 'https:',
+          sameSite: 'strict',
+          expires: 1 // 1 day
+        })
+      }
+    }
+  }
+
+  private parseJWT(token: string): any {
+    try {
+      const base64Url = token.split('.')[1]
+      const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/')
+      const jsonPayload = decodeURIComponent(atob(base64).split('').map(function(c) {
+        return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)
+      }).join(''))
+      return JSON.parse(jsonPayload)
+    } catch (error) {
+      console.error('Failed to parse JWT:', error)
+      return null
+    }
   }
 
   async signIn(): Promise<AuthUser> {
@@ -68,31 +116,30 @@ class GoogleAuthManager {
       throw new Error('Google Auth is not enabled')
     }
 
-    if (!this.auth2) {
+    if (!window.google) {
       await this.initialize()
     }
 
-    const authInstance = this.auth2.getAuthInstance()
-    const googleUser = await authInstance.signIn()
+    return new Promise((resolve, reject) => {
+      // Set up callback for this specific sign-in attempt
+      const originalCallback = this.handleCredentialResponse.bind(this)
 
-    const profile = googleUser.getBasicProfile()
-    const authResponse = googleUser.getAuthResponse()
+      window.google.accounts.id.initialize({
+        client_id: this.config.clientId,
+        callback: (response: any) => {
+          originalCallback(response)
+          if (this.currentUser) {
+            resolve(this.currentUser)
+          } else {
+            reject(new Error('Sign in failed'))
+          }
+        },
+        auto_select: false
+      })
 
-    const user: AuthUser = {
-      id: profile.getId(),
-      email: profile.getEmail(),
-      name: profile.getName(),
-      picture: profile.getImageUrl()
-    }
-
-    // Store the token in a secure cookie
-    Cookies.set('google_auth_token', authResponse.id_token, {
-      secure: true,
-      sameSite: 'strict',
-      expires: 1 // 1 day
+      // Trigger the sign-in flow
+      window.google.accounts.id.prompt()
     })
-
-    return user
   }
 
   async signOut(): Promise<void> {
@@ -100,11 +147,13 @@ class GoogleAuthManager {
       return
     }
 
-    if (this.auth2) {
-      await this.auth2.getAuthInstance().signOut()
-    }
-
+    this.currentUser = null
+    this.currentToken = null
     Cookies.remove('google_auth_token')
+
+    if (window.google) {
+      window.google.accounts.id.disableAutoSelect()
+    }
   }
 
   async getCurrentUser(): Promise<AuthUser | null> {
@@ -112,22 +161,24 @@ class GoogleAuthManager {
       return null
     }
 
-    if (!this.auth2) {
-      await this.initialize()
+    // Check if we have a cached user
+    if (this.currentUser) {
+      return this.currentUser
     }
 
-    const authInstance = this.auth2.getAuthInstance()
-    const isSignedIn = authInstance.isSignedIn.get()
-
-    if (isSignedIn) {
-      const googleUser = authInstance.currentUser.get()
-      const profile = googleUser.getBasicProfile()
-
-      return {
-        id: profile.getId(),
-        email: profile.getEmail(),
-        name: profile.getName(),
-        picture: profile.getImageUrl()
+    // Check if we have a stored token
+    const token = this.getToken()
+    if (token) {
+      const payload = this.parseJWT(token)
+      if (payload && payload.exp > Date.now() / 1000) {
+        this.currentUser = {
+          id: payload.sub,
+          email: payload.email,
+          name: payload.name,
+          picture: payload.picture
+        }
+        this.currentToken = token
+        return this.currentUser
       }
     }
 
@@ -135,39 +186,32 @@ class GoogleAuthManager {
   }
 
   getToken(): string | null {
-    return Cookies.get('google_auth_token') || null
+    return this.currentToken || Cookies.get('google_auth_token') || null
   }
 
   async refreshToken(): Promise<string | null> {
-    if (!this.config.enabled) {
-      return null
-    }
-
-    if (!this.auth2) {
-      await this.initialize()
-    }
-
-    const authInstance = this.auth2.getAuthInstance()
-    const googleUser = authInstance.currentUser.get()
-
-    if (googleUser) {
-      const authResponse = await googleUser.reloadAuthResponse()
-      const newToken = authResponse.id_token
-
-      Cookies.set('google_auth_token', newToken, {
-        secure: true,
-        sameSite: 'strict',
-        expires: 1
-      })
-
-      return newToken
-    }
-
-    return null
+    // Google Identity Services handles token refresh automatically
+    // Just return the current token
+    return this.getToken()
   }
 
   isEnabled(): boolean {
     return this.config.enabled
+  }
+
+  renderSignInButton(element: HTMLElement): void {
+    if (!this.config.enabled || !window.google) {
+      return
+    }
+
+    window.google.accounts.id.renderButton(element, {
+      theme: 'outline',
+      size: 'large',
+      type: 'standard',
+      text: 'signin_with',
+      shape: 'rectangular',
+      logo_alignment: 'left'
+    })
   }
 }
 
@@ -178,8 +222,7 @@ const getAuthConfig = (): GoogleAuthConfig => {
 
   return {
     clientId: clientId || '',
-    enabled: enabled && !!clientId,
-    scopes: ['profile', 'email']
+    enabled: enabled && !!clientId
   }
 }
 

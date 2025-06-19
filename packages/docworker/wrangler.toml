@@ -11,6 +11,7 @@ name = "anode-docworker"
 main = "./src/index.ts"
 compatibility_date = "2025-05-08"
 
+
 [[durable_objects.bindings]]
 name = "WEBSOCKET_SERVER"
 class_name = "WebSocketServer"
@@ -35,6 +36,7 @@ DEPLOYMENT_ENV = "development"
 [env.prototype]
 name = "anode-docworker-prototype"
 
+
 [[env.prototype.durable_objects.bindings]]
 name = "WEBSOCKET_SERVER"
 class_name = "WebSocketServer"
@@ -52,3 +54,4 @@ DEPLOYMENT_ENV = "prototype"
 # - AUTH_TOKEN: Fallback authentication token for client connections (local dev)
 # Optional for production:
 # - GOOGLE_CLIENT_ID: Google OAuth client ID for production authentication
+# - GOOGLE_CLIENT_SECRET: Google OAuth client secret (optional, improves validation)

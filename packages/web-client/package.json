@@ -27,7 +27,6 @@
     "class-variance-authority": "catalog:",
     "clsx": "catalog:",
     "date-fns": "^4.1.0",
-    "google-auth-library": "^10.1.0",
     "js-cookie": "^3.0.5",
     "lucide-react": "catalog:",
     "react": "catalog:",

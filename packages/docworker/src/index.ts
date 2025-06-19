@@ -1,11 +1,10 @@
 import { makeDurableObject, makeWorker } from '@livestore/sync-cf/cf-worker'
-import { OAuth2Client } from 'google-auth-library'
 
 interface AuthPayload {
   authToken: string
 }
 
-interface GoogleTokenPayload {
+interface GoogleJWTPayload {
   iss: string
   aud: string
   sub: string
@@ -13,26 +12,43 @@ interface GoogleTokenPayload {
   email_verified?: boolean
   name?: string
   picture?: string
+  exp: number
+  iat: number
 }
 
-async function validateGoogleToken(token: string, clientId?: string): Promise<GoogleTokenPayload | null> {
-  if (!clientId) {
-    return null
-  }
-
+// Validate Google ID token using Google's tokeninfo endpoint
+async function validateGoogleToken(token: string, clientId: string): Promise<GoogleJWTPayload | null> {
   try {
-    const client = new OAuth2Client(clientId)
-    const ticket = await client.verifyIdToken({
-      idToken: token,
-      audience: clientId,
-    })
+    // Use Google's tokeninfo endpoint to validate the token
+    const response = await fetch(`https://oauth2.googleapis.com/tokeninfo?id_token=${token}`)
 
-    const payload = ticket.getPayload()
-    if (!payload) {
+    if (!response.ok) {
+      console.error('Token validation failed:', response.status, response.statusText)
       return null
     }
 
-    return payload as GoogleTokenPayload
+    const tokenInfo = await response.json() as GoogleJWTPayload
+
+    // Validate the audience (client ID)
+    if (tokenInfo.aud !== clientId) {
+      console.error('Invalid audience:', tokenInfo.aud, 'expected:', clientId)
+      return null
+    }
+
+    // Validate the issuer
+    if (tokenInfo.iss !== 'https://accounts.google.com' && tokenInfo.iss !== 'accounts.google.com') {
+      console.error('Invalid issuer:', tokenInfo.iss)
+      return null
+    }
+
+    // Check expiration (Google's endpoint already validates this, but double-check)
+    const now = Math.floor(Date.now() / 1000)
+    if (tokenInfo.exp < now) {
+      console.error('Token expired')
+      return null
+    }
+
+    return tokenInfo
   } catch (error) {
     console.error('Google token validation failed:', error)
     return null

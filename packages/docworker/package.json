@@ -12,8 +12,7 @@
     "lint": "tsc --noEmit"
   },
   "dependencies": {
-    "@livestore/sync-cf": "catalog:",
-    "google-auth-library": "^10.1.0"
+    "@livestore/sync-cf": "catalog:"
   },
   "devDependencies": {
     "@cloudflare/workers-types": "catalog:",
