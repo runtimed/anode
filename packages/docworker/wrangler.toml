@@ -35,7 +35,6 @@ database_id = "local"
 [vars]
 # Environment variables (non-sensitive)
 DEPLOYMENT_ENV = "development"
-AUTH_TOKEN = "insecure-token-change-me"
 # Web client environment variables for development
 VITE_LIVESTORE_SYNC_URL = "ws://localhost:8787/api"
 VITE_GOOGLE_AUTH_ENABLED = "false"
@@ -63,7 +62,7 @@ VITE_GOOGLE_CLIENT_ID = "94663405566-1go7jlpd2ar9u9urbfirmtjv1bm0tcis.apps.googl
 
 # Secrets to be set per environment via: pnpm wrangler secret put SECRET_NAME [--env ENV_NAME]
 # For local development:
-# - AUTH_TOKEN: Set via: echo "insecure-token-change-me" | pnpm wrangler secret put AUTH_TOKEN
+# - AUTH_TOKEN: Set in .env file (AUTH_TOKEN=insecure-token-change-me)
 # For production:
 # - AUTH_TOKEN: Set via: echo "your-secure-token" | pnpm wrangler secret put AUTH_TOKEN --env production
 # Optional for production:
