@@ -9,11 +9,16 @@ export class WebSocketServer extends makeDurableObject({
   },
 }) {}
 
-export default makeWorker({
-  validatePayload: (payload: unknown) => {
-    if (typeof payload === 'object' && payload !== null && 'authToken' in payload && (payload as Record<string, unknown>).authToken !== 'insecure-token-change-me') {
-      throw new Error('Invalid auth token')
-    }
-  },
-  enableCORS: true,
-})
+export default {
+  fetch: async (request: Request, env: any, ctx: ExecutionContext) => {
+    const worker = makeWorker({
+      validatePayload: (payload: any) => {
+        if (payload?.authToken !== env.AUTH_TOKEN) {
+          throw new Error('Invalid auth token')
+        }
+      },
+      enableCORS: true,
+    })
+    return worker.fetch(request, env, ctx)
+  }
+}
