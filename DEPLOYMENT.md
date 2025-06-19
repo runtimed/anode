@@ -47,7 +47,7 @@ VITE_GOOGLE_CLIENT_ID="94663405566-1go7jlpd2ar9u9urbfirmtjv1bm0tcis.apps.googleu
 pnpm build
 
 # Deploy to Pages
-pnpm wrangler pages deploy dist --project-name anode
+pnpm wrangler pages deploy dist --project-name anode --commit-dirty=true
 ```
 
 ## Environment Variables
@@ -57,15 +57,18 @@ pnpm wrangler pages deploy dist --project-name anode
 Set in `packages/docworker/wrangler.toml`:
 
 - `DEPLOYMENT_ENV`: `"production"`
+- `GOOGLE_CLIENT_ID`: Your Google OAuth client ID
 - `AUTH_TOKEN`: Set via secrets (see above)
 
 ### Pages Environment Variables
 
-These should be set in the Cloudflare Pages dashboard or passed during build:
+Pages environment variables are set during the build process via CLI:
 
 - `VITE_LIVESTORE_SYNC_URL`: `"wss://anode-docworker.rgbkrk.workers.dev/api"`
 - `VITE_GOOGLE_AUTH_ENABLED`: `"true"`
 - `VITE_GOOGLE_CLIENT_ID`: Your Google OAuth client ID
+
+**Note**: Pages deployment uses CLI-based environment variables rather than configuration files.
 
 ## Local Development
 
@@ -145,10 +148,10 @@ Alternatively, you can connect the repository directly to Cloudflare Pages:
 1. Go to Cloudflare Pages dashboard
 2. Connect to Git repository
 3. Set build settings:
-   - **Build command**: `cd packages/web-client && pnpm build`
+   - **Build command**: `cd packages/web-client && VITE_LIVESTORE_SYNC_URL="wss://anode-docworker.rgbkrk.workers.dev/api" VITE_GOOGLE_AUTH_ENABLED="true" VITE_GOOGLE_CLIENT_ID="94663405566-1go7jlpd2ar9u9urbfirmtjv1bm0tcis.apps.googleusercontent.com" pnpm build`
    - **Build output directory**: `packages/web-client/dist`
    - **Root directory**: Leave empty
-4. Set environment variables in Pages dashboard
+4. Environment variables are embedded during build (see build command above)
 
 ## Troubleshooting
 

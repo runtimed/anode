@@ -48,6 +48,7 @@ database_id = "5339094f-f406-4236-97c3-ada460373f18"
 
 [env.production.vars]
 DEPLOYMENT_ENV = "production"
+GOOGLE_CLIENT_ID = "94663405566-1go7jlpd2ar9u9urbfirmtjv1bm0tcis.apps.googleusercontent.com"
 # Worker only serves API endpoints - web client vars moved to Pages
 
 # Secrets to be set per environment via: pnpm wrangler secret put SECRET_NAME [--env ENV_NAME]
