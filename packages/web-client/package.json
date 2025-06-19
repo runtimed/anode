@@ -5,6 +5,8 @@
   "scripts": {
     "dev": "vite --port 5173",
     "build": "tsc && vite build",
+    "build:prod": "NODE_ENV=production tsc && vite build",
+    "build:dev": "NODE_ENV=development tsc && vite build",
     "preview": "vite preview",
     "clean": "rm -rf dist",
     "type-check": "tsc --noEmit",
