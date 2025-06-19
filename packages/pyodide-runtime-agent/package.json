@@ -6,7 +6,7 @@
   "main": "./dist/index.js",
   "scripts": {
     "start": "tsx src/index.ts",
-    "dev": "tsx src/index.ts",
+    "dev": "tsx --env-file=.env src/index.ts",
     "build": "tsc",
     "clean": "rm -rf dist",
     "watch": "tsx watch src/index.ts",
