@@ -8,7 +8,7 @@ Based on recent commits, substantial progress has been made:
 
 **✅ AI Integration & Context System** - Multiple PRs completed:
 - AI context selection and visibility controls (#47)
-- Cell outputs integrated into AI context (#45) 
+- Cell outputs integrated into AI context (#45)
 - AI context visibility toggles (#44)
 - Dual-mode ANSI handling for AI vs user display (#54)
 - Hidden output indicators for better UX (#53)
@@ -65,7 +65,6 @@ Based on recent commits, substantial progress has been made:
 - 🚧 No function calling infrastructure for notebook manipulation
 
 **Integration Testing** - Verification needed:
-- 🚧 Rich output claims need comprehensive testing
 - 🚧 Performance benchmarks for startup times
 - 🚧 Multi-user collaboration stress testing
 
@@ -76,81 +75,7 @@ Based on recent commits, substantial progress has been made:
 
 ## Next Development Priorities
 
-### Priority 1: AI Tool Calling Implementation 🚀
-
-**Goal**: Enable AI to actively participate in notebook development
-
-**Implementation Strategy**:
-- Use OpenAI function calling API for structured notebook actions
-- Create function schemas for cell operations (create, modify, delete, execute)
-- Add confirmation UI for AI-initiated changes
-- Integrate with existing LiveStore event system
-
-**Key Files**:
-- `packages/pyodide-runtime-agent/src/openai-client.ts` - Function calling implementation
-- `packages/web-client/src/components/notebook/AiCell.tsx` - Confirmation UI
-- `shared/schema.ts` - AI action events if needed
-
-**Functions to Implement**:
-```typescript
-{
-  name: "create_cell",
-  description: "Create a new cell in the notebook",
-  parameters: { type: "code" | "markdown", content: string, position?: number }
-}
-
-{
-  name: "modify_cell", 
-  description: "Modify existing cell content",
-  parameters: { cellId: string, content: string }
-}
-
-{
-  name: "execute_cell",
-  description: "Execute a code cell",
-  parameters: { cellId: string }
-}
-```
-
-### Priority 2: Integration Testing 🧪
-
-**Goal**: Verify all claimed functionality actually works
-
-**Test Coverage Needed**:
-- Real Pyodide integration tests (not mocked)
-- Rich output rendering verification (matplotlib, pandas)
-- AI context integration end-to-end
-- Multi-user collaboration scenarios
-- Performance benchmarks
-
-**Files to Create**:
-- `test/integration/pyodide-integration.test.ts`
-- `test/integration/ai-context.test.ts`
-- `test/integration/collaboration.test.ts`
-- `test/performance/startup-benchmarks.test.ts`
-
-### Priority 3: Runtime Management Automation 🔧
-
-**Goal**: Remove manual `NOTEBOOK_ID=xyz pnpm dev:runtime` friction
-
-**Implementation Ideas**:
-- Auto-spawn runtime when notebook accessed
-- Runtime pooling for faster assignment
-- Automatic cleanup of idle runtimes
-- Better error handling and recovery
-
-**Benefits**: Significantly improved developer experience
-
-### Priority 4: MCP Integration Foundation 🔮
-
-**Goal**: Architecture for Model Context Protocol providers
-
-**Long-term Vision**:
-- Extensible AI tooling via Python runtime
-- Custom tool providers for specialized domains
-- Plugin architecture for AI capabilities
-
-**Note**: Lower priority until AI tool calling is solid
+Basic Deployment on CloudFlare
 
 ## Documentation Structure
 
@@ -227,11 +152,69 @@ pnpm cache:stats      # Show cache statistics
 
 **Testing Gaps**: Main weakness is lack of integration testing to verify claimed functionality.
 
+## CI/Deployment Status 🚧
+
+### Current State
+- ✅ **PR Comments Working** - CI build logs now appear in PR comments
+- 🚧 **Build Failing** - Worker name mismatch and database ID issues
+- ✅ **Manual Deployment Working** - `pnpm wrangler deploy --env production` works
+- ✅ **Split Architecture** - Pages for web client, Workers for sync backend
+
+### Issues to Resolve
+
+**CI Configuration Problems:**
+- CI expects worker name "anode" but config has "anode-docworker"
+- Development environment uses `database_id = "local"` which CI can't use
+- Build command mismatch between CI settings and actual commands
+
+**Current CI Settings:**
+```
+Build command: npm run build
+Deploy command: pnpm run deploy
+Version command: npx wrangler versions upload
+Root directory: /packages/docworker
+Production branch: main
+Non-production builds: Enabled
+```
+
+**Error Details:**
+```
+Failed to match Worker name. Your config file is using "anode-docworker", but CI expected "anode"
+binding DB of type d1 must have a valid `id` specified [code: 10021]
+```
+
+### Deployment Architecture
+
+**Working Manual Setup:**
+- **Worker (Sync Backend)**: `https://anode-docworker.rgbkrk.workers.dev`
+  - Deploy: `cd packages/docworker && pnpm wrangler deploy --env production`
+  - Config: `packages/docworker/wrangler.toml` with Google OAuth setup
+- **Pages (Web Client)**: `https://anode.pages.dev`
+  - Deploy: `cd packages/web-client && pnpm wrangler pages deploy dist --project-name anode`
+  - Config: `packages/web-client/wrangler.toml` with environment variables
+
+**Authentication Fixed:**
+- Worker now has `GOOGLE_CLIENT_ID` for proper OAuth validation
+- CORS headers configured for cross-origin WebSocket connections
+- Environment-specific configs for production vs development
+
+### Next Steps for CI
+1. **Add CI environment** to `packages/docworker/wrangler.toml`:
+   ```toml
+   [env.ci]
+   name = "anode"  # Match CI expectations
+   database_id = "5339094f-f406-4236-97c3-ada460373f18"  # Real DB ID
+   ```
+2. **Configure CI** to use `--env ci` for non-production builds
+3. **Consider preview-only builds** for open source security (UI only, no sync backend)
+
+**Note**: Avoid breaking local development setup when fixing CI issues.
+
 ## Next Developer Success Path
 
-1. **Implement AI tool calling** - Biggest user-facing improvement
-2. **Add integration tests** - Verify system actually works as claimed  
-3. **Automate runtime management** - Remove remaining friction
-4. **Consider MCP integration** - Extensible AI tooling foundation
+1. **Fix CI deployment** - Add proper CI environment configuration
+2. **Implement AI tool calling** - Biggest user-facing improvement
+3. **Add integration tests** - Verify system actually works as claimed
+4. **Automate runtime management** - Remove remaining friction
 
 The system has a solid foundation and is ready for the next major feature development phase.
