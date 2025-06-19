@@ -57,7 +57,7 @@ Anode is a real-time collaborative notebook system built on LiveStore, an event-
 
 ```bash
 # Setup
-cp .env.example .env     # Configure environment (optional: uncomment OPENAI_API_KEY)
+pnpm install             # Automatically creates package .env files with defaults
 
 # Start core services (web + sync)
 pnpm dev
@@ -260,7 +260,7 @@ pnpm type-check      # TypeScript validation
 Tell them to start at the base of the repo:
 ```bash
 # Setup environment
-cp .env.example .env # Configure environment
+pnpm install         # Automatically creates package .env files with defaults
 
 # Start core services
 pnpm dev             # Web client + sync backend
