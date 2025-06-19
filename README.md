@@ -18,8 +18,10 @@ A real-time collaborative notebook system built on LiveStore, focusing on seamle
 ### 1. Install and Configure
 ```bash
 pnpm install  # Automatically creates .env files with defaults
-# Optional: Add OpenAI API key to packages/pyodide-runtime-agent/.env
-pnpm dev  # Starts web client + sync backend
+# hack on the web client
+pnpm dev:web-only
+# synchronize clients with a local doc worker
+pnpm dev:sync-only
 ```
 
 ### 2. Create Your First Notebook
