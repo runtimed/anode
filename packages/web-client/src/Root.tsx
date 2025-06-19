@@ -52,7 +52,7 @@ const NotebookApp: React.FC = () => {
       <div className="flex items-center justify-center min-h-screen bg-background">
         <div className="text-center">
           <div className="text-lg font-semibold text-foreground mb-2">
-            Initializing Notebook
+            Initializing Notebook...
           </div>
           <div className="text-sm text-muted-foreground">
             Setting up your workspace...
@@ -68,7 +68,7 @@ const NotebookApp: React.FC = () => {
       <div className="border-b border-gray-200 bg-white">
         <div className="flex justify-between items-center px-4 py-2">
           <h1 className="text-lg font-semibold text-gray-900">
-            Anode Notebooks
+            Anode Collaborative Notebooks
           </h1>
           <UserProfile />
         </div>
