@@ -60,7 +60,6 @@ DEPLOYMENT_ENV = "prototype"
 VITE_LIVESTORE_SYNC_URL = "/api"
 VITE_GOOGLE_AUTH_ENABLED = "true"
 VITE_GOOGLE_CLIENT_ID = "94663405566-1go7jlpd2ar9u9urbfirmtjv1bm0tcis.apps.googleusercontent.com"
-VITE_AUTH_TOKEN = "insecure-token-change-me"
 
 # Secrets to be set per environment via: pnpm wrangler secret put SECRET_NAME [--env ENV_NAME]
 # For local development:
