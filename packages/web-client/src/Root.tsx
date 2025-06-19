@@ -121,7 +121,7 @@ export const App: React.FC = () => (
     storeId={storeId}
     syncPayload={{ authToken: getCurrentAuthToken() }}
   >
-    <div style={{ top: 0, right: 0, position: 'absolute', background: '#333', zIndex: 50 }}>
+    <div style={{ bottom: 0, right: 0, position: 'fixed', background: '#333', zIndex: 50 }}>
       <FPSMeter height={40} />
     </div>
     <AuthGuard>
