@@ -428,6 +428,10 @@ export const SqlCell: React.FC<SqlCellProps> = ({
                 placeholder="SELECT * FROM your_table WHERE condition = 'value';"
                 className="min-h-[1.5rem] resize-none border-0 px-2 py-1 focus-visible:ring-0 font-mono bg-white w-full placeholder:text-muted-foreground/60 shadow-none"
                 onFocus={handleFocus}
+                autoCapitalize="off"
+                autoCorrect="off"
+                autoComplete="off"
+                spellCheck={false}
               />
             </div>
           </div>
