@@ -1,9 +1,9 @@
-import React from 'react'
+import React, { useState } from 'react'
 import ReactMarkdown from 'react-markdown'
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter'
 import { oneLight } from 'react-syntax-highlighter/dist/esm/styles/prism'
 import { StreamOutputData } from '../../../../../shared/schema.js'
-import { FilePlus, Edit, ChevronDown, Info } from 'lucide-react'
+import { FilePlus, Edit, ChevronDown, Info, ZoomIn, X } from 'lucide-react'
 import { AnsiStreamOutput } from './AnsiOutput.js'
 import './RichOutput.css'
 
@@ -19,6 +19,8 @@ interface OutputData {
   'text/html'?: string
   'image/svg+xml'?: string
   'image/svg'?: string
+  'image/png'?: string
+  'image/jpeg'?: string
   'application/json'?: unknown
   'application/vnd.anode.aitool+json'?: ToolCallData
   [key: string]: unknown
@@ -68,6 +70,7 @@ export const RichOutput: React.FC<RichOutputProps> = ({
   data,
   outputType = 'display_data'
 }) => {
+  const [zoomedImage, setZoomedImage] = useState<string | null>(null)
   // Handle stream outputs specially
   if (outputType === 'stream') {
     const streamData = data as unknown as StreamOutputData
@@ -88,6 +91,8 @@ export const RichOutput: React.FC<RichOutputProps> = ({
       'application/vnd.anode.aitool+json',
       'text/markdown',
       'text/html',
+      'image/png',
+      'image/jpeg',
       'image/svg+xml',
       'image/svg',
       'application/json',
@@ -112,6 +117,29 @@ export const RichOutput: React.FC<RichOutputProps> = ({
       </div>
     )
   }
+
+  // Image zoom modal
+  const ZoomModal = ({ src, onClose }: { src: string; onClose: () => void }) => (
+    <div
+      className="zoom-modal fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-4"
+      onClick={onClose}
+    >
+      <div className="relative max-w-full max-h-full">
+        <button
+          onClick={onClose}
+          className="absolute top-2 right-2 z-10 bg-black bg-opacity-50 text-white rounded-full p-2 hover:bg-opacity-70"
+        >
+          <X className="h-4 w-4" />
+        </button>
+        <img
+          src={src}
+          alt="Zoomed view"
+          className="max-w-full max-h-full object-contain"
+          onClick={(e) => e.stopPropagation()}
+        />
+      </div>
+    </div>
+  )
 
   const renderContent = () => {
     switch (mediaType) {
@@ -212,12 +240,35 @@ export const RichOutput: React.FC<RichOutputProps> = ({
           />
         )
 
+      case 'image/png':
+      case 'image/jpeg':
+        const imageData = outputData[mediaType] as string
+        const imageSrc = imageData.startsWith('data:') ? imageData : `data:${mediaType};base64,${imageData}`
+
+        return (
+          <div className="py-2">
+            <div className="relative group max-w-full">
+              <img
+                src={imageSrc}
+                alt="Output image"
+                className="zoomable-image max-w-full h-auto cursor-zoom-in hover:opacity-90 transition-opacity"
+                style={{ maxHeight: '400px', objectFit: 'contain' }}
+                onClick={() => setZoomedImage(imageSrc)}
+              />
+              <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity bg-black bg-opacity-50 text-white rounded p-1">
+                <ZoomIn className="h-3 w-3" />
+              </div>
+            </div>
+          </div>
+        )
+
       case 'image/svg+xml':
       case 'image/svg':
         return (
           <div className="py-2">
             <div
-              className="max-w-full"
+              className="max-w-full overflow-hidden"
+              style={{ maxHeight: '400px' }}
               dangerouslySetInnerHTML={{ __html: outputData[mediaType] || '' }}
             />
           </div>
@@ -255,11 +306,16 @@ export const RichOutput: React.FC<RichOutputProps> = ({
 
 
   return (
-    <div>
+    <div className="rich-output">
       {/* Content */}
-      <div>
+      <div className="overflow-hidden max-w-full">
         {renderContent()}
       </div>
+
+      {/* Zoom Modal */}
+      {zoomedImage && (
+        <ZoomModal src={zoomedImage} onClose={() => setZoomedImage(null)} />
+      )}
     </div>
   )
 }

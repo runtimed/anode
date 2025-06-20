@@ -557,7 +557,7 @@ export const AiCell: React.FC<AiCellProps> = ({
 
       {/* Output Area for AI Responses */}
       {outputs.length > 0 && cell.outputVisible && (
-        <div className="mt-1 pl-6 pr-1 sm:pr-4 bg-background">
+        <div className="mt-1 pl-6 pr-1 sm:pr-4 bg-background overflow-hidden max-w-full">
           {outputs
             .sort((a: OutputData, b: OutputData) => a.position - b.position)
             .map((output: OutputData, index: number) => (
@@ -571,8 +571,8 @@ export const AiCell: React.FC<AiCellProps> = ({
                   />
                 ) : (
                   // Use RichOutput for all other output types - chat bubble style on mobile
-                  <div className="py-2">
-                    <div className="sm:bg-transparent bg-gray-50 sm:p-0 p-3 sm:rounded-none rounded-lg sm:border-0 border border-gray-200">
+                  <div className="py-2 overflow-hidden max-w-full">
+                    <div className="sm:bg-transparent bg-gray-50 sm:p-0 p-3 sm:rounded-none rounded-lg sm:border-0 border border-gray-200 overflow-hidden max-w-full">
                       <RichOutput
                         data={output.data as Record<string, unknown>}
                         metadata={output.metadata as Record<string, unknown> | undefined}

@@ -472,7 +472,7 @@ export const SqlCell: React.FC<SqlCellProps> = ({
 
       {/* Query Results */}
       {cell.sqlResultData && cell.outputVisible && (
-        <div className="mt-1 pl-6 pr-4 bg-background">
+        <div className="mt-1 pl-6 pr-4 bg-background overflow-hidden max-w-full">
           {renderResults()}
         </div>
       )}

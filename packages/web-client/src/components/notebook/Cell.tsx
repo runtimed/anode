@@ -533,7 +533,7 @@ export const Cell: React.FC<CellProps> = ({
 
       {/* Output Area for Code Cells */}
       {cell.cellType === 'code' && cell.outputVisible && (outputs.length > 0 || cell.executionState === 'running') && (
-        <div className="mt-1 pl-6 pr-4 bg-background">
+        <div className="mt-1 pl-6 pr-4 bg-background overflow-hidden max-w-full">
             {cell.executionState === 'running' && outputs.length === 0 && (
               <div className="py-3 border-l-2 border-blue-200 pl-1">
                 <div className="flex items-center gap-2">
@@ -556,7 +556,7 @@ export const Cell: React.FC<CellProps> = ({
                     />
                   ) : (
                     // Use RichOutput for all other output types
-                    <div className="py-2">
+                    <div className="py-2 overflow-hidden max-w-full">
                       <RichOutput
                         data={output.data as Record<string, unknown>}
                         metadata={output.metadata as Record<string, unknown> | undefined}
