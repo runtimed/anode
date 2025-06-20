@@ -231,16 +231,16 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = () => {
       <nav className="border-b bg-card px-3 sm:px-4 py-2 sm:py-3">
         <div className="w-full sm:max-w-6xl sm:mx-auto flex items-center justify-between">
           <div className="flex items-center gap-2 sm:gap-4">
-            <img
-              src="/logo.svg"
-              alt="Anode"
-              className="h-6 sm:h-8 w-auto"
-            />
             <a
               href={window.location.origin}
-              className="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-input bg-background hover:bg-accent hover:text-accent-foreground h-8 sm:h-9 px-2 sm:px-3"
+              className="flex items-center gap-2 hover:opacity-80 transition-opacity"
+              title="Create New Notebook"
             >
-              <span className="text-xs sm:text-sm">+ New Notebook</span>
+              <img
+                src="/logo.svg"
+                alt="Anode - Create New Notebook"
+                className="h-6 sm:h-8 w-auto"
+              />
             </a>
           </div>
 
