@@ -314,7 +314,9 @@ export const AiCell: React.FC<AiCellProps> = ({
           </DropdownMenu>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              {getProviderBadge()}
+              <div className="hidden sm:block">
+                {getProviderBadge()}
+              </div>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
               <DropdownMenuItem onClick={() => changeProvider('openai', 'gpt-4o')}>
@@ -483,9 +485,36 @@ export const AiCell: React.FC<AiCellProps> = ({
                   onFocus={handleFocus}
                 />
                 <div className="flex justify-between items-center mt-2 pt-2 border-t border-purple-200/50">
-                  <div className="text-xs text-purple-600/60">
-                    {provider.toUpperCase()} • {model}
-                  </div>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <button className="text-xs text-purple-600/60 hover:text-purple-600 transition-colors cursor-pointer">
+                        {provider.toUpperCase()} • {model}
+                      </button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="start">
+                      <DropdownMenuItem onClick={() => changeProvider('openai', 'gpt-4o')}>
+                        OpenAI GPT-4o
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => changeProvider('openai', 'gpt-4o-mini')}>
+                        OpenAI GPT-4o Mini
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => changeProvider('openai', 'gpt-4')}>
+                        OpenAI GPT-4 (Legacy)
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => changeProvider('openai', 'gpt-3.5-turbo')}>
+                        OpenAI GPT-3.5 Turbo
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => changeProvider('anthropic', 'claude-3-sonnet')}>
+                        Anthropic Claude 3 Sonnet
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => changeProvider('anthropic', 'claude-3-haiku')}>
+                        Anthropic Claude 3 Haiku
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => changeProvider('local', 'llama-2')}>
+                        Local Llama 2
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
                 </div>
               </div>
             </div>
