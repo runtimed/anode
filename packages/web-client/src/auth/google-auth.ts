@@ -39,6 +39,7 @@ class GoogleAuthManager {
   private config: GoogleAuthConfig
   private currentUser: AuthUser | null = null
   private currentToken: string | null = null
+  private tokenChangeListeners = new Set<(token: string | null) => void>()
 
   constructor(config: GoogleAuthConfig) {
     this.config = config
@@ -93,6 +94,9 @@ class GoogleAuthManager {
           sameSite: 'strict',
           expires: 1 // 1 day
         })
+
+        // Notify listeners of token change
+        this.notifyTokenChange(response.credential)
       }
     }
   }
@@ -154,6 +158,9 @@ class GoogleAuthManager {
     if (window.google) {
       window.google.accounts.id.disableAutoSelect()
     }
+
+    // Notify listeners of token change
+    this.notifyTokenChange(null)
   }
 
   async getCurrentUser(): Promise<AuthUser | null> {
@@ -163,6 +170,15 @@ class GoogleAuthManager {
 
     // Check if we have a cached user
     if (this.currentUser) {
+      // Check if cached user's token is still valid
+      const token = this.getToken()
+      if (token && this.isTokenExpiringSoon(token)) {
+        console.warn('Token expiring soon, clearing cached user')
+        this.currentUser = null
+        this.currentToken = null
+        Cookies.remove('google_auth_token')
+        return null
+      }
       return this.currentUser
     }
 
@@ -171,6 +187,14 @@ class GoogleAuthManager {
     if (token) {
       const payload = this.parseJWT(token)
       if (payload && payload.exp > Date.now() / 1000) {
+        // Check if token is expiring soon (within 5 minutes)
+        if (this.isTokenExpiringSoon(token)) {
+          console.warn('Token expiring soon, removing from storage')
+          Cookies.remove('google_auth_token')
+          this.currentToken = null
+          return null
+        }
+
         this.currentUser = {
           id: payload.sub,
           email: payload.email,
@@ -179,6 +203,11 @@ class GoogleAuthManager {
         }
         this.currentToken = token
         return this.currentUser
+      } else {
+        // Token is expired, clean it up
+        console.warn('Token has expired, removing from storage')
+        Cookies.remove('google_auth_token')
+        this.currentToken = null
       }
     }
 
@@ -186,13 +215,41 @@ class GoogleAuthManager {
   }
 
   getToken(): string | null {
-    return this.currentToken || Cookies.get('google_auth_token') || null
+    const token = this.currentToken || Cookies.get('google_auth_token') || null
+
+    // Check if token is expired or expiring soon
+    if (token && this.isTokenExpiringSoon(token)) {
+      console.warn('Token is expired or expiring soon, clearing it')
+      this.currentToken = null
+      Cookies.remove('google_auth_token')
+      return null
+    }
+
+    return token
   }
 
   async refreshToken(): Promise<string | null> {
     // Google Identity Services handles token refresh automatically
     // Just return the current token
     return this.getToken()
+  }
+
+  private isTokenExpiringSoon(token: string): boolean {
+    try {
+      const payload = this.parseJWT(token)
+      if (!payload || !payload.exp) {
+        return true // Treat invalid tokens as expired
+      }
+
+      // Check if token expires within 5 minutes (300 seconds)
+      const expirationTime = payload.exp * 1000 // Convert to milliseconds
+      const fiveMinutesFromNow = Date.now() + (5 * 60 * 1000)
+
+      return expirationTime <= fiveMinutesFromNow
+    } catch (error) {
+      console.error('Error checking token expiration:', error)
+      return true // Treat unparseable tokens as expired
+    }
   }
 
   isEnabled(): boolean {
@@ -212,6 +269,15 @@ class GoogleAuthManager {
       shape: 'rectangular',
       logo_alignment: 'left'
     })
+  }
+
+  addTokenChangeListener(callback: (token: string | null) => void): (() => void) {
+    this.tokenChangeListeners.add(callback)
+    return () => this.tokenChangeListeners.delete(callback)
+  }
+
+  private notifyTokenChange(token: string | null): void {
+    this.tokenChangeListeners.forEach(callback => callback(token))
   }
 }
 
@@ -241,4 +307,21 @@ export const getCurrentAuthToken = (): string => {
     return googleToken
   }
   return getFallbackAuthToken()
+}
+
+// Check if the current auth state is valid
+export const isAuthStateValid = async (): Promise<boolean> => {
+  if (!googleAuthManager.isEnabled()) {
+    return true // Always valid in fallback mode
+  }
+
+  const user = await googleAuthManager.getCurrentUser()
+  const token = googleAuthManager.getToken()
+
+  return !!(user && token)
+}
+
+// Authentication event listeners helper
+export const addAuthTokenListener = (callback: (token: string | null) => void): (() => void) => {
+  return googleAuthManager.addTokenChangeListener(callback)
 }

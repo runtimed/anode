@@ -8,5 +8,6 @@ makeWorker({
   sync: {
     backend: makeCfSync({ url: import.meta.env.VITE_LIVESTORE_SYNC_URL }),
     initialSyncOptions: { _tag: 'Blocking', timeout: 5000 },
+    onSyncError: 'ignore',
   },
 })
