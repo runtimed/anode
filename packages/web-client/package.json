@@ -7,6 +7,7 @@
     "build": "tsc && vite build",
     "build:prod": "NODE_ENV=production tsc && vite build",
     "build:dev": "NODE_ENV=development tsc && vite build",
+    "deploy:production": "pnpm build:prod && wrangler pages deploy dist --project-name anode --commit-dirty=true",
     "preview": "vite preview",
     "clean": "rm -rf dist",
     "type-check": "tsc --noEmit",
