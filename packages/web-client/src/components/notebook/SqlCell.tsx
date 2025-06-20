@@ -312,36 +312,7 @@ export const SqlCell: React.FC<SqlCellProps> = ({
               )}
             </Button>
 
-            {/* Cell Type Dropdown - Mobile Priority */}
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="block sm:hidden h-8 w-8 p-0 hover:bg-muted/80"
-                >
-                  <Database className="h-4 w-4" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="start" className="w-40">
-                <DropdownMenuItem onClick={() => changeCellType('code')} className="gap-2">
-                  <Code className="h-4 w-4" />
-                  Code
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => changeCellType('markdown')} className="gap-2">
-                  <FileText className="h-4 w-4" />
-                  Markdown
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => changeCellType('sql')} className="gap-2">
-                  <Database className="h-4 w-4" />
-                  SQL Query
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => changeCellType('ai')} className="gap-2">
-                  <Bot className="h-4 w-4" />
-                  AI Assistant
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+
 
             <div className="flex-1" />
 
