@@ -364,67 +364,107 @@ export const AiCell: React.FC<AiCellProps> = ({
                 <Play className="h-4 w-4" />
               )}
             </Button>
-          {/* Visibility Toggles */}
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={toggleSourceVisibility}
-            className={`h-8 w-8 sm:h-7 sm:w-7 p-0 hover:bg-muted/80 ${cell.sourceVisible ? '' : 'text-muted-foreground/60'}`}
-            title={cell.sourceVisible ? 'Hide source' : 'Show source'}
-          >
-            {cell.sourceVisible ? <ChevronUp className="h-4 w-4 sm:h-3 sm:w-3" /> : <ChevronDown className="h-4 w-4 sm:h-3 sm:w-3" />}
-          </Button>
 
-          {contextSelectionMode && (
+            {/* Cell Type Dropdown - Mobile Priority */}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="block sm:hidden h-8 w-8 p-0 hover:bg-muted/80"
+                >
+                  <Bot className="h-4 w-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="start" className="w-40">
+                <DropdownMenuItem onClick={() => changeCellType('code')} className="gap-2">
+                  <Code className="h-4 w-4" />
+                  Code
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => changeCellType('markdown')} className="gap-2">
+                  <FileText className="h-4 w-4" />
+                  Markdown
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => changeCellType('sql')} className="gap-2">
+                  <Database className="h-4 w-4" />
+                  SQL Query
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => changeCellType('ai')} className="gap-2">
+                  <Bot className="h-4 w-4" />
+                  AI Assistant
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+
+            <div className="flex-1" />
+
+            {/* Add Cell Button */}
             <Button
               variant="ghost"
               size="sm"
-              onClick={toggleAiContextVisibility}
-              className={`h-8 w-8 sm:h-7 sm:w-7 p-0 hover:bg-muted/80 ${cell.aiContextVisible ? 'text-purple-600' : 'text-gray-500'}`}
-              title={cell.aiContextVisible ? 'Hide from AI context' : 'Show in AI context'}
+              onClick={onAddCell}
+              className="h-8 w-8 sm:h-7 sm:w-7 p-0 hover:bg-muted/80"
+              title="Add cell below"
             >
-              {cell.aiContextVisible ? <Eye className="h-4 w-4 sm:h-3 sm:w-3" /> : <EyeOff className="h-4 w-4 sm:h-3 sm:w-3" />}
+              <Plus className="h-4 w-4 sm:h-3 sm:w-3" />
             </Button>
-          )}
 
-          {/* Separator */}
-          <div className="w-px h-4 bg-border/50 mx-1" />
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={onMoveUp}
-            className="h-8 w-8 sm:h-7 sm:w-7 p-0 hover:bg-muted/80"
-            title="Move cell up"
-          >
-            <ArrowUp className="h-4 w-4 sm:h-3 sm:w-3" />
-          </Button>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={onMoveDown}
-            className="h-8 w-8 sm:h-7 sm:w-7 p-0 hover:bg-muted/80"
-            title="Move cell down"
-          >
-            <ArrowDown className="h-4 w-4 sm:h-3 sm:w-3" />
-          </Button>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={onAddCell}
-            className="h-8 w-8 sm:h-7 sm:w-7 p-0 hover:bg-muted/80"
-            title="Add cell below"
-          >
-            <Plus className="h-4 w-4 sm:h-3 sm:w-3" />
-          </Button>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={onDeleteCell}
-            className="h-8 w-8 sm:h-7 sm:w-7 p-0 text-muted-foreground hover:text-destructive hover:bg-destructive/10"
-            title="Delete cell"
-          >
-            <X className="h-4 w-4 sm:h-3 sm:w-3" />
-          </Button>
+            {/* Source Visibility Toggle */}
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={toggleSourceVisibility}
+              className={`h-8 w-8 sm:h-7 sm:w-7 p-0 hover:bg-muted/80 ${cell.sourceVisible ? '' : 'text-muted-foreground/60'}`}
+              title={cell.sourceVisible ? 'Hide source' : 'Show source'}
+            >
+              {cell.sourceVisible ? <ChevronUp className="h-4 w-4 sm:h-3 sm:w-3" /> : <ChevronDown className="h-4 w-4 sm:h-3 sm:w-3" />}
+            </Button>
+
+            {/* Context Selection Mode Button */}
+            {contextSelectionMode && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={toggleAiContextVisibility}
+                className={`h-8 w-8 sm:h-7 sm:w-7 p-0 hover:bg-muted/80 ${cell.aiContextVisible ? 'text-purple-600' : 'text-gray-500'}`}
+                title={cell.aiContextVisible ? 'Hide from AI context' : 'Show in AI context'}
+              >
+                {cell.aiContextVisible ? <Eye className="h-4 w-4 sm:h-3 sm:w-3" /> : <EyeOff className="h-4 w-4 sm:h-3 sm:w-3" />}
+              </Button>
+            )}
+
+            {/* Desktop-only controls */}
+            <div className="hidden sm:flex items-center gap-0.5">
+              {/* Separator */}
+              <div className="w-px h-4 bg-border/50 mx-1" />
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={onMoveUp}
+                className="h-7 w-7 p-0 hover:bg-muted/80"
+                title="Move cell up"
+              >
+                <ArrowUp className="h-3 w-3" />
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={onMoveDown}
+                className="h-7 w-7 p-0 hover:bg-muted/80"
+                title="Move cell down"
+              >
+                <ArrowDown className="h-3 w-3" />
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={onDeleteCell}
+                className="h-7 w-7 p-0 text-muted-foreground hover:text-destructive hover:bg-destructive/10"
+                title="Delete cell"
+              >
+                <X className="h-3 w-3" />
+              </Button>
+            </div>
         </div>
       </div>
 
