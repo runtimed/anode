@@ -5,7 +5,7 @@
   "main": "./src/index.ts",
   "scripts": {
     "dev": "wrangler dev --port 8787",
-    "deploy": "wrangler deploy --env production",
+    "deploy:production": "wrangler deploy --env production",
     "build": "pnpm --filter @anode/web-client build",
     "clean": "echo 'CloudFlare Worker - no clean needed'",
     "type-check": "tsc --noEmit",
