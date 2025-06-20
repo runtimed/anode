@@ -475,7 +475,7 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({ debugMode = fals
         )}
       </div>
 
-      <div className="w-full sm:max-w-4xl sm:mx-auto p-3 sm:p-4">
+      <div className="w-full sm:max-w-4xl sm:mx-auto px-0 py-3 sm:p-4">
 
         {/* Keyboard Shortcuts Help - Desktop only */}
         {sortedCells.length > 0 && (
