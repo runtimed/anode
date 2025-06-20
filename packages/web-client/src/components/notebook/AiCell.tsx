@@ -261,7 +261,7 @@ export const AiCell: React.FC<AiCellProps> = ({
   }
 
   return (
-    <div className={`mb-2 sm:mb-3 relative group transition-all duration-200 pt-2 -mx-3 sm:mx-0 px-3 sm:px-0 ${
+    <div className={`cell-container mb-2 sm:mb-3 relative group transition-all duration-200 pt-2 -mx-3 sm:mx-0 px-3 sm:px-0 ${
         autoFocus && !contextSelectionMode ? 'bg-purple-50/30' : 'hover:bg-muted/10'
       } ${contextSelectionMode && !cell.aiContextVisible ? 'opacity-60' : ''} ${
         contextSelectionMode ? (cell.aiContextVisible ? 'ring-2 ring-purple-300 bg-purple-50/30' : 'ring-2 ring-gray-300 bg-gray-50/30') : ''
@@ -270,7 +270,7 @@ export const AiCell: React.FC<AiCellProps> = ({
       }}>
       {/* Custom left border with controlled height */}
       <div
-        className={`absolute left-3 sm:left-0 top-0 w-0.5 transition-all duration-200 ${
+        className={`cell-border absolute left-3 sm:left-0 top-0 w-0.5 transition-all duration-200 ${
           autoFocus && !contextSelectionMode ? 'bg-purple-500/60' : 'bg-border/30'
         }`}
         style={{
@@ -280,7 +280,7 @@ export const AiCell: React.FC<AiCellProps> = ({
         }}
       />
       {/* Cell Header */}
-      <div className="flex items-center justify-between mb-2 pl-6 pr-1 sm:pr-4">
+      <div className="cell-header flex items-center justify-between mb-2 pl-6 pr-1 sm:pr-4">
         <div className="flex items-center gap-2 sm:gap-3">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -290,7 +290,7 @@ export const AiCell: React.FC<AiCellProps> = ({
                 className="h-7 sm:h-6 px-2 gap-1.5 text-xs font-medium hover:bg-muted/50 bg-purple-50 text-purple-700 border border-purple-200"
               >
                 {getCellTypeIcon()}
-                <span className="hidden sm:inline">AI</span>
+                <span className="cell-type-label hidden sm:inline">AI</span>
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="start" className="w-40">
@@ -314,7 +314,7 @@ export const AiCell: React.FC<AiCellProps> = ({
           </DropdownMenu>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <div className="hidden sm:block">
+              <div className="provider-badge hidden sm:block">
                 {getProviderBadge()}
               </div>
             </DropdownMenuTrigger>
@@ -346,14 +346,14 @@ export const AiCell: React.FC<AiCellProps> = ({
         </div>
 
         {/* Cell Controls - visible on hover or always on mobile */}
-        <div className="flex items-center gap-0.5 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
+        <div className="cell-controls flex items-center gap-0.5 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
             {/* Mobile Play Button - AI cells */}
             <Button
               variant="ghost"
               size="sm"
               onClick={executeAiPrompt}
               disabled={cell.executionState === 'running' || cell.executionState === 'queued'}
-              className="block sm:hidden h-8 w-8 p-0 hover:bg-muted/80"
+              className="mobile-play-btn block sm:hidden h-8 w-8 p-0 hover:bg-muted/80"
               title="Generate AI response"
             >
               {cell.executionState === 'running' ? (
@@ -405,7 +405,7 @@ export const AiCell: React.FC<AiCellProps> = ({
             )}
 
             {/* Desktop-only controls */}
-            <div className="hidden sm:flex items-center gap-0.5">
+            <div className="desktop-controls hidden sm:flex items-center gap-0.5">
               {/* Separator */}
               <div className="w-px h-4 bg-border/50 mx-1" />
               <Button
@@ -442,7 +442,7 @@ export const AiCell: React.FC<AiCellProps> = ({
       {/* Cell Content with Desktop Play Button */}
       <div className="relative">
         {/* Desktop Play Button Breaking Through Left Border */}
-        <div className="hidden sm:block absolute -left-3 z-10" style={{ top: cell.sourceVisible ? '0.375rem' : '-1.5rem' }}>
+        <div className="desktop-play-btn hidden sm:block absolute -left-3 z-10" style={{ top: cell.sourceVisible ? '0.375rem' : '-1.5rem' }}>
           <Button
             variant="ghost"
             size="sm"
@@ -466,7 +466,7 @@ export const AiCell: React.FC<AiCellProps> = ({
 
         {/* Text Content Area - Chat-like on mobile */}
         {cell.sourceVisible && (
-          <div className={`transition-colors py-1 pl-4 pr-1 sm:pr-4 ${
+          <div className={`cell-content transition-colors py-1 pl-4 pr-1 sm:pr-4 ${
             autoFocus
               ? 'bg-white'
               : 'bg-white'
@@ -538,7 +538,7 @@ export const AiCell: React.FC<AiCellProps> = ({
 
       {/* Execution Summary - appears after input */}
       {(cell.executionCount || cell.executionState === 'running' || cell.executionState === 'queued') && (
-        <div className="mt-1 pl-6 pr-1 sm:pr-4">
+        <div className="cell-content mt-1 pl-6 pr-1 sm:pr-4">
           <div className="flex items-center justify-between text-xs text-muted-foreground pb-1">
             <span>
               {cell.executionState === 'running' ? (
@@ -581,7 +581,7 @@ export const AiCell: React.FC<AiCellProps> = ({
 
       {/* Output Area for AI Responses */}
       {outputs.length > 0 && cell.outputVisible && (
-        <div className="mt-1 pl-6 pr-1 sm:pr-4 bg-background overflow-hidden max-w-full">
+        <div className="cell-content mt-1 pl-6 pr-1 sm:pr-4 bg-background overflow-hidden max-w-full">
           {outputs
             .sort((a: OutputData, b: OutputData) => a.position - b.position)
             .map((output: OutputData, index: number) => (

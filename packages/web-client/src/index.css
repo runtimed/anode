@@ -175,19 +175,23 @@
   }
 }
 
-/* Mobile-specific improvements */
+/* Pointer-based responsive utilities */
 @layer utilities {
-  /* Improve touch targets on mobile */
-  @media (max-width: 640px) {
+  /* Touch device styles (regardless of screen size) */
+  @media (hover: none) and (pointer: coarse) {
     /* Make buttons more touch-friendly */
     button {
       min-height: 44px;
       min-width: 44px;
     }
 
-    /* Improve textarea touch experience */
-    textarea {
-      font-size: 16px; /* Prevents zoom on iOS */
+    /* Improve textarea touch experience - only apply large font on mobile Safari */
+    @supports (-webkit-touch-callout: none) {
+      @media (max-width: 768px) {
+        textarea {
+          font-size: 16px; /* Prevents zoom on iOS Safari */
+        }
+      }
     }
 
     /* Better scrolling on mobile */
@@ -203,6 +207,116 @@
     /* Better focus states for touch */
     input:focus, textarea:focus {
       transform: none; /* Prevent layout shift on focus */
+    }
+
+    /* Touch-specific overrides - force mobile layout regardless of screen size */
+    .cell-container {
+      margin-left: -0.75rem !important;
+      margin-right: -0.75rem !important;
+      padding-left: 0.75rem !important;
+      padding-right: 0.75rem !important;
+    }
+
+    .cell-border {
+      left: 0.75rem !important;
+    }
+
+    .cell-header {
+      padding-right: 0.25rem !important;
+    }
+
+    .cell-content {
+      padding-right: 0.25rem !important;
+    }
+
+    /* Mobile play button - always visible on touch */
+    .mobile-play-btn {
+      display: block !important;
+    }
+
+    /* Desktop play button - hide on touch */
+    .desktop-play-btn {
+      display: none !important;
+    }
+
+    /* Desktop-only controls - hide on touch */
+    .desktop-controls {
+      display: none !important;
+    }
+
+    /* Cell controls - always visible on touch */
+    .cell-controls {
+      opacity: 1 !important;
+    }
+
+    /* Cell type labels - hide on touch to save space */
+    .cell-type-label {
+      display: none !important;
+    }
+
+    /* Provider badges - hide on touch */
+    .provider-badge {
+      display: none !important;
+    }
+  }
+
+  /* Mouse/trackpad device styles */
+  @media (hover: hover) and (pointer: fine) {
+    /* Desktop-specific overrides - use normal responsive behavior */
+    .mobile-play-btn {
+      display: none !important;
+    }
+
+    .desktop-play-btn {
+      display: block !important;
+    }
+
+    .desktop-controls {
+      display: flex !important;
+    }
+
+    .cell-controls {
+      opacity: 0;
+      transition: opacity 0.2s;
+    }
+
+    .group:hover .cell-controls {
+      opacity: 1 !important;
+    }
+
+    .cell-type-label {
+      display: inline !important;
+    }
+
+    .provider-badge {
+      display: block !important;
+    }
+  }
+
+  /* Fallback for unknown pointer types - use screen size */
+  @media (max-width: 900px) and not ((hover: none) and (pointer: coarse)) and not ((hover: hover) and (pointer: fine)) {
+    /* Treat as touch device for unknown pointer types on smaller screens */
+    .cell-container {
+      margin-left: -0.75rem !important;
+      margin-right: -0.75rem !important;
+      padding-left: 0.75rem !important;
+      padding-right: 0.75rem !important;
+    }
+
+    .mobile-play-btn {
+      display: block !important;
+    }
+
+    .desktop-play-btn {
+      display: none !important;
+    }
+
+    .desktop-controls {
+      display: none !important;
+    }
+
+    .cell-controls {
+      opacity: 1 !important;
     }
   }
 
