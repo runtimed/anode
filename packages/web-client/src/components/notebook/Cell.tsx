@@ -482,6 +482,10 @@ export const Cell: React.FC<CellProps> = ({
                 }
                 className="min-h-[2rem] sm:min-h-[1.5rem] resize-none border-0 px-2 py-2 sm:py-1 focus-visible:ring-0 font-mono bg-white w-full placeholder:text-muted-foreground/60 shadow-none text-base sm:text-sm"
                 onFocus={handleFocus}
+                autoCapitalize="off"
+                autoCorrect="off"
+                autoComplete="off"
+                spellCheck={false}
               />
             </div>
           </div>
