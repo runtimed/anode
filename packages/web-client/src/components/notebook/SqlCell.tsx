@@ -292,76 +292,133 @@ export const SqlCell: React.FC<SqlCellProps> = ({
           {getExecutionStatus()}
         </div>
 
-        {/* Cell Controls - visible on hover */}
-        <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
-          {/* Visibility Toggles */}
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={toggleSourceVisibility}
-            className={`h-7 w-7 p-0 hover:bg-muted/80 ${cell.sourceVisible ? '' : 'text-muted-foreground/60'}`}
-            title={cell.sourceVisible ? 'Hide source' : 'Show source'}
-          >
-            {cell.sourceVisible ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
-          </Button>
-
-          {contextSelectionMode && (
+        {/* Cell Controls - visible on hover or always on mobile */}
+        <div className="flex items-center gap-0.5 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
+            {/* Mobile Play Button - SQL cells */}
             <Button
               variant="ghost"
               size="sm"
-              onClick={toggleAiContextVisibility}
-              className={`h-7 w-7 p-0 hover:bg-muted/80 ${cell.aiContextVisible ? 'text-purple-600' : 'text-gray-500'}`}
-              title={cell.aiContextVisible ? 'Hide from AI context' : 'Show in AI context'}
+              onClick={executeQuery}
+              disabled={cell.executionState === 'running' || cell.executionState === 'queued'}
+              className="block sm:hidden h-8 w-8 p-0 hover:bg-muted/80"
+              title="Execute SQL query"
             >
-              {cell.aiContextVisible ? <Eye className="h-3 w-3" /> : <EyeOff className="h-3 w-3" />}
+              {cell.executionState === 'running' ? (
+                <div className="animate-spin w-4 h-4 border border-current border-t-transparent rounded-full"></div>
+              ) : cell.executionState === 'queued' ? (
+                <div className="w-3 h-3 bg-amber-500 rounded-full"></div>
+              ) : (
+                <Play className="h-4 w-4" />
+              )}
             </Button>
-          )}
 
-          {/* Separator */}
-          <div className="w-px h-4 bg-border/50 mx-1" />
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={onMoveUp}
-            className="h-7 w-7 p-0 hover:bg-muted/80"
-            title="Move cell up"
-          >
-            <ArrowUp className="h-3 w-3" />
-          </Button>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={onMoveDown}
-            className="h-7 w-7 p-0 hover:bg-muted/80"
-            title="Move cell down"
-          >
-            <ArrowDown className="h-3 w-3" />
-          </Button>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={onAddCell}
-            className="h-7 w-7 p-0 hover:bg-muted/80"
-            title="Add cell below"
-          >
-            <Plus className="h-3 w-3" />
-          </Button>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={onDeleteCell}
-            className="h-7 w-7 p-0 text-muted-foreground hover:text-destructive hover:bg-destructive/10"
-            title="Delete cell"
-          >
-            <X className="h-3 w-3" />
-          </Button>
+            {/* Cell Type Dropdown - Mobile Priority */}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="block sm:hidden h-8 w-8 p-0 hover:bg-muted/80"
+                >
+                  <Database className="h-4 w-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="start" className="w-40">
+                <DropdownMenuItem onClick={() => changeCellType('code')} className="gap-2">
+                  <Code className="h-4 w-4" />
+                  Code
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => changeCellType('markdown')} className="gap-2">
+                  <FileText className="h-4 w-4" />
+                  Markdown
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => changeCellType('sql')} className="gap-2">
+                  <Database className="h-4 w-4" />
+                  SQL Query
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => changeCellType('ai')} className="gap-2">
+                  <Bot className="h-4 w-4" />
+                  AI Assistant
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+
+            <div className="flex-1" />
+
+            {/* Add Cell Button */}
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={onAddCell}
+              className="h-8 w-8 sm:h-7 sm:w-7 p-0 hover:bg-muted/80"
+              title="Add cell below"
+            >
+              <Plus className="h-4 w-4 sm:h-3 sm:w-3" />
+            </Button>
+
+            {/* Source Visibility Toggle */}
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={toggleSourceVisibility}
+              className={`h-8 w-8 sm:h-7 sm:w-7 p-0 hover:bg-muted/80 ${cell.sourceVisible ? '' : 'text-muted-foreground/60'}`}
+              title={cell.sourceVisible ? 'Hide source' : 'Show source'}
+            >
+              {cell.sourceVisible ? <ChevronUp className="h-4 w-4 sm:h-3 sm:w-3" /> : <ChevronDown className="h-4 w-4 sm:h-3 sm:w-3" />}
+            </Button>
+
+            {/* Context Selection Mode Button */}
+            {contextSelectionMode && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={toggleAiContextVisibility}
+                className={`h-8 w-8 sm:h-7 sm:w-7 p-0 hover:bg-muted/80 ${cell.aiContextVisible ? 'text-purple-600' : 'text-gray-500'}`}
+                title={cell.aiContextVisible ? 'Hide from AI context' : 'Show in AI context'}
+              >
+                {cell.aiContextVisible ? <Eye className="h-4 w-4 sm:h-3 sm:w-3" /> : <EyeOff className="h-4 w-4 sm:h-3 sm:w-3" />}
+              </Button>
+            )}
+
+            {/* Desktop-only controls */}
+            <div className="hidden sm:flex items-center gap-0.5">
+              {/* Separator */}
+              <div className="w-px h-4 bg-border/50 mx-1" />
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={onMoveUp}
+                className="h-7 w-7 p-0 hover:bg-muted/80"
+                title="Move cell up"
+              >
+                <ArrowUp className="h-3 w-3" />
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={onMoveDown}
+                className="h-7 w-7 p-0 hover:bg-muted/80"
+                title="Move cell down"
+              >
+                <ArrowDown className="h-3 w-3" />
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={onDeleteCell}
+                className="h-7 w-7 p-0 text-muted-foreground hover:text-destructive hover:bg-destructive/10"
+                title="Delete cell"
+              >
+                <X className="h-3 w-3" />
+              </Button>
+            </div>
         </div>
       </div>
 
-      {/* Cell Content with Left Gutter Play Button */}
+      {/* Cell Content with Desktop Play Button */}
       <div className="relative">
-        {/* Play Button Breaking Through Left Border */}
-        <div className="absolute -left-3 z-10" style={{ top: cell.sourceVisible ? '0.375rem' : '-1.5rem' }}>
+        {/* Desktop Play Button Breaking Through Left Border */}
+        <div className="hidden sm:block absolute -left-3 z-10" style={{ top: cell.sourceVisible ? '0.375rem' : '-1.5rem' }}>
           <Button
             variant="ghost"
             size="sm"
