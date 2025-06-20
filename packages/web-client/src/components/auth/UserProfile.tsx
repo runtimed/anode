@@ -25,7 +25,7 @@ export const UserProfile: React.FC<UserProfileProps> = ({
   if (!googleAuthManager.isEnabled() || !user) {
     return (
       <div className={`${className}`}>
-        <div className="flex items-center space-x-2 p-2">
+        <div className="flex items-center space-x-2 p-1">
           <div className="w-8 h-8 bg-gray-300 rounded-full flex items-center justify-center">
             <span className="text-sm font-medium text-gray-700">
               A
@@ -48,7 +48,7 @@ export const UserProfile: React.FC<UserProfileProps> = ({
     <div className={`relative ${className}`}>
       <button
         onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-        className="flex items-center space-x-2 p-2 rounded-md hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+        className="flex items-center space-x-2 p-1 rounded-md hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
         disabled={isLoading}
       >
         {user.picture ? (

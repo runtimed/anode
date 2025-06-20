@@ -228,7 +228,7 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = () => {
   return (
     <div className="min-h-screen bg-background">
       {/* Top Navigation Bar */}
-      <nav className="border-b bg-card px-3 sm:px-4 py-2 sm:py-3">
+      <nav className="border-b bg-card px-3 sm:px-4 py-1 sm:py-2">
         <div className="w-full sm:max-w-6xl sm:mx-auto flex items-center justify-between">
           <div className="flex items-center gap-2 sm:gap-4">
             <img
