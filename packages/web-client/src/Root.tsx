@@ -144,10 +144,7 @@ const NotebookApp: React.FC = () => {
     <div className="min-h-screen bg-background">
       {/* Header with user profile */}
       <div className="border-b border-gray-200 bg-white">
-        <div className="flex justify-between items-center px-4 py-2">
-          <h1 className="text-lg font-semibold text-gray-900">
-            Anode Collaborative Notebooks
-          </h1>
+        <div className="flex justify-end items-center px-4 py-2">
           <UserProfile />
         </div>
       </div>
