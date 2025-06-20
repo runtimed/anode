@@ -7,7 +7,7 @@
     "build": "tsc && vite build",
     "build:prod": "NODE_ENV=production tsc && vite build",
     "build:dev": "NODE_ENV=development tsc && vite build",
-    "deploy:production": "pnpm build:prod && wrangler pages deploy dist --project-name anode --commit-dirty=true",
+    "deploy:production": "test -f .env.production || (echo 'Error: .env.production file is required for production deployment' && exit 1) && pnpm build:prod && wrangler pages deploy dist --project-name anode --commit-dirty=true",
     "preview": "vite preview",
     "clean": "rm -rf dist",
     "type-check": "tsc --noEmit",
