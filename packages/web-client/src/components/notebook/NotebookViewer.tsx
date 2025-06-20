@@ -226,35 +226,26 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Navigation Header */}
+      {/* Top Navigation Bar */}
       <nav className="border-b bg-card px-3 sm:px-4 py-2 sm:py-3">
         <div className="w-full sm:max-w-6xl sm:mx-auto flex items-center justify-between">
           <div className="flex items-center gap-2 sm:gap-4">
-            <div className="flex items-center gap-2 sm:gap-3">
-              <img
-                src="/logo.svg"
-                alt="Anode"
-                className="h-6 sm:h-8 w-auto"
-              />
-              <h1 className="text-lg sm:text-xl font-bold text-primary">
-                Anode
-              </h1>
-            </div>
+            <img
+              src="/logo.svg"
+              alt="Anode"
+              className="h-6 sm:h-8 w-auto"
+            />
             <a
               href={window.location.origin}
-              className="hidden sm:inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-input bg-background hover:bg-accent hover:text-accent-foreground h-9 px-3"
+              className="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-input bg-background hover:bg-accent hover:text-accent-foreground h-8 sm:h-9 px-2 sm:px-3"
             >
-              + New Notebook
+              <span className="text-xs sm:text-sm">+ New Notebook</span>
             </a>
-          </div>
-
-          <div className="text-xs text-muted-foreground hidden sm:block">
-            {getCurrentNotebookId()}
           </div>
         </div>
       </nav>
 
-      {/* Notebook Controls Bar */}
+      {/* Notebook Header Bar */}
       <div className="border-b bg-muted/20">
         <div className="w-full sm:max-w-6xl sm:mx-auto px-3 sm:px-4 py-2 sm:py-3">
           <div className="flex items-center justify-between gap-2">
@@ -303,13 +294,6 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = () => {
                     'text-red-500'
                   }`}
                 />
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                className="hidden sm:flex items-center gap-2 pointer-events-none"
-              >
-                <span>{sortedCells.length} cells</span>
               </Button>
               <Button
                 variant={contextSelectionMode ? "default" : "outline"}
@@ -470,11 +454,11 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = () => {
 
       <div className="w-full sm:max-w-4xl sm:mx-auto p-3 sm:p-4">
 
-        {/* Keyboard Shortcuts Help - More subtle */}
+        {/* Keyboard Shortcuts Help - Desktop only */}
         {sortedCells.length > 0 && (
-          <div className="mb-4 sm:mb-6">
-            <div className="px-3 sm:px-4 py-2 bg-muted/30 rounded-md">
-              <div className="flex items-center justify-center gap-3 sm:gap-6 text-xs text-muted-foreground">
+          <div className="mb-6 hidden sm:block">
+            <div className="px-4 py-2 bg-muted/30 rounded-md">
+              <div className="flex items-center justify-center gap-6 text-xs text-muted-foreground">
                 <div className="flex items-center gap-1">
                   <kbd className="px-1.5 py-0.5 bg-background border rounded text-xs font-mono">↑↓</kbd>
                   <span>Navigate</span>
