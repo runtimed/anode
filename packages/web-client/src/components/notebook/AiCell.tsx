@@ -314,9 +314,7 @@ export const AiCell: React.FC<AiCellProps> = ({
           </DropdownMenu>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <div className="hidden sm:block">
-                {getProviderBadge()}
-              </div>
+              {getProviderBadge()}
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
               <DropdownMenuItem onClick={() => changeProvider('openai', 'gpt-4o')}>
@@ -487,9 +485,6 @@ export const AiCell: React.FC<AiCellProps> = ({
                 <div className="flex justify-between items-center mt-2 pt-2 border-t border-purple-200/50">
                   <div className="text-xs text-purple-600/60">
                     {provider.toUpperCase()} • {model}
-                  </div>
-                  <div className="text-xs text-purple-600/60">
-                    Tap ⚡ to send
                   </div>
                 </div>
               </div>
