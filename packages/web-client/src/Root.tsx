@@ -159,24 +159,56 @@ const NotebookApp: React.FC = () => {
   )
 }
 
-const storeId = getStoreId()
+// LiveStore setup - moved inside AuthGuard to ensure auth happens first
+const LiveStoreApp: React.FC = () => {
+  const storeId = getStoreId()
 
-// Check for reset parameter to handle schema evolution issues
-const resetPersistence = new URLSearchParams(window.location.search).get('reset') !== null
+  // Check for reset parameter to handle schema evolution issues
+  const resetPersistence = new URLSearchParams(window.location.search).get('reset') !== null
 
-// Clean up URL if reset was requested
-if (resetPersistence) {
-  const searchParams = new URLSearchParams(window.location.search)
-  searchParams.delete('reset')
-  window.history.replaceState(null, '', `${window.location.pathname}?${searchParams.toString()}`)
+  // Clean up URL if reset was requested
+  useEffect(() => {
+    if (resetPersistence) {
+      const searchParams = new URLSearchParams(window.location.search)
+      searchParams.delete('reset')
+      window.history.replaceState(null, '', `${window.location.pathname}?${searchParams.toString()}`)
+    }
+  }, [resetPersistence])
+
+  const adapter = makePersistedAdapter({
+    storage: { type: 'opfs' },
+    worker: LiveStoreWorker,
+    sharedWorker: LiveStoreSharedWorker,
+    resetPersistence,
+  })
+
+  // Get current auth token (this is called after auth is validated)
+  const currentAuthToken = getCurrentAuthToken()
+
+  return (
+    <LiveStoreProvider
+      schema={schema}
+      adapter={adapter}
+      renderLoading={(_) => (
+        <div className="flex items-center justify-center min-h-screen bg-background">
+          <div className="text-center">
+            <div className="text-lg font-semibold text-foreground mb-2">
+              Loading Anode
+            </div>
+            <div className="text-sm text-muted-foreground">
+              Stage: {_.stage}
+            </div>
+          </div>
+        </div>
+      )}
+      batchUpdates={batchUpdates}
+      storeId={storeId}
+      syncPayload={{ authToken: currentAuthToken }}
+    >
+      <NotebookApp />
+    </LiveStoreProvider>
+  )
 }
-
-const adapter = makePersistedAdapter({
-  storage: { type: 'opfs' },
-  worker: LiveStoreWorker,
-  sharedWorker: LiveStoreSharedWorker,
-  resetPersistence,
-})
 
 // Set up authentication error handling
 if (typeof Worker !== 'undefined') {
@@ -218,32 +250,9 @@ if (typeof Worker !== 'undefined') {
 }
 
 export const App: React.FC = () => {
-  const [initialAuthToken] = useState(getCurrentAuthToken())
-
   return (
-    <LiveStoreProvider
-      schema={schema}
-      adapter={adapter}
-      renderLoading={(_) => (
-        <div className="flex items-center justify-center min-h-screen bg-background">
-          <div className="text-center">
-            <div className="text-lg font-semibold text-foreground mb-2">
-              Loading Anode
-            </div>
-            <div className="text-sm text-muted-foreground">
-              Stage: {_.stage}
-            </div>
-          </div>
-        </div>
-      )}
-      batchUpdates={batchUpdates}
-      storeId={storeId}
-      syncPayload={{ authToken: initialAuthToken }}
-    >
-
-      <AuthGuard>
-        <NotebookApp />
-      </AuthGuard>
-    </LiveStoreProvider>
+    <AuthGuard>
+      <LiveStoreApp />
+    </AuthGuard>
   )
 }
