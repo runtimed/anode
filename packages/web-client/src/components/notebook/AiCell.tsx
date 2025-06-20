@@ -347,6 +347,23 @@ export const AiCell: React.FC<AiCellProps> = ({
 
         {/* Cell Controls - visible on hover or always on mobile */}
         <div className="flex items-center gap-0.5 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
+            {/* Mobile Play Button - AI cells */}
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={executeAiPrompt}
+              disabled={cell.executionState === 'running' || cell.executionState === 'queued'}
+              className="block sm:hidden h-8 w-8 p-0 hover:bg-muted/80"
+              title="Generate AI response"
+            >
+              {cell.executionState === 'running' ? (
+                <div className="animate-spin w-4 h-4 border border-purple-600 border-t-transparent rounded-full"></div>
+              ) : cell.executionState === 'queued' ? (
+                <div className="w-3 h-3 bg-purple-500 rounded-full"></div>
+              ) : (
+                <Play className="h-4 w-4" />
+              )}
+            </Button>
           {/* Visibility Toggles */}
           <Button
             variant="ghost"
@@ -411,50 +428,27 @@ export const AiCell: React.FC<AiCellProps> = ({
         </div>
       </div>
 
-      {/* Cell Content with Left Gutter Play Button */}
+      {/* Cell Content with Desktop Play Button */}
       <div className="relative">
-        {/* Mobile Floating Action Button - appears at bottom right on mobile */}
-        <div className="block sm:hidden absolute right-3 bottom-3 z-20">
-          <Button
-            onClick={executeAiPrompt}
-            disabled={cell.executionState === 'running' || cell.executionState === 'queued' || !localSource?.trim()}
-            className={`h-12 w-12 rounded-full shadow-lg bg-purple-600 hover:bg-purple-700 text-white border-0 ${
-              cell.executionState === 'running' || cell.executionState === 'queued'
-                ? 'opacity-50'
-                : localSource?.trim()
-                  ? 'opacity-100'
-                  : 'opacity-30'
-            }`}
-          >
-            {cell.executionState === 'running' ? (
-              <div className="animate-spin w-5 h-5 border-2 border-white border-t-transparent rounded-full"></div>
-            ) : cell.executionState === 'queued' ? (
-              <div className="w-3 h-3 bg-white rounded-full"></div>
-            ) : (
-              <Play className="h-5 w-5" />
-            )}
-          </Button>
-        </div>
-
         {/* Desktop Play Button Breaking Through Left Border */}
-        <div className="hidden sm:block absolute left-0 sm:-left-3 z-10" style={{ top: cell.sourceVisible ? '0.375rem' : '-1.5rem' }}>
+        <div className="hidden sm:block absolute -left-3 z-10" style={{ top: cell.sourceVisible ? '0.375rem' : '-1.5rem' }}>
           <Button
             variant="ghost"
             size="sm"
             onClick={executeAiPrompt}
             disabled={cell.executionState === 'running' || cell.executionState === 'queued'}
-            className={`h-7 w-7 sm:h-6 sm:w-6 p-0 rounded-sm bg-white border-0 hover:bg-white transition-colors ${
+            className={`h-6 w-6 p-0 rounded-sm bg-white border-0 hover:bg-white transition-colors ${
               autoFocus
                 ? 'text-purple-600'
                 : 'text-muted-foreground/40 hover:text-purple-600 group-hover:text-purple-600'
             }`}
           >
             {cell.executionState === 'running' ? (
-              <div className="animate-spin w-4 h-4 sm:w-3 sm:h-3 border border-purple-600 border-t-transparent rounded-full bg-white"></div>
+              <div className="animate-spin w-3 h-3 border border-purple-600 border-t-transparent rounded-full bg-white"></div>
             ) : cell.executionState === 'queued' ? (
-              <div className="w-3 h-3 sm:w-2 sm:h-2 bg-purple-500 rounded-full"></div>
+              <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
             ) : (
-              <Play className="h-4 w-4 sm:h-3 sm:w-3" />
+              <Play className="h-3 w-3" />
             )}
           </Button>
         </div>

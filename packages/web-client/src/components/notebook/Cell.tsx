@@ -338,6 +338,26 @@ export const Cell: React.FC<CellProps> = ({
 
         {/* Cell Controls - visible on hover or always on mobile */}
         <div className="flex items-center gap-0.5 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
+            {/* Mobile Play Button - Code cells only */}
+            {cell.cellType === 'code' && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={executeCell}
+                disabled={cell.executionState === 'running' || cell.executionState === 'queued'}
+                className="block sm:hidden h-8 w-8 p-0 hover:bg-muted/80"
+                title="Run cell"
+              >
+                {cell.executionState === 'running' ? (
+                  <div className="animate-spin w-4 h-4 border border-current border-t-transparent rounded-full"></div>
+                ) : cell.executionState === 'queued' ? (
+                  <div className="w-3 h-3 bg-amber-500 rounded-full"></div>
+                ) : (
+                  <Play className="h-4 w-4" />
+                )}
+              </Button>
+            )}
+
             {/* Visibility Toggles */}
             <Button
               variant="ghost"
@@ -402,28 +422,28 @@ export const Cell: React.FC<CellProps> = ({
         </div>
       </div>
 
-      {/* Cell Content with Left Gutter Play Button */}
+      {/* Cell Content with Left Gutter Play Button - Desktop Only */}
       <div className="relative">
-        {/* Play Button Breaking Through Left Border */}
+        {/* Play Button Breaking Through Left Border - Desktop Only */}
         {cell.cellType === 'code' && (
-          <div className="absolute left-0 sm:-left-3 z-10" style={{ top: cell.sourceVisible ? '0.375rem' : '-1.5rem' }}>
+          <div className="hidden sm:block absolute -left-3 z-10" style={{ top: cell.sourceVisible ? '0.375rem' : '-1.5rem' }}>
             <Button
               variant="ghost"
               size="sm"
               onClick={executeCell}
               disabled={cell.executionState === 'running' || cell.executionState === 'queued'}
-              className={`h-7 w-7 sm:h-6 sm:w-6 p-0 rounded-sm bg-white border-0 hover:bg-white transition-colors ${
+              className={`h-6 w-6 p-0 rounded-sm bg-white border-0 hover:bg-white transition-colors ${
                 autoFocus
                   ? 'text-foreground'
                   : 'text-muted-foreground/40 hover:text-foreground group-hover:text-foreground'
               }`}
             >
               {cell.executionState === 'running' ? (
-                <div className="animate-spin w-4 h-4 sm:w-3 sm:h-3 border border-current border-t-transparent rounded-full bg-white"></div>
+                <div className="animate-spin w-3 h-3 border border-current border-t-transparent rounded-full bg-white"></div>
               ) : cell.executionState === 'queued' ? (
-                <div className="w-3 h-3 sm:w-2 sm:h-2 bg-amber-500 rounded-full"></div>
+                <div className="w-2 h-2 bg-amber-500 rounded-full"></div>
               ) : (
-                <Play className="h-4 w-4 sm:h-3 sm:w-3" />
+                <Play className="h-3 w-3" />
               )}
             </Button>
           </div>
