@@ -91,6 +91,10 @@ typings/
 .env.production
 .env.development
 
+# Wrangler development secrets
+.dev.vars
+.dev.vars.*
+
 # parcel-bundler cache (https://parceljs.org/)
 .cache
 .parcel-cache
