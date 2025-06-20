@@ -109,7 +109,7 @@ export const App: React.FC = () => (
       <div className="flex items-center justify-center min-h-screen bg-background">
         <div className="text-center">
           <div className="text-lg font-semibold text-foreground mb-2">
-            Loading LiveStore Notebooks
+            Loading Anode
           </div>
           <div className="text-sm text-muted-foreground">
             Stage: {_.stage}
