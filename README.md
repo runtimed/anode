@@ -193,6 +193,23 @@ For comprehensive documentation, see the [docs](./docs/) directory:
 - **[UI Design Guidelines](./docs/ui-design.md)** - Interface design principles
 - **[Testing Strategy](./docs/TESTING.md)** - Current testing approach and gaps
 
+## Deployment
+
+Deploy to Cloudflare Pages and Workers with a single command:
+
+```bash
+pnpm deploy:production
+```
+
+This deploys both the web client (Pages) and sync backend (Workers) concurrently. Individual services can be deployed with:
+
+```bash
+pnpm deploy:web        # Deploy web client to Cloudflare Pages
+pnpm deploy:docworker  # Deploy sync backend to Cloudflare Workers
+```
+
+See [DEPLOYMENT.md](./DEPLOYMENT.md) for complete deployment instructions, environment configuration, and CI/CD setup.
+
 ## Contributing
 
 Anode is an open source project focused on developer experience. Key areas for contribution:

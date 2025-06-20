@@ -15,15 +15,53 @@ This separation is necessary because Cloudflare Workers don't support WebSocket 
 - D1 database created for production
 - Wrangler CLI installed and authenticated
 
+## Quick Start
+
+Deploy both services with one command:
+
+```bash
+pnpm deploy:production
+```
+
+This will:
+1. Build the web client for production
+2. Deploy the sync backend (Worker) and web client (Pages) concurrently
+3. Show colored output for easy monitoring
+
 ## Deployment Steps
 
-### 1. Deploy the Sync Backend (Worker)
+### Option 1: Deploy Both Services (Recommended)
+
+Deploy both the sync backend and web client with a single command:
+
+```bash
+# Deploy both services concurrently
+pnpm deploy:production
+```
+
+This runs both deployments in parallel with colored output for easy monitoring.
+
+### Option 2: Deploy Services Individually
+
+**Deploy the Sync Backend (Worker):**
+```bash
+pnpm deploy:docworker
+```
+
+**Deploy the Web Client (Pages):**
+```bash
+pnpm deploy:web
+```
+
+### Option 3: Manual Deployment
+
+**1. Deploy the Sync Backend (Worker)**
 
 The sync backend runs on Cloudflare Workers and handles LiveStore synchronization.
 
 ```bash
 cd packages/docworker
-pnpm wrangler deploy --env production
+pnpm deploy:production
 ```
 
 This deploys to: `https://anode-docworker.rgbkrk.workers.dev`
@@ -33,18 +71,13 @@ This deploys to: `https://anode-docworker.rgbkrk.workers.dev`
 echo "your-secure-token" | pnpm wrangler secret put AUTH_TOKEN --env production
 ```
 
-### 2. Deploy the Web Client (Pages)
+**2. Deploy the Web Client (Pages)**
 
 The web client is served from Cloudflare Pages with static assets.
 
 ```bash
 cd packages/web-client
-
-# Build for production
-pnpm build
-
-# Deploy to Pages (uses wrangler.toml configuration)
-pnpm wrangler pages deploy dist --project-name anode --commit-dirty=true
+pnpm deploy:production
 ```
 
 ## Environment Variables
@@ -98,6 +131,33 @@ on:
     branches: [main]
 
 jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v2
+        with:
+          version: 8
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 18
+          cache: 'pnpm'
+      - run: pnpm install
+      - run: pnpm deploy:production
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+```
+
+Or for sequential deployment:
+
+```yaml
+name: Deploy Anode
+
+on:
+  push:
+    branches: [main]
+
+jobs:
   deploy-worker:
     runs-on: ubuntu-latest
     steps:
@@ -110,7 +170,7 @@ jobs:
           node-version: 18
           cache: 'pnpm'
       - run: pnpm install
-      - run: cd packages/docworker && pnpm wrangler deploy --env production
+      - run: pnpm deploy:docworker
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
 
@@ -127,8 +187,7 @@ jobs:
           node-version: 18
           cache: 'pnpm'
       - run: pnpm install
-      - run: cd packages/web-client && pnpm build
-      - run: cd packages/web-client && pnpm wrangler pages deploy dist --project-name anode
+      - run: pnpm deploy:web
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
 ```
@@ -140,7 +199,7 @@ Alternatively, you can connect the repository directly to Cloudflare Pages:
 1. Go to Cloudflare Pages dashboard
 2. Connect to Git repository
 3. Set build settings:
-   - **Build command**: `cd packages/web-client && pnpm build`
+   - **Build command**: `cd packages/web-client && pnpm build:prod`
    - **Build output directory**: `packages/web-client/dist`
    - **Root directory**: Leave empty
 4. Environment variables are configured in `wrangler.toml`
