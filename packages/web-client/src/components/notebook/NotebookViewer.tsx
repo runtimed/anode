@@ -7,7 +7,7 @@ import { formatDistanceToNow } from 'date-fns'
 
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { Copy, Terminal, Circle, Plus, FileText, Database, Bot, Code, Filter, X } from 'lucide-react'
+import { Copy, Terminal, Circle, Plus, FileText, Database, Bot, Code, Filter, X, Bug, BugOff } from 'lucide-react'
 import { getCurrentNotebookId } from '../../util/store-id.js'
 import { UserProfile } from '../auth/UserProfile.js'
 
@@ -15,9 +15,11 @@ import { UserProfile } from '../auth/UserProfile.js'
 
 interface NotebookViewerProps {
   notebookId: string
+  debugMode?: boolean
+  onDebugToggle?: (enabled: boolean) => void
 }
 
-export const NotebookViewer: React.FC<NotebookViewerProps> = () => {
+export const NotebookViewer: React.FC<NotebookViewerProps> = ({ debugMode = false, onDebugToggle }) => {
   const { store } = useStore()
   const cells = store.useQuery(queryDb(tables.cells.select().orderBy('position', 'asc'))) as CellData[]
   const notebooks = store.useQuery(queryDb(tables.notebook.select().limit(1))) as any[]
@@ -29,6 +31,9 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = () => {
   const [showKernelHelper, setShowKernelHelper] = React.useState(false)
   const [focusedCellId, setFocusedCellId] = React.useState<string | null>(null)
   const [contextSelectionMode, setContextSelectionMode] = React.useState(false)
+
+  // Debug toggle - only show in development
+  const isDevelopment = import.meta.env.DEV
 
   const currentNotebookId = getCurrentNotebookId()
   const kernelCommand = `NOTEBOOK_ID=${currentNotebookId} pnpm dev:runtime`
@@ -244,7 +249,22 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = () => {
             </a>
           </div>
 
-          <UserProfile />
+          <div className="flex items-center gap-2">
+            {isDevelopment && onDebugToggle && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => onDebugToggle(!debugMode)}
+                className={`h-6 w-6 p-0 transition-opacity ${
+                  debugMode ? 'opacity-100' : 'opacity-30 hover:opacity-60'
+                }`}
+                title={debugMode ? 'Hide debug info' : 'Show debug info'}
+              >
+                {debugMode ? <Bug className="h-3 w-3" /> : <BugOff className="h-3 w-3" />}
+              </Button>
+            )}
+            <UserProfile />
+          </div>
         </div>
       </nav>
 

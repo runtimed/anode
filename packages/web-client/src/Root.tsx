@@ -22,6 +22,7 @@ const NotebookApp: React.FC = () => {
   const currentNotebookId = getCurrentNotebookId()
   const { store } = useStore()
   const [isInitializing, setIsInitializing] = useState(false)
+  const [debugMode, setDebugMode] = useState(false)
   // Note: Auth token updates are handled via error detection and page reload
   // rather than dynamic sync payload updates, as LiveStore doesn't support
   // runtime sync payload changes
@@ -142,9 +143,17 @@ const NotebookApp: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-background">
+      {/* Debug FPS Meter - only in development */}
+      {debugMode && import.meta.env.DEV && (
+        <div style={{ bottom: 0, right: 0, position: 'fixed', background: '#333', zIndex: 50 }}>
+          <FPSMeter height={40} />
+        </div>
+      )}
       {/* Main Content */}
       <NotebookViewer
         notebookId={currentNotebookId}
+        debugMode={debugMode}
+        onDebugToggle={setDebugMode}
       />
     </div>
   )
@@ -231,9 +240,7 @@ export const App: React.FC = () => {
       storeId={storeId}
       syncPayload={{ authToken: initialAuthToken }}
     >
-      <div style={{ bottom: 0, right: 0, position: 'fixed', background: '#333', zIndex: 50 }}>
-        <FPSMeter height={40} />
-      </div>
+
       <AuthGuard>
         <NotebookApp />
       </AuthGuard>
