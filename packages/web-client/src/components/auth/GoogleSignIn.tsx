@@ -4,10 +4,14 @@ import { googleAuthManager } from '../../auth/google-auth.js'
 
 interface GoogleSignInProps {
   onSignIn?: () => void
+  onSuccess?: () => void
+  onError?: (error: string) => void
   className?: string
 }
 
 export const GoogleSignIn: React.FC<GoogleSignInProps> = ({
+  onSuccess,
+  onError,
   className = ''
 }) => {
   const { isLoading, error } = useGoogleAuth()
@@ -19,15 +23,38 @@ export const GoogleSignIn: React.FC<GoogleSignInProps> = ({
       if (buttonRef.current && googleAuthManager.isEnabled()) {
         try {
           await googleAuthManager.initialize()
+
+          // Set up token change listener to detect successful sign-in
+          const unsubscribe = googleAuthManager.addTokenChangeListener((token) => {
+            if (token && onSuccess) {
+              onSuccess()
+            }
+          })
+
           googleAuthManager.renderSignInButton(buttonRef.current)
+
+          return unsubscribe
         } catch (error) {
           console.error('Failed to initialize Google Sign-In button:', error)
+          if (onError) {
+            onError(error instanceof Error ? error.message : 'Failed to initialize Google Sign-In')
+          }
         }
       }
     }
 
-    initializeButton()
-  }, [])
+    let cleanup: (() => void) | undefined
+
+    initializeButton().then((unsubscribe) => {
+      cleanup = unsubscribe
+    })
+
+    return () => {
+      if (cleanup) {
+        cleanup()
+      }
+    }
+  }, [onSuccess, onError])
 
 
 
@@ -53,7 +80,9 @@ export const GoogleSignIn: React.FC<GoogleSignInProps> = ({
       )}
 
       {error && (
-        <p className="text-sm text-red-600">{error}</p>
+        <p className="text-sm text-red-600" onClick={() => onError && onError(error)}>
+          {error}
+        </p>
       )}
     </div>
   )
