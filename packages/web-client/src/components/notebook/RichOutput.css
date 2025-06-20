@@ -62,6 +62,53 @@
   max-width: 100%;
 }
 
+/* Image responsiveness and zoom styles */
+.rich-output img {
+  max-width: 100% !important;
+  height: auto !important;
+  display: block;
+}
+
+/* Constrain large images on mobile */
+@media (max-width: 640px) {
+  .rich-output img {
+    max-height: 300px !important;
+    object-fit: contain;
+  }
+
+  .rich-output svg {
+    max-width: 100% !important;
+    max-height: 300px !important;
+  }
+}
+
+/* SVG responsiveness */
+.rich-output svg {
+  max-width: 100%;
+  height: auto;
+}
+
+/* Zoom modal styles */
+.zoom-modal {
+  backdrop-filter: blur(4px);
+}
+
+.zoom-modal img {
+  max-width: 95vw;
+  max-height: 95vh;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+}
+
+/* Hover effects for zoomable images */
+.zoomable-image {
+  transition: all 0.2s ease;
+}
+
+.zoomable-image:hover {
+  transform: scale(1.02);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
 /* Style numeric columns to align right by default */
 .dataframe-container table.dataframe td:last-child,
 .dataframe-container table.dataframe td[style*="text-align: right"] {

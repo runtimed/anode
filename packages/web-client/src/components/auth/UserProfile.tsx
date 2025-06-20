@@ -21,16 +21,34 @@ export const UserProfile: React.FC<UserProfileProps> = ({
     }
   }
 
-  // Don't render if Google Auth is not enabled or no user
+  // Show Anonymous if Google Auth is not enabled or no user
   if (!googleAuthManager.isEnabled() || !user) {
-    return null
+    return (
+      <div className={`${className}`}>
+        <div className="flex items-center space-x-2 p-1">
+          <div className="w-8 h-8 bg-gray-300 rounded-full flex items-center justify-center">
+            <span className="text-sm font-medium text-gray-700">
+              A
+            </span>
+          </div>
+          <div className="hidden sm:block text-left">
+            <div className="text-sm font-medium text-gray-900">
+              Anonymous
+            </div>
+            <div className="text-xs text-gray-500">
+              Local Development
+            </div>
+          </div>
+        </div>
+      </div>
+    )
   }
 
   return (
     <div className={`relative ${className}`}>
       <button
         onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-        className="flex items-center space-x-2 p-2 rounded-md hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+        className="flex items-center space-x-2 p-1 rounded-md hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
         disabled={isLoading}
       >
         {user.picture ? (

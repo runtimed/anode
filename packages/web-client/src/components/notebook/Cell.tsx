@@ -282,7 +282,7 @@ export const Cell: React.FC<CellProps> = ({
   }
 
   return (
-    <div className={`mb-2 relative group transition-all duration-200 pt-2 ${
+    <div className={`mb-2 sm:mb-3 relative group transition-all duration-200 pt-2 -mx-3 sm:mx-0 px-3 sm:px-0 ${
       autoFocus && !contextSelectionMode ? 'bg-primary/5' : 'hover:bg-muted/10'
     } ${contextSelectionMode && !cell.aiContextVisible ? 'opacity-60' : ''} ${
       contextSelectionMode ? (cell.aiContextVisible ? 'ring-2 ring-purple-300 bg-purple-50/30' : 'ring-2 ring-gray-300 bg-gray-50/30') : ''
@@ -291,7 +291,7 @@ export const Cell: React.FC<CellProps> = ({
     }}>
       {/* Custom left border with controlled height */}
       <div
-        className={`absolute left-0 top-0 w-0.5 transition-all duration-200 ${
+        className={`absolute left-3 sm:left-0 top-0 w-0.5 transition-all duration-200 ${
           autoFocus && !contextSelectionMode ? 'bg-primary/60' : 'bg-border/30'
         }`}
         style={{
@@ -301,17 +301,17 @@ export const Cell: React.FC<CellProps> = ({
         }}
       />
       {/* Cell Header */}
-      <div className="flex items-center justify-between mb-2 pl-6 pr-4">
+      <div className="flex items-center justify-between mb-2 pl-6 pr-1 sm:pr-4">
         <div className="flex items-center gap-3">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button
                 variant="ghost"
                 size="sm"
-                className="h-6 px-2 gap-1.5 text-xs font-medium hover:bg-muted/50"
+                className="h-7 sm:h-6 px-2 gap-1.5 text-xs font-medium hover:bg-muted/50"
               >
                 {getCellTypeIcon()}
-                <span className="capitalize">{cell.cellType}</span>
+                <span className="capitalize hidden sm:inline">{cell.cellType}</span>
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="start" className="w-40">
@@ -336,77 +336,107 @@ export const Cell: React.FC<CellProps> = ({
           {getExecutionStatus()}
         </div>
 
-        {/* Cell Controls - visible on hover */}
-        <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
-            {/* Visibility Toggles */}
+        {/* Cell Controls - visible on hover or always on mobile */}
+        <div className="flex items-center gap-0.5 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
+            {/* Mobile Play Button - Code cells only */}
+            {cell.cellType === 'code' && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={executeCell}
+                disabled={cell.executionState === 'running' || cell.executionState === 'queued'}
+                className="block sm:hidden h-8 w-8 p-0 hover:bg-muted/80"
+                title="Run cell"
+              >
+                {cell.executionState === 'running' ? (
+                  <div className="animate-spin w-4 h-4 border border-current border-t-transparent rounded-full"></div>
+                ) : cell.executionState === 'queued' ? (
+                  <div className="w-3 h-3 bg-amber-500 rounded-full"></div>
+                ) : (
+                  <Play className="h-4 w-4" />
+                )}
+              </Button>
+            )}
+
+
+
+            <div className="flex-1" />
+
+            {/* Add Cell Button */}
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={onAddCell}
+              className="h-8 w-8 sm:h-7 sm:w-7 p-0 hover:bg-muted/80"
+              title="Add cell below"
+            >
+              <Plus className="h-4 w-4 sm:h-3 sm:w-3" />
+            </Button>
+
+            {/* Source Visibility Toggle */}
             <Button
               variant="ghost"
               size="sm"
               onClick={toggleSourceVisibility}
-              className={`h-7 w-7 p-0 hover:bg-muted/80 ${cell.sourceVisible ? '' : 'text-muted-foreground/60'}`}
+              className={`h-8 w-8 sm:h-7 sm:w-7 p-0 hover:bg-muted/80 ${cell.sourceVisible ? '' : 'text-muted-foreground/60'}`}
               title={cell.sourceVisible ? 'Hide source' : 'Show source'}
             >
-              {cell.sourceVisible ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
+              {cell.sourceVisible ? <ChevronUp className="h-4 w-4 sm:h-3 sm:w-3" /> : <ChevronDown className="h-4 w-4 sm:h-3 sm:w-3" />}
             </Button>
 
+            {/* Context Selection Mode Button */}
             {contextSelectionMode && (
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={toggleAiContextVisibility}
-                className={`h-7 w-7 p-0 hover:bg-muted/80 ${cell.aiContextVisible ? 'text-purple-600' : 'text-gray-500'}`}
+                className={`h-8 w-8 sm:h-7 sm:w-7 p-0 hover:bg-muted/80 ${cell.aiContextVisible ? 'text-purple-600' : 'text-gray-500'}`}
                 title={cell.aiContextVisible ? 'Hide from AI context' : 'Show in AI context'}
               >
-                {cell.aiContextVisible ? <Eye className="h-3 w-3" /> : <EyeOff className="h-3 w-3" />}
+                {cell.aiContextVisible ? <Eye className="h-4 w-4 sm:h-3 sm:w-3" /> : <EyeOff className="h-4 w-4 sm:h-3 sm:w-3" />}
               </Button>
             )}
 
-            {/* Separator */}
-            <div className="w-px h-4 bg-border/50 mx-1" />
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={onMoveUp}
-              className="h-7 w-7 p-0 hover:bg-muted/80"
-              title="Move cell up"
-            >
-              <ArrowUp className="h-3 w-3" />
-            </Button>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={onMoveDown}
-              className="h-7 w-7 p-0 hover:bg-muted/80"
-              title="Move cell down"
-            >
-              <ArrowDown className="h-3 w-3" />
-            </Button>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={onAddCell}
-              className="h-7 w-7 p-0 hover:bg-muted/80"
-              title="Add cell below"
-            >
-              <Plus className="h-3 w-3" />
-            </Button>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={onDeleteCell}
-              className="h-7 w-7 p-0 text-muted-foreground hover:text-destructive hover:bg-destructive/10"
-              title="Delete cell"
-            >
-              <X className="h-3 w-3" />
-            </Button>
+            {/* Desktop-only controls */}
+            <div className="hidden sm:flex items-center gap-0.5">
+              {/* Separator */}
+              <div className="w-px h-4 bg-border/50 mx-1" />
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={onMoveUp}
+                className="h-7 w-7 p-0 hover:bg-muted/80"
+                title="Move cell up"
+              >
+                <ArrowUp className="h-3 w-3" />
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={onMoveDown}
+                className="h-7 w-7 p-0 hover:bg-muted/80"
+                title="Move cell down"
+              >
+                <ArrowDown className="h-3 w-3" />
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={onDeleteCell}
+                className="h-7 w-7 p-0 text-muted-foreground hover:text-destructive hover:bg-destructive/10"
+                title="Delete cell"
+              >
+                <X className="h-3 w-3" />
+              </Button>
+            </div>
         </div>
       </div>
 
-      {/* Cell Content with Left Gutter Play Button */}
+      {/* Cell Content with Left Gutter Play Button - Desktop Only */}
       <div className="relative">
-        {/* Play Button Breaking Through Left Border */}
+        {/* Play Button Breaking Through Left Border - Desktop Only */}
         {cell.cellType === 'code' && (
-          <div className="absolute -left-3 z-10" style={{ top: cell.sourceVisible ? '0.375rem' : '-1.5rem' }}>
+          <div className="hidden sm:block absolute -left-3 z-10" style={{ top: cell.sourceVisible ? '0.375rem' : '-1.5rem' }}>
             <Button
               variant="ghost"
               size="sm"
@@ -431,7 +461,7 @@ export const Cell: React.FC<CellProps> = ({
 
         {/* Text Content Area */}
         {cell.sourceVisible && (
-          <div className={`transition-colors py-1 pl-4 pr-4 ${
+          <div className={`transition-colors py-1 pl-4 pr-1 sm:pr-4 ${
             autoFocus
               ? 'bg-white'
               : 'bg-white'
@@ -450,7 +480,7 @@ export const Cell: React.FC<CellProps> = ({
                     ? 'Enter markdown...'
                     : 'Enter raw text...'
                 }
-                className="min-h-[1.5rem] resize-none border-0 px-2 py-1 focus-visible:ring-0 font-mono bg-white w-full placeholder:text-muted-foreground/60 shadow-none"
+                className="min-h-[2rem] sm:min-h-[1.5rem] resize-none border-0 px-2 py-2 sm:py-1 focus-visible:ring-0 font-mono bg-white w-full placeholder:text-muted-foreground/60 shadow-none text-base sm:text-sm"
                 onFocus={handleFocus}
               />
             </div>
@@ -460,7 +490,7 @@ export const Cell: React.FC<CellProps> = ({
 
       {/* Execution Summary - appears after input */}
       {cell.cellType === 'code' && (cell.executionCount || cell.executionState === 'running' || cell.executionState === 'queued') && (
-        <div className="mt-1 pl-6 pr-4">
+        <div className="mt-1 pl-6 pr-1 sm:pr-4">
           <div className="flex items-center justify-between text-xs text-muted-foreground pb-1">
             <span>
               {cell.executionState === 'running' ? (
@@ -486,14 +516,14 @@ export const Cell: React.FC<CellProps> = ({
                   variant="ghost"
                   size="sm"
                   onClick={toggleOutputVisibility}
-                  className={`h-5 w-5 p-0 hover:bg-muted/80 transition-opacity ${
+                  className={`h-6 w-6 sm:h-5 sm:w-5 p-0 hover:bg-muted/80 transition-opacity ${
                     autoFocus
                       ? 'opacity-100'
-                      : 'opacity-0 group-hover:opacity-100'
+                      : 'opacity-100 sm:opacity-0 sm:group-hover:opacity-100'
                   } ${cell.outputVisible ? '' : 'text-muted-foreground/60'}`}
                   title={cell.outputVisible ? 'Hide output' : 'Show output'}
                 >
-                  {cell.outputVisible ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
+                  {cell.outputVisible ? <ChevronUp className="h-4 w-4 sm:h-3 sm:w-3" /> : <ChevronDown className="h-4 w-4 sm:h-3 sm:w-3" />}
                 </Button>
               </div>
             )}
@@ -503,7 +533,7 @@ export const Cell: React.FC<CellProps> = ({
 
       {/* Output Area for Code Cells */}
       {cell.cellType === 'code' && cell.outputVisible && (outputs.length > 0 || cell.executionState === 'running') && (
-        <div className="mt-1 pl-6 pr-4 bg-background">
+        <div className="mt-1 pl-6 pr-4 bg-background overflow-hidden max-w-full">
             {cell.executionState === 'running' && outputs.length === 0 && (
               <div className="py-3 border-l-2 border-blue-200 pl-1">
                 <div className="flex items-center gap-2">
@@ -526,7 +556,7 @@ export const Cell: React.FC<CellProps> = ({
                     />
                   ) : (
                     // Use RichOutput for all other output types
-                    <div className="py-2">
+                    <div className="py-2 overflow-hidden max-w-full">
                       <RichOutput
                         data={output.data as Record<string, unknown>}
                         metadata={output.metadata as Record<string, unknown> | undefined}

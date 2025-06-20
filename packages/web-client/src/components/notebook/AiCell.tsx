@@ -261,7 +261,7 @@ export const AiCell: React.FC<AiCellProps> = ({
   }
 
   return (
-    <div className={`mb-2 relative group transition-all duration-200 pt-2 ${
+    <div className={`mb-2 sm:mb-3 relative group transition-all duration-200 pt-2 -mx-3 sm:mx-0 px-3 sm:px-0 ${
         autoFocus && !contextSelectionMode ? 'bg-purple-50/30' : 'hover:bg-muted/10'
       } ${contextSelectionMode && !cell.aiContextVisible ? 'opacity-60' : ''} ${
         contextSelectionMode ? (cell.aiContextVisible ? 'ring-2 ring-purple-300 bg-purple-50/30' : 'ring-2 ring-gray-300 bg-gray-50/30') : ''
@@ -270,7 +270,7 @@ export const AiCell: React.FC<AiCellProps> = ({
       }}>
       {/* Custom left border with controlled height */}
       <div
-        className={`absolute left-0 top-0 w-0.5 transition-all duration-200 ${
+        className={`absolute left-3 sm:left-0 top-0 w-0.5 transition-all duration-200 ${
           autoFocus && !contextSelectionMode ? 'bg-purple-500/60' : 'bg-border/30'
         }`}
         style={{
@@ -280,17 +280,17 @@ export const AiCell: React.FC<AiCellProps> = ({
         }}
       />
       {/* Cell Header */}
-      <div className="flex items-center justify-between mb-2 pl-6 pr-4">
-        <div className="flex items-center gap-3">
+      <div className="flex items-center justify-between mb-2 pl-6 pr-1 sm:pr-4">
+        <div className="flex items-center gap-2 sm:gap-3">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button
                 variant="ghost"
                 size="sm"
-                className="h-6 px-2 gap-1.5 text-xs font-medium hover:bg-muted/50 bg-purple-50 text-purple-700 border border-purple-200"
+                className="h-7 sm:h-6 px-2 gap-1.5 text-xs font-medium hover:bg-muted/50 bg-purple-50 text-purple-700 border border-purple-200"
               >
                 {getCellTypeIcon()}
-                <span>AI</span>
+                <span className="hidden sm:inline">AI</span>
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="start" className="w-40">
@@ -314,7 +314,9 @@ export const AiCell: React.FC<AiCellProps> = ({
           </DropdownMenu>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              {getProviderBadge()}
+              <div className="hidden sm:block">
+                {getProviderBadge()}
+              </div>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
               <DropdownMenuItem onClick={() => changeProvider('openai', 'gpt-4o')}>
@@ -343,76 +345,104 @@ export const AiCell: React.FC<AiCellProps> = ({
           {getExecutionStatus()}
         </div>
 
-        {/* Cell Controls - visible on hover */}
-        <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
-          {/* Visibility Toggles */}
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={toggleSourceVisibility}
-            className={`h-7 w-7 p-0 hover:bg-muted/80 ${cell.sourceVisible ? '' : 'text-muted-foreground/60'}`}
-            title={cell.sourceVisible ? 'Hide source' : 'Show source'}
-          >
-            {cell.sourceVisible ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
-          </Button>
-
-          {contextSelectionMode && (
+        {/* Cell Controls - visible on hover or always on mobile */}
+        <div className="flex items-center gap-0.5 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
+            {/* Mobile Play Button - AI cells */}
             <Button
               variant="ghost"
               size="sm"
-              onClick={toggleAiContextVisibility}
-              className={`h-7 w-7 p-0 hover:bg-muted/80 ${cell.aiContextVisible ? 'text-purple-600' : 'text-gray-500'}`}
-              title={cell.aiContextVisible ? 'Hide from AI context' : 'Show in AI context'}
+              onClick={executeAiPrompt}
+              disabled={cell.executionState === 'running' || cell.executionState === 'queued'}
+              className="block sm:hidden h-8 w-8 p-0 hover:bg-muted/80"
+              title="Generate AI response"
             >
-              {cell.aiContextVisible ? <Eye className="h-3 w-3" /> : <EyeOff className="h-3 w-3" />}
+              {cell.executionState === 'running' ? (
+                <div className="animate-spin w-4 h-4 border border-purple-600 border-t-transparent rounded-full"></div>
+              ) : cell.executionState === 'queued' ? (
+                <div className="w-3 h-3 bg-purple-500 rounded-full"></div>
+              ) : (
+                <Play className="h-4 w-4" />
+              )}
             </Button>
-          )}
 
-          {/* Separator */}
-          <div className="w-px h-4 bg-border/50 mx-1" />
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={onMoveUp}
-            className="h-7 w-7 p-0 hover:bg-muted/80"
-            title="Move cell up"
-          >
-            <ArrowUp className="h-3 w-3" />
-          </Button>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={onMoveDown}
-            className="h-7 w-7 p-0 hover:bg-muted/80"
-            title="Move cell down"
-          >
-            <ArrowDown className="h-3 w-3" />
-          </Button>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={onAddCell}
-            className="h-7 w-7 p-0 hover:bg-muted/80"
-            title="Add cell below"
-          >
-            <Plus className="h-3 w-3" />
-          </Button>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={onDeleteCell}
-            className="h-7 w-7 p-0 text-muted-foreground hover:text-destructive hover:bg-destructive/10"
-            title="Delete cell"
-          >
-            <X className="h-3 w-3" />
-          </Button>
+
+
+            <div className="flex-1" />
+
+            {/* Add Cell Button */}
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={onAddCell}
+              className="h-8 w-8 sm:h-7 sm:w-7 p-0 hover:bg-muted/80"
+              title="Add cell below"
+            >
+              <Plus className="h-4 w-4 sm:h-3 sm:w-3" />
+            </Button>
+
+            {/* Source Visibility Toggle */}
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={toggleSourceVisibility}
+              className={`h-8 w-8 sm:h-7 sm:w-7 p-0 hover:bg-muted/80 ${cell.sourceVisible ? '' : 'text-muted-foreground/60'}`}
+              title={cell.sourceVisible ? 'Hide source' : 'Show source'}
+            >
+              {cell.sourceVisible ? <ChevronUp className="h-4 w-4 sm:h-3 sm:w-3" /> : <ChevronDown className="h-4 w-4 sm:h-3 sm:w-3" />}
+            </Button>
+
+            {/* Context Selection Mode Button */}
+            {contextSelectionMode && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={toggleAiContextVisibility}
+                className={`h-8 w-8 sm:h-7 sm:w-7 p-0 hover:bg-muted/80 ${cell.aiContextVisible ? 'text-purple-600' : 'text-gray-500'}`}
+                title={cell.aiContextVisible ? 'Hide from AI context' : 'Show in AI context'}
+              >
+                {cell.aiContextVisible ? <Eye className="h-4 w-4 sm:h-3 sm:w-3" /> : <EyeOff className="h-4 w-4 sm:h-3 sm:w-3" />}
+              </Button>
+            )}
+
+            {/* Desktop-only controls */}
+            <div className="hidden sm:flex items-center gap-0.5">
+              {/* Separator */}
+              <div className="w-px h-4 bg-border/50 mx-1" />
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={onMoveUp}
+                className="h-7 w-7 p-0 hover:bg-muted/80"
+                title="Move cell up"
+              >
+                <ArrowUp className="h-3 w-3" />
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={onMoveDown}
+                className="h-7 w-7 p-0 hover:bg-muted/80"
+                title="Move cell down"
+              >
+                <ArrowDown className="h-3 w-3" />
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={onDeleteCell}
+                className="h-7 w-7 p-0 text-muted-foreground hover:text-destructive hover:bg-destructive/10"
+                title="Delete cell"
+              >
+                <X className="h-3 w-3" />
+              </Button>
+            </div>
         </div>
       </div>
 
-      {/* Cell Content with Left Gutter Play Button */}
+      {/* Cell Content with Desktop Play Button */}
       <div className="relative">
-        {/* Play Button Breaking Through Left Border */}
-        <div className="absolute -left-3 z-10" style={{ top: cell.sourceVisible ? '0.375rem' : '-1.5rem' }}>
+        {/* Desktop Play Button Breaking Through Left Border */}
+        <div className="hidden sm:block absolute -left-3 z-10" style={{ top: cell.sourceVisible ? '0.375rem' : '-1.5rem' }}>
           <Button
             variant="ghost"
             size="sm"
@@ -434,14 +464,63 @@ export const AiCell: React.FC<AiCellProps> = ({
           </Button>
         </div>
 
-        {/* Text Content Area */}
+        {/* Text Content Area - Chat-like on mobile */}
         {cell.sourceVisible && (
-          <div className={`transition-colors py-1 pl-4 pr-4 ${
+          <div className={`transition-colors py-1 pl-4 pr-1 sm:pr-4 ${
             autoFocus
               ? 'bg-white'
               : 'bg-white'
           }`}>
-            <div className="min-h-[1.5rem]">
+            {/* Mobile Chat-like Input */}
+            <div className="block sm:hidden">
+              <div className="bg-purple-50/50 rounded-lg p-3 mb-16 border border-purple-200/50">
+                <Textarea
+                  ref={textareaRef}
+                  value={localSource}
+                  onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setLocalSource(e.target.value)}
+                  onBlur={updateSource}
+                  onKeyDown={handleKeyDown}
+                  placeholder="Ask me anything about your notebook, data, or analysis..."
+                  className="min-h-[3rem] max-h-32 resize-none border-0 px-0 py-0 focus-visible:ring-0 bg-transparent w-full placeholder:text-purple-400/70 shadow-none text-base leading-relaxed"
+                  onFocus={handleFocus}
+                />
+                <div className="flex justify-between items-center mt-2 pt-2 border-t border-purple-200/50">
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <button className="text-xs text-purple-600/60 hover:text-purple-600 transition-colors cursor-pointer">
+                        {provider.toUpperCase()} • {model}
+                      </button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="start">
+                      <DropdownMenuItem onClick={() => changeProvider('openai', 'gpt-4o')}>
+                        OpenAI GPT-4o
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => changeProvider('openai', 'gpt-4o-mini')}>
+                        OpenAI GPT-4o Mini
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => changeProvider('openai', 'gpt-4')}>
+                        OpenAI GPT-4 (Legacy)
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => changeProvider('openai', 'gpt-3.5-turbo')}>
+                        OpenAI GPT-3.5 Turbo
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => changeProvider('anthropic', 'claude-3-sonnet')}>
+                        Anthropic Claude 3 Sonnet
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => changeProvider('anthropic', 'claude-3-haiku')}>
+                        Anthropic Claude 3 Haiku
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => changeProvider('local', 'llama-2')}>
+                        Local Llama 2
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </div>
+              </div>
+            </div>
+
+            {/* Desktop Traditional Input */}
+            <div className="hidden sm:block min-h-[1.5rem]">
               <Textarea
                 ref={textareaRef}
                 value={localSource}
@@ -449,7 +528,7 @@ export const AiCell: React.FC<AiCellProps> = ({
                 onBlur={updateSource}
                 onKeyDown={handleKeyDown}
                 placeholder="Ask me anything about your notebook, data, or analysis..."
-                className="min-h-[1.5rem] resize-none border-0 px-2 py-1 focus-visible:ring-0 font-mono bg-white w-full placeholder:text-muted-foreground/60 shadow-none"
+                className="min-h-[1.5rem] resize-none border-0 px-2 py-1 focus-visible:ring-0 font-mono bg-white w-full placeholder:text-muted-foreground/60 shadow-none text-sm"
                 onFocus={handleFocus}
               />
             </div>
@@ -459,40 +538,40 @@ export const AiCell: React.FC<AiCellProps> = ({
 
       {/* Execution Summary - appears after input */}
       {(cell.executionCount || cell.executionState === 'running' || cell.executionState === 'queued') && (
-        <div className="mt-1 pl-6 pr-4">
+        <div className="mt-1 pl-6 pr-1 sm:pr-4">
           <div className="flex items-center justify-between text-xs text-muted-foreground pb-1">
             <span>
               {cell.executionState === 'running' ? (
-                'Generating...'
+                'Generating AI response...'
               ) : cell.executionState === 'queued' ? (
-                'Queued'
+                'Queued for AI processing'
               ) : cell.executionCount ? (
                 cell.lastExecutionDurationMs
-                  ? `${cell.lastExecutionDurationMs < 1000
+                  ? `Generated in ${cell.lastExecutionDurationMs < 1000
                       ? `${cell.lastExecutionDurationMs}ms`
                       : `${(cell.lastExecutionDurationMs / 1000).toFixed(1)}s`}`
-                  : 'Completed'
+                  : 'Generated'
               ) : null}
             </span>
-            {outputs.length > 0 && (
+            {(outputs.length > 0 || cell.executionState === 'running') && (
               <div className="flex items-center gap-2">
-                {!cell.outputVisible && (
+                {!cell.outputVisible && outputs.length > 0 && (
                   <span className="text-xs text-muted-foreground">
-                    AI response hidden
+                    {outputs.length === 1 ? '1 response hidden' : `${outputs.length} responses hidden`}
                   </span>
                 )}
                 <Button
                   variant="ghost"
                   size="sm"
                   onClick={toggleOutputVisibility}
-                  className={`h-5 w-5 p-0 hover:bg-muted/80 transition-opacity ${
+                  className={`h-6 w-6 sm:h-5 sm:w-5 p-0 hover:bg-muted/80 transition-opacity ${
                     autoFocus
                       ? 'opacity-100'
-                      : 'opacity-0 group-hover:opacity-100'
+                      : 'opacity-100 sm:opacity-0 sm:group-hover:opacity-100'
                   } ${cell.outputVisible ? '' : 'text-muted-foreground/60'}`}
-                  title={cell.outputVisible ? 'Hide output' : 'Show output'}
+                  title={cell.outputVisible ? 'Hide response' : 'Show response'}
                 >
-                  {cell.outputVisible ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
+                  {cell.outputVisible ? <ChevronUp className="h-4 w-4 sm:h-3 sm:w-3" /> : <ChevronDown className="h-4 w-4 sm:h-3 sm:w-3" />}
                 </Button>
               </div>
             )}
@@ -502,7 +581,7 @@ export const AiCell: React.FC<AiCellProps> = ({
 
       {/* Output Area for AI Responses */}
       {outputs.length > 0 && cell.outputVisible && (
-        <div className="mt-1 pl-6 pr-4 bg-background">
+        <div className="mt-1 pl-6 pr-1 sm:pr-4 bg-background overflow-hidden max-w-full">
           {outputs
             .sort((a: OutputData, b: OutputData) => a.position - b.position)
             .map((output: OutputData, index: number) => (
@@ -515,13 +594,15 @@ export const AiCell: React.FC<AiCellProps> = ({
                     traceback={isErrorOutput(output.data) ? output.data.traceback : undefined}
                   />
                 ) : (
-                  // Use RichOutput for all other output types
-                  <div className="py-2">
-                    <RichOutput
-                      data={output.data as Record<string, unknown>}
-                      metadata={output.metadata as Record<string, unknown> | undefined}
-                      outputType={output.outputType}
-                    />
+                  // Use RichOutput for all other output types - chat bubble style on mobile
+                  <div className="py-2 overflow-hidden max-w-full">
+                    <div className="sm:bg-transparent bg-gray-50 sm:p-0 p-3 sm:rounded-none rounded-lg sm:border-0 border border-gray-200 overflow-hidden max-w-full">
+                      <RichOutput
+                        data={output.data as Record<string, unknown>}
+                        metadata={output.metadata as Record<string, unknown> | undefined}
+                        outputType={output.outputType}
+                      />
+                    </div>
                   </div>
                 )}
               </div>

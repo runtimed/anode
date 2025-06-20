@@ -173,4 +173,82 @@
   body {
     @apply bg-background text-foreground;
   }
-} 
+}
+
+/* Mobile-specific improvements */
+@layer utilities {
+  /* Improve touch targets on mobile */
+  @media (max-width: 640px) {
+    /* Make buttons more touch-friendly */
+    button {
+      min-height: 44px;
+      min-width: 44px;
+    }
+
+    /* Improve textarea touch experience */
+    textarea {
+      font-size: 16px; /* Prevents zoom on iOS */
+    }
+
+    /* Better scrolling on mobile */
+    .overflow-auto, .overflow-y-auto {
+      -webkit-overflow-scrolling: touch;
+    }
+
+    /* Remove tap highlight where we handle it ourselves */
+    .group, [role="button"], button {
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    /* Better focus states for touch */
+    input:focus, textarea:focus {
+      transform: none; /* Prevent layout shift on focus */
+    }
+  }
+
+  /* Floating action button styles */
+  .floating-action-btn {
+    @apply fixed bottom-6 right-6 z-50 h-14 w-14 rounded-full shadow-lg;
+    @apply bg-purple-600 hover:bg-purple-700 text-white;
+    @apply flex items-center justify-center;
+    @apply transition-all duration-200 ease-in-out;
+    @apply active:scale-95;
+  }
+
+  /* Chat-like input styles */
+  .chat-input {
+    @apply bg-purple-50/50 rounded-lg p-3 border border-purple-200/50;
+    @apply focus-within:border-purple-300 focus-within:bg-purple-50/70;
+    @apply transition-colors duration-200;
+  }
+
+  /* Mobile-optimized cell layouts */
+  .mobile-cell {
+    @apply -mx-3 px-3 sm:mx-0 sm:px-0;
+  }
+
+  /* Touch-friendly control buttons */
+  .mobile-control-btn {
+    @apply h-8 w-8 sm:h-7 sm:w-7;
+    @apply active:scale-95 transition-transform duration-100;
+  }
+
+  /* Prevent text selection on control elements */
+  .no-select {
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+  }
+}
+
+/* Safe area support for devices with notches */
+@supports (padding: max(0px)) {
+  .safe-area-inset-top {
+    padding-top: max(env(safe-area-inset-top), 0px);
+  }
+
+  .safe-area-inset-bottom {
+    padding-bottom: max(env(safe-area-inset-bottom), 0px);
+  }
+}

@@ -44,6 +44,7 @@
     "@livestore/devtools-vite": "catalog:",
     "@tailwindcss/cli": "catalog:",
     "@tailwindcss/postcss": "catalog:",
+    "@tailwindcss/vite": "^4.1.10",
     "@types/js-cookie": "^3.0.6",
     "@types/react": "catalog:",
     "@types/react-dom": "catalog:",
