@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Copy, Terminal, Circle, Plus, FileText, Database, Bot, Code, Filter, X } from 'lucide-react'
 import { getCurrentNotebookId } from '../../util/store-id.js'
+import { UserProfile } from '../auth/UserProfile.js'
 
 
 
@@ -242,6 +243,8 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = () => {
               <span className="text-xs sm:text-sm">+ New Notebook</span>
             </a>
           </div>
+
+          <UserProfile />
         </div>
       </nav>
 

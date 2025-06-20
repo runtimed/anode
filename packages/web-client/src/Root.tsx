@@ -8,7 +8,7 @@ import { unstable_batchedUpdates as batchUpdates } from 'react-dom'
 
 import { NotebookViewer } from './components/notebook/NotebookViewer.js'
 import { AuthGuard } from './components/auth/AuthGuard.js'
-import { UserProfile } from './components/auth/UserProfile.js'
+
 import LiveStoreWorker from './livestore.worker?worker'
 import { schema, events, tables } from '../../../shared/schema.js'
 import { getStoreId, getCurrentNotebookId } from './util/store-id.js'
@@ -142,13 +142,6 @@ const NotebookApp: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Header with user profile */}
-      <div className="border-b border-gray-200 bg-white">
-        <div className="flex justify-end items-center px-4 py-2">
-          <UserProfile />
-        </div>
-      </div>
-
       {/* Main Content */}
       <NotebookViewer
         notebookId={currentNotebookId}
