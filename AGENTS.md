@@ -2,7 +2,7 @@
 
 This document provides essential context for AI assistants working on the Anode project.
 
-For current work state and immediate next steps, see `HANDOFF.md` - it should provide an honest assessment of what's working versus what needs development.
+This document provides the current work state and immediate next steps with an honest assessment of what's working versus what needs development.
 
 **Development Workflow**: The user will typically be running the wrangler server and web client in separate tabs. If you need to check work, run a build and/or lints, tests, typechecks. If the user isn't running the dev environment, tell them how to start it at the base of the repo with pnpm.
 
@@ -10,7 +10,7 @@ For current work state and immediate next steps, see `HANDOFF.md` - it should pr
 
 Anode is a real-time collaborative notebook system built on LiveStore, an event-sourcing based local-first data synchronization library. The project uses a monorepo structure with TypeScript and pnpm workspaces.
 
-**Current Status**: Working prototype with collaborative editing, Python execution, and basic AI integration functional.
+**Current Status**: Working prototype with collaborative editing, Python execution, and basic AI integration functional. Rich outputs need verification.
 
 ## Architecture
 
@@ -30,20 +30,22 @@ Anode is a real-time collaborative notebook system built on LiveStore, an event-
 
 ### What's Actually Working ✅
 - ✅ **LiveStore integration** - Event-sourcing with real-time collaboration working reliably
-- ✅ **Basic Python execution** - Code cells run Python via Pyodide (manual runtime startup)
+- ✅ **Python execution** - Code cells run Python via Pyodide with rich outputs (matplotlib SVG, pandas HTML, IPython.display)
 - ✅ **Real-time collaboration** - Multiple users can edit notebooks simultaneously
 - ✅ **Cell management** - Create, edit, move, delete cells with proper state sync
-- ✅ **Text output handling** - Basic print statements and error display
-- ✅ **Rich output rendering** - HTML, SVG, Markdown renders
-- ✅ **AI integration** - OpenAI API responses when OPENAI_API_KEY is set, fallback to mock
+- ✅ **Rich output rendering** - Full IPython display support: matplotlib SVG, pandas HTML, colored terminal output
+- ✅ **AI integration** - Full notebook context awareness, sees previous cells and their outputs
+- ✅ **AI tool calling** - AI can create new cells using OpenAI function calling
+- ✅ **Context inclusion controls** - Users can exclude cells from AI context with visibility toggles
+- ✅ **Production deployment** - Web client and sync backend deployed to Cloudflare (Pages + Workers)
+- ✅ **Authentication** - Google OAuth and fallback token system working in production
+- ✅ **Mobile support** - Responsive design with mobile keyboard optimizations
 - ✅ **Offline-first operation** - Works without network, syncs when connected
-- ✅ **AI tool calling** - AI can create cells
-- ✅ **Context inclusion controls** - Users can exclude cells from AI context
-
 
 ### What Needs Enhancement 🚧
-- 🚧 **AI tool calling** - AI can not modify content, or execute code
-- 🚧 **Automated runtime management** - Manual startup creates friction
+- 🚧 **AI tool calling expansion** - AI can only create cells, needs modify/execute functions
+- 🚧 **Automated runtime management** - Manual startup creates friction, need "Bring Your Own Compute" with API tokens
+- 🚧 **Kernel orchestration** - Production deployment lacks automatic kernel provisioning
 
 ### Core Architecture Constraints
 - `NOTEBOOK_ID = STORE_ID`: Each notebook gets its own LiveStore database
@@ -95,17 +97,21 @@ pnpm cache:clear       # Clear package cache
 
 **Priority Focus**: Verify core functionality works, then remove friction
 
-### Phase 1: Prove It Works (Next 2 weeks)
-- **Integration Testing** - Real Pyodide tests
-- **Automated Runtime Management** - Remove manual `NOTEBOOK_ID=xyz pnpm dev:runtime` friction and enforce one-kernel-per-notebook
-- **Error Handling** - Better user feedback when things fail
-- **AI Function Calling** - AI can create cells, modify content, and execute code using OpenAI function calling
-- **AI Tool Calling Confirmation** - User confirmation of AI Tool Calls
+### Phase 1: Enhanced AI & Runtime Management (Next 2 weeks)
+- **AI Function Calling Expansion** - AI can modify cell content and execute code (beyond just creating cells)
+- **User-Attributed Kernels** - API token system for "Bring Your Own Compute" runtime agents
+- **Automated Runtime Management** - Remove manual `NOTEBOOK_ID=xyz pnpm dev:runtime` friction
+- **AI Tool Calling Confirmation** - User confirmation flows for AI-initiated actions
+
+**Priority Focus**: Verify core functionality works, then remove friction
+
+**Next Major Feature**: User-attributed kernel system with API tokens to enable "Bring Your Own Compute" - users get API tokens to run standalone runtime agents, removing kernel orchestration complexity while enabling production-scale compute.
 
 ### Phase 2: Advanced Features (Next 2-3 months)
 - **SQL Cell Implementation** - Database connections and query results
 - **Interactive Widgets** - IPython widgets support for collaborative elements
 - **Code Completions** - LSP + kernel-based suggestions
+- **Kernel Orchestration** - Production automatic kernel provisioning
 
 ## Important Considerations
 
@@ -237,7 +243,6 @@ anode/
 │   └── setup.js                     # Environment setup automation
 ├── .github/                         # GitHub configuration
 ├── AGENTS.md                        # AI agent development context (this file)
-├── HANDOFF.md                       # Current work state and priorities
 ├── ROADMAP.md                       # Long-term vision and milestones
 ├── DEPLOYMENT.md                    # Cloudflare deployment guide
 ├── CONTRIBUTING.md                  # Contribution guidelines
@@ -256,24 +261,24 @@ anode/
 
 ## Notes for AI Assistants
 
-**Current Status - Working Prototype
-- **LiveStore foundation** real-time collaborative editing
-- **Basic Python execution** working via Pyodide
-- **Rich output system**
-- **AI integration** - Only supports OpenAI API. Includes notebook context and one tool.
+**Current Status - Production Deployment Working**
+- **LiveStore foundation** - Real-time collaborative editing deployed and stable
+- **Full Python execution** - Rich outputs working (matplotlib, pandas, IPython.display)
+- **Complete AI integration** - Full notebook context awareness, can create cells
+- **Production deployment** - Cloudflare Pages + Workers with authentication
 - **Direct TypeScript schema** - No build complexity across packages
 
 ### Key Development Insights
-- **LiveStore integration** provides solid collaborative foundation
+- **Production deployment achieved** - Full stack working on Cloudflare infrastructure
+- **Rich outputs working** - Complete IPython display compatibility with matplotlib, pandas
+- **AI context awareness complete** - AI sees full notebook state including outputs
 - **Reactive architecture** eliminates polling delays for execution
-- **Direct function calls** approach eliminates quote escaping complexity
-- **Unified execution system** makes all cell types work through same queue
-**Manual runtime startup** creates significant user friction and potential for multiple kernels
+- **Manual runtime startup** remains the main friction point for users
 
 ### Immediate Technical Goals
-- **AI tool calling infrastructure** - Enable AI to modify cells using OpenAI function calling
-- **Automated runtime management** to remove manual startup friction
-- **Better error handling** for improved user experience
+- **AI tool calling expansion** - Enable AI to modify content and execute code (beyond creating cells)
+- **User-attributed kernels** - API token system for "Bring Your Own Compute"
+- **Automated kernel orchestration** - Production runtime provisioning
 
 ### Communication Style
 - Use authentic developer voice - uncertainty is fine, just be explicit
@@ -329,4 +334,4 @@ pnpm cache:warm-up   # Pre-loads numpy, pandas, matplotlib, requests, etc.
 
 **Kernel Management**: Manual kernel startup (copying command from UI) creates user friction and should be a high priority to fix.
 
-**Be Honest About Status**: This is a prototype with great potential, not a production-ready system. The LiveStore foundation is solid, but there is more to do to bring this to parity with classic Jupyter.
+**Current Reality**: This is a working system deployed to production with core Jupyter functionality. Rich outputs, real-time collaboration, and AI integration are functional. Main gap is automated runtime management.
