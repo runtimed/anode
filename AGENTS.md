@@ -213,27 +213,21 @@ anode/
 ## Notes for AI Assistants
 
 **Current Status - Working Prototype
-- **LiveStore foundation** solid with real-time collaborative editing
-- **Basic Python execution** working via Pyodide (needs integration testing)
-- **Rich output system** architecture in place but verification needed
-- **AI integration** - OpenAI API working but lacks notebook context and tools
+- **LiveStore foundation** real-time collaborative editing
+- **Basic Python execution** working via Pyodide
+- **Rich output system**
+- **AI integration** - Only supports OpenAI API. Includes notebook context and one tool.
 - **Direct TypeScript schema** - No build complexity across packages
-- **Event-sourced architecture** - Excellent debugging and audit capabilities
-- **Package caching system** - Node.js package cache for faster Python execution
 
 ### Key Development Insights
 - **LiveStore integration** provides solid collaborative foundation
 - **Reactive architecture** eliminates polling delays for execution
-- **Event sourcing** enables powerful undo/redo and conflict resolution
 - **Direct function calls** approach eliminates quote escaping complexity
 - **Unified execution system** makes all cell types work through same queue
 **Manual runtime startup** creates significant user friction and potential for multiple kernels
 
 ### Immediate Technical Goals
-- **AI tool calling infrastructure** - Enable AI to create/modify cells using OpenAI function calling
-- **Context inclusion controls** - Let users control what cells AI can see for context
-- **Integration testing** to verify Python execution and rich outputs actually work
-- **MCP integration foundation** - Architecture for Model Context Protocol providers via Python runtime
+- **AI tool calling infrastructure** - Enable AI to modify cells using OpenAI function calling
 - **Automated runtime management** to remove manual startup friction
 - **Better error handling** for improved user experience
 
@@ -242,6 +236,7 @@ anode/
 - Be honest about current prototype status while preserving the collaborative vision
 - Focus on proving core functionality works before claiming production readiness
 - Emphasize the solid LiveStore foundation and collaborative advantages
+- Clarity is essential. Being concise moreso.
 
 ## Development Workflow Notes
 
@@ -265,8 +260,11 @@ Tell them to start at the base of the repo:
 # Setup environment
 pnpm install         # Automatically creates package .env files with defaults
 
-# Start core services
-pnpm dev             # Web client + sync backend
+# In separate tabs run
+## Tab 1:
+pnpm dev:web-only
+## Tab 2:
+pnpm dev:sync-only
 
 # Warm up package cache for faster Python execution (recommended)
 pnpm cache:warm-up   # Pre-loads numpy, pandas, matplotlib, requests, etc.
@@ -277,8 +275,6 @@ pnpm cache:warm-up   # Pre-loads numpy, pandas, matplotlib, requests, etc.
 
 ## Important Development Notes
 
-**Do NOT use manual timestamps in code or events.** LiveStore automatically handles all timing through its event sourcing system. Focus development on features and architecture rather than timestamp management.
-
 **⚠️ CRITICAL: Do NOT use `ctx.query()` in materializers.** This causes LiveStore materializer hash mismatches and kernel restart failures (see bug #34 - RESOLVED in commits 6e0fb4f and a1bf20d). All materializers must be pure functions with all needed data passed via event payload.
 
 **Testing is Critical**: Many claims about functionality need verification through proper integration tests. Core features exist but integration testing is minimal.
@@ -287,8 +283,6 @@ pnpm cache:warm-up   # Pre-loads numpy, pandas, matplotlib, requests, etc.
 
 **Context Control**: Users need granular control over what context AI sees, especially in large notebooks where token limits matter.
 
-**MCP Integration**: Long-term vision includes Model Context Protocol integration via Python kernel for unlimited AI tool extensibility.
-
 **Kernel Management**: Manual kernel startup (copying command from UI) creates user friction and should be a high priority to fix.
 
-**Be Honest About Status**: This is a prototype with great potential, not a production-ready system. The LiveStore foundation is solid, but execution and rich output claims need verification.
+**Be Honest About Status**: This is a prototype with great potential, not a production-ready system. The LiveStore foundation is solid, but there is more to do to bring this to parity with classic Jupyter.
