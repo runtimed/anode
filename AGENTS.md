@@ -45,17 +45,17 @@ Anode is a real-time collaborative notebook system built on LiveStore, an event-
 - 🚧 **AI tool calling** - AI can not modify content, or execute code
 - 🚧 **Automated runtime management** - Manual startup creates friction
 
-### Core Architecture Features
+### Core Architecture Constraints
 - `NOTEBOOK_ID = STORE_ID`: Each notebook gets its own LiveStore database
 - **Event-sourced state**: All changes flow through LiveStore events
-- **Reactive execution**: `executionRequested` → `executionAssigned` → `executionStarted` → `executionCompleted`
+- **Reactive execution**: `executionRequested` → `executionAssigned` → `executionStarted` → `executionCompleted` events, materialized table is an execution queue
 - **Direct TypeScript schema**: No build step, imports work across packages
 - **Session-based runtimes**: Each runtime restart gets unique `sessionId`
 - **One kernel per notebook**: Each notebook has exactly one active kernel at a time
 
 ### Kernel-Notebook Relationship
 
-**One Kernel Per Notebook**: Each notebook should have exactly one active kernel at any time. Multiple kernels on the same notebook only occur during brief transition periods (kernel restart/handoff).
+**One Kernel Per Notebook**: Each notebook should have exactly one active kernel at any time. Multiple kernels on the same notebook should only occur during transition periods (kernel restart/handoff).
 
 **Kernel Lifecycle**:
 - Notebook created → No kernel (user must start one)
@@ -69,10 +69,13 @@ Anode is a real-time collaborative notebook system built on LiveStore, an event-
 
 ```bash
 # Setup
-pnpm install             # Automatically creates package .env files with defaults
+pnpm install  # Automatically creates package .env files with defaults
 
-# Start core services (web + sync)
-pnpm dev
+# In separate tabs run
+## Tab 1:
+pnpm dev:web-only
+## Tab 2:
+pnpm dev:sync-only
 
 # Start runtime (get command from notebook UI)
 # Get runtime command from notebook UI, then:
@@ -93,36 +96,21 @@ pnpm cache:clear       # Clear package cache
 **Priority Focus**: Verify core functionality works, then remove friction
 
 ### Phase 1: Prove It Works (Next 2 weeks)
-- **Integration Testing** - Real Pyodide tests to verify Python execution claims
-- **Rich Output Verification** - Test matplotlib, pandas, IPython.display actually work
+- **Integration Testing** - Real Pyodide tests
 - **Automated Runtime Management** - Remove manual `NOTEBOOK_ID=xyz pnpm dev:runtime` friction and enforce one-kernel-per-notebook
 - **Error Handling** - Better user feedback when things fail
-
-### Phase 2: AI Tool Calling & Context Controls (Next 1-2 months)
 - **AI Function Calling** - AI can create cells, modify content, and execute code using OpenAI function calling
-- **Context Inclusion Controls** - Users can mark cells as included/excluded from AI context
-- **Tool Execution Framework** - Reactive system handles AI tool calls with user confirmation
-- **Enhanced AI-Notebook Interaction** - AI becomes active development partner
-- **Package Cache Optimization** - Smart pre-loading and shared team caches
+- **AI Tool Calling Confirmation** - User confirmation of AI Tool Calls
 
-### Phase 3: Advanced Features (Next 2-3 months)
-- **MCP Integration** - Model Context Protocol support for extensible AI tooling via Python runtime
+### Phase 2: Advanced Features (Next 2-3 months)
 - **SQL Cell Implementation** - Database connections and query results
 - **Interactive Widgets** - IPython widgets support for collaborative elements
-- **Authentication System** - Google OAuth with proper session management
-
-### Phase 4: Production (Next quarter)
-- **Performance Optimization** - Handle large notebooks efficiently
 - **Code Completions** - LSP + kernel-based suggestions
-- **Advanced Visualizations** - 3D plots, interactive charts
-- **Production Deployment** - Self-hosted and cloud options
 
 ## Important Considerations
 
 ### Schema Design
-- **Direct TypeScript imports**: `shared/schema.ts` provides zero-build-step imports with full type inference across all packages
-- **Single source of truth**: No compiled artifacts needed - TypeScript handles type checking from source
-- **No timestamp fields** - LiveStore handles timing automatically
+- **Direct TypeScript imports**: `shared/schema.ts` provides zero-build-step imports with type inference across all packages
 
 ### ⚠️ CRITICAL: Materializer Determinism Requirements
 
@@ -198,6 +186,9 @@ The project recently resolved a major stability issue where 3rd+ runtime session
 - TypeScript strict mode enabled
 
 ## File Structure
+
+TODO: re-generate
+
 ```
 anode/
 ├── shared/
