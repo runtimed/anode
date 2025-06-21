@@ -47,7 +47,29 @@ This document captures the design principles, patterns, and decisions that shape
 
 ### Spacing & Layout
 
-**Consistent Padding**: 
+**Consistent Padding**:
+
+## Component Design Patterns
+
+### Kernel Selection & Status
+
+**One Kernel Per Notebook**: The UI should clearly communicate that each notebook has exactly one active kernel at a time.
+
+**Kernel States**:
+- **No Kernel** - Show "No kernel selected" with prominent "Start Kernel" button
+- **Single Active Kernel** - Show kernel type and status (ready/busy/starting)
+- **Transition State** - Show "Switching kernels..." during handoffs
+- **Error State** - Show "Kernel disconnected" with restart options
+
+**UI Behavior**:
+- Starting a new kernel while one exists should prompt: "Replace current kernel?"
+- Kernel dropdown should show current kernel + available types, not multiple active kernels
+- Status indicator should be prominent: green dot (ready), amber (busy), red (error)
+- Avoid showing multiple "active" kernels simultaneously in the UI
+
+**Not Yet Implemented**: Automatic kernel orchestration means users may see brief multi-kernel states during manual startup. Future versions will enforce single-kernel constraints.
+
+**Consistent Padding**:
 - `px-4 py-3` - Standard cell content areas
 - `px-6` - Cell headers and controls alignment
 - `pl-2` - Execution controls fine-tuning

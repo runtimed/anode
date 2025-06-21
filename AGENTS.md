@@ -52,6 +52,19 @@ Anode is a real-time collaborative notebook system built on LiveStore, an event-
 - **Reactive execution**: `executionRequested` → `executionAssigned` → `executionStarted` → `executionCompleted`
 - **Direct TypeScript schema**: No build step, imports work across packages
 - **Session-based runtimes**: Each runtime restart gets unique `sessionId`
+- **One kernel per notebook**: Each notebook has exactly one active kernel at a time
+
+### Kernel-Notebook Relationship
+
+**One Kernel Per Notebook**: Each notebook should have exactly one active kernel at any time. Multiple kernels on the same notebook only occur during brief transition periods (kernel restart/handoff).
+
+**Kernel Lifecycle**:
+- Notebook created → No kernel (user must start one)
+- User starts kernel → Becomes the sole kernel for that notebook  
+- Kernel crashes/stops → Notebook has no kernel until user starts new one
+- Kernel restart → Brief overlap during handoff, then old kernel terminates
+
+**Not Yet Implemented**: Automatic kernel orchestration, graceful handoffs, kernel health monitoring. Currently manual kernel startup creates potential for multiple kernels during transitions.
 
 ## Development Commands
 
@@ -83,7 +96,7 @@ pnpm cache:clear       # Clear package cache
 ### Phase 1: Prove It Works (Next 2 weeks)
 - **Integration Testing** - Real Pyodide tests to verify Python execution claims
 - **Rich Output Verification** - Test matplotlib, pandas, IPython.display actually work
-- **Automated Runtime Management** - Remove manual `NOTEBOOK_ID=xyz pnpm dev:runtime` friction
+- **Automated Runtime Management** - Remove manual `NOTEBOOK_ID=xyz pnpm dev:runtime` friction and enforce one-kernel-per-notebook
 - **Error Handling** - Better user feedback when things fail
 
 ### Phase 2: AI Tool Calling & Context Controls (Next 1-2 months)
@@ -224,7 +237,7 @@ anode/
 - **Event sourcing** enables powerful undo/redo and conflict resolution
 - **Direct function calls** approach eliminates quote escaping complexity
 - **Unified execution system** makes all cell types work through same queue
-- **Manual runtime startup** creates significant user friction
+**Manual runtime startup** creates significant user friction and potential for multiple kernels
 
 ### Immediate Technical Goals
 - **AI tool calling infrastructure** - Enable AI to create/modify cells using OpenAI function calling
