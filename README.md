@@ -1,17 +1,34 @@
 # Anode
 
-A real-time collaborative notebook system built on LiveStore, focusing on seamless AI ↔ Python ↔ User interactions.
+**The notebook that thinks with you.**
 
-**Current Status: Working Prototype** - Core collaborative editing, Python execution, and basic AI integration functional. Rich outputs need verification.
+Anode is an **agentic notebook** where AI, code, and prose work together in real-time. Never lose your outputs when tabs close. Collaborate with AI that sees your data, not just your code. Pair with compute and intelligence.
 
-## What Makes Anode Different
+**Note**: Public access coming soon - building BYOC and permissions first
 
-- **Real-time collaboration** built on event sourcing (LiveStore)
-- **Local-first architecture** with offline capability and sync when connected
-- **Event-sourced notebook state** enabling powerful undo/redo and audit trails
-- **Reactive execution architecture** using subscriptions instead of polling
-- **Modern TypeScript foundation** with full type safety across the stack
-- **Extensible cell types** supporting code, markdown, AI, and SQL (planned)
+## The Jupyter Problem We're Solving
+
+As a long-time Jupyter contributor, I've always wanted to solve a core architectural limitation: computation and documentation are artificially coupled.
+
+At Netflix, I watched people hold their laptops open walking to the parking lot, hoping their Spark jobs would finish before they lost their browser session. Your analysis is running on powerful clusters, but the results only "exist" in your specific browser tab.
+
+**The core problem**: You can't open the same notebook in multiple tabs. Multiple people can't collaborate on the same server without conflicts. Your work is trapped in a single browser session.
+
+**Why this happens**: Jupyter's architecture wasn't designed for concurrent access. The notebook exists as a file on disk, but the live state (outputs, execution results) only lives in your browser. Close that tab, and you lose the connection to work happening elsewhere.
+
+**The bigger picture**: Your Spark job runs on a cluster. Your model trains on GPUs. But somehow, the results are locked to the browser tab where you started them. Modern computational work deserves better.
+
+Jupyter's developers built something incredible that changed how we compute. Collaboration has been challenging to implement well, and we think our event-sourced approach offers a path forward that could benefit the broader ecosystem.
+
+**Anode's approach**: Persistent outputs that survive browser crashes, tab closures, and device switches. Real-time collaboration without conflicts. AI that sees your actual results. Full Jupyter compatibility through .ipynb import/export. Your computation lives independently of any browser session.
+
+## Agentic Notebook Vision
+
+- **AI as development partner** - AI sees your outputs, creates cells, suggests next steps
+- **Persistent computation** - Your work survives kernel crashes, tab closes, browser restarts, vpn disconnects, cafe WiFi
+- **Seamless collaboration** - Your friends, local models, and foundational models working on the same notebook
+- **Context-aware intelligence** - AI understands your data, not just your code
+- **Zero-friction execution** - Code runs instantly, results appear everywhere
 
 ## Quick Start
 
@@ -55,7 +72,6 @@ NOTEBOOK_ID=your-notebook-id pnpm dev:runtime
 ```
 - Add an AI cell and ask questions about your data
 - Falls back to mock responses if no API key is set
-- API keys are kept server-side for security
 
 ## Using Deployed Cloudflare Workers (Optional)
 
@@ -63,7 +79,9 @@ Instead of running everything locally, you can use a deployed Cloudflare Worker 
 
 ### Quick Setup for Deployed Worker
 
-1. **Get deployment details** from your team (worker URL and auth token)
+1. **Deploy the sync backend** - Only the docworker needs deployment for collaboration
+
+**Get deployment details** from your team (worker URL and auth token)
 
 2. **Update web client config** in `packages/web-client/.env`:
    ```env
@@ -92,73 +110,60 @@ Instead of running everything locally, you can use a deployed Cloudflare Worker 
 
 **Note**: When using deployed workers, authentication happens via Cloudflare secrets configured in the dashboard.
 
-## Current Status
+<!-- This section is for development/testing with deployed workers, not public access -->
 
-### What's Working ✅
-- **Real-time collaborative editing** - Multiple users can edit notebooks simultaneously
-- **LiveStore event-sourcing** - Robust data synchronization and state management
-- **Python execution** - Code cells execute Python via Pyodide (manual runtime startup required)
-- **AI integration** - Real OpenAI API responses when OPENAI_API_KEY is set, graceful fallback to mock
-- **Cell management** - Create, edit, move, and delete code/markdown/AI cells
-- **Basic output display** - Text output and error handling
-- **Keyboard navigation** - Vim-like cell navigation and shortcuts
-- **Offline-first operation** - Works without network, syncs when connected
+## What You Can Do Today
 
-### In Development 🚧
-- **Rich output rendering** - HTML tables, SVG plots, matplotlib integration (needs verification)
-- **Enhanced AI features** - Notebook context awareness, tools for modifying cells
-- **Enhanced display system** - Full IPython.display compatibility (needs verification)
-- **Automated runtime management** - One-click notebook startup
+### 🌎 Modeling your world
+- No more copy pasting. Models can see code and outputs
+- Ask questions about your plots, tables, and results
+- AI creates new cells based on your notebook context
+- Control what context AI sees with visibility toggles
 
-### Planned 📋
-- **SQL cell execution** - Database connections and query results
-- **Code completion** - LSP integration and intelligent suggestions
-- **Interactive widgets** - Real-time collaborative UI components
-- **Performance optimization** - Large notebook handling
+### 🔄 Persistent Computation
+- Outputs survive kernel restarts and browser crashes
+- Work offline, sync when connected
+- Rich outputs: plots, tables, colorized terminal output
+- Package caching for fast startup (numpy, pandas, matplotlib)
 
-### Known Limitations ⚠️
-- Manual runtime startup required per notebook (`NOTEBOOK_ID=xyz pnpm dev:runtime`)
-- Rich outputs (matplotlib, pandas) not fully verified in integration tests
-- AI has no notebook context awareness or tools to modify notebook
-- Limited error handling for runtime failures
+### 👥 Real-Time Collaboration
+- Multiple people editing simultaneously
+- Mobile-responsive design for editing on any device
+- Google OAuth for secure access (when deployed)
+- Share notebooks by copying the URL
 
-## Development Commands
+## Coming Soon
+
+See [ROADMAP.md](./ROADMAP.md) for detailed implementation plan.
+
+**Enhanced AI Partnership** - AI will modify existing cells and execute code, not just create new ones.
+
+**Frictionless Setup** - One-click kernel startup instead of copy/paste commands.
+
+**Production Scale** - "Bring Your Own Compute" with API tokens for enterprise use.
+
+**Multi-language Support** - The runtime architecture already supports other languages, just need UI updates!
+
+## Local Development
+
+Want to run Anode locally or contribute? Here's the essentials:
 
 ```bash
-# Setup (run manually if needed)
-pnpm setup               # Create .env files with defaults
+# One-time setup
+pnpm install             # Installs dependencies and creates .env files
 
-# Core development workflow
-pnpm dev                 # Start web + sync
-# Get runtime command from notebook UI, then:
-NOTEBOOK_ID=notebook-id-from-ui pnpm dev:runtime
+# Start the development servers (in separate terminals)
+pnpm dev:web-only       # Web interface at http://localhost:5173
+pnpm dev:sync-only      # Sync backend
 
-# Utilities
-pnpm reset-storage       # Clear all local data
+# For Python execution, get the command from the notebook UI
+# Then run: NOTEBOOK_ID=your-notebook-id pnpm dev:runtime
 ```
 
-### Environment Files Created
+### Configuration
+Setup automatically creates `.env` files in the right places. To enable AI features, add your OpenAI API key to `packages/pyodide-runtime-agent/.env`.
 
-The setup process creates these `.env` files:
-- `packages/web-client/.env` - Client configuration (sync URL, auth token, Google OAuth)
-- `packages/pyodide-runtime-agent/.env` - Runtime configuration (sync URL, auth token, OpenAI API key)
 
-**Note**: The docworker doesn't use `.env` files - it gets environment variables from wrangler.toml and Cloudflare secrets.
-
-## Development Roadmap
-
-See [ROADMAP.md](./ROADMAP.md) for detailed development plans and milestones.
-
-### Immediate Priorities
-1. **Rich Output Verification** - Integration tests for matplotlib, pandas, and display system
-2. **Runtime Management** - Automated startup and health monitoring
-3. **Error Handling** - Better runtime failure recovery and user feedback
-
-### Next Milestones
-- Enhanced AI integration (notebook context awareness, tools for modifying cells)
-- SQL cell implementation with database connections
-- Interactive widget system for collaborative data exploration
-- Production deployment and performance optimization
 
 ## Troubleshooting
 
@@ -169,55 +174,62 @@ See [ROADMAP.md](./ROADMAP.md) for detailed development plans and milestones.
 | Type errors | TypeScript catches invalid queries at compile time - check column names |
 | Execution not working | Use runtime command from notebook UI or check `.env` configuration |
 | AI cells showing mock responses | Set `OPENAI_API_KEY` in `packages/pyodide-runtime-agent/.env`, restart runtime |
+| Rich outputs not displaying | Verify matplotlib, pandas imports work - should display SVG plots and HTML tables |
 | Stale state | Run `pnpm reset-storage` |
 | Slow execution | Should be instant - check runtime logs |
 
-## Architecture Highlights
+## Why Anode Works
 
-**Event-Sourced State**: All notebook changes flow through LiveStore's event sourcing system, enabling real-time collaboration, undo/redo, and audit trails.
+**Never lose your work**: Event-sourced architecture means every change is preserved. Your outputs survive crashes, restarts, and network issues.
 
-**Direct TypeScript Schema**: The `shared/schema.ts` file is imported directly across all packages with full type inference, eliminating build complexity.
+**AI sees your data**: Unlike other tools, AI has access to your actual outputs—plots, tables, error messages—not just source code. We have a full interactive runtime, so let it enjoy interactive computing too!
 
-**Reactive Architecture**: Runtimes use LiveStore's reactive subscriptions instead of polling for instant work detection.
+**Real-time everywhere**: Changes appear instantly across all connected devices. Collaboration without having to email Untitled234.ipynb again.
 
-**Local-First Design**: Everything works offline first, syncs when connected. Your work is never lost.
-
-**Modular Runtime System**: Python execution runs in separate processes that can be started per notebook as needed.
+**Local-first**: Works offline, syncs when connected. Your notebook is always responsive, never waiting for the cloud.
 
 ## Documentation
 
 For comprehensive documentation, see the [docs](./docs/) directory:
+- **[Development Roadmap](./ROADMAP.md)** - Detailed implementation plan and priorities
 - **[OpenAI Integration](./docs/ai-features.md)** - AI setup and usage guide
 - **[Display System Guide](./docs/display-system.md)** - Complete technical documentation
 - **[Display Examples](./docs/display-examples.md)** - Practical usage examples
 - **[UI Design Guidelines](./docs/ui-design.md)** - Interface design principles
-- **[Testing Strategy](./docs/TESTING.md)** - Current testing approach and gaps
+- **[Testing Strategy](./docs/TESTING.md)** - Current testing approach and coverage
 
 ## Deployment
 
-Deploy to Cloudflare Pages and Workers with a single command:
+<!-- Deployment documentation available for contributors and development -->
+See [DEPLOYMENT.md](./DEPLOYMENT.md) for deployment instructions, environment configuration, and CI/CD setup.
 
-```bash
-pnpm deploy:production
-```
+## Join the Agentic Future
 
-This deploys both the web client (Pages) and sync backend (Workers) concurrently. Individual services can be deployed with:
+We're building the notebook where humans and AI truly collaborate. Help us get there:
 
-```bash
-pnpm deploy:web        # Deploy web client to Cloudflare Pages
-pnpm deploy:docworker  # Deploy sync backend to Cloudflare Workers
-```
+**🤖 Make AI Smarter**
+- Teach AI to modify cells and execute code
+- Build confirmation flows for safe AI actions
+- Create streaming conversations with notebook context
 
-See [DEPLOYMENT.md](./DEPLOYMENT.md) for complete deployment instructions, environment configuration, and CI/CD setup.
+**⚡ Remove Friction**
+- Enable one-click kernel startup
+- Build "Bring Your Own Compute" for production scale
+- Design better error recovery and guidance
 
-## Contributing
+**🔗 Expand Capabilities**
+- Add SQL cells for database workflows
+- Create interactive widgets for data exploration
+- Build code completion and variable inspection
 
-Anode is an open source project focused on developer experience. Key areas for contribution:
-- **Integration testing** - Verify Python execution and rich output rendering
-- **Runtime management** - Automated startup and health monitoring
-- **Rich output system** - Complete matplotlib, pandas, and IPython.display integration
-- **Error handling** - Better user feedback and recovery from failures
-- **Performance testing** - Validate claims about execution speed and memory usage
+**🌟 Shape the Vision**
+- Test with real data science workflows
+- Provide feedback on AI collaboration features
+- Help define what agentic notebooks should become
+
+Ready to contribute? We'd love to have you.
+
+---
 
 ## License
 
