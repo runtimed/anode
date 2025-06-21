@@ -2,7 +2,7 @@
 
 This document provides essential context for AI assistants working on the Anode project.
 
-For current work state and immediate next steps, see `HANDOFF.md` - it provides an honest assessment of what's working versus what needs development.
+For current work state and immediate next steps, see `HANDOFF.md` - it should provide an honest assessment of what's working versus what needs development.
 
 **Development Workflow**: The user will typically be running the wrangler server and web client in separate tabs. If you need to check work, run a build and/or lints, tests, typechecks. If the user isn't running the dev environment, tell them how to start it at the base of the repo with pnpm.
 
@@ -10,7 +10,7 @@ For current work state and immediate next steps, see `HANDOFF.md` - it provides 
 
 Anode is a real-time collaborative notebook system built on LiveStore, an event-sourcing based local-first data synchronization library. The project uses a monorepo structure with TypeScript and pnpm workspaces.
 
-**Current Status**: Working prototype with collaborative editing, Python execution, and basic AI integration functional. Rich outputs need verification.
+**Current Status**: Working prototype with collaborative editing, Python execution, and basic AI integration functional.
 
 ## Architecture
 
@@ -33,17 +33,16 @@ Anode is a real-time collaborative notebook system built on LiveStore, an event-
 - ✅ **Basic Python execution** - Code cells run Python via Pyodide (manual runtime startup)
 - ✅ **Real-time collaboration** - Multiple users can edit notebooks simultaneously
 - ✅ **Cell management** - Create, edit, move, delete cells with proper state sync
-- ✅ **Reactive architecture** - Runtime work detection without polling delays
 - ✅ **Text output handling** - Basic print statements and error display
-- ✅ **AI integration** - OpenAI API responses when OPENAI_API_KEY is set, graceful fallback to mock
+- ✅ **Rich output rendering** - HTML, SVG, Markdown renders
+- ✅ **AI integration** - OpenAI API responses when OPENAI_API_KEY is set, fallback to mock
 - ✅ **Offline-first operation** - Works without network, syncs when connected
+- ✅ **AI tool calling** - AI can create cells
+- ✅ **Context inclusion controls** - Users can exclude cells from AI context
+
 
 ### What Needs Enhancement 🚧
-- 🚧 **Rich output rendering** - IPython integration code exists but needs verification
-- 🚧 **AI tool calling** - AI can't create cells, modify content, or execute code
-- 🚧 **Context inclusion controls** - Users can't exclude cells from AI context
-- 🚧 **MCP integration** - No Model Context Protocol support for extensible AI tools
-- 🚧 **Display system** - Matplotlib, pandas support partially implemented
+- 🚧 **AI tool calling** - AI can not modify content, or execute code
 - 🚧 **Automated runtime management** - Manual startup creates friction
 
 ### Core Architecture Features
@@ -60,7 +59,7 @@ Anode is a real-time collaborative notebook system built on LiveStore, an event-
 
 **Kernel Lifecycle**:
 - Notebook created → No kernel (user must start one)
-- User starts kernel → Becomes the sole kernel for that notebook  
+- User starts kernel → Becomes the sole kernel for that notebook
 - Kernel crashes/stops → Notebook has no kernel until user starts new one
 - Kernel restart → Brief overlap during handoff, then old kernel terminates
 
@@ -146,11 +145,11 @@ LiveStore requires all materializers to be **pure functions without side effects
 ```typescript
 // ✅ CORRECT - All needed data in event payload
 "v1.ExecutionCompleted": ({ queueId, cellId, status }) => [
-  tables.executionQueue.update({ 
-    status: status === "success" ? "completed" : "failed" 
+  tables.executionQueue.update({
+    status: status === "success" ? "completed" : "failed"
   }).where({ id: queueId }),
-  tables.cells.update({ 
-    executionState: status === "success" ? "completed" : "error" 
+  tables.cells.update({
+    executionState: status === "success" ? "completed" : "error"
   }).where({ id: cellId }),
 ]
 ```
@@ -168,7 +167,7 @@ LiveStore requires all materializers to be **pure functions without side effects
 The project recently resolved a major stability issue where 3rd+ runtime sessions would fail to receive work assignments due to LiveStore materializer hash mismatches. This was caused by non-deterministic materializers using `ctx.query()` calls.
 
 **What was broken:**
-- ExecutionCompleted, ExecutionCancelled, and ExecutionStarted materializers were using `ctx.query()` 
+- ExecutionCompleted, ExecutionCancelled, and ExecutionStarted materializers were using `ctx.query()`
 - This made them non-deterministic, causing LiveStore to shut down with "UnexpectedError materializer hash mismatch"
 - Runtime restarts would accumulate terminated sessions and eventually fail
 
@@ -222,7 +221,7 @@ anode/
 
 ## Notes for AI Assistants
 
-**Current Status - Working Prototype 
+**Current Status - Working Prototype
 - **LiveStore foundation** solid with real-time collaborative editing
 - **Basic Python execution** working via Pyodide (needs integration testing)
 - **Rich output system** architecture in place but verification needed
@@ -257,7 +256,7 @@ anode/
 
 **User Environment**: The user will typically have:
 - Web client running in one tab (`pnpm dev`)
-- Wrangler server running in another tab 
+- Wrangler server running in another tab
 - Manual runtime startup as needed (`NOTEBOOK_ID=xyz pnpm dev:runtime`)
 
 **Checking Work**: If you need to verify changes:
