@@ -2,22 +2,31 @@
 
 **The notebook that thinks with you.**
 
-Anode is an agentic notebook where AI, code, and prose work together in real-time. Never lose your outputs when tabs close. Collaborate with AI that sees your data, not just your code. Pair with compute and intelligence, not just humans.
+Anode is an **agentic notebook** where AI, code, and prose work together in real-time. Never lose your outputs when tabs close. Collaborate with AI that sees your data, not just your code. Pair with compute and intelligence.
 
-<!-- **Try it live**: https://anode.pages.dev -->
 **Note**: Public access coming soon - building BYOC and permissions first
 
 ## The Jupyter Problem We're Solving
 
-**Jupyter's core flaw**: Outputs disappear when kernels restart. Notebooks are trapped in single processes. AI tools operate in isolation from your actual work.
+As a long-time Jupyter contributor, I've always wanted to solve a core architectural limitation: computation and documentation are artificially coupled.
 
-**Anode's solution**: Persistent outputs that survive kernel restarts. AI that sees your data and can actively participate in development. Real-time collaboration that just works.
+At Netflix, I watched people hold their laptops open walking to the parking lot, hoping their Spark jobs would finish before they lost their browser session. Your analysis is running on powerful clusters, but the results only "exist" in your specific browser tab.
+
+**The core problem**: You can't open the same notebook in multiple tabs. Multiple people can't collaborate on the same server without conflicts. Your work is trapped in a single browser session.
+
+**Why this happens**: Jupyter's architecture wasn't designed for concurrent access. The notebook exists as a file on disk, but the live state (outputs, execution results) only lives in your browser. Close that tab, and you lose the connection to work happening elsewhere.
+
+**The bigger picture**: Your Spark job runs on a cluster. Your model trains on GPUs. But somehow, the results are locked to the browser tab where you started them. Modern computational work deserves better.
+
+Jupyter's developers built something incredible that changed how we compute. Collaboration has been challenging to implement well, and we think our event-sourced approach offers a path forward that could benefit the broader ecosystem.
+
+**Anode's approach**: Persistent outputs that survive browser crashes, tab closures, and device switches. Real-time collaboration without conflicts. AI that sees your actual results. Full Jupyter compatibility through .ipynb import/export. Your computation lives independently of any browser session.
 
 ## Agentic Notebook Vision
 
 - **AI as development partner** - AI sees your outputs, creates cells, suggests next steps
-- **Persistent computation** - Your work survives kernel crashes, tab closes, browser restarts  
-- **Seamless collaboration** - Multiple minds (human and AI) working on the same notebook
+- **Persistent computation** - Your work survives kernel crashes, tab closes, browser restarts, vpn disconnects, cafe WiFi
+- **Seamless collaboration** - Your friends, local models, and foundational models working on the same notebook
 - **Context-aware intelligence** - AI understands your data, not just your code
 - **Zero-friction execution** - Code runs instantly, results appear everywhere
 
@@ -63,7 +72,6 @@ NOTEBOOK_ID=your-notebook-id pnpm dev:runtime
 ```
 - Add an AI cell and ask questions about your data
 - Falls back to mock responses if no API key is set
-- API keys are kept server-side for security
 
 ## Using Deployed Cloudflare Workers (Optional)
 
@@ -71,7 +79,9 @@ Instead of running everything locally, you can use a deployed Cloudflare Worker 
 
 ### Quick Setup for Deployed Worker
 
-1. **Get deployment details** from your team (worker URL and auth token)
+1. **Deploy the sync backend** - Only the docworker needs deployment for collaboration
+
+**Get deployment details** from your team (worker URL and auth token)
 
 2. **Update web client config** in `packages/web-client/.env`:
    ```env
@@ -104,8 +114,8 @@ Instead of running everything locally, you can use a deployed Cloudflare Worker 
 
 ## What You Can Do Today
 
-### 🤖 AI That Sees Your Work
-- AI analyzes your data outputs, not just source code
+### 🌎 Modeling your world
+- No more copy pasting. Models can see code and outputs
 - Ask questions about your plots, tables, and results
 - AI creates new cells based on your notebook context
 - Control what context AI sees with visibility toggles
@@ -113,40 +123,26 @@ Instead of running everything locally, you can use a deployed Cloudflare Worker 
 ### 🔄 Persistent Computation
 - Outputs survive kernel restarts and browser crashes
 - Work offline, sync when connected
-- Rich outputs: matplotlib plots, pandas tables, colored terminal
-- Zero-latency execution with instant feedback
+- Rich outputs: plots, tables, colorized terminal output
+- Package caching for fast startup (numpy, pandas, matplotlib)
 
 ### 👥 Real-Time Collaboration
-- Multiple people editing simultaneously without conflicts
+- Multiple people editing simultaneously
 - Mobile-responsive design for editing on any device
-- Google OAuth for secure access
-- Share notebooks with permanent URLs
-
-### 🚀 Production Ready
-- Deployed and tested with 99.9% uptime
-- 107 passing tests ensuring reliability
-- Handles complex workflows with scientific Python stack
-- Package caching for fast startup (numpy, pandas, matplotlib)
+- Google OAuth for secure access (when deployed)
+- Share notebooks by copying the URL
 
 ## Coming Soon
 
-### 🔮 Enhanced AI Partnership
-- AI can modify existing cells and execute code
-- User confirmation flows for AI-initiated actions
-- Streaming responses for better conversation flow
-- Multi-turn AI conversations with notebook context
+See [ROADMAP.md](./ROADMAP.md) for detailed implementation plan.
 
-### ⚡ Frictionless Experience
-- One-click kernel startup (no more copy/paste commands)
-- Automatic kernel health monitoring and restart
-- "Bring Your Own Compute" with API tokens
-- Advanced error recovery and user guidance
+**Enhanced AI Partnership** - AI will modify existing cells and execute code, not just create new ones.
 
-### 🔗 Extended Capabilities
-- SQL cells for database queries
-- Interactive widgets for data exploration
-- Code completion and variable inspection
-- Multi-language support beyond Python
+**Frictionless Setup** - One-click kernel startup instead of copy/paste commands.
+
+**Production Scale** - "Bring Your Own Compute" with API tokens for enterprise use.
+
+**Multi-language Support** - The runtime architecture already supports other languages, just need UI updates!
 
 ## Local Development
 
@@ -167,17 +163,7 @@ pnpm dev:sync-only      # Sync backend
 ### Configuration
 Setup automatically creates `.env` files in the right places. To enable AI features, add your OpenAI API key to `packages/pyodide-runtime-agent/.env`.
 
-## Roadmap
 
-We're rapidly building toward the full agentic notebook vision. Next up:
-
-**Enhanced AI Partnership** - AI will soon modify existing cells and execute code, not just create new ones.
-
-**Frictionless Setup** - One-click kernel startup instead of copy/paste commands.
-
-**Production Scale** - "Bring Your Own Compute" with API tokens for enterprise use.
-
-See [ROADMAP.md](./ROADMAP.md) for detailed implementation plan and timelines.
 
 ## Troubleshooting
 
@@ -196,9 +182,9 @@ See [ROADMAP.md](./ROADMAP.md) for detailed implementation plan and timelines.
 
 **Never lose your work**: Event-sourced architecture means every change is preserved. Your outputs survive crashes, restarts, and network issues.
 
-**AI sees your data**: Unlike other tools, AI has access to your actual outputs - plots, tables, error messages - not just source code.
+**AI sees your data**: Unlike other tools, AI has access to your actual outputs—plots, tables, error messages—not just source code. We have a full interactive runtime, so let it enjoy interactive computing too!
 
-**Real-time everywhere**: Changes appear instantly across all connected devices. Collaboration without conflicts.
+**Real-time everywhere**: Changes appear instantly across all connected devices. Collaboration without having to email Untitled234.ipynb again.
 
 **Local-first**: Works offline, syncs when connected. Your notebook is always responsive, never waiting for the cloud.
 
@@ -223,7 +209,7 @@ We're building the notebook where humans and AI truly collaborate. Help us get t
 
 **🤖 Make AI Smarter**
 - Teach AI to modify cells and execute code
-- Build confirmation flows for safe AI actions  
+- Build confirmation flows for safe AI actions
 - Create streaming conversations with notebook context
 
 **⚡ Remove Friction**
@@ -231,7 +217,7 @@ We're building the notebook where humans and AI truly collaborate. Help us get t
 - Build "Bring Your Own Compute" for production scale
 - Design better error recovery and guidance
 
-**🔗 Expand Capabilities**  
+**🔗 Expand Capabilities**
 - Add SQL cells for database workflows
 - Create interactive widgets for data exploration
 - Build code completion and variable inspection
@@ -241,18 +227,7 @@ We're building the notebook where humans and AI truly collaborate. Help us get t
 - Provide feedback on AI collaboration features
 - Help define what agentic notebooks should become
 
-Ready to contribute? The codebase is solid (107 passing tests, zero TypeScript errors) and the architecture is designed for expansion.
-
-## The Future of Notebooks
-
-Traditional notebooks trap you in single processes with fragile state. Anode breaks free:
-
-- **Persistent by design** - Your work survives anything
-- **AI as true partner** - Not just a chatbot, but a collaborator that sees your data
-- **Real-time collaboration** - Multiple minds working seamlessly together
-- **Production ready** - Built for real workflows, not just demos
-
-This is where notebooks are headed. Join us in building it.
+Ready to contribute? We'd love to have you.
 
 ---
 
