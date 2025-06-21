@@ -86,6 +86,8 @@ export const tables = {
   }),
 
   // Kernel lifecycle management
+  // NOTE: Each notebook should have exactly ONE active kernel at a time
+  // Multiple entries only exist during kernel transitions/handoffs
   kernelSessions: State.SQLite.table({
     name: "kernelSessions",
     columns: {

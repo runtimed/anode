@@ -2,7 +2,7 @@
 
 This document provides essential context for AI assistants working on the Anode project.
 
-For current work state and immediate next steps, see `HANDOFF.md` - it provides an honest assessment of what's working versus what needs development.
+This document provides the current work state and immediate next steps with an honest assessment of what's working versus what needs development.
 
 **Development Workflow**: The user will typically be running the wrangler server and web client in separate tabs. If you need to check work, run a build and/or lints, tests, typechecks. If the user isn't running the dev environment, tell them how to start it at the base of the repo with pnpm.
 
@@ -30,37 +30,54 @@ Anode is a real-time collaborative notebook system built on LiveStore, an event-
 
 ### What's Actually Working ✅
 - ✅ **LiveStore integration** - Event-sourcing with real-time collaboration working reliably
-- ✅ **Basic Python execution** - Code cells run Python via Pyodide (manual runtime startup)
+- ✅ **Python execution** - Code cells run Python via Pyodide with rich outputs (matplotlib SVG, pandas HTML, IPython.display)
 - ✅ **Real-time collaboration** - Multiple users can edit notebooks simultaneously
 - ✅ **Cell management** - Create, edit, move, delete cells with proper state sync
-- ✅ **Reactive architecture** - Runtime work detection without polling delays
-- ✅ **Text output handling** - Basic print statements and error display
-- ✅ **AI integration** - OpenAI API responses when OPENAI_API_KEY is set, graceful fallback to mock
+- ✅ **Rich output rendering** - Full IPython display support: matplotlib SVG, pandas HTML, colored terminal output
+- ✅ **AI integration** - Full notebook context awareness, sees previous cells and their outputs
+- ✅ **AI tool calling** - AI can create new cells using OpenAI function calling
+- ✅ **Context inclusion controls** - Users can exclude cells from AI context with visibility toggles
+- ✅ **Production deployment** - Web client and sync backend deployed to Cloudflare (Pages + Workers)
+- ✅ **Authentication** - Google OAuth and fallback token system working in production
+- ✅ **Mobile support** - Responsive design with mobile keyboard optimizations
 - ✅ **Offline-first operation** - Works without network, syncs when connected
 
 ### What Needs Enhancement 🚧
-- 🚧 **Rich output rendering** - IPython integration code exists but needs verification
-- 🚧 **AI tool calling** - AI can't create cells, modify content, or execute code
-- 🚧 **Context inclusion controls** - Users can't exclude cells from AI context
-- 🚧 **MCP integration** - No Model Context Protocol support for extensible AI tools
-- 🚧 **Display system** - Matplotlib, pandas support partially implemented
-- 🚧 **Automated runtime management** - Manual startup creates friction
+- 🚧 **AI tool calling expansion** - AI can only create cells, needs modify/execute functions
+- 🚧 **Automated runtime management** - Manual startup creates friction, need "Bring Your Own Compute" with API tokens
+- 🚧 **Kernel orchestration** - Production deployment lacks automatic kernel provisioning
 
-### Core Architecture Features
+### Core Architecture Constraints
 - `NOTEBOOK_ID = STORE_ID`: Each notebook gets its own LiveStore database
 - **Event-sourced state**: All changes flow through LiveStore events
-- **Reactive execution**: `executionRequested` → `executionAssigned` → `executionStarted` → `executionCompleted`
+- **Reactive execution**: `executionRequested` → `executionAssigned` → `executionStarted` → `executionCompleted` events, materialized table is an execution queue
 - **Direct TypeScript schema**: No build step, imports work across packages
 - **Session-based runtimes**: Each runtime restart gets unique `sessionId`
+- **One kernel per notebook**: Each notebook has exactly one active kernel at a time
+
+### Kernel-Notebook Relationship
+
+**One Kernel Per Notebook**: Each notebook should have exactly one active kernel at any time. Multiple kernels on the same notebook should only occur during transition periods (kernel restart/handoff).
+
+**Kernel Lifecycle**:
+- Notebook created → No kernel (user must start one)
+- User starts kernel → Becomes the sole kernel for that notebook
+- Kernel crashes/stops → Notebook has no kernel until user starts new one
+- Kernel restart → Brief overlap during handoff, then old kernel terminates
+
+**Not Yet Implemented**: Automatic kernel orchestration, graceful handoffs, kernel health monitoring. Currently manual kernel startup creates potential for multiple kernels during transitions.
 
 ## Development Commands
 
 ```bash
 # Setup
-pnpm install             # Automatically creates package .env files with defaults
+pnpm install  # Automatically creates package .env files with defaults
 
-# Start core services (web + sync)
-pnpm dev
+# In separate tabs run
+## Tab 1:
+pnpm dev:web-only
+## Tab 2:
+pnpm dev:sync-only
 
 # Start runtime (get command from notebook UI)
 # Get runtime command from notebook UI, then:
@@ -80,37 +97,26 @@ pnpm cache:clear       # Clear package cache
 
 **Priority Focus**: Verify core functionality works, then remove friction
 
-### Phase 1: Prove It Works (Next 2 weeks)
-- **Integration Testing** - Real Pyodide tests to verify Python execution claims
-- **Rich Output Verification** - Test matplotlib, pandas, IPython.display actually work
+### Phase 1: Enhanced AI & Runtime Management (Next 2 weeks)
+- **AI Function Calling Expansion** - AI can modify cell content and execute code (beyond just creating cells)
+- **User-Attributed Kernels** - API token system for "Bring Your Own Compute" runtime agents
 - **Automated Runtime Management** - Remove manual `NOTEBOOK_ID=xyz pnpm dev:runtime` friction
-- **Error Handling** - Better user feedback when things fail
+- **AI Tool Calling Confirmation** - User confirmation flows for AI-initiated actions
 
-### Phase 2: AI Tool Calling & Context Controls (Next 1-2 months)
-- **AI Function Calling** - AI can create cells, modify content, and execute code using OpenAI function calling
-- **Context Inclusion Controls** - Users can mark cells as included/excluded from AI context
-- **Tool Execution Framework** - Reactive system handles AI tool calls with user confirmation
-- **Enhanced AI-Notebook Interaction** - AI becomes active development partner
-- **Package Cache Optimization** - Smart pre-loading and shared team caches
+**Priority Focus**: Verify core functionality works, then remove friction
 
-### Phase 3: Advanced Features (Next 2-3 months)
-- **MCP Integration** - Model Context Protocol support for extensible AI tooling via Python runtime
+**Next Major Feature**: User-attributed kernel system with API tokens to enable "Bring Your Own Compute" - users get API tokens to run standalone runtime agents, removing kernel orchestration complexity while enabling production-scale compute.
+
+### Phase 2: Advanced Features (Next 2-3 months)
 - **SQL Cell Implementation** - Database connections and query results
 - **Interactive Widgets** - IPython widgets support for collaborative elements
-- **Authentication System** - Google OAuth with proper session management
-
-### Phase 4: Production (Next quarter)
-- **Performance Optimization** - Handle large notebooks efficiently
 - **Code Completions** - LSP + kernel-based suggestions
-- **Advanced Visualizations** - 3D plots, interactive charts
-- **Production Deployment** - Self-hosted and cloud options
+- **Kernel Orchestration** - Production automatic kernel provisioning
 
 ## Important Considerations
 
 ### Schema Design
-- **Direct TypeScript imports**: `shared/schema.ts` provides zero-build-step imports with full type inference across all packages
-- **Single source of truth**: No compiled artifacts needed - TypeScript handles type checking from source
-- **No timestamp fields** - LiveStore handles timing automatically
+- **Direct TypeScript imports**: `shared/schema.ts` provides zero-build-step imports with type inference across all packages
 
 ### ⚠️ CRITICAL: Materializer Determinism Requirements
 
@@ -133,11 +139,11 @@ LiveStore requires all materializers to be **pure functions without side effects
 ```typescript
 // ✅ CORRECT - All needed data in event payload
 "v1.ExecutionCompleted": ({ queueId, cellId, status }) => [
-  tables.executionQueue.update({ 
-    status: status === "success" ? "completed" : "failed" 
+  tables.executionQueue.update({
+    status: status === "success" ? "completed" : "failed"
   }).where({ id: queueId }),
-  tables.cells.update({ 
-    executionState: status === "success" ? "completed" : "error" 
+  tables.cells.update({
+    executionState: status === "success" ? "completed" : "error"
   }).where({ id: cellId }),
 ]
 ```
@@ -155,7 +161,7 @@ LiveStore requires all materializers to be **pure functions without side effects
 The project recently resolved a major stability issue where 3rd+ runtime sessions would fail to receive work assignments due to LiveStore materializer hash mismatches. This was caused by non-deterministic materializers using `ctx.query()` calls.
 
 **What was broken:**
-- ExecutionCompleted, ExecutionCancelled, and ExecutionStarted materializers were using `ctx.query()` 
+- ExecutionCompleted, ExecutionCancelled, and ExecutionStarted materializers were using `ctx.query()`
 - This made them non-deterministic, causing LiveStore to shut down with "UnexpectedError materializer hash mismatch"
 - Runtime restarts would accumulate terminated sessions and eventually fail
 
@@ -186,65 +192,106 @@ The project recently resolved a major stability issue where 3rd+ runtime session
 - TypeScript strict mode enabled
 
 ## File Structure
+
 ```
 anode/
 ├── shared/
-│   └── schema.ts         # LiveStore schema - TypeScript source directly imported by all packages
+│   └── schema.ts                    # LiveStore schema - TypeScript source directly imported by all packages
 ├── packages/
-│   ├── web-client/       # React web application
-│   ├── docworker/        # Cloudflare Worker sync backend
-│   └── pyodide-runtime-agent/  # Python runtime server
-├── docs/                 # Documentation directory
-│   ├── README.md         # Documentation index
-│   ├── ai-features.md        # AI setup and usage guide
-│   ├── display-system.md # Display system architecture
-│   ├── TESTING.md        # Testing strategy and gaps
-│   ├── ui-design.md      # Interface design guidelines
-│   └── display-examples.md # Practical usage examples
-├── HANDOFF.md           # Current work state and priorities
-├── ROADMAP.md           # Long-term vision and milestones
-├── package.json         # Root workspace configuration
-└── pnpm-workspace.yaml  # Dependency catalog
+│   ├── web-client/                  # React web application (@anode/web-client)
+│   │   ├── src/components/notebook/ # Notebook interface components
+│   │   ├── dist/                    # Built assets for Cloudflare Pages deployment
+│   │   └── package.json             # Vite + React + LiveStore dependencies
+│   ├── docworker/                   # Cloudflare Worker sync backend (@anode/docworker)
+│   │   ├── src/index.ts             # Worker entry point with LiveStore sync
+│   │   ├── wrangler.toml            # Cloudflare Worker configuration
+│   │   └── package.json             # Minimal Worker dependencies
+│   └── pyodide-runtime-agent/       # Python runtime server (@anode/pyodide-runtime-agent)
+│       ├── src/                     # TypeScript runtime implementation
+│       │   ├── runtime-agent.ts     # Main execution coordinator
+│       │   ├── pyodide-kernel.ts    # Python execution via Pyodide
+│       │   └── openai-client.ts     # AI integration
+│       └── package.json             # Node.js runtime dependencies
+├── docs/                            # Comprehensive documentation (11 files)
+│   ├── README.md                    # Documentation index and navigation
+│   ├── runtime-agent-architecture.md # Core system design
+│   ├── ai-features.md               # AI integration setup and capabilities
+│   ├── display-system.md            # IPython display system architecture
+│   ├── display-examples.md          # Rich output usage examples
+│   ├── ui-design.md                 # Interface design guidelines
+│   ├── TESTING.md                   # Testing strategy and current gaps
+│   ├── ai-context-visibility.md     # Context control implementation
+│   ├── pyodide_cache.md             # Package caching system
+│   ├── ui-enhancements-demo.md      # UI improvement showcase
+│   ├── IMPLEMENTATION_SUMMARY.md    # Technical implementation details
+│   └── proposals/                   # Architecture proposals (6 files)
+│       ├── ai-tool-calling.md       # OpenAI function calling architecture
+│       ├── ai-context-controls.md   # Context visibility system
+│       ├── completion-system.md     # Code completion design
+│       ├── kernel-management.md     # Runtime automation
+│       ├── mcp-integration.md       # Model Context Protocol analysis
+│       └── updateable-outputs.md    # Jupyter compatibility
+├── examples/
+│   └── ai-context-demo.md           # AI context demonstration
+├── test/                            # Test suite
+│   ├── README.md                    # Test documentation
+│   ├── basic.test.ts                # Core functionality tests
+│   ├── edge-cases.test.ts           # Edge case handling
+│   ├── integration/                 # Integration test suite
+│   └── fixtures/                    # Test data and mocks
+├── scripts/
+│   └── setup.js                     # Environment setup automation
+├── .github/                         # GitHub configuration
+├── AGENTS.md                        # AI agent development context (this file)
+├── ROADMAP.md                       # Long-term vision and milestones
+├── DEPLOYMENT.md                    # Cloudflare deployment guide
+├── CONTRIBUTING.md                  # Contribution guidelines
+├── README.md                        # Project overview and quick start
+├── package.json                     # Root workspace configuration and scripts
+├── pnpm-workspace.yaml              # Workspace definitions
+├── vitest.config.ts                 # Test runner configuration
+└── tsconfig.json                    # TypeScript project configuration
 ```
+
+**Deployment Architecture (Cloudflare):**
+- **Pages**: Web client deployed to `https://anode.pages.dev`
+- **Workers**: Sync backend deployed to `https://anode-docworker.rgbkrk.workers.dev`
+- **D1**: Database for production data persistence
+- **Secrets**: Authentication tokens and API keys managed via Cloudflare dashboard
 
 ## Notes for AI Assistants
 
-**Current Status - Working Prototype 
-- **LiveStore foundation** solid with real-time collaborative editing
-- **Basic Python execution** working via Pyodide (needs integration testing)
-- **Rich output system** architecture in place but verification needed
-- **AI integration** - OpenAI API working but lacks notebook context and tools
+**Current Status - Production Deployment Working**
+- **LiveStore foundation** - Real-time collaborative editing deployed and stable
+- **Full Python execution** - Rich outputs working (matplotlib, pandas, IPython.display)
+- **Complete AI integration** - Full notebook context awareness, can create cells
+- **Production deployment** - Cloudflare Pages + Workers with authentication
 - **Direct TypeScript schema** - No build complexity across packages
-- **Event-sourced architecture** - Excellent debugging and audit capabilities
-- **Package caching system** - Node.js package cache for faster Python execution
 
 ### Key Development Insights
-- **LiveStore integration** provides solid collaborative foundation
+- **Production deployment achieved** - Full stack working on Cloudflare infrastructure
+- **Rich outputs working** - Complete IPython display compatibility with matplotlib, pandas
+- **AI context awareness complete** - AI sees full notebook state including outputs
 - **Reactive architecture** eliminates polling delays for execution
-- **Event sourcing** enables powerful undo/redo and conflict resolution
-- **Direct function calls** approach eliminates quote escaping complexity
-- **Unified execution system** makes all cell types work through same queue
-- **Manual runtime startup** creates significant user friction
+- **Manual runtime startup** remains the main friction point for users
 
 ### Immediate Technical Goals
-- **AI tool calling infrastructure** - Enable AI to create/modify cells using OpenAI function calling
-- **Context inclusion controls** - Let users control what cells AI can see for context
-- **Integration testing** to verify Python execution and rich outputs actually work
-- **MCP integration foundation** - Architecture for Model Context Protocol providers via Python runtime
-- **Automated runtime management** to remove manual startup friction
-- **Better error handling** for improved user experience
+- **AI tool calling expansion** - Enable AI to modify content and execute code (beyond creating cells)
+- **User-attributed kernels** - API token system for "Bring Your Own Compute"
+- **Automated kernel orchestration** - Production runtime provisioning
 
 ### Communication Style
 - Use authentic developer voice - uncertainty is fine, just be explicit
 - Be honest about current prototype status while preserving the collaborative vision
 - Focus on proving core functionality works before claiming production readiness
 - Emphasize the solid LiveStore foundation and collaborative advantages
+- Clarity is essential. Being concise moreso.
 
 ## Development Workflow Notes
 
 **User Environment**: The user will typically have:
 - Web client running in one tab (`pnpm dev`)
-- Wrangler server running in another tab 
+- Wrangler server running in another tab
 - Manual runtime startup as needed (`NOTEBOOK_ID=xyz pnpm dev:runtime`)
 
 **Checking Work**: If you need to verify changes:
@@ -262,8 +309,11 @@ Tell them to start at the base of the repo:
 # Setup environment
 pnpm install         # Automatically creates package .env files with defaults
 
-# Start core services
-pnpm dev             # Web client + sync backend
+# In separate tabs run
+## Tab 1:
+pnpm dev:web-only
+## Tab 2:
+pnpm dev:sync-only
 
 # Warm up package cache for faster Python execution (recommended)
 pnpm cache:warm-up   # Pre-loads numpy, pandas, matplotlib, requests, etc.
@@ -274,8 +324,6 @@ pnpm cache:warm-up   # Pre-loads numpy, pandas, matplotlib, requests, etc.
 
 ## Important Development Notes
 
-**Do NOT use manual timestamps in code or events.** LiveStore automatically handles all timing through its event sourcing system. Focus development on features and architecture rather than timestamp management.
-
 **⚠️ CRITICAL: Do NOT use `ctx.query()` in materializers.** This causes LiveStore materializer hash mismatches and kernel restart failures (see bug #34 - RESOLVED in commits 6e0fb4f and a1bf20d). All materializers must be pure functions with all needed data passed via event payload.
 
 **Testing is Critical**: Many claims about functionality need verification through proper integration tests. Core features exist but integration testing is minimal.
@@ -284,8 +332,6 @@ pnpm cache:warm-up   # Pre-loads numpy, pandas, matplotlib, requests, etc.
 
 **Context Control**: Users need granular control over what context AI sees, especially in large notebooks where token limits matter.
 
-**MCP Integration**: Long-term vision includes Model Context Protocol integration via Python kernel for unlimited AI tool extensibility.
-
 **Kernel Management**: Manual kernel startup (copying command from UI) creates user friction and should be a high priority to fix.
 
-**Be Honest About Status**: This is a prototype with great potential, not a production-ready system. The LiveStore foundation is solid, but execution and rich output claims need verification.
+**Current Reality**: This is a working system deployed to production with core Jupyter functionality. Rich outputs, real-time collaboration, and AI integration are functional. Main gap is automated runtime management.
