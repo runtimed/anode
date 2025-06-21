@@ -187,28 +187,72 @@ The project recently resolved a major stability issue where 3rd+ runtime session
 
 ## File Structure
 
-TODO: re-generate
-
 ```
 anode/
 ├── shared/
-│   └── schema.ts         # LiveStore schema - TypeScript source directly imported by all packages
+│   └── schema.ts                    # LiveStore schema - TypeScript source directly imported by all packages
 ├── packages/
-│   ├── web-client/       # React web application
-│   ├── docworker/        # Cloudflare Worker sync backend
-│   └── pyodide-runtime-agent/  # Python runtime server
-├── docs/                 # Documentation directory
-│   ├── README.md         # Documentation index
-│   ├── ai-features.md        # AI setup and usage guide
-│   ├── display-system.md # Display system architecture
-│   ├── TESTING.md        # Testing strategy and gaps
-│   ├── ui-design.md      # Interface design guidelines
-│   └── display-examples.md # Practical usage examples
-├── HANDOFF.md           # Current work state and priorities
-├── ROADMAP.md           # Long-term vision and milestones
-├── package.json         # Root workspace configuration
-└── pnpm-workspace.yaml  # Dependency catalog
+│   ├── web-client/                  # React web application (@anode/web-client)
+│   │   ├── src/components/notebook/ # Notebook interface components
+│   │   ├── dist/                    # Built assets for Cloudflare Pages deployment
+│   │   └── package.json             # Vite + React + LiveStore dependencies
+│   ├── docworker/                   # Cloudflare Worker sync backend (@anode/docworker)
+│   │   ├── src/index.ts             # Worker entry point with LiveStore sync
+│   │   ├── wrangler.toml            # Cloudflare Worker configuration
+│   │   └── package.json             # Minimal Worker dependencies
+│   └── pyodide-runtime-agent/       # Python runtime server (@anode/pyodide-runtime-agent)
+│       ├── src/                     # TypeScript runtime implementation
+│       │   ├── runtime-agent.ts     # Main execution coordinator
+│       │   ├── pyodide-kernel.ts    # Python execution via Pyodide
+│       │   └── openai-client.ts     # AI integration
+│       └── package.json             # Node.js runtime dependencies
+├── docs/                            # Comprehensive documentation (11 files)
+│   ├── README.md                    # Documentation index and navigation
+│   ├── runtime-agent-architecture.md # Core system design
+│   ├── ai-features.md               # AI integration setup and capabilities
+│   ├── display-system.md            # IPython display system architecture
+│   ├── display-examples.md          # Rich output usage examples
+│   ├── ui-design.md                 # Interface design guidelines
+│   ├── TESTING.md                   # Testing strategy and current gaps
+│   ├── ai-context-visibility.md     # Context control implementation
+│   ├── pyodide_cache.md             # Package caching system
+│   ├── ui-enhancements-demo.md      # UI improvement showcase
+│   ├── IMPLEMENTATION_SUMMARY.md    # Technical implementation details
+│   └── proposals/                   # Architecture proposals (6 files)
+│       ├── ai-tool-calling.md       # OpenAI function calling architecture
+│       ├── ai-context-controls.md   # Context visibility system
+│       ├── completion-system.md     # Code completion design
+│       ├── kernel-management.md     # Runtime automation
+│       ├── mcp-integration.md       # Model Context Protocol analysis
+│       └── updateable-outputs.md    # Jupyter compatibility
+├── examples/
+│   └── ai-context-demo.md           # AI context demonstration
+├── test/                            # Test suite
+│   ├── README.md                    # Test documentation
+│   ├── basic.test.ts                # Core functionality tests
+│   ├── edge-cases.test.ts           # Edge case handling
+│   ├── integration/                 # Integration test suite
+│   └── fixtures/                    # Test data and mocks
+├── scripts/
+│   └── setup.js                     # Environment setup automation
+├── .github/                         # GitHub configuration
+├── AGENTS.md                        # AI agent development context (this file)
+├── HANDOFF.md                       # Current work state and priorities
+├── ROADMAP.md                       # Long-term vision and milestones
+├── DEPLOYMENT.md                    # Cloudflare deployment guide
+├── CONTRIBUTING.md                  # Contribution guidelines
+├── README.md                        # Project overview and quick start
+├── package.json                     # Root workspace configuration and scripts
+├── pnpm-workspace.yaml              # Workspace definitions
+├── vitest.config.ts                 # Test runner configuration
+└── tsconfig.json                    # TypeScript project configuration
 ```
+
+**Deployment Architecture (Cloudflare):**
+- **Pages**: Web client deployed to `https://anode.pages.dev`
+- **Workers**: Sync backend deployed to `https://anode-docworker.rgbkrk.workers.dev`
+- **D1**: Database for production data persistence
+- **Secrets**: Authentication tokens and API keys managed via Cloudflare dashboard
 
 ## Notes for AI Assistants
 
