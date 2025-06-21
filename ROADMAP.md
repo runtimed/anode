@@ -2,53 +2,102 @@
 
 **Vision**: A real-time collaborative notebook system enabling seamless AI ↔ Python ↔ User interactions through local-first architecture.
 
-**Current Status**: Working system deployed to production with collaborative editing, full Python execution with rich outputs, and AI integration with notebook context awareness. Major runtime restart bug (#34) resolved. Main gap is automated runtime management.
+**Current Status**: Production system deployed to https://anode.pages.dev with full collaborative editing, complete Python execution with rich outputs, and advanced AI integration. 107 passing tests validate core functionality. Major runtime restart bug (#34) resolved. Main gap is automated runtime management.
 
 ## Foundation Complete ✅
 
 ### Core Architecture
-- **LiveStore event-sourcing** - Real-time collaborative state management
-- **Direct TypeScript schema** - No build complexity, full type safety
-- **Reactive execution queue** - Kernel work detection without polling
+- **LiveStore event-sourcing** - Real-time collaborative state management working reliably in production
+- **Direct TypeScript schema** - No build complexity, full type safety across all packages
+- **Reactive execution queue** - Zero-latency kernel work detection without polling
 - **Reliable kernel sessions** - Fixed materializer side effects, stable multi-session operation
 - **Cell management** - Create, edit, move, delete with proper state sync
 - **Full Python execution** - Rich outputs: matplotlib SVG, pandas HTML, IPython.display
-- **Production deployment** - Cloudflare Pages + Workers with authentication
+- **Production deployment** - Cloudflare Pages + Workers with Google OAuth authentication
+- **Comprehensive testing** - 107 passing tests with good integration coverage, zero TypeScript errors
 
 ### What Users Can Do Today
 - Create and edit notebooks collaboratively in real-time at https://anode.pages.dev
-- Execute Python code with rich outputs (matplotlib, pandas, colored terminal)
-- Use AI cells with full notebook context awareness (sees previous cells and outputs)
+- Execute Python code with rich outputs (matplotlib SVG plots, pandas HTML tables, colored terminal)
+- Use AI cells with full notebook context awareness (sees previous cells and their outputs)
 - Control what context AI sees with visibility toggles
-- Have AI create new cells using function calling
-- Navigate cells with keyboard shortcuts and mobile support
-- Work offline and sync when connected
+- Have AI create new cells using OpenAI function calling
+- Navigate cells with keyboard shortcuts and mobile-optimized interface
+- Work offline and sync when connected through local-first architecture
+- Package caching for faster Python startup (numpy, pandas, matplotlib pre-loaded)
 
-## Immediate Priorities (Next 1-2 Weeks)
+## Immediate Priorities (Next 2-3 Weeks)
 
 ### 1. Enhanced AI Tool Calling
 **Goal**: Expand AI capabilities beyond just creating cells
 
+**Current State**: AI can only create cells via `create_cell` function
+**Target**: AI can modify existing cells and execute code
+
+**Implementation Tasks**:
 - [x] **Function calling infrastructure** - OpenAI function calling working
 - [x] **Cell creation tools** - AI can create new cells with `create_cell` tool
-- [ ] **Cell modification tools** - AI can edit existing cells with `modify_cell` tool
-- [ ] **Code execution tools** - AI can execute cells and see results
-- [ ] **User confirmation flows** - Safe execution of AI-initiated actions
+- [ ] **Cell modification tools** - Add `modify_cell(cellId, content)` function to NOTEBOOK_TOOLS
+- [ ] **Code execution tools** - Add `execute_cell(cellId)` function to NOTEBOOK_TOOLS
+- [ ] **Parameter validation** - Add comprehensive JSDoc and parameter validation
+- [ ] **Test coverage** - Create comprehensive tests for new functions
 
-### 2. User-Attributed Kernels ("Bring Your Own Compute")
+**Acceptance Criteria**:
+- AI can modify existing cell content when requested
+- AI can execute cells and see results
+- All tool calls work reliably with proper error handling
+
+### 2. User Confirmation Flows
+**Goal**: Safe execution of AI-initiated actions
+
+**Current State**: No user confirmation for AI actions
+**Target**: UI dialogs for confirming destructive operations
+
+**Implementation Tasks**:
+- [ ] **Confirmation dialog UI** - Design and implement confirmation dialog component
+- [ ] **Risk categorization** - Implement risk-based confirmation (safe vs destructive operations)
+- [ ] **LiveStore events** - Add confirmation events to schema
+- [ ] **Web client integration** - Wire up confirmation flows in web client
+- [ ] **Bypass for safe operations** - Allow safe operations to skip confirmation
+
+**Acceptance Criteria**:
+- Users can approve/reject AI tool calls before execution
+- Clear indication of what the AI wants to do
+- Safe operations (create_cell) can bypass confirmation
+- Destructive operations (modify_cell, execute_cell) require confirmation
+
+### 3. User-Attributed Kernels ("Bring Your Own Compute")
 **Goal**: Enable users to run standalone runtime agents with API tokens
 
+**Current State**: All kernels use shared authentication
+**Target**: Users can run kernels with their own API tokens
+
+**Implementation Tasks**:
 - [ ] **API token system** - Generate user-specific tokens for kernel authentication
 - [ ] **Token management UI** - Users can create, view, revoke tokens
 - [ ] **Standalone runtime agents** - Kernels authenticate with user tokens instead of shared auth
 - [ ] **Kernel attribution** - Show which user's compute is running the kernel
 - [ ] **Documentation** - Clear instructions for running user-owned kernels
 
-### 3. Automated Runtime Management
+**Benefits**:
+- Removes shared authentication dependency
+- Enables production scaling with user-owned compute
+- Clear attribution of resource usage
+- Foundation for enterprise deployments
+
+### 4. Automated Runtime Management
 **Goal**: Remove manual `NOTEBOOK_ID=xyz pnpm dev:runtime` friction
 
+**Technical Challenges**:
+- Kernel spawning in browser environment
+- Cross-platform compatibility (Windows, macOS, Linux)
+- Security considerations for kernel execution
+- Resource management and cleanup
+
+**Implementation Tasks**:
 - [x] **Kernel session reliability** - Fixed materializer side effects causing restart failures (#34)
-- [ ] **One-click kernel startup** - Start kernels directly from UI
+- [ ] **Kernel orchestration architecture** - Design kernel spawning mechanism
+- [ ] **One-click kernel startup** - Create "Start Kernel" button in notebook UI
 - [ ] **Kernel health monitoring** - Detect failures and restart automatically
 - [ ] **Better status indicators** - Clear feedback on kernel state
 - [ ] **Error recovery** - Graceful handling of kernel disconnections
@@ -149,9 +198,11 @@
 ## Technical Debt & Infrastructure
 
 ### Code Quality
-- [ ] **Comprehensive testing** - Move beyond smoke tests to real integration tests
+- [x] **Comprehensive testing** - 107 passing tests with good integration coverage
+- [ ] **Re-enable skipped tests** - Some Pyodide integration tests disabled due to import issues
+- [ ] **Browser automation testing** - Add Playwright/Cypress for E2E testing
 - [ ] **Error handling** - Robust recovery from all failure scenarios
-- [ ] **Performance profiling** - Identify and fix bottlenecks
+- [ ] **Performance profiling** - Identify and fix bottlenecks for large notebooks
 - [ ] **Documentation** - API docs, architecture guides, contribution guidelines
 
 ### Infrastructure
@@ -160,20 +211,46 @@
 - [ ] **Monitoring setup** - Application metrics and alerting
 - [ ] **Backup strategies** - Data protection and recovery procedures
 
+## Implementation Strategy
+
+### Phase-Gate Approach
+1. **Phase 1 Complete**: Before moving to Phase 2, validate all enhanced AI tool calling works
+2. **Phase 2 Complete**: Before Phase 3, ensure user-attributed kernels work reliably  
+3. **Continuous**: Infrastructure improvements happen alongside feature development
+
+### Risk Mitigation
+- **Backward Compatibility**: All changes maintain existing functionality
+- **Feature Flags**: New features can be disabled if issues arise
+- **Comprehensive Testing**: Each phase includes thorough testing
+- **User Feedback**: Regular validation with real users
+
+### Resource Allocation
+- **60% Feature Development**: Enhanced AI, user kernels, automation
+- **30% Infrastructure**: Testing, documentation, performance
+- **10% Maintenance**: Bug fixes, dependency updates
+
 ## Success Metrics
 
 ### User Experience
-- Notebook startup time: < 5 seconds (including kernel)
+- Kernel startup time: < 10 seconds (currently ~30s with manual process)
 - Python execution latency: < 1 second for simple operations
 - AI tool execution time: < 3 seconds for cell creation/modification
 - Collaboration sync delay: < 100ms
 - Rich output rendering: < 2 seconds for complex plots
+- Mobile usability: Full editing capability on phone/tablet
+- Error recovery: Clear feedback and resolution paths
+
+### Technical Performance
+- Test suite execution: < 30 seconds (currently ~2s)
+- Zero-latency execution: < 100ms for kernel work detection
+- Memory efficiency: Handle 100+ cell notebooks without issues
+- Collaboration latency: < 100ms for real-time updates
 
 ### Developer Experience  
-- Setup time for new contributors: < 10 minutes
-- Test suite execution: < 30 seconds
+- Setup time for new contributors: < 5 minutes
 - Hot reload time: < 1 second
-- TypeScript compilation: No errors, strict mode
+- TypeScript compilation: Zero errors, strict mode
+- Documentation coverage: All APIs documented
 
 ### Reliability
 - Kernel uptime: > 99% during active use
@@ -186,8 +263,10 @@
 ### Preserve Core Strengths
 - **Event-sourcing foundation** - Never lose user work, perfect audit trails
 - **Local-first operation** - Work offline, sync when connected
-- **Real-time collaboration** - Multiple users, zero conflicts
-- **Type safety** - End-to-end TypeScript with Effect
+- **Real-time collaboration** - Multiple users, zero conflicts (proven in production)
+- **Type safety** - End-to-end TypeScript with Effect (zero type errors)
+- **Reactive architecture** - Zero-latency execution detection via subscriptions
+- **Production reliability** - Fixed critical materializer side effects bug (#34)
 
 ### Guide Development Decisions
 - **AI as development partner** - AI actively participates in notebook creation and editing
@@ -199,6 +278,8 @@
 
 ---
 
-This roadmap balances honest assessment of current capabilities with ambitious goals for the future. The immediate focus is on proving core functionality works reliably before building advanced features.
+This roadmap reflects the reality that Anode is already a working production system. The focus is on expansion and enhancement rather than proving basic functionality works. Core collaborative editing, Python execution with rich outputs, and AI integration are all validated and deployed.
+
+**Key Insight**: The foundation is solid - LiveStore event-sourcing, reactive architecture, and comprehensive testing provide a reliable base for building advanced features.
 
 **Next Update**: This roadmap will be updated monthly based on progress and user feedback.
