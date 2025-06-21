@@ -36,41 +36,44 @@ See **[Runtime Agent Architecture](./runtime-agent-architecture.md)** for the co
 - **IPython**: Full Jupyter-compatible display system with custom hooks
 - **React**: Modern web interface with real-time collaborative editing
 
-### 🚀 Current Status: Working Prototype
+### 🚀 Current Status: Production System Working
 
-Core collaborative editing, Python execution, and basic AI integration functional:
+Core collaborative editing, full Python execution with rich outputs, and AI integration deployed:
 
 ✅ **Working Features:**
 - Real-time collaborative notebook editing via LiveStore
-- Basic Python execution via Pyodide (manual kernel startup)
-- AI integration - OpenAI API responses when OPENAI_API_KEY is set, graceful fallback to mock
-- Cell management (create, edit, move, delete)
-- Text output and error handling
+- Full Python execution with rich outputs (matplotlib SVG, pandas HTML, IPython.display)
+- Complete AI integration with notebook context awareness and cell creation tools
+- Cell management (create, edit, move, delete) with keyboard navigation
+- Rich output rendering with colored terminal output and SVG plots
+- Production deployment on Cloudflare Pages + Workers with authentication
+- Mobile responsive design with optimized keyboard handling
+- Context visibility controls - users can hide cells from AI context
 - Event-sourced architecture with offline capability
 
-🚧 **Needs Enhancement:**
-- Rich output rendering (matplotlib, pandas HTML tables) - needs verification
-- Enhanced AI features - notebook context awareness, tools for modifying cells
-- Automated runtime management
-- Comprehensive testing of display system
+🚧 **Next Enhancements:**
+- AI tool calling expansion (modify cells, execute code)
+- User-attributed kernels with API tokens for "Bring Your Own Compute"
+- Automated runtime management to remove manual startup
 
 ### 🎯 Next Priorities
 
 **Immediate Focus:**
-- Integration testing to verify Python execution and rich outputs
-- Enhanced AI integration (notebook context awareness, tools for modifying cells)
+- AI tool calling expansion (enable AI to modify existing cells and execute code)
+- User-attributed kernels with API tokens for "Bring Your Own Compute"
 - Automated runtime management to remove manual startup friction
-- Rich output verification (matplotlib SVG, pandas HTML)
 
 **AI Integration Status:**
-- ✅ Basic OpenAI API integration working
-- ⚠️ Current limitations: No notebook context, no tools for modifying notebook
-- 📋 Planned: Context awareness, streaming responses, notebook modification tools
+- ✅ Full OpenAI API integration with notebook context awareness
+- ✅ AI can see previous cells and their execution outputs
+- ✅ AI can create new cells using OpenAI function calling
+- ✅ Context visibility controls - users control what AI sees
+- 🚧 Planned: AI can modify existing cells and execute code
 
 **Other Planned Features:**
 - SQL cell execution
 - Interactive widgets
-- Production deployment
+- User-attributed kernels with API tokens
 
 ### 📚 Documentation Structure
 
@@ -97,9 +100,9 @@ docs/
 **Getting Started:**
 1. Read [runtime-agent-architecture.md](./runtime-agent-architecture.md) for the core system design
 2. Check [ai-features.md](./ai-features.md) for AI setup and current capabilities
-3. Review [testing.md](./testing.md) for current test strategy and gaps
-4. See [display-system.md](./display-system.md) for display system architecture
-5. Review [ui-design.md](./ui-design.md) for interface patterns
+3. See [display-system.md](./display-system.md) for display system architecture
+4. Review [ui-design.md](./ui-design.md) for interface patterns
+5. Check [proposals/](./proposals/) for upcoming features and architecture
 
 **Key Files:**
 - `packages/pyodide-runtime-agent/src/pyodide-kernel.ts` - Python execution runtime
@@ -138,15 +141,15 @@ When working on the display system:
 
 ### 📈 Roadmap
 
-**Phase 1: Core Prototype** ✅ **CURRENT**
-- LiveStore collaborative editing
-- Basic Python execution
-- Cell management and navigation
+**Phase 1: Core System** ✅ **COMPLETED**
+- LiveStore collaborative editing with real-time collaboration
+- Full Python execution with rich outputs (matplotlib, pandas, IPython.display)
+- Complete AI integration with context awareness and cell creation tools
+- Production deployment on Cloudflare with authentication
 
-**Phase 2: Rich Outputs & Enhanced AI** 🎯 **NEXT**
-- Integration testing for Python execution
-- Matplotlib and pandas display verification
-- Enhanced AI integration (context awareness, notebook tools)
+**Phase 2: Enhanced AI & Runtime Management** 🎯 **CURRENT**
+- AI tool calling expansion (modify cells, execute code)
+- User-attributed kernels with API tokens for "Bring Your Own Compute"
 - Automated runtime management
 
 **Phase 3: Advanced Features**
@@ -162,6 +165,5 @@ When working on the display system:
 ---
 
 For project-wide context and current work status, see:
-- [AGENTS.md](../AGENTS.md) - AI agent development context
-- [HANDOFF.md](../HANDOFF.md) - Current work state and priorities
+- [AGENTS.md](../AGENTS.md) - AI agent development context and current status
 - [ROADMAP.md](../ROADMAP.md) - Long-term vision and milestones

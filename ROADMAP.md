@@ -2,7 +2,7 @@
 
 **Vision**: A real-time collaborative notebook system enabling seamless AI ↔ Python ↔ User interactions through local-first architecture.
 
-**Current Status**: Core prototype with collaborative editing, basic Python execution, and AI integration with context awareness working. Major runtime restart bug (#34) resolved by fixing materializer side effects. AI tool calling and rich outputs in active development.
+**Current Status**: Working system deployed to production with collaborative editing, full Python execution with rich outputs, and AI integration with notebook context awareness. Major runtime restart bug (#34) resolved. Main gap is automated runtime management.
 
 ## Foundation Complete ✅
 
@@ -12,43 +12,46 @@
 - **Reactive execution queue** - Kernel work detection without polling
 - **Reliable kernel sessions** - Fixed materializer side effects, stable multi-session operation
 - **Cell management** - Create, edit, move, delete with proper state sync
-- **Basic Python execution** - Code cells run via Pyodide (manual kernel startup)
+- **Full Python execution** - Rich outputs: matplotlib SVG, pandas HTML, IPython.display
+- **Production deployment** - Cloudflare Pages + Workers with authentication
 
 ### What Users Can Do Today
-- Create and edit notebooks collaboratively in real-time
-- Execute Python code with text output and error handling
-- Use AI cells with context awareness of previous cells
-- Navigate cells with keyboard shortcuts
+- Create and edit notebooks collaboratively in real-time at https://anode.pages.dev
+- Execute Python code with rich outputs (matplotlib, pandas, colored terminal)
+- Use AI cells with full notebook context awareness (sees previous cells and outputs)
+- Control what context AI sees with visibility toggles
+- Have AI create new cells using function calling
+- Navigate cells with keyboard shortcuts and mobile support
 - Work offline and sync when connected
 
 ## Immediate Priorities (Next 1-2 Weeks)
 
-### 1. AI Tool Calling System
-**Goal**: Enable AI to actively participate in notebook development
+### 1. Enhanced AI Tool Calling
+**Goal**: Expand AI capabilities beyond just creating cells
 
-- [ ] **Function calling infrastructure** - OpenAI function calling support in AI client
-- [ ] **Cell creation tools** - AI can create new cells with `create_cell` tool
+- [x] **Function calling infrastructure** - OpenAI function calling working
+- [x] **Cell creation tools** - AI can create new cells with `create_cell` tool
 - [ ] **Cell modification tools** - AI can edit existing cells with `modify_cell` tool
-- [ ] **Tool execution framework** - Reactive system handles AI tool calls
+- [ ] **Code execution tools** - AI can execute cells and see results
 - [ ] **User confirmation flows** - Safe execution of AI-initiated actions
 
-### 2. Context Control System
-**Goal**: Users control what context AI sees
+### 2. User-Attributed Kernels ("Bring Your Own Compute")
+**Goal**: Enable users to run standalone runtime agents with API tokens
 
-- [ ] **Context inclusion flags** - Mark cells as included/excluded from AI context
-- [ ] **Context gathering enhancement** - Respect inclusion flags when building AI context
-- [ ] **UI controls** - Toggle buttons and indicators for context inclusion
-- [ ] **Context size management** - Handle large notebooks efficiently
-- [ ] **Visual feedback** - Clear indication of what AI can see
+- [ ] **API token system** - Generate user-specific tokens for kernel authentication
+- [ ] **Token management UI** - Users can create, view, revoke tokens
+- [ ] **Standalone runtime agents** - Kernels authenticate with user tokens instead of shared auth
+- [ ] **Kernel attribution** - Show which user's compute is running the kernel
+- [ ] **Documentation** - Clear instructions for running user-owned kernels
 
-### 3. Integration Testing & Verification
-**Goal**: Prove the system works as claimed
+### 3. Automated Runtime Management
+**Goal**: Remove manual `NOTEBOOK_ID=xyz pnpm dev:runtime` friction
 
-- [ ] **Real Pyodide integration tests** - Verify Python execution end-to-end
-- [ ] **AI tool calling tests** - Verify AI can create/modify cells successfully
-- [ ] **Rich output testing** - Matplotlib, pandas, IPython.display verification
-- [ ] **Performance validation** - Measure actual execution speeds vs claims
-- [ ] **Error scenario testing** - Kernel failures, network issues, edge cases
+- [x] **Kernel session reliability** - Fixed materializer side effects causing restart failures (#34)
+- [ ] **One-click kernel startup** - Start kernels directly from UI
+- [ ] **Kernel health monitoring** - Detect failures and restart automatically
+- [ ] **Better status indicators** - Clear feedback on kernel state
+- [ ] **Error recovery** - Graceful handling of kernel disconnections
 
 ## Short-term Goals (Next 1-2 Months)
 
@@ -61,13 +64,15 @@
 - [ ] **Better status UI** - Clear feedback on kernel state
 - [ ] **Error recovery** - Graceful handling of kernel disconnections
 
-### Rich Output System Completion
-**Goal**: Deliver on Jupyter-quality visualizations
+### Rich Output System Enhancement
+**Goal**: Polish the already working rich output system
 
-- [ ] **Matplotlib SVG rendering** - Verify plots display correctly
-- [ ] **Pandas DataFrame HTML** - Rich table formatting
-- [ ] **IPython.display functions** - HTML(), Markdown(), JSON() support
-- [ ] **Stream output consolidation** - Clean text block handling
+- [x] **Matplotlib SVG rendering** - Plots display correctly
+- [x] **Pandas DataFrame HTML** - Rich table formatting working
+- [x] **IPython.display functions** - HTML(), Markdown(), JSON() support working
+- [x] **Stream output consolidation** - Clean colored text block handling
+- [ ] **Output performance optimization** - Faster rendering of large outputs
+- [ ] **Output management** - Clear outputs, output collapsing, copy functionality
 
 ### Enhanced Python Experience
 - [ ] **Package management** - Pre-install scientific stack (numpy, pandas, matplotlib)
@@ -76,6 +81,8 @@
 - [ ] **Execution improvements** - Better progress indicators and cancellation
 
 ### Enhanced AI Integration
+- [x] **Full context awareness** - AI sees previous cells and their outputs
+- [x] **Context controls** - Users can hide cells from AI context
 - [ ] **Streaming responses** - Word-by-word AI output for better UX
 - [ ] **Multi-turn conversations** - Context-aware AI conversations
 - [ ] **Smart code generation** - AI suggests code based on notebook state
@@ -113,7 +120,8 @@
 ## Long-term Aspirations (6+ Months)
 
 ### Production Readiness
-- [ ] **Authentication system** - Google OAuth, user management
+- [x] **Authentication system** - Google OAuth working in production
+- [x] **Production deployment** - Cloudflare Pages + Workers deployment working
 - [ ] **Multi-tenant deployment** - Isolated environments per organization
 - [ ] **Performance optimization** - Handle large notebooks and datasets
 - [ ] **Monitoring and analytics** - Usage tracking and performance metrics

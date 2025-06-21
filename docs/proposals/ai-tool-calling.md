@@ -1,23 +1,26 @@
 # AI Tool Calling Architecture Proposal
 
-**Status**: Draft Proposal  
+**Status**: Partially Implemented  
 **Author**: Development Team  
-**Date**: June 2025
+**Date**: June 2025  
+**Last Updated**: January 2025
 
 ## Overview
 
-This document proposes an architecture for enabling AI to actively participate in notebook development through OpenAI function calling, allowing AI to create cells, modify content, execute code, and access user-extensible functions within the kernel space.
+This document outlines the architecture for enabling AI to actively participate in notebook development through OpenAI function calling, allowing AI to create cells, modify content, execute code, and access user-extensible functions within the kernel space.
+
+**Implementation Status**: Basic function calling is working - AI can create cells using OpenAI function calling. Next phase is expanding to cell modification and execution.
 
 ## Background
 
-Currently, Anode's AI integration is read-only - AI can analyze notebook content and provide responses, but cannot modify the notebook or execute actions. This limits AI's usefulness as an active development partner.
+Anode's AI integration now includes basic tool calling - AI can analyze notebook content with full context awareness and create new cells. The next step is expanding AI capabilities to modify existing cells and execute code.
 
 ## Goals
 
-- **Active AI Partnership**: Enable AI to create, modify, and execute notebook cells
-- **User Extensibility**: Allow users to define custom functions that AI can discover and use
-- **Security & Control**: Provide user confirmation workflows for destructive operations
-- **Collaborative Awareness**: AI actions work seamlessly in multi-user environments
+- **Active AI Partnership**: Enable AI to create, modify, and execute notebook cells ✅ (create implemented, modify/execute planned)
+- **User Extensibility**: Allow users to define custom functions that AI can discover and use 🚧 (planned)
+- **Security & Control**: Provide user confirmation workflows for destructive operations 🚧 (planned)
+- **Collaborative Awareness**: AI actions work seamlessly in multi-user environments ✅ (working)
 
 ## Proposed Architecture
 
@@ -130,23 +133,23 @@ Specific UI design to be determined during implementation.
 
 ## Implementation Plan
 
-### Phase 1: Core Function Calling (2 weeks)
-- [ ] Implement basic notebook manipulation functions
-- [ ] Add OpenAI function calling to AI cells
-- [ ] Create confirmation dialog UI
-- [ ] Wire up LiveStore events for tool calls
+### Phase 1: Core Function Calling ✅ COMPLETED
+- [x] Implement basic notebook manipulation functions (create_cell working)
+- [x] Add OpenAI function calling to AI cells (working with OpenAI function calling)
+- [x] Wire up LiveStore events for tool calls (working via LiveStore events)
+- [ ] Create confirmation dialog UI (planned for Phase 2)
 
-### Phase 2: User-Extensible Functions (2 weeks)  
+### Phase 2: Enhanced Function Calling (Next 2 weeks)  
+- [ ] Add modify_cell and execute_cell functions
+- [ ] Create confirmation dialog UI for destructive operations
+- [ ] Add function documentation and parameter validation
+- [ ] Test expanded function calling end-to-end
+
+### Phase 3: User-Extensible Functions (Future)  
 - [ ] Create `anode_ai` Python module for function registration
 - [ ] Implement function discovery mechanism in kernel
-- [ ] Add function documentation and parameter validation
-- [ ] Test custom function calling end-to-end
-
-### Phase 3: Advanced Features (1 week)
 - [ ] Add undo/redo for AI actions
-- [ ] Implement batch operations
 - [ ] Add function call history and debugging
-- [ ] Performance optimization and caching
 
 ## Open Questions
 
@@ -185,12 +188,18 @@ This proposal builds on:
 - **LiveStore Events**: Collaborative event sourcing
 - **User Extensibility**: Plugin architecture patterns
 
-## Next Steps
+## Current Status & Next Steps
 
-1. **Review & Approve**: Get team consensus on architecture approach
-2. **Prototype**: Build minimal viable function calling system
-3. **User Testing**: Validate with real development workflows
-4. **Iterate**: Refine based on user feedback and usage patterns
+### ✅ Completed
+1. **Basic Function Calling**: AI can create cells using OpenAI function calling
+2. **LiveStore Integration**: Tool calls work through event-sourced architecture
+3. **Context Awareness**: AI has full notebook context when making tool calls
+
+### 🚧 Next Steps
+1. **Expand Functions**: Add modify_cell and execute_cell capabilities
+2. **User Confirmation**: Build UI for confirming destructive operations
+3. **User Testing**: Validate expanded AI capabilities with real workflows
+4. **User-Extensible Functions**: Enable custom function registration in Python
 
 ---
 

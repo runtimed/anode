@@ -1,16 +1,17 @@
 # AI Context Controls Architecture Proposal
 
-**Status**: Draft Proposal  
+**Status**: Implemented ✅  
 **Author**: Development Team  
-**Date**: June 2025
+**Date**: June 2025  
+**Last Updated**: January 2025
 
 ## Overview
 
-This document proposes an architecture for giving users granular control over which notebook cells are included in AI context, enabling better token management, privacy control, and focused AI interactions.
+This document outlines the implemented architecture for giving users granular control over which notebook cells are included in AI context, enabling better token management, privacy control, and focused AI interactions.
 
 ## Background
 
-Currently, AI cells in Anode have access to the entire notebook context without user control. This creates several challenges:
+Anode now provides full user control over AI context. Users can include/exclude any cell from AI context using visibility toggles. This solved several challenges:
 
 - **Token Limits**: Large notebooks may exceed AI model token limits
 - **Privacy Concerns**: Users may want to exclude sensitive cells from AI
@@ -19,11 +20,11 @@ Currently, AI cells in Anode have access to the entire notebook context without 
 
 ## Goals
 
-- **User Control**: Simple UI for including/excluding cells from AI context
-- **Token Management**: Automatic handling of token limits with user feedback
-- **Privacy**: Secure exclusion of sensitive content from AI requests
-- **Performance**: Optimize AI response speed and cost through context control
-- **Collaboration**: Context controls work seamlessly in multi-user environments
+- **User Control**: Simple UI for including/excluding cells from AI context ✅ IMPLEMENTED
+- **Token Management**: Automatic handling of token limits with user feedback 🚧 PARTIALLY IMPLEMENTED
+- **Privacy**: Secure exclusion of sensitive content from AI requests ✅ IMPLEMENTED
+- **Performance**: Optimize AI response speed and cost through context control ✅ IMPLEMENTED
+- **Collaboration**: Context controls work seamlessly in multi-user environments ✅ IMPLEMENTED
 
 ## Proposed Architecture
 
@@ -152,29 +153,29 @@ Implementation approach for user preference storage and synchronization to be de
 
 ## Implementation Plan
 
-### Phase 1: Basic Cell Controls (1 week)
-- [ ] Add context inclusion state to cell schema
-- [ ] Implement cell-level toggle UI
-- [ ] Create context building logic
-- [ ] Add token usage indicator
+### Phase 1: Basic Cell Controls ✅ COMPLETED
+- [x] Add context inclusion state to cell schema (aiContextVisible field)
+- [x] Implement cell-level toggle UI (eye icon in cell headers)
+- [x] Create context building logic (respects visibility preferences)
+- [x] Add visual indicators for included/excluded cells
 
-### Phase 2: Bulk Operations (1 week)
+### Phase 2: Bulk Operations 🚧 FUTURE ENHANCEMENT
 - [ ] Implement notebook-level context controls
 - [ ] Add bulk include/exclude operations
 - [ ] Create preset filters (code-only, recent, etc.)
 - [ ] Handle token limit auto-exclusions
 
-### Phase 3: Smart Suggestions (1 week)
+### Phase 3: Smart Suggestions 🚧 FUTURE ENHANCEMENT
 - [ ] Implement relevance calculation engine
 - [ ] Add context suggestion UI
 - [ ] Create auto-exclusion rules
 - [ ] Performance optimization for large notebooks
 
-### Phase 4: Multi-User Support (1 week)
-- [ ] Implement per-user context preferences
-- [ ] Add user preference persistence
-- [ ] Handle collaborative scenarios
-- [ ] Add sharing/importing of context settings
+### Phase 4: Multi-User Support ✅ IMPLEMENTED
+- [x] Implement per-user context preferences (each user controls their own context)
+- [x] Add user preference persistence (stored in LiveStore)
+- [x] Handle collaborative scenarios (works seamlessly with real-time collaboration)
+- [ ] Add sharing/importing of context settings (future enhancement)
 
 ## Open Questions
 
@@ -214,6 +215,21 @@ This proposal enables several advanced AI features:
 - **Cost Optimization**: Reduced token usage through smart context management
 - **Multi-Model Support**: Different context strategies for different AI models
 
+## Current Implementation Status
+
+### ✅ Working Features
+- **Cell-level visibility toggles**: Users can show/hide cells from AI context using eye icons
+- **Visual indicators**: Clear indication of which cells are included/excluded
+- **Context filtering**: AI only sees cells marked as visible
+- **Collaborative support**: Each user has independent context preferences
+- **LiveStore integration**: Context preferences persist and sync across sessions
+
+### 🚧 Future Enhancements
+- **Bulk operations**: Select multiple cells and toggle context inclusion
+- **Smart suggestions**: Automatic relevance-based context recommendations
+- **Token usage indicators**: Visual feedback on context size and limits
+- **Advanced filtering**: Preset filters and auto-exclusion rules
+
 ---
 
-**Next Steps**: Begin Phase 1 implementation with basic cell-level context controls, focusing on simplicity and user control.
+**Status**: Core functionality implemented and working in production. Future enhancements planned based on user feedback and usage patterns.
