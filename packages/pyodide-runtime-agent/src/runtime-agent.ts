@@ -17,7 +17,7 @@ import { makeCfSync } from "@livestore/sync-cf";
 import { randomUUID } from "crypto";
 
 // Import the same schema used by the web client so we share events/tables.
-import { events, schema, tables, CellData, ExecutionQueueData, KernelSessionData, OutputData } from "../../../shared/schema.js";
+import { events, schema, tables, CellData, ExecutionQueueData, KernelSessionData, OutputData } from "@runt/schema";
 import { PyodideKernel } from "./pyodide-kernel.js";
 import { openaiClient } from "./openai-client.js";
 import stripAnsi from "strip-ansi";

@@ -2,7 +2,7 @@
 // The package expects files in src/js/ which don't exist in the npm package structure
 // This affects integration tests but the kernel should work in browser environments
 import { loadPyodide, PyodideInterface } from "pyodide";
-import { OutputType, ErrorOutputData, RichOutputData, StreamOutputData } from "../../../shared/schema.js";
+import { OutputType, ErrorOutputData, RichOutputData, StreamOutputData } from "@runt/schema";
 import { getCacheConfig, getEssentialPackages } from "./cache-utils.js";
 
 export interface OutputData {

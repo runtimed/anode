@@ -2,7 +2,7 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 import { Effect } from 'effect'
 import { createStorePromise, queryDb } from '@livestore/livestore'
 import { makeAdapter } from '@livestore/adapter-node'
-import { events, tables, schema } from '../../../shared/schema.js'
+import { events, tables, schema } from '@runt/schema'
 import { createTestStoreId, createTestSessionId, waitFor, cleanupResources } from './setup.js'
 
 // Mock Pyodide to avoid loading the actual runtime in tests

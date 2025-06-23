@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { createStorePromise, queryDb } from '@livestore/livestore';
 import { makeAdapter } from '@livestore/adapter-node';
-import { events, schema, tables } from '../../../shared/schema.js';
+import { events, schema, tables } from '@runt/schema';
 
 // Mock the OpenAI client
 const mockOpenAIClient = {

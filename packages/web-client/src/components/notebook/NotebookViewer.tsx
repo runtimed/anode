@@ -1,6 +1,6 @@
 import React, { useCallback } from 'react'
 import { useStore } from '@livestore/react'
-import { events, tables, CellData, KernelSessionData } from '../../../../../shared/schema.js'
+import { events, tables, CellData, KernelSessionData } from '@runt/schema'
 import { queryDb } from '@livestore/livestore'
 import { Cell } from './Cell.js'
 import { formatDistanceToNow } from 'date-fns'

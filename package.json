@@ -96,6 +96,7 @@
     "@livestore/adapter-node": "catalog:",
     "@livestore/livestore": "catalog:",
     "@livestore/peer-deps": "catalog:",
+    "@runt/schema": "jsr:^0.2.0",
     "effect": "catalog:"
   }
 }

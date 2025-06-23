@@ -25,6 +25,7 @@
     "@radix-ui/react-separator": "catalog:",
     "@radix-ui/react-slot": "catalog:",
     "@radix-ui/react-tooltip": "catalog:",
+    "@runt/schema": "jsr:^0.2.0",
     "@types/react-syntax-highlighter": "^15.5.13",
     "ansi-to-react": "catalog:",
     "class-variance-authority": "catalog:",
