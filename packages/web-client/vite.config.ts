@@ -21,6 +21,6 @@ export default defineConfig({
   plugins: [
     react(),
     tailwindcss(),
-    livestoreDevtoolsPlugin({ schemaPath: '../../shared/schema.ts' }),
+    livestoreDevtoolsPlugin({ schemaPath: './schema.ts' }),
   ],
 })

@@ -24,16 +24,17 @@
     "@livestore/adapter-node": "catalog:",
     "@livestore/livestore": "catalog:",
     "@livestore/sync-cf": "catalog:",
-    "pyodide": "catalog:",
+    "@runt/schema": "jsr:^0.2.0",
     "openai": "^4.0.0",
+    "pyodide": "catalog:",
     "strip-ansi": "catalog:"
   },
   "devDependencies": {
-    "typescript": "catalog:",
-    "@types/node": "catalog:",
-    "tsx": "catalog:",
-    "vitest": "catalog:",
     "@effect/vitest": "catalog:",
-    "happy-dom": "catalog:"
+    "@types/node": "catalog:",
+    "happy-dom": "catalog:",
+    "tsx": "catalog:",
+    "typescript": "catalog:",
+    "vitest": "catalog:"
   }
 }

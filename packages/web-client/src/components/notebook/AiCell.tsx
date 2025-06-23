@@ -1,6 +1,6 @@
 import React, { useState, useCallback } from 'react'
 import { useStore } from '@livestore/react'
-import { events, tables, OutputData, isErrorOutput } from '../../../../../shared/schema.js'
+import { events, tables, OutputData, isErrorOutput } from '@runt/schema'
 import { queryDb } from '@livestore/livestore'
 
 import { Button } from '@/components/ui/button'

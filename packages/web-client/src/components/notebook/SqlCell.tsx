@@ -1,6 +1,6 @@
 import React, { useState, useCallback } from 'react'
 import { useStore } from '@livestore/react'
-import { events, tables, SqlResultData } from '../../../../../shared/schema.js'
+import { events, tables, SqlResultData } from '@runt/schema'
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
 import { Badge } from '@/components/ui/badge'

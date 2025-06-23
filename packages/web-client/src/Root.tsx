@@ -10,7 +10,7 @@ import { NotebookViewer } from './components/notebook/NotebookViewer.js'
 import { AuthGuard } from './components/auth/AuthGuard.js'
 
 import LiveStoreWorker from './livestore.worker?worker'
-import { schema, events, tables } from '../../../shared/schema.js'
+import { schema, events, tables } from '@runt/schema'
 import { getStoreId, getCurrentNotebookId } from './util/store-id.js'
 import { useStore } from '@livestore/react'
 import { queryDb } from '@livestore/livestore'

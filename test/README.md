@@ -241,8 +241,8 @@ Tests are designed to be:
 
 ### Schema Import Issues
 - Solution: Use relative imports for built packages
-- Example: `import { events } from "../../shared/schema.ts"`
-- No build step needed - direct TypeScript imports from shared schema
+- Example: `import { events } from "@runt/schema"`
+- No build step needed - direct TypeScript imports from JSR schema package
 
 ### Date Handling
 - Effect schemas convert ISO strings to Date objects
@@ -279,7 +279,7 @@ When adding new tests:
 ## Troubleshooting
 
 ### Common Issues
-- **Import errors**: Check that schema path is correct (`../../shared/schema.ts`)
+- **Import errors**: Check that schema import is correct (`@runt/schema`)
 - **Type errors**: TypeScript catches invalid queries at compile time
 - **Timeout errors**: Increase timeout in `vitest.config.ts`
 - **Memory issues**: Verify resource cleanup in `afterEach`

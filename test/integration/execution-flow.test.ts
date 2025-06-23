@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import { createStorePromise, queryDb } from "@livestore/livestore";
 import { makeAdapter } from "@livestore/adapter-node";
-import { events, tables, schema } from "../../shared/schema.js";
+import { events, tables, schema } from "@runt/schema";
 import {
   createTestStoreId,
   createTestSessionId,

@@ -6,7 +6,7 @@ import {
 } from "./setup.js";
 import { makeAdapter } from "@livestore/adapter-node";
 import { createStorePromise } from "@livestore/livestore";
-import { schema, events, tables } from "../shared/schema";
+import { schema, events, tables } from "@runt/schema";
 
 console.log("🧪 Starting Anode edge case test suite...");
 

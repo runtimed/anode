@@ -107,7 +107,7 @@ AUTH_TOKEN=insecure-token-change-me
 ## Architecture Overview
 
 - **LiveStore Foundation**: Event-sourcing with real-time collaboration
-- **Direct TypeScript Schema**: `shared/schema.ts` imported directly across packages
+- **JSR Schema Package**: `jsr:@runt/schema` imported directly across packages
 - **Reactive Architecture**: Subscriptions instead of polling for instant execution
 - **Local-First Design**: Works offline, syncs when connected
 - **Event-Sourced State**: All changes flow through LiveStore events

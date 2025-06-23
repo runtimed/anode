@@ -109,7 +109,7 @@ docs/
 - `packages/pyodide-runtime-agent/src/openai-client.ts` - OpenAI API integration
 - `packages/web-client/src/components/notebook/RichOutput.tsx` - Output rendering
 - `packages/web-client/src/components/notebook/AiCell.tsx` - AI cell interface
-- `shared/schema.ts` - LiveStore event definitions
+- `jsr:@runt/schema` - LiveStore event definitions (JSR package)
 
 **Development Commands:**
 ```bash

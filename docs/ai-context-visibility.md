@@ -41,7 +41,7 @@ The feature works consistently across all cell types:
 
 ### Schema Changes
 
-Added to `shared/schema.ts`:
+Added to `jsr:@runt/schema`:
 
 ```typescript
 // In cells table

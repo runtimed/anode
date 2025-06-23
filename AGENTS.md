@@ -14,7 +14,7 @@ Anode is a real-time collaborative notebook system built on LiveStore, an event-
 
 ## Architecture
 
-- **Shared Schema** (`shared/schema.ts`): LiveStore schema definitions (events, state, materializers) - TypeScript source file directly imported by all packages with full type inference
+- **Schema** (`jsr:@runt/schema`): LiveStore schema definitions (events, state, materializers) - Published JSR package imported by all packages with full type inference
 - **Web Client** (`@anode/web-client`): React-based web interface
 - **Document Worker** (`@anode/docworker`): Cloudflare Worker for sync backend
 - **Pyodide Runtime Agent** (`@anode/pyodide-runtime-agent`): Python execution server (manual start per notebook)
@@ -118,7 +118,7 @@ pnpm cache:clear       # Clear package cache
 ## Important Considerations
 
 ### Schema Design
-- **Direct TypeScript imports**: `shared/schema.ts` provides zero-build-step imports with type inference across all packages
+- **JSR schema package**: `jsr:@runt/schema` provides zero-build-step imports with type inference across all packages
 
 ### ⚠️ CRITICAL: Materializer Determinism Requirements
 
@@ -197,8 +197,6 @@ The project recently resolved a major stability issue where 3rd+ runtime session
 
 ```
 anode/
-├── shared/
-│   └── schema.ts                    # LiveStore schema - TypeScript source directly imported by all packages
 ├── packages/
 │   ├── web-client/                  # React web application (@anode/web-client)
 │   │   ├── src/components/notebook/ # Notebook interface components
