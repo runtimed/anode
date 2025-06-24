@@ -32,6 +32,8 @@ Jupyter's developers built something incredible that changed how we compute. Col
 
 ## Quick Start
 
+**Requirements**: Node.js >=23.0.0 (use `nvm use` to automatically switch to the correct version)
+
 ### 1. Install and Configure
 ```bash
 pnpm install  # Install dependencies

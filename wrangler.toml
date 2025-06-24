@@ -34,6 +34,7 @@ database_id = "local"
 [vars]
 # Environment variables (non-sensitive)
 DEPLOYMENT_ENV = "development"
+AUTH_TOKEN = "insecure-token-change-me"
 # Worker only serves API endpoints - no web client vars needed
 
 # Production environment
