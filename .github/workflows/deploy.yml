@@ -47,7 +47,12 @@ jobs:
       - name: Build web client
         run: pnpm build:prod
 
-      - name: Deploy to Cloudflare
-        run: pnpm deploy
+      - name: Deploy worker
+        run: pnpm deploy:worker
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+
+      - name: Deploy web client
+        run: wrangler pages deploy dist --project-name anode
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}

@@ -20,7 +20,7 @@ This separation is necessary because Cloudflare Workers don't support WebSocket 
 Deploy both services with one command:
 
 ```bash
-pnpm deploy
+pnpm deploy  # Deploys both web client and worker
 ```
 
 This will:
@@ -44,12 +44,12 @@ This builds the web client and deploys both services to Cloudflare.
 
 **Deploy the Sync Backend (Worker):**
 ```bash
-pnpm build:sync && wrangler deploy
+pnpm deploy:worker
 ```
 
 **Deploy the Web Client (Pages):**
 ```bash
-pnpm deploy:production
+pnpm deploy:web
 ```
 
 ### Option 3: Manual Deployment
@@ -154,8 +154,13 @@ jobs:
       - name: Run tests
         run: pnpm test --run
 
-      - name: Build and deploy
-        run: pnpm deploy
+      - name: Deploy worker
+        run: pnpm deploy:worker
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+
+      - name: Deploy web client
+        run: pnpm deploy:web
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
 ```
