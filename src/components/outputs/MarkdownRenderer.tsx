@@ -61,7 +61,7 @@ const CodeBlock: React.FC<CodeBlockProps> = ({
       {enableCopy && (
         <button
           onClick={handleCopy}
-          className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity bg-white hover:bg-gray-50 border border-gray-200 rounded p-1.5 text-gray-600 hover:text-gray-800"
+          className="absolute top-2 right-2 z-10 opacity-0 group-hover:opacity-100 transition-opacity bg-white hover:bg-gray-50 border border-gray-200 rounded p-1.5 text-gray-600 hover:text-gray-800 shadow-sm"
           title={copied ? "Copied!" : "Copy code"}
         >
           {copied
@@ -94,10 +94,13 @@ export const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({
           code({ node, className, children, ...props }) {
             const match = /language-(\w+)/.exec(className || "");
             const language = match ? match[1] : "";
-            const inline = !className;
             const codeContent = String(children).replace(/\n$/, "");
 
-            return !inline && language
+            // Detect if this is a block-level code element
+            // React Markdown renders block code inside <pre><code> and inline code as just <code>
+            const isBlockCode = node?.parent?.tagName === "pre";
+
+            return isBlockCode
               ? (
                 <CodeBlock
                   language={language}
