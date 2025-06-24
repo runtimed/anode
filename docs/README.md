@@ -1,125 +1,106 @@
 # Anode Documentation
 
-This directory contains comprehensive documentation for the Anode project - a real-time collaborative notebook system built on LiveStore.
+This directory contains documentation for the Anode project - a real-time collaborative notebook system with AI integration.
 
 ## Quick Navigation
 
 ### 📖 Core Documentation
-- **[Runtime Agent Architecture](./runtime-agent-architecture.md)** - Core system design and product vision
-- **[Display System](./display-system.md)** - Complete guide to Anode's enhanced IPython display system
-- **[Display Examples](./display-examples.md)** - Practical examples and usage patterns for rich outputs
 - **[UI Design](./ui-design.md)** - Design principles and interface guidelines
-- **[AI Features](./ai-features.md)** - AI integration setup and capabilities
-- **[Testing](./testing.md)** - Testing strategy and current gaps
+- **[UI Enhancements Demo](./ui-enhancements-demo.md)** - UI improvement showcase
+- **[AI Context Visibility](./ai-context-visibility.md)** - Context control implementation
+- **[Testing](./TESTING.md)** - Testing strategy and current gaps
 
 ### 📋 Proposals
-- **[Completion System](./proposals/completion-system.md)** - Architecture proposal for interactive code completions
-- **[AI Tool Calling](./proposals/ai-tool-calling.md)** - OpenAI function calling for notebook manipulation
-- **[MCP Integration](./proposals/mcp-integration.md)** - Model Context Protocol vs Python functions analysis
+- **[AI Context Controls](./proposals/ai-context-controls.md)** - User controls for AI context inclusion/exclusion ✅ **Implemented**
 - **[Updateable Outputs](./proposals/updateable-outputs.md)** - Jupyter-compatible display updates and stream merging
-- **[Kernel Management](./proposals/kernel-management.md)** - Automated kernel provisioning and lifecycle
-- **[AI Context Controls](./proposals/ai-context-controls.md)** - User controls for AI context inclusion/exclusion
 
 ### 🏗️ Architecture Overview
 
-Anode is built around the **Runtime Agent** - a dual-purpose system that serves as both a computational backend and an AI assistant. The Runtime Agent provides:
+Anode is a simplified single-application notebook system that provides:
 
-- **System Agent**: Manages Python execution, database connections, and document state
-- **AI Agent**: Provides context-aware assistance with notebook development
-- **Security**: Keeps credentials server-side with automatic masking
-- **Isolation**: Each notebook gets its own runtime agent instance
-
-See **[Runtime Agent Architecture](./runtime-agent-architecture.md)** for the complete design vision.
+- **Web Client**: React-based notebook interface with real-time collaboration
+- **Sync Worker**: Cloudflare Worker handling LiveStore synchronization
+- **Python Runtime**: Handled by separate `@runt` packages for execution and AI features
 
 **Key Technologies:**
 - **LiveStore**: Event-sourcing based local-first data synchronization
-- **IPython**: Full Jupyter-compatible display system with custom hooks
 - **React**: Modern web interface with real-time collaborative editing
+- **Vite**: Build system and development server
+- **Cloudflare**: Pages (web client) + Workers (sync backend) deployment
 
 ### 🚀 Current Status: Production System Working
 
-Core collaborative editing, full Python execution with rich outputs, and AI integration deployed:
+Core collaborative editing and notebook interface deployed:
 
 ✅ **Working Features:**
 - Real-time collaborative notebook editing via LiveStore
-- Full Python execution with rich outputs (matplotlib SVG, pandas HTML, IPython.display)
-- Complete AI integration with notebook context awareness and cell creation tools
 - Cell management (create, edit, move, delete) with keyboard navigation
-- Rich output rendering with colored terminal output and SVG plots
 - Production deployment on Cloudflare Pages + Workers with authentication
 - Mobile responsive design with optimized keyboard handling
 - Context visibility controls - users can hide cells from AI context
 - Event-sourced architecture with offline capability
+- Clean single-application structure (no workspace complexity)
 
-🚧 **Next Enhancements:**
-- AI tool calling expansion (modify cells, execute code)
-- User-attributed kernels with API tokens for "Bring Your Own Compute"
-- Automated runtime management to remove manual startup
+🚧 **Python Runtime & AI Features:**
+- Now handled by separate `@runt` packages
+- See https://github.com/rgbkrk/runt for Python execution and AI integration
 
-### 🎯 Next Priorities
+### 🎯 Current Focus
 
-**Immediate Focus:**
-- AI tool calling expansion (enable AI to modify existing cells and execute code)
-- User-attributed kernels with API tokens for "Bring Your Own Compute"
-- Automated runtime management to remove manual startup friction
+**Simplified Architecture:**
+- ✅ Single application structure (no monorepo complexity)
+- ✅ Root-level Vite + Wrangler setup
+- ✅ Standard TypeScript project layout
+- ✅ All tests passing (36/36)
 
-**AI Integration Status:**
-- ✅ Full OpenAI API integration with notebook context awareness
-- ✅ AI can see previous cells and their execution outputs
-- ✅ AI can create new cells using OpenAI function calling
-- ✅ Context visibility controls - users control what AI sees
-- 🚧 Planned: AI can modify existing cells and execute code
-
-**Other Planned Features:**
-- SQL cell execution
-- Interactive widgets
-- User-attributed kernels with API tokens
+**UI & Collaboration:**
+- Real-time collaborative editing without conflicts
+- Clean, minimal interface design
+- Context controls for AI integration
+- Mobile-responsive notebook interface
 
 ### 📚 Documentation Structure
 
 ```
 docs/
-├── README.md                    # This file - documentation index
-├── runtime-agent-architecture.md # Core system design and product vision
-├── ai-features.md              # AI integration setup and capabilities
-├── display-system.md           # Display system architecture (aspirational)
-├── testing.md                  # Testing strategy and current gaps
-├── display-examples.md         # Practical usage examples
-├── ui-design.md               # Interface design guidelines
+├── README.md                      # This file - documentation index
+├── ui-design.md                   # Interface design guidelines
+├── ui-enhancements-demo.md        # UI improvement showcase
+├── ai-context-visibility.md       # Context visibility feature
+├── TESTING.md                     # Testing strategy
 └── proposals/
-    ├── completion-system.md       # Interactive code completion architecture
-    ├── ai-tool-calling.md         # OpenAI function calling for AI-notebook interaction
-    ├── mcp-integration.md         # Model Context Protocol integration analysis
-    ├── updateable-outputs.md      # Jupyter-compatible output updates
-    ├── runtime-management.md      # Automated runtime provisioning and lifecycle
-    └── ai-context-controls.md     # User controls for AI context
+    ├── ai-context-controls.md     # User controls for AI context ✅ Implemented
+    └── updateable-outputs.md      # Jupyter-compatible output updates
 ```
 
 ### 🔧 For Developers
 
 **Getting Started:**
-1. Read [runtime-agent-architecture.md](./runtime-agent-architecture.md) for the core system design
-2. Check [ai-features.md](./ai-features.md) for AI setup and current capabilities
-3. See [display-system.md](./display-system.md) for display system architecture
-4. Review [ui-design.md](./ui-design.md) for interface patterns
-5. Check [proposals/](./proposals/) for upcoming features and architecture
+1. Read [ui-design.md](./ui-design.md) for interface design patterns
+2. Check [ai-context-visibility.md](./ai-context-visibility.md) for context control features
+3. See [TESTING.md](./TESTING.md) for testing approach
+4. Review [proposals/](./proposals/) for planned features
 
 **Key Files:**
-- `packages/pyodide-runtime-agent/src/pyodide-kernel.ts` - Python execution runtime
-- `packages/pyodide-runtime-agent/src/openai-client.ts` - OpenAI API integration
-- `packages/web-client/src/components/notebook/RichOutput.tsx` - Output rendering
-- `packages/web-client/src/components/notebook/AiCell.tsx` - AI cell interface
-- `jsr:@runt/schema` - LiveStore event definitions (JSR package)
+- `src/components/notebook/` - Notebook interface components
+- `src/sync/sync.ts` - Cloudflare Worker for LiveStore sync
+- `src/components/ui/` - Reusable UI components
+- `schema.ts` - LiveStore event definitions
+- `@runt/schema` - Runtime schema (JSR package)
 
 **Development Commands:**
 ```bash
-# Start development environment
-pnpm dev                 # Web client + sync backend
-NOTEBOOK_ID=test pnpm dev:runtime  # Python runtime (manual per notebook)
+# Start development
+pnpm dev          # Web client at http://localhost:5173
+pnpm dev:sync     # Sync worker at ws://localhost:8787
 
-# Testing
-pnpm test               # Current test suite (mostly smoke tests)
-pnpm test:runtime        # Runtime tests (mocked Pyodide)
+# Testing & Validation
+pnpm test         # Run test suite (36 tests)
+pnpm build        # Build web client
+pnpm type-check   # TypeScript validation
+
+# Python Runtime (separate setup)
+# See https://github.com/rgbkrk/runt
 ```
 
 ### 🧠 Design Philosophy
@@ -127,43 +108,41 @@ pnpm test:runtime        # Runtime tests (mocked Pyodide)
 **Local-First**: Work offline, sync when connected
 **Event-Sourced**: All changes flow through LiveStore events
 **Collaborative**: Real-time multi-user editing without conflicts
-**Type-Safe**: End-to-end TypeScript with Effect
-**Extensible**: Modular cell types and execution engines
+**Simple**: Single application, standard project structure
+**Type-Safe**: End-to-end TypeScript
+**Modular**: Clean separation between UI and runtime concerns
 
 ### 🤝 Contributing
 
-When working on the display system:
-1. **Maintain IPython compatibility** - Follow Jupyter standards, not custom Anode APIs
-2. **Test thoroughly** - Add tests for new features
-3. **Document examples** - Update display-examples.md with real, working examples
-4. **Consider collaboration** - How will features work with multiple users?
-5. **Think streaming** - Design for real-time updates
+When working on the UI:
+1. **Follow design system** - Use established patterns from ui-design.md
+2. **Test thoroughly** - Add tests for new features (see TESTING.md)
+3. **Consider collaboration** - How will features work with multiple users?
+4. **Think mobile-first** - Ensure responsive design
+5. **Maintain accessibility** - Follow ARIA guidelines
 
-### 📈 Roadmap
+### 📈 Current Architecture
 
-**Phase 1: Core System** ✅ **COMPLETED**
-- LiveStore collaborative editing with real-time collaboration
-- Full Python execution with rich outputs (matplotlib, pandas, IPython.display)
-- Complete AI integration with context awareness and cell creation tools
-- Production deployment on Cloudflare with authentication
+**Phase 1: Simplified Structure** ✅ **COMPLETED**
+- Single application (no monorepo complexity)
+- Standard Vite + React + TypeScript setup
+- Cloudflare Pages + Workers deployment
+- All tests passing with good coverage
 
-**Phase 2: Enhanced AI & Runtime Management** 🎯 **CURRENT**
-- AI tool calling expansion (modify cells, execute code)
-- User-attributed kernels with API tokens for "Bring Your Own Compute"
-- Automated runtime management
+**Phase 2: UI & Collaboration Focus** 🎯 **CURRENT**
+- Real-time collaborative editing
+- Clean, minimal interface design
+- Context controls and user experience
+- Mobile-responsive design
 
-**Phase 3: Advanced Features**
-- Interactive widgets and collaborative components
-- SQL cell execution
-- Streaming AI responses
-
-**Phase 4: Production Features**
-- SQL cell execution
-- Authentication and deployment
-- Performance optimization
+**Python Runtime & AI Features:**
+- Moved to separate `@runt` packages
+- Allows anode to focus on UI and collaboration
+- See https://github.com/rgbkrk/runt for execution and AI integration
 
 ---
 
 For project-wide context and current work status, see:
 - [AGENTS.md](../AGENTS.md) - AI agent development context and current status
 - [ROADMAP.md](../ROADMAP.md) - Long-term vision and milestones
+- [README.md](../README.md) - Project overview and quick start
