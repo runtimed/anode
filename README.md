@@ -42,8 +42,7 @@ pnpm dev:sync-only
 ```
 
 The install process creates `.env` files for:
-- `packages/web-client/.env` - Web client configuration (VITE_* vars exposed to browser)
-- `packages/pyodide-runtime-agent/.env` - Runtime server configuration (server-only vars)
+- `.env` - Application configuration (both web client and worker settings)
 
 ### 2. Create Your First Notebook
 1. Open http://localhost:5173
@@ -64,11 +63,8 @@ The install process creates `.env` files for:
 
 ### 5. Try AI Integration (Optional)
 ```bash
-# Edit packages/pyodide-runtime-agent/.env and uncomment/set your OpenAI API key:
-# OPENAI_API_KEY=sk-your-key-here
-
-# Restart runtime to pick up the API key (use UI command)
-NOTEBOOK_ID=your-notebook-id pnpm dev:runtime
+# Runtime is now handled by the separate @runt packages
+# See https://github.com/rgbkrk/runt for Python execution setup
 ```
 - Add an AI cell and ask questions about your data
 - Falls back to mock responses if no API key is set
@@ -83,19 +79,14 @@ Instead of running everything locally, you can use a deployed Cloudflare Worker 
 
 **Get deployment details** from your team (worker URL and auth token)
 
-2. **Update web client config** in `packages/web-client/.env`:
+2. **Update application config** in `.env`:
    ```env
    VITE_LIVESTORE_SYNC_URL=https://your-worker.workers.dev
    VITE_AUTH_TOKEN=your-secure-token
-   ```
-
-3. **Update runtime config** in `packages/pyodide-runtime-agent/.env`:
-   ```env
-   LIVESTORE_SYNC_URL=https://your-worker.workers.dev
    AUTH_TOKEN=your-secure-token
    ```
 
-4. **Start services** (no local docworker needed):
+3. **Start services**:
    ```bash
    pnpm dev:web-only  # Web client connects to deployed worker
    NOTEBOOK_ID=test-notebook pnpm dev:runtime
@@ -161,7 +152,7 @@ pnpm dev:sync-only      # Sync backend
 ```
 
 ### Configuration
-Setup automatically creates `.env` files in the right places. To enable AI features, add your OpenAI API key to `packages/pyodide-runtime-agent/.env`.
+Python runtime and AI features are now handled by the separate @runt packages. See https://github.com/rgbkrk/runt for setup.
 
 
 
@@ -169,14 +160,11 @@ Setup automatically creates `.env` files in the right places. To enable AI featu
 
 | Problem | Solution |
 |---------|----------|
-| Missing .env files | Run `pnpm setup` to auto-create with defaults |
 | Schema version mismatches | Ensure all services (web, runtime, sync) are restarted after schema changes |
 | Type errors | TypeScript catches invalid queries at compile time - check column names |
-| Execution not working | Use runtime command from notebook UI or check `.env` configuration |
-| AI cells showing mock responses | Set `OPENAI_API_KEY` in `packages/pyodide-runtime-agent/.env`, restart runtime |
-| Rich outputs not displaying | Verify matplotlib, pandas imports work - should display SVG plots and HTML tables |
+| Execution not working | Check @runt runtime setup - see https://github.com/rgbkrk/runt |
 | Stale state | Run `pnpm reset-storage` |
-| Slow execution | Should be instant - check runtime logs |
+| Build errors | Run `pnpm build` to check for TypeScript issues |
 
 ## Why Anode Works
 
