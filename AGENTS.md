@@ -86,6 +86,7 @@ pnpm dev:web-only
 pnpm dev:sync-only
 
 # Start runtime (get command from notebook UI)
+# Runtime command is now dynamic via VITE_RUNTIME_COMMAND environment variable
 # Get runtime command from notebook UI, then:
 NOTEBOOK_ID=notebook-id-from-ui pnpm dev:runtime
 
@@ -291,8 +292,8 @@ anode/
 
 **User Environment**: The user will typically have:
 - Web client running in one tab (`pnpm dev`)
-- Wrangler server running in another tab (`pnpm dev:sync`)
-- Python runtime available via `pnpm dev:runtime` (uses @runt JSR packages)
+- Wrangler server running in another tab (`pnpm dev:sync`)  
+- Python runtime available via `pnpm dev:runtime` (uses @runt JSR packages, command customizable via VITE_RUNTIME_COMMAND)
 
 **Checking Work**: If you need to verify changes:
 ```bash
@@ -317,6 +318,7 @@ pnpm dev             # Web client
 pnpm dev:sync        # Sync worker (now properly on port 8787)
 
 # Python runtime (get NOTEBOOK_ID from UI, then run):
+# Runtime command is customizable via VITE_RUNTIME_COMMAND in .env
 NOTEBOOK_ID=your-notebook-id pnpm dev:runtime
 ```
 

@@ -22,6 +22,7 @@ import {
   BugOff,
 } from "lucide-react";
 import { getCurrentNotebookId } from "../../util/store-id.js";
+import { getRuntimeCommand } from "../../util/runtime-command.js";
 import { UserProfile } from "../auth/UserProfile.js";
 
 interface NotebookViewerProps {
@@ -57,7 +58,7 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
   const isDevelopment = import.meta.env.DEV;
 
   const currentNotebookId = getCurrentNotebookId();
-  const runtimeCommand = `deno run --allow-all --env-file=.env "jsr:@runt/pyodide-runtime-agent@0.2.0" --notebook=${currentNotebookId}`;
+  const runtimeCommand = getRuntimeCommand(currentNotebookId);
 
   // Check kernel status with heartbeat-based health assessment
   const getRuntimeHealth = (session: KernelSessionData) => {
