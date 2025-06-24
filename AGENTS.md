@@ -186,15 +186,72 @@ The project recently resolved a major stability issue where 3rd+ runtime session
 
 ```
 anode/
-TODO: Regenerate
+├── .git/
+├── .github/
+├── .zed/
+├── dist/
+├── docs/
+│   ├── proposals/
+│   ├── README.md
+│   ├── TESTING.md
+│   ├── ai-context-visibility.md
+│   ├── ui-design.md
+│   └── ui-enhancements-demo.md
+├── examples/
+│   └── ai-context-demo.md
+├── node_modules/
+├── public/
+├── src/
+│   ├── auth/
+│   ├── components/
+│   │   ├── auth/
+│   │   ├── notebook/
+│   │   │   ├── AiCell.tsx
+│   │   │   ├── AnsiOutput.tsx
+│   │   │   ├── Cell.tsx
+│   │   │   ├── NotebookViewer.tsx
+│   │   │   ├── RichOutput.css
+│   │   │   ├── RichOutput.tsx
+│   │   │   └── SqlCell.tsx
+│   │   └── ui/
+│   ├── lib/
+│   │   └── utils.ts
+│   ├── sync/
+│   │   └── sync.ts
+│   ├── types/
+│   ├── util/
+│   ├── Root.tsx
+│   ├── index.css
+│   ├── livestore.worker.ts
+│   └── main.tsx
+├── test/
+├── .gitignore
+├── AGENTS.md
+├── CONTRIBUTING.md
+├── Caddyfile.example
+├── DEPLOYMENT.md
+├── LICENSE
+├── README.md
+├── ROADMAP.md
+├── components.json
+├── index.html
+├── package.json
+├── pnpm-lock.yaml
+├── schema.ts
+├── tsconfig.json
+├── tsconfig.node.json
+├── tsconfig.test.json
+├── vite.config.ts
+├── vitest.config.ts
+└── wrangler.toml
 ```
 
-**Deployment Architecture (Cloudflare):**
-- **Pages**: Web client deployed to `https://anode.pages.dev` (built from `/dist`)
-- **Workers**: Sync backend deployed to `https://anode-docworker.rgbkrk.workers.dev` (from `/src/sync/sync.ts`)
-- **D1**: Database for production data persistence
-- **Secrets**: Authentication tokens and API keys managed via Cloudflare dashboard
-- **Runtime**: Python execution handled by separate `@runt` packages
+**Deployment (Cloudflare):**
+- Pages: `https://anode.pages.dev` (from `/dist`)
+- Workers: `https://anode-docworker.rgbkrk.workers.dev` (from `/src/sync/sync.ts`)
+- D1: Production data persistence
+- Secrets: Auth tokens, API keys
+- Runtime: Python execution via `@runt` packages
 
 ## Notes for AI Assistants
 
@@ -215,12 +272,11 @@ TODO: Regenerate
 
 ### Communication Style
 - Be direct about what works and what doesn't
-- Don't oversell capabilities or use marketing language
 - Focus on helping developers solve actual problems
-- It's okay to say "this is a prototype" or "this part needs work"
-- Code examples are better than long explanations
+- Use code examples over lengthy explanations
 - Keep commit messages short and factual
-- Avoid words like "comprehensive", "advanced", "complete" unless actually true
+- State facts without marketing language
+- Say "this is a prototype" or "this part needs work" when true
 - Always bring a towel
 
 ## Development Workflow Notes
@@ -258,3 +314,34 @@ NOTEBOOK_ID=your-notebook-id pnpm dev:runtime
 ```
 
 **For detailed development priorities, see [ROADMAP.md](./ROADMAP.md)**
+
+## Communication Guidelines for AI Assistants
+
+### Senior Engineering Collaboration
+- **Write for staff/principal engineers**: Assume deep technical knowledge
+- **Be concise and precise**: Remove redundant explanations
+- **Lead with facts**: State what is, not what could be
+- **Show working code**: Demonstrate solutions with actual implementations
+- **Identify root causes**: Address underlying issues, not symptoms
+- **Use technical terminology correctly**: Precision matters in technical communication
+
+### Code Review Standards
+- **Reference specific lines/functions**: Use exact file paths and line numbers
+- **Explain the "why"**: Technical rationale behind changes
+- **Highlight trade-offs**: Acknowledge design decisions and their implications
+- **Suggest concrete improvements**: Actionable recommendations with code examples
+- **Maintain consistency**: Follow existing patterns and conventions
+
+### Problem-Solving Approach
+- **Start with diagnosis**: Understand the system state before proposing solutions
+- **Use systematic debugging**: Add logging, isolate components, test hypotheses
+- **Verify assumptions**: Check actual behavior against expected behavior
+- **Consider edge cases**: Think through failure modes and boundary conditions
+- **Document findings**: Leave clear breadcrumbs for future developers
+
+### Technical Communication
+- **Use standard terminology**: Stick to established technical vocabulary
+- **Be specific with versions**: Reference exact package versions, commit hashes
+- **Include reproduction steps**: Clear instructions for recreating issues
+- **Separate concerns**: Distinguish between bugs, features, and technical debt
+- **Quantify impact**: Use metrics and benchmarks where relevant
