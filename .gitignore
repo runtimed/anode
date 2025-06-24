@@ -158,3 +158,6 @@ tmp/
 
 # Local network configuration
 Caddyfile
+
+.env
+.env.*
