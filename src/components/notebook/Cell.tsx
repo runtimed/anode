@@ -244,6 +244,13 @@ export const Cell: React.FC<CellProps> = ({
       const textarea = e.currentTarget;
       const { selectionStart, selectionEnd, value } = textarea;
 
+      // Handle Home/End keys to prevent page navigation
+      if (e.key === "Home" || e.key === "End") {
+        // Let the textarea handle Home/End internally, but stop propagation to prevent page scroll
+        e.stopPropagation();
+        return;
+      }
+
       // Handle arrow key navigation between cells
       if (e.key === "ArrowUp" && selectionStart === selectionEnd) {
         // For empty cells or cursor at beginning of first line
