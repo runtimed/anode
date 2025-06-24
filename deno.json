@@ -2,7 +2,7 @@
   "fmt": {
     "exclude": [
       "src/index.css",
-      "src/components/notebook/RichOutput.css",
+      "src/components/outputs/outputs.css",
       "node_modules/",
       "dist/",
       ".wrangler/",
