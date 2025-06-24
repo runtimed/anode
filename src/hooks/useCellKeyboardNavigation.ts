@@ -27,23 +27,38 @@ export const useCellKeyboardNavigation = ({
 
       // Handle arrow key navigation between cells
       if (e.key === "ArrowUp" && selectionStart === selectionEnd) {
-        // For empty cells or cursor at beginning of first line
+        // Check if cursor is at the beginning of the first line
+        const lines = value.split("\n");
         const beforeCursor = value.substring(0, selectionStart);
-        const isAtTop = selectionStart === 0 || !beforeCursor.includes("\n");
+        const currentLineIndex = beforeCursor.split("\n").length - 1;
+        const lastNewlineIndex = beforeCursor.lastIndexOf("\n");
+        const positionInLine = lastNewlineIndex === -1
+          ? selectionStart
+          : selectionStart - lastNewlineIndex - 1;
 
-        if (isAtTop && onFocusPrevious) {
+        // Only move to previous cell if at the very beginning of the first line
+        if (currentLineIndex === 0 && positionInLine === 0 && onFocusPrevious) {
           e.preventDefault();
           onUpdateSource?.();
           onFocusPrevious();
           return;
         }
       } else if (e.key === "ArrowDown" && selectionStart === selectionEnd) {
-        // For empty cells or cursor at end of last line
-        const afterCursor = value.substring(selectionEnd);
-        const isAtBottom = selectionEnd === value.length ||
-          !afterCursor.includes("\n");
+        // Check if cursor is at the end of the last line
+        const lines = value.split("\n");
+        const beforeCursor = value.substring(0, selectionStart);
+        const currentLineIndex = beforeCursor.split("\n").length - 1;
+        const currentLine = lines[currentLineIndex];
+        const lastNewlineIndex = beforeCursor.lastIndexOf("\n");
+        const positionInLine = lastNewlineIndex === -1
+          ? selectionStart
+          : selectionStart - lastNewlineIndex - 1;
 
-        if (isAtBottom && onFocusNext) {
+        // Only move to next cell if at the very end of the last line
+        if (
+          currentLineIndex === lines.length - 1 &&
+          positionInLine === currentLine.length && onFocusNext
+        ) {
           e.preventDefault();
           onUpdateSource?.();
           onFocusNext();
@@ -52,21 +67,16 @@ export const useCellKeyboardNavigation = ({
       }
 
       // Handle execution shortcuts
-      if (e.key === "Enter" && e.shiftKey) {
-        // Shift+Enter: Run cell and move to next (or create new cell if at end)
+      if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) {
+        // Ctrl/Cmd+Enter: Run cell and move to next (or create new cell if at end)
         e.preventDefault();
         onUpdateSource?.();
         onExecute?.();
         if (onFocusNext) {
           onFocusNext(); // Move to next cell (or create new if at end)
         }
-      } else if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) {
-        // Ctrl/Cmd+Enter: Run cell but stay in current cell
-        e.preventDefault();
-        onUpdateSource?.();
-        onExecute?.();
-        // Don't move to next cell - stay in current cell
       }
+      // Shift+Enter now creates a newline (default behavior) - no special handling needed
     },
     [onFocusNext, onFocusPrevious, onExecute, onUpdateSource],
   );
