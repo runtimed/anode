@@ -2,7 +2,7 @@
 [
   {
     "label": "Doc Worker",
-    "command": "pnpm run dev:sync-only",
+    "command": "pnpm run dev:sync",
     // args": [],
     // Env overrides for the command, will be appended to the terminal's environment from the settings.
     // "env": {},
@@ -47,7 +47,7 @@
   },
   {
     "label": "UI Client (Web)",
-    "command": "pnpm run dev:web-only",
+    "command": "pnpm run dev",
     "use_new_terminal": true,
     "allow_concurrent_runs": false,
     "reveal": "always",
