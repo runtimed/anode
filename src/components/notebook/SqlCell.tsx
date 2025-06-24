@@ -1,6 +1,8 @@
-import React, { useCallback, useState } from "react";
+import React, { useCallback } from "react";
 import { useStore } from "@livestore/react";
 import { events, SqlResultData, tables } from "@runt/schema";
+import { useCellKeyboardNavigation } from "../../hooks/useCellKeyboardNavigation.js";
+import { useCellContent } from "../../hooks/useCellContent.js";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
@@ -52,7 +54,6 @@ export const SqlCell: React.FC<SqlCellProps> = ({
   contextSelectionMode = false,
 }) => {
   const { store } = useStore();
-  const [localQuery, setLocalQuery] = useState(cell.source);
   const textareaRef = React.useRef<HTMLTextAreaElement>(null);
 
   // Auto-focus when requested
@@ -62,20 +63,15 @@ export const SqlCell: React.FC<SqlCellProps> = ({
     }
   }, [autoFocus]);
 
-  // Sync local source with cell source
-  React.useEffect(() => {
-    setLocalQuery(cell.source);
-  }, [cell.source]);
-
-  const updateQuery = useCallback(() => {
-    if (localQuery !== cell.source) {
-      store.commit(events.cellSourceChanged({
-        id: cell.id,
-        source: localQuery,
-        modifiedBy: "current-user",
-      }));
-    }
-  }, [localQuery, cell.source, cell.id, store]);
+  // Use shared content management hook
+  const {
+    localSource: localQuery,
+    updateSource: updateQuery,
+    handleSourceChange,
+  } = useCellContent({
+    cellId: cell.id,
+    initialSource: cell.source,
+  });
 
   const executeQuery = useCallback(() => {
     if (!cell.sqlConnectionId) {
@@ -112,61 +108,13 @@ export const SqlCell: React.FC<SqlCellProps> = ({
     }));
   }, [cell.id, cell.sqlConnectionId, localQuery, store]);
 
-  const handleKeyDown = useCallback(
-    (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-      const textarea = e.currentTarget;
-      const { selectionStart, selectionEnd, value } = textarea;
-
-      // Handle Home/End keys to prevent page navigation
-      if (e.key === "Home" || e.key === "End") {
-        // Let the textarea handle Home/End internally, but stop propagation to prevent page scroll
-        e.stopPropagation();
-        return;
-      }
-
-      // Handle arrow key navigation between cells
-      if (e.key === "ArrowUp" && selectionStart === selectionEnd) {
-        // For empty cells or cursor at beginning of first line
-        const beforeCursor = value.substring(0, selectionStart);
-        const isAtTop = selectionStart === 0 || !beforeCursor.includes("\n");
-
-        if (isAtTop && onFocusPrevious) {
-          e.preventDefault();
-          updateQuery();
-          onFocusPrevious();
-          return;
-        }
-      } else if (e.key === "ArrowDown" && selectionStart === selectionEnd) {
-        // For empty cells or cursor at end of last line
-        const afterCursor = value.substring(selectionEnd);
-        const isAtBottom = selectionEnd === value.length ||
-          !afterCursor.includes("\n");
-
-        if (isAtBottom && onFocusNext) {
-          e.preventDefault();
-          updateQuery();
-          onFocusNext();
-          return;
-        }
-      }
-
-      if (e.key === "Enter" && e.shiftKey) {
-        // Shift+Enter: Run query and move to next (or create new cell if at end)
-        e.preventDefault();
-        updateQuery();
-        executeQuery();
-        if (onFocusNext) {
-          onFocusNext(); // Move to next cell (or create new if at end)
-        }
-      } else if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) {
-        // Ctrl/Cmd+Enter: Run query but stay in current cell
-        e.preventDefault();
-        updateQuery();
-        executeQuery();
-      }
-    },
-    [updateQuery, executeQuery, onAddCell, onFocusNext, onFocusPrevious],
-  );
+  // Use shared keyboard navigation hook
+  const { handleKeyDown } = useCellKeyboardNavigation({
+    onFocusNext,
+    onFocusPrevious,
+    onExecute: executeQuery,
+    onUpdateSource: updateQuery,
+  });
 
   const handleFocus = useCallback(() => {
     if (onFocus) {
@@ -523,8 +471,7 @@ export const SqlCell: React.FC<SqlCellProps> = ({
               <Textarea
                 ref={textareaRef}
                 value={localQuery}
-                onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) =>
-                  setLocalQuery(e.target.value)}
+                onChange={handleSourceChange}
                 onBlur={updateQuery}
                 onKeyDown={handleKeyDown}
                 placeholder="SELECT * FROM your_table WHERE condition = 'value';"
