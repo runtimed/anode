@@ -42,18 +42,10 @@ const CodeBlock: React.FC<CodeBlockProps> = ({
         PreTag="div"
         customStyle={{
           margin: 0,
-          background: "#f9fafb",
           borderRadius: "0.375rem",
           padding: "0.75rem",
           fontSize: "0.875rem",
-          color: "#374151",
           overflow: "auto",
-        }}
-        codeTagProps={{
-          style: {
-            color: "#374151",
-            background: "transparent",
-          },
         }}
       >
         {children}
@@ -96,9 +88,8 @@ export const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({
             const language = match ? match[1] : "";
             const codeContent = String(children).replace(/\n$/, "");
 
-            // Detect if this is a block-level code element
-            // React Markdown renders block code inside <pre><code> and inline code as just <code>
-            const isBlockCode = node?.parent?.tagName === "pre";
+            // Simple detection: block code has newlines, inline code doesn't
+            const isBlockCode = codeContent.includes("\n") || className;
 
             return isBlockCode
               ? (
