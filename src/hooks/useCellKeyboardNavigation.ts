@@ -28,7 +28,6 @@ export const useCellKeyboardNavigation = ({
       // Handle arrow key navigation between cells
       if (e.key === "ArrowUp" && selectionStart === selectionEnd) {
         // Check if cursor is at the beginning of the first line
-        const lines = value.split("\n");
         const beforeCursor = value.substring(0, selectionStart);
         const currentLineIndex = beforeCursor.split("\n").length - 1;
         const lastNewlineIndex = beforeCursor.lastIndexOf("\n");
