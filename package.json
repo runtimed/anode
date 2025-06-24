@@ -9,7 +9,7 @@
   "scripts": {
     "dev": "vite --port 5173",
     "dev:sync": "wrangler dev",
-    "dev:runtime": "deno run --allow-all --env-file=.env \"jsr:@runt/pyodide-runtime-agent@0.2.0\"",
+    "dev:runtime": "cd ../runt && deno run --allow-all --env-file=../anode/.env packages/pyodide-runtime-agent/src/mod.ts",
     "build": "tsc && vite build",
     "build:prod": "NODE_ENV=production tsc && vite build",
     "build:dev": "NODE_ENV=development tsc && vite build",
