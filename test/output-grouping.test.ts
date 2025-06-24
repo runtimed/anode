@@ -15,6 +15,7 @@ describe("groupConsecutiveStreamOutputs", () => {
         cellId: "cell1",
         outputType: "display_data",
         data: { "text/plain": "Hello" },
+        metadata: null,
         position: 1,
       },
       {
@@ -22,6 +23,7 @@ describe("groupConsecutiveStreamOutputs", () => {
         cellId: "cell1",
         outputType: "execute_result",
         data: { "text/plain": "World" },
+        metadata: null,
         position: 2,
       },
     ];
@@ -37,6 +39,7 @@ describe("groupConsecutiveStreamOutputs", () => {
         cellId: "cell1",
         outputType: "stream",
         data: { name: "stdout", text: "Hello " },
+        metadata: null,
         position: 1,
       },
       {
@@ -44,6 +47,7 @@ describe("groupConsecutiveStreamOutputs", () => {
         cellId: "cell1",
         outputType: "stream",
         data: { name: "stdout", text: "World" },
+        metadata: null,
         position: 2,
       },
       {
@@ -51,6 +55,7 @@ describe("groupConsecutiveStreamOutputs", () => {
         cellId: "cell1",
         outputType: "stream",
         data: { name: "stdout", text: "!" },
+        metadata: null,
         position: 3,
       },
     ];
@@ -62,6 +67,7 @@ describe("groupConsecutiveStreamOutputs", () => {
       cellId: "cell1",
       outputType: "stream",
       data: { name: "stdout", text: "Hello World!" },
+      metadata: null,
       position: 1,
     });
   });
@@ -73,6 +79,7 @@ describe("groupConsecutiveStreamOutputs", () => {
         cellId: "cell1",
         outputType: "stream",
         data: { name: "stderr", text: "Error: " },
+        metadata: null,
         position: 1,
       },
       {
@@ -80,6 +87,7 @@ describe("groupConsecutiveStreamOutputs", () => {
         cellId: "cell1",
         outputType: "stream",
         data: { name: "stderr", text: "Something went wrong" },
+        metadata: null,
         position: 2,
       },
     ];
@@ -91,6 +99,7 @@ describe("groupConsecutiveStreamOutputs", () => {
       cellId: "cell1",
       outputType: "stream",
       data: { name: "stderr", text: "Error: Something went wrong" },
+      metadata: null,
       position: 1,
     });
   });
@@ -102,6 +111,7 @@ describe("groupConsecutiveStreamOutputs", () => {
         cellId: "cell1",
         outputType: "stream",
         data: { name: "stdout", text: "Hello" },
+        metadata: null,
         position: 1,
       },
       {
@@ -109,6 +119,7 @@ describe("groupConsecutiveStreamOutputs", () => {
         cellId: "cell1",
         outputType: "stream",
         data: { name: "stderr", text: "Error" },
+        metadata: null,
         position: 2,
       },
     ];
@@ -126,6 +137,7 @@ describe("groupConsecutiveStreamOutputs", () => {
         cellId: "cell1",
         outputType: "stream",
         data: { name: "stdout", text: "Line 1\n" },
+        metadata: null,
         position: 1,
       },
       {
@@ -133,6 +145,7 @@ describe("groupConsecutiveStreamOutputs", () => {
         cellId: "cell1",
         outputType: "stream",
         data: { name: "stdout", text: "Line 2\n" },
+        metadata: null,
         position: 2,
       },
       {
@@ -140,6 +153,7 @@ describe("groupConsecutiveStreamOutputs", () => {
         cellId: "cell1",
         outputType: "display_data",
         data: { "text/plain": "Some output" },
+        metadata: null,
         position: 3,
       },
       {
@@ -147,6 +161,7 @@ describe("groupConsecutiveStreamOutputs", () => {
         cellId: "cell1",
         outputType: "stream",
         data: { name: "stdout", text: "Line 3\n" },
+        metadata: null,
         position: 4,
       },
       {
@@ -154,6 +169,7 @@ describe("groupConsecutiveStreamOutputs", () => {
         cellId: "cell1",
         outputType: "stream",
         data: { name: "stdout", text: "Line 4\n" },
+        metadata: null,
         position: 5,
       },
     ];
@@ -167,6 +183,7 @@ describe("groupConsecutiveStreamOutputs", () => {
       cellId: "cell1",
       outputType: "stream",
       data: { name: "stdout", text: "Line 1\nLine 2\n" },
+      metadata: null,
       position: 1,
     });
 
@@ -176,6 +193,7 @@ describe("groupConsecutiveStreamOutputs", () => {
       cellId: "cell1",
       outputType: "display_data",
       data: { "text/plain": "Some output" },
+      metadata: null,
       position: 3,
     });
 
@@ -185,6 +203,7 @@ describe("groupConsecutiveStreamOutputs", () => {
       cellId: "cell1",
       outputType: "stream",
       data: { name: "stdout", text: "Line 3\nLine 4\n" },
+      metadata: null,
       position: 4,
     });
   });
@@ -196,6 +215,7 @@ describe("groupConsecutiveStreamOutputs", () => {
         cellId: "cell1",
         outputType: "stream",
         data: { name: "stdout", text: "Out 1\n" },
+        metadata: null,
         position: 1,
       },
       {
@@ -203,6 +223,7 @@ describe("groupConsecutiveStreamOutputs", () => {
         cellId: "cell1",
         outputType: "stream",
         data: { name: "stdout", text: "Out 2\n" },
+        metadata: null,
         position: 2,
       },
       {
@@ -210,6 +231,7 @@ describe("groupConsecutiveStreamOutputs", () => {
         cellId: "cell1",
         outputType: "stream",
         data: { name: "stderr", text: "Error 1\n" },
+        metadata: null,
         position: 3,
       },
       {
@@ -217,6 +239,7 @@ describe("groupConsecutiveStreamOutputs", () => {
         cellId: "cell1",
         outputType: "stream",
         data: { name: "stderr", text: "Error 2\n" },
+        metadata: null,
         position: 4,
       },
       {
@@ -224,6 +247,7 @@ describe("groupConsecutiveStreamOutputs", () => {
         cellId: "cell1",
         outputType: "stream",
         data: { name: "stdout", text: "Out 3\n" },
+        metadata: null,
         position: 5,
       },
     ];
@@ -251,6 +275,7 @@ describe("groupConsecutiveStreamOutputs", () => {
         cellId: "cell1",
         outputType: "stream",
         data: { name: "stdout", text: "Single line" },
+        metadata: null,
         position: 1,
       },
     ];
