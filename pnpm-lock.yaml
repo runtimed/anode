@@ -56,8 +56,8 @@ importers:
         specifier: ^1.1.6
         version: 1.2.7(@types/react-dom@19.1.6(@types/react@19.1.8))(@types/react@19.1.8)(react-dom@19.0.0(react@19.0.0))(react@19.0.0)
       '@runt/schema':
-        specifier: file:../../runtimed/runt/packages/schema
-        version: file:../../runtimed/runt/packages/schema(c8a6ab75252475c2bbdc72175802283e)
+        specifier: jsr:^0.2.0
+        version: '@jsr/runt__schema@0.2.0(c8a6ab75252475c2bbdc72175802283e)'
       '@types/react-syntax-highlighter':
         specifier: ^15.5.13
         version: 15.5.13
@@ -1692,9 +1692,6 @@ packages:
     resolution: {integrity: sha512-SnGhLiE5rlK0ofq8kzuDkM0g7FN1s5VYY+YSMTibP7CqShxCQvqtNxTARS4xX4PFJfHjG0ZQYX9iGzI3FQh5Aw==}
     cpu: [x64]
     os: [win32]
-
-  '@runt/schema@file:../../runtimed/runt/packages/schema':
-    resolution: {directory: ../../runtimed/runt/packages/schema, type: directory}
 
   '@standard-schema/spec@1.0.0':
     resolution: {integrity: sha512-m2bOd0f2RT9k8QJx1JN85cZYyH1RqFBdlwtkSlf4tBDYLCiiZnv1fIIwacK6cqwXavOydf0NPToMQgpKq+dVlA==}
@@ -4652,26 +4649,6 @@ snapshots:
 
   '@rollup/rollup-win32-x64-msvc@4.43.0':
     optional: true
-
-  '@runt/schema@file:../../runtimed/runt/packages/schema(c8a6ab75252475c2bbdc72175802283e)':
-    dependencies:
-      '@livestore/livestore': 0.3.1(c8a6ab75252475c2bbdc72175802283e)
-    transitivePeerDependencies:
-      - '@effect/cli'
-      - '@effect/cluster'
-      - '@effect/experimental'
-      - '@effect/opentelemetry'
-      - '@effect/platform'
-      - '@effect/platform-browser'
-      - '@effect/platform-bun'
-      - '@effect/platform-node'
-      - '@effect/printer'
-      - '@effect/printer-ansi'
-      - '@effect/rpc'
-      - '@effect/sql'
-      - '@effect/typeclass'
-      - '@opentelemetry/resources'
-      - effect
 
   '@standard-schema/spec@1.0.0': {}
 

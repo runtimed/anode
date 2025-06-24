@@ -47,7 +47,7 @@
     "@radix-ui/react-separator": "^1.1.7",
     "@radix-ui/react-slot": "^1.2.3",
     "@radix-ui/react-tooltip": "^1.1.6",
-    "@runt/schema": "file:../../runtimed/runt/packages/schema",
+    "@runt/schema": "jsr:^0.2.0",
     "@types/react-syntax-highlighter": "^15.5.13",
     "ansi-to-react": "^6.1.6",
     "class-variance-authority": "^0.7.1",
