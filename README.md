@@ -34,15 +34,22 @@ Jupyter's developers built something incredible that changed how we compute. Col
 
 ### 1. Install and Configure
 ```bash
-pnpm install  # Automatically creates .env files with defaults
-# hack on the web client
-pnpm dev:web-only
-# synchronize clients with a local doc worker
-pnpm dev:sync-only
+pnpm install  # Install dependencies
+
+# Copy environment configuration
+cp .env.example .env
+# Edit .env if needed (defaults work for local development)
+
+# Start web client
+pnpm dev
+
+# Start sync worker (in separate terminal)
+pnpm dev:sync
 ```
 
-The install process creates `.env` files for:
-- `.env` - Application configuration (both web client and worker settings)
+Environment configuration:
+- `.env.example` - Template with all required variables
+- `.env` - Your local configuration (copy from .env.example)
 
 ### 2. Create Your First Notebook
 1. Open http://localhost:5173

@@ -71,9 +71,9 @@ anode/
 └── CONTRIBUTING.md    # This file
 ```
 
-## Environment Configuration
+### Environment Configuration
 
-The setup script automatically creates separate `.env` files for security:
+Copy `.env.example` to `.env` and configure as needed:
 
 **Web Client** (`.env`) - Browser-exposed variables (VITE_ prefix):
 ```bash
