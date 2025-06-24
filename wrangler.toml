@@ -9,7 +9,7 @@
 
 # Default environment (local development)
 name = "anode-docworker"
-main = "./src/index.ts"
+main = "./src/sync/sync.ts"
 compatibility_date = "2025-05-08"
 
 # Static assets removed - web client now served by Cloudflare Pages
