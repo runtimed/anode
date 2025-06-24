@@ -66,8 +66,14 @@ export const useCellKeyboardNavigation = ({
       }
 
       // Handle execution shortcuts
-      if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) {
-        // Ctrl/Cmd+Enter: Run cell and move to next (or create new cell if at end)
+      if (e.key === "Enter" && e.ctrlKey && !e.metaKey) {
+        // Ctrl+Enter: Run cell but stay in current cell
+        e.preventDefault();
+        onUpdateSource?.();
+        onExecute?.();
+        // Don't move to next cell - stay in current cell
+      } else if (e.key === "Enter" && e.metaKey && !e.ctrlKey) {
+        // Cmd+Enter: Run cell and move to next (or create new cell if at end)
         e.preventDefault();
         onUpdateSource?.();
         onExecute?.();
