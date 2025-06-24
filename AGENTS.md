@@ -292,7 +292,7 @@ anode/
 **User Environment**: The user will typically have:
 - Web client running in one tab (`pnpm dev`)
 - Wrangler server running in another tab (`pnpm dev:sync`)
-- Python runtime from `@runt` packages (separate setup)
+- Python runtime available via `pnpm dev:runtime` (uses @runt JSR packages)
 
 **Checking Work**: If you need to verify changes:
 ```bash
@@ -308,15 +308,16 @@ Tell them to start at the base of the repo:
 ```bash
 # Setup environment
 pnpm install         # Install dependencies for single application
+cp .env.example .env # Copy environment template
 
 # In separate tabs run
 ## Tab 1:
 pnpm dev             # Web client
 ## Tab 2:
-pnpm dev:sync        # Sync worker
+pnpm dev:sync        # Sync worker (now properly on port 8787)
 
-# Python runtime is now handled by @runt packages
-# See https://github.com/rgbkrk/runt for setup
+# Python runtime (get NOTEBOOK_ID from UI, then run):
+NOTEBOOK_ID=your-notebook-id pnpm dev:runtime
 ```
 
 ## Important Development Notes

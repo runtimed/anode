@@ -68,13 +68,13 @@ Environment configuration:
 - Press **Ctrl+Enter** or click **Run**
 - See results appear instantly
 
-### 5. Try AI Integration (Optional)
+### 5. Try Python Execution (Optional)
 ```bash
-# Runtime is now handled by the separate @runt packages
-# See https://github.com/rgbkrk/runt for Python execution setup
+# Get the notebook ID from the UI, then start runtime:
+NOTEBOOK_ID=your-notebook-id pnpm dev:runtime
 ```
-- Add an AI cell and ask questions about your data
-- Falls back to mock responses if no API key is set
+- Uses @runt packages for Python execution and AI features
+- See https://github.com/rgbkrk/runt for more configuration options
 
 ## Using Deployed Cloudflare Workers (Optional)
 

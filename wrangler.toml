@@ -12,6 +12,9 @@ name = "anode-docworker"
 main = "./src/sync/sync.ts"
 compatibility_date = "2025-05-08"
 
+[dev]
+port = 8787
+
 # Static assets removed - web client now served by Cloudflare Pages
 
 [[durable_objects.bindings]]
