@@ -1,7 +1,9 @@
-import React, { useCallback, useState } from "react";
+import React, { useCallback } from "react";
 import { useStore } from "@livestore/react";
 import { events, isErrorOutput, OutputData, tables } from "@runt/schema";
 import { queryDb } from "@livestore/livestore";
+import { useCellKeyboardNavigation } from "../../hooks/useCellKeyboardNavigation.js";
+import { useCellContent } from "../../hooks/useCellContent.js";
 
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -100,7 +102,6 @@ export const Cell: React.FC<CellProps> = ({
 
   // Default cell component for code, markdown, raw
   const { store } = useStore();
-  const [localSource, setLocalSource] = useState(cell.source);
   const textareaRef = React.useRef<HTMLTextAreaElement>(null);
 
   // Create stable query using useMemo to prevent React Hook issues
@@ -117,22 +118,11 @@ export const Cell: React.FC<CellProps> = ({
     }
   }, [autoFocus]);
 
-  // Sync local source with cell source
-  React.useEffect(() => {
-    setLocalSource(cell.source);
-  }, [cell.source]);
-
-  const updateSource = useCallback(() => {
-    if (localSource !== cell.source) {
-      store.commit(
-        events.cellSourceChanged({
-          id: cell.id,
-          source: localSource,
-          modifiedBy: "current-user", // TODO: get from auth
-        }),
-      );
-    }
-  }, [localSource, cell.source, cell.id, store]);
+  // Use shared content management hook
+  const { localSource, updateSource, handleSourceChange } = useCellContent({
+    cellId: cell.id,
+    initialSource: cell.source,
+  });
 
   const changeCellType = useCallback(
     (newType: "code" | "markdown" | "sql" | "ai") => {
@@ -239,67 +229,13 @@ export const Cell: React.FC<CellProps> = ({
     }
   }, [cell.id, localSource, cell.executionCount, store]);
 
-  const handleKeyDown = useCallback(
-    (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-      const textarea = e.currentTarget;
-      const { selectionStart, selectionEnd, value } = textarea;
-
-      // Handle arrow key navigation between cells
-      if (e.key === "ArrowUp" && selectionStart === selectionEnd) {
-        // For empty cells or cursor at beginning of first line
-        const beforeCursor = value.substring(0, selectionStart);
-        const isAtTop = selectionStart === 0 || !beforeCursor.includes("\n");
-
-        if (isAtTop && onFocusPrevious) {
-          e.preventDefault();
-          updateSource();
-          onFocusPrevious();
-          return;
-        }
-      } else if (e.key === "ArrowDown" && selectionStart === selectionEnd) {
-        // For empty cells or cursor at end of last line
-        const afterCursor = value.substring(selectionEnd);
-        const isAtBottom = selectionEnd === value.length ||
-          !afterCursor.includes("\n");
-
-        if (isAtBottom && onFocusNext) {
-          e.preventDefault();
-          updateSource();
-          onFocusNext();
-          return;
-        }
-      }
-
-      // Handle execution shortcuts
-      if (e.key === "Enter" && e.shiftKey) {
-        // Shift+Enter: Run cell and move to next (or create new cell if at end)
-        e.preventDefault();
-        updateSource();
-        if (cell.cellType === "code") {
-          executeCell();
-        }
-        if (onFocusNext) {
-          onFocusNext(); // Move to next cell (or create new if at end)
-        }
-      } else if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) {
-        // Ctrl/Cmd+Enter: Run cell but stay in current cell
-        e.preventDefault();
-        updateSource();
-        if (cell.cellType === "code") {
-          executeCell();
-        }
-        // Don't call onAddCell() - stay in current cell
-      }
-    },
-    [
-      updateSource,
-      executeCell,
-      cell.cellType,
-      onAddCell,
-      onFocusNext,
-      onFocusPrevious,
-    ],
-  );
+  // Use shared keyboard navigation hook
+  const { handleKeyDown } = useCellKeyboardNavigation({
+    onFocusNext,
+    onFocusPrevious,
+    onExecute: cell.cellType === "code" ? executeCell : undefined,
+    onUpdateSource: updateSource,
+  });
 
   const handleFocus = useCallback(() => {
     if (onFocus) {
@@ -586,8 +522,7 @@ export const Cell: React.FC<CellProps> = ({
               <Textarea
                 ref={textareaRef}
                 value={localSource}
-                onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) =>
-                  setLocalSource(e.target.value)}
+                onChange={handleSourceChange}
                 onBlur={updateSource}
                 onKeyDown={handleKeyDown}
                 placeholder={cell.cellType === "code"
