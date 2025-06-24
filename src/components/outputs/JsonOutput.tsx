@@ -10,10 +10,13 @@ export const JsonOutput: React.FC<JsonOutputProps> = ({
   data,
   compact = false,
 }) => {
+  // Ensure data is an object for react-json-view
+  const jsonData = data && typeof data === "object" ? data : { value: data };
+
   return (
     <div className="bg-gray-50/50 rounded p-2">
       <ReactJsonView
-        src={data}
+        src={jsonData}
         theme="rjv-default"
         collapsed={compact ? 1 : false}
         displayDataTypes={false}
