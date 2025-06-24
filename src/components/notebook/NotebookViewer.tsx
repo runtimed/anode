@@ -28,7 +28,7 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({ debugMode = fals
 
   const [isEditingTitle, setIsEditingTitle] = React.useState(false)
   const [localTitle, setLocalTitle] = React.useState(notebook?.title || '')
-  const [showKernelHelper, setShowKernelHelper] = React.useState(false)
+  const [showRuntimeHelper, setShowRuntimeHelper] = React.useState(false)
   const [focusedCellId, setFocusedCellId] = React.useState<string | null>(null)
   const [contextSelectionMode, setContextSelectionMode] = React.useState(false)
 
@@ -39,7 +39,7 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({ debugMode = fals
   const runtimeCommand = `deno run --allow-all --env-file=.env.anode "jsr:@runt/pyodide-runtime-agent@0.2.0" --notebook=${currentNotebookId}`
 
   // Check kernel status with heartbeat-based health assessment
-  const getKernelHealth = (session: KernelSessionData) => {
+  const getRuntimeHealth = (session: KernelSessionData) => {
     if (!session.lastHeartbeat) {
       // If session is active but no heartbeat yet, it's connecting (not disconnected)
       return session.isActive ? 'connecting' : 'unknown'
@@ -53,12 +53,12 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({ debugMode = fals
     return 'healthy'
   }
 
-  const activeKernel = kernelSessions.find((session: KernelSessionData) =>
+  const activeRuntime = kernelSessions.find((session: KernelSessionData) =>
     session.status === 'ready' || session.status === 'busy'
   )
-  const hasActiveKernel = Boolean(activeKernel && ['healthy', 'warning', 'connecting'].includes(getKernelHealth(activeKernel)))
-  const kernelHealth = activeKernel ? getKernelHealth(activeKernel) : 'disconnected'
-  const kernelStatus = activeKernel?.status || (kernelSessions.length > 0 ? kernelSessions[0].status : 'disconnected')
+  const hasActiveRuntime = Boolean(activeRuntime && ['healthy', 'warning', 'connecting'].includes(getRuntimeHealth(activeRuntime)))
+  const runtimeHealth = activeRuntime ? getRuntimeHealth(activeRuntime) : 'disconnected'
+  const runtimeStatus = activeRuntime?.status || (kernelSessions.length > 0 ? kernelSessions[0].status : 'disconnected')
 
 
 
@@ -302,18 +302,18 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({ debugMode = fals
               <Button
                 variant="outline"
                 size="sm"
-                onClick={() => setShowKernelHelper(!showKernelHelper)}
+                onClick={() => setShowRuntimeHelper(!showRuntimeHelper)}
                 className="flex items-center gap-1 sm:gap-2"
               >
                 <Terminal className="h-3 sm:h-4 w-3 sm:w-4" />
                 <span className="capitalize text-xs sm:text-sm hidden sm:block">{notebook.kernelType}</span>
                 <Circle
                   className={`h-2 w-2 fill-current ${
-                    activeKernel && kernelHealth === 'healthy' ? 'text-green-500' :
-                    activeKernel && kernelHealth === 'warning' ? 'text-amber-500' :
-                    activeKernel && kernelHealth === 'connecting' ? 'text-blue-500' :
-                    activeKernel && kernelHealth === 'stale' ? 'text-amber-500' :
-                    kernelStatus === 'starting' ? 'text-blue-500' :
+                    activeRuntime && runtimeHealth === 'healthy' ? 'text-green-500' :
+                    activeRuntime && runtimeHealth === 'warning' ? 'text-amber-500' :
+                    activeRuntime && runtimeHealth === 'connecting' ? 'text-blue-500' :
+                    activeRuntime && runtimeHealth === 'stale' ? 'text-amber-500' :
+                    runtimeStatus === 'starting' ? 'text-blue-500' :
                     'text-red-500'
                   }`}
                 />
@@ -331,7 +331,7 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({ debugMode = fals
           </div>
         </div>
 
-        {showKernelHelper && (
+        {showRuntimeHelper && (
           <div className="border-t bg-card">
             <div className="w-full sm:max-w-6xl sm:mx-auto px-3 sm:px-4 py-4">
               <div className="flex items-center justify-between mb-3">
@@ -339,41 +339,41 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({ debugMode = fals
                   Runtime Status
                   <Circle
                     className={`h-2 w-2 fill-current ${
-                      activeKernel && kernelHealth === 'healthy' ? 'text-green-500' :
-                      activeKernel && kernelHealth === 'warning' ? 'text-amber-500' :
-                      activeKernel && kernelHealth === 'connecting' ? 'text-blue-500' :
-                      activeKernel && kernelHealth === 'stale' ? 'text-amber-500' :
-                      kernelStatus === 'starting' ? 'text-blue-500' :
+                      activeRuntime && runtimeHealth === 'healthy' ? 'text-green-500' :
+                      activeRuntime && runtimeHealth === 'warning' ? 'text-amber-500' :
+                      activeRuntime && runtimeHealth === 'connecting' ? 'text-blue-500' :
+                      activeRuntime && runtimeHealth === 'stale' ? 'text-amber-500' :
+                      runtimeStatus === 'starting' ? 'text-blue-500' :
                       'text-red-500'
                     }`}
                   />
                   <span className={`text-xs ${
-                      activeKernel && kernelHealth === 'healthy' ? 'text-green-600' :
-                      activeKernel && kernelHealth === 'warning' ? 'text-amber-600' :
-                      activeKernel && kernelHealth === 'connecting' ? 'text-blue-600' :
-                      activeKernel && kernelHealth === 'stale' ? 'text-amber-600' :
-                      kernelStatus === 'starting' ? 'text-blue-600' :
+                      activeRuntime && runtimeHealth === 'healthy' ? 'text-green-600' :
+                      activeRuntime && runtimeHealth === 'warning' ? 'text-amber-600' :
+                      activeRuntime && runtimeHealth === 'connecting' ? 'text-blue-600' :
+                      activeRuntime && runtimeHealth === 'stale' ? 'text-amber-600' :
+                      runtimeStatus === 'starting' ? 'text-blue-600' :
                       'text-red-600'
                     }`}>
-                    {activeKernel && kernelHealth === 'healthy' ? 'Connected' :
-                     activeKernel && kernelHealth === 'warning' ? 'Connected (Slow)' :
-                     activeKernel && kernelHealth === 'connecting' ? 'Connecting...' :
-                     activeKernel && kernelHealth === 'stale' ? 'Connected (Stale)' :
-                     kernelStatus === 'starting' ? 'Starting' :
+                    {activeRuntime && runtimeHealth === 'healthy' ? 'Connected' :
+                     activeRuntime && runtimeHealth === 'warning' ? 'Connected (Slow)' :
+                     activeRuntime && runtimeHealth === 'connecting' ? 'Connecting...' :
+                     activeRuntime && runtimeHealth === 'stale' ? 'Connected (Stale)' :
+                     runtimeStatus === 'starting' ? 'Starting' :
                      'Disconnected'}
                   </span>
                 </h4>
                 <Button
                   variant="ghost"
                   size="sm"
-                  onClick={() => setShowKernelHelper(false)}
+                  onClick={() => setShowRuntimeHelper(false)}
                   className="h-6 w-6 p-0"
                 >
                   ×
                 </Button>
               </div>
 
-              {!hasActiveKernel && (
+              {!hasActiveRuntime && (
                 <>
                   <p className="text-sm text-muted-foreground mb-3">
                     Run this command in your terminal to start a runtime for notebook <code className="bg-muted px-1 rounded">{currentNotebookId}</code>:
@@ -395,46 +395,46 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({ debugMode = fals
                 </>
               )}
 
-              {hasActiveKernel && activeKernel && (
+              {hasActiveRuntime && activeRuntime && (
                 <div className="text-sm space-y-2">
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Session ID:</span>
-                    <code className="bg-muted px-1 rounded text-xs">{activeKernel.sessionId}</code>
+                    <code className="bg-muted px-1 rounded text-xs">{activeRuntime.sessionId}</code>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Runtime Type:</span>
-                    <span>{activeKernel.kernelType}</span>
+                    <span>{activeRuntime.kernelType}</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Status:</span>
                     <span className={`font-medium ${
-                      activeKernel.status === 'ready' ? 'text-green-600' :
-                      activeKernel.status === 'busy' ? 'text-amber-600' :
+                      activeRuntime.status === 'ready' ? 'text-green-600' :
+                      activeRuntime.status === 'busy' ? 'text-amber-600' :
                       'text-red-600'
                     }`}>
-                      {activeKernel.status === 'ready' ? 'Ready' :
-                       activeKernel.status === 'busy' ? 'Busy' :
-                       activeKernel.status.charAt(0).toUpperCase() + activeKernel.status.slice(1)}
+                      {activeRuntime.status === 'ready' ? 'Ready' :
+                       activeRuntime.status === 'busy' ? 'Busy' :
+                       activeRuntime.status.charAt(0).toUpperCase() + activeRuntime.status.slice(1)}
                     </span>
                   </div>
-                  {activeKernel.lastHeartbeat && (
+                  {activeRuntime.lastHeartbeat && (
                     <div className="flex justify-between">
                       <span className="text-muted-foreground">Last Heartbeat:</span>
                       <span className="text-xs flex items-center gap-1">
-                        {formatHeartbeatTime(activeKernel.lastHeartbeat)}
+                        {formatHeartbeatTime(activeRuntime.lastHeartbeat)}
                       </span>
                     </div>
                   )}
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Capabilities:</span>
                     <div className="flex gap-1">
-                      {activeKernel.canExecuteCode && (
+                      {activeRuntime.canExecuteCode && (
                         <span className="bg-blue-100 text-blue-800 text-xs px-1 rounded">Code</span>
                       )}
-                      {activeKernel.canExecuteSql && (
+                      {activeRuntime.canExecuteSql && (
                         <span className="bg-purple-100 text-purple-800 text-xs px-1 rounded">SQL</span>
                       )}
-                      {activeKernel.canExecuteAi && (
+                      {activeRuntime.canExecuteAi && (
                         <span className="bg-green-100 text-green-800 text-xs px-1 rounded">AI</span>
                       )}
                     </div>
