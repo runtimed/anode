@@ -36,7 +36,7 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({ debugMode = fals
   const isDevelopment = import.meta.env.DEV
 
   const currentNotebookId = getCurrentNotebookId()
-  const kernelCommand = `NOTEBOOK_ID=${currentNotebookId} pnpm dev:runtime`
+  const runtimeCommand = `deno run --allow-all --env-file=.env.anode "jsr:@runt/pyodide-runtime-agent@0.2.0" --notebook=${currentNotebookId}`
 
   // Check kernel status with heartbeat-based health assessment
   const getKernelHealth = (session: KernelSessionData) => {
@@ -62,10 +62,10 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({ debugMode = fals
 
 
 
-  const copyKernelCommand = useCallback(() => {
-    navigator.clipboard.writeText(kernelCommand)
+  const copyRuntimeCommand = useCallback(() => {
+    navigator.clipboard.writeText(runtimeCommand)
     // Could add a toast notification here
-  }, [kernelCommand])
+  }, [runtimeCommand])
 
   // Helper function to format heartbeat time
   const formatHeartbeatTime = (heartbeatTime: Date | string | null) => {
@@ -336,7 +336,7 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({ debugMode = fals
             <div className="w-full sm:max-w-6xl sm:mx-auto px-3 sm:px-4 py-4">
               <div className="flex items-center justify-between mb-3">
                 <h4 className="font-medium text-sm flex items-center gap-2">
-                  Kernel Status
+                  Runtime Status
                   <Circle
                     className={`h-2 w-2 fill-current ${
                       activeKernel && kernelHealth === 'healthy' ? 'text-green-500' :
@@ -376,21 +376,21 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({ debugMode = fals
               {!hasActiveKernel && (
                 <>
                   <p className="text-sm text-muted-foreground mb-3">
-                    Run this command in your terminal to start a kernel for notebook <code className="bg-muted px-1 rounded">{currentNotebookId}</code>:
+                    Run this command in your terminal to start a runtime for notebook <code className="bg-muted px-1 rounded">{currentNotebookId}</code>:
                   </p>
                   <div className="flex items-center gap-2 bg-slate-900 text-slate-100 p-3 rounded font-mono text-sm">
-                    <span className="flex-1">{kernelCommand}</span>
+                    <span className="flex-1">{runtimeCommand}</span>
                     <Button
                       variant="ghost"
                       size="sm"
-                      onClick={copyKernelCommand}
+                      onClick={copyRuntimeCommand}
                       className="h-8 w-8 p-0 text-slate-300 hover:text-slate-100 hover:bg-slate-700"
                     >
                       <Copy className="h-4 w-4" />
                     </Button>
                   </div>
                   <p className="text-xs text-muted-foreground mt-2">
-                    Note: Each notebook requires its own kernel instance. The kernel will connect automatically once started.
+                    Note: Each notebook requires its own runtime instance. The runtime will connect automatically once started.
                   </p>
                 </>
               )}
@@ -402,7 +402,7 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({ debugMode = fals
                     <code className="bg-muted px-1 rounded text-xs">{activeKernel.sessionId}</code>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-muted-foreground">Kernel Type:</span>
+                    <span className="text-muted-foreground">Runtime Type:</span>
                     <span>{activeKernel.kernelType}</span>
                   </div>
                   <div className="flex justify-between">
@@ -442,7 +442,7 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({ debugMode = fals
                 </div>
               )}
 
-              {/* Show all kernel sessions for debugging */}
+              {/* Show all runtime sessions for debugging */}
               {kernelSessions.length > 1 && (
                 <div className="mt-4 pt-4 border-t">
                   <h5 className="text-xs font-medium text-muted-foreground mb-2">All Sessions:</h5>
