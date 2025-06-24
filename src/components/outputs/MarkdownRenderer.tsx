@@ -81,7 +81,7 @@ export const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({
   generateHeadingIds = false,
 }) => {
   return (
-    <div className={className}>
+    <div className={`${className} [&_pre]:!bg-gray-50`}>
       <ReactMarkdown
         components={{
           code({ node, className, children, ...props }) {
