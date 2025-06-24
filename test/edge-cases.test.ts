@@ -1,12 +1,12 @@
-import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
-  createTestStoreId,
-  createTestSessionId,
   cleanupResources,
+  createTestSessionId,
+  createTestStoreId,
 } from "./setup.js";
 import { makeAdapter } from "@livestore/adapter-node";
 import { createStorePromise } from "@livestore/livestore";
-import { schema, events, tables } from "@runt/schema";
+import { events, schema, tables } from "@runt/schema";
 
 console.log("🧪 Starting Anode edge case test suite...");
 

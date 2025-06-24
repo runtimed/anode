@@ -1,12 +1,12 @@
-import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { createStorePromise, queryDb } from "@livestore/livestore";
 import { makeAdapter } from "@livestore/adapter-node";
-import { events, tables, schema } from "@runt/schema";
+import { events, schema, tables } from "@runt/schema";
 import {
-  createTestStoreId,
-  createTestSessionId,
-  waitFor,
   cleanupResources,
+  createTestSessionId,
+  createTestStoreId,
+  waitFor,
 } from "../setup.js";
 
 describe("Reactivity Debugging", () => {
@@ -128,7 +128,7 @@ describe("Reactivity Debugging", () => {
       const subscriptions = callbacks.map((callback) =>
         store.subscribe(pendingWork$, {
           onUpdate: callback,
-        }),
+        })
       );
 
       // Add data to trigger updates
@@ -269,7 +269,7 @@ describe("Reactivity Debugging", () => {
               position: i,
               createdBy: "test-user",
             }),
-          ),
+          )
         );
 
         if (i > 0) {
@@ -279,7 +279,7 @@ describe("Reactivity Debugging", () => {
                 id: `rapid-${i - 1}`,
                 newPosition: i * 10,
               }),
-            ),
+            )
           );
         }
 
@@ -289,7 +289,7 @@ describe("Reactivity Debugging", () => {
               events.cellDeleted({
                 id: cellId,
               }),
-            ),
+            )
           );
         }
       }

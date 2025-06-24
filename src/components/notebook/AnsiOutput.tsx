@@ -1,5 +1,5 @@
-import React from 'react';
-import Ansi from 'ansi-to-react';
+import React from "react";
+import Ansi from "ansi-to-react";
 
 interface AnsiOutputProps {
   children: string;
@@ -18,15 +18,16 @@ interface AnsiOutputProps {
  */
 export const AnsiOutput: React.FC<AnsiOutputProps> = ({
   children,
-  className = '',
-  isError = false
+  className = "",
+  isError = false,
 }) => {
-  if (!children || typeof children !== 'string') {
+  if (!children || typeof children !== "string") {
     return null;
   }
 
-  const baseClasses = `font-mono text-sm whitespace-pre-wrap leading-relaxed ${className}`;
-  const errorClasses = isError ? 'text-red-600' : '';
+  const baseClasses =
+    `font-mono text-sm whitespace-pre-wrap leading-relaxed ${className}`;
+  const errorClasses = isError ? "text-red-600" : "";
   const finalClasses = `${baseClasses} ${errorClasses}`.trim();
 
   return (
@@ -43,11 +44,11 @@ export const AnsiOutput: React.FC<AnsiOutputProps> = ({
  */
 export const AnsiStreamOutput: React.FC<{
   text: string;
-  streamName: 'stdout' | 'stderr';
+  streamName: "stdout" | "stderr";
   className?: string;
-}> = ({ text, streamName, className = '' }) => {
-  const isStderr = streamName === 'stderr';
-  const streamClasses = isStderr ? 'text-red-600' : 'text-gray-700';
+}> = ({ text, streamName, className = "" }) => {
+  const isStderr = streamName === "stderr";
+  const streamClasses = isStderr ? "text-red-600" : "text-gray-700";
 
   return (
     <div className={`py-2 ${streamClasses} ${className}`}>
@@ -66,7 +67,7 @@ export const AnsiErrorOutput: React.FC<{
   evalue?: string;
   traceback?: string[] | string;
   className?: string;
-}> = ({ ename, evalue, traceback, className = '' }) => {
+}> = ({ ename, evalue, traceback, className = "" }) => {
   return (
     <div className={`py-3 border-l-2 border-red-200 pl-1 ${className}`}>
       {ename && evalue && (
@@ -79,7 +80,7 @@ export const AnsiErrorOutput: React.FC<{
       {traceback && (
         <div className="mt-2 text-red-600 text-xs opacity-80">
           <AnsiOutput isError>
-            {Array.isArray(traceback) ? traceback.join('\n') : traceback}
+            {Array.isArray(traceback) ? traceback.join("\n") : traceback}
           </AnsiOutput>
         </div>
       )}

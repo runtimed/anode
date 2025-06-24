@@ -1,0 +1,23 @@
+{
+  "fmt": {
+    "exclude": [
+      "src/index.css",
+      "src/components/notebook/RichOutput.css",
+      "node_modules/",
+      "dist/",
+      ".wrangler/",
+      "pnpm-lock.yaml"
+    ],
+    "indentWidth": 2,
+    "lineWidth": 80,
+    "proseWrap": "preserve"
+  },
+  "lint": {
+    "exclude": [
+      "node_modules/",
+      "dist/",
+      ".wrangler/",
+      "pnpm-lock.yaml"
+    ]
+  }
+}

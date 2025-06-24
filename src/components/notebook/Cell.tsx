@@ -1,6 +1,6 @@
-import React, { useState, useCallback } from "react";
+import React, { useCallback, useState } from "react";
 import { useStore } from "@livestore/react";
-import { events, tables, OutputData, isErrorOutput } from "@runt/schema";
+import { events, isErrorOutput, OutputData, tables } from "@runt/schema";
 import { queryDb } from "@livestore/livestore";
 
 import { Button } from "@/components/ui/button";
@@ -19,19 +19,19 @@ import { RichOutput } from "./RichOutput";
 import { AnsiErrorOutput } from "./AnsiOutput.js";
 
 import {
-  Play,
-  ChevronUp,
-  ChevronDown,
-  Plus,
-  X,
-  Code,
-  FileText,
-  Database,
-  Bot,
-  ArrowUp,
   ArrowDown,
+  ArrowUp,
+  Bot,
+  ChevronDown,
+  ChevronUp,
+  Code,
+  Database,
   Eye,
   EyeOff,
+  FileText,
+  Play,
+  Plus,
+  X,
 } from "lucide-react";
 
 import { groupConsecutiveStreamOutputs } from "../../util/output-grouping.js";
@@ -193,7 +193,9 @@ export const Cell: React.FC<CellProps> = ({
       );
 
       // Generate unique queue ID
-      const queueId = `exec-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+      const queueId = `exec-${Date.now()}-${
+        Math.random().toString(36).slice(2)
+      }`;
       const executionCount = (cell.executionCount || 0) + 1;
 
       // Add to execution queue - kernels will pick this up
@@ -226,10 +228,9 @@ export const Cell: React.FC<CellProps> = ({
           outputType: "error",
           data: {
             ename: "LiveStoreError",
-            evalue:
-              error instanceof Error
-                ? error.message
-                : "Failed to queue execution request",
+            evalue: error instanceof Error
+              ? error.message
+              : "Failed to queue execution request",
             traceback: ["Error occurred while emitting LiveStore event"],
           },
           position: 0,
@@ -258,8 +259,8 @@ export const Cell: React.FC<CellProps> = ({
       } else if (e.key === "ArrowDown" && selectionStart === selectionEnd) {
         // For empty cells or cursor at end of last line
         const afterCursor = value.substring(selectionEnd);
-        const isAtBottom =
-          selectionEnd === value.length || !afterCursor.includes("\n");
+        const isAtBottom = selectionEnd === value.length ||
+          !afterCursor.includes("\n");
 
         if (isAtBottom && onFocusNext) {
           e.preventDefault();
@@ -337,7 +338,8 @@ export const Cell: React.FC<CellProps> = ({
             variant="outline"
             className="h-5 text-xs border-blue-200 text-blue-700 bg-blue-50"
           >
-            <div className="animate-spin w-2 h-2 border border-blue-600 border-t-transparent rounded-full mr-1"></div>
+            <div className="animate-spin w-2 h-2 border border-blue-600 border-t-transparent rounded-full mr-1">
+            </div>
             Running
           </Badge>
         );
@@ -378,12 +380,11 @@ export const Cell: React.FC<CellProps> = ({
           autoFocus && !contextSelectionMode ? "bg-primary/60" : "bg-border/30"
         }`}
         style={{
-          height:
-            outputs.length > 0 ||
-            cell.executionState === "running" ||
-            cell.executionState === "queued"
-              ? "100%"
-              : "4rem",
+          height: outputs.length > 0 ||
+              cell.executionState === "running" ||
+              cell.executionState === "queued"
+            ? "100%"
+            : "4rem",
         }}
       />
       {/* Cell Header */}
@@ -444,20 +445,19 @@ export const Cell: React.FC<CellProps> = ({
               variant="ghost"
               size="sm"
               onClick={executeCell}
-              disabled={
-                cell.executionState === "running" ||
-                cell.executionState === "queued"
-              }
+              disabled={cell.executionState === "running" ||
+                cell.executionState === "queued"}
               className="mobile-play-btn block sm:hidden h-8 w-8 p-0 hover:bg-muted/80"
               title="Run cell"
             >
-              {cell.executionState === "running" ? (
-                <div className="animate-spin w-4 h-4 border border-current border-t-transparent rounded-full"></div>
-              ) : cell.executionState === "queued" ? (
-                <div className="w-3 h-3 bg-amber-500 rounded-full"></div>
-              ) : (
-                <Play className="h-4 w-4" />
-              )}
+              {cell.executionState === "running"
+                ? (
+                  <div className="animate-spin w-4 h-4 border border-current border-t-transparent rounded-full">
+                  </div>
+                )
+                : cell.executionState === "queued"
+                ? <div className="w-3 h-3 bg-amber-500 rounded-full"></div>
+                : <Play className="h-4 w-4" />}
             </Button>
           )}
 
@@ -479,14 +479,14 @@ export const Cell: React.FC<CellProps> = ({
             variant="ghost"
             size="sm"
             onClick={toggleSourceVisibility}
-            className={`h-8 w-8 sm:h-7 sm:w-7 p-0 hover:bg-muted/80 ${cell.sourceVisible ? "" : "text-muted-foreground/60"}`}
+            className={`h-8 w-8 sm:h-7 sm:w-7 p-0 hover:bg-muted/80 ${
+              cell.sourceVisible ? "" : "text-muted-foreground/60"
+            }`}
             title={cell.sourceVisible ? "Hide source" : "Show source"}
           >
-            {cell.sourceVisible ? (
-              <ChevronUp className="h-4 w-4 sm:h-3 sm:w-3" />
-            ) : (
-              <ChevronDown className="h-4 w-4 sm:h-3 sm:w-3" />
-            )}
+            {cell.sourceVisible
+              ? <ChevronUp className="h-4 w-4 sm:h-3 sm:w-3" />
+              : <ChevronDown className="h-4 w-4 sm:h-3 sm:w-3" />}
           </Button>
 
           {/* Context Selection Mode Button */}
@@ -495,18 +495,16 @@ export const Cell: React.FC<CellProps> = ({
               variant="ghost"
               size="sm"
               onClick={toggleAiContextVisibility}
-              className={`h-8 w-8 sm:h-7 sm:w-7 p-0 hover:bg-muted/80 ${cell.aiContextVisible ? "text-purple-600" : "text-gray-500"}`}
-              title={
-                cell.aiContextVisible
-                  ? "Hide from AI context"
-                  : "Show in AI context"
-              }
+              className={`h-8 w-8 sm:h-7 sm:w-7 p-0 hover:bg-muted/80 ${
+                cell.aiContextVisible ? "text-purple-600" : "text-gray-500"
+              }`}
+              title={cell.aiContextVisible
+                ? "Hide from AI context"
+                : "Show in AI context"}
             >
-              {cell.aiContextVisible ? (
-                <Eye className="h-4 w-4 sm:h-3 sm:w-3" />
-              ) : (
-                <EyeOff className="h-4 w-4 sm:h-3 sm:w-3" />
-              )}
+              {cell.aiContextVisible
+                ? <Eye className="h-4 w-4 sm:h-3 sm:w-3" />
+                : <EyeOff className="h-4 w-4 sm:h-3 sm:w-3" />}
             </Button>
           )}
 
@@ -557,23 +555,22 @@ export const Cell: React.FC<CellProps> = ({
               variant="ghost"
               size="sm"
               onClick={executeCell}
-              disabled={
-                cell.executionState === "running" ||
-                cell.executionState === "queued"
-              }
+              disabled={cell.executionState === "running" ||
+                cell.executionState === "queued"}
               className={`h-6 w-6 p-0 rounded-sm bg-white border-0 hover:bg-white transition-colors ${
                 autoFocus
                   ? "text-foreground"
                   : "text-muted-foreground/40 hover:text-foreground group-hover:text-foreground"
               }`}
             >
-              {cell.executionState === "running" ? (
-                <div className="animate-spin w-3 h-3 border border-current border-t-transparent rounded-full bg-white"></div>
-              ) : cell.executionState === "queued" ? (
-                <div className="w-2 h-2 bg-amber-500 rounded-full"></div>
-              ) : (
-                <Play className="h-3 w-3" />
-              )}
+              {cell.executionState === "running"
+                ? (
+                  <div className="animate-spin w-3 h-3 border border-current border-t-transparent rounded-full bg-white">
+                  </div>
+                )
+                : cell.executionState === "queued"
+                ? <div className="w-2 h-2 bg-amber-500 rounded-full"></div>
+                : <Play className="h-3 w-3" />}
             </Button>
           </div>
         )}
@@ -590,17 +587,14 @@ export const Cell: React.FC<CellProps> = ({
                 ref={textareaRef}
                 value={localSource}
                 onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) =>
-                  setLocalSource(e.target.value)
-                }
+                  setLocalSource(e.target.value)}
                 onBlur={updateSource}
                 onKeyDown={handleKeyDown}
-                placeholder={
-                  cell.cellType === "code"
-                    ? "Enter your code here..."
-                    : cell.cellType === "markdown"
-                      ? "Enter markdown..."
-                      : "Enter raw text..."
-                }
+                placeholder={cell.cellType === "code"
+                  ? "Enter your code here..."
+                  : cell.cellType === "markdown"
+                  ? "Enter markdown..."
+                  : "Enter raw text..."}
                 className="min-h-[2rem] sm:min-h-[1.5rem] resize-none border-0 px-2 py-2 sm:py-1 focus-visible:ring-0 font-mono bg-white w-full placeholder:text-muted-foreground/60 shadow-none text-base sm:text-sm"
                 onFocus={handleFocus}
                 autoCapitalize="off"
@@ -617,23 +611,24 @@ export const Cell: React.FC<CellProps> = ({
       {cell.cellType === "code" &&
         (cell.executionCount ||
           cell.executionState === "running" ||
-          cell.executionState === "queued") && (
+          cell.executionState === "queued") &&
+        (
           <div className="cell-content mt-1 pl-6 pr-1 sm:pr-4">
             <div className="flex items-center justify-between text-xs text-muted-foreground pb-1">
               <span>
                 {cell.executionState === "running"
                   ? "Running..."
                   : cell.executionState === "queued"
-                    ? "Queued"
-                    : cell.executionCount
-                      ? cell.lastExecutionDurationMs
-                        ? `${
-                            cell.lastExecutionDurationMs < 1000
-                              ? `${cell.lastExecutionDurationMs}ms`
-                              : `${(cell.lastExecutionDurationMs / 1000).toFixed(1)}s`
-                          }`
-                        : "Completed"
-                      : null}
+                  ? "Queued"
+                  : cell.executionCount
+                  ? cell.lastExecutionDurationMs
+                    ? `${
+                      cell.lastExecutionDurationMs < 1000
+                        ? `${cell.lastExecutionDurationMs}ms`
+                        : `${(cell.lastExecutionDurationMs / 1000).toFixed(1)}s`
+                    }`
+                    : "Completed"
+                  : null}
               </span>
               {(outputs.length > 0 || cell.executionState === "running") && (
                 <div className="flex items-center gap-2">
@@ -655,11 +650,9 @@ export const Cell: React.FC<CellProps> = ({
                     } ${cell.outputVisible ? "" : "text-muted-foreground/60"}`}
                     title={cell.outputVisible ? "Hide output" : "Show output"}
                   >
-                    {cell.outputVisible ? (
-                      <ChevronUp className="h-4 w-4 sm:h-3 sm:w-3" />
-                    ) : (
-                      <ChevronDown className="h-4 w-4 sm:h-3 sm:w-3" />
-                    )}
+                    {cell.outputVisible
+                      ? <ChevronUp className="h-4 w-4 sm:h-3 sm:w-3" />
+                      : <ChevronDown className="h-4 w-4 sm:h-3 sm:w-3" />}
                   </Button>
                 </div>
               )}
@@ -671,60 +664,57 @@ export const Cell: React.FC<CellProps> = ({
       {cell.cellType === "code" &&
         cell.outputVisible &&
         (outputs.length > 0 || cell.executionState === "running") && (
-          <div className="cell-content mt-1 pl-6 pr-1 sm:pr-4 bg-background overflow-hidden max-w-full">
-            {cell.executionState === "running" && outputs.length === 0 && (
-              <div className="py-3 border-l-2 border-blue-200 pl-1">
-                <div className="flex items-center gap-2">
-                  <div className="animate-spin w-4 h-4 border-2 border-blue-600 border-t-transparent rounded-full"></div>
-                  <span className="text-sm text-blue-700">Executing...</span>
+        <div className="cell-content mt-1 pl-6 pr-1 sm:pr-4 bg-background overflow-hidden max-w-full">
+          {cell.executionState === "running" && outputs.length === 0 && (
+            <div className="py-3 border-l-2 border-blue-200 pl-1">
+              <div className="flex items-center gap-2">
+                <div className="animate-spin w-4 h-4 border-2 border-blue-600 border-t-transparent rounded-full">
                 </div>
+                <span className="text-sm text-blue-700">Executing...</span>
               </div>
-            )}
+            </div>
+          )}
 
-            {groupConsecutiveStreamOutputs(
-              outputs.sort(
-                (a: OutputData, b: OutputData) => a.position - b.position,
-              ),
-            ).map((output: OutputData, index: number) => (
-              <div
-                key={output.id}
-                className={
-                  index > 0 ? "border-t border-border/30 mt-2 pt-2" : ""
-                }
-              >
-                {output.outputType === "error" ? (
+          {groupConsecutiveStreamOutputs(
+            outputs.sort(
+              (a: OutputData, b: OutputData) => a.position - b.position,
+            ),
+          ).map((output: OutputData, index: number) => (
+            <div
+              key={output.id}
+              className={index > 0 ? "border-t border-border/30 mt-2 pt-2" : ""}
+            >
+              {output.outputType === "error"
+                ? (
                   // Use AnsiErrorOutput for colored error rendering
                   <AnsiErrorOutput
-                    ename={
-                      isErrorOutput(output.data) ? output.data.ename : undefined
-                    }
-                    evalue={
-                      isErrorOutput(output.data)
-                        ? output.data.evalue
-                        : undefined
-                    }
-                    traceback={
-                      isErrorOutput(output.data)
-                        ? output.data.traceback
-                        : undefined
-                    }
+                    ename={isErrorOutput(output.data)
+                      ? output.data.ename
+                      : undefined}
+                    evalue={isErrorOutput(output.data)
+                      ? output.data.evalue
+                      : undefined}
+                    traceback={isErrorOutput(output.data)
+                      ? output.data.traceback
+                      : undefined}
                   />
-                ) : (
+                )
+                : (
                   // Use RichOutput for all other output types
                   <div className="py-2 overflow-hidden max-w-full">
                     <RichOutput
                       data={output.data as Record<string, unknown>}
-                      metadata={
-                        output.metadata as Record<string, unknown> | undefined
-                      }
+                      metadata={output.metadata as
+                        | Record<string, unknown>
+                        | undefined}
                       outputType={output.outputType}
                     />
                   </div>
                 )}
-              </div>
-            ))}
-          </div>
-        )}
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 };

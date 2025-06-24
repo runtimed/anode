@@ -1,4 +1,4 @@
-import { beforeAll, afterAll, beforeEach, afterEach, vi } from "vitest";
+import { afterAll, afterEach, beforeAll, beforeEach, vi } from "vitest";
 import { Effect, TestContext } from "effect";
 
 // Global test setup

@@ -29,7 +29,9 @@
     "test:debug": "DEBUG_TESTS=true vitest run",
     "type-check": "tsc --noEmit",
     "lint": "tsc --noEmit",
-    "check": "pnpm type-check && pnpm lint",
+    "format": "deno fmt",
+    "format:check": "deno fmt --check",
+    "check": "pnpm type-check && pnpm lint && pnpm format:check",
     "start": "echo 'Use pnpm dev for web client and pnpm dev:sync for sync worker in separate terminals'"
   },
   "dependencies": {

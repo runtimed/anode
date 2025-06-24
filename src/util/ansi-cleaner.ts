@@ -1,4 +1,4 @@
-import stripAnsi from 'strip-ansi';
+import stripAnsi from "strip-ansi";
 
 /**
  * Cleans ANSI escape codes from text for AI context consumption
@@ -11,7 +11,7 @@ import stripAnsi from 'strip-ansi';
  * @returns Clean text with ANSI codes removed for AI processing
  */
 export function cleanForAI(text: string): string {
-  if (!text || typeof text !== 'string') {
+  if (!text || typeof text !== "string") {
     return text;
   }
 
@@ -27,13 +27,15 @@ export function cleanForAI(text: string): string {
  * @param traceback - Array of traceback lines or single string
  * @returns Cleaned traceback for AI consumption
  */
-export function cleanTracebackForAI(traceback: string[] | string | undefined): string[] | string | undefined {
+export function cleanTracebackForAI(
+  traceback: string[] | string | undefined,
+): string[] | string | undefined {
   if (!traceback) {
     return traceback;
   }
 
   if (Array.isArray(traceback)) {
-    return traceback.map(line => cleanForAI(line));
+    return traceback.map((line) => cleanForAI(line));
   }
 
   return cleanForAI(traceback);
@@ -51,7 +53,9 @@ export function cleanAnsiCodes(text: string): string {
  * Legacy function - use cleanTracebackForAI instead
  * @deprecated Use cleanTracebackForAI for AI context or preserve ANSI for user display
  */
-export function cleanTraceback(traceback: string[] | string | undefined): string[] | string | undefined {
+export function cleanTraceback(
+  traceback: string[] | string | undefined,
+): string[] | string | undefined {
   return cleanTracebackForAI(traceback);
 }
 

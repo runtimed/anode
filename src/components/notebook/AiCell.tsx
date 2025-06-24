@@ -1,6 +1,6 @@
-import React, { useState, useCallback } from "react";
+import React, { useCallback, useState } from "react";
 import { useStore } from "@livestore/react";
-import { events, tables, OutputData, isErrorOutput } from "@runt/schema";
+import { events, isErrorOutput, OutputData, tables } from "@runt/schema";
 import { queryDb } from "@livestore/livestore";
 import { groupConsecutiveStreamOutputs } from "../../util/output-grouping.js";
 
@@ -16,19 +16,19 @@ import {
 import { RichOutput } from "./RichOutput.js";
 import { AnsiErrorOutput } from "./AnsiOutput.js";
 import {
-  Play,
-  ChevronUp,
-  ChevronDown,
-  Plus,
-  X,
-  Bot,
-  Code,
-  FileText,
-  Database,
-  ArrowUp,
   ArrowDown,
+  ArrowUp,
+  Bot,
+  ChevronDown,
+  ChevronUp,
+  Code,
+  Database,
   Eye,
   EyeOff,
+  FileText,
+  Play,
+  Plus,
+  X,
 } from "lucide-react";
 
 interface AiCellProps {
@@ -114,7 +114,9 @@ export const AiCell: React.FC<AiCellProps> = ({
       );
 
       // Generate unique queue ID
-      const queueId = `exec-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+      const queueId = `exec-${Date.now()}-${
+        Math.random().toString(36).slice(2)
+      }`;
       const executionCount = (cell.executionCount || 0) + 1;
 
       // Add to execution queue - kernels will pick this up
@@ -147,10 +149,9 @@ export const AiCell: React.FC<AiCellProps> = ({
           outputType: "error",
           data: {
             ename: "AIExecutionError",
-            evalue:
-              error instanceof Error
-                ? error.message
-                : "Failed to queue AI execution request",
+            evalue: error instanceof Error
+              ? error.message
+              : "Failed to queue AI execution request",
             traceback: ["Error occurred while emitting LiveStore event"],
           },
           position: 0,
@@ -179,8 +180,8 @@ export const AiCell: React.FC<AiCellProps> = ({
       } else if (e.key === "ArrowDown" && selectionStart === selectionEnd) {
         // For empty cells or cursor at end of last line
         const afterCursor = value.substring(selectionEnd);
-        const isAtBottom =
-          selectionEnd === value.length || !afterCursor.includes("\n");
+        const isAtBottom = selectionEnd === value.length ||
+          !afterCursor.includes("\n");
 
         if (isAtBottom && onFocusNext) {
           e.preventDefault();
@@ -285,7 +286,9 @@ export const AiCell: React.FC<AiCellProps> = ({
     return (
       <Badge
         variant="outline"
-        className={`h-5 text-xs cursor-pointer hover:opacity-80 ${colors[provider as keyof typeof colors] || "bg-gray-50"}`}
+        className={`h-5 text-xs cursor-pointer hover:opacity-80 ${
+          colors[provider as keyof typeof colors] || "bg-gray-50"
+        }`}
       >
         {provider.toUpperCase()} • {model}
       </Badge>
@@ -308,7 +311,8 @@ export const AiCell: React.FC<AiCellProps> = ({
             variant="outline"
             className="h-5 text-xs border-purple-200 text-purple-700 bg-purple-50"
           >
-            <div className="animate-spin w-2 h-2 border border-purple-600 border-t-transparent rounded-full mr-1"></div>
+            <div className="animate-spin w-2 h-2 border border-purple-600 border-t-transparent rounded-full mr-1">
+            </div>
             Generating
           </Badge>
         );
@@ -360,12 +364,11 @@ export const AiCell: React.FC<AiCellProps> = ({
             : "bg-border/30"
         }`}
         style={{
-          height:
-            outputs.length > 0 ||
-            cell.executionState === "running" ||
-            cell.executionState === "queued"
-              ? "100%"
-              : "4rem",
+          height: outputs.length > 0 ||
+              cell.executionState === "running" ||
+              cell.executionState === "queued"
+            ? "100%"
+            : "4rem",
         }}
       />
       {/* Cell Header */}
@@ -467,20 +470,19 @@ export const AiCell: React.FC<AiCellProps> = ({
             variant="ghost"
             size="sm"
             onClick={executeAiPrompt}
-            disabled={
-              cell.executionState === "running" ||
-              cell.executionState === "queued"
-            }
+            disabled={cell.executionState === "running" ||
+              cell.executionState === "queued"}
             className="mobile-play-btn block sm:hidden h-8 w-8 p-0 hover:bg-muted/80"
             title="Generate AI response"
           >
-            {cell.executionState === "running" ? (
-              <div className="animate-spin w-4 h-4 border border-purple-600 border-t-transparent rounded-full"></div>
-            ) : cell.executionState === "queued" ? (
-              <div className="w-3 h-3 bg-purple-500 rounded-full"></div>
-            ) : (
-              <Play className="h-4 w-4" />
-            )}
+            {cell.executionState === "running"
+              ? (
+                <div className="animate-spin w-4 h-4 border border-purple-600 border-t-transparent rounded-full">
+                </div>
+              )
+              : cell.executionState === "queued"
+              ? <div className="w-3 h-3 bg-purple-500 rounded-full"></div>
+              : <Play className="h-4 w-4" />}
           </Button>
 
           <div className="flex-1" />
@@ -501,14 +503,14 @@ export const AiCell: React.FC<AiCellProps> = ({
             variant="ghost"
             size="sm"
             onClick={toggleSourceVisibility}
-            className={`h-8 w-8 sm:h-7 sm:w-7 p-0 hover:bg-muted/80 ${cell.sourceVisible ? "" : "text-muted-foreground/60"}`}
+            className={`h-8 w-8 sm:h-7 sm:w-7 p-0 hover:bg-muted/80 ${
+              cell.sourceVisible ? "" : "text-muted-foreground/60"
+            }`}
             title={cell.sourceVisible ? "Hide source" : "Show source"}
           >
-            {cell.sourceVisible ? (
-              <ChevronUp className="h-4 w-4 sm:h-3 sm:w-3" />
-            ) : (
-              <ChevronDown className="h-4 w-4 sm:h-3 sm:w-3" />
-            )}
+            {cell.sourceVisible
+              ? <ChevronUp className="h-4 w-4 sm:h-3 sm:w-3" />
+              : <ChevronDown className="h-4 w-4 sm:h-3 sm:w-3" />}
           </Button>
 
           {/* Context Selection Mode Button */}
@@ -517,18 +519,16 @@ export const AiCell: React.FC<AiCellProps> = ({
               variant="ghost"
               size="sm"
               onClick={toggleAiContextVisibility}
-              className={`h-8 w-8 sm:h-7 sm:w-7 p-0 hover:bg-muted/80 ${cell.aiContextVisible ? "text-purple-600" : "text-gray-500"}`}
-              title={
-                cell.aiContextVisible
-                  ? "Hide from AI context"
-                  : "Show in AI context"
-              }
+              className={`h-8 w-8 sm:h-7 sm:w-7 p-0 hover:bg-muted/80 ${
+                cell.aiContextVisible ? "text-purple-600" : "text-gray-500"
+              }`}
+              title={cell.aiContextVisible
+                ? "Hide from AI context"
+                : "Show in AI context"}
             >
-              {cell.aiContextVisible ? (
-                <Eye className="h-4 w-4 sm:h-3 sm:w-3" />
-              ) : (
-                <EyeOff className="h-4 w-4 sm:h-3 sm:w-3" />
-              )}
+              {cell.aiContextVisible
+                ? <Eye className="h-4 w-4 sm:h-3 sm:w-3" />
+                : <EyeOff className="h-4 w-4 sm:h-3 sm:w-3" />}
             </Button>
           )}
 
@@ -578,23 +578,22 @@ export const AiCell: React.FC<AiCellProps> = ({
             variant="ghost"
             size="sm"
             onClick={executeAiPrompt}
-            disabled={
-              cell.executionState === "running" ||
-              cell.executionState === "queued"
-            }
+            disabled={cell.executionState === "running" ||
+              cell.executionState === "queued"}
             className={`h-6 w-6 p-0 rounded-sm bg-white border-0 hover:bg-white transition-colors ${
               autoFocus
                 ? "text-purple-600"
                 : "text-muted-foreground/40 hover:text-purple-600 group-hover:text-purple-600"
             }`}
           >
-            {cell.executionState === "running" ? (
-              <div className="animate-spin w-3 h-3 border border-purple-600 border-t-transparent rounded-full bg-white"></div>
-            ) : cell.executionState === "queued" ? (
-              <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
-            ) : (
-              <Play className="h-3 w-3" />
-            )}
+            {cell.executionState === "running"
+              ? (
+                <div className="animate-spin w-3 h-3 border border-purple-600 border-t-transparent rounded-full bg-white">
+                </div>
+              )
+              : cell.executionState === "queued"
+              ? <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
+              : <Play className="h-3 w-3" />}
           </Button>
         </div>
 
@@ -612,8 +611,7 @@ export const AiCell: React.FC<AiCellProps> = ({
                   ref={textareaRef}
                   value={localSource}
                   onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) =>
-                    setLocalSource(e.target.value)
-                  }
+                    setLocalSource(e.target.value)}
                   onBlur={updateSource}
                   onKeyDown={handleKeyDown}
                   placeholder="Ask me anything about your notebook, data, or analysis..."
@@ -645,22 +643,19 @@ export const AiCell: React.FC<AiCellProps> = ({
                       </DropdownMenuItem>
                       <DropdownMenuItem
                         onClick={() =>
-                          changeProvider("openai", "gpt-3.5-turbo")
-                        }
+                          changeProvider("openai", "gpt-3.5-turbo")}
                       >
                         OpenAI GPT-3.5 Turbo
                       </DropdownMenuItem>
                       <DropdownMenuItem
                         onClick={() =>
-                          changeProvider("anthropic", "claude-3-sonnet")
-                        }
+                          changeProvider("anthropic", "claude-3-sonnet")}
                       >
                         Anthropic Claude 3 Sonnet
                       </DropdownMenuItem>
                       <DropdownMenuItem
                         onClick={() =>
-                          changeProvider("anthropic", "claude-3-haiku")
-                        }
+                          changeProvider("anthropic", "claude-3-haiku")}
                       >
                         Anthropic Claude 3 Haiku
                       </DropdownMenuItem>
@@ -681,8 +676,7 @@ export const AiCell: React.FC<AiCellProps> = ({
                 ref={textareaRef}
                 value={localSource}
                 onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) =>
-                  setLocalSource(e.target.value)
-                }
+                  setLocalSource(e.target.value)}
                 onBlur={updateSource}
                 onKeyDown={handleKeyDown}
                 placeholder="Ask me anything about your notebook, data, or analysis..."
@@ -704,16 +698,16 @@ export const AiCell: React.FC<AiCellProps> = ({
               {cell.executionState === "running"
                 ? "Generating AI response..."
                 : cell.executionState === "queued"
-                  ? "Queued for AI processing"
-                  : cell.executionCount
-                    ? cell.lastExecutionDurationMs
-                      ? `Generated in ${
-                          cell.lastExecutionDurationMs < 1000
-                            ? `${cell.lastExecutionDurationMs}ms`
-                            : `${(cell.lastExecutionDurationMs / 1000).toFixed(1)}s`
-                        }`
-                      : "Generated"
-                    : null}
+                ? "Queued for AI processing"
+                : cell.executionCount
+                ? cell.lastExecutionDurationMs
+                  ? `Generated in ${
+                    cell.lastExecutionDurationMs < 1000
+                      ? `${cell.lastExecutionDurationMs}ms`
+                      : `${(cell.lastExecutionDurationMs / 1000).toFixed(1)}s`
+                  }`
+                  : "Generated"
+                : null}
             </span>
             {(outputs.length > 0 || cell.executionState === "running") && (
               <div className="flex items-center gap-2">
@@ -735,11 +729,9 @@ export const AiCell: React.FC<AiCellProps> = ({
                   } ${cell.outputVisible ? "" : "text-muted-foreground/60"}`}
                   title={cell.outputVisible ? "Hide response" : "Show response"}
                 >
-                  {cell.outputVisible ? (
-                    <ChevronUp className="h-4 w-4 sm:h-3 sm:w-3" />
-                  ) : (
-                    <ChevronDown className="h-4 w-4 sm:h-3 sm:w-3" />
-                  )}
+                  {cell.outputVisible
+                    ? <ChevronUp className="h-4 w-4 sm:h-3 sm:w-3" />
+                    : <ChevronDown className="h-4 w-4 sm:h-3 sm:w-3" />}
                 </Button>
               </div>
             )}
@@ -759,35 +751,35 @@ export const AiCell: React.FC<AiCellProps> = ({
               key={output.id}
               className={index > 0 ? "border-t border-border/30 mt-2 pt-2" : ""}
             >
-              {output.outputType === "error" ? (
-                // Use AnsiErrorOutput for colored error rendering
-                <AnsiErrorOutput
-                  ename={
-                    isErrorOutput(output.data) ? output.data.ename : undefined
-                  }
-                  evalue={
-                    isErrorOutput(output.data) ? output.data.evalue : undefined
-                  }
-                  traceback={
-                    isErrorOutput(output.data)
+              {output.outputType === "error"
+                ? (
+                  // Use AnsiErrorOutput for colored error rendering
+                  <AnsiErrorOutput
+                    ename={isErrorOutput(output.data)
+                      ? output.data.ename
+                      : undefined}
+                    evalue={isErrorOutput(output.data)
+                      ? output.data.evalue
+                      : undefined}
+                    traceback={isErrorOutput(output.data)
                       ? output.data.traceback
-                      : undefined
-                  }
-                />
-              ) : (
-                // Use RichOutput for all other output types - chat bubble style on mobile
-                <div className="py-2 overflow-hidden max-w-full">
-                  <div className="sm:bg-transparent bg-gray-50 sm:p-0 p-3 sm:rounded-none rounded-lg sm:border-0 border border-gray-200 overflow-hidden max-w-full">
-                    <RichOutput
-                      data={output.data as Record<string, unknown>}
-                      metadata={
-                        output.metadata as Record<string, unknown> | undefined
-                      }
-                      outputType={output.outputType}
-                    />
+                      : undefined}
+                  />
+                )
+                : (
+                  // Use RichOutput for all other output types - chat bubble style on mobile
+                  <div className="py-2 overflow-hidden max-w-full">
+                    <div className="sm:bg-transparent bg-gray-50 sm:p-0 p-3 sm:rounded-none rounded-lg sm:border-0 border border-gray-200 overflow-hidden max-w-full">
+                      <RichOutput
+                        data={output.data as Record<string, unknown>}
+                        metadata={output.metadata as
+                          | Record<string, unknown>
+                          | undefined}
+                        outputType={output.outputType}
+                      />
+                    </div>
                   </div>
-                </div>
-              )}
+                )}
             </div>
           ))}
         </div>

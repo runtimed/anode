@@ -3,7 +3,7 @@ import ReactMarkdown from "react-markdown";
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
 import { oneLight } from "react-syntax-highlighter/dist/esm/styles/prism";
 import { StreamOutputData } from "@runt/schema";
-import { FilePlus, Edit, ChevronDown, Info, ZoomIn, X } from "lucide-react";
+import { ChevronDown, Edit, FilePlus, Info, X, ZoomIn } from "lucide-react";
 import { AnsiStreamOutput } from "./AnsiOutput.js";
 import "./RichOutput.css";
 
@@ -164,44 +164,50 @@ export const RichOutput: React.FC<RichOutputProps> = ({
 
         return (
           <div className="py-2">
-            {Object.keys(toolData.arguments).length > 0 ? (
-              <details className="group">
-                <summary className="cursor-pointer flex items-center gap-2 text-sm hover:bg-muted/20 -m-1 p-1 rounded">
+            {Object.keys(toolData.arguments).length > 0
+              ? (
+                <details className="group">
+                  <summary className="cursor-pointer flex items-center gap-2 text-sm hover:bg-muted/20 -m-1 p-1 rounded">
+                    <ToolIcon
+                      className={`h-4 w-4 ${
+                        isSuccess ? "text-green-500" : "text-red-500"
+                      }`}
+                    />
+                    <span className="text-muted-foreground flex-1">
+                      {toolConfig.displayVerb} {toolConfig.label}
+                    </span>
+                    <ChevronDown className="h-3 w-3 text-muted-foreground group-open:rotate-180 transition-transform" />
+                  </summary>
+                  <div className="mt-2 ml-6 p-3 bg-card/30 rounded border border-border/50 text-xs">
+                    <div className="text-muted-foreground mb-2">
+                      {new Date(toolData.timestamp).toLocaleTimeString()}
+                    </div>
+                    <SyntaxHighlighter
+                      language="json"
+                      style={oneLight}
+                      customStyle={{
+                        margin: 0,
+                        background: "transparent",
+                        fontSize: "0.75rem",
+                      }}
+                    >
+                      {JSON.stringify(toolData.arguments, null, 2)}
+                    </SyntaxHighlighter>
+                  </div>
+                </details>
+              )
+              : (
+                <div className="flex items-center gap-2 text-sm">
                   <ToolIcon
-                    className={`h-4 w-4 ${isSuccess ? "text-green-500" : "text-red-500"}`}
+                    className={`h-4 w-4 ${
+                      isSuccess ? "text-green-500" : "text-red-500"
+                    }`}
                   />
-                  <span className="text-muted-foreground flex-1">
+                  <span className="text-muted-foreground">
                     {toolConfig.displayVerb} {toolConfig.label}
                   </span>
-                  <ChevronDown className="h-3 w-3 text-muted-foreground group-open:rotate-180 transition-transform" />
-                </summary>
-                <div className="mt-2 ml-6 p-3 bg-card/30 rounded border border-border/50 text-xs">
-                  <div className="text-muted-foreground mb-2">
-                    {new Date(toolData.timestamp).toLocaleTimeString()}
-                  </div>
-                  <SyntaxHighlighter
-                    language="json"
-                    style={oneLight}
-                    customStyle={{
-                      margin: 0,
-                      background: "transparent",
-                      fontSize: "0.75rem",
-                    }}
-                  >
-                    {JSON.stringify(toolData.arguments, null, 2)}
-                  </SyntaxHighlighter>
                 </div>
-              </details>
-            ) : (
-              <div className="flex items-center gap-2 text-sm">
-                <ToolIcon
-                  className={`h-4 w-4 ${isSuccess ? "text-green-500" : "text-red-500"}`}
-                />
-                <span className="text-muted-foreground">
-                  {toolConfig.displayVerb} {toolConfig.label}
-                </span>
-              </div>
-            )}
+              )}
           </div>
         );
 
@@ -215,37 +221,39 @@ export const RichOutput: React.FC<RichOutputProps> = ({
                   const language = match ? match[1] : "";
                   const inline = !className;
 
-                  return !inline && language ? (
-                    <SyntaxHighlighter
-                      style={oneLight}
-                      language={language}
-                      PreTag="div"
-                      customStyle={{
-                        margin: 0,
-                        background: "#f9fafb",
-                        borderRadius: "0.375rem",
-                        padding: "0.75rem",
-                        fontSize: "0.875rem",
-                        color: "#374151",
-                        overflow: "auto",
-                      }}
-                      codeTagProps={{
-                        style: {
+                  return !inline && language
+                    ? (
+                      <SyntaxHighlighter
+                        style={oneLight}
+                        language={language}
+                        PreTag="div"
+                        customStyle={{
+                          margin: 0,
+                          background: "#f9fafb",
+                          borderRadius: "0.375rem",
+                          padding: "0.75rem",
+                          fontSize: "0.875rem",
                           color: "#374151",
-                          background: "transparent",
-                        },
-                      }}
-                    >
-                      {String(children).replace(/\n$/, "")}
-                    </SyntaxHighlighter>
-                  ) : (
-                    <code
-                      className={`${className} bg-gray-100 px-1 py-0.5 rounded text-sm text-gray-800`}
-                      {...props}
-                    >
-                      {children}
-                    </code>
-                  );
+                          overflow: "auto",
+                        }}
+                        codeTagProps={{
+                          style: {
+                            color: "#374151",
+                            background: "transparent",
+                          },
+                        }}
+                      >
+                        {String(children).replace(/\n$/, "")}
+                      </SyntaxHighlighter>
+                    )
+                    : (
+                      <code
+                        className={`${className} bg-gray-100 px-1 py-0.5 rounded text-sm text-gray-800`}
+                        {...props}
+                      >
+                        {children}
+                      </code>
+                    );
                 },
               }}
             >
@@ -259,15 +267,13 @@ export const RichOutput: React.FC<RichOutputProps> = ({
           <div
             className="max-w-none dataframe-container"
             dangerouslySetInnerHTML={{ __html: outputData[mediaType] || "" }}
-            style={
-              {
-                // Clean styles for pandas DataFrames
-                "--dataframe-border": "1px solid #e5e7eb",
-                "--dataframe-bg": "#fff",
-                "--dataframe-header-bg": "#f9fafb",
-                "--dataframe-hover-bg": "#f3f4f6",
-              } as React.CSSProperties
-            }
+            style={{
+              // Clean styles for pandas DataFrames
+              "--dataframe-border": "1px solid #e5e7eb",
+              "--dataframe-bg": "#fff",
+              "--dataframe-header-bg": "#f9fafb",
+              "--dataframe-hover-bg": "#f3f4f6",
+            } as React.CSSProperties}
           />
         );
 
@@ -341,7 +347,10 @@ export const RichOutput: React.FC<RichOutputProps> = ({
 
       {/* Zoom Modal */}
       {zoomedImage && (
-        <ZoomModal src={zoomedImage} onClose={() => setZoomedImage(null)} />
+        <ZoomModal
+          src={zoomedImage}
+          onClose={() => setZoomedImage(null)}
+        />
       )}
     </div>
   );

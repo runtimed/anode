@@ -1,25 +1,25 @@
-import React, { useState } from 'react'
-import { useGoogleAuth } from '../../auth/useGoogleAuth.js'
-import { googleAuthManager } from '../../auth/google-auth.js'
+import React, { useState } from "react";
+import { useGoogleAuth } from "../../auth/useGoogleAuth.js";
+import { googleAuthManager } from "../../auth/google-auth.js";
 
 interface UserProfileProps {
-  className?: string
+  className?: string;
 }
 
 export const UserProfile: React.FC<UserProfileProps> = ({
-  className = ''
+  className = "",
 }) => {
-  const { user, signOut, isLoading } = useGoogleAuth()
-  const [isDropdownOpen, setIsDropdownOpen] = useState(false)
+  const { user, signOut, isLoading } = useGoogleAuth();
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
   const handleSignOut = async () => {
     try {
-      await signOut()
-      setIsDropdownOpen(false)
+      await signOut();
+      setIsDropdownOpen(false);
     } catch (error) {
-      console.error('Sign out failed:', error)
+      console.error("Sign out failed:", error);
     }
-  }
+  };
 
   // Show Anonymous if Google Auth is not enabled or no user
   if (!googleAuthManager.isEnabled() || !user) {
@@ -41,7 +41,7 @@ export const UserProfile: React.FC<UserProfileProps> = ({
           </div>
         </div>
       </div>
-    )
+    );
   }
 
   return (
@@ -51,19 +51,21 @@ export const UserProfile: React.FC<UserProfileProps> = ({
         className="flex items-center space-x-2 p-1 rounded-md hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
         disabled={isLoading}
       >
-        {user.picture ? (
-          <img
-            src={user.picture}
-            alt={user.name}
-            className="w-8 h-8 rounded-full"
-          />
-        ) : (
-          <div className="w-8 h-8 bg-gray-300 rounded-full flex items-center justify-center">
-            <span className="text-sm font-medium text-gray-700">
-              {user.name.charAt(0).toUpperCase()}
-            </span>
-          </div>
-        )}
+        {user.picture
+          ? (
+            <img
+              src={user.picture}
+              alt={user.name}
+              className="w-8 h-8 rounded-full"
+            />
+          )
+          : (
+            <div className="w-8 h-8 bg-gray-300 rounded-full flex items-center justify-center">
+              <span className="text-sm font-medium text-gray-700">
+                {user.name.charAt(0).toUpperCase()}
+              </span>
+            </div>
+          )}
         <div className="hidden sm:block text-left">
           <div className="text-sm font-medium text-gray-900">
             {user.name}
@@ -74,7 +76,7 @@ export const UserProfile: React.FC<UserProfileProps> = ({
         </div>
         <svg
           className={`w-4 h-4 text-gray-400 transition-transform ${
-            isDropdownOpen ? 'rotate-180' : ''
+            isDropdownOpen ? "rotate-180" : ""
           }`}
           fill="none"
           stroke="currentColor"
@@ -110,19 +112,21 @@ export const UserProfile: React.FC<UserProfileProps> = ({
                 disabled={isLoading}
                 className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 focus:outline-none focus:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                {isLoading ? (
-                  <span className="flex items-center">
-                    <div className="w-4 h-4 border-2 border-gray-300 border-t-gray-600 rounded-full animate-spin mr-2" />
-                    Signing out...
-                  </span>
-                ) : (
-                  'Sign out'
-                )}
+                {isLoading
+                  ? (
+                    <span className="flex items-center">
+                      <div className="w-4 h-4 border-2 border-gray-300 border-t-gray-600 rounded-full animate-spin mr-2" />
+                      Signing out...
+                    </span>
+                  )
+                  : (
+                    "Sign out"
+                  )}
               </button>
             </div>
           </div>
         </>
       )}
     </div>
-  )
-}
+  );
+};

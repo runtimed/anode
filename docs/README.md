@@ -1,18 +1,25 @@
 # Anode Documentation
 
-This directory contains documentation for the Anode project - a real-time collaborative notebook system with AI integration.
+This directory contains documentation for the Anode project - a real-time
+collaborative notebook system with AI integration.
 
 ## Quick Navigation
 
 ### 📖 Core Documentation
+
 - **[UI Design](./ui-design.md)** - Design principles and interface guidelines
-- **[UI Enhancements Demo](./ui-enhancements-demo.md)** - UI improvement showcase
-- **[AI Context Visibility](./ai-context-visibility.md)** - Context control implementation
+- **[UI Enhancements Demo](./ui-enhancements-demo.md)** - UI improvement
+  showcase
+- **[AI Context Visibility](./ai-context-visibility.md)** - Context control
+  implementation
 - **[Testing](./TESTING.md)** - Testing strategy and current gaps
 
 ### 📋 Proposals
-- **[AI Context Controls](./proposals/ai-context-controls.md)** - User controls for AI context inclusion/exclusion ✅ **Implemented**
-- **[Updateable Outputs](./proposals/updateable-outputs.md)** - Jupyter-compatible display updates and stream merging
+
+- **[AI Context Controls](./proposals/ai-context-controls.md)** - User controls
+  for AI context inclusion/exclusion ✅ **Implemented**
+- **[Updateable Outputs](./proposals/updateable-outputs.md)** -
+  Jupyter-compatible display updates and stream merging
 
 ### 🏗️ Architecture Overview
 
@@ -20,9 +27,11 @@ Anode is a simplified single-application notebook system that provides:
 
 - **Web Client**: React-based notebook interface with real-time collaboration
 - **Sync Worker**: Cloudflare Worker handling LiveStore synchronization
-- **Python Runtime**: Handled by separate `@runt` packages for execution and AI features
+- **Python Runtime**: Handled by separate `@runt` packages for execution and AI
+  features
 
 **Key Technologies:**
+
 - **LiveStore**: Event-sourcing based local-first data synchronization
 - **React**: Modern web interface with real-time collaborative editing
 - **Vite**: Build system and development server
@@ -33,6 +42,7 @@ Anode is a simplified single-application notebook system that provides:
 Core collaborative editing and notebook interface deployed:
 
 ✅ **Working Features:**
+
 - Real-time collaborative notebook editing via LiveStore
 - Cell management (create, edit, move, delete) with keyboard navigation
 - Production deployment on Cloudflare Pages + Workers with authentication
@@ -42,18 +52,21 @@ Core collaborative editing and notebook interface deployed:
 - Clean single-application structure (no workspace complexity)
 
 🚧 **Python Runtime & AI Features:**
+
 - Now handled by separate `@runt` packages
 - See https://github.com/rgbkrk/runt for Python execution and AI integration
 
 ### 🎯 Current Focus
 
 **Simplified Architecture:**
+
 - ✅ Single application structure (no monorepo complexity)
 - ✅ Root-level Vite + Wrangler setup
 - ✅ Standard TypeScript project layout
 - ✅ All tests passing (36/36)
 
 **UI & Collaboration:**
+
 - Real-time collaborative editing without conflicts
 - Clean, minimal interface design
 - Context controls for AI integration
@@ -76,12 +89,15 @@ docs/
 ### 🔧 For Developers
 
 **Getting Started:**
+
 1. Read [ui-design.md](./ui-design.md) for interface design patterns
-2. Check [ai-context-visibility.md](./ai-context-visibility.md) for context control features
+2. Check [ai-context-visibility.md](./ai-context-visibility.md) for context
+   control features
 3. See [TESTING.md](./TESTING.md) for testing approach
 4. Review [proposals/](./proposals/) for planned features
 
 **Key Files:**
+
 - `src/components/notebook/` - Notebook interface components
 - `src/sync/sync.ts` - Cloudflare Worker for LiveStore sync
 - `src/components/ui/` - Reusable UI components
@@ -89,6 +105,7 @@ docs/
 - `@runt/schema` - Runtime schema (JSR package)
 
 **Development Commands:**
+
 ```bash
 # Start development
 pnpm dev          # Web client at http://localhost:5173
@@ -105,16 +122,16 @@ pnpm type-check   # TypeScript validation
 
 ### 🧠 Design Philosophy
 
-**Local-First**: Work offline, sync when connected
-**Event-Sourced**: All changes flow through LiveStore events
-**Collaborative**: Real-time multi-user editing without conflicts
-**Simple**: Single application, standard project structure
-**Type-Safe**: End-to-end TypeScript
-**Modular**: Clean separation between UI and runtime concerns
+**Local-First**: Work offline, sync when connected **Event-Sourced**: All
+changes flow through LiveStore events **Collaborative**: Real-time multi-user
+editing without conflicts **Simple**: Single application, standard project
+structure **Type-Safe**: End-to-end TypeScript **Modular**: Clean separation
+between UI and runtime concerns
 
 ### 🤝 Contributing
 
 When working on the UI:
+
 1. **Follow design system** - Use established patterns from ui-design.md
 2. **Test thoroughly** - Add tests for new features (see TESTING.md)
 3. **Consider collaboration** - How will features work with multiple users?
@@ -124,18 +141,21 @@ When working on the UI:
 ### 📈 Current Architecture
 
 **Phase 1: Simplified Structure** ✅ **COMPLETED**
+
 - Single application (no monorepo complexity)
 - Standard Vite + React + TypeScript setup
 - Cloudflare Pages + Workers deployment
 - All tests passing with good coverage
 
 **Phase 2: UI & Collaboration Focus** 🎯 **CURRENT**
+
 - Real-time collaborative editing
 - Clean, minimal interface design
 - Context controls and user experience
 - Mobile-responsive design
 
 **Python Runtime & AI Features:**
+
 - Moved to separate `@runt` packages
 - Allows anode to focus on UI and collaboration
 - See https://github.com/rgbkrk/runt for execution and AI integration
@@ -143,6 +163,7 @@ When working on the UI:
 ---
 
 For project-wide context and current work status, see:
+
 - [AGENTS.md](../AGENTS.md) - AI agent development context and current status
 - [ROADMAP.md](../ROADMAP.md) - Long-term vision and milestones
 - [README.md](../README.md) - Project overview and quick start

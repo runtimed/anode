@@ -1,10 +1,12 @@
 # AI Context with Outputs - Demo
 
-This example demonstrates how AI cells can now see and analyze cell outputs, not just source code.
+This example demonstrates how AI cells can now see and analyze cell outputs, not
+just source code.
 
 ## Setup
 
 1. Start Anode with OpenAI configured:
+
 ```bash
 # Install dependencies
 pnpm install
@@ -22,6 +24,7 @@ pnpm dev:sync   # Sync worker (in separate terminal)
 ### Step 1: Create Data with Outputs
 
 **Code Cell 1:**
+
 ```python
 import pandas as pd
 import numpy as np
@@ -43,6 +46,7 @@ df
 ```
 
 **Expected Output:**
+
 ```
 Created dataset with 4 rows and 4 columns
 Average salary: $70,000.00
@@ -57,6 +61,7 @@ Average salary: $70,000.00
 ### Step 2: Perform Analysis with Outputs
 
 **Code Cell 2:**
+
 ```python
 # Department analysis
 dept_stats = df.groupby('department').agg({
@@ -76,6 +81,7 @@ print(f"Lowest paid: {lowest_paid['name']} (${lowest_paid['salary']:,})")
 ```
 
 **Expected Output:**
+
 ```
 Department Statistics:
             salary       age
@@ -92,6 +98,7 @@ Lowest paid: Alice ($50,000)
 ### Step 3: AI Analysis with Full Context
 
 **AI Cell:**
+
 ```
 Analyze the employee data above and provide insights. What patterns do you see in the salary and demographic data? Suggest three specific visualizations that would be most helpful for understanding this dataset.
 ```
@@ -99,23 +106,29 @@ Analyze the employee data above and provide insights. What patterns do you see i
 **What the AI Now Sees:**
 
 The AI receives context including:
+
 - **Source code** from both previous cells
 - **Text outputs** showing dataset summary statistics
 - **DataFrame displays** with actual employee data
 - **Analysis results** showing department breakdowns
 - **Specific findings** like highest/lowest paid employees
 
-**Expected AI Response:**
-Based on the employee data analysis, I can see several interesting patterns:
+**Expected AI Response:** Based on the employee data analysis, I can see several
+interesting patterns:
 
 **Key Insights:**
-1. **Engineering Premium**: Engineering has the highest average salary ($70,000) despite having employees across different age ranges
-2. **Experience vs. Pay**: Charlie (35, Engineering) earns the most ($90,000), suggesting experience matters in technical roles
-3. **Department Size**: Engineering has 2 employees (50%), while Marketing and Sales each have 1
+
+1. **Engineering Premium**: Engineering has the highest average salary ($70,000)
+   despite having employees across different age ranges
+2. **Experience vs. Pay**: Charlie (35, Engineering) earns the most ($90,000),
+   suggesting experience matters in technical roles
+3. **Department Size**: Engineering has 2 employees (50%), while Marketing and
+   Sales each have 1
 
 **Recommended Visualizations:**
 
 1. **Salary by Department Bar Chart**:
+
 ```python
 import matplotlib.pyplot as plt
 df.groupby('department')['salary'].mean().plot(kind='bar', title='Average Salary by Department')
@@ -125,6 +138,7 @@ plt.show()
 ```
 
 2. **Age vs Salary Scatter Plot**:
+
 ```python
 plt.scatter(df['age'], df['salary'], c=['red' if dept=='Engineering' else 'blue' if dept=='Marketing' else 'green' for dept in df['department']])
 plt.xlabel('Age')
@@ -134,16 +148,19 @@ plt.show()
 ```
 
 3. **Department Composition Pie Chart**:
+
 ```python
 df['department'].value_counts().plot(kind='pie', title='Employee Distribution by Department', autopct='%1.1f%%')
 plt.show()
 ```
 
-These visualizations will help identify salary trends, experience correlations, and team composition patterns.
+These visualizations will help identify salary trends, experience correlations,
+and team composition patterns.
 
 ### Step 4: Error Analysis Context
 
 **Code Cell 3:**
+
 ```python
 # Intentional error for demo
 result = df['salary'].sum() / df['nonexistent_column'].count()
@@ -151,6 +168,7 @@ print(f"Average calculation: {result}")
 ```
 
 **Expected Error Output:**
+
 ```
 KeyError: 'nonexistent_column'
 Traceback (most recent call last):
@@ -159,21 +177,26 @@ KeyError: 'nonexistent_column'
 ```
 
 **AI Cell for Debugging:**
+
 ```
 I got an error in the previous cell. Can you help me fix it and explain what went wrong?
 ```
 
-**AI Response with Error Context:**
-I can see the error in your previous cell. The issue is a `KeyError: 'nonexistent_column'` which occurred because you're trying to access a column that doesn't exist in your DataFrame.
+**AI Response with Error Context:** I can see the error in your previous cell.
+The issue is a `KeyError: 'nonexistent_column'` which occurred because you're
+trying to access a column that doesn't exist in your DataFrame.
 
-**Problem**: 
+**Problem**:
+
 ```python
 result = df['salary'].sum() / df['nonexistent_column'].count()
 ```
 
-**Issue**: `'nonexistent_column'` is not a valid column name in your DataFrame. Your DataFrame has columns: `['name', 'age', 'salary', 'department']`.
+**Issue**: `'nonexistent_column'` is not a valid column name in your DataFrame.
+Your DataFrame has columns: `['name', 'age', 'salary', 'department']`.
 
 **Fixed Code**:
+
 ```python
 # If you want to calculate average salary:
 average_salary = df['salary'].mean()
@@ -185,6 +208,7 @@ print(f"Total salary divided by employee count: ${result:,.2f}")
 ```
 
 The AI was able to:
+
 - See the exact error message and traceback
 - Identify the problematic column name
 - Reference the actual DataFrame structure from previous cells
@@ -195,12 +219,15 @@ The AI was able to:
 1. **Rich Context**: AI sees both code and its actual outputs
 2. **Data Awareness**: AI understands the structure and content of your data
 3. **Error Debugging**: AI can analyze actual error messages and tracebacks
-4. **State Understanding**: AI knows what variables exist and their current values
-5. **Progressive Analysis**: Each AI response builds on previous execution results
+4. **State Understanding**: AI knows what variables exist and their current
+   values
+5. **Progressive Analysis**: Each AI response builds on previous execution
+   results
 
 ## Technical Implementation
 
 This functionality is now implemented in the separate `@runt` packages:
+
 - Python execution and rich outputs
 - AI integration with notebook context
 - OpenAI API integration for AI cells
@@ -209,8 +236,10 @@ This functionality is now implemented in the separate `@runt` packages:
 ## Next Steps
 
 To use this functionality:
+
 1. Set up the `@runt` runtime packages (see https://github.com/rgbkrk/runt)
 2. Configure OpenAI API key in the runtime environment
 3. Try this workflow in your own notebook to experience AI context awareness
 
-This example demonstrates the UI capabilities - actual execution requires the runtime setup.
+This example demonstrates the UI capabilities - actual execution requires the
+runtime setup.
