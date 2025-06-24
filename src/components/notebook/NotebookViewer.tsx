@@ -23,6 +23,7 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({ debugMode = fals
   const { store } = useStore()
   const cells = store.useQuery(queryDb(tables.cells.select().orderBy('position', 'asc'))) as CellData[]
   const notebooks = store.useQuery(queryDb(tables.notebook.select().limit(1))) as any[]
+  // TODO: Update schema to use runtime terminology (kernelSessions → runtimeSessions, KernelSessionData → RuntimeSessionData)
   const kernelSessions = store.useQuery(queryDb(tables.kernelSessions.select().where({ isActive: true }))) as KernelSessionData[]
   const notebook = notebooks[0]
 
@@ -306,7 +307,7 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({ debugMode = fals
                 className="flex items-center gap-1 sm:gap-2"
               >
                 <Terminal className="h-3 sm:h-4 w-3 sm:w-4" />
-                <span className="capitalize text-xs sm:text-sm hidden sm:block">{notebook.kernelType}</span>
+                <span className="capitalize text-xs sm:text-sm hidden sm:block">{/* TODO: Update schema property kernelType → runtimeType */notebook.kernelType}</span>
                 <Circle
                   className={`h-2 w-2 fill-current ${
                     activeRuntime && runtimeHealth === 'healthy' ? 'text-green-500' :
@@ -403,7 +404,7 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({ debugMode = fals
                   </div>
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Runtime Type:</span>
-                    <span>{activeRuntime.kernelType}</span>
+                    <span>{/* TODO: Update schema property kernelType → runtimeType */activeRuntime.kernelType}</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Status:</span>
