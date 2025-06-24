@@ -26,26 +26,22 @@ pnpm dev  # Starts web client + sync backend
 5. Run that command in a new terminal
 
 ### 4. Optional: Add AI Features
-Edit `packages/pyodide-runtime-agent/.env` and uncomment the OpenAI API key line:
+Python runtime and AI features are now handled by the separate @runt packages:
 ```bash
-# Uncomment and add your key:
-OPENAI_API_KEY=sk-your-key-here
+# See https://github.com/rgbkrk/runt for setup
 ```
 
 ## Development Workflow
 
 ### Environment Setup
-- **Automatic**: Run `pnpm install` and separate `.env` files are created automatically
-- **Manual**: Run `pnpm setup` if you need to recreate the environment files
-- **Security**: API keys are kept in server-side `.env` files, not exposed to browser
-- **Validation**: The setup script checks for required environment variables
+- **Single .env**: One `.env` file at repository root contains all configuration
+- **Security**: Server-side variables (AUTH_TOKEN) kept separate from client variables (VITE_*)
+- **Python runtime**: Handled by separate @runt packages
 
 ### Running Services
-- **Web + Sync**: `pnpm dev` (runs both web client and sync backend)
-- **Kernel**: Use the command from the notebook UI (ensures correct notebook ID)
-- **Individual services**: 
-  - `pnpm dev:web-only` - Just the web client
-  - `pnpm dev:sync-only` - Just the sync backend
+- **Web client**: `pnpm dev` - React application
+- **Sync worker**: `pnpm dev:sync` - Cloudflare Worker for LiveStore sync
+- **Python runtime**: Separate @runt packages (see https://github.com/rgbkrk/runt)
 
 ### Key Commands
 ```bash
@@ -66,48 +62,45 @@ pnpm cache:warm-up      # Pre-load Python packages for faster startup
 
 ```
 anode/
-├── shared/
-│   └── schema.ts       # LiveStore schema - directly imported by all packages
-├── packages/
-│   ├── web-client/     # React web application
-│   ├── docworker/      # Cloudflare Worker sync backend
-│   └── pyodide-runtime-agent/  # Python kernel server
-├── docs/               # Documentation
-├── scripts/            # Development scripts
-└── CONTRIBUTING.md     # This file
+├── src/                # Application source code
+│   ├── components/     # React components
+│   ├── sync/          # Cloudflare Worker sync backend
+│   └── types/         # TypeScript definitions
+├── docs/              # Documentation
+├── schema.ts          # LiveStore schema definitions
+└── CONTRIBUTING.md    # This file
 ```
 
-## Environment Configuration
+### Environment Configuration
 
-The setup script automatically creates separate `.env` files for security:
+Copy `.env.example` to `.env` and configure as needed:
 
-**Web Client** (`packages/web-client/.env`) - Browser-exposed variables:
+**Web Client** (`.env`) - Browser-exposed variables (VITE_ prefix):
 ```bash
-# LiveStore Sync Backend URL
-VITE_LIVESTORE_SYNC_URL=ws://localhost:8787
+VITE_LIVESTORE_SYNC_URL=ws://localhost:8787/api
+VITE_AUTH_TOKEN=insecure-token-change-me
 ```
 
-**Kernel Server** (`packages/pyodide-runtime-agent/.env`) - Server-only variables:
+**Sync Worker** (`.dev.vars`) - Server-only secrets:
 ```bash
-# LiveStore Sync Backend URL (for kernel server connection)
-LIVESTORE_SYNC_URL=ws://localhost:8787
-
-# OpenAI API Key for AI cells (uncomment and add your key)
-# OPENAI_API_KEY=your-openai-api-key-here
-
 # Authentication token for sync backend
 AUTH_TOKEN=insecure-token-change-me
+```
+
+**Python Runtime** - Now handled by @runt packages:
+```bash
+# See https://github.com/rgbkrk/runt for configuration
 ```
 
 ### Port Configuration
 - **Web Client**: http://localhost:5173
 - **Sync Backend**: ws://localhost:8787
-- **Kernel Server**: Dynamic port assignment
+- **Python Runtime**: Handled by @runt packages
 
 ## Architecture Overview
 
 - **LiveStore Foundation**: Event-sourcing with real-time collaboration
-- **JSR Schema Package**: `jsr:@runt/schema` imported directly across packages
+- **JSR Schema Package**: `jsr:@runt/schema` imported directly by application
 - **Reactive Architecture**: Subscriptions instead of polling for instant execution
 - **Local-First Design**: Works offline, syncs when connected
 - **Event-Sourced State**: All changes flow through LiveStore events

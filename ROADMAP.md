@@ -2,19 +2,13 @@
 
 **Vision**: A real-time collaborative notebook system enabling seamless AI ↔ Python ↔ User interactions through local-first architecture.
 
-**Current Status**: Production system deployed to https://anode.pages.dev with full collaborative editing, complete Python execution with rich outputs, and advanced AI integration. 107 passing tests validate core functionality. Major runtime restart bug (#34) resolved. Main gap is automated runtime management.
-
 ## Foundation Complete ✅
 
 ### Core Architecture
-- **LiveStore event-sourcing** - Real-time collaborative state management working reliably in production
-- **Direct TypeScript schema** - No build complexity, full type safety across all packages
-- **Reactive execution queue** - Zero-latency kernel work detection without polling
-- **Reliable kernel sessions** - Fixed materializer side effects, stable multi-session operation
+- **LiveStore event-sourcing** - Real-time collaborative state management
 - **Cell management** - Create, edit, move, delete with proper state sync
-- **Full Python execution** - Rich outputs: matplotlib SVG, pandas HTML, IPython.display
-- **Production deployment** - Cloudflare Pages + Workers with Google OAuth authentication
-- **Comprehensive testing** - 107 passing tests with good integration coverage, zero TypeScript errors
+- **"Python" execution** - Rich outputs: matplotlib SVG, pandas HTML, IPython.display
+- **Pseudo-Production deployment** - Cloudflare Pages + Workers with Google OAuth authentication
 
 ### What Users Can Do Today
 - Create and edit notebooks collaboratively in real-time at https://anode.pages.dev
@@ -37,10 +31,9 @@
 **Implementation Tasks**:
 - [x] **Function calling infrastructure** - OpenAI function calling working
 - [x] **Cell creation tools** - AI can create new cells with `create_cell` tool
-- [ ] **Cell modification tools** - Add `modify_cell(cellId, content)` function to NOTEBOOK_TOOLS
-- [ ] **Code execution tools** - Add `execute_cell(cellId)` function to NOTEBOOK_TOOLS
+- [x] **Cell modification tools** - Add `modify_cell(cellId, content)` function to NOTEBOOK_TOOLS
+- [x] **Code execution tools** - Add `execute_cell(cellId)` function to NOTEBOOK_TOOLS
 - [ ] **Parameter validation** - Add comprehensive JSDoc and parameter validation
-- [ ] **Test coverage** - Create comprehensive tests for new functions
 
 **Acceptance Criteria**:
 - AI can modify existing cell content when requested
@@ -83,7 +76,6 @@
 - Removes shared authentication dependency
 - Enables production scaling with user-owned compute
 - Clear attribution of resource usage
-- Foundation for enterprise deployments
 
 ### 4. Automated Runtime Management
 **Goal**: Remove manual `NOTEBOOK_ID=xyz pnpm dev:runtime` friction
@@ -156,7 +148,7 @@
 
 ### Advanced Collaboration
 - [ ] **User presence** - See who's actively editing
-- [ ] **Collaborative cursors** - Real-time editing indicators  
+- [ ] **Collaborative cursors** - Real-time editing indicators
 - [ ] **Comment system** - Discuss code and results inline
 - [ ] **Version control** - Leverage event-sourcing for notebook history
 
@@ -215,7 +207,7 @@
 
 ### Phase-Gate Approach
 1. **Phase 1 Complete**: Before moving to Phase 2, validate all enhanced AI tool calling works
-2. **Phase 2 Complete**: Before Phase 3, ensure user-attributed kernels work reliably  
+2. **Phase 2 Complete**: Before Phase 3, ensure user-attributed kernels work reliably
 3. **Continuous**: Infrastructure improvements happen alongside feature development
 
 ### Risk Mitigation
@@ -246,7 +238,7 @@
 - Memory efficiency: Handle 100+ cell notebooks without issues
 - Collaboration latency: < 100ms for real-time updates
 
-### Developer Experience  
+### Developer Experience
 - Setup time for new contributors: < 5 minutes
 - Hot reload time: < 1 second
 - TypeScript compilation: Zero errors, strict mode

@@ -6,15 +6,15 @@ This example demonstrates how AI cells can now see and analyze cell outputs, not
 
 1. Start Anode with OpenAI configured:
 ```bash
-# Setup will automatically create package .env files
+# Install dependencies
 pnpm install
 
-# If you don't have OPENAI_API_KEY in your environment, configure it:
-# Edit packages/pyodide-runtime-agent/.env to add: OPENAI_API_KEY=sk-your-key-here
-
 # Start services
-pnpm dev
-# In another terminal: NOTEBOOK_ID=your-notebook-id pnpm dev:runtime
+pnpm dev        # Web client
+pnpm dev:sync   # Sync worker (in separate terminal)
+
+# Python runtime and AI features are now handled by @runt packages
+# See https://github.com/rgbkrk/runt for setup
 ```
 
 ## Demo Workflow
@@ -200,12 +200,17 @@ The AI was able to:
 
 ## Technical Implementation
 
-This functionality works through:
-- Enhanced `NotebookContext` interface including outputs
-- Filtering to include `text/plain` and `text/markdown` outputs
-- Smart formatting of different output types (stream, error, rich)
-- Comprehensive test coverage ensuring reliability
+This functionality is now implemented in the separate `@runt` packages:
+- Python execution and rich outputs
+- AI integration with notebook context
+- OpenAI API integration for AI cells
+- Output rendering and display system
 
 ## Next Steps
 
-Try this workflow in your own notebook to experience the enhanced AI context awareness!
+To use this functionality:
+1. Set up the `@runt` runtime packages (see https://github.com/rgbkrk/runt)
+2. Configure OpenAI API key in the runtime environment
+3. Try this workflow in your own notebook to experience AI context awareness
+
+This example demonstrates the UI capabilities - actual execution requires the runtime setup.

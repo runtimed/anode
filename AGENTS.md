@@ -197,21 +197,20 @@ The project recently resolved a major stability issue where 3rd+ runtime session
 
 ```
 anode/
-├── packages/
-│   ├── web-client/                  # React web application (@anode/web-client)
-│   │   ├── src/components/notebook/ # Notebook interface components
-│   │   ├── dist/                    # Built assets for Cloudflare Pages deployment
-│   │   └── package.json             # Vite + React + LiveStore dependencies
-│   ├── docworker/                   # Cloudflare Worker sync backend (@anode/docworker)
-│   │   ├── src/index.ts             # Worker entry point with LiveStore sync
-│   │   ├── wrangler.toml            # Cloudflare Worker configuration
-│   │   └── package.json             # Minimal Worker dependencies
-│   └── pyodide-runtime-agent/       # Python runtime server (@anode/pyodide-runtime-agent)
-│       ├── src/                     # TypeScript runtime implementation
-│       │   ├── runtime-agent.ts     # Main execution coordinator
-│       │   ├── pyodide-kernel.ts    # Python execution via Pyodide
-│       │   └── openai-client.ts     # AI integration
-│       └── package.json             # Node.js runtime dependencies
+├── src/                             # Application source code
+│   ├── components/notebook/         # Notebook interface components
+│   │   ├── Cell.tsx                 # Individual cell component
+│   │   ├── NotebookViewer.tsx       # Main notebook interface
+│   │   ├── AiCell.tsx               # AI cell interface
+│   │   └── RichOutput.tsx           # Output rendering
+│   ├── sync/                        # Sync worker
+│   │   └── sync.ts                  # Cloudflare Worker for LiveStore sync
+│   ├── auth/                        # Authentication utilities
+│   ├── components/ui/               # Reusable UI components
+│   ├── util/                        # Utility functions
+│   └── types/                       # TypeScript type definitions
+├── public/                          # Static assets
+├── dist/                            # Built assets for Cloudflare Pages deployment
 ├── docs/                            # Comprehensive documentation (11 files)
 │   ├── README.md                    # Documentation index and navigation
 │   ├── runtime-agent-architecture.md # Core system design
@@ -239,25 +238,26 @@ anode/
 │   ├── edge-cases.test.ts           # Edge case handling
 │   ├── integration/                 # Integration test suite
 │   └── fixtures/                    # Test data and mocks
-├── scripts/
-│   └── setup.js                     # Environment setup automation
 ├── .github/                         # GitHub configuration
 ├── AGENTS.md                        # AI agent development context (this file)
 ├── ROADMAP.md                       # Long-term vision and milestones
 ├── DEPLOYMENT.md                    # Cloudflare deployment guide
 ├── CONTRIBUTING.md                  # Contribution guidelines
 ├── README.md                        # Project overview and quick start
-├── package.json                     # Root workspace configuration and scripts
-├── pnpm-workspace.yaml              # Workspace definitions
-├── vitest.config.ts                 # Test runner configuration
-└── tsconfig.json                    # TypeScript project configuration
+├── package.json                     # Application configuration and scripts
+├── tsconfig.json                    # TypeScript project configuration
+├── vite.config.ts                   # Vite build configuration
+├── wrangler.toml                    # Cloudflare Worker configuration
+├── schema.ts                        # LiveStore schema definitions
+└── vitest.config.ts                 # Test runner configuration
 ```
 
 **Deployment Architecture (Cloudflare):**
-- **Pages**: Web client deployed to `https://anode.pages.dev`
-- **Workers**: Sync backend deployed to `https://anode-docworker.rgbkrk.workers.dev`
+- **Pages**: Web client deployed to `https://anode.pages.dev` (built from `/dist`)
+- **Workers**: Sync backend deployed to `https://anode-docworker.rgbkrk.workers.dev` (from `/src/sync/sync.ts`)
 - **D1**: Database for production data persistence
 - **Secrets**: Authentication tokens and API keys managed via Cloudflare dashboard
+- **Runtime**: Python execution handled by separate `@runt` packages
 
 ## Notes for AI Assistants
 
@@ -291,8 +291,8 @@ anode/
 
 **User Environment**: The user will typically have:
 - Web client running in one tab (`pnpm dev`)
-- Wrangler server running in another tab
-- Manual runtime startup as needed (`NOTEBOOK_ID=xyz pnpm dev:runtime`)
+- Wrangler server running in another tab (`pnpm dev:sync`)
+- Python runtime available via `pnpm dev:runtime` (uses @runt JSR packages)
 
 **Checking Work**: If you need to verify changes:
 ```bash
@@ -307,19 +307,17 @@ pnpm type-check      # TypeScript validation
 Tell them to start at the base of the repo:
 ```bash
 # Setup environment
-pnpm install         # Automatically creates package .env files with defaults
+pnpm install         # Install dependencies for single application
+cp .env.example .env # Copy environment template
 
 # In separate tabs run
 ## Tab 1:
-pnpm dev:web-only
+pnpm dev             # Web client
 ## Tab 2:
-pnpm dev:sync-only
+pnpm dev:sync        # Sync worker (now properly on port 8787)
 
-# Warm up package cache for faster Python execution (recommended)
-pnpm cache:warm-up   # Pre-loads numpy, pandas, matplotlib, requests, etc.
-
-# In separate terminal, get runtime command from notebook UI
-# Then run: NOTEBOOK_ID=notebook-id-from-ui pnpm dev:runtime
+# Python runtime (get NOTEBOOK_ID from UI, then run):
+NOTEBOOK_ID=your-notebook-id pnpm dev:runtime
 ```
 
 ## Important Development Notes

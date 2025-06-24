@@ -1,15 +1,15 @@
-name: CI
+name: Deploy
 
 on:
   push:
     branches: [main]
-  pull_request:
-    branches: [main]
+  workflow_dispatch:
 
 jobs:
-  ci:
-    name: CI
+  deploy:
+    name: Deploy to Cloudflare
     runs-on: ubuntu-latest
+    environment: production
 
     steps:
       - name: Checkout code
@@ -41,14 +41,13 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Type check
-        run: pnpm type-check
-
-      - name: Build web client
-        run: pnpm build
-
-      - name: Validate sync worker
-        run: pnpm build:sync
-
       - name: Run tests
         run: pnpm test --run
+
+      - name: Build web client
+        run: pnpm build:prod
+
+      - name: Deploy to Cloudflare
+        run: pnpm deploy
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
