@@ -196,8 +196,8 @@ Alternatively, you can connect the repository directly to Cloudflare Pages:
 1. Go to Cloudflare Pages dashboard
 2. Connect to Git repository
 3. Set build settings:
-   - **Build command**: `cd packages/web-client && pnpm build:prod`
-   - **Build output directory**: `packages/web-client/dist`
+   - **Build command**: `pnpm build:prod`
+   - **Build output directory**: `dist`
    - **Root directory**: Leave empty
 4. Environment variables are configured in `wrangler.toml`
 

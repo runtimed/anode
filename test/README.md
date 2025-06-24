@@ -1,15 +1,15 @@
 # Anode Testing Infrastructure
 
-**Status: ✅ Fully Operational** - Good testing infrastructure supporting zero-latency reactive architecture.
+**Status: ✅ Fully Operational** - Comprehensive testing for notebook interface and real-time collaboration.
 
 ## Overview
 
-Anode has a robust testing infrastructure built on:
+Anode has excellent testing infrastructure built on:
 - **Vitest 3.x** - Fast test runner with excellent TypeScript support
 - **@effect/vitest** - Effect-specific testing utilities for LiveStore integration
 - **Happy DOM** - Lightweight DOM implementation for browser-like testing
-- **Comprehensive mocking** - External dependencies (Pyodide, LiveStore adapters)
-- **68 passing tests** - Good validation of working system
+- **Real LiveStore integration** - Tests actual collaboration features
+- **36 passing tests** - Complete validation of UI and sync functionality
 
 ## Test Structure
 
@@ -19,83 +19,80 @@ anode/
 │   ├── setup.ts                   # Global test configuration
 │   ├── fixtures/                  # Mock data and test helpers
 │   ├── integration/               # End-to-end integration tests
-│   ├── basic.test.ts              # Sanity checks
-│   └── schema-validation.test.ts  # Event schema validation
-├── packages/
-│   ├── schema/test/               # Schema-specific tests
-│   └── dev-server-kernel-ls-client/test/  # Kernel client tests
+│   ├── basic.test.ts              # Basic setup tests
+│   └── edge-cases.test.ts         # Edge cases and stress tests
+├── src/                           # Application source
+│   └── components/                # UI components with tests
 └── vitest.config.ts               # Global test configuration
 ```
 
 ## Test Categories
 
-### 1. Schema Validation Tests
-- **Location**: `test/schema-validation.test.ts`
-- **Purpose**: Validates all LiveStore event schemas
+### 1. Basic Setup Tests
+- **Location**: `test/basic.test.ts`
+- **Purpose**: Infrastructure validation and smoke tests
 - **Coverage**: 
-  - Event structure validation
-  - Data type checking
-  - Optional field handling
-  - Error scenarios
-  - Naming conventions
+  - Environment configuration
+  - TypeScript compilation
+  - Basic test utilities
 
-### 2. Kernel Integration Tests
-- **Location**: `packages/dev-server-kernel-ls-client/test/`
-- **Purpose**: Tests zero-latency kernel execution and lifecycle
+### 2. Edge Cases & Stress Tests
+- **Location**: `test/edge-cases.test.ts`
+- **Purpose**: Boundary conditions and performance limits
 - **Coverage**:
-  - Kernel session management and isolation
-  - Zero-latency execution queue processing
-  - Reactive query subscriptions
-  - Error handling and recovery scenarios
+  - Concurrent cell operations
+  - Large data handling
+  - Unicode and special characters
+  - Error recovery scenarios
 
-### 3. End-to-End Integration Tests
+### 3. Integration Tests
 - **Location**: `test/integration/`
-- **Purpose**: Full workflow testing
+- **Purpose**: End-to-end notebook workflows
 - **Coverage**:
-  - Complete notebook execution cycles
-  - Multi-kernel concurrency
-  - State consistency across components
-  - Memory leak prevention
+  - Complete notebook lifecycle (`execution-flow.test.ts`)
+  - Real-time collaboration scenarios
+  - LiveStore state consistency
+  - Memory management (`reactivity-debugging.test.ts`)
 
-### 4. Reactivity Tests
-- **Location**: `test/integration/reactivity-debugging.test.ts`
-- **Purpose**: Validates zero-latency reactive architecture
+### 4. UI Component Tests
+- **Location**: Component files with `.test.ts` suffix
+- **Purpose**: React component behavior validation
 - **Coverage**:
-  - Zero-latency query subscription lifecycle
-  - Memory management and cleanup
-  - Error recovery and resilience
-  - Performance validation under load
+  - Rendering and interaction
+  - Props validation
+  - Event handling
+  - Accessibility features
 
 ## Key Testing Features
 
-### Mocking Strategy
-- **Pyodide**: Fully mocked to avoid runtime dependencies
-- **LiveStore adapters**: In-memory implementations for fast tests
-- **External APIs**: Mocked with predictable responses
+### Testing Strategy
+- **Real LiveStore**: Uses actual LiveStore for collaboration testing
+- **Mock External APIs**: Network requests and authentication
+- **Happy DOM**: Browser simulation for React components
 
 ### Test Utilities
 - **Fixtures**: Pre-built test data in `test/fixtures/`
 - **Helpers**: Async utilities, resource cleanup, error testing
 - **Factory functions**: Dynamic test data generation
 
-### Zero-Latency Reactive Testing
-Validation of instant execution architecture:
+### Collaboration Testing
+Validation of real-time notebook collaboration:
 
 ```typescript
-// Example: Testing zero-latency execution flow
-it('should execute cells instantly via reactive subscriptions', async () => {
-  const subscription = store.subscribe(executionQueue$, { onUpdate: callback })
+// Example: Testing collaborative editing
+it('should handle concurrent cell modifications', async () => {
+  const store = await createTestStore()
   
-  // Trigger execution
-  store.commit(events.executionRequested({ cellId, source: 'print("hello")' }))
+  // Simulate multiple users editing
+  await store.commit(events.cellCreated({ cellId, content: 'initial' }))
   
-  // Verify instant response (no polling delays)
-  await waitFor(() => expect(callback).toHaveBeenCalledWith(
-    expect.arrayContaining([expect.objectContaining({ status: 'assigned' })])
-  ))
+  // Verify state consistency
+  const cells = await store.query(tables.cells.select())
+  expect(cells).toHaveLength(1)
+  expect(cells[0].content).toBe('initial')
   
-  // Clean up subscription
-  subscription()
+  // Clean up
+  store.close()
 })
 ```
 
@@ -122,19 +119,16 @@ pnpm test:coverage
 pnpm test:ui
 ```
 
-### Package-Specific Tests
+### Specific Test Categories
 ```bash
-# Schema tests only
-pnpm test:schema
-
-# Kernel client tests only
-pnpm test:kernel
-
-# Integration tests
+# Integration tests only
 pnpm test:integration
 
-# Reactivity debugging specifically (for your main issue)
-pnpm test:reactivity
+# Debug mode with verbose output
+pnpm test:debug
+
+# Run specific test file
+pnpm test test/basic.test.ts
 ```
 
 ### Debug Mode
@@ -161,14 +155,14 @@ Tests automatically set:
 
 ## Debugging Tests
 
-### Reactivity Validation
-The tests validate the zero-latency reactive architecture:
+### Collaboration Testing
+The tests validate real-time collaborative notebook features:
 
-1. **Zero-Latency Execution**: Validates instant cell execution without polling delays
-2. **Memory Management**: Tests proper subscription cleanup and resource management
-3. **Error Recovery**: Handling query failures and race conditions gracefully
-4. **State Consistency**: Ensuring reactive queries maintain perfect sync
-5. **Performance**: High-frequency update handling
+1. **Multi-User Editing**: Concurrent cell modifications without conflicts
+2. **Memory Management**: Proper subscription cleanup and resource management
+3. **Error Recovery**: Handling connection failures and race conditions
+4. **State Consistency**: LiveStore event sourcing maintains perfect sync
+5. **Performance**: High-frequency collaborative updates
 
 ### Useful Debug Patterns
 ```bash
@@ -176,7 +170,7 @@ The tests validate the zero-latency reactive architecture:
 pnpm test:debug
 
 # Run single test with verbose output
-pnpm test:run test/integration/reactivity-debugging.test.ts -t "subscription lifecycle"
+pnpm test:run test/integration/execution-flow.test.ts -t "execution cycle"
 
 # Interactive debugging with UI
 pnpm test:ui
@@ -223,26 +217,26 @@ Performance validation includes:
 4. Mock external dependencies
 5. Test error scenarios explicitly
 
-### Reactive Testing
+### Collaboration Testing
 1. Use `waitFor` for async state changes validation
 2. Track subscription counts and proper cleanup
-3. Test rapid state changes and high-frequency updates
-4. Verify zero-latency execution performance
-5. Validate memory usage patterns
+3. Test rapid state changes and collaborative updates
+4. Verify real-time synchronization performance
+5. Validate memory usage patterns in multi-user scenarios
 
 ### CI/CD Integration
 Tests are designed to be:
-- Fast (< 30 seconds for full suite)
+- Fast (~2 seconds for full suite)
 - Reliable (no flaky tests)
-- Good coverage
-- Isolated (no external dependencies)
+- Comprehensive coverage (36 tests)
+- Self-contained (minimal external dependencies)
 
 ## Known Issues & Solutions
 
 ### Schema Import Issues
-- Solution: Use relative imports for built packages
+- Solution: Use JSR imports for schema
 - Example: `import { events } from "@runt/schema"`
-- No build step needed - direct TypeScript imports from JSR schema package
+- No build step needed - direct TypeScript imports from JSR package
 
 ### Date Handling
 - Effect schemas convert ISO strings to Date objects
@@ -255,18 +249,18 @@ Tests are designed to be:
 
 ### HTML Reports
 - Currently disabled due to Vitest 3.x configuration complexity
-- Use `pnpm test:ui` for interactive test results instead
-- Coverage reports still work with `pnpm test:coverage`
+- Use `pnpm test:ui` for interactive test dashboard
+- Coverage reports available with `pnpm test:coverage`
 
-## Future Enhancements - AI Integration Focus
+## Future Enhancements
 
-Next phase testing priorities:
-- **Re-enable skipped tests one by one** - good opportunity now that major issues are resolved
-- **AI cell integration tests** - Context extraction and LLM provider validation
-- **Code completion tests** - LSP integration and kernel-based suggestions
+Next testing priorities:
+- **UI component coverage** - Expand React component test coverage
+- **Mobile testing** - Responsive design validation
 - **Authentication flow tests** - Google OAuth and session management
-- Browser automation tests (Playwright) for full E2E workflows
-- Performance regression detection for AI workloads
+- **Browser automation** - End-to-end Playwright tests
+- **Performance monitoring** - Regression detection for collaboration features
+- **Accessibility testing** - ARIA compliance and screen reader support
 
 ## Contributing
 
@@ -282,10 +276,15 @@ When adding new tests:
 - **Import errors**: Check that schema import is correct (`@runt/schema`)
 - **Type errors**: TypeScript catches invalid queries at compile time
 - **Timeout errors**: Increase timeout in `vitest.config.ts`
-- **Memory issues**: Verify resource cleanup in `afterEach`
+- **Memory issues**: Verify store cleanup in `afterEach`
 
 ### Getting Help
 - Check test output for specific error messages
 - Use `DEBUG_TESTS=true` for verbose logging
-- Review existing test patterns for guidance
-- Focus on re-enabling skipped tests and AI integration testing patterns as the next development phase
+- Review existing test patterns in `test/` directory
+- Focus on UI component testing and collaboration scenarios
+
+### Python Runtime Testing
+**Note**: Python execution and AI features are now tested in the separate `@runt` packages.
+- Runtime testing: https://github.com/rgbkrk/runt
+- This repository focuses on notebook interface and collaboration testing
