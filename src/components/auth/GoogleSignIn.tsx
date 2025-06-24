@@ -43,9 +43,9 @@ export const GoogleSignIn: React.FC<GoogleSignInProps> = ({
       {isLoading && (
         <button
           disabled
-          className="flex items-center justify-center px-4 py-2 border border-gray-300 rounded-md shadow-sm bg-white text-sm font-medium text-gray-700 opacity-50 cursor-not-allowed"
+          className="flex cursor-not-allowed items-center justify-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 opacity-50 shadow-sm"
         >
-          <div className="w-4 h-4 border-2 border-gray-300 border-t-gray-600 rounded-full animate-spin mr-2" />
+          <div className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-gray-300 border-t-gray-600" />
           Signing in...
         </button>
       )}

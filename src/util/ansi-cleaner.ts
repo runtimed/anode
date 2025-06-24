@@ -28,7 +28,7 @@ export function cleanForAI(text: string): string {
  * @returns Cleaned traceback for AI consumption
  */
 export function cleanTracebackForAI(
-  traceback: string[] | string | undefined,
+  traceback: string[] | string | undefined
 ): string[] | string | undefined {
   if (!traceback) {
     return traceback;
@@ -54,7 +54,7 @@ export function cleanAnsiCodes(text: string): string {
  * @deprecated Use cleanTracebackForAI for AI context or preserve ANSI for user display
  */
 export function cleanTraceback(
-  traceback: string[] | string | undefined,
+  traceback: string[] | string | undefined
 ): string[] | string | undefined {
   return cleanTracebackForAI(traceback);
 }

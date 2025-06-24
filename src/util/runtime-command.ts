@@ -7,9 +7,10 @@
  */
 export function generateRuntimeCommand(
   notebookId: string,
-  customCommand?: string,
+  customCommand?: string
 ): string {
-  const baseRuntimeCommand = customCommand ||
+  const baseRuntimeCommand =
+    customCommand ||
     'deno run --allow-all --env-file=.env "jsr:@runt/pyodide-runtime-agent"';
 
   return `NOTEBOOK_ID=${notebookId} ${baseRuntimeCommand}`;

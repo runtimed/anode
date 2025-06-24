@@ -14,7 +14,7 @@ export const JsonOutput: React.FC<JsonOutputProps> = ({
   const jsonData = data && typeof data === "object" ? data : { value: data };
 
   return (
-    <div className="bg-gray-50/50 rounded p-2">
+    <div className="rounded bg-gray-50/50 p-2">
       <ReactJsonView
         src={jsonData}
         theme="rjv-default"

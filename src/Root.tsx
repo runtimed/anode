@@ -104,7 +104,7 @@ const NotebookApp: React.FC = () => {
 
   // Check if notebook exists
   const notebooks = store.useQuery(
-    queryDb(tables.notebook.select().limit(1)),
+    queryDb(tables.notebook.select().limit(1))
   ) as any[];
   const currentNotebook = notebooks[0];
 
@@ -115,11 +115,13 @@ const NotebookApp: React.FC = () => {
       const notebookId = store.storeId || `notebook-${Date.now()}`;
       const title = `Notebook ${new Date().toLocaleDateString()}`;
 
-      store.commit(events.notebookInitialized({
-        id: notebookId,
-        title,
-        ownerId: "current-user", // TODO: get from auth context
-      }));
+      store.commit(
+        events.notebookInitialized({
+          id: notebookId,
+          title,
+          ownerId: "current-user", // TODO: get from auth context
+        })
+      );
 
       setIsInitializing(false);
     }
@@ -128,12 +130,12 @@ const NotebookApp: React.FC = () => {
   // Show loading while initializing
   if (!currentNotebook && isInitializing) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-background">
+      <div className="bg-background flex min-h-screen items-center justify-center">
         <div className="text-center">
-          <div className="text-lg font-semibold text-foreground mb-2">
+          <div className="text-foreground mb-2 text-lg font-semibold">
             Initializing Notebook...
           </div>
-          <div className="text-sm text-muted-foreground">
+          <div className="text-muted-foreground text-sm">
             Setting up your workspace...
           </div>
         </div>
@@ -142,7 +144,7 @@ const NotebookApp: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="bg-background min-h-screen">
       {/* Debug FPS Meter - only in development */}
       {debugMode && import.meta.env.DEV && (
         <div
@@ -183,7 +185,7 @@ const LiveStoreApp: React.FC = () => {
       window.history.replaceState(
         null,
         "",
-        `${window.location.pathname}?${searchParams.toString()}`,
+        `${window.location.pathname}?${searchParams.toString()}`
       );
     }
   }, [resetPersistence]);
@@ -203,12 +205,12 @@ const LiveStoreApp: React.FC = () => {
       schema={schema}
       adapter={adapter}
       renderLoading={(_) => (
-        <div className="flex items-center justify-center min-h-screen bg-background">
+        <div className="bg-background flex min-h-screen items-center justify-center">
           <div className="text-center">
-            <div className="text-lg font-semibold text-foreground mb-2">
+            <div className="text-foreground mb-2 text-lg font-semibold">
               Loading Anode
             </div>
-            <div className="text-sm text-muted-foreground">
+            <div className="text-muted-foreground text-sm">
               Stage: {_.stage}
             </div>
           </div>

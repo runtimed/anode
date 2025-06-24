@@ -123,6 +123,7 @@ real-time collaboration across devices.
 **Get deployment details** from your team (worker URL and auth token)
 
 2. **Update application config** in `.env`:
+
    ```env
    VITE_LIVESTORE_SYNC_URL=https://your-worker.workers.dev
    VITE_AUTH_TOKEN=your-secure-token
@@ -130,6 +131,7 @@ real-time collaboration across devices.
    ```
 
 3. **Start services**:
+
    ```bash
    pnpm dev:web-only  # Web client connects to deployed worker
    NOTEBOOK_ID=test-notebook pnpm dev:runtime

@@ -1,0 +1,30 @@
+# Build outputs
+dist/
+.wrangler/
+node_modules/
+
+# CSS files (potentially conflicting with Tailwind)
+src/index.css
+src/components/outputs/outputs.css
+
+# Lock files
+pnpm-lock.yaml
+package-lock.json
+yarn.lock
+
+# Generated files
+*.tsbuildinfo
+
+# Environment files
+.env*
+
+# Git
+.git/
+
+# Cache directories
+.cache/
+.vscode/
+.idea/
+
+# Logs
+*.log

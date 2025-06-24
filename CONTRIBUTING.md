@@ -44,8 +44,8 @@ Python runtime and AI features are now handled by the separate @runt packages:
 ### Environment Setup
 
 - **Single .env**: One `.env` file at repository root contains all configuration
-- **Security**: Server-side variables (AUTH_TOKEN) kept separate from client
-  variables (VITE_*)
+- **Security**: Server-side variables (AUTH*TOKEN) kept separate from client
+  variables (VITE*\*)
 - **Python runtime**: Handled by separate @runt packages
 
 ### Running Services
@@ -88,7 +88,7 @@ anode/
 
 Copy `.env.example` to `.env` and configure as needed:
 
-**Web Client** (`.env`) - Browser-exposed variables (VITE_ prefix):
+**Web Client** (`.env`) - Browser-exposed variables (VITE\_ prefix):
 
 ```bash
 VITE_LIVESTORE_SYNC_URL=ws://localhost:8787/api

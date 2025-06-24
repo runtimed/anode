@@ -16,9 +16,9 @@ export const getStoreId = () => {
   }
 
   // Generate a new notebook ID and update URL
-  const newNotebookId = `notebook-${Date.now()}-${
-    Math.random().toString(36).slice(2)
-  }`;
+  const newNotebookId = `notebook-${Date.now()}-${Math.random()
+    .toString(36)
+    .slice(2)}`;
   searchParams.set("notebook", newNotebookId);
 
   // Update URL without page reload
@@ -33,8 +33,11 @@ export const getCurrentNotebookId = () => {
   if (typeof window === "undefined") return "default-notebook";
 
   const searchParams = new URLSearchParams(window.location.search);
-  return searchParams.get("notebook") || searchParams.get("storeId") ||
-    "default-notebook";
+  return (
+    searchParams.get("notebook") ||
+    searchParams.get("storeId") ||
+    "default-notebook"
+  );
 };
 
 // Helper to navigate to a specific notebook

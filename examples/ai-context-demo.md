@@ -86,7 +86,7 @@ print(f"Lowest paid: {lowest_paid['name']} (${lowest_paid['salary']:,})")
 Department Statistics:
             salary       age
               mean count mean
-department               
+department
 Engineering  70000     2 30.0
 Marketing    75000     1 30.0
 Sales        65000     1 28.0

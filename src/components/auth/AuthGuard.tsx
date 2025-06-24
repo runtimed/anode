@@ -8,10 +8,7 @@ interface AuthGuardProps {
   fallback?: React.ReactNode;
 }
 
-export const AuthGuard: React.FC<AuthGuardProps> = ({
-  children,
-  fallback,
-}) => {
+export const AuthGuard: React.FC<AuthGuardProps> = ({ children, fallback }) => {
   const { isAuthenticated, isLoading, error } = useGoogleAuth();
   const [authExpiredError, setAuthExpiredError] = useState<string | null>(null);
 
@@ -35,15 +32,13 @@ export const AuthGuard: React.FC<AuthGuardProps> = ({
   // Show loading state while checking authentication
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-background">
+      <div className="bg-background flex min-h-screen items-center justify-center">
         <div className="text-center">
-          <div className="w-8 h-8 border-4 border-gray-300 border-t-gray-600 rounded-full animate-spin mx-auto mb-4" />
-          <div className="text-lg font-semibold text-foreground mb-2">
+          <div className="mx-auto mb-4 h-8 w-8 animate-spin rounded-full border-4 border-gray-300 border-t-gray-600" />
+          <div className="text-foreground mb-2 text-lg font-semibold">
             Checking Authentication
           </div>
-          <div className="text-sm text-muted-foreground">
-            Please wait...
-          </div>
+          <div className="text-muted-foreground text-sm">Please wait...</div>
         </div>
       </div>
     );
@@ -52,16 +47,16 @@ export const AuthGuard: React.FC<AuthGuardProps> = ({
   // Show error state if authentication failed or auth expired
   if ((error && !isAuthenticated) || authExpiredError) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-background">
-        <div className="text-center max-w-md">
-          <div className="text-lg font-semibold text-foreground mb-2">
+      <div className="bg-background flex min-h-screen items-center justify-center">
+        <div className="max-w-md text-center">
+          <div className="text-foreground mb-2 text-lg font-semibold">
             Authentication Required
           </div>
-          <div className="text-sm text-red-600 mb-4">
+          <div className="mb-4 text-sm text-red-600">
             {authExpiredError || error}
           </div>
           {authExpiredError && (
-            <div className="text-xs text-muted-foreground mb-4">
+            <div className="text-muted-foreground mb-4 text-xs">
               Your session has expired. Please sign in again to continue.
             </div>
           )}
@@ -72,7 +67,7 @@ export const AuthGuard: React.FC<AuthGuardProps> = ({
                 setAuthExpiredError(null);
                 window.location.reload();
               }}
-              className="mt-2 px-4 py-2 text-sm bg-gray-200 hover:bg-gray-300 rounded-md"
+              className="mt-2 rounded-md bg-gray-200 px-4 py-2 text-sm hover:bg-gray-300"
             >
               Reload Page
             </button>
@@ -86,16 +81,16 @@ export const AuthGuard: React.FC<AuthGuardProps> = ({
   if (!isAuthenticated) {
     return (
       fallback || (
-        <div className="flex items-center justify-center min-h-screen bg-background">
-          <div className="text-center max-w-md">
-            <div className="text-2xl font-bold text-foreground mb-2">
+        <div className="bg-background flex min-h-screen items-center justify-center">
+          <div className="max-w-md text-center">
+            <div className="text-foreground mb-2 text-2xl font-bold">
               Anode Notebooks
             </div>
-            <div className="text-sm text-muted-foreground mb-8">
+            <div className="text-muted-foreground mb-8 text-sm">
               Sign in to access your collaborative notebooks
             </div>
             <GoogleSignIn />
-            <div className="mt-8 text-xs text-muted-foreground">
+            <div className="text-muted-foreground mt-8 text-xs">
               <p>
                 Anode is a real-time collaborative notebook system.
                 <br />

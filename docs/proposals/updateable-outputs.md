@@ -64,7 +64,7 @@ with display updates:
 print("Starting process...")
 display("Progress: 0%", display_id="progress")
 print("Initializing...")
-update_display_data("Progress: 50%", display_id="progress") 
+update_display_data("Progress: 50%", display_id="progress")
 print("Finishing...")
 update_display_data("Progress: 100%", display_id="progress")
 print("Done!")
@@ -117,7 +117,7 @@ outputUpdated: Events.synced({
 
 // Clear outputs with optional filtering
 outputsCleared: Events.synced({
-  name: "v1.OutputsCleared", 
+  name: "v1.OutputsCleared",
   schema: Schema.Struct({
     cellId: Schema.String,
     wait: Schema.Boolean,           // Jupyter clear_output(wait=True)

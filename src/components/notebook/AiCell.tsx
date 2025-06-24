@@ -64,7 +64,7 @@ export const AiCell: React.FC<AiCellProps> = ({
   // Create stable query using useMemo to prevent React Hook issues
   const outputsQuery = React.useMemo(
     () => queryDb(tables.outputs.select().where({ cellId: cell.id })),
-    [cell.id],
+    [cell.id]
   );
   const outputs = store.useQuery(outputsQuery) as OutputData[];
 
@@ -100,13 +100,13 @@ export const AiCell: React.FC<AiCellProps> = ({
         events.cellOutputsCleared({
           cellId: cell.id,
           clearedBy: "current-user",
-        }),
+        })
       );
 
       // Generate unique queue ID
-      const queueId = `exec-${Date.now()}-${
-        Math.random().toString(36).slice(2)
-      }`;
+      const queueId = `exec-${Date.now()}-${Math.random()
+        .toString(36)
+        .slice(2)}`;
       const executionCount = (cell.executionCount || 0) + 1;
 
       // Add to execution queue - kernels will pick this up
@@ -117,7 +117,7 @@ export const AiCell: React.FC<AiCellProps> = ({
           executionCount,
           requestedBy: "current-user",
           priority: 1,
-        }),
+        })
       );
 
       console.log("✅ AI execution queued with ID:", queueId);
@@ -139,13 +139,14 @@ export const AiCell: React.FC<AiCellProps> = ({
           outputType: "error",
           data: {
             ename: "AIExecutionError",
-            evalue: error instanceof Error
-              ? error.message
-              : "Failed to queue AI execution request",
+            evalue:
+              error instanceof Error
+                ? error.message
+                : "Failed to queue AI execution request",
             traceback: ["Error occurred while emitting LiveStore event"],
           },
           position: 0,
-        }),
+        })
       );
     }
   }, [cell.id, localSource, cell.executionCount, store]);
@@ -170,10 +171,10 @@ export const AiCell: React.FC<AiCellProps> = ({
         events.cellTypeChanged({
           id: cell.id,
           cellType: newType,
-        }),
+        })
       );
     },
-    [cell.id, store],
+    [cell.id, store]
   );
 
   const toggleSourceVisibility = useCallback(() => {
@@ -181,7 +182,7 @@ export const AiCell: React.FC<AiCellProps> = ({
       events.cellSourceVisibilityToggled({
         id: cell.id,
         sourceVisible: !cell.sourceVisible,
-      }),
+      })
     );
   }, [cell.id, cell.sourceVisible, store]);
 
@@ -190,7 +191,7 @@ export const AiCell: React.FC<AiCellProps> = ({
       events.cellOutputVisibilityToggled({
         id: cell.id,
         outputVisible: !cell.outputVisible,
-      }),
+      })
     );
   }, [cell.id, cell.outputVisible, store]);
 
@@ -199,7 +200,7 @@ export const AiCell: React.FC<AiCellProps> = ({
       events.cellAiContextVisibilityToggled({
         id: cell.id,
         aiContextVisible: !cell.aiContextVisible,
-      }),
+      })
     );
   }, [cell.id, cell.aiContextVisible, store]);
 
@@ -214,10 +215,10 @@ export const AiCell: React.FC<AiCellProps> = ({
             temperature: 0.7,
             maxTokens: 1000,
           },
-        }),
+        })
       );
     },
-    [cell.id, store],
+    [cell.id, store]
   );
 
   const getCellTypeIcon = () => {
@@ -233,7 +234,7 @@ export const AiCell: React.FC<AiCellProps> = ({
     return (
       <Badge
         variant="outline"
-        className={`h-5 text-xs cursor-pointer hover:opacity-80 ${
+        className={`h-5 cursor-pointer text-xs hover:opacity-80 ${
           colors[provider as keyof typeof colors] || "bg-gray-50"
         }`}
       >
@@ -256,10 +257,9 @@ export const AiCell: React.FC<AiCellProps> = ({
         return (
           <Badge
             variant="outline"
-            className="h-5 text-xs border-purple-200 text-purple-700 bg-purple-50"
+            className="h-5 border-purple-200 bg-purple-50 text-xs text-purple-700"
           >
-            <div className="animate-spin w-2 h-2 border border-purple-600 border-t-transparent rounded-full mr-1">
-            </div>
+            <div className="mr-1 h-2 w-2 animate-spin rounded-full border border-purple-600 border-t-transparent"></div>
             Generating
           </Badge>
         );
@@ -267,7 +267,7 @@ export const AiCell: React.FC<AiCellProps> = ({
         return (
           <Badge
             variant="outline"
-            className="h-5 text-xs border-green-200 text-green-700 bg-green-50"
+            className="h-5 border-green-200 bg-green-50 text-xs text-green-700"
           >
             ✓
           </Badge>
@@ -276,7 +276,7 @@ export const AiCell: React.FC<AiCellProps> = ({
         return (
           <Badge
             variant="outline"
-            className="h-5 text-xs border-red-200 text-red-700 bg-red-50"
+            className="h-5 border-red-200 bg-red-50 text-xs text-red-700"
           >
             Error
           </Badge>
@@ -288,15 +288,15 @@ export const AiCell: React.FC<AiCellProps> = ({
 
   return (
     <div
-      className={`cell-container mb-2 sm:mb-3 relative group transition-all duration-200 pt-2 -mx-3 sm:mx-0 px-3 sm:px-0 ${
+      className={`cell-container group relative -mx-3 mb-2 px-3 pt-2 transition-all duration-200 sm:mx-0 sm:mb-3 sm:px-0 ${
         autoFocus && !contextSelectionMode
           ? "bg-purple-50/30"
           : "hover:bg-muted/10"
       } ${contextSelectionMode && !cell.aiContextVisible ? "opacity-60" : ""} ${
         contextSelectionMode
           ? cell.aiContextVisible
-            ? "ring-2 ring-purple-300 bg-purple-50/30"
-            : "ring-2 ring-gray-300 bg-gray-50/30"
+            ? "bg-purple-50/30 ring-2 ring-purple-300"
+            : "bg-gray-50/30 ring-2 ring-gray-300"
           : ""
       }`}
       style={{
@@ -305,28 +305,29 @@ export const AiCell: React.FC<AiCellProps> = ({
     >
       {/* Custom left border with controlled height */}
       <div
-        className={`cell-border absolute left-3 sm:left-0 top-0 w-0.5 transition-all duration-200 ${
+        className={`cell-border absolute top-0 left-3 w-0.5 transition-all duration-200 sm:left-0 ${
           autoFocus && !contextSelectionMode
             ? "bg-purple-500/60"
             : "bg-border/30"
         }`}
         style={{
-          height: outputs.length > 0 ||
-              cell.executionState === "running" ||
-              cell.executionState === "queued"
-            ? "100%"
-            : "4rem",
+          height:
+            outputs.length > 0 ||
+            cell.executionState === "running" ||
+            cell.executionState === "queued"
+              ? "100%"
+              : "4rem",
         }}
       />
       {/* Cell Header */}
-      <div className="cell-header flex items-center justify-between mb-2 pl-6 pr-1 sm:pr-4">
+      <div className="cell-header mb-2 flex items-center justify-between pr-1 pl-6 sm:pr-4">
         <div className="flex items-center gap-2 sm:gap-3">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button
                 variant="ghost"
                 size="sm"
-                className="h-7 sm:h-6 px-2 gap-1.5 text-xs font-medium hover:bg-muted/50 bg-purple-50 text-purple-700 border border-purple-200"
+                className="hover:bg-muted/50 h-7 gap-1.5 border border-purple-200 bg-purple-50 px-2 text-xs font-medium text-purple-700 sm:h-6"
               >
                 {getCellTypeIcon()}
                 <span className="cell-type-label hidden sm:inline">AI</span>
@@ -411,25 +412,26 @@ export const AiCell: React.FC<AiCellProps> = ({
         </div>
 
         {/* Cell Controls - visible on hover or always on mobile */}
-        <div className="cell-controls flex items-center gap-0.5 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
+        <div className="cell-controls flex items-center gap-0.5 opacity-100 transition-opacity sm:opacity-0 sm:group-hover:opacity-100">
           {/* Mobile Play Button - AI cells */}
           <Button
             variant="ghost"
             size="sm"
             onClick={executeAiPrompt}
-            disabled={cell.executionState === "running" ||
-              cell.executionState === "queued"}
-            className="mobile-play-btn block sm:hidden h-8 w-8 p-0 hover:bg-muted/80"
+            disabled={
+              cell.executionState === "running" ||
+              cell.executionState === "queued"
+            }
+            className="mobile-play-btn hover:bg-muted/80 block h-8 w-8 p-0 sm:hidden"
             title="Generate AI response"
           >
-            {cell.executionState === "running"
-              ? (
-                <div className="animate-spin w-4 h-4 border border-purple-600 border-t-transparent rounded-full">
-                </div>
-              )
-              : cell.executionState === "queued"
-              ? <div className="w-3 h-3 bg-purple-500 rounded-full"></div>
-              : <Play className="h-4 w-4" />}
+            {cell.executionState === "running" ? (
+              <div className="h-4 w-4 animate-spin rounded-full border border-purple-600 border-t-transparent"></div>
+            ) : cell.executionState === "queued" ? (
+              <div className="h-3 w-3 rounded-full bg-purple-500"></div>
+            ) : (
+              <Play className="h-4 w-4" />
+            )}
           </Button>
 
           <div className="flex-1" />
@@ -439,7 +441,7 @@ export const AiCell: React.FC<AiCellProps> = ({
             variant="ghost"
             size="sm"
             onClick={onAddCell}
-            className="h-8 w-8 sm:h-7 sm:w-7 p-0 hover:bg-muted/80"
+            className="hover:bg-muted/80 h-8 w-8 p-0 sm:h-7 sm:w-7"
             title="Add cell below"
           >
             <Plus className="h-4 w-4 sm:h-3 sm:w-3" />
@@ -450,14 +452,16 @@ export const AiCell: React.FC<AiCellProps> = ({
             variant="ghost"
             size="sm"
             onClick={toggleSourceVisibility}
-            className={`h-8 w-8 sm:h-7 sm:w-7 p-0 hover:bg-muted/80 ${
+            className={`hover:bg-muted/80 h-8 w-8 p-0 sm:h-7 sm:w-7 ${
               cell.sourceVisible ? "" : "text-muted-foreground/60"
             }`}
             title={cell.sourceVisible ? "Hide source" : "Show source"}
           >
-            {cell.sourceVisible
-              ? <ChevronUp className="h-4 w-4 sm:h-3 sm:w-3" />
-              : <ChevronDown className="h-4 w-4 sm:h-3 sm:w-3" />}
+            {cell.sourceVisible ? (
+              <ChevronUp className="h-4 w-4 sm:h-3 sm:w-3" />
+            ) : (
+              <ChevronDown className="h-4 w-4 sm:h-3 sm:w-3" />
+            )}
           </Button>
 
           {/* Context Selection Mode Button */}
@@ -466,28 +470,32 @@ export const AiCell: React.FC<AiCellProps> = ({
               variant="ghost"
               size="sm"
               onClick={toggleAiContextVisibility}
-              className={`h-8 w-8 sm:h-7 sm:w-7 p-0 hover:bg-muted/80 ${
+              className={`hover:bg-muted/80 h-8 w-8 p-0 sm:h-7 sm:w-7 ${
                 cell.aiContextVisible ? "text-purple-600" : "text-gray-500"
               }`}
-              title={cell.aiContextVisible
-                ? "Hide from AI context"
-                : "Show in AI context"}
+              title={
+                cell.aiContextVisible
+                  ? "Hide from AI context"
+                  : "Show in AI context"
+              }
             >
-              {cell.aiContextVisible
-                ? <Eye className="h-4 w-4 sm:h-3 sm:w-3" />
-                : <EyeOff className="h-4 w-4 sm:h-3 sm:w-3" />}
+              {cell.aiContextVisible ? (
+                <Eye className="h-4 w-4 sm:h-3 sm:w-3" />
+              ) : (
+                <EyeOff className="h-4 w-4 sm:h-3 sm:w-3" />
+              )}
             </Button>
           )}
 
           {/* Desktop-only controls */}
-          <div className="desktop-controls hidden sm:flex items-center gap-0.5">
+          <div className="desktop-controls hidden items-center gap-0.5 sm:flex">
             {/* Separator */}
-            <div className="w-px h-4 bg-border/50 mx-1" />
+            <div className="bg-border/50 mx-1 h-4 w-px" />
             <Button
               variant="ghost"
               size="sm"
               onClick={onMoveUp}
-              className="h-7 w-7 p-0 hover:bg-muted/80"
+              className="hover:bg-muted/80 h-7 w-7 p-0"
               title="Move cell up"
             >
               <ArrowUp className="h-3 w-3" />
@@ -496,7 +504,7 @@ export const AiCell: React.FC<AiCellProps> = ({
               variant="ghost"
               size="sm"
               onClick={onMoveDown}
-              className="h-7 w-7 p-0 hover:bg-muted/80"
+              className="hover:bg-muted/80 h-7 w-7 p-0"
               title="Move cell down"
             >
               <ArrowDown className="h-3 w-3" />
@@ -505,7 +513,7 @@ export const AiCell: React.FC<AiCellProps> = ({
               variant="ghost"
               size="sm"
               onClick={onDeleteCell}
-              className="h-7 w-7 p-0 text-muted-foreground hover:text-destructive hover:bg-destructive/10"
+              className="text-muted-foreground hover:text-destructive hover:bg-destructive/10 h-7 w-7 p-0"
               title="Delete cell"
             >
               <X className="h-3 w-3" />
@@ -518,42 +526,43 @@ export const AiCell: React.FC<AiCellProps> = ({
       <div className="relative">
         {/* Desktop Play Button Breaking Through Left Border */}
         <div
-          className="desktop-play-btn hidden sm:block absolute -left-3 z-10"
+          className="desktop-play-btn absolute -left-3 z-10 hidden sm:block"
           style={{ top: cell.sourceVisible ? "0.375rem" : "-1.5rem" }}
         >
           <Button
             variant="ghost"
             size="sm"
             onClick={executeAiPrompt}
-            disabled={cell.executionState === "running" ||
-              cell.executionState === "queued"}
-            className={`h-6 w-6 p-0 rounded-sm bg-white border-0 hover:bg-white transition-colors ${
+            disabled={
+              cell.executionState === "running" ||
+              cell.executionState === "queued"
+            }
+            className={`h-6 w-6 rounded-sm border-0 bg-white p-0 transition-colors hover:bg-white ${
               autoFocus
                 ? "text-purple-600"
-                : "text-muted-foreground/40 hover:text-purple-600 group-hover:text-purple-600"
+                : "text-muted-foreground/40 group-hover:text-purple-600 hover:text-purple-600"
             }`}
           >
-            {cell.executionState === "running"
-              ? (
-                <div className="animate-spin w-3 h-3 border border-purple-600 border-t-transparent rounded-full bg-white">
-                </div>
-              )
-              : cell.executionState === "queued"
-              ? <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
-              : <Play className="h-3 w-3" />}
+            {cell.executionState === "running" ? (
+              <div className="h-3 w-3 animate-spin rounded-full border border-purple-600 border-t-transparent bg-white"></div>
+            ) : cell.executionState === "queued" ? (
+              <div className="h-2 w-2 rounded-full bg-purple-500"></div>
+            ) : (
+              <Play className="h-3 w-3" />
+            )}
           </Button>
         </div>
 
         {/* Text Content Area - Chat-like on mobile */}
         {cell.sourceVisible && (
           <div
-            className={`cell-content transition-colors py-1 pl-4 pr-1 sm:pr-4 ${
+            className={`cell-content py-1 pr-1 pl-4 transition-colors sm:pr-4 ${
               autoFocus ? "bg-white" : "bg-white"
             }`}
           >
             {/* Mobile Chat-like Input */}
             <div className="block sm:hidden">
-              <div className="bg-purple-50/50 rounded-lg p-3 mb-16 border border-purple-200/50">
+              <div className="mb-16 rounded-lg border border-purple-200/50 bg-purple-50/50 p-3">
                 <Textarea
                   ref={textareaRef}
                   value={localSource}
@@ -561,13 +570,13 @@ export const AiCell: React.FC<AiCellProps> = ({
                   onBlur={updateSource}
                   onKeyDown={handleKeyDown}
                   placeholder="Ask me anything about your notebook, data, or analysis..."
-                  className="min-h-[3rem] max-h-32 resize-none border-0 px-0 py-0 focus-visible:ring-0 bg-transparent w-full placeholder:text-purple-400/70 shadow-none text-base leading-relaxed"
+                  className="max-h-32 min-h-[3rem] w-full resize-none border-0 bg-transparent px-0 py-0 text-base leading-relaxed shadow-none placeholder:text-purple-400/70 focus-visible:ring-0"
                   onFocus={handleFocus}
                 />
-                <div className="flex justify-between items-center mt-2 pt-2 border-t border-purple-200/50">
+                <div className="mt-2 flex items-center justify-between border-t border-purple-200/50 pt-2">
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
-                      <button className="text-xs text-purple-600/60 hover:text-purple-600 transition-colors cursor-pointer">
+                      <button className="cursor-pointer text-xs text-purple-600/60 transition-colors hover:text-purple-600">
                         {provider.toUpperCase()} • {model}
                       </button>
                     </DropdownMenuTrigger>
@@ -589,19 +598,22 @@ export const AiCell: React.FC<AiCellProps> = ({
                       </DropdownMenuItem>
                       <DropdownMenuItem
                         onClick={() =>
-                          changeProvider("openai", "gpt-3.5-turbo")}
+                          changeProvider("openai", "gpt-3.5-turbo")
+                        }
                       >
                         OpenAI GPT-3.5 Turbo
                       </DropdownMenuItem>
                       <DropdownMenuItem
                         onClick={() =>
-                          changeProvider("anthropic", "claude-3-sonnet")}
+                          changeProvider("anthropic", "claude-3-sonnet")
+                        }
                       >
                         Anthropic Claude 3 Sonnet
                       </DropdownMenuItem>
                       <DropdownMenuItem
                         onClick={() =>
-                          changeProvider("anthropic", "claude-3-haiku")}
+                          changeProvider("anthropic", "claude-3-haiku")
+                        }
                       >
                         Anthropic Claude 3 Haiku
                       </DropdownMenuItem>
@@ -617,7 +629,7 @@ export const AiCell: React.FC<AiCellProps> = ({
             </div>
 
             {/* Desktop Traditional Input */}
-            <div className="hidden sm:block min-h-[1.5rem]">
+            <div className="hidden min-h-[1.5rem] sm:block">
               <Textarea
                 ref={textareaRef}
                 value={localSource}
@@ -625,7 +637,7 @@ export const AiCell: React.FC<AiCellProps> = ({
                 onBlur={updateSource}
                 onKeyDown={handleKeyDown}
                 placeholder="Ask me anything about your notebook, data, or analysis..."
-                className="min-h-[1.5rem] resize-none border-0 px-2 py-1 focus-visible:ring-0 font-mono bg-white w-full placeholder:text-muted-foreground/60 shadow-none text-sm"
+                className="placeholder:text-muted-foreground/60 min-h-[1.5rem] w-full resize-none border-0 bg-white px-2 py-1 font-mono text-sm shadow-none focus-visible:ring-0"
                 onFocus={handleFocus}
               />
             </div>
@@ -637,27 +649,27 @@ export const AiCell: React.FC<AiCellProps> = ({
       {(cell.executionCount ||
         cell.executionState === "running" ||
         cell.executionState === "queued") && (
-        <div className="cell-content mt-1 pl-6 pr-1 sm:pr-4">
-          <div className="flex items-center justify-between text-xs text-muted-foreground pb-1">
+        <div className="cell-content mt-1 pr-1 pl-6 sm:pr-4">
+          <div className="text-muted-foreground flex items-center justify-between pb-1 text-xs">
             <span>
               {cell.executionState === "running"
                 ? "Generating AI response..."
                 : cell.executionState === "queued"
-                ? "Queued for AI processing"
-                : cell.executionCount
-                ? cell.lastExecutionDurationMs
-                  ? `Generated in ${
-                    cell.lastExecutionDurationMs < 1000
-                      ? `${cell.lastExecutionDurationMs}ms`
-                      : `${(cell.lastExecutionDurationMs / 1000).toFixed(1)}s`
-                  }`
-                  : "Generated"
-                : null}
+                  ? "Queued for AI processing"
+                  : cell.executionCount
+                    ? cell.lastExecutionDurationMs
+                      ? `Generated in ${
+                          cell.lastExecutionDurationMs < 1000
+                            ? `${cell.lastExecutionDurationMs}ms`
+                            : `${(cell.lastExecutionDurationMs / 1000).toFixed(1)}s`
+                        }`
+                      : "Generated"
+                    : null}
             </span>
             {(outputs.length > 0 || cell.executionState === "running") && (
               <div className="flex items-center gap-2">
                 {!cell.outputVisible && outputs.length > 0 && (
-                  <span className="text-xs text-muted-foreground">
+                  <span className="text-muted-foreground text-xs">
                     {outputs.length === 1
                       ? "1 response hidden"
                       : `${outputs.length} responses hidden`}
@@ -667,16 +679,18 @@ export const AiCell: React.FC<AiCellProps> = ({
                   variant="ghost"
                   size="sm"
                   onClick={toggleOutputVisibility}
-                  className={`h-6 w-6 sm:h-5 sm:w-5 p-0 hover:bg-muted/80 transition-opacity ${
+                  className={`hover:bg-muted/80 h-6 w-6 p-0 transition-opacity sm:h-5 sm:w-5 ${
                     autoFocus
                       ? "opacity-100"
                       : "opacity-100 sm:opacity-0 sm:group-hover:opacity-100"
                   } ${cell.outputVisible ? "" : "text-muted-foreground/60"}`}
                   title={cell.outputVisible ? "Hide response" : "Show response"}
                 >
-                  {cell.outputVisible
-                    ? <ChevronUp className="h-4 w-4 sm:h-3 sm:w-3" />
-                    : <ChevronDown className="h-4 w-4 sm:h-3 sm:w-3" />}
+                  {cell.outputVisible ? (
+                    <ChevronUp className="h-4 w-4 sm:h-3 sm:w-3" />
+                  ) : (
+                    <ChevronDown className="h-4 w-4 sm:h-3 sm:w-3" />
+                  )}
                 </Button>
               </div>
             )}
@@ -686,45 +700,45 @@ export const AiCell: React.FC<AiCellProps> = ({
 
       {/* Output Area for AI Responses */}
       {outputs.length > 0 && cell.outputVisible && (
-        <div className="cell-content mt-1 pl-6 pr-1 sm:pr-4 bg-background overflow-hidden max-w-full">
+        <div className="cell-content bg-background mt-1 max-w-full overflow-hidden pr-1 pl-6 sm:pr-4">
           {groupConsecutiveStreamOutputs(
             outputs.sort(
-              (a: OutputData, b: OutputData) => a.position - b.position,
-            ),
+              (a: OutputData, b: OutputData) => a.position - b.position
+            )
           ).map((output: OutputData, index: number) => (
             <div
               key={output.id}
-              className={index > 0 ? "border-t border-border/30 mt-2 pt-2" : ""}
+              className={index > 0 ? "border-border/30 mt-2 border-t pt-2" : ""}
             >
-              {output.outputType === "error"
-                ? (
-                  // Use AnsiErrorOutput for colored error rendering
-                  <AnsiErrorOutput
-                    ename={isErrorOutput(output.data)
-                      ? output.data.ename
-                      : undefined}
-                    evalue={isErrorOutput(output.data)
-                      ? output.data.evalue
-                      : undefined}
-                    traceback={isErrorOutput(output.data)
+              {output.outputType === "error" ? (
+                // Use AnsiErrorOutput for colored error rendering
+                <AnsiErrorOutput
+                  ename={
+                    isErrorOutput(output.data) ? output.data.ename : undefined
+                  }
+                  evalue={
+                    isErrorOutput(output.data) ? output.data.evalue : undefined
+                  }
+                  traceback={
+                    isErrorOutput(output.data)
                       ? output.data.traceback
-                      : undefined}
-                  />
-                )
-                : (
-                  // Use RichOutput for all other output types - chat bubble style on mobile
-                  <div className="py-2 overflow-hidden max-w-full">
-                    <div className="sm:bg-transparent bg-gray-50 sm:p-0 p-3 sm:rounded-none rounded-lg sm:border-0 border border-gray-200 overflow-hidden max-w-full">
-                      <RichOutput
-                        data={output.data as Record<string, unknown>}
-                        metadata={output.metadata as
-                          | Record<string, unknown>
-                          | undefined}
-                        outputType={output.outputType}
-                      />
-                    </div>
+                      : undefined
+                  }
+                />
+              ) : (
+                // Use RichOutput for all other output types - chat bubble style on mobile
+                <div className="max-w-full overflow-hidden py-2">
+                  <div className="max-w-full overflow-hidden rounded-lg border border-gray-200 bg-gray-50 p-3 sm:rounded-none sm:border-0 sm:bg-transparent sm:p-0">
+                    <RichOutput
+                      data={output.data as Record<string, unknown>}
+                      metadata={
+                        output.metadata as Record<string, unknown> | undefined
+                      }
+                      outputType={output.outputType}
+                    />
                   </div>
-                )}
+                </div>
+              )}
             </div>
           ))}
         </div>

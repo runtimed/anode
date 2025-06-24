@@ -77,10 +77,12 @@ Each cell component (`Cell.tsx`, `SqlCell.tsx`, `AiCell.tsx`) includes:
 
 ```typescript
 const toggleAiContextVisibility = useCallback(() => {
-  store.commit(events.cellAiContextVisibilityToggled({
-    id: cell.id,
-    aiContextVisible: !cell.aiContextVisible,
-  }));
+  store.commit(
+    events.cellAiContextVisibilityToggled({
+      id: cell.id,
+      aiContextVisible: !cell.aiContextVisible,
+    })
+  );
 }, [cell.id, cell.aiContextVisible, store]);
 ```
 

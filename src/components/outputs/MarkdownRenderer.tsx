@@ -35,7 +35,7 @@ const CodeBlock: React.FC<CodeBlockProps> = ({
   };
 
   return (
-    <div className="relative group/codeblock">
+    <div className="group/codeblock relative">
       <SyntaxHighlighter
         language={language}
         style={oneLight}
@@ -54,12 +54,14 @@ const CodeBlock: React.FC<CodeBlockProps> = ({
       {enableCopy && (
         <button
           onClick={handleCopy}
-          className="absolute top-2 right-2 z-10 opacity-0 group-hover/codeblock:opacity-100 transition-opacity bg-white hover:bg-gray-50 border border-gray-200 rounded p-1.5 text-gray-600 hover:text-gray-800 shadow-sm"
+          className="absolute top-2 right-2 z-10 rounded border border-gray-200 bg-white p-1.5 text-gray-600 opacity-0 shadow-sm transition-opacity group-hover/codeblock:opacity-100 hover:bg-gray-50 hover:text-gray-800"
           title={copied ? "Copied!" : "Copy code"}
         >
-          {copied
-            ? <Check className="h-3 w-3" />
-            : <Copy className="h-3 w-3" />}
+          {copied ? (
+            <Check className="h-3 w-3" />
+          ) : (
+            <Copy className="h-3 w-3" />
+          )}
         </button>
       )}
     </div>
@@ -92,23 +94,18 @@ export const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({
             // Simple detection: block code has newlines, inline code doesn't
             const isBlockCode = codeContent.includes("\n") || className;
 
-            return isBlockCode
-              ? (
-                <CodeBlock
-                  language={language}
-                  enableCopy={enableCopyCode}
-                >
-                  {codeContent}
-                </CodeBlock>
-              )
-              : (
-                <code
-                  className={`${className} bg-gray-100 px-1 py-0.5 rounded text-sm text-gray-800`}
-                  {...props}
-                >
-                  {children}
-                </code>
-              );
+            return isBlockCode ? (
+              <CodeBlock language={language} enableCopy={enableCopyCode}>
+                {codeContent}
+              </CodeBlock>
+            ) : (
+              <code
+                className={`${className} rounded bg-gray-100 px-1 py-0.5 text-sm text-gray-800`}
+                {...props}
+              >
+                {children}
+              </code>
+            );
           },
           h1({ children, ...props }) {
             if (!generateHeadingIds) {
@@ -120,7 +117,7 @@ export const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({
                 {children}
                 <a
                   href={`#${id}`}
-                  className="absolute -left-6 top-0 opacity-0 group-hover:opacity-100 transition-opacity text-gray-400 hover:text-gray-600 no-underline"
+                  className="absolute top-0 -left-6 text-gray-400 no-underline opacity-0 transition-opacity group-hover:opacity-100 hover:text-gray-600"
                   aria-label="Link to this heading"
                 >
                   #
@@ -138,7 +135,7 @@ export const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({
                 {children}
                 <a
                   href={`#${id}`}
-                  className="absolute -left-6 top-0 opacity-0 group-hover:opacity-100 transition-opacity text-gray-400 hover:text-gray-600 no-underline"
+                  className="absolute top-0 -left-6 text-gray-400 no-underline opacity-0 transition-opacity group-hover:opacity-100 hover:text-gray-600"
                   aria-label="Link to this heading"
                 >
                   #
@@ -156,7 +153,7 @@ export const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({
                 {children}
                 <a
                   href={`#${id}`}
-                  className="absolute -left-6 top-0 opacity-0 group-hover:opacity-100 transition-opacity text-gray-400 hover:text-gray-600 no-underline"
+                  className="absolute top-0 -left-6 text-gray-400 no-underline opacity-0 transition-opacity group-hover:opacity-100 hover:text-gray-600"
                   aria-label="Link to this heading"
                 >
                   #
@@ -174,7 +171,7 @@ export const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({
                 {children}
                 <a
                   href={`#${id}`}
-                  className="absolute -left-6 top-0 opacity-0 group-hover:opacity-100 transition-opacity text-gray-400 hover:text-gray-600 no-underline"
+                  className="absolute top-0 -left-6 text-gray-400 no-underline opacity-0 transition-opacity group-hover:opacity-100 hover:text-gray-600"
                   aria-label="Link to this heading"
                 >
                   #
@@ -192,7 +189,7 @@ export const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({
                 {children}
                 <a
                   href={`#${id}`}
-                  className="absolute -left-6 top-0 opacity-0 group-hover:opacity-100 transition-opacity text-gray-400 hover:text-gray-600 no-underline"
+                  className="absolute top-0 -left-6 text-gray-400 no-underline opacity-0 transition-opacity group-hover:opacity-100 hover:text-gray-600"
                   aria-label="Link to this heading"
                 >
                   #
@@ -210,7 +207,7 @@ export const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({
                 {children}
                 <a
                   href={`#${id}`}
-                  className="absolute -left-6 top-0 opacity-0 group-hover:opacity-100 transition-opacity text-gray-400 hover:text-gray-600 no-underline"
+                  className="absolute top-0 -left-6 text-gray-400 no-underline opacity-0 transition-opacity group-hover:opacity-100 hover:text-gray-600"
                   aria-label="Link to this heading"
                 >
                   #

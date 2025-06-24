@@ -76,7 +76,7 @@ export default defineConfig({
       "@anode/docworker": path.resolve(__dirname, "./packages/docworker/src"),
       "@anode/pyodide-runtime-agent": path.resolve(
         __dirname,
-        "./packages/pyodide-runtime-agent/src",
+        "./packages/pyodide-runtime-agent/src"
       ),
     },
     extensions: [".ts", ".tsx", ".js", ".jsx", ".json"],

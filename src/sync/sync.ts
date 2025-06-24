@@ -5,12 +5,12 @@ function validateProductionEnvironment(env: any): void {
   if (env.DEPLOYMENT_ENV === "production") {
     if (!env.GOOGLE_CLIENT_ID) {
       throw new Error(
-        "STARTUP_ERROR: GOOGLE_CLIENT_ID is required when DEPLOYMENT_ENV is production",
+        "STARTUP_ERROR: GOOGLE_CLIENT_ID is required when DEPLOYMENT_ENV is production"
       );
     }
     if (!env.GOOGLE_CLIENT_SECRET) {
       console.warn(
-        "⚠️ GOOGLE_CLIENT_SECRET not set in production - Google OAuth validation may be limited",
+        "⚠️ GOOGLE_CLIENT_SECRET not set in production - Google OAuth validation may be limited"
       );
     }
     console.log("✅ Production environment validation passed");
@@ -36,24 +36,24 @@ interface GoogleJWTPayload {
 // Validate Google ID token using Google's tokeninfo endpoint
 async function validateGoogleToken(
   token: string,
-  clientId: string,
+  clientId: string
 ): Promise<GoogleJWTPayload | null> {
   try {
     // Use Google's tokeninfo endpoint to validate the token
     const response = await fetch(
-      `https://oauth2.googleapis.com/tokeninfo?id_token=${token}`,
+      `https://oauth2.googleapis.com/tokeninfo?id_token=${token}`
     );
 
     if (!response.ok) {
       console.error(
         "Token validation failed:",
         response.status,
-        response.statusText,
+        response.statusText
       );
       return null;
     }
 
-    const tokenInfo = await response.json() as GoogleJWTPayload;
+    const tokenInfo = (await response.json()) as GoogleJWTPayload;
 
     // Validate the audience (client ID)
     if (tokenInfo.aud !== clientId) {
@@ -76,7 +76,7 @@ async function validateGoogleToken(
       const expirationTime = new Date(tokenInfo.exp * 1000).toISOString();
       const currentTime = new Date(now * 1000).toISOString();
       console.error(
-        `Token expired at ${expirationTime}, current time: ${currentTime}`,
+        `Token expired at ${expirationTime}, current time: ${currentTime}`
       );
       return null;
     }
@@ -90,7 +90,7 @@ async function validateGoogleToken(
 
 async function validateAuthPayload(
   payload: AuthPayload & { kernel?: boolean },
-  env: any,
+  env: any
 ): Promise<void> {
   console.log("🔐 Starting auth validation:", {
     hasPayload: !!payload,
@@ -103,7 +103,7 @@ async function validateAuthPayload(
   if (!payload?.authToken) {
     console.error("❌ Missing auth token in payload");
     throw new Error(
-      "MISSING_AUTH_TOKEN: No authentication token provided. Please sign in to continue.",
+      "MISSING_AUTH_TOKEN: No authentication token provided. Please sign in to continue."
     );
   }
 
@@ -123,7 +123,7 @@ async function validateAuthPayload(
     }
     console.error("❌ Invalid service token for runtime agent");
     throw new Error(
-      "INVALID_SERVICE_TOKEN: Runtime agent authentication failed. Check AUTH_TOKEN configuration.",
+      "INVALID_SERVICE_TOKEN: Runtime agent authentication failed. Check AUTH_TOKEN configuration."
     );
   }
 
@@ -132,13 +132,13 @@ async function validateAuthPayload(
     console.log("🔍 Attempting Google OAuth validation");
     const googlePayload = await validateGoogleToken(
       token,
-      env.GOOGLE_CLIENT_ID,
+      env.GOOGLE_CLIENT_ID
     );
     if (googlePayload) {
       // Google token is valid
       console.log(
         "✅ Authenticated user via Google OAuth:",
-        googlePayload.email,
+        googlePayload.email
       );
       return;
     }
@@ -156,11 +156,11 @@ async function validateAuthPayload(
   // Provide specific error based on token type
   if (token.startsWith("eyJ")) {
     throw new Error(
-      "GOOGLE_TOKEN_INVALID: Google authentication token expired or invalid. Please refresh the page to sign in again.",
+      "GOOGLE_TOKEN_INVALID: Google authentication token expired or invalid. Please refresh the page to sign in again."
     );
   } else {
     throw new Error(
-      "INVALID_AUTH_TOKEN: Authentication failed. Please check your credentials and try again.",
+      "INVALID_AUTH_TOKEN: Authentication failed. Please check your credentials and try again."
     );
   }
 }
@@ -194,7 +194,7 @@ export default {
             "Content-Type": "application/json",
             "Access-Control-Allow-Origin": "*",
           },
-        },
+        }
       );
     }
 
@@ -234,7 +234,7 @@ export default {
             "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
             "Access-Control-Allow-Headers": "*",
           },
-        },
+        }
       );
     }
 
@@ -296,7 +296,7 @@ export default {
           response.headers.set("Access-Control-Allow-Origin", "*");
           response.headers.set(
             "Access-Control-Allow-Methods",
-            "GET, POST, PUT, DELETE, OPTIONS",
+            "GET, POST, PUT, DELETE, OPTIONS"
           );
           response.headers.set("Access-Control-Allow-Headers", "*");
         }
@@ -312,7 +312,7 @@ export default {
     if (url.pathname === "/debug/auth" && request.method === "POST") {
       console.log("🔧 Debug auth endpoint called");
       try {
-        const body = await request.json() as { authToken?: string };
+        const body = (await request.json()) as { authToken?: string };
         const authToken = body.authToken;
 
         if (!authToken) {
@@ -331,7 +331,7 @@ export default {
                   "GET, POST, PUT, DELETE, OPTIONS",
                 "Access-Control-Allow-Headers": "*",
               },
-            },
+            }
           );
         }
 
@@ -356,7 +356,7 @@ export default {
                   "GET, POST, PUT, DELETE, OPTIONS",
                 "Access-Control-Allow-Headers": "*",
               },
-            },
+            }
           );
         } catch (authError: any) {
           return new Response(
@@ -380,7 +380,7 @@ export default {
                   "GET, POST, PUT, DELETE, OPTIONS",
                 "Access-Control-Allow-Headers": "*",
               },
-            },
+            }
           );
         }
       } catch (parseError) {
@@ -398,7 +398,7 @@ export default {
               "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
               "Access-Control-Allow-Headers": "*",
             },
-          },
+          }
         );
       }
     }

@@ -14,20 +14,20 @@ interface ZoomModalProps {
 
 const ZoomModal: React.FC<ZoomModalProps> = ({ src, onClose }) => (
   <div
-    className="zoom-modal fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-4"
+    className="zoom-modal bg-opacity-75 fixed inset-0 z-50 flex items-center justify-center bg-black p-4"
     onClick={onClose}
   >
-    <div className="relative max-w-full max-h-full">
+    <div className="relative max-h-full max-w-full">
       <button
         onClick={onClose}
-        className="absolute top-2 right-2 z-10 bg-black bg-opacity-50 text-white rounded-full p-2 hover:bg-opacity-70"
+        className="bg-opacity-50 hover:bg-opacity-70 absolute top-2 right-2 z-10 rounded-full bg-black p-2 text-white"
       >
         <X className="h-4 w-4" />
       </button>
       <img
         src={src}
         alt="Zoomed view"
-        className="max-w-full max-h-full object-contain"
+        className="max-h-full max-w-full object-contain"
         onClick={(e) => e.stopPropagation()}
       />
     </div>
@@ -47,24 +47,21 @@ export const ImageOutput: React.FC<ImageOutputProps> = ({
 
   return (
     <div className="py-2">
-      <div className="relative group max-w-full">
+      <div className="group relative max-w-full">
         <img
           src={imageSrc}
           alt={alt}
-          className="zoomable-image max-w-full h-auto cursor-zoom-in hover:opacity-90 transition-opacity"
+          className="zoomable-image h-auto max-w-full cursor-zoom-in transition-opacity hover:opacity-90"
           style={{ maxHeight: "400px", objectFit: "contain" }}
           onClick={() => setZoomedImage(imageSrc)}
         />
-        <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity bg-black bg-opacity-50 text-white rounded p-1">
+        <div className="bg-opacity-50 absolute top-2 right-2 rounded bg-black p-1 text-white opacity-0 transition-opacity group-hover:opacity-100">
           <ZoomIn className="h-3 w-3" />
         </div>
       </div>
 
       {zoomedImage && (
-        <ZoomModal
-          src={zoomedImage}
-          onClose={() => setZoomedImage(null)}
-        />
+        <ZoomModal src={zoomedImage} onClose={() => setZoomedImage(null)} />
       )}
     </div>
   );
