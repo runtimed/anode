@@ -1,39 +1,37 @@
-import React, { useEffect, useRef } from 'react'
-import { useGoogleAuth } from '../../auth/useGoogleAuth.js'
-import { googleAuthManager } from '../../auth/google-auth.js'
+import React, { useEffect, useRef } from "react";
+import { useGoogleAuth } from "../../auth/useGoogleAuth.js";
+import { googleAuthManager } from "../../auth/google-auth.js";
 
 interface GoogleSignInProps {
-  onSignIn?: () => void
-  className?: string
+  onSignIn?: () => void;
+  className?: string;
 }
 
 export const GoogleSignIn: React.FC<GoogleSignInProps> = ({
-  className = ''
+  className = "",
 }) => {
-  const { isLoading, error } = useGoogleAuth()
-  const buttonRef = useRef<HTMLDivElement>(null)
+  const { isLoading, error } = useGoogleAuth();
+  const buttonRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     // Initialize Google Sign-In button when component mounts
     const initializeButton = async () => {
       if (buttonRef.current && googleAuthManager.isEnabled()) {
         try {
-          await googleAuthManager.initialize()
-          googleAuthManager.renderSignInButton(buttonRef.current)
+          await googleAuthManager.initialize();
+          googleAuthManager.renderSignInButton(buttonRef.current);
         } catch (error) {
-          console.error('Failed to initialize Google Sign-In button:', error)
+          console.error("Failed to initialize Google Sign-In button:", error);
         }
       }
-    }
+    };
 
-    initializeButton()
-  }, [])
-
-
+    initializeButton();
+  }, []);
 
   // Don't render if Google Auth is not enabled
   if (!googleAuthManager.isEnabled()) {
-    return null
+    return null;
   }
 
   return (
@@ -52,9 +50,7 @@ export const GoogleSignIn: React.FC<GoogleSignInProps> = ({
         </button>
       )}
 
-      {error && (
-        <p className="text-sm text-red-600">{error}</p>
-      )}
+      {error && <p className="text-sm text-red-600">{error}</p>}
     </div>
-  )
-}
+  );
+};

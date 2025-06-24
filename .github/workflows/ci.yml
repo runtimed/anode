@@ -25,6 +25,11 @@ jobs:
         with:
           version: latest
 
+      - name: Setup Deno
+        uses: denoland/setup-deno@v1
+        with:
+          deno-version: v1.x
+
       - name: Get pnpm store directory
         shell: bash
         run: |
@@ -40,6 +45,9 @@ jobs:
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
+
+      - name: Format check
+        run: pnpm format:check
 
       - name: Type check
         run: pnpm type-check

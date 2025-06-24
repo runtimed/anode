@@ -1,13 +1,16 @@
 # Deployment Guide
 
-This document describes how to deploy Anode using the split architecture with Cloudflare Pages for the web client and Cloudflare Workers for the sync backend.
+This document describes how to deploy Anode using the split architecture with
+Cloudflare Pages for the web client and Cloudflare Workers for the sync backend.
 
 ## Architecture Overview
 
 - **Cloudflare Pages**: Serves the web client (React app)
-- **Cloudflare Workers**: Handles LiveStore sync backend with Durable Objects and D1
+- **Cloudflare Workers**: Handles LiveStore sync backend with Durable Objects
+  and D1
 
-This separation is necessary because Cloudflare Workers don't support WebSocket client connections from Web Workers, which LiveStore requires.
+This separation is necessary because Cloudflare Workers don't support WebSocket
+client connections from Web Workers, which LiveStore requires.
 
 ## Prerequisites
 
@@ -24,6 +27,7 @@ pnpm deploy  # Deploys both web client and worker
 ```
 
 This will:
+
 1. Build the web client for production
 2. Deploy both the sync worker and web client to Cloudflare
 
@@ -43,11 +47,13 @@ This builds the web client and deploys both services to Cloudflare.
 ### Option 2: Deploy Services Individually
 
 **Deploy the Sync Backend (Worker):**
+
 ```bash
 pnpm deploy:worker
 ```
 
 **Deploy the Web Client (Pages):**
+
 ```bash
 pnpm deploy:web
 ```
@@ -56,7 +62,8 @@ pnpm deploy:web
 
 **1. Deploy the Sync Backend (Worker)**
 
-The sync backend runs on Cloudflare Workers and handles LiveStore synchronization.
+The sync backend runs on Cloudflare Workers and handles LiveStore
+synchronization.
 
 ```bash
 wrangler deploy --env production
@@ -65,6 +72,7 @@ wrangler deploy --env production
 This deploys to: `https://anode-docworker.rgbkrk.workers.dev`
 
 **Required secrets:**
+
 ```bash
 echo "your-secure-token" | pnpm wrangler secret put AUTH_TOKEN --env production
 ```
@@ -91,10 +99,12 @@ Set in `wrangler.toml`:
 
 Web client environment variables are built into the static assets at build time:
 
-- **Production**: Set in `.env.production` or Cloudflare Pages environment settings
+- **Production**: Set in `.env.production` or Cloudflare Pages environment
+  settings
 - **Development**: Set in `.env` or `.env.development`
 
 Key variables:
+
 - `VITE_LIVESTORE_SYNC_URL`: URL of the sync worker
 - `VITE_AUTH_TOKEN`: Authentication token for the sync backend
 
@@ -189,11 +199,13 @@ If you see errors like "URL scheme 'wss' is not supported", ensure:
 
 ### CORS Issues
 
-If you encounter CORS errors, check that the Worker is configured to allow requests from the Pages domain.
+If you encounter CORS errors, check that the Worker is configured to allow
+requests from the Pages domain.
 
 ### Authentication Issues
 
-Ensure `AUTH_TOKEN` secret is set on the Worker and matches the client configuration.
+Ensure `AUTH_TOKEN` secret is set on the Worker and matches the client
+configuration.
 
 ## URLs
 

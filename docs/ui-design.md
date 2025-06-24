@@ -1,48 +1,59 @@
 # Anode UI Design System
 
-This document captures the design principles, patterns, and decisions that shape Anode's user interface as a next-generation Jupyter notebook replacement.
+This document captures the design principles, patterns, and decisions that shape
+Anode's user interface as a next-generation Jupyter notebook replacement.
 
 ## Design Philosophy
 
 ### Core Principles
 
-**Clean & Minimal**: Remove visual clutter and focus on content creation. Every UI element should serve a clear purpose.
+**Clean & Minimal**: Remove visual clutter and focus on content creation. Every
+UI element should serve a clear purpose.
 
-**Notebook-First**: Design patterns that feel natural for data science and coding workflows, not generic app patterns.
+**Notebook-First**: Design patterns that feel natural for data science and
+coding workflows, not generic app patterns.
 
-**Local-First**: UI that works seamlessly offline and provides immediate feedback without network dependencies.
+**Local-First**: UI that works seamlessly offline and provides immediate
+feedback without network dependencies.
 
-**Collaboration-Ready**: Visual design that supports real-time collaboration without interfering with individual focus.
+**Collaboration-Ready**: Visual design that supports real-time collaboration
+without interfering with individual focus.
 
 ## Visual Design Language
 
 ### Color System
 
-**Grayscale Foundation**: Primary interface uses sophisticated grayscale palette with subtle accent colors only when needed.
+**Grayscale Foundation**: Primary interface uses sophisticated grayscale palette
+with subtle accent colors only when needed.
 
 - `bg-background` - Main page background
-- `bg-card` - Content area backgrounds  
+- `bg-card` - Content area backgrounds
 - `bg-muted/20` - Subtle section backgrounds
 - `border-border/50` - Soft borders and dividers
 - `text-foreground` - Primary text
 - `text-muted-foreground` - Secondary text and hints
 
-**Accent Colors**: Used sparingly for state indication and cell type differentiation:
+**Accent Colors**: Used sparingly for state indication and cell type
+differentiation:
+
 - **Blue** (`border-blue-500/60`) - SQL cells, code execution
-- **Purple** (`border-purple-500/60`) - AI cells, AI responses  
+- **Purple** (`border-purple-500/60`) - AI cells, AI responses
 - **Green** (`text-green-500`) - Success states, active connections
 - **Red** (`text-red-500`) - Error states, disconnected
 - **Amber** (`text-amber-500`) - Warning/starting states
 
 ### Typography
 
-**Monospace for Code**: All code input and output uses `font-mono` for proper alignment and readability.
+**Monospace for Code**: All code input and output uses `font-mono` for proper
+alignment and readability.
 
-**Sans-serif for UI**: Clean sans-serif for all interface elements, labels, and documentation.
+**Sans-serif for UI**: Clean sans-serif for all interface elements, labels, and
+documentation.
 
 **Size Hierarchy**:
+
 - `text-lg font-semibold` - Notebook titles
-- `text-sm` - Standard UI elements  
+- `text-sm` - Standard UI elements
 - `text-xs` - Metadata, hints, secondary info
 
 ### Spacing & Layout
@@ -53,23 +64,32 @@ This document captures the design principles, patterns, and decisions that shape
 
 ### Kernel Selection & Status
 
-**One Kernel Per Notebook**: The UI should clearly communicate that each notebook has exactly one active kernel at a time.
+**One Kernel Per Notebook**: The UI should clearly communicate that each
+notebook has exactly one active kernel at a time.
 
 **Kernel States**:
+
 - **No Kernel** - Show "No kernel selected" with prominent "Start Kernel" button
 - **Single Active Kernel** - Show kernel type and status (ready/busy/starting)
 - **Transition State** - Show "Switching kernels..." during handoffs
 - **Error State** - Show "Kernel disconnected" with restart options
 
 **UI Behavior**:
-- Starting a new kernel while one exists should prompt: "Replace current kernel?"
-- Kernel dropdown should show current kernel + available types, not multiple active kernels
-- Status indicator should be prominent: green dot (ready), amber (busy), red (error)
+
+- Starting a new kernel while one exists should prompt: "Replace current
+  kernel?"
+- Kernel dropdown should show current kernel + available types, not multiple
+  active kernels
+- Status indicator should be prominent: green dot (ready), amber (busy), red
+  (error)
 - Avoid showing multiple "active" kernels simultaneously in the UI
 
-**Not Yet Implemented**: Automatic kernel orchestration means users may see brief multi-kernel states during manual startup. Future versions will enforce single-kernel constraints.
+**Not Yet Implemented**: Automatic kernel orchestration means users may see
+brief multi-kernel states during manual startup. Future versions will enforce
+single-kernel constraints.
 
 **Consistent Padding**:
+
 - `px-4 py-3` - Standard cell content areas
 - `px-6` - Cell headers and controls alignment
 - `pl-2` - Execution controls fine-tuning
@@ -81,21 +101,25 @@ This document captures the design principles, patterns, and decisions that shape
 
 ### Navigation Header
 
-**Structure**: 
+**Structure**:
+
 ```
 [Logo] [Anode] [+ New Notebook] ————————————————— [Store ID]
 ```
 
-**Unified Top Bar**: Single navigation bar contains app-level actions. No separate breadcrumbs or back buttons.
+**Unified Top Bar**: Single navigation bar contains app-level actions. No
+separate breadcrumbs or back buttons.
 
 ### Notebook Controls
 
-**Integrated Control Ribbon**: 
+**Integrated Control Ribbon**:
+
 ```
 [Notebook Title] ——————————————— [>_ Python ●] [2 cells]
 ```
 
 **Features**:
+
 - Editable title (click to edit inline)
 - Kernel status with visual indicator
 - Cell count display
@@ -106,6 +130,7 @@ This document captures the design principles, patterns, and decisions that shape
 #### Visual Hierarchy
 
 **Left Border Focus System**:
+
 - Transparent border when unfocused
 - Colored left border (`border-l-2`) when focused
 - Background tint when focused (`bg-primary/5`)
@@ -116,6 +141,7 @@ This document captures the design principles, patterns, and decisions that shape
 **Alignment**: `pl-6 pr-4` to align with text content
 
 **Elements**:
+
 - **Cell Type Badge**: Clickable dropdown (Code, Markdown, SQL, AI)
 - **Status Badges**: AI model info, execution state
 - **Hover Controls**: Move up/down, add cell, delete (right-aligned)
@@ -125,6 +151,7 @@ This document captures the design principles, patterns, and decisions that shape
 **No Visual Borders**: Content flows naturally without boxes or strong borders
 
 **Text Area**:
+
 - `px-2 py-2` internal padding for natural text positioning
 - `bg-card/30` subtle background
 - `focus-within:bg-card/60` enhanced focus state
@@ -137,6 +164,7 @@ This document captures the design principles, patterns, and decisions that shape
 **Alignment**: `pl-6` to match text content alignment
 
 **Visual Treatment**:
+
 - No background colors (maintains notebook aesthetic)
 - Error outputs: `border-l-2 border-red-200` with minimal left padding
 - Loading states: Matching border treatment with color coding
@@ -146,35 +174,40 @@ This document captures the design principles, patterns, and decisions that shape
 ### Focus Management
 
 **Keyboard Navigation**:
+
 - `↑↓` - Navigate between cells
 - `⇧↵` - Run cell and move to next
 - `⌘↵` - Run cell and stay
 
 **Visual Focus**:
+
 - Left border color change
 - Background tint
 - No heavy borders or outlines
 
 ### Clickable Elements
 
-**Consistent Pattern**: Elements that show current state are clickable to change that state
+**Consistent Pattern**: Elements that show current state are clickable to change
+that state
 
 - **Cell Type Badge** → Cell type dropdown
-- **AI Model Badge** → Model selection dropdown  
+- **AI Model Badge** → Model selection dropdown
 - **Kernel Status** → Kernel info panel
 
 ### State Indication
 
 **Execution States**:
+
 - **Idle**: No indicator
 - **Queued**: `Badge` with "Queued"
-- **Running**: Animated spinner + "Running"/"Generating" 
+- **Running**: Animated spinner + "Running"/"Generating"
 - **Completed**: Green checkmark `✓`
 - **Error**: Red "Error" badge
 
 **Connection States**:
+
 - **Connected**: Green circle `●`
-- **Starting**: Amber circle  
+- **Starting**: Amber circle
 - **Disconnected**: Red circle
 
 ## Cell Types
@@ -185,7 +218,7 @@ This document captures the design principles, patterns, and decisions that shape
 
 **Execution**: "Run" button with play icon, shortcuts displayed
 
-### AI Cells  
+### AI Cells
 
 **Visual**: Purple left border when focused, purple accent elements
 
@@ -217,15 +250,17 @@ Primary design targets desktop/laptop usage for development workflows.
 
 **Touch Targets**: Minimum 28px (`h-7 w-7`) for all interactive elements
 
-**Responsive Text**: Keyboard shortcuts hidden on small screens (`hidden sm:inline`)
+**Responsive Text**: Keyboard shortcuts hidden on small screens
+(`hidden sm:inline`)
 
 **Layout**: Single-column, full-width on mobile
 
 ## Removed Elements
 
 **Eliminated Complexity**:
+
 - ❌ Raw cell types (backwards compatibility only)
-- ❌ Separate welcome/overview pages  
+- ❌ Separate welcome/overview pages
 - ❌ Back buttons and complex navigation
 - ❌ Heavy borders and card containers
 - ❌ Output type labels ("Output", "Result")
@@ -243,6 +278,7 @@ Primary design targets desktop/laptop usage for development workflows.
 ### Key Classes
 
 **Container Structure**:
+
 ```css
 .cell-container {
   @apply mb-3 relative group border-l-2 transition-all duration-200;
@@ -257,7 +293,8 @@ Primary design targets desktop/laptop usage for development workflows.
 }
 
 .cell-textarea {
-  @apply min-h-[60px] resize-none border-0 px-2 py-2 focus-visible:ring-0 font-mono bg-transparent;
+  @apply min-h-[60px] resize-none border-0 px-2 py-2 focus-visible:ring-0
+    font-mono bg-transparent;
 }
 ```
 
@@ -288,13 +325,14 @@ Primary design targets desktop/laptop usage for development workflows.
 ### Planned Enhancements
 
 - **Dark Mode**: Consistent with grayscale foundation
-- **Accessibility**: ARIA labels and keyboard navigation improvements  
+- **Accessibility**: ARIA labels and keyboard navigation improvements
 - **Mobile Editing**: Enhanced touch interactions for cell manipulation
 - **Collaboration**: User cursors and real-time editing indicators
 
 ### Extensibility
 
 The design system is built to accommodate:
+
 - New cell types without UI complexity
 - Plugin interfaces that respect the visual hierarchy
 - Advanced features (debugger, profiler) as optional overlays
@@ -302,4 +340,5 @@ The design system is built to accommodate:
 
 ---
 
-*This design document reflects the current state as of the UI cleanup initiative. It should be updated as the interface evolves.*
+_This design document reflects the current state as of the UI cleanup
+initiative. It should be updated as the interface evolves._

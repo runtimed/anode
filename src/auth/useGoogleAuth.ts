@@ -1,68 +1,74 @@
-import { useState, useEffect, useCallback } from 'react'
-import { googleAuthManager, AuthState, getCurrentAuthToken } from './google-auth.js'
+import { useCallback, useEffect, useState } from "react";
+import {
+  AuthState,
+  getCurrentAuthToken,
+  googleAuthManager,
+} from "./google-auth.js";
 
 export const useGoogleAuth = (): AuthState & {
-  signIn: () => Promise<void>
-  signOut: () => Promise<void>
-  refreshToken: () => Promise<void>
+  signIn: () => Promise<void>;
+  signOut: () => Promise<void>;
+  refreshToken: () => Promise<void>;
 } => {
   const [authState, setAuthState] = useState<AuthState>({
     isAuthenticated: false,
     user: null,
     token: null,
     isLoading: true,
-    error: null
-  })
+    error: null,
+  });
 
   // Initialize auth state
   useEffect(() => {
     const initializeAuth = async () => {
       try {
-        setAuthState(prev => ({ ...prev, isLoading: true, error: null }))
+        setAuthState((prev) => ({ ...prev, isLoading: true, error: null }));
 
         if (googleAuthManager.isEnabled()) {
-          await googleAuthManager.initialize()
-          const user = await googleAuthManager.getCurrentUser()
-          const token = googleAuthManager.getToken()
+          await googleAuthManager.initialize();
+          const user = await googleAuthManager.getCurrentUser();
+          const token = googleAuthManager.getToken();
 
           setAuthState({
             isAuthenticated: !!user,
             user,
             token,
             isLoading: false,
-            error: null
-          })
+            error: null,
+          });
         } else {
           // Local development mode - use fallback token
-          const fallbackToken = getCurrentAuthToken()
+          const fallbackToken = getCurrentAuthToken();
           setAuthState({
             isAuthenticated: true,
             user: {
-              id: 'local-user',
-              email: 'local@example.com',
-              name: 'Local User'
+              id: "local-user",
+              email: "local@example.com",
+              name: "Local User",
             },
             token: fallbackToken,
             isLoading: false,
-            error: null
-          })
+            error: null,
+          });
         }
       } catch (error) {
-        console.error('Auth initialization failed:', error)
-        setAuthState(prev => ({
+        console.error("Auth initialization failed:", error);
+        setAuthState((prev) => ({
           ...prev,
           isLoading: false,
-          error: error instanceof Error ? error.message : 'Auth initialization failed'
-        }))
+          error: error instanceof Error
+            ? error.message
+            : "Auth initialization failed",
+        }));
       }
-    }
+    };
 
-    initializeAuth()
+    initializeAuth();
 
     // Listen for auth state changes
     const handleAuthChange = async () => {
-      const user = await googleAuthManager.getCurrentUser()
-      const token = googleAuthManager.getToken()
+      const user = await googleAuthManager.getCurrentUser();
+      const token = googleAuthManager.getToken();
 
       if (user && token) {
         setAuthState({
@@ -70,51 +76,51 @@ export const useGoogleAuth = (): AuthState & {
           user,
           token,
           isLoading: false,
-          error: null
-        })
+          error: null,
+        });
       }
-    }
+    };
 
     // Set up periodic check for auth changes
-    const interval = setInterval(handleAuthChange, 1000)
-    return () => clearInterval(interval)
-  }, [])
+    const interval = setInterval(handleAuthChange, 1000);
+    return () => clearInterval(interval);
+  }, []);
 
   const signIn = useCallback(async () => {
     if (!googleAuthManager.isEnabled()) {
-      throw new Error('Google Auth is not enabled')
+      throw new Error("Google Auth is not enabled");
     }
 
     try {
-      setAuthState(prev => ({ ...prev, isLoading: true, error: null }))
+      setAuthState((prev) => ({ ...prev, isLoading: true, error: null }));
 
-      const user = await googleAuthManager.signIn()
-      const token = googleAuthManager.getToken()
+      const user = await googleAuthManager.signIn();
+      const token = googleAuthManager.getToken();
 
       setAuthState({
         isAuthenticated: true,
         user,
         token,
         isLoading: false,
-        error: null
-      })
+        error: null,
+      });
     } catch (error) {
-      console.error('Sign in failed:', error)
-      setAuthState(prev => ({
+      console.error("Sign in failed:", error);
+      setAuthState((prev) => ({
         ...prev,
         isLoading: false,
-        error: error instanceof Error ? error.message : 'Sign in failed'
-      }))
-      throw error
+        error: error instanceof Error ? error.message : "Sign in failed",
+      }));
+      throw error;
     }
-  }, [])
+  }, []);
 
   const signOut = useCallback(async () => {
     try {
-      setAuthState(prev => ({ ...prev, isLoading: true, error: null }))
+      setAuthState((prev) => ({ ...prev, isLoading: true, error: null }));
 
       if (googleAuthManager.isEnabled()) {
-        await googleAuthManager.signOut()
+        await googleAuthManager.signOut();
       }
 
       setAuthState({
@@ -122,43 +128,43 @@ export const useGoogleAuth = (): AuthState & {
         user: null,
         token: null,
         isLoading: false,
-        error: null
-      })
+        error: null,
+      });
     } catch (error) {
-      console.error('Sign out failed:', error)
-      setAuthState(prev => ({
+      console.error("Sign out failed:", error);
+      setAuthState((prev) => ({
         ...prev,
         isLoading: false,
-        error: error instanceof Error ? error.message : 'Sign out failed'
-      }))
-      throw error
+        error: error instanceof Error ? error.message : "Sign out failed",
+      }));
+      throw error;
     }
-  }, [])
+  }, []);
 
   const refreshToken = useCallback(async () => {
     if (!googleAuthManager.isEnabled()) {
-      return
+      return;
     }
 
     try {
-      const newToken = await googleAuthManager.refreshToken()
+      const newToken = await googleAuthManager.refreshToken();
       if (newToken) {
-        setAuthState(prev => ({ ...prev, token: newToken }))
+        setAuthState((prev) => ({ ...prev, token: newToken }));
       }
     } catch (error) {
-      console.error('Token refresh failed:', error)
+      console.error("Token refresh failed:", error);
       // Don't throw here - token refresh failures shouldn't crash the app
-      setAuthState(prev => ({
+      setAuthState((prev) => ({
         ...prev,
-        error: error instanceof Error ? error.message : 'Token refresh failed'
-      }))
+        error: error instanceof Error ? error.message : "Token refresh failed",
+      }));
     }
-  }, [])
+  }, []);
 
   return {
     ...authState,
     signIn,
     signOut,
-    refreshToken
-  }
-}
+    refreshToken,
+  };
+};

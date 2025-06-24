@@ -1,12 +1,12 @@
-import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { createStorePromise, queryDb } from "@livestore/livestore";
 import { makeAdapter } from "@livestore/adapter-node";
-import { events, tables, schema } from "@runt/schema";
+import { events, schema, tables } from "@runt/schema";
 import {
-  createTestStoreId,
-  createTestSessionId,
-  waitFor,
   cleanupResources,
+  createTestSessionId,
+  createTestStoreId,
+  waitFor,
 } from "../setup.js";
 
 // Mock Pyodide for integration tests
@@ -593,7 +593,7 @@ describe("End-to-End Execution Flow", () => {
               position: i,
               createdBy: "test-user",
             }),
-          ),
+          )
         );
 
         if (i % 2 === 0) {
@@ -602,7 +602,7 @@ describe("End-to-End Execution Flow", () => {
               events.cellDeleted({
                 id: cellId,
               }),
-            ),
+            )
           );
         }
       }

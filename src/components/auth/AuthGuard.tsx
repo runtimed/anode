@@ -1,35 +1,35 @@
-import React, { useEffect, useState } from 'react'
-import { useGoogleAuth } from '../../auth/useGoogleAuth.js'
-import { GoogleSignIn } from './GoogleSignIn.js'
-import { googleAuthManager } from '../../auth/google-auth.js'
+import React, { useEffect, useState } from "react";
+import { useGoogleAuth } from "../../auth/useGoogleAuth.js";
+import { GoogleSignIn } from "./GoogleSignIn.js";
+import { googleAuthManager } from "../../auth/google-auth.js";
 
 interface AuthGuardProps {
-  children: React.ReactNode
-  fallback?: React.ReactNode
+  children: React.ReactNode;
+  fallback?: React.ReactNode;
 }
 
 export const AuthGuard: React.FC<AuthGuardProps> = ({
   children,
-  fallback
+  fallback,
 }) => {
-  const { isAuthenticated, isLoading, error } = useGoogleAuth()
-  const [authExpiredError, setAuthExpiredError] = useState<string | null>(null)
+  const { isAuthenticated, isLoading, error } = useGoogleAuth();
+  const [authExpiredError, setAuthExpiredError] = useState<string | null>(null);
 
   // Listen for authentication errors from LiveStore
   useEffect(() => {
     const handleMessage = (event: MessageEvent) => {
-      if (event.data?.type === 'AUTH_ERROR') {
-        setAuthExpiredError(event.data.message)
+      if (event.data?.type === "AUTH_ERROR") {
+        setAuthExpiredError(event.data.message);
       }
-    }
+    };
 
-    window.addEventListener('message', handleMessage)
-    return () => window.removeEventListener('message', handleMessage)
-  }, [])
+    window.addEventListener("message", handleMessage);
+    return () => window.removeEventListener("message", handleMessage);
+  }, []);
 
   // If Google Auth is not enabled, always allow access (local dev mode)
   if (!googleAuthManager.isEnabled()) {
-    return <>{children}</>
+    return <>{children}</>;
   }
 
   // Show loading state while checking authentication
@@ -46,7 +46,7 @@ export const AuthGuard: React.FC<AuthGuardProps> = ({
           </div>
         </div>
       </div>
-    )
+    );
   }
 
   // Show error state if authentication failed or auth expired
@@ -69,8 +69,8 @@ export const AuthGuard: React.FC<AuthGuardProps> = ({
           {authExpiredError && (
             <button
               onClick={() => {
-                setAuthExpiredError(null)
-                window.location.reload()
+                setAuthExpiredError(null);
+                window.location.reload();
               }}
               className="mt-2 px-4 py-2 text-sm bg-gray-200 hover:bg-gray-300 rounded-md"
             >
@@ -79,7 +79,7 @@ export const AuthGuard: React.FC<AuthGuardProps> = ({
           )}
         </div>
       </div>
-    )
+    );
   }
 
   // Show sign-in form if not authenticated
@@ -105,9 +105,9 @@ export const AuthGuard: React.FC<AuthGuardProps> = ({
           </div>
         </div>
       )
-    )
+    );
   }
 
   // Show authenticated content
-  return <>{children}</>
-}
+  return <>{children}</>;
+};

@@ -221,8 +221,7 @@ export const createMockCell = (
 ) => ({
   ...mockCellData,
   ...overrides,
-  id:
-    overrides.id ||
+  id: overrides.id ||
     `test-cell-${Date.now()}-${Math.random().toString(36).slice(2)}`,
 });
 
@@ -231,8 +230,7 @@ export const createMockKernelSession = (
 ) => ({
   ...mockKernelSession,
   ...overrides,
-  sessionId:
-    overrides.sessionId ||
+  sessionId: overrides.sessionId ||
     `test-session-${Date.now()}-${Math.random().toString(36).slice(2)}`,
 });
 
@@ -241,8 +239,7 @@ export const createMockExecutionQueueEntry = (
 ) => ({
   ...mockExecutionQueueEntry,
   ...overrides,
-  id:
-    overrides.id ||
+  id: overrides.id ||
     `test-queue-${Date.now()}-${Math.random().toString(36).slice(2)}`,
 });
 

@@ -1,6 +1,6 @@
 import React, { useCallback } from "react";
 import { useStore } from "@livestore/react";
-import { events, tables, CellData, KernelSessionData } from "@runt/schema";
+import { CellData, events, KernelSessionData, tables } from "@runt/schema";
 import { queryDb } from "@livestore/livestore";
 import { Cell } from "./Cell.js";
 import { formatDistanceToNow } from "date-fns";
@@ -8,18 +8,18 @@ import { formatDistanceToNow } from "date-fns";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
-  Copy,
-  Terminal,
-  Circle,
-  Plus,
-  FileText,
-  Database,
   Bot,
-  Code,
-  Filter,
-  X,
   Bug,
   BugOff,
+  Circle,
+  Code,
+  Copy,
+  Database,
+  FileText,
+  Filter,
+  Plus,
+  Terminal,
+  X,
 } from "lucide-react";
 import { getCurrentNotebookId } from "../../util/store-id.js";
 import { getRuntimeCommand } from "../../util/runtime-command.js";
@@ -88,8 +88,7 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
   const runtimeHealth = activeRuntime
     ? getRuntimeHealth(activeRuntime)
     : "disconnected";
-  const runtimeStatus =
-    activeRuntime?.status ||
+  const runtimeStatus = activeRuntime?.status ||
     (kernelSessions.length > 0 ? kernelSessions[0].status : "disconnected");
 
   const copyRuntimeCommand = useCallback(() => {
@@ -134,7 +133,9 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
       afterCellId?: string,
       cellType: "code" | "markdown" | "sql" | "ai" = "code",
     ) => {
-      const cellId = `cell-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+      const cellId = `cell-${Date.now()}-${
+        Math.random().toString(36).slice(2)
+      }`;
 
       let newPosition: number;
       if (afterCellId) {
@@ -156,13 +157,15 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
           });
         } else {
           // Fallback: add at end
-          newPosition =
-            Math.max(...cells.map((c: CellData) => c.position), -1) + 1;
+          newPosition = Math.max(
+            ...cells.map((c: CellData) => c.position),
+            -1,
+          ) + 1;
         }
       } else {
         // Add at end
-        newPosition =
-          Math.max(...cells.map((c: CellData) => c.position), -1) + 1;
+        newPosition = Math.max(...cells.map((c: CellData) => c.position), -1) +
+          1;
       }
 
       store.commit(
@@ -264,8 +267,9 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
       } else {
         // At the last cell, create a new one with same cell type (but never raw)
         const currentCell = sortedCells[currentIndex];
-        const newCellType =
-          currentCell.cellType === "raw" ? "code" : currentCell.cellType;
+        const newCellType = currentCell.cellType === "raw"
+          ? "code"
+          : currentCell.cellType;
         addCell(currentCellId, newCellType);
       }
     },
@@ -344,11 +348,9 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
                 }`}
                 title={debugMode ? "Hide debug info" : "Show debug info"}
               >
-                {debugMode ? (
-                  <Bug className="h-3 w-3" />
-                ) : (
-                  <BugOff className="h-3 w-3" />
-                )}
+                {debugMode
+                  ? <Bug className="h-3 w-3" />
+                  : <BugOff className="h-3 w-3" />}
               </Button>
             )}
             <UserProfile />
@@ -361,31 +363,32 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
         <div className="w-full sm:max-w-6xl sm:mx-auto px-3 sm:px-4 py-2 sm:py-3">
           <div className="flex items-center justify-between gap-2">
             <div className="flex items-center gap-2 sm:gap-4 flex-1 min-w-0">
-              {isEditingTitle ? (
-                <Input
-                  value={localTitle}
-                  onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                    setLocalTitle(e.target.value)
-                  }
-                  onBlur={updateTitle}
-                  onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => {
-                    if (e.key === "Enter") updateTitle();
-                    if (e.key === "Escape") {
-                      setLocalTitle(notebook.title);
-                      setIsEditingTitle(false);
-                    }
-                  }}
-                  className="text-lg font-semibold border-none bg-transparent p-0 focus-visible:ring-0"
-                  autoFocus
-                />
-              ) : (
-                <h1
-                  className="text-base sm:text-lg font-semibold cursor-pointer hover:text-muted-foreground transition-colors truncate"
-                  onClick={() => setIsEditingTitle(true)}
-                >
-                  {notebook.title}
-                </h1>
-              )}
+              {isEditingTitle
+                ? (
+                  <Input
+                    value={localTitle}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                      setLocalTitle(e.target.value)}
+                    onBlur={updateTitle}
+                    onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => {
+                      if (e.key === "Enter") updateTitle();
+                      if (e.key === "Escape") {
+                        setLocalTitle(notebook.title);
+                        setIsEditingTitle(false);
+                      }
+                    }}
+                    className="text-lg font-semibold border-none bg-transparent p-0 focus-visible:ring-0"
+                    autoFocus
+                  />
+                )
+                : (
+                  <h1
+                    className="text-base sm:text-lg font-semibold cursor-pointer hover:text-muted-foreground transition-colors truncate"
+                    onClick={() => setIsEditingTitle(true)}
+                  >
+                    {notebook.title}
+                  </h1>
+                )}
             </div>
 
             <div className="flex items-center gap-1 sm:gap-2 flex-shrink-0">
@@ -397,23 +400,22 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
               >
                 <Terminal className="h-3 sm:h-4 w-3 sm:w-4" />
                 <span className="capitalize text-xs sm:text-sm hidden sm:block">
-                  {
-                    /* TODO: Update schema property kernelType → runtimeType */ notebook.kernelType
-                  }
+                  {/* TODO: Update schema property kernelType → runtimeType */ notebook
+                    .kernelType}
                 </span>
                 <Circle
                   className={`h-2 w-2 fill-current ${
                     activeRuntime && runtimeHealth === "healthy"
                       ? "text-green-500"
                       : activeRuntime && runtimeHealth === "warning"
-                        ? "text-amber-500"
-                        : activeRuntime && runtimeHealth === "connecting"
-                          ? "text-blue-500"
-                          : activeRuntime && runtimeHealth === "stale"
-                            ? "text-amber-500"
-                            : runtimeStatus === "starting"
-                              ? "text-blue-500"
-                              : "text-red-500"
+                      ? "text-amber-500"
+                      : activeRuntime && runtimeHealth === "connecting"
+                      ? "text-blue-500"
+                      : activeRuntime && runtimeHealth === "stale"
+                      ? "text-amber-500"
+                      : runtimeStatus === "starting"
+                      ? "text-blue-500"
+                      : "text-red-500"
                   }`}
                 />
               </Button>
@@ -423,11 +425,9 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
                 onClick={() => setContextSelectionMode(!contextSelectionMode)}
                 className="flex items-center gap-1 sm:gap-2"
               >
-                {contextSelectionMode ? (
-                  <X className="h-3 sm:h-4 w-3 sm:w-4" />
-                ) : (
-                  <Filter className="h-3 sm:h-4 w-3 sm:w-4" />
-                )}
+                {contextSelectionMode
+                  ? <X className="h-3 sm:h-4 w-3 sm:w-4" />
+                  : <Filter className="h-3 sm:h-4 w-3 sm:w-4" />}
                 <span className="text-xs sm:text-sm">
                   {contextSelectionMode ? "Done" : "Context"}
                 </span>
@@ -447,14 +447,14 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
                       activeRuntime && runtimeHealth === "healthy"
                         ? "text-green-500"
                         : activeRuntime && runtimeHealth === "warning"
-                          ? "text-amber-500"
-                          : activeRuntime && runtimeHealth === "connecting"
-                            ? "text-blue-500"
-                            : activeRuntime && runtimeHealth === "stale"
-                              ? "text-amber-500"
-                              : runtimeStatus === "starting"
-                                ? "text-blue-500"
-                                : "text-red-500"
+                        ? "text-amber-500"
+                        : activeRuntime && runtimeHealth === "connecting"
+                        ? "text-blue-500"
+                        : activeRuntime && runtimeHealth === "stale"
+                        ? "text-amber-500"
+                        : runtimeStatus === "starting"
+                        ? "text-blue-500"
+                        : "text-red-500"
                     }`}
                   />
                   <span
@@ -462,27 +462,27 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
                       activeRuntime && runtimeHealth === "healthy"
                         ? "text-green-600"
                         : activeRuntime && runtimeHealth === "warning"
-                          ? "text-amber-600"
-                          : activeRuntime && runtimeHealth === "connecting"
-                            ? "text-blue-600"
-                            : activeRuntime && runtimeHealth === "stale"
-                              ? "text-amber-600"
-                              : runtimeStatus === "starting"
-                                ? "text-blue-600"
-                                : "text-red-600"
+                        ? "text-amber-600"
+                        : activeRuntime && runtimeHealth === "connecting"
+                        ? "text-blue-600"
+                        : activeRuntime && runtimeHealth === "stale"
+                        ? "text-amber-600"
+                        : runtimeStatus === "starting"
+                        ? "text-blue-600"
+                        : "text-red-600"
                     }`}
                   >
                     {activeRuntime && runtimeHealth === "healthy"
                       ? "Connected"
                       : activeRuntime && runtimeHealth === "warning"
-                        ? "Connected (Slow)"
-                        : activeRuntime && runtimeHealth === "connecting"
-                          ? "Connecting..."
-                          : activeRuntime && runtimeHealth === "stale"
-                            ? "Connected (Stale)"
-                            : runtimeStatus === "starting"
-                              ? "Starting"
-                              : "Disconnected"}
+                      ? "Connected (Slow)"
+                      : activeRuntime && runtimeHealth === "connecting"
+                      ? "Connecting..."
+                      : activeRuntime && runtimeHealth === "stale"
+                      ? "Connected (Stale)"
+                      : runtimeStatus === "starting"
+                      ? "Starting"
+                      : "Disconnected"}
                   </span>
                 </h4>
                 <Button
@@ -534,9 +534,8 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Runtime Type:</span>
                     <span>
-                      {
-                        /* TODO: Update schema property kernelType → runtimeType */ activeRuntime.kernelType
-                      }
+                      {/* TODO: Update schema property kernelType → runtimeType */ activeRuntime
+                        .kernelType}
                     </span>
                   </div>
                   <div className="flex justify-between">
@@ -546,16 +545,16 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
                         activeRuntime.status === "ready"
                           ? "text-green-600"
                           : activeRuntime.status === "busy"
-                            ? "text-amber-600"
-                            : "text-red-600"
+                          ? "text-amber-600"
+                          : "text-red-600"
                       }`}
                     >
                       {activeRuntime.status === "ready"
                         ? "Ready"
                         : activeRuntime.status === "busy"
-                          ? "Busy"
-                          : activeRuntime.status.charAt(0).toUpperCase() +
-                            activeRuntime.status.slice(1)}
+                        ? "Busy"
+                        : activeRuntime.status.charAt(0).toUpperCase() +
+                          activeRuntime.status.slice(1)}
                     </span>
                   </div>
                   {activeRuntime.lastHeartbeat && (
@@ -612,10 +611,10 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
                               session.status === "ready"
                                 ? "bg-green-100 text-green-800"
                                 : session.status === "busy"
-                                  ? "bg-amber-100 text-amber-800"
-                                  : session.status === "terminated"
-                                    ? "bg-red-100 text-red-800"
-                                    : "bg-gray-100 text-gray-800"
+                                ? "bg-amber-100 text-amber-800"
+                                : session.status === "terminated"
+                                ? "bg-red-100 text-red-800"
+                                : "bg-gray-100 text-gray-800"
                             }`}
                           >
                             {session.status}
@@ -667,71 +666,72 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
 
         {/* Cells */}
         <div className="space-y-3">
-          {sortedCells.length === 0 ? (
-            <div className="text-center pt-6 sm:pt-12 pb-6 px-4 sm:px-0">
-              <div className="text-muted-foreground mb-6">
-                Welcome to your notebook! Choose a cell type to get started.
+          {sortedCells.length === 0
+            ? (
+              <div className="text-center pt-6 sm:pt-12 pb-6 px-4 sm:px-0">
+                <div className="text-muted-foreground mb-6">
+                  Welcome to your notebook! Choose a cell type to get started.
+                </div>
+                <div className="flex justify-center gap-2 flex-wrap mb-4">
+                  <Button
+                    onClick={() => addCell()}
+                    className="flex items-center gap-2"
+                  >
+                    <Code className="h-4 w-4" />
+                    Code Cell
+                  </Button>
+                  <Button
+                    variant="outline"
+                    onClick={() => addCell(undefined, "markdown")}
+                    className="flex items-center gap-2"
+                  >
+                    <FileText className="h-4 w-4" />
+                    Markdown
+                  </Button>
+                  <Button
+                    variant="outline"
+                    onClick={() => addCell(undefined, "sql")}
+                    className="flex items-center gap-2"
+                  >
+                    <Database className="h-4 w-4" />
+                    SQL Query
+                  </Button>
+                  <Button
+                    variant="outline"
+                    onClick={() => addCell(undefined, "ai")}
+                    className="flex items-center gap-2"
+                  >
+                    <Bot className="h-4 w-4" />
+                    AI Assistant
+                  </Button>
+                </div>
+                <div className="text-xs text-muted-foreground">
+                  💡 Use ↑↓ arrow keys to navigate • Shift+Enter to run and move
+                  • Ctrl+Enter to run
+                </div>
               </div>
-              <div className="flex justify-center gap-2 flex-wrap mb-4">
-                <Button
-                  onClick={() => addCell()}
-                  className="flex items-center gap-2"
-                >
-                  <Code className="h-4 w-4" />
-                  Code Cell
-                </Button>
-                <Button
-                  variant="outline"
-                  onClick={() => addCell(undefined, "markdown")}
-                  className="flex items-center gap-2"
-                >
-                  <FileText className="h-4 w-4" />
-                  Markdown
-                </Button>
-                <Button
-                  variant="outline"
-                  onClick={() => addCell(undefined, "sql")}
-                  className="flex items-center gap-2"
-                >
-                  <Database className="h-4 w-4" />
-                  SQL Query
-                </Button>
-                <Button
-                  variant="outline"
-                  onClick={() => addCell(undefined, "ai")}
-                  className="flex items-center gap-2"
-                >
-                  <Bot className="h-4 w-4" />
-                  AI Assistant
-                </Button>
-              </div>
-              <div className="text-xs text-muted-foreground">
-                💡 Use ↑↓ arrow keys to navigate • Shift+Enter to run and move •
-                Ctrl+Enter to run
-              </div>
-            </div>
-          ) : (
-            sortedCells.map((cell: CellData) => (
-              <Cell
-                key={cell.id}
-                cell={cell}
-                onAddCell={() =>
-                  addCell(
-                    cell.id,
-                    cell.cellType === "raw" ? "code" : cell.cellType,
-                  )
-                }
-                onDeleteCell={() => deleteCell(cell.id)}
-                onMoveUp={() => moveCell(cell.id, "up")}
-                onMoveDown={() => moveCell(cell.id, "down")}
-                onFocusNext={() => focusNextCell(cell.id)}
-                onFocusPrevious={() => focusPreviousCell(cell.id)}
-                onFocus={() => focusCell(cell.id)}
-                autoFocus={cell.id === focusedCellId}
-                contextSelectionMode={contextSelectionMode}
-              />
-            ))
-          )}
+            )
+            : (
+              sortedCells.map((cell: CellData) => (
+                <Cell
+                  key={cell.id}
+                  cell={cell}
+                  onAddCell={() =>
+                    addCell(
+                      cell.id,
+                      cell.cellType === "raw" ? "code" : cell.cellType,
+                    )}
+                  onDeleteCell={() => deleteCell(cell.id)}
+                  onMoveUp={() => moveCell(cell.id, "up")}
+                  onMoveDown={() => moveCell(cell.id, "down")}
+                  onFocusNext={() => focusNextCell(cell.id)}
+                  onFocusPrevious={() => focusPreviousCell(cell.id)}
+                  onFocus={() => focusCell(cell.id)}
+                  autoFocus={cell.id === focusedCellId}
+                  contextSelectionMode={contextSelectionMode}
+                />
+              ))
+            )}
         </div>
 
         {/* Add Cell Buttons */}

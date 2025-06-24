@@ -1,4 +1,4 @@
-import { describe, it, expect } from "vitest";
+import { describe, expect, it } from "vitest";
 import { groupConsecutiveStreamOutputs } from "../src/util/output-grouping.js";
 import { OutputData } from "@runt/schema";
 
