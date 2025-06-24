@@ -217,29 +217,32 @@ export const testEnvironments = {
 
 // Helper functions for creating test data
 export const createMockCell = (
-  overrides: Partial<typeof mockCellData> = {},
+  overrides: Partial<typeof mockCellData> = {}
 ) => ({
   ...mockCellData,
   ...overrides,
-  id: overrides.id ||
+  id:
+    overrides.id ||
     `test-cell-${Date.now()}-${Math.random().toString(36).slice(2)}`,
 });
 
 export const createMockKernelSession = (
-  overrides: Partial<typeof mockKernelSession> = {},
+  overrides: Partial<typeof mockKernelSession> = {}
 ) => ({
   ...mockKernelSession,
   ...overrides,
-  sessionId: overrides.sessionId ||
+  sessionId:
+    overrides.sessionId ||
     `test-session-${Date.now()}-${Math.random().toString(36).slice(2)}`,
 });
 
 export const createMockExecutionQueueEntry = (
-  overrides: Partial<typeof mockExecutionQueueEntry> = {},
+  overrides: Partial<typeof mockExecutionQueueEntry> = {}
 ) => ({
   ...mockExecutionQueueEntry,
   ...overrides,
-  id: overrides.id ||
+  id:
+    overrides.id ||
     `test-queue-${Date.now()}-${Math.random().toString(36).slice(2)}`,
 });
 

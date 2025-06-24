@@ -25,16 +25,13 @@ export const AnsiOutput: React.FC<AnsiOutputProps> = ({
     return null;
   }
 
-  const baseClasses =
-    `font-mono text-sm whitespace-pre-wrap leading-relaxed ${className}`;
+  const baseClasses = `font-mono text-sm whitespace-pre-wrap leading-relaxed ${className}`;
   const errorClasses = isError ? "text-red-600" : "";
   const finalClasses = `${baseClasses} ${errorClasses}`.trim();
 
   return (
     <div className={finalClasses}>
-      <Ansi useClasses={false}>
-        {children}
-      </Ansi>
+      <Ansi useClasses={false}>{children}</Ansi>
     </div>
   );
 };
@@ -52,9 +49,7 @@ export const AnsiStreamOutput: React.FC<{
 
   return (
     <div className={`py-2 ${streamClasses} ${className}`}>
-      <AnsiOutput isError={isStderr}>
-        {text}
-      </AnsiOutput>
+      <AnsiOutput isError={isStderr}>{text}</AnsiOutput>
     </div>
   );
 };
@@ -69,16 +64,14 @@ export const AnsiErrorOutput: React.FC<{
   className?: string;
 }> = ({ ename, evalue, traceback, className = "" }) => {
   return (
-    <div className={`py-3 border-l-2 border-red-200 pl-1 ${className}`}>
+    <div className={`border-l-2 border-red-200 py-3 pl-1 ${className}`}>
       {ename && evalue && (
-        <div className="font-semibold text-red-700 mb-1">
-          <AnsiOutput isError>
-            {`${ename}: ${evalue}`}
-          </AnsiOutput>
+        <div className="mb-1 font-semibold text-red-700">
+          <AnsiOutput isError>{`${ename}: ${evalue}`}</AnsiOutput>
         </div>
       )}
       {traceback && (
-        <div className="mt-2 text-red-600 text-xs opacity-80">
+        <div className="mt-2 text-xs text-red-600 opacity-80">
           <AnsiOutput isError>
             {Array.isArray(traceback) ? traceback.join("\n") : traceback}
           </AnsiOutput>

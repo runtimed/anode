@@ -28,7 +28,7 @@ export const useCellContent = ({
           id: cellId,
           source: localSource,
           modifiedBy: "current-user", // TODO: get from auth
-        }),
+        })
       );
       onUpdate?.(localSource);
     }
@@ -38,7 +38,7 @@ export const useCellContent = ({
     (e: React.ChangeEvent<HTMLTextAreaElement>) => {
       setLocalSource(e.target.value);
     },
-    [],
+    []
   );
 
   return {

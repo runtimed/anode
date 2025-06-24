@@ -8,7 +8,7 @@ import { isStreamOutput, OutputData, StreamOutputData } from "@runt/schema";
  * @returns Array with consecutive stream outputs of the same type merged into single outputs
  */
 export function groupConsecutiveStreamOutputs(
-  outputs: OutputData[],
+  outputs: OutputData[]
 ): OutputData[] {
   if (outputs.length === 0) return outputs;
 
@@ -39,7 +39,8 @@ export function groupConsecutiveStreamOutputs(
       const nextOutput = outputs[j];
 
       if (
-        nextOutput.outputType !== "stream" || !isStreamOutput(nextOutput.data)
+        nextOutput.outputType !== "stream" ||
+        !isStreamOutput(nextOutput.data)
       ) {
         break;
       }

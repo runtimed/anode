@@ -92,7 +92,7 @@ describe("End-to-End Execution Flow", () => {
           id: notebookId,
           title: "Integration Test Notebook",
           ownerId: "test-user",
-        }),
+        })
       );
 
       await waitFor(() => stateChanges.includes("notebook"));
@@ -104,7 +104,7 @@ describe("End-to-End Execution Flow", () => {
           cellType: "code",
           position: 0,
           createdBy: "test-user",
-        }),
+        })
       );
 
       store.commit(
@@ -112,7 +112,7 @@ describe("End-to-End Execution Flow", () => {
           id: cellId,
           source: 'print("Hello from integration test!")',
           modifiedBy: "test-user",
-        }),
+        })
       );
 
       await waitFor(() => stateChanges.includes("cells"));
@@ -128,7 +128,7 @@ describe("End-to-End Execution Flow", () => {
             canExecuteSql: false,
             canExecuteAi: false,
           },
-        }),
+        })
       );
 
       // Step 4: Request execution
@@ -139,7 +139,7 @@ describe("End-to-End Execution Flow", () => {
           executionCount: 1,
           requestedBy: "test-user",
           priority: 1,
-        }),
+        })
       );
 
       await waitFor(() => stateChanges.includes("queue"));
@@ -149,7 +149,7 @@ describe("End-to-End Execution Flow", () => {
         events.executionAssigned({
           queueId,
           kernelSessionId: sessionId,
-        }),
+        })
       );
 
       // Step 6: Start execution
@@ -159,7 +159,7 @@ describe("End-to-End Execution Flow", () => {
           cellId,
           kernelSessionId: sessionId,
           startedAt: new Date(),
-        }),
+        })
       );
 
       // Step 7: Clear previous outputs
@@ -167,7 +167,7 @@ describe("End-to-End Execution Flow", () => {
         events.cellOutputsCleared({
           cellId,
           clearedBy: kernelId,
-        }),
+        })
       );
 
       // Step 8: Add execution output
@@ -178,7 +178,7 @@ describe("End-to-End Execution Flow", () => {
           outputType: "stream",
           data: { name: "stdout", text: "Hello from integration test!\n" },
           position: 0,
-        }),
+        })
       );
 
       await waitFor(() => stateChanges.includes("outputs"));
@@ -191,7 +191,7 @@ describe("End-to-End Execution Flow", () => {
           status: "success",
           completedAt: new Date(),
           executionDurationMs: 150,
-        }),
+        })
       );
 
       // Verify final state
@@ -227,7 +227,7 @@ describe("End-to-End Execution Flow", () => {
           id: storeId,
           title: "Error Test Notebook",
           ownerId: "test-user",
-        }),
+        })
       );
 
       store.commit(
@@ -236,7 +236,7 @@ describe("End-to-End Execution Flow", () => {
           cellType: "code",
           position: 0,
           createdBy: "test-user",
-        }),
+        })
       );
 
       store.commit(
@@ -244,7 +244,7 @@ describe("End-to-End Execution Flow", () => {
           id: cellId,
           source: 'raise ValueError("Test error")',
           modifiedBy: "test-user",
-        }),
+        })
       );
 
       // Start kernel and request execution
@@ -258,7 +258,7 @@ describe("End-to-End Execution Flow", () => {
             canExecuteSql: false,
             canExecuteAi: false,
           },
-        }),
+        })
       );
 
       store.commit(
@@ -268,14 +268,14 @@ describe("End-to-End Execution Flow", () => {
           executionCount: 1,
           requestedBy: "test-user",
           priority: 1,
-        }),
+        })
       );
 
       store.commit(
         events.executionAssigned({
           queueId,
           kernelSessionId: sessionId,
-        }),
+        })
       );
 
       store.commit(
@@ -284,7 +284,7 @@ describe("End-to-End Execution Flow", () => {
           cellId,
           kernelSessionId: sessionId,
           startedAt: new Date(),
-        }),
+        })
       );
 
       // Add error output
@@ -303,7 +303,7 @@ describe("End-to-End Execution Flow", () => {
             ],
           },
           position: 0,
-        }),
+        })
       );
 
       // Complete with error status
@@ -315,7 +315,7 @@ describe("End-to-End Execution Flow", () => {
           error: "ValueError: Test error",
           completedAt: new Date(),
           executionDurationMs: 75,
-        }),
+        })
       );
 
       // Verify error handling
@@ -341,7 +341,7 @@ describe("End-to-End Execution Flow", () => {
           id: storeId,
           title: "Concurrent Test Notebook",
           ownerId: "test-user",
-        }),
+        })
       );
 
       // Create multiple cells
@@ -352,7 +352,7 @@ describe("End-to-End Execution Flow", () => {
             cellType: "code",
             position: index,
             createdBy: "test-user",
-          }),
+          })
         );
 
         store.commit(
@@ -360,7 +360,7 @@ describe("End-to-End Execution Flow", () => {
             id: cellId,
             source: `print("Output from cell ${index}")`,
             modifiedBy: "test-user",
-          }),
+          })
         );
       });
 
@@ -381,7 +381,7 @@ describe("End-to-End Execution Flow", () => {
               canExecuteSql: false,
               canExecuteAi: false,
             },
-          }),
+          })
         );
       });
 
@@ -394,7 +394,7 @@ describe("End-to-End Execution Flow", () => {
             executionCount: 1,
             requestedBy: "test-user",
             priority: index + 1,
-          }),
+          })
         );
       });
 
@@ -407,7 +407,7 @@ describe("End-to-End Execution Flow", () => {
           events.executionAssigned({
             queueId,
             kernelSessionId: sid,
-          }),
+          })
         );
 
         store.commit(
@@ -416,7 +416,7 @@ describe("End-to-End Execution Flow", () => {
             cellId,
             kernelSessionId: sid,
             startedAt: new Date(),
-          }),
+          })
         );
       });
 
@@ -429,7 +429,7 @@ describe("End-to-End Execution Flow", () => {
             outputType: "stream",
             data: { name: "stdout", text: `Output from cell ${index}\n` },
             position: 0,
-          }),
+          })
         );
 
         store.commit(
@@ -439,7 +439,7 @@ describe("End-to-End Execution Flow", () => {
             status: "success",
             completedAt: new Date(),
             executionDurationMs: 120,
-          }),
+          })
         );
       });
 
@@ -471,7 +471,7 @@ describe("End-to-End Execution Flow", () => {
 
       const queueQuery$ = queryDb(
         tables.executionQueue.select().where({ status: "pending" }),
-        { label: "pendingQueue" },
+        { label: "pendingQueue" }
       );
 
       const outputsQuery$ = queryDb(tables.outputs.select(), {
@@ -501,7 +501,7 @@ describe("End-to-End Execution Flow", () => {
           cellType: "code",
           position: 0,
           createdBy: "test-user",
-        }),
+        })
       );
 
       store.commit(
@@ -511,7 +511,7 @@ describe("End-to-End Execution Flow", () => {
           executionCount: 1,
           requestedBy: "test-user",
           priority: 1,
-        }),
+        })
       );
 
       store.commit(
@@ -521,7 +521,7 @@ describe("End-to-End Execution Flow", () => {
           outputType: "stream",
           data: "Test output",
           position: 0,
-        }),
+        })
       );
 
       // Wait for updates to propagate
@@ -529,7 +529,7 @@ describe("End-to-End Execution Flow", () => {
         () =>
           updateCounts.cells > 0 &&
           updateCounts.queue > 0 &&
-          updateCounts.outputs > 0,
+          updateCounts.outputs > 0
       );
 
       expect(updateCounts.cells).toBeGreaterThan(0);
@@ -547,7 +547,7 @@ describe("End-to-End Execution Flow", () => {
       // Note: With strict typing, we simulate runtime errors differently
       const problematicQuery$ = queryDb(
         tables.cells.select().where({ id: "non-existent-cell-id" }),
-        { label: "problematicQuery" },
+        { label: "problematicQuery" }
       );
 
       // This should handle the error gracefully
@@ -592,7 +592,7 @@ describe("End-to-End Execution Flow", () => {
               cellType: "code",
               position: i,
               createdBy: "test-user",
-            }),
+            })
           )
         );
 
@@ -601,7 +601,7 @@ describe("End-to-End Execution Flow", () => {
             store.commit(
               events.cellDeleted({
                 id: cellId,
-              }),
+              })
             )
           );
         }
@@ -618,7 +618,7 @@ describe("End-to-End Execution Flow", () => {
       // Verify updates are in chronological order
       for (let i = 1; i < allUpdates.length; i++) {
         expect(allUpdates[i].timestamp).toBeGreaterThanOrEqual(
-          allUpdates[i - 1].timestamp,
+          allUpdates[i - 1].timestamp
         );
       }
 
@@ -639,7 +639,7 @@ describe("End-to-End Execution Flow", () => {
           cellType: "code",
           position: 0,
           createdBy: "test-user",
-        }),
+        })
       );
 
       store.commit(
@@ -652,7 +652,7 @@ describe("End-to-End Execution Flow", () => {
             canExecuteSql: false,
             canExecuteAi: false,
           },
-        }),
+        })
       );
 
       store.commit(
@@ -662,14 +662,14 @@ describe("End-to-End Execution Flow", () => {
           executionCount: 1,
           requestedBy: "test-user",
           priority: 1,
-        }),
+        })
       );
 
       store.commit(
         events.executionAssigned({
           queueId,
           kernelSessionId: sessionId,
-        }),
+        })
       );
 
       store.commit(
@@ -678,7 +678,7 @@ describe("End-to-End Execution Flow", () => {
           cellId,
           kernelSessionId: sessionId,
           startedAt: new Date(),
-        }),
+        })
       );
 
       // Simulate kernel restart during execution
@@ -686,7 +686,7 @@ describe("End-to-End Execution Flow", () => {
         events.kernelSessionTerminated({
           sessionId,
           reason: "restart",
-        }),
+        })
       );
 
       // Start new kernel session
@@ -700,7 +700,7 @@ describe("End-to-End Execution Flow", () => {
             canExecuteSql: false,
             canExecuteAi: false,
           },
-        }),
+        })
       );
 
       // Verify kernel states
@@ -727,7 +727,7 @@ describe("End-to-End Execution Flow", () => {
             canExecuteSql: false,
             canExecuteAi: false,
           },
-        }),
+        })
       );
 
       const heartbeatTimes: Date[] = [];
@@ -742,13 +742,13 @@ describe("End-to-End Execution Flow", () => {
             sessionId,
             status: i % 2 === 1 ? "ready" : "busy",
             timestamp: heartbeatTime,
-          }),
+          })
         );
       }
 
       const session = store.query(tables.kernelSessions.select())[0];
       expect(session.lastHeartbeat).toEqual(
-        heartbeatTimes[heartbeatTimes.length - 1],
+        heartbeatTimes[heartbeatTimes.length - 1]
       );
       expect(session.status).toBe("busy"); // Last heartbeat status
     });
@@ -767,7 +767,7 @@ describe("End-to-End Execution Flow", () => {
           cellType: "code",
           position: 0,
           createdBy: "test-user",
-        }),
+        })
       );
 
       store.commit(
@@ -777,7 +777,7 @@ describe("End-to-End Execution Flow", () => {
           executionCount: 1,
           requestedBy: "test-user",
           priority: 1,
-        }),
+        })
       );
 
       store.commit(
@@ -787,13 +787,13 @@ describe("End-to-End Execution Flow", () => {
           outputType: "stream",
           data: "Test output",
           position: 0,
-        }),
+        })
       );
 
       // Verify relationships
       const cell = store.query(tables.cells.select().where({ id: cellId }))[0];
       const queueEntry = store.query(
-        tables.executionQueue.select().where({ cellId }),
+        tables.executionQueue.select().where({ cellId })
       )[0];
       const output = store.query(tables.outputs.select().where({ cellId }))[0];
 
@@ -805,18 +805,18 @@ describe("End-to-End Execution Flow", () => {
       store.commit(
         events.cellDeleted({
           id: cellId,
-        }),
+        })
       );
 
       // Outputs should still exist (they're not automatically cleaned up)
       const outputsAfterDelete = store.query(
-        tables.outputs.select().where({ cellId }),
+        tables.outputs.select().where({ cellId })
       );
       expect(outputsAfterDelete).toHaveLength(1);
 
       // But cell should be marked as deleted
       const cellAfterDelete = store.query(
-        tables.cells.select().where({ id: cellId }),
+        tables.cells.select().where({ id: cellId })
       )[0];
     });
 
@@ -831,7 +831,7 @@ describe("End-to-End Execution Flow", () => {
             cellType: "code",
             position: 0,
             createdBy: "test-user",
-          }),
+          })
         );
 
         // Verify cell was created

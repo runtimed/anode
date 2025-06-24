@@ -68,7 +68,7 @@ cellAiContextChanged: Events.synced({
 
 // Bulk context operations
 cellsAiContextBulkChanged: Events.synced({
-  name: "v1.CellsAiContextBulkChanged", 
+  name: "v1.CellsAiContextBulkChanged",
   schema: Schema.Struct({
     cellIds: Schema.Array(Schema.String),
     includeInAiContext: Schema.Boolean,

@@ -10,7 +10,7 @@ describe("Runtime Command Generation", () => {
     const runtimeCommand = generateRuntimeCommand(notebookId);
 
     expect(runtimeCommand).toBe(
-      'NOTEBOOK_ID=test-notebook-123 deno run --allow-all --env-file=.env "jsr:@runt/pyodide-runtime-agent"',
+      'NOTEBOOK_ID=test-notebook-123 deno run --allow-all --env-file=.env "jsr:@runt/pyodide-runtime-agent"'
     );
   });
 
@@ -22,7 +22,7 @@ describe("Runtime Command Generation", () => {
     expect(runtimeCommand).toMatch(/^NOTEBOOK_ID=env-test-notebook /);
     // Should contain some runtime command (either custom from env or default)
     expect(runtimeCommand.length).toBeGreaterThan(
-      "NOTEBOOK_ID=env-test-notebook ".length,
+      "NOTEBOOK_ID=env-test-notebook ".length
     );
   });
 
@@ -32,7 +32,7 @@ describe("Runtime Command Generation", () => {
     const runtimeCommand = generateRuntimeCommand(notebookId, customCommand);
 
     expect(runtimeCommand).toBe(
-      "NOTEBOOK_ID=test-notebook-456 python -m my_custom_runtime",
+      "NOTEBOOK_ID=test-notebook-456 python -m my_custom_runtime"
     );
   });
 
@@ -42,7 +42,7 @@ describe("Runtime Command Generation", () => {
     const runtimeCommand = generateRuntimeCommand(notebookId, devCommand);
 
     expect(runtimeCommand).toBe(
-      "NOTEBOOK_ID=dev-notebook-789 pnpm dev:runtime",
+      "NOTEBOOK_ID=dev-notebook-789 pnpm dev:runtime"
     );
   });
 
@@ -51,7 +51,7 @@ describe("Runtime Command Generation", () => {
     const runtimeCommand = generateRuntimeCommand(notebookId);
 
     expect(runtimeCommand).toBe(
-      'NOTEBOOK_ID=notebook-with-dashes_and_underscores.123 deno run --allow-all --env-file=.env "jsr:@runt/pyodide-runtime-agent"',
+      'NOTEBOOK_ID=notebook-with-dashes_and_underscores.123 deno run --allow-all --env-file=.env "jsr:@runt/pyodide-runtime-agent"'
     );
   });
 

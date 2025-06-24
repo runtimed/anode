@@ -85,7 +85,7 @@ export const SqlCell: React.FC<SqlCellProps> = ({
       "Execute SQL query:",
       localQuery,
       "on connection:",
-      cell.sqlConnectionId,
+      cell.sqlConnectionId
     );
 
     // Mock execution for now
@@ -99,13 +99,15 @@ export const SqlCell: React.FC<SqlCellProps> = ({
       executionTime: "15ms",
     };
 
-    store.commit(events.sqlQueryExecuted({
-      cellId: cell.id,
-      connectionId: cell.sqlConnectionId,
-      query: localQuery,
-      resultData: mockResult,
-      executedBy: "current-user",
-    }));
+    store.commit(
+      events.sqlQueryExecuted({
+        cellId: cell.id,
+        connectionId: cell.sqlConnectionId,
+        query: localQuery,
+        resultData: mockResult,
+        executedBy: "current-user",
+      })
+    );
   }, [cell.id, cell.sqlConnectionId, localQuery, store]);
 
   // Use shared keyboard navigation hook
@@ -124,33 +126,41 @@ export const SqlCell: React.FC<SqlCellProps> = ({
 
   const changeCellType = useCallback(
     (newType: "code" | "markdown" | "sql" | "ai") => {
-      store.commit(events.cellTypeChanged({
-        id: cell.id,
-        cellType: newType,
-      }));
+      store.commit(
+        events.cellTypeChanged({
+          id: cell.id,
+          cellType: newType,
+        })
+      );
     },
-    [cell.id, store],
+    [cell.id, store]
   );
 
   const toggleSourceVisibility = useCallback(() => {
-    store.commit(events.cellSourceVisibilityToggled({
-      id: cell.id,
-      sourceVisible: !cell.sourceVisible,
-    }));
+    store.commit(
+      events.cellSourceVisibilityToggled({
+        id: cell.id,
+        sourceVisible: !cell.sourceVisible,
+      })
+    );
   }, [cell.id, cell.sourceVisible, store]);
 
   const toggleOutputVisibility = useCallback(() => {
-    store.commit(events.cellOutputVisibilityToggled({
-      id: cell.id,
-      outputVisible: !cell.outputVisible,
-    }));
+    store.commit(
+      events.cellOutputVisibilityToggled({
+        id: cell.id,
+        outputVisible: !cell.outputVisible,
+      })
+    );
   }, [cell.id, cell.outputVisible, store]);
 
   const toggleAiContextVisibility = useCallback(() => {
-    store.commit(events.cellAiContextVisibilityToggled({
-      id: cell.id,
-      aiContextVisible: !cell.aiContextVisible,
-    }));
+    store.commit(
+      events.cellAiContextVisibilityToggled({
+        id: cell.id,
+        aiContextVisible: !cell.aiContextVisible,
+      })
+    );
   }, [cell.id, cell.aiContextVisible, store]);
 
   const getCellTypeIcon = () => {
@@ -171,10 +181,9 @@ export const SqlCell: React.FC<SqlCellProps> = ({
         return (
           <Badge
             variant="outline"
-            className="h-5 text-xs border-blue-200 text-blue-700 bg-blue-50"
+            className="h-5 border-blue-200 bg-blue-50 text-xs text-blue-700"
           >
-            <div className="animate-spin w-2 h-2 border border-blue-600 border-t-transparent rounded-full mr-1">
-            </div>
+            <div className="mr-1 h-2 w-2 animate-spin rounded-full border border-blue-600 border-t-transparent"></div>
             Running
           </Badge>
         );
@@ -182,7 +191,7 @@ export const SqlCell: React.FC<SqlCellProps> = ({
         return (
           <Badge
             variant="outline"
-            className="h-5 text-xs border-green-200 text-green-700 bg-green-50"
+            className="h-5 border-green-200 bg-green-50 text-xs text-green-700"
           >
             ✓
           </Badge>
@@ -191,7 +200,7 @@ export const SqlCell: React.FC<SqlCellProps> = ({
         return (
           <Badge
             variant="outline"
-            className="h-5 text-xs border-red-200 text-red-700 bg-red-50"
+            className="h-5 border-red-200 bg-red-50 text-xs text-red-700"
           >
             Error
           </Badge>
@@ -208,12 +217,12 @@ export const SqlCell: React.FC<SqlCellProps> = ({
 
     return (
       <div className="mt-4 space-y-3">
-        <div className="flex items-center justify-between text-sm text-muted-foreground">
+        <div className="text-muted-foreground flex items-center justify-between text-sm">
           <span>{data.rowCount} rows returned</span>
           <span>Executed in {data.executionTime}</span>
         </div>
 
-        <div className="border rounded-md overflow-hidden">
+        <div className="overflow-hidden rounded-md border">
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead className="bg-muted">
@@ -245,15 +254,15 @@ export const SqlCell: React.FC<SqlCellProps> = ({
 
   return (
     <div
-      className={`cell-container mb-2 sm:mb-3 relative group transition-all duration-200 pt-2 -mx-3 sm:mx-0 px-3 sm:px-0 ${
+      className={`cell-container group relative -mx-3 mb-2 px-3 pt-2 transition-all duration-200 sm:mx-0 sm:mb-3 sm:px-0 ${
         autoFocus && !contextSelectionMode
           ? "bg-blue-50/30"
           : "hover:bg-muted/10"
       } ${contextSelectionMode && !cell.aiContextVisible ? "opacity-60" : ""} ${
         contextSelectionMode
-          ? (cell.aiContextVisible
-            ? "ring-2 ring-purple-300 bg-purple-50/30"
-            : "ring-2 ring-gray-300 bg-gray-50/30")
+          ? cell.aiContextVisible
+            ? "bg-purple-50/30 ring-2 ring-purple-300"
+            : "bg-gray-50/30 ring-2 ring-gray-300"
           : ""
       }`}
       style={{
@@ -262,25 +271,27 @@ export const SqlCell: React.FC<SqlCellProps> = ({
     >
       {/* Custom left border with controlled height */}
       <div
-        className={`cell-border absolute left-3 sm:left-0 top-0 w-0.5 transition-all duration-200 ${
+        className={`cell-border absolute top-0 left-3 w-0.5 transition-all duration-200 sm:left-0 ${
           autoFocus && !contextSelectionMode ? "bg-blue-500/60" : "bg-border/30"
         }`}
         style={{
-          height: cell.sqlResultData || cell.executionState === "running" ||
-              cell.executionState === "queued"
-            ? "100%"
-            : "4rem",
+          height:
+            cell.sqlResultData ||
+            cell.executionState === "running" ||
+            cell.executionState === "queued"
+              ? "100%"
+              : "4rem",
         }}
       />
       {/* Cell Header */}
-      <div className="cell-header flex items-center justify-between mb-2 pl-6 pr-1 sm:pr-4">
+      <div className="cell-header mb-2 flex items-center justify-between pr-1 pl-6 sm:pr-4">
         <div className="flex items-center gap-3">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button
                 variant="ghost"
                 size="sm"
-                className="h-7 sm:h-6 px-2 gap-1.5 text-xs font-medium hover:bg-muted/50 bg-blue-50 text-blue-700 border border-blue-200"
+                className="hover:bg-muted/50 h-7 gap-1.5 border border-blue-200 bg-blue-50 px-2 text-xs font-medium text-blue-700 sm:h-6"
               >
                 {getCellTypeIcon()}
                 <span className="cell-type-label hidden sm:inline">SQL</span>
@@ -319,7 +330,7 @@ export const SqlCell: React.FC<SqlCellProps> = ({
           </DropdownMenu>
           <Badge
             variant="outline"
-            className="h-5 text-xs text-muted-foreground"
+            className="text-muted-foreground h-5 text-xs"
           >
             {cell.sqlConnectionId || "No connection"}
           </Badge>
@@ -327,25 +338,26 @@ export const SqlCell: React.FC<SqlCellProps> = ({
         </div>
 
         {/* Cell Controls - visible on hover or always on mobile */}
-        <div className="cell-controls flex items-center gap-0.5 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
+        <div className="cell-controls flex items-center gap-0.5 opacity-100 transition-opacity sm:opacity-0 sm:group-hover:opacity-100">
           {/* Mobile Play Button - SQL cells */}
           <Button
             variant="ghost"
             size="sm"
             onClick={executeQuery}
-            disabled={cell.executionState === "running" ||
-              cell.executionState === "queued"}
-            className="mobile-play-btn block sm:hidden h-8 w-8 p-0 hover:bg-muted/80"
+            disabled={
+              cell.executionState === "running" ||
+              cell.executionState === "queued"
+            }
+            className="mobile-play-btn hover:bg-muted/80 block h-8 w-8 p-0 sm:hidden"
             title="Execute SQL query"
           >
-            {cell.executionState === "running"
-              ? (
-                <div className="animate-spin w-4 h-4 border border-current border-t-transparent rounded-full">
-                </div>
-              )
-              : cell.executionState === "queued"
-              ? <div className="w-3 h-3 bg-amber-500 rounded-full"></div>
-              : <Play className="h-4 w-4" />}
+            {cell.executionState === "running" ? (
+              <div className="h-4 w-4 animate-spin rounded-full border border-current border-t-transparent"></div>
+            ) : cell.executionState === "queued" ? (
+              <div className="h-3 w-3 rounded-full bg-amber-500"></div>
+            ) : (
+              <Play className="h-4 w-4" />
+            )}
           </Button>
 
           <div className="flex-1" />
@@ -355,7 +367,7 @@ export const SqlCell: React.FC<SqlCellProps> = ({
             variant="ghost"
             size="sm"
             onClick={onAddCell}
-            className="h-8 w-8 sm:h-7 sm:w-7 p-0 hover:bg-muted/80"
+            className="hover:bg-muted/80 h-8 w-8 p-0 sm:h-7 sm:w-7"
             title="Add cell below"
           >
             <Plus className="h-4 w-4 sm:h-3 sm:w-3" />
@@ -366,14 +378,16 @@ export const SqlCell: React.FC<SqlCellProps> = ({
             variant="ghost"
             size="sm"
             onClick={toggleSourceVisibility}
-            className={`h-8 w-8 sm:h-7 sm:w-7 p-0 hover:bg-muted/80 ${
+            className={`hover:bg-muted/80 h-8 w-8 p-0 sm:h-7 sm:w-7 ${
               cell.sourceVisible ? "" : "text-muted-foreground/60"
             }`}
             title={cell.sourceVisible ? "Hide source" : "Show source"}
           >
-            {cell.sourceVisible
-              ? <ChevronUp className="h-4 w-4 sm:h-3 sm:w-3" />
-              : <ChevronDown className="h-4 w-4 sm:h-3 sm:w-3" />}
+            {cell.sourceVisible ? (
+              <ChevronUp className="h-4 w-4 sm:h-3 sm:w-3" />
+            ) : (
+              <ChevronDown className="h-4 w-4 sm:h-3 sm:w-3" />
+            )}
           </Button>
 
           {/* Context Selection Mode Button */}
@@ -382,28 +396,32 @@ export const SqlCell: React.FC<SqlCellProps> = ({
               variant="ghost"
               size="sm"
               onClick={toggleAiContextVisibility}
-              className={`h-8 w-8 sm:h-7 sm:w-7 p-0 hover:bg-muted/80 ${
+              className={`hover:bg-muted/80 h-8 w-8 p-0 sm:h-7 sm:w-7 ${
                 cell.aiContextVisible ? "text-purple-600" : "text-gray-500"
               }`}
-              title={cell.aiContextVisible
-                ? "Hide from AI context"
-                : "Show in AI context"}
+              title={
+                cell.aiContextVisible
+                  ? "Hide from AI context"
+                  : "Show in AI context"
+              }
             >
-              {cell.aiContextVisible
-                ? <Eye className="h-4 w-4 sm:h-3 sm:w-3" />
-                : <EyeOff className="h-4 w-4 sm:h-3 sm:w-3" />}
+              {cell.aiContextVisible ? (
+                <Eye className="h-4 w-4 sm:h-3 sm:w-3" />
+              ) : (
+                <EyeOff className="h-4 w-4 sm:h-3 sm:w-3" />
+              )}
             </Button>
           )}
 
           {/* Desktop-only controls */}
-          <div className="desktop-controls hidden sm:flex items-center gap-0.5">
+          <div className="desktop-controls hidden items-center gap-0.5 sm:flex">
             {/* Separator */}
-            <div className="w-px h-4 bg-border/50 mx-1" />
+            <div className="bg-border/50 mx-1 h-4 w-px" />
             <Button
               variant="ghost"
               size="sm"
               onClick={onMoveUp}
-              className="h-7 w-7 p-0 hover:bg-muted/80"
+              className="hover:bg-muted/80 h-7 w-7 p-0"
               title="Move cell up"
             >
               <ArrowUp className="h-3 w-3" />
@@ -412,7 +430,7 @@ export const SqlCell: React.FC<SqlCellProps> = ({
               variant="ghost"
               size="sm"
               onClick={onMoveDown}
-              className="h-7 w-7 p-0 hover:bg-muted/80"
+              className="hover:bg-muted/80 h-7 w-7 p-0"
               title="Move cell down"
             >
               <ArrowDown className="h-3 w-3" />
@@ -421,7 +439,7 @@ export const SqlCell: React.FC<SqlCellProps> = ({
               variant="ghost"
               size="sm"
               onClick={onDeleteCell}
-              className="h-7 w-7 p-0 text-muted-foreground hover:text-destructive hover:bg-destructive/10"
+              className="text-muted-foreground hover:text-destructive hover:bg-destructive/10 h-7 w-7 p-0"
               title="Delete cell"
             >
               <X className="h-3 w-3" />
@@ -434,36 +452,37 @@ export const SqlCell: React.FC<SqlCellProps> = ({
       <div className="relative">
         {/* Desktop Play Button Breaking Through Left Border */}
         <div
-          className="desktop-play-btn hidden sm:block absolute -left-3 z-10"
+          className="desktop-play-btn absolute -left-3 z-10 hidden sm:block"
           style={{ top: cell.sourceVisible ? "0.375rem" : "-1.5rem" }}
         >
           <Button
             variant="ghost"
             size="sm"
             onClick={executeQuery}
-            disabled={cell.executionState === "running" ||
-              cell.executionState === "queued"}
-            className={`h-6 w-6 p-0 rounded-sm bg-white border-0 hover:bg-white transition-colors ${
+            disabled={
+              cell.executionState === "running" ||
+              cell.executionState === "queued"
+            }
+            className={`h-6 w-6 rounded-sm border-0 bg-white p-0 transition-colors hover:bg-white ${
               autoFocus
                 ? "text-blue-600"
-                : "text-muted-foreground/40 hover:text-blue-600 group-hover:text-blue-600"
+                : "text-muted-foreground/40 group-hover:text-blue-600 hover:text-blue-600"
             }`}
           >
-            {cell.executionState === "running"
-              ? (
-                <div className="animate-spin w-3 h-3 border border-blue-600 border-t-transparent rounded-full bg-white">
-                </div>
-              )
-              : cell.executionState === "queued"
-              ? <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-              : <Play className="h-3 w-3" />}
+            {cell.executionState === "running" ? (
+              <div className="h-3 w-3 animate-spin rounded-full border border-blue-600 border-t-transparent bg-white"></div>
+            ) : cell.executionState === "queued" ? (
+              <div className="h-2 w-2 rounded-full bg-blue-500"></div>
+            ) : (
+              <Play className="h-3 w-3" />
+            )}
           </Button>
         </div>
 
         {/* Text Content Area */}
         {cell.sourceVisible && (
           <div
-            className={`cell-content transition-colors py-1 pl-4 pr-1 sm:pr-4 ${
+            className={`cell-content py-1 pr-1 pl-4 transition-colors sm:pr-4 ${
               autoFocus ? "bg-white" : "bg-white"
             }`}
           >
@@ -475,7 +494,7 @@ export const SqlCell: React.FC<SqlCellProps> = ({
                 onBlur={updateQuery}
                 onKeyDown={handleKeyDown}
                 placeholder="SELECT * FROM your_table WHERE condition = 'value';"
-                className="min-h-[1.5rem] resize-none border-0 px-2 py-1 focus-visible:ring-0 font-mono bg-white w-full placeholder:text-muted-foreground/60 shadow-none"
+                className="placeholder:text-muted-foreground/60 min-h-[1.5rem] w-full resize-none border-0 bg-white px-2 py-1 font-mono shadow-none focus-visible:ring-0"
                 onFocus={handleFocus}
                 autoCapitalize="off"
                 autoCorrect="off"
@@ -488,46 +507,43 @@ export const SqlCell: React.FC<SqlCellProps> = ({
       </div>
 
       {/* Execution Summary - appears after input */}
-      {(cell.executionCount || cell.executionState === "running" ||
+      {(cell.executionCount ||
+        cell.executionState === "running" ||
         cell.executionState === "queued") && (
-        <div className="cell-content mt-1 pl-6 pr-1 sm:pr-4">
-          <div className="flex items-center justify-between text-xs text-muted-foreground pb-1">
+        <div className="cell-content mt-1 pr-1 pl-6 sm:pr-4">
+          <div className="text-muted-foreground flex items-center justify-between pb-1 text-xs">
             <span>
               {cell.executionState === "running"
-                ? (
-                  "Running query..."
-                )
+                ? "Running query..."
                 : cell.executionState === "queued"
-                ? (
-                  "Queued"
-                )
-                : cell.executionCount
-                ? (
-                  cell.lastExecutionDurationMs
-                    ? `${
-                      cell.lastExecutionDurationMs < 1000
-                        ? `${cell.lastExecutionDurationMs}ms`
-                        : `${(cell.lastExecutionDurationMs / 1000).toFixed(1)}s`
-                    }`
-                    : "Completed"
-                )
-                : null}
+                  ? "Queued"
+                  : cell.executionCount
+                    ? cell.lastExecutionDurationMs
+                      ? `${
+                          cell.lastExecutionDurationMs < 1000
+                            ? `${cell.lastExecutionDurationMs}ms`
+                            : `${(cell.lastExecutionDurationMs / 1000).toFixed(1)}s`
+                        }`
+                      : "Completed"
+                    : null}
             </span>
             {cell.sqlResultData && (
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={toggleOutputVisibility}
-                className={`h-6 w-6 sm:h-5 sm:w-5 p-0 hover:bg-muted/80 transition-opacity ${
+                className={`hover:bg-muted/80 h-6 w-6 p-0 transition-opacity sm:h-5 sm:w-5 ${
                   autoFocus
                     ? "opacity-100"
                     : "opacity-100 sm:opacity-0 sm:group-hover:opacity-100"
                 } ${cell.outputVisible ? "" : "text-muted-foreground/60"}`}
                 title={cell.outputVisible ? "Hide output" : "Show output"}
               >
-                {cell.outputVisible
-                  ? <ChevronUp className="h-3 w-3" />
-                  : <ChevronDown className="h-3 w-3" />}
+                {cell.outputVisible ? (
+                  <ChevronUp className="h-3 w-3" />
+                ) : (
+                  <ChevronDown className="h-3 w-3" />
+                )}
               </Button>
             )}
           </div>
@@ -536,7 +552,7 @@ export const SqlCell: React.FC<SqlCellProps> = ({
 
       {/* Query Results */}
       {cell.sqlResultData && cell.outputVisible && (
-        <div className="cell-content mt-1 pl-6 pr-1 sm:pr-4 bg-background overflow-hidden max-w-full">
+        <div className="cell-content bg-background mt-1 max-w-full overflow-hidden pr-1 pl-6 sm:pr-4">
           {renderResults()}
         </div>
       )}

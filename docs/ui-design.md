@@ -281,20 +281,19 @@ Primary design targets desktop/laptop usage for development workflows.
 
 ```css
 .cell-container {
-  @apply mb-3 relative group border-l-2 transition-all duration-200;
+  @apply group relative mb-3 border-l-2 transition-all duration-200;
 }
 
 .cell-header {
-  @apply flex items-center justify-between mb-3 py-1 pl-6 pr-4;
+  @apply mb-3 flex items-center justify-between py-1 pr-4 pl-6;
 }
 
 .cell-content {
-  @apply transition-colors px-4 py-3;
+  @apply px-4 py-3 transition-colors;
 }
 
 .cell-textarea {
-  @apply min-h-[60px] resize-none border-0 px-2 py-2 focus-visible:ring-0
-    font-mono bg-transparent;
+  @apply min-h-[60px] resize-none border-0 bg-transparent px-2 py-2 font-mono focus-visible:ring-0;
 }
 ```
 
@@ -303,7 +302,7 @@ Primary design targets desktop/laptop usage for development workflows.
 ```css
 /* Unfocused */
 .cell-unfocused {
-  @apply border-transparent hover:border-border/50;
+  @apply hover:border-border/50 border-transparent;
 }
 
 /* Focused - varies by cell type */

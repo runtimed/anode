@@ -113,6 +113,7 @@ Key variables:
 For local development, you can run both services locally:
 
 1. **Start the sync backend:**
+
    ```bash
    pnpm dev:sync
    ```

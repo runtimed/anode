@@ -64,7 +64,7 @@ export const RichOutput: React.FC<RichOutputProps> = ({
 
   if (!mediaType) {
     return (
-      <div className="p-3 bg-gray-50/50 text-sm text-gray-500 italic">
+      <div className="bg-gray-50/50 p-3 text-sm text-gray-500 italic">
         No displayable content
       </div>
     );
@@ -74,9 +74,7 @@ export const RichOutput: React.FC<RichOutputProps> = ({
     switch (mediaType) {
       case "application/vnd.anode.aitool+json":
         return (
-          <AiToolCallOutput
-            toolData={outputData[mediaType] as ToolCallData}
-          />
+          <AiToolCallOutput toolData={outputData[mediaType] as ToolCallData} />
         );
 
       case "text/markdown":
@@ -109,16 +107,14 @@ export const RichOutput: React.FC<RichOutputProps> = ({
       case "text/plain":
       default:
         return (
-          <PlainTextOutput
-            content={String(outputData[mediaType] || "")}
-          />
+          <PlainTextOutput content={String(outputData[mediaType] || "")} />
         );
     }
   };
 
   return (
     <div className="rich-output">
-      <div className="overflow-hidden max-w-full">{renderContent()}</div>
+      <div className="max-w-full overflow-hidden">{renderContent()}</div>
     </div>
   );
 };
@@ -126,7 +122,7 @@ export const RichOutput: React.FC<RichOutputProps> = ({
 // Helper function to create rich output data
 export const createRichOutput = (
   content: string,
-  mediaType: string = "text/plain",
+  mediaType: string = "text/plain"
 ) => {
   return {
     [mediaType]: content,

@@ -50,7 +50,7 @@ describe("Edge Cases and Stress Tests", () => {
             cellType: "code",
             position: i,
             createdBy: "stress-test",
-          }),
+          })
         );
       }
 
@@ -63,7 +63,7 @@ describe("Edge Cases and Stress Tests", () => {
         store.commit(
           events.cellDeleted({
             id: cells[i],
-          }),
+          })
         );
       }
 
@@ -95,7 +95,7 @@ describe("Edge Cases and Stress Tests", () => {
             cellType: "code",
             position: i,
             createdBy: "stress-test",
-          }),
+          })
         );
       }
 
@@ -108,7 +108,7 @@ describe("Edge Cases and Stress Tests", () => {
             executionCount: 1,
             requestedBy: "stress-test",
             priority: Math.floor(Math.random() * 100), // Random integer priorities
-          }),
+          })
         );
       }
 
@@ -123,7 +123,7 @@ describe("Edge Cases and Stress Tests", () => {
             canExecuteSql: false,
             canExecuteAi: false,
           },
-        }),
+        })
       );
 
       // Assign and complete all executions
@@ -132,7 +132,7 @@ describe("Edge Cases and Stress Tests", () => {
           events.executionAssigned({
             queueId: queueIds[i],
             kernelSessionId: sessionId,
-          }),
+          })
         );
 
         store.commit(
@@ -141,7 +141,7 @@ describe("Edge Cases and Stress Tests", () => {
             cellId: cellIds[i],
             kernelSessionId: sessionId,
             startedAt: new Date(),
-          }),
+          })
         );
 
         store.commit(
@@ -151,7 +151,7 @@ describe("Edge Cases and Stress Tests", () => {
             status: "success",
             completedAt: new Date(),
             executionDurationMs: 100,
-          }),
+          })
         );
       }
 
@@ -159,13 +159,13 @@ describe("Edge Cases and Stress Tests", () => {
       const queueEntries = store.query(tables.executionQueue.select());
       expect(queueEntries).toHaveLength(executionCount);
       expect(
-        queueEntries.every((entry: any) => entry.status === "completed"),
+        queueEntries.every((entry: any) => entry.status === "completed")
       ).toBe(true);
 
       // Verify all cells have correct execution state
       const cells = store.query(tables.cells.select());
       expect(
-        cells.every((cell: any) => cell.executionState === "completed"),
+        cells.every((cell: any) => cell.executionState === "completed")
       ).toBe(true);
     });
   });
@@ -180,7 +180,7 @@ describe("Edge Cases and Stress Tests", () => {
           cellType: "code",
           position: 0,
           createdBy: "test-user",
-        }),
+        })
       );
 
       // Test moving to very large position
@@ -188,7 +188,7 @@ describe("Edge Cases and Stress Tests", () => {
         events.cellMoved({
           id: cellId,
           newPosition: Number.MAX_SAFE_INTEGER,
-        }),
+        })
       );
 
       let cell = store.query(tables.cells.select().where({ id: cellId }))[0];
@@ -199,7 +199,7 @@ describe("Edge Cases and Stress Tests", () => {
         events.cellMoved({
           id: cellId,
           newPosition: -1000,
-        }),
+        })
       );
 
       cell = store.query(tables.cells.select().where({ id: cellId }))[0];
@@ -210,7 +210,7 @@ describe("Edge Cases and Stress Tests", () => {
         events.cellMoved({
           id: cellId,
           newPosition: 0,
-        }),
+        })
       );
 
       cell = store.query(tables.cells.select().where({ id: cellId }))[0];
@@ -227,7 +227,7 @@ describe("Edge Cases and Stress Tests", () => {
           cellType: "code",
           position: 0,
           createdBy: "test-user",
-        }),
+        })
       );
 
       // Create a very large output (1MB of data)
@@ -246,7 +246,7 @@ describe("Edge Cases and Stress Tests", () => {
           outputType: "display_data",
           data: largeData,
           position: 0,
-        }),
+        })
       );
 
       const outputs = store.query(tables.outputs.select().where({ cellId }));
@@ -280,7 +280,7 @@ describe("Edge Cases and Stress Tests", () => {
             cellType: "code",
             position: i,
             createdBy: testString,
-          }),
+          })
         );
 
         // Test in source change
@@ -289,12 +289,12 @@ describe("Edge Cases and Stress Tests", () => {
             id: cellId,
             source: testString,
             modifiedBy: testString,
-          }),
+          })
         );
 
         // Verify data integrity
         const cell = store.query(
-          tables.cells.select().where({ id: cellId }),
+          tables.cells.select().where({ id: cellId })
         )[0];
         expect(cell.createdBy).toBe(testString);
         expect(cell.source).toBe(testString);
@@ -320,7 +320,7 @@ describe("Edge Cases and Stress Tests", () => {
               canExecuteSql: false,
               canExecuteAi: false,
             },
-          }),
+          })
         );
 
         // Send heartbeat
@@ -329,7 +329,7 @@ describe("Edge Cases and Stress Tests", () => {
             sessionId: currentSessionId,
             status: "ready",
             timestamp: new Date(),
-          }),
+          })
         );
 
         // Terminate session
@@ -337,7 +337,7 @@ describe("Edge Cases and Stress Tests", () => {
           events.kernelSessionTerminated({
             sessionId: currentSessionId,
             reason: "restart",
-          }),
+          })
         );
       }
 
@@ -358,7 +358,7 @@ describe("Edge Cases and Stress Tests", () => {
             canExecuteSql: false,
             canExecuteAi: false,
           },
-        }),
+        })
       );
 
       // Send 100 heartbeats rapidly
@@ -372,7 +372,7 @@ describe("Edge Cases and Stress Tests", () => {
             sessionId,
             status: i % 2 === 0 ? "ready" : "busy",
             timestamp: lastTimestamp,
-          }),
+          })
         );
       }
 
@@ -386,7 +386,7 @@ describe("Edge Cases and Stress Tests", () => {
     it("should handle queries with no results gracefully", async () => {
       // Query non-existent cells
       const emptyCells = store.query(
-        tables.cells.select().where({ id: "non-existent-cell" }),
+        tables.cells.select().where({ id: "non-existent-cell" })
       );
       expect(emptyCells).toEqual([]);
 
@@ -395,13 +395,13 @@ describe("Edge Cases and Stress Tests", () => {
         tables.executionQueue
           .select()
           .where({ status: "pending" })
-          .where({ priority: { op: ">", value: 1000 } }),
+          .where({ priority: { op: ">", value: 1000 } })
       );
       expect(emptyQueue).toEqual([]);
 
       // Query with multiple joins that return nothing
       const emptyOutputs = store.query(
-        tables.outputs.select().where({ cellId: "non-existent-cell" }),
+        tables.outputs.select().where({ cellId: "non-existent-cell" })
       );
       expect(emptyOutputs).toEqual([]);
     });
@@ -419,7 +419,7 @@ describe("Edge Cases and Stress Tests", () => {
             cellType: i % 2 === 0 ? "code" : "markdown",
             position: i,
             createdBy: "test-user",
-          }),
+          })
         );
 
         store.commit(
@@ -429,7 +429,7 @@ describe("Edge Cases and Stress Tests", () => {
             executionCount: 1,
             requestedBy: "test-user",
             priority: i + 1,
-          }),
+          })
         );
       }
 
@@ -438,25 +438,25 @@ describe("Edge Cases and Stress Tests", () => {
       expect(totalCells).toBe(cellCount);
 
       const codeCells = store.query(
-        tables.cells.count().where({ cellType: "code" }),
+        tables.cells.count().where({ cellType: "code" })
       );
       expect(codeCells).toBe(cellCount / 2);
 
       const markdownCells = store.query(
-        tables.cells.count().where({ cellType: "markdown" }),
+        tables.cells.count().where({ cellType: "markdown" })
       );
       expect(markdownCells).toBe(cellCount / 2);
 
       // Test ordering
       const cellsByPosition = store.query(
-        tables.cells.select().orderBy("position", "asc"),
+        tables.cells.select().orderBy("position", "asc")
       );
       expect(cellsByPosition).toHaveLength(cellCount);
       expect(cellsByPosition[0].position).toBe(0);
       expect(cellsByPosition[cellCount - 1].position).toBe(cellCount - 1);
 
       const queueByPriority = store.query(
-        tables.executionQueue.select().orderBy("priority", "desc"),
+        tables.executionQueue.select().orderBy("priority", "desc")
       );
       expect(queueByPriority).toHaveLength(cellCount);
       expect(queueByPriority[0].priority).toBe(cellCount);
@@ -475,7 +475,7 @@ describe("Edge Cases and Stress Tests", () => {
           cellType: "code",
           position: 0,
           createdBy: "test-user",
-        }),
+        })
       );
 
       store.commit(
@@ -488,7 +488,7 @@ describe("Edge Cases and Stress Tests", () => {
             canExecuteSql: false,
             canExecuteAi: false,
           },
-        }),
+        })
       );
 
       // Test error during execution request
@@ -499,14 +499,14 @@ describe("Edge Cases and Stress Tests", () => {
           executionCount: 1,
           requestedBy: "test-user",
           priority: 1,
-        }),
+        })
       );
 
       store.commit(
         events.executionAssigned({
           queueId,
           kernelSessionId: sessionId,
-        }),
+        })
       );
 
       store.commit(
@@ -515,7 +515,7 @@ describe("Edge Cases and Stress Tests", () => {
           cellId,
           kernelSessionId: sessionId,
           startedAt: new Date(),
-        }),
+        })
       );
 
       // Simulate execution error
@@ -528,7 +528,7 @@ describe("Edge Cases and Stress Tests", () => {
             "Simulated execution error with special chars: 🚨💥 Error message",
           completedAt: new Date(),
           executionDurationMs: 50,
-        }),
+        })
       );
 
       const queueEntry = store.query(tables.executionQueue.select())[0];
@@ -548,7 +548,7 @@ describe("Edge Cases and Stress Tests", () => {
           cellType: "code",
           position: 0,
           createdBy: "test-user",
-        }),
+        })
       );
 
       store.commit(
@@ -561,7 +561,7 @@ describe("Edge Cases and Stress Tests", () => {
             canExecuteSql: false,
             canExecuteAi: false,
           },
-        }),
+        })
       );
 
       store.commit(
@@ -571,14 +571,14 @@ describe("Edge Cases and Stress Tests", () => {
           executionCount: 1,
           requestedBy: "test-user",
           priority: 1,
-        }),
+        })
       );
 
       store.commit(
         events.executionAssigned({
           queueId,
           kernelSessionId: sessionId,
-        }),
+        })
       );
 
       store.commit(
@@ -587,7 +587,7 @@ describe("Edge Cases and Stress Tests", () => {
           cellId,
           kernelSessionId: sessionId,
           startedAt: new Date(),
-        }),
+        })
       );
 
       // Terminate kernel while execution is running
@@ -595,7 +595,7 @@ describe("Edge Cases and Stress Tests", () => {
         events.kernelSessionTerminated({
           sessionId,
           reason: "error",
-        }),
+        })
       );
 
       const session = store.query(tables.kernelSessions.select())[0];
@@ -619,7 +619,7 @@ describe("Edge Cases and Stress Tests", () => {
           cellType: "code",
           position: 0,
           createdBy: "test-user",
-        }),
+        })
       );
 
       // Add many outputs
@@ -634,7 +634,7 @@ describe("Edge Cases and Stress Tests", () => {
               value: i,
             },
             position: i,
-          }),
+          })
         );
       }
 
@@ -646,11 +646,11 @@ describe("Edge Cases and Stress Tests", () => {
         events.cellOutputsCleared({
           cellId,
           clearedBy: "test-user",
-        }),
+        })
       );
 
       const clearedOutputs = store.query(
-        tables.outputs.select().where({ cellId }),
+        tables.outputs.select().where({ cellId })
       );
       expect(clearedOutputs).toHaveLength(0);
     });
@@ -663,7 +663,7 @@ describe("Edge Cases and Stress Tests", () => {
           id: storeId,
           title: "Large Notebook Test",
           ownerId: "test-user",
-        }),
+        })
       );
 
       // Create maximum cells
@@ -674,7 +674,7 @@ describe("Edge Cases and Stress Tests", () => {
             cellType: i % 3 === 0 ? "code" : i % 3 === 1 ? "markdown" : "raw",
             position: i,
             createdBy: "test-user",
-          }),
+          })
         );
 
         // Add some content to every 10th cell
@@ -684,7 +684,7 @@ describe("Edge Cases and Stress Tests", () => {
               id: `max-cell-${i}`,
               source: `# Cell ${i}\nprint("Hello from cell ${i}")`,
               modifiedBy: "test-user",
-            }),
+            })
           );
         }
       }
@@ -700,7 +700,7 @@ describe("Edge Cases and Stress Tests", () => {
         tables.cells
           .select()
           .where({ position: { op: "<", value: 100 } })
-          .orderBy("position", "asc"),
+          .orderBy("position", "asc")
       );
       expect(firstHundred).toHaveLength(100);
       expect(firstHundred[0].position).toBe(0);
@@ -708,7 +708,7 @@ describe("Edge Cases and Stress Tests", () => {
 
       // Test querying by type
       const codeCells = store.query(
-        tables.cells.select().where({ cellType: "code" }),
+        tables.cells.select().where({ cellType: "code" })
       );
       expect(codeCells.length).toBeGreaterThan(300); // Roughly 1/3 of total
     });
@@ -729,7 +729,7 @@ describe("Edge Cases and Stress Tests", () => {
             cellType: "code",
             position: i,
             createdBy: "test-user",
-          }),
+          })
         );
       }
 
@@ -737,7 +737,7 @@ describe("Edge Cases and Stress Tests", () => {
       for (let round = 0; round < 5; round++) {
         const shuffledPositions = Array.from(
           { length: cellCount },
-          (_, i) => i,
+          (_, i) => i
         ).sort(() => Math.random() - 0.5);
 
         for (let i = 0; i < cellCount; i++) {
@@ -745,7 +745,7 @@ describe("Edge Cases and Stress Tests", () => {
             events.cellMoved({
               id: cellIds[i],
               newPosition: shuffledPositions[i],
-            }),
+            })
           );
         }
 
@@ -769,7 +769,7 @@ describe("Edge Cases and Stress Tests", () => {
           cellType: "code",
           position: 0,
           createdBy: "test-user",
-        }),
+        })
       );
 
       store.commit(
@@ -782,7 +782,7 @@ describe("Edge Cases and Stress Tests", () => {
             canExecuteSql: false,
             canExecuteAi: false,
           },
-        }),
+        })
       );
 
       // Test state transitions: idle -> queued -> assigned -> executing -> completed
@@ -796,7 +796,7 @@ describe("Edge Cases and Stress Tests", () => {
           executionCount: 1,
           requestedBy: "test-user",
           priority: 1,
-        }),
+        })
       );
 
       cell = store.query(tables.cells.select().where({ id: cellId }))[0];
@@ -806,7 +806,7 @@ describe("Edge Cases and Stress Tests", () => {
         events.executionAssigned({
           queueId,
           kernelSessionId: sessionId,
-        }),
+        })
       );
 
       // Cell state should still be queued after assignment
@@ -819,7 +819,7 @@ describe("Edge Cases and Stress Tests", () => {
           cellId,
           kernelSessionId: sessionId,
           startedAt: new Date(),
-        }),
+        })
       );
 
       cell = store.query(tables.cells.select().where({ id: cellId }))[0];
@@ -832,7 +832,7 @@ describe("Edge Cases and Stress Tests", () => {
           status: "success",
           completedAt: new Date(),
           executionDurationMs: 200,
-        }),
+        })
       );
 
       cell = store.query(tables.cells.select().where({ id: cellId }))[0];

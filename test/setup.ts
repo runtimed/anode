@@ -86,15 +86,15 @@ export const waitFor = (condition: () => boolean, timeout = 5000) => {
 export const collectEvents = <T>(
   observable: any,
   count: number,
-  timeout = 1000,
+  timeout = 1000
 ): Promise<T[]> => {
   return new Promise((resolve, reject) => {
     const events: T[] = [];
     const timer = setTimeout(() => {
       reject(
         new Error(
-          `Timeout: collected ${events.length}/${count} events after ${timeout}ms`,
-        ),
+          `Timeout: collected ${events.length}/${count} events after ${timeout}ms`
+        )
       );
     }, timeout);
 
@@ -128,7 +128,7 @@ export const createInMemoryAdapter = async () => {
 // Error testing utilities
 export const expectError = async <T>(
   promise: Promise<T>,
-  expectedMessage?: string,
+  expectedMessage?: string
 ) => {
   try {
     await promise;
@@ -136,7 +136,7 @@ export const expectError = async <T>(
   } catch (error) {
     if (expectedMessage && !error.message.includes(expectedMessage)) {
       throw new Error(
-        `Expected error message to contain "${expectedMessage}", but got: ${error.message}`,
+        `Expected error message to contain "${expectedMessage}", but got: ${error.message}`
       );
     }
     return error;
@@ -154,6 +154,6 @@ export const cleanupResources = (
       } catch (error) {
         console.warn("Error during cleanup:", error);
       }
-    }),
+    })
   );
 };

@@ -13,13 +13,15 @@ export const HtmlOutput: React.FC<HtmlOutputProps> = ({
     <div
       className={className}
       dangerouslySetInnerHTML={{ __html: content }}
-      style={{
-        // Clean styles for pandas DataFrames
-        "--dataframe-border": "1px solid #e5e7eb",
-        "--dataframe-bg": "#fff",
-        "--dataframe-header-bg": "#f9fafb",
-        "--dataframe-hover-bg": "#f3f4f6",
-      } as React.CSSProperties}
+      style={
+        {
+          // Clean styles for pandas DataFrames
+          "--dataframe-border": "1px solid #e5e7eb",
+          "--dataframe-bg": "#fff",
+          "--dataframe-header-bg": "#f9fafb",
+          "--dataframe-hover-bg": "#f3f4f6",
+        } as React.CSSProperties
+      }
     />
   );
 };

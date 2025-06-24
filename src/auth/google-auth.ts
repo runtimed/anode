@@ -106,9 +106,12 @@ class GoogleAuthManager {
       const base64Url = token.split(".")[1];
       const base64 = base64Url.replace(/-/g, "+").replace(/_/g, "/");
       const jsonPayload = decodeURIComponent(
-        atob(base64).split("").map(function (c) {
-          return "%" + ("00" + c.charCodeAt(0).toString(16)).slice(-2);
-        }).join(""),
+        atob(base64)
+          .split("")
+          .map(function (c) {
+            return "%" + ("00" + c.charCodeAt(0).toString(16)).slice(-2);
+          })
+          .join("")
       );
       return JSON.parse(jsonPayload);
     } catch (error) {
@@ -245,7 +248,7 @@ class GoogleAuthManager {
 
       // Check if token expires within 5 minutes (300 seconds)
       const expirationTime = payload.exp * 1000; // Convert to milliseconds
-      const fiveMinutesFromNow = Date.now() + (5 * 60 * 1000);
+      const fiveMinutesFromNow = Date.now() + 5 * 60 * 1000;
 
       return expirationTime <= fiveMinutesFromNow;
     } catch (error) {
@@ -325,7 +328,7 @@ export const isAuthStateValid = async (): Promise<boolean> => {
 
 // Authentication event listeners helper
 export const addAuthTokenListener = (
-  callback: (token: string | null) => void,
-): () => void => {
+  callback: (token: string | null) => void
+): (() => void) => {
   return googleAuthManager.addTokenChangeListener(callback);
 };

@@ -45,7 +45,7 @@ describe("Reactivity Debugging", () => {
         tables.executionQueue
           .select()
           .where({ status: "assigned", assignedKernelSession: sessionId }),
-        { label: "assignedWork" },
+        { label: "assignedWork" }
       );
 
       const subscription = store.subscribe(assignedWork$, {
@@ -68,7 +68,7 @@ describe("Reactivity Debugging", () => {
           cellType: "code",
           position: 0,
           createdBy: "test-user",
-        }),
+        })
       );
 
       store.commit(
@@ -78,14 +78,14 @@ describe("Reactivity Debugging", () => {
           executionCount: 1,
           requestedBy: "test-user",
           priority: 1,
-        }),
+        })
       );
 
       store.commit(
         events.executionAssigned({
           queueId,
           kernelSessionId: sessionId,
-        }),
+        })
       );
 
       // Wait for initial updates
@@ -102,7 +102,7 @@ describe("Reactivity Debugging", () => {
           cellId,
           kernelSessionId: sessionId,
           startedAt: new Date(),
-        }),
+        })
       );
 
       // Wait a bit to ensure no additional calls
@@ -121,7 +121,7 @@ describe("Reactivity Debugging", () => {
           .where({ status: "pending" })
           .orderBy("priority", "desc")
           .limit(5),
-        { label: "pendingWork" },
+        { label: "pendingWork" }
       );
 
       // Create multiple subscriptions to the same query
@@ -138,7 +138,7 @@ describe("Reactivity Debugging", () => {
           cellType: "code",
           position: 0,
           createdBy: "test-user",
-        }),
+        })
       );
 
       store.commit(
@@ -148,7 +148,7 @@ describe("Reactivity Debugging", () => {
           executionCount: 1,
           requestedBy: "test-user",
           priority: 1,
-        }),
+        })
       );
 
       // All callbacks should receive updates
@@ -157,7 +157,7 @@ describe("Reactivity Debugging", () => {
       callbacks.forEach((callback) => {
         expect(callback.mock.calls.length).toBeGreaterThan(0);
         expect(
-          callback.mock.calls[callback.mock.calls.length - 1][0],
+          callback.mock.calls[callback.mock.calls.length - 1][0]
         ).toHaveLength(1);
       });
 
@@ -174,7 +174,7 @@ describe("Reactivity Debugging", () => {
           status: "success",
           completedAt: new Date(),
           executionDurationMs: 100,
-        }),
+        })
       );
 
       await new Promise((resolve) => setTimeout(resolve, 100));
@@ -196,7 +196,7 @@ describe("Reactivity Debugging", () => {
       // Note: With strict typing, we simulate runtime errors differently
       const badQuery$ = queryDb(
         tables.cells.select().where({ id: "non-existent-cell-id" }),
-        { label: "badQuery" },
+        { label: "badQuery" }
       );
 
       let goodSubscription: any;
@@ -224,7 +224,7 @@ describe("Reactivity Debugging", () => {
           cellType: "code",
           position: 0,
           createdBy: "test-user",
-        }),
+        })
       );
 
       // Good callback should work even if bad query fails
@@ -268,7 +268,7 @@ describe("Reactivity Debugging", () => {
               cellType: "code",
               position: i,
               createdBy: "test-user",
-            }),
+            })
           )
         );
 
@@ -278,7 +278,7 @@ describe("Reactivity Debugging", () => {
               events.cellMoved({
                 id: `rapid-${i - 1}`,
                 newPosition: i * 10,
-              }),
+              })
             )
           );
         }
@@ -288,7 +288,7 @@ describe("Reactivity Debugging", () => {
             store.commit(
               events.cellDeleted({
                 id: cellId,
-              }),
+              })
             )
           );
         }
@@ -306,7 +306,7 @@ describe("Reactivity Debugging", () => {
       // Check that timestamps are monotonically increasing
       for (let i = 1; i < stateSnapshots.length; i++) {
         expect(stateSnapshots[i].timestamp).toBeGreaterThanOrEqual(
-          stateSnapshots[i - 1].timestamp,
+          stateSnapshots[i - 1].timestamp
         );
       }
 
@@ -328,14 +328,14 @@ describe("Reactivity Debugging", () => {
       // Create dependent queries
       const kernelSessions$ = queryDb(
         tables.kernelSessions.select().where({ isActive: true }),
-        { label: "activeKernelSessions" },
+        { label: "activeKernelSessions" }
       );
 
       const assignedWork$ = queryDb(
         tables.executionQueue
           .select()
           .where({ status: "assigned", assignedKernelSession: sessionId }),
-        { label: "assignedWork" },
+        { label: "assignedWork" }
       );
 
       const pendingWork$ = queryDb(
@@ -343,7 +343,7 @@ describe("Reactivity Debugging", () => {
           .select()
           .where({ status: "pending" })
           .orderBy("priority", "desc"),
-        { label: "pendingWork" },
+        { label: "pendingWork" }
       );
 
       // Subscribe to all queries
@@ -375,7 +375,7 @@ describe("Reactivity Debugging", () => {
             canExecuteSql: false,
             canExecuteAi: false,
           },
-        }),
+        })
       );
 
       // 2. Create cell and request execution
@@ -388,7 +388,7 @@ describe("Reactivity Debugging", () => {
           cellType: "code",
           position: 0,
           createdBy: "test-user",
-        }),
+        })
       );
 
       store.commit(
@@ -398,7 +398,7 @@ describe("Reactivity Debugging", () => {
           executionCount: 1,
           requestedBy: "test-user",
           priority: 1,
-        }),
+        })
       );
 
       // 3. Assign execution
@@ -406,7 +406,7 @@ describe("Reactivity Debugging", () => {
         events.executionAssigned({
           queueId,
           kernelSessionId: sessionId,
-        }),
+        })
       );
 
       // Wait for all updates
@@ -414,7 +414,7 @@ describe("Reactivity Debugging", () => {
         () =>
           updates.kernelSessions.length > 0 &&
           updates.assignedWork.length > 0 &&
-          updates.pendingWork.length > 0,
+          updates.pendingWork.length > 0
       );
 
       // Verify all queries received updates
@@ -450,7 +450,7 @@ describe("Reactivity Debugging", () => {
         for (let i = 0; i < 3; i++) {
           const query$ = queryDb(
             tables.cells.select().where({ position: { op: ">=", value: i } }),
-            { label: `memoryTestQuery-${cycle}-${i}` },
+            { label: `memoryTestQuery-${cycle}-${i}` }
           );
 
           subscriptions.push(
@@ -458,7 +458,7 @@ describe("Reactivity Debugging", () => {
               onUpdate: () => {
                 // Minimal processing to avoid interfering with memory test
               },
-            }),
+            })
           );
         }
 
@@ -472,14 +472,14 @@ describe("Reactivity Debugging", () => {
               cellType: "code",
               position: op,
               createdBy: "test-user",
-            }),
+            })
           );
 
           if (op % 2 === 0) {
             store.commit(
               events.cellDeleted({
                 id: cellId,
-              }),
+              })
             );
           }
         }
@@ -520,7 +520,7 @@ describe("Reactivity Debugging", () => {
               sessionId: `high-freq-session-${i % 3}`, // Cycle through 3 sessions
               status: i % 2 === 0 ? "ready" : "busy",
               timestamp: new Date(),
-            }),
+            })
           );
         }, i * heartbeatInterval);
       }
@@ -536,7 +536,7 @@ describe("Reactivity Debugging", () => {
             canExecuteSql: false,
             canExecuteAi: false,
           },
-        }),
+        })
       );
 
       // Wait for updates to complete
@@ -579,7 +579,7 @@ describe("Reactivity Debugging", () => {
           cellType: "code",
           position: 0,
           createdBy: "test-user",
-        }),
+        })
       );
 
       await waitFor(() => successfulUpdates.length > 0);
@@ -592,7 +592,7 @@ describe("Reactivity Debugging", () => {
           cellType: "code",
           position: 1,
           createdBy: "test-user",
-        }),
+        })
       );
 
       await waitFor(() => successfulUpdates.length > 1);
@@ -623,7 +623,7 @@ describe("Reactivity Debugging", () => {
           cellType: "code",
           position: 0,
           createdBy: "test-user",
-        }),
+        })
       );
 
       await waitFor(() => updates.length > 0);

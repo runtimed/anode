@@ -37,14 +37,14 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
 }) => {
   const { store } = useStore();
   const cells = store.useQuery(
-    queryDb(tables.cells.select().orderBy("position", "asc")),
+    queryDb(tables.cells.select().orderBy("position", "asc"))
   ) as CellData[];
   const notebooks = store.useQuery(
-    queryDb(tables.notebook.select().limit(1)),
+    queryDb(tables.notebook.select().limit(1))
   ) as any[];
   // TODO: Update schema to use runtime terminology (kernelSessions → runtimeSessions, KernelSessionData → RuntimeSessionData)
   const kernelSessions = store.useQuery(
-    queryDb(tables.kernelSessions.select().where({ isActive: true })),
+    queryDb(tables.kernelSessions.select().where({ isActive: true }))
   ) as KernelSessionData[];
   const notebook = notebooks[0];
 
@@ -77,18 +77,19 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
 
   const activeRuntime = kernelSessions.find(
     (session: KernelSessionData) =>
-      session.status === "ready" || session.status === "busy",
+      session.status === "ready" || session.status === "busy"
   );
   const hasActiveRuntime = Boolean(
     activeRuntime &&
       ["healthy", "warning", "connecting"].includes(
-        getRuntimeHealth(activeRuntime),
-      ),
+        getRuntimeHealth(activeRuntime)
+      )
   );
   const runtimeHealth = activeRuntime
     ? getRuntimeHealth(activeRuntime)
     : "disconnected";
-  const runtimeStatus = activeRuntime?.status ||
+  const runtimeStatus =
+    activeRuntime?.status ||
     (kernelSessions.length > 0 ? kernelSessions[0].status : "disconnected");
 
   const copyRuntimeCommand = useCallback(() => {
@@ -122,7 +123,7 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
       store.commit(
         events.notebookTitleChanged({
           title: localTitle,
-        }),
+        })
       );
     }
     setIsEditingTitle(false);
@@ -131,11 +132,11 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
   const addCell = useCallback(
     (
       afterCellId?: string,
-      cellType: "code" | "markdown" | "sql" | "ai" = "code",
+      cellType: "code" | "markdown" | "sql" | "ai" = "code"
     ) => {
-      const cellId = `cell-${Date.now()}-${
-        Math.random().toString(36).slice(2)
-      }`;
+      const cellId = `cell-${Date.now()}-${Math.random()
+        .toString(36)
+        .slice(2)}`;
 
       let newPosition: number;
       if (afterCellId) {
@@ -145,27 +146,25 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
           newPosition = currentCell.position + 1;
           // Shift all subsequent cells down by 1
           const cellsToShift = cells.filter(
-            (c: CellData) => c.position >= newPosition,
+            (c: CellData) => c.position >= newPosition
           );
           cellsToShift.forEach((cell: CellData) => {
             store.commit(
               events.cellMoved({
                 id: cell.id,
                 newPosition: cell.position + 1,
-              }),
+              })
             );
           });
         } else {
           // Fallback: add at end
-          newPosition = Math.max(
-            ...cells.map((c: CellData) => c.position),
-            -1,
-          ) + 1;
+          newPosition =
+            Math.max(...cells.map((c: CellData) => c.position), -1) + 1;
         }
       } else {
         // Add at end
-        newPosition = Math.max(...cells.map((c: CellData) => c.position), -1) +
-          1;
+        newPosition =
+          Math.max(...cells.map((c: CellData) => c.position), -1) + 1;
       }
 
       store.commit(
@@ -174,13 +173,13 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
           position: newPosition,
           cellType,
           createdBy: "current-user",
-        }),
+        })
       );
 
       // Focus the new cell after creation
       setTimeout(() => setFocusedCellId(cellId), 0);
     },
-    [cells, store],
+    [cells, store]
   );
 
   const deleteCell = useCallback(
@@ -188,10 +187,10 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
       store.commit(
         events.cellDeleted({
           id: cellId,
-        }),
+        })
       );
     },
-    [store],
+    [store]
   );
 
   const moveCell = useCallback(
@@ -200,10 +199,10 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
       if (!currentCell) return;
 
       const sortedCells = cells.sort(
-        (a: CellData, b: CellData) => a.position - b.position,
+        (a: CellData, b: CellData) => a.position - b.position
       );
       const currentIndex = sortedCells.findIndex(
-        (c: CellData) => c.id === cellId,
+        (c: CellData) => c.id === cellId
       );
 
       if (direction === "up" && currentIndex > 0) {
@@ -214,13 +213,13 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
             events.cellMoved({
               id: cellId,
               newPosition: targetCell.position,
-            }),
+            })
           );
           store.commit(
             events.cellMoved({
               id: targetCell.id,
               newPosition: currentCell.position,
-            }),
+            })
           );
         }
       } else if (
@@ -234,18 +233,18 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
             events.cellMoved({
               id: cellId,
               newPosition: targetCell.position,
-            }),
+            })
           );
           store.commit(
             events.cellMoved({
               id: targetCell.id,
               newPosition: currentCell.position,
-            }),
+            })
           );
         }
       }
     },
-    [cells, store],
+    [cells, store]
   );
 
   const focusCell = useCallback((cellId: string) => {
@@ -255,10 +254,10 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
   const focusNextCell = useCallback(
     (currentCellId: string) => {
       const sortedCells = cells.sort(
-        (a: CellData, b: CellData) => a.position - b.position,
+        (a: CellData, b: CellData) => a.position - b.position
       );
       const currentIndex = sortedCells.findIndex(
-        (c: CellData) => c.id === currentCellId,
+        (c: CellData) => c.id === currentCellId
       );
 
       if (currentIndex < sortedCells.length - 1) {
@@ -267,22 +266,21 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
       } else {
         // At the last cell, create a new one with same cell type (but never raw)
         const currentCell = sortedCells[currentIndex];
-        const newCellType = currentCell.cellType === "raw"
-          ? "code"
-          : currentCell.cellType;
+        const newCellType =
+          currentCell.cellType === "raw" ? "code" : currentCell.cellType;
         addCell(currentCellId, newCellType);
       }
     },
-    [cells, addCell],
+    [cells, addCell]
   );
 
   const focusPreviousCell = useCallback(
     (currentCellId: string) => {
       const sortedCells = cells.sort(
-        (a: CellData, b: CellData) => a.position - b.position,
+        (a: CellData, b: CellData) => a.position - b.position
       );
       const currentIndex = sortedCells.findIndex(
-        (c: CellData) => c.id === currentCellId,
+        (c: CellData) => c.id === currentCellId
       );
 
       if (currentIndex > 0) {
@@ -290,7 +288,7 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
         setFocusedCellId(previousCell.id);
       }
     },
-    [cells],
+    [cells]
   );
 
   // Reset focus when focused cell changes or is removed
@@ -304,7 +302,7 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
   React.useEffect(() => {
     if (!focusedCellId && cells.length > 0) {
       const sortedCells = cells.sort(
-        (a: CellData, b: CellData) => a.position - b.position,
+        (a: CellData, b: CellData) => a.position - b.position
       );
       setFocusedCellId(sortedCells[0].id);
     }
@@ -312,26 +310,26 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
 
   if (!notebook) {
     return (
-      <div className="flex items-center justify-center h-64">
+      <div className="flex h-64 items-center justify-center">
         <div className="text-muted-foreground">Loading notebook...</div>
       </div>
     );
   }
 
   const sortedCells = cells.sort(
-    (a: CellData, b: CellData) => a.position - b.position,
+    (a: CellData, b: CellData) => a.position - b.position
   );
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="bg-background min-h-screen">
       {/* Top Navigation Bar */}
-      <nav className="border-b bg-card px-3 sm:px-4 py-1 sm:py-2">
-        <div className="w-full sm:max-w-6xl sm:mx-auto flex items-center justify-between">
+      <nav className="bg-card border-b px-3 py-1 sm:px-4 sm:py-2">
+        <div className="flex w-full items-center justify-between sm:mx-auto sm:max-w-6xl">
           <div className="flex items-center gap-2 sm:gap-4">
-            <img src="/logo.svg" alt="Anode" className="h-6 sm:h-8 w-auto" />
+            <img src="/logo.svg" alt="Anode" className="h-6 w-auto sm:h-8" />
             <a
               href={window.location.origin}
-              className="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-input bg-background hover:bg-accent hover:text-accent-foreground h-8 sm:h-9 px-2 sm:px-3"
+              className="ring-offset-background focus-visible:ring-ring border-input bg-background hover:bg-accent hover:text-accent-foreground inline-flex h-8 items-center justify-center rounded-md border px-2 text-sm font-medium whitespace-nowrap transition-colors focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none disabled:pointer-events-none disabled:opacity-50 sm:h-9 sm:px-3"
             >
               <span className="text-xs sm:text-sm">+ Notebook</span>
             </a>
@@ -348,9 +346,11 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
                 }`}
                 title={debugMode ? "Hide debug info" : "Show debug info"}
               >
-                {debugMode
-                  ? <Bug className="h-3 w-3" />
-                  : <BugOff className="h-3 w-3" />}
+                {debugMode ? (
+                  <Bug className="h-3 w-3" />
+                ) : (
+                  <BugOff className="h-3 w-3" />
+                )}
               </Button>
             )}
             <UserProfile />
@@ -359,63 +359,63 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
       </nav>
 
       {/* Notebook Header Bar */}
-      <div className="border-b bg-muted/20">
-        <div className="w-full sm:max-w-6xl sm:mx-auto px-3 sm:px-4 py-2 sm:py-3">
+      <div className="bg-muted/20 border-b">
+        <div className="w-full px-3 py-2 sm:mx-auto sm:max-w-6xl sm:px-4 sm:py-3">
           <div className="flex items-center justify-between gap-2">
-            <div className="flex items-center gap-2 sm:gap-4 flex-1 min-w-0">
-              {isEditingTitle
-                ? (
-                  <Input
-                    value={localTitle}
-                    onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                      setLocalTitle(e.target.value)}
-                    onBlur={updateTitle}
-                    onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => {
-                      if (e.key === "Enter") updateTitle();
-                      if (e.key === "Escape") {
-                        setLocalTitle(notebook.title);
-                        setIsEditingTitle(false);
-                      }
-                    }}
-                    className="text-lg font-semibold border-none bg-transparent p-0 focus-visible:ring-0"
-                    autoFocus
-                  />
-                )
-                : (
-                  <h1
-                    className="text-base sm:text-lg font-semibold cursor-pointer hover:text-muted-foreground transition-colors truncate"
-                    onClick={() => setIsEditingTitle(true)}
-                  >
-                    {notebook.title}
-                  </h1>
-                )}
+            <div className="flex min-w-0 flex-1 items-center gap-2 sm:gap-4">
+              {isEditingTitle ? (
+                <Input
+                  value={localTitle}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                    setLocalTitle(e.target.value)
+                  }
+                  onBlur={updateTitle}
+                  onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => {
+                    if (e.key === "Enter") updateTitle();
+                    if (e.key === "Escape") {
+                      setLocalTitle(notebook.title);
+                      setIsEditingTitle(false);
+                    }
+                  }}
+                  className="border-none bg-transparent p-0 text-lg font-semibold focus-visible:ring-0"
+                  autoFocus
+                />
+              ) : (
+                <h1
+                  className="hover:text-muted-foreground cursor-pointer truncate text-base font-semibold transition-colors sm:text-lg"
+                  onClick={() => setIsEditingTitle(true)}
+                >
+                  {notebook.title}
+                </h1>
+              )}
             </div>
 
-            <div className="flex items-center gap-1 sm:gap-2 flex-shrink-0">
+            <div className="flex flex-shrink-0 items-center gap-1 sm:gap-2">
               <Button
                 variant="outline"
                 size="sm"
                 onClick={() => setShowRuntimeHelper(!showRuntimeHelper)}
                 className="flex items-center gap-1 sm:gap-2"
               >
-                <Terminal className="h-3 sm:h-4 w-3 sm:w-4" />
-                <span className="capitalize text-xs sm:text-sm hidden sm:block">
-                  {/* TODO: Update schema property kernelType → runtimeType */ notebook
-                    .kernelType}
+                <Terminal className="h-3 w-3 sm:h-4 sm:w-4" />
+                <span className="hidden text-xs capitalize sm:block sm:text-sm">
+                  {
+                    /* TODO: Update schema property kernelType → runtimeType */ notebook.kernelType
+                  }
                 </span>
                 <Circle
                   className={`h-2 w-2 fill-current ${
                     activeRuntime && runtimeHealth === "healthy"
                       ? "text-green-500"
                       : activeRuntime && runtimeHealth === "warning"
-                      ? "text-amber-500"
-                      : activeRuntime && runtimeHealth === "connecting"
-                      ? "text-blue-500"
-                      : activeRuntime && runtimeHealth === "stale"
-                      ? "text-amber-500"
-                      : runtimeStatus === "starting"
-                      ? "text-blue-500"
-                      : "text-red-500"
+                        ? "text-amber-500"
+                        : activeRuntime && runtimeHealth === "connecting"
+                          ? "text-blue-500"
+                          : activeRuntime && runtimeHealth === "stale"
+                            ? "text-amber-500"
+                            : runtimeStatus === "starting"
+                              ? "text-blue-500"
+                              : "text-red-500"
                   }`}
                 />
               </Button>
@@ -425,9 +425,11 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
                 onClick={() => setContextSelectionMode(!contextSelectionMode)}
                 className="flex items-center gap-1 sm:gap-2"
               >
-                {contextSelectionMode
-                  ? <X className="h-3 sm:h-4 w-3 sm:w-4" />
-                  : <Filter className="h-3 sm:h-4 w-3 sm:w-4" />}
+                {contextSelectionMode ? (
+                  <X className="h-3 w-3 sm:h-4 sm:w-4" />
+                ) : (
+                  <Filter className="h-3 w-3 sm:h-4 sm:w-4" />
+                )}
                 <span className="text-xs sm:text-sm">
                   {contextSelectionMode ? "Done" : "Context"}
                 </span>
@@ -437,24 +439,24 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
         </div>
 
         {showRuntimeHelper && (
-          <div className="border-t bg-card">
-            <div className="w-full sm:max-w-6xl sm:mx-auto px-3 sm:px-4 py-4">
-              <div className="flex items-center justify-between mb-3">
-                <h4 className="font-medium text-sm flex items-center gap-2">
+          <div className="bg-card border-t">
+            <div className="w-full px-3 py-4 sm:mx-auto sm:max-w-6xl sm:px-4">
+              <div className="mb-3 flex items-center justify-between">
+                <h4 className="flex items-center gap-2 text-sm font-medium">
                   Runtime Status
                   <Circle
                     className={`h-2 w-2 fill-current ${
                       activeRuntime && runtimeHealth === "healthy"
                         ? "text-green-500"
                         : activeRuntime && runtimeHealth === "warning"
-                        ? "text-amber-500"
-                        : activeRuntime && runtimeHealth === "connecting"
-                        ? "text-blue-500"
-                        : activeRuntime && runtimeHealth === "stale"
-                        ? "text-amber-500"
-                        : runtimeStatus === "starting"
-                        ? "text-blue-500"
-                        : "text-red-500"
+                          ? "text-amber-500"
+                          : activeRuntime && runtimeHealth === "connecting"
+                            ? "text-blue-500"
+                            : activeRuntime && runtimeHealth === "stale"
+                              ? "text-amber-500"
+                              : runtimeStatus === "starting"
+                                ? "text-blue-500"
+                                : "text-red-500"
                     }`}
                   />
                   <span
@@ -462,27 +464,27 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
                       activeRuntime && runtimeHealth === "healthy"
                         ? "text-green-600"
                         : activeRuntime && runtimeHealth === "warning"
-                        ? "text-amber-600"
-                        : activeRuntime && runtimeHealth === "connecting"
-                        ? "text-blue-600"
-                        : activeRuntime && runtimeHealth === "stale"
-                        ? "text-amber-600"
-                        : runtimeStatus === "starting"
-                        ? "text-blue-600"
-                        : "text-red-600"
+                          ? "text-amber-600"
+                          : activeRuntime && runtimeHealth === "connecting"
+                            ? "text-blue-600"
+                            : activeRuntime && runtimeHealth === "stale"
+                              ? "text-amber-600"
+                              : runtimeStatus === "starting"
+                                ? "text-blue-600"
+                                : "text-red-600"
                     }`}
                   >
                     {activeRuntime && runtimeHealth === "healthy"
                       ? "Connected"
                       : activeRuntime && runtimeHealth === "warning"
-                      ? "Connected (Slow)"
-                      : activeRuntime && runtimeHealth === "connecting"
-                      ? "Connecting..."
-                      : activeRuntime && runtimeHealth === "stale"
-                      ? "Connected (Stale)"
-                      : runtimeStatus === "starting"
-                      ? "Starting"
-                      : "Disconnected"}
+                        ? "Connected (Slow)"
+                        : activeRuntime && runtimeHealth === "connecting"
+                          ? "Connecting..."
+                          : activeRuntime && runtimeHealth === "stale"
+                            ? "Connected (Stale)"
+                            : runtimeStatus === "starting"
+                              ? "Starting"
+                              : "Disconnected"}
                   </span>
                 </h4>
                 <Button
@@ -497,26 +499,26 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
 
               {!hasActiveRuntime && (
                 <>
-                  <p className="text-sm text-muted-foreground mb-3">
+                  <p className="text-muted-foreground mb-3 text-sm">
                     Run this command in your terminal to start a runtime for
                     notebook{" "}
-                    <code className="bg-muted px-1 rounded">
+                    <code className="bg-muted rounded px-1">
                       {currentNotebookId}
                     </code>
                     :
                   </p>
-                  <div className="flex items-center gap-2 bg-slate-900 text-slate-100 p-3 rounded font-mono text-sm">
+                  <div className="flex items-center gap-2 rounded bg-slate-900 p-3 font-mono text-sm text-slate-100">
                     <span className="flex-1">{runtimeCommand}</span>
                     <Button
                       variant="ghost"
                       size="sm"
                       onClick={copyRuntimeCommand}
-                      className="h-8 w-8 p-0 text-slate-300 hover:text-slate-100 hover:bg-slate-700"
+                      className="h-8 w-8 p-0 text-slate-300 hover:bg-slate-700 hover:text-slate-100"
                     >
                       <Copy className="h-4 w-4" />
                     </Button>
                   </div>
-                  <p className="text-xs text-muted-foreground mt-2">
+                  <p className="text-muted-foreground mt-2 text-xs">
                     Note: Each notebook requires its own runtime instance. The
                     runtime will connect automatically once started.
                   </p>
@@ -524,18 +526,19 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
               )}
 
               {hasActiveRuntime && activeRuntime && (
-                <div className="text-sm space-y-2">
+                <div className="space-y-2 text-sm">
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Session ID:</span>
-                    <code className="bg-muted px-1 rounded text-xs">
+                    <code className="bg-muted rounded px-1 text-xs">
                       {activeRuntime.sessionId}
                     </code>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Runtime Type:</span>
                     <span>
-                      {/* TODO: Update schema property kernelType → runtimeType */ activeRuntime
-                        .kernelType}
+                      {
+                        /* TODO: Update schema property kernelType → runtimeType */ activeRuntime.kernelType
+                      }
                     </span>
                   </div>
                   <div className="flex justify-between">
@@ -545,16 +548,16 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
                         activeRuntime.status === "ready"
                           ? "text-green-600"
                           : activeRuntime.status === "busy"
-                          ? "text-amber-600"
-                          : "text-red-600"
+                            ? "text-amber-600"
+                            : "text-red-600"
                       }`}
                     >
                       {activeRuntime.status === "ready"
                         ? "Ready"
                         : activeRuntime.status === "busy"
-                        ? "Busy"
-                        : activeRuntime.status.charAt(0).toUpperCase() +
-                          activeRuntime.status.slice(1)}
+                          ? "Busy"
+                          : activeRuntime.status.charAt(0).toUpperCase() +
+                            activeRuntime.status.slice(1)}
                     </span>
                   </div>
                   {activeRuntime.lastHeartbeat && (
@@ -562,7 +565,7 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
                       <span className="text-muted-foreground">
                         Last Heartbeat:
                       </span>
-                      <span className="text-xs flex items-center gap-1">
+                      <span className="flex items-center gap-1 text-xs">
                         {formatHeartbeatTime(activeRuntime.lastHeartbeat)}
                       </span>
                     </div>
@@ -571,17 +574,17 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
                     <span className="text-muted-foreground">Capabilities:</span>
                     <div className="flex gap-1">
                       {activeRuntime.canExecuteCode && (
-                        <span className="bg-blue-100 text-blue-800 text-xs px-1 rounded">
+                        <span className="rounded bg-blue-100 px-1 text-xs text-blue-800">
                           Code
                         </span>
                       )}
                       {activeRuntime.canExecuteSql && (
-                        <span className="bg-purple-100 text-purple-800 text-xs px-1 rounded">
+                        <span className="rounded bg-purple-100 px-1 text-xs text-purple-800">
                           SQL
                         </span>
                       )}
                       {activeRuntime.canExecuteAi && (
-                        <span className="bg-green-100 text-green-800 text-xs px-1 rounded">
+                        <span className="rounded bg-green-100 px-1 text-xs text-green-800">
                           AI
                         </span>
                       )}
@@ -592,29 +595,29 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
 
               {/* Show all runtime sessions for debugging */}
               {kernelSessions.length > 1 && (
-                <div className="mt-4 pt-4 border-t">
-                  <h5 className="text-xs font-medium text-muted-foreground mb-2">
+                <div className="mt-4 border-t pt-4">
+                  <h5 className="text-muted-foreground mb-2 text-xs font-medium">
                     All Sessions:
                   </h5>
                   <div className="space-y-1">
                     {kernelSessions.map((session: KernelSessionData) => (
                       <div
                         key={session.sessionId}
-                        className="flex justify-between items-center text-xs"
+                        className="flex items-center justify-between text-xs"
                       >
-                        <code className="bg-muted px-1 rounded">
+                        <code className="bg-muted rounded px-1">
                           {session.sessionId.slice(-8)}
                         </code>
                         <div className="flex items-center gap-2">
                           <span
-                            className={`px-1 rounded ${
+                            className={`rounded px-1 ${
                               session.status === "ready"
                                 ? "bg-green-100 text-green-800"
                                 : session.status === "busy"
-                                ? "bg-amber-100 text-amber-800"
-                                : session.status === "terminated"
-                                ? "bg-red-100 text-red-800"
-                                : "bg-gray-100 text-gray-800"
+                                  ? "bg-amber-100 text-amber-800"
+                                  : session.status === "terminated"
+                                    ? "bg-red-100 text-red-800"
+                                    : "bg-gray-100 text-gray-800"
                             }`}
                           >
                             {session.status}
@@ -635,26 +638,26 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
         )}
       </div>
 
-      <div className="w-full sm:max-w-4xl sm:mx-auto px-0 py-3 sm:p-4">
+      <div className="w-full px-0 py-3 sm:mx-auto sm:max-w-4xl sm:p-4">
         {/* Keyboard Shortcuts Help - Desktop only */}
         {sortedCells.length > 0 && (
           <div className="mb-6 hidden sm:block">
-            <div className="px-4 py-2 bg-muted/30 rounded-md">
-              <div className="flex items-center justify-center gap-6 text-xs text-muted-foreground">
+            <div className="bg-muted/30 rounded-md px-4 py-2">
+              <div className="text-muted-foreground flex items-center justify-center gap-6 text-xs">
                 <div className="flex items-center gap-1">
-                  <kbd className="px-1.5 py-0.5 bg-background border rounded text-xs font-mono">
+                  <kbd className="bg-background rounded border px-1.5 py-0.5 font-mono text-xs">
                     ↑↓
                   </kbd>
                   <span>Navigate</span>
                 </div>
                 <div className="flex items-center gap-1">
-                  <kbd className="px-1.5 py-0.5 bg-background border rounded text-xs font-mono">
+                  <kbd className="bg-background rounded border px-1.5 py-0.5 font-mono text-xs">
                     ⇧↵
                   </kbd>
                   <span>Run & next</span>
                 </div>
                 <div className="flex items-center gap-1">
-                  <kbd className="px-1.5 py-0.5 bg-background border rounded text-xs font-mono">
+                  <kbd className="bg-background rounded border px-1.5 py-0.5 font-mono text-xs">
                     ⌘↵
                   </kbd>
                   <span>Run</span>
@@ -666,79 +669,78 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
 
         {/* Cells */}
         <div className="space-y-3">
-          {sortedCells.length === 0
-            ? (
-              <div className="text-center pt-6 sm:pt-12 pb-6 px-4 sm:px-0">
-                <div className="text-muted-foreground mb-6">
-                  Welcome to your notebook! Choose a cell type to get started.
-                </div>
-                <div className="flex justify-center gap-2 flex-wrap mb-4">
-                  <Button
-                    onClick={() => addCell()}
-                    className="flex items-center gap-2"
-                  >
-                    <Code className="h-4 w-4" />
-                    Code Cell
-                  </Button>
-                  <Button
-                    variant="outline"
-                    onClick={() => addCell(undefined, "markdown")}
-                    className="flex items-center gap-2"
-                  >
-                    <FileText className="h-4 w-4" />
-                    Markdown
-                  </Button>
-                  <Button
-                    variant="outline"
-                    onClick={() => addCell(undefined, "sql")}
-                    className="flex items-center gap-2"
-                  >
-                    <Database className="h-4 w-4" />
-                    SQL Query
-                  </Button>
-                  <Button
-                    variant="outline"
-                    onClick={() => addCell(undefined, "ai")}
-                    className="flex items-center gap-2"
-                  >
-                    <Bot className="h-4 w-4" />
-                    AI Assistant
-                  </Button>
-                </div>
-                <div className="text-xs text-muted-foreground">
-                  💡 Use ↑↓ arrow keys to navigate • Shift+Enter to run and move
-                  • Ctrl+Enter to run
-                </div>
+          {sortedCells.length === 0 ? (
+            <div className="px-4 pt-6 pb-6 text-center sm:px-0 sm:pt-12">
+              <div className="text-muted-foreground mb-6">
+                Welcome to your notebook! Choose a cell type to get started.
               </div>
-            )
-            : (
-              sortedCells.map((cell: CellData) => (
-                <Cell
-                  key={cell.id}
-                  cell={cell}
-                  onAddCell={() =>
-                    addCell(
-                      cell.id,
-                      cell.cellType === "raw" ? "code" : cell.cellType,
-                    )}
-                  onDeleteCell={() => deleteCell(cell.id)}
-                  onMoveUp={() => moveCell(cell.id, "up")}
-                  onMoveDown={() => moveCell(cell.id, "down")}
-                  onFocusNext={() => focusNextCell(cell.id)}
-                  onFocusPrevious={() => focusPreviousCell(cell.id)}
-                  onFocus={() => focusCell(cell.id)}
-                  autoFocus={cell.id === focusedCellId}
-                  contextSelectionMode={contextSelectionMode}
-                />
-              ))
-            )}
+              <div className="mb-4 flex flex-wrap justify-center gap-2">
+                <Button
+                  onClick={() => addCell()}
+                  className="flex items-center gap-2"
+                >
+                  <Code className="h-4 w-4" />
+                  Code Cell
+                </Button>
+                <Button
+                  variant="outline"
+                  onClick={() => addCell(undefined, "markdown")}
+                  className="flex items-center gap-2"
+                >
+                  <FileText className="h-4 w-4" />
+                  Markdown
+                </Button>
+                <Button
+                  variant="outline"
+                  onClick={() => addCell(undefined, "sql")}
+                  className="flex items-center gap-2"
+                >
+                  <Database className="h-4 w-4" />
+                  SQL Query
+                </Button>
+                <Button
+                  variant="outline"
+                  onClick={() => addCell(undefined, "ai")}
+                  className="flex items-center gap-2"
+                >
+                  <Bot className="h-4 w-4" />
+                  AI Assistant
+                </Button>
+              </div>
+              <div className="text-muted-foreground text-xs">
+                💡 Use ↑↓ arrow keys to navigate • Shift+Enter to run and move •
+                Ctrl+Enter to run
+              </div>
+            </div>
+          ) : (
+            sortedCells.map((cell: CellData) => (
+              <Cell
+                key={cell.id}
+                cell={cell}
+                onAddCell={() =>
+                  addCell(
+                    cell.id,
+                    cell.cellType === "raw" ? "code" : cell.cellType
+                  )
+                }
+                onDeleteCell={() => deleteCell(cell.id)}
+                onMoveUp={() => moveCell(cell.id, "up")}
+                onMoveDown={() => moveCell(cell.id, "down")}
+                onFocusNext={() => focusNextCell(cell.id)}
+                onFocusPrevious={() => focusPreviousCell(cell.id)}
+                onFocus={() => focusCell(cell.id)}
+                autoFocus={cell.id === focusedCellId}
+                contextSelectionMode={contextSelectionMode}
+              />
+            ))
+          )}
         </div>
 
         {/* Add Cell Buttons */}
         {sortedCells.length > 0 && (
-          <div className="mt-6 sm:mt-8 pt-4 sm:pt-6 border-t border-border/30 px-4 sm:px-0">
-            <div className="text-center space-y-3">
-              <div className="flex justify-center gap-2 flex-wrap">
+          <div className="border-border/30 mt-6 border-t px-4 pt-4 sm:mt-8 sm:px-0 sm:pt-6">
+            <div className="space-y-3 text-center">
+              <div className="flex flex-wrap justify-center gap-2">
                 <Button
                   variant="outline"
                   size="sm"
@@ -780,7 +782,7 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
                   AI
                 </Button>
               </div>
-              <div className="text-xs text-muted-foreground mt-2">
+              <div className="text-muted-foreground mt-2 text-xs">
                 Add a new cell
               </div>
             </div>
@@ -788,8 +790,8 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
         )}
 
         {/* Notebook Info */}
-        <div className="mt-8 sm:mt-12 pt-4 sm:pt-6 border-t border-border/30 px-4 sm:px-0">
-          <div className="text-xs text-muted-foreground text-center">
+        <div className="border-border/30 mt-8 border-t px-4 pt-4 sm:mt-12 sm:px-0 sm:pt-6">
+          <div className="text-muted-foreground text-center text-xs">
             Owner: {notebook.ownerId}
           </div>
         </div>

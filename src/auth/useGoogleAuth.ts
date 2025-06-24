@@ -56,9 +56,10 @@ export const useGoogleAuth = (): AuthState & {
         setAuthState((prev) => ({
           ...prev,
           isLoading: false,
-          error: error instanceof Error
-            ? error.message
-            : "Auth initialization failed",
+          error:
+            error instanceof Error
+              ? error.message
+              : "Auth initialization failed",
         }));
       }
     };
