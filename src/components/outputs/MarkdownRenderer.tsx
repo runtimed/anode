@@ -35,17 +35,18 @@ const CodeBlock: React.FC<CodeBlockProps> = ({
   };
 
   return (
-    <div className="relative group">
+    <div className="relative group/codeblock">
       <SyntaxHighlighter
         language={language}
         style={oneLight}
         PreTag="div"
         customStyle={{
           margin: 0,
-          borderRadius: "0.375rem",
           padding: "0.75rem",
           fontSize: "0.875rem",
           overflow: "auto",
+          background: "#fafafa",
+          borderRadius: "0.375rem",
         }}
       >
         {children}
@@ -53,7 +54,7 @@ const CodeBlock: React.FC<CodeBlockProps> = ({
       {enableCopy && (
         <button
           onClick={handleCopy}
-          className="absolute top-2 right-2 z-10 opacity-0 group-hover:opacity-100 transition-opacity bg-white hover:bg-gray-50 border border-gray-200 rounded p-1.5 text-gray-600 hover:text-gray-800 shadow-sm"
+          className="absolute top-2 right-2 z-10 opacity-0 group-hover/codeblock:opacity-100 transition-opacity bg-white hover:bg-gray-50 border border-gray-200 rounded p-1.5 text-gray-600 hover:text-gray-800 shadow-sm"
           title={copied ? "Copied!" : "Copy code"}
         >
           {copied
