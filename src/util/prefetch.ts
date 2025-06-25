@@ -130,9 +130,9 @@ export function prefetchOutputsConservative(): void {
 export function prefetchOutputsAdaptive(): void {
   // @ts-ignore - navigator.connection is experimental
   const connection =
-    navigator.connection ||
-    navigator.mozConnection ||
-    navigator.webkitConnection;
+    (navigator as any).connection ||
+    (navigator as any).mozConnection ||
+    (navigator as any).webkitConnection;
 
   if (connection) {
     const effectiveType = connection.effectiveType;
