@@ -7,19 +7,22 @@
  */
 
 interface PrefetchOptions {
-  priority?: 'high' | 'low';
+  priority?: "high" | "low";
   timeout?: number;
 }
 
 /**
  * Creates a prefetch link element for the given chunk URL
  */
-function createPrefetchLink(href: string, priority: 'high' | 'low' = 'low'): HTMLLinkElement {
-  const link = document.createElement('link');
-  link.rel = priority === 'high' ? 'preload' : 'prefetch';
-  link.as = 'script';
+function createPrefetchLink(
+  href: string,
+  priority: "high" | "low" = "low"
+): HTMLLinkElement {
+  const link = document.createElement("link");
+  link.rel = priority === "high" ? "preload" : "prefetch";
+  link.as = "script";
   link.href = href;
-  link.crossOrigin = 'anonymous';
+  link.crossOrigin = "anonymous";
   return link;
 }
 
@@ -27,7 +30,7 @@ function createPrefetchLink(href: string, priority: 'high' | 'low' = 'low'): HTM
  * Prefetches a chunk by URL using link rel=prefetch
  */
 function prefetchChunk(href: string, options: PrefetchOptions = {}): void {
-  const { priority = 'low' } = options;
+  const { priority = "low" } = options;
 
   // Check if already prefetched
   const existing = document.querySelector(`link[href="${href}"]`);
@@ -41,16 +44,19 @@ function prefetchChunk(href: string, options: PrefetchOptions = {}): void {
  * Prefetches multiple chunks
  */
 function prefetchChunks(hrefs: string[], options: PrefetchOptions = {}): void {
-  hrefs.forEach(href => prefetchChunk(href, options));
+  hrefs.forEach((href) => prefetchChunk(href, options));
 }
 
 /**
  * Prefetches chunks during browser idle time
  */
-function prefetchWhenIdle(callback: () => void, options: PrefetchOptions = {}): void {
+function prefetchWhenIdle(
+  callback: () => void,
+  options: PrefetchOptions = {}
+): void {
   const { timeout = 2000 } = options;
 
-  if ('requestIdleCallback' in window) {
+  if ("requestIdleCallback" in window) {
     window.requestIdleCallback(callback, { timeout });
   } else {
     // Fallback for browsers without requestIdleCallback
@@ -66,15 +72,15 @@ export function prefetchOutputChunks(): void {
   prefetchWhenIdle(() => {
     // These imports will trigger chunk loading but won't execute the modules
     // until they're actually needed via React.lazy()
-    import('../components/outputs/MarkdownRenderer.js').catch(() => {
+    import("../components/outputs/MarkdownRenderer.js").catch(() => {
       // Silently ignore prefetch failures
     });
-    import('../components/outputs/JsonOutput.js').catch(() => {});
-    import('../components/outputs/PlainTextOutput.js').catch(() => {});
-    import('../components/outputs/HtmlOutput.js').catch(() => {});
-    import('../components/outputs/ImageOutput.js').catch(() => {});
-    import('../components/outputs/SvgOutput.js').catch(() => {});
-    import('../components/outputs/AiToolCallOutput.js').catch(() => {});
+    import("../components/outputs/JsonOutput.js").catch(() => {});
+    import("../components/outputs/PlainTextOutput.js").catch(() => {});
+    import("../components/outputs/HtmlOutput.js").catch(() => {});
+    import("../components/outputs/ImageOutput.js").catch(() => {});
+    import("../components/outputs/SvgOutput.js").catch(() => {});
+    import("../components/outputs/AiToolCallOutput.js").catch(() => {});
   });
 }
 
@@ -82,10 +88,13 @@ export function prefetchOutputChunks(): void {
  * Prefetches syntax highlighting chunks when markdown is likely
  */
 export function prefetchSyntaxHighlighting(): void {
-  prefetchWhenIdle(() => {
-    // Only prefetch if MarkdownRenderer hasn't been loaded yet
-    import('react-syntax-highlighter/dist/esm/styles/prism').catch(() => {});
-  }, { timeout: 3000 });
+  prefetchWhenIdle(
+    () => {
+      // Only prefetch if MarkdownRenderer hasn't been loaded yet
+      import("react-syntax-highlighter/dist/esm/styles/prism").catch(() => {});
+    },
+    { timeout: 3000 }
+  );
 }
 
 /**
@@ -105,11 +114,14 @@ export function prefetchOutputsAggressive(): void {
  * Use this for slower connections or mobile devices
  */
 export function prefetchOutputsConservative(): void {
-  prefetchWhenIdle(() => {
-    // Only prefetch the most commonly used components
-    import('../components/outputs/PlainTextOutput.js').catch(() => {});
-    import('../components/outputs/MarkdownRenderer.js').catch(() => {});
-  }, { timeout: 5000 });
+  prefetchWhenIdle(
+    () => {
+      // Only prefetch the most commonly used components
+      import("../components/outputs/PlainTextOutput.js").catch(() => {});
+      import("../components/outputs/MarkdownRenderer.js").catch(() => {});
+    },
+    { timeout: 5000 }
+  );
 }
 
 /**
@@ -117,7 +129,10 @@ export function prefetchOutputsConservative(): void {
  */
 export function prefetchOutputsAdaptive(): void {
   // @ts-ignore - navigator.connection is experimental
-  const connection = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
+  const connection =
+    navigator.connection ||
+    navigator.mozConnection ||
+    navigator.webkitConnection;
 
   if (connection) {
     const effectiveType = connection.effectiveType;
@@ -128,9 +143,9 @@ export function prefetchOutputsAdaptive(): void {
       return;
     }
 
-    if (effectiveType === '4g') {
+    if (effectiveType === "4g") {
       prefetchOutputsAggressive();
-    } else if (effectiveType === '3g') {
+    } else if (effectiveType === "3g") {
       prefetchOutputChunks();
     } else {
       prefetchOutputsConservative();
