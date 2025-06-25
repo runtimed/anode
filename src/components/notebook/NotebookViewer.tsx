@@ -749,7 +749,7 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
                       AI Assistant
                     </Button>
                   </div>
-                  <div className="text-muted-foreground text-xs">
+                  <div className="text-muted-foreground hidden text-xs sm:block">
                     💡 Use ↑↓ arrow keys to navigate • Shift+Enter to run and
                     move • Ctrl+Enter to run
                   </div>
