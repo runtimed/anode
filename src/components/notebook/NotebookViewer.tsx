@@ -32,6 +32,9 @@ const LazyDebugPanel = React.lazy(() =>
   }))
 );
 
+// Import prefetch utilities
+import { prefetchOutputsAdaptive } from "../../util/prefetch.js";
+
 interface NotebookViewerProps {
   notebookId: string;
   debugMode?: boolean;
@@ -131,6 +134,11 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
     }
   }, [notebook?.title]);
 
+  // Prefetch output components adaptively based on connection speed
+  React.useEffect(() => {
+    prefetchOutputsAdaptive();
+  }, []);
+
   const updateTitle = useCallback(() => {
     if (notebook && localTitle !== notebook.title) {
       store.commit(
@@ -188,6 +196,9 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
           createdBy: "current-user",
         })
       );
+
+      // Prefetch output components when user creates cells
+      prefetchOutputsAdaptive();
 
       // Focus the new cell after creation
       setTimeout(() => setFocusedCellId(cellId), 0);
