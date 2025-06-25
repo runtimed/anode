@@ -749,7 +749,7 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
                       AI Assistant
                     </Button>
                   </div>
-                  <div className="text-muted-foreground text-xs">
+                  <div className="text-muted-foreground hidden text-xs sm:block">
                     💡 Use ↑↓ arrow keys to navigate • Shift+Enter to run and
                     move • Ctrl+Enter to run
                   </div>
@@ -824,19 +824,12 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
                       AI
                     </Button>
                   </div>
-                  <div className="text-muted-foreground mt-2 text-xs">
+                  <div className="text-muted-foreground mt-2 hidden text-xs sm:block">
                     Add a new cell
                   </div>
                 </div>
               </div>
             )}
-
-            {/* Notebook Info */}
-            <div className="border-border/30 mt-8 border-t px-4 pt-4 sm:mt-12 sm:px-0 sm:pt-6">
-              <div className="text-muted-foreground text-center text-xs">
-                Owner: {notebook.ownerId}
-              </div>
-            </div>
           </div>
         </div>
 

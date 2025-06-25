@@ -1,4 +1,4 @@
-import React, { useCallback } from "react";
+import React, { useCallback, useState } from "react";
 import { useStore } from "@livestore/react";
 import { events, isErrorOutput, OutputData, tables } from "@runt/schema";
 import { queryDb } from "@livestore/livestore";
@@ -31,6 +31,8 @@ import {
   Eye,
   EyeOff,
   FileText,
+  Maximize2,
+  Minimize2,
   Play,
   Plus,
   X,
@@ -103,6 +105,7 @@ export const Cell: React.FC<CellProps> = ({
   // Default cell component for code, markdown, raw
   const { store } = useStore();
   const textareaRef = React.useRef<HTMLTextAreaElement>(null);
+  const [isMaximized, setIsMaximized] = useState(false);
 
   // Create stable query using useMemo to prevent React Hook issues
   const outputsQuery = React.useMemo(
@@ -527,7 +530,7 @@ export const Cell: React.FC<CellProps> = ({
               autoFocus ? "bg-white" : "bg-white"
             }`}
           >
-            <div className="min-h-[1.5rem]">
+            <div className="relative min-h-[1.5rem]">
               <Textarea
                 ref={textareaRef}
                 value={localSource}
@@ -541,13 +544,39 @@ export const Cell: React.FC<CellProps> = ({
                       ? "Enter markdown..."
                       : "Enter raw text..."
                 }
-                className="placeholder:text-muted-foreground/60 min-h-[2rem] w-full resize-none border-0 bg-white px-2 py-2 font-mono text-base shadow-none focus-visible:ring-0 sm:min-h-[1.5rem] sm:py-1 sm:text-sm"
+                className={`placeholder:text-muted-foreground/60 w-full resize-none border-0 bg-white px-2 py-2 font-mono text-base shadow-none transition-all duration-200 focus-visible:ring-0 sm:py-1 sm:text-sm ${
+                  isMaximized
+                    ? "fixed inset-4 top-16 z-50 max-h-[calc(100vh-8rem)] min-h-[calc(100vh-8rem)] rounded-lg border bg-white shadow-2xl"
+                    : "max-h-[40vh] min-h-[2.5rem] sm:max-h-none sm:min-h-[1.5rem]"
+                }`}
                 onFocus={handleFocus}
                 autoCapitalize="off"
                 autoCorrect="off"
                 autoComplete="off"
                 spellCheck={false}
               />
+
+              {/* Mobile maximize/minimize button */}
+              <Button
+                variant="ghost"
+                size="sm"
+                className="absolute top-1 right-1 h-6 w-6 p-1 sm:hidden"
+                onClick={() => setIsMaximized(!isMaximized)}
+              >
+                {isMaximized ? (
+                  <Minimize2 className="h-3 w-3" />
+                ) : (
+                  <Maximize2 className="h-3 w-3" />
+                )}
+              </Button>
+
+              {/* Overlay for maximized mode */}
+              {isMaximized && (
+                <div
+                  className="fixed inset-0 z-40 bg-black/20 sm:hidden"
+                  onClick={() => setIsMaximized(false)}
+                />
+              )}
             </div>
           </div>
         )}
