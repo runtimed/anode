@@ -1,4 +1,4 @@
-import React, { useCallback } from "react";
+import React, { useCallback, Suspense } from "react";
 import { useStore } from "@livestore/react";
 import { CellData, events, KernelSessionData, tables } from "@runt/schema";
 import { queryDb } from "@livestore/livestore";
@@ -24,7 +24,13 @@ import {
 import { getCurrentNotebookId } from "../../util/store-id.js";
 import { getRuntimeCommand } from "../../util/runtime-command.js";
 import { UserProfile } from "../auth/UserProfile.js";
-import { DebugPanel } from "./DebugPanel.js";
+
+// Lazy import DebugPanel only in development
+const LazyDebugPanel = React.lazy(() =>
+  import("./DebugPanel.js").then((module) => ({
+    default: module.DebugPanel,
+  }))
+);
 
 interface NotebookViewerProps {
   notebookId: string;
@@ -825,14 +831,22 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
 
         {/* Debug Panel */}
         {import.meta.env.DEV && debugMode && (
-          <DebugPanel
-            notebook={notebook}
-            cells={cells}
-            allKernelSessions={allKernelSessions}
-            executionQueue={executionQueue}
-            currentNotebookId={currentNotebookId}
-            runtimeHealth={runtimeHealth}
-          />
+          <Suspense
+            fallback={
+              <div className="bg-muted/5 text-muted-foreground w-96 border-l p-4 text-xs">
+                Loading debug panel...
+              </div>
+            }
+          >
+            <LazyDebugPanel
+              notebook={notebook}
+              cells={cells}
+              allKernelSessions={allKernelSessions}
+              executionQueue={executionQueue}
+              currentNotebookId={currentNotebookId}
+              runtimeHealth={runtimeHealth}
+            />
+          </Suspense>
         )}
       </div>
     </div>
