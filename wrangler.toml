@@ -57,9 +57,10 @@ GOOGLE_CLIENT_ID = "94663405566-1go7jlpd2ar9u9urbfirmtjv1bm0tcis.apps.googleuser
 
 # Secrets to be set per environment via: pnpm wrangler secret put SECRET_NAME [--env ENV_NAME]
 # For local development:
-# - AUTH_TOKEN: Set in .env file (AUTH_TOKEN=insecure-token-change-me)
+# - AUTH_TOKEN: Set in [vars] above (insecure development token)
 # For production:
 # - AUTH_TOKEN: Set via: echo "your-secure-token" | pnpm wrangler secret put AUTH_TOKEN --env production
+#   Note: AUTH_TOKEN intentionally not in [env.production.vars] - production uses secrets for security
 # Optional for production:
 # - GOOGLE_CLIENT_ID: Google OAuth client ID for production authentication
 # - GOOGLE_CLIENT_SECRET: Google OAuth client secret (optional, improves validation)
