@@ -145,12 +145,12 @@ const NotebookApp: React.FC = () => {
 
   return (
     <div className="bg-background min-h-screen">
-      {/* Debug FPS Meter - only in development */}
+      {/* Debug FPS Meter - fixed position in corner */}
       {debugMode && import.meta.env.DEV && (
         <div
           style={{
             bottom: 0,
-            right: 0,
+            right: debugMode ? 400 : 0, // Leave space for debug panel
             position: "fixed",
             background: "#333",
             zIndex: 50,
