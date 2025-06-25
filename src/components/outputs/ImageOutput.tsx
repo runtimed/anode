@@ -52,7 +52,7 @@ export const ImageOutput: React.FC<ImageOutputProps> = ({
           src={imageSrc}
           alt={alt}
           className="zoomable-image h-auto max-w-full cursor-zoom-in transition-opacity hover:opacity-90"
-          style={{ maxHeight: "400px", objectFit: "contain" }}
+          style={{ objectFit: "contain" }}
           onClick={() => setZoomedImage(imageSrc)}
         />
         <div className="bg-opacity-50 absolute top-2 right-2 rounded bg-black p-1 text-white opacity-0 transition-opacity group-hover:opacity-100">
