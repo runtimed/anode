@@ -4,7 +4,7 @@ import { events, CellData, tables } from "@runt/schema";
 import { queryDb } from "@livestore/livestore";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { Bot, Send } from "lucide-react";
+import { Send } from "lucide-react";
 
 interface MobileOmnibarProps {
   onCellAdded?: () => void;
@@ -91,17 +91,14 @@ export const MobileOmnibar: React.FC<MobileOmnibarProps> = ({
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={handleKeyDown}
             placeholder="vibe it"
-            className="max-h-[8rem] min-h-[2.5rem] resize-none border-gray-200 bg-gray-50 pl-7 placeholder:text-gray-400 focus:border-gray-300 focus:ring-gray-300/20"
+            className="max-h-[8rem] min-h-[3rem] resize-none border-gray-200 bg-gray-50 px-3 py-3 placeholder:text-gray-400 focus:border-gray-300 focus:ring-gray-300/20"
             disabled={isSubmitting}
           />
-          <div className="absolute top-1/2 left-2 flex -translate-y-1/2 items-center">
-            <Bot className="h-3 w-3 text-gray-400" />
-          </div>
         </div>
         <Button
           onClick={handleSubmit}
           disabled={!input.trim() || isSubmitting}
-          className="h-10 w-10 flex-shrink-0 bg-purple-600 p-0 text-white hover:bg-purple-700"
+          className="h-12 w-12 flex-shrink-0 bg-purple-600 p-0 text-white hover:bg-purple-700"
           size="sm"
         >
           {isSubmitting ? (
