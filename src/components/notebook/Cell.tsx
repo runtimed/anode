@@ -19,7 +19,6 @@ import { SqlCell } from "./SqlCell.js";
 import { AiCell } from "./AiCell.js";
 import { RichOutput } from "./RichOutput";
 import { AnsiErrorOutput } from "./AnsiOutput.js";
-import { CollapsibleOutput } from "../outputs/CollapsibleOutput.js";
 
 import {
   ArrowDown,
@@ -635,46 +634,31 @@ export const Cell: React.FC<CellProps> = ({
               >
                 {output.outputType === "error" ? (
                   // Use AnsiErrorOutput for colored error rendering
-                  <CollapsibleOutput maxHeight={300}>
-                    <AnsiErrorOutput
-                      ename={
-                        isErrorOutput(output.data)
-                          ? output.data.ename
-                          : undefined
-                      }
-                      evalue={
-                        isErrorOutput(output.data)
-                          ? output.data.evalue
-                          : undefined
-                      }
-                      traceback={
-                        isErrorOutput(output.data)
-                          ? output.data.traceback
-                          : undefined
-                      }
-                    />
-                  </CollapsibleOutput>
+                  <AnsiErrorOutput
+                    ename={
+                      isErrorOutput(output.data) ? output.data.ename : undefined
+                    }
+                    evalue={
+                      isErrorOutput(output.data)
+                        ? output.data.evalue
+                        : undefined
+                    }
+                    traceback={
+                      isErrorOutput(output.data)
+                        ? output.data.traceback
+                        : undefined
+                    }
+                  />
                 ) : (
                   // Use RichOutput for all other output types
                   <div className="max-w-full py-2">
-                    <CollapsibleOutput
-                      maxHeight={
-                        (output.outputType === "display_data" &&
-                          (output.data as any)?.["image/png"]) ||
-                        (output.data as any)?.["image/jpeg"] ||
-                        (output.data as any)?.["image/svg+xml"]
-                          ? 800 // Larger height for images
-                          : 600 // Standard height for other content
+                    <RichOutput
+                      data={output.data as Record<string, unknown>}
+                      metadata={
+                        output.metadata as Record<string, unknown> | undefined
                       }
-                    >
-                      <RichOutput
-                        data={output.data as Record<string, unknown>}
-                        metadata={
-                          output.metadata as Record<string, unknown> | undefined
-                        }
-                        outputType={output.outputType}
-                      />
-                    </CollapsibleOutput>
+                      outputType={output.outputType}
+                    />
                   </div>
                 )}
               </div>
