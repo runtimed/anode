@@ -67,24 +67,46 @@ export const useGoogleAuth = (): AuthState & {
     initializeAuth();
 
     // Listen for auth state changes
-    const handleAuthChange = async () => {
-      const user = await googleAuthManager.getCurrentUser();
-      const token = googleAuthManager.getToken();
-
-      if (user && token) {
-        setAuthState({
-          isAuthenticated: true,
-          user,
-          token,
-          isLoading: false,
-          error: null,
-        });
+    // Listen for auth state changes via events instead of polling
+    const unsubscribe = googleAuthManager.addTokenChangeListener(
+      async (token) => {
+        try {
+          if (token) {
+            // Token updated - refresh auth state
+            const user = await googleAuthManager.getCurrentUser();
+            if (user) {
+              setAuthState({
+                isAuthenticated: true,
+                user,
+                token,
+                isLoading: false,
+                error: null,
+              });
+            }
+          } else {
+            // Token cleared - user signed out
+            setAuthState({
+              isAuthenticated: false,
+              user: null,
+              token: null,
+              isLoading: false,
+              error: null,
+            });
+          }
+        } catch (error) {
+          console.error("Error handling auth change:", error);
+          setAuthState((prev) => ({
+            ...prev,
+            error:
+              error instanceof Error
+                ? error.message
+                : "Auth state update failed",
+          }));
+        }
       }
-    };
+    );
 
-    // Set up periodic check for auth changes
-    const interval = setInterval(handleAuthChange, 1000);
-    return () => clearInterval(interval);
+    return unsubscribe;
   }, []);
 
   const signIn = useCallback(async () => {

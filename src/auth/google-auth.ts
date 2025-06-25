@@ -92,7 +92,7 @@ class GoogleAuthManager {
         Cookies.set("google_auth_token", response.credential, {
           secure: location.protocol === "https:",
           sameSite: "strict",
-          expires: 1, // 1 day
+          expires: 7, // 7 days
         });
 
         // Notify listeners of token change
@@ -178,10 +178,12 @@ class GoogleAuthManager {
       // Check if cached user's token is still valid
       const token = this.getToken();
       if (token && this.isTokenExpiringSoon(token)) {
-        console.warn("Token expiring soon, clearing cached user");
         this.currentUser = null;
         this.currentToken = null;
         Cookies.remove("google_auth_token");
+
+        // Notify listeners that token was cleared
+        this.notifyTokenChange(null);
         return null;
       }
       return this.currentUser;
@@ -192,11 +194,13 @@ class GoogleAuthManager {
     if (token) {
       const payload = this.parseJWT(token);
       if (payload && payload.exp > Date.now() / 1000) {
-        // Check if token is expiring soon (within 5 minutes)
+        // Check if token is expiring soon (within 1 minute)
         if (this.isTokenExpiringSoon(token)) {
-          console.warn("Token expiring soon, removing from storage");
           Cookies.remove("google_auth_token");
           this.currentToken = null;
+
+          // Notify listeners that token was cleared
+          this.notifyTokenChange(null);
           return null;
         }
 
@@ -210,9 +214,11 @@ class GoogleAuthManager {
         return this.currentUser;
       } else {
         // Token is expired, clean it up
-        console.warn("Token has expired, removing from storage");
         Cookies.remove("google_auth_token");
         this.currentToken = null;
+
+        // Notify listeners that token was cleared
+        this.notifyTokenChange(null);
       }
     }
 
@@ -224,9 +230,11 @@ class GoogleAuthManager {
 
     // Check if token is expired or expiring soon
     if (token && this.isTokenExpiringSoon(token)) {
-      console.warn("Token is expired or expiring soon, clearing it");
       this.currentToken = null;
       Cookies.remove("google_auth_token");
+
+      // Notify listeners that token was cleared
+      this.notifyTokenChange(null);
       return null;
     }
 
@@ -246,11 +254,11 @@ class GoogleAuthManager {
         return true; // Treat invalid tokens as expired
       }
 
-      // Check if token expires within 5 minutes (300 seconds)
+      // Check if token expires within 1 minute (60 seconds)
       const expirationTime = payload.exp * 1000; // Convert to milliseconds
-      const fiveMinutesFromNow = Date.now() + 5 * 60 * 1000;
+      const oneMinuteFromNow = Date.now() + 1 * 60 * 1000;
 
-      return expirationTime <= fiveMinutesFromNow;
+      return expirationTime <= oneMinuteFromNow;
     } catch (error) {
       console.error("Error checking token expiration:", error);
       return true; // Treat unparseable tokens as expired
