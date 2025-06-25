@@ -1,18 +1,40 @@
-import React from "react";
+import React, { Suspense } from "react";
 import { StreamOutputData } from "@runt/schema";
 import {
-  AiToolCallOutput,
   AnsiStreamOutput,
-  HtmlOutput,
-  ImageOutput,
-  JsonOutput,
-  MarkdownRenderer,
   OutputData,
-  PlainTextOutput,
-  SvgOutput,
   ToolCallData,
 } from "../outputs/index.js";
 import "../outputs/outputs.css";
+
+// Dynamic imports for heavy components
+const MarkdownRenderer = React.lazy(() =>
+  import("../outputs/MarkdownRenderer.js").then((m) => ({
+    default: m.MarkdownRenderer,
+  }))
+);
+const JsonOutput = React.lazy(() =>
+  import("../outputs/JsonOutput.js").then((m) => ({ default: m.JsonOutput }))
+);
+const AiToolCallOutput = React.lazy(() =>
+  import("../outputs/AiToolCallOutput.js").then((m) => ({
+    default: m.AiToolCallOutput,
+  }))
+);
+const HtmlOutput = React.lazy(() =>
+  import("../outputs/HtmlOutput.js").then((m) => ({ default: m.HtmlOutput }))
+);
+const ImageOutput = React.lazy(() =>
+  import("../outputs/ImageOutput.js").then((m) => ({ default: m.ImageOutput }))
+);
+const SvgOutput = React.lazy(() =>
+  import("../outputs/SvgOutput.js").then((m) => ({ default: m.SvgOutput }))
+);
+const PlainTextOutput = React.lazy(() =>
+  import("../outputs/PlainTextOutput.js").then((m) => ({
+    default: m.PlainTextOutput,
+  }))
+);
 
 interface RichOutputProps {
   data: Record<string, unknown>;
@@ -71,43 +93,71 @@ export const RichOutput: React.FC<RichOutputProps> = ({
   }
 
   const renderContent = () => {
+    const LoadingSpinner = () => (
+      <div className="flex items-center justify-center p-4">
+        <div className="h-4 w-4 animate-spin rounded-full border-b-2 border-gray-900"></div>
+      </div>
+    );
+
     switch (mediaType) {
       case "application/vnd.anode.aitool+json":
         return (
-          <AiToolCallOutput toolData={outputData[mediaType] as ToolCallData} />
+          <Suspense fallback={<LoadingSpinner />}>
+            <AiToolCallOutput
+              toolData={outputData[mediaType] as ToolCallData}
+            />
+          </Suspense>
         );
 
       case "text/markdown":
         return (
-          <MarkdownRenderer
-            content={String(outputData[mediaType] || "")}
-            enableCopyCode={true}
-          />
+          <Suspense fallback={<LoadingSpinner />}>
+            <MarkdownRenderer
+              content={String(outputData[mediaType] || "")}
+              enableCopyCode={true}
+            />
+          </Suspense>
         );
 
       case "text/html":
-        return <HtmlOutput content={String(outputData[mediaType] || "")} />;
+        return (
+          <Suspense fallback={<LoadingSpinner />}>
+            <HtmlOutput content={String(outputData[mediaType] || "")} />
+          </Suspense>
+        );
 
       case "image/png":
       case "image/jpeg":
         return (
-          <ImageOutput
-            src={String(outputData[mediaType] || "")}
-            mediaType={mediaType as "image/png" | "image/jpeg"}
-          />
+          <Suspense fallback={<LoadingSpinner />}>
+            <ImageOutput
+              src={String(outputData[mediaType] || "")}
+              mediaType={mediaType as "image/png" | "image/jpeg"}
+            />
+          </Suspense>
         );
 
       case "image/svg+xml":
       case "image/svg":
-        return <SvgOutput content={String(outputData[mediaType] || "")} />;
+        return (
+          <Suspense fallback={<LoadingSpinner />}>
+            <SvgOutput content={String(outputData[mediaType] || "")} />
+          </Suspense>
+        );
 
       case "application/json":
-        return <JsonOutput data={outputData[mediaType]} />;
+        return (
+          <Suspense fallback={<LoadingSpinner />}>
+            <JsonOutput data={outputData[mediaType]} />
+          </Suspense>
+        );
 
       case "text/plain":
       default:
         return (
-          <PlainTextOutput content={String(outputData[mediaType] || "")} />
+          <Suspense fallback={<LoadingSpinner />}>
+            <PlainTextOutput content={String(outputData[mediaType] || "")} />
+          </Suspense>
         );
     }
   };

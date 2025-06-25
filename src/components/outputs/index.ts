@@ -1,13 +1,8 @@
-export { MarkdownRenderer } from "./MarkdownRenderer.js";
-export { ImageOutput } from "./ImageOutput.js";
-export { SvgOutput } from "./SvgOutput.js";
-export { JsonOutput } from "./JsonOutput.js";
-export { AiToolCallOutput } from "./AiToolCallOutput.js";
-export { HtmlOutput } from "./HtmlOutput.js";
-export { PlainTextOutput } from "./PlainTextOutput.js";
-
 // Re-export AnsiOutput from the notebook folder for convenience
 export { AnsiStreamOutput } from "../notebook/AnsiOutput.js";
+
+// Note: Heavy output components are now dynamically imported in RichOutput.tsx
+// to reduce bundle size. They are no longer exported from this index file.
 
 // Helper types
 export interface OutputData {
