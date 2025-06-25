@@ -298,7 +298,7 @@ export const Cell: React.FC<CellProps> = ({
 
   return (
     <div
-      className={`cell-container group relative -mx-3 mb-2 px-3 pt-2 transition-all duration-200 sm:mx-0 sm:mb-3 sm:px-0 ${
+      className={`cell-container group relative mb-2 pt-2 transition-all duration-200 sm:mb-3 ${
         autoFocus && !contextSelectionMode
           ? "bg-primary/5"
           : "hover:bg-muted/10"
@@ -309,9 +309,6 @@ export const Cell: React.FC<CellProps> = ({
             : "bg-gray-50/30 ring-2 ring-gray-300"
           : ""
       }`}
-      style={{
-        position: "relative",
-      }}
     >
       {/* Custom left border with controlled height */}
       <div
@@ -526,7 +523,7 @@ export const Cell: React.FC<CellProps> = ({
         {/* Text Content Area */}
         {cell.sourceVisible && (
           <div
-            className={`cell-content py-1 pr-1 pl-4 transition-colors sm:pr-4 ${
+            className={`cell-content px-4 py-1 transition-colors sm:px-4 ${
               autoFocus ? "bg-white" : "bg-white"
             }`}
           >
@@ -640,7 +637,7 @@ export const Cell: React.FC<CellProps> = ({
       {cell.cellType === "code" &&
         cell.outputVisible &&
         (outputs.length > 0 || cell.executionState === "running") && (
-          <div className="cell-content bg-background mt-1 max-w-full overflow-hidden pr-1 pl-6 sm:pr-4">
+          <div className="cell-content bg-background mt-1 max-w-full overflow-hidden px-4 sm:px-4">
             {cell.executionState === "running" && outputs.length === 0 && (
               <div className="border-l-2 border-blue-200 py-3 pl-1">
                 <div className="flex items-center gap-2">

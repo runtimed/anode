@@ -254,7 +254,7 @@ export const SqlCell: React.FC<SqlCellProps> = ({
 
   return (
     <div
-      className={`cell-container group relative -mx-3 mb-2 px-3 pt-2 transition-all duration-200 sm:mx-0 sm:mb-3 sm:px-0 ${
+      className={`cell-container group relative mb-2 pt-2 transition-all duration-200 sm:mb-3 ${
         autoFocus && !contextSelectionMode
           ? "bg-blue-50/30"
           : "hover:bg-muted/10"
@@ -482,7 +482,7 @@ export const SqlCell: React.FC<SqlCellProps> = ({
         {/* Text Content Area */}
         {cell.sourceVisible && (
           <div
-            className={`cell-content py-1 pr-1 pl-4 transition-colors sm:pr-4 ${
+            className={`cell-content px-4 py-1 transition-colors sm:px-4 ${
               autoFocus ? "bg-white" : "bg-white"
             }`}
           >
@@ -552,7 +552,7 @@ export const SqlCell: React.FC<SqlCellProps> = ({
 
       {/* Query Results */}
       {cell.sqlResultData && cell.outputVisible && (
-        <div className="cell-content bg-background mt-1 max-w-full overflow-hidden pr-1 pl-6 sm:pr-4">
+        <div className="cell-content bg-background mt-1 max-w-full overflow-hidden px-4 sm:px-4">
           {renderResults()}
         </div>
       )}
