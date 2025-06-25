@@ -69,16 +69,14 @@
   display: block;
 }
 
-/* Constrain large images on mobile */
+/* Constrain large images on mobile - removed height constraints, let CollapsibleOutput handle it */
 @media (max-width: 640px) {
   .rich-output img {
-    max-height: 300px !important;
     object-fit: contain;
   }
 
   .rich-output svg {
     max-width: 100% !important;
-    max-height: 300px !important;
   }
 }
 

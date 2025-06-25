@@ -164,7 +164,7 @@ export const RichOutput: React.FC<RichOutputProps> = ({
 
   return (
     <div className="rich-output">
-      <div className="max-w-full overflow-hidden">{renderContent()}</div>
+      <div className="max-w-full">{renderContent()}</div>
     </div>
   );
 };

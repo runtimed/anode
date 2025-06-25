@@ -19,6 +19,7 @@ import { SqlCell } from "./SqlCell.js";
 import { AiCell } from "./AiCell.js";
 import { RichOutput } from "./RichOutput";
 import { AnsiErrorOutput } from "./AnsiOutput.js";
+import { CollapsibleOutput } from "../outputs/CollapsibleOutput.js";
 
 import {
   ArrowDown,
@@ -611,7 +612,7 @@ export const Cell: React.FC<CellProps> = ({
       {cell.cellType === "code" &&
         cell.outputVisible &&
         (outputs.length > 0 || cell.executionState === "running") && (
-          <div className="cell-content bg-background mt-1 max-w-full overflow-hidden pr-1 pl-6 sm:pr-4">
+          <div className="cell-content bg-background mt-1 max-w-full pr-1 pl-6 sm:pr-4">
             {cell.executionState === "running" && outputs.length === 0 && (
               <div className="border-l-2 border-blue-200 py-3 pl-1">
                 <div className="flex items-center gap-2">
@@ -634,31 +635,46 @@ export const Cell: React.FC<CellProps> = ({
               >
                 {output.outputType === "error" ? (
                   // Use AnsiErrorOutput for colored error rendering
-                  <AnsiErrorOutput
-                    ename={
-                      isErrorOutput(output.data) ? output.data.ename : undefined
-                    }
-                    evalue={
-                      isErrorOutput(output.data)
-                        ? output.data.evalue
-                        : undefined
-                    }
-                    traceback={
-                      isErrorOutput(output.data)
-                        ? output.data.traceback
-                        : undefined
-                    }
-                  />
+                  <CollapsibleOutput maxHeight={300}>
+                    <AnsiErrorOutput
+                      ename={
+                        isErrorOutput(output.data)
+                          ? output.data.ename
+                          : undefined
+                      }
+                      evalue={
+                        isErrorOutput(output.data)
+                          ? output.data.evalue
+                          : undefined
+                      }
+                      traceback={
+                        isErrorOutput(output.data)
+                          ? output.data.traceback
+                          : undefined
+                      }
+                    />
+                  </CollapsibleOutput>
                 ) : (
                   // Use RichOutput for all other output types
-                  <div className="max-w-full overflow-hidden py-2">
-                    <RichOutput
-                      data={output.data as Record<string, unknown>}
-                      metadata={
-                        output.metadata as Record<string, unknown> | undefined
+                  <div className="max-w-full py-2">
+                    <CollapsibleOutput
+                      maxHeight={
+                        (output.outputType === "display_data" &&
+                          (output.data as any)?.["image/png"]) ||
+                        (output.data as any)?.["image/jpeg"] ||
+                        (output.data as any)?.["image/svg+xml"]
+                          ? 800 // Larger height for images
+                          : 600 // Standard height for other content
                       }
-                      outputType={output.outputType}
-                    />
+                    >
+                      <RichOutput
+                        data={output.data as Record<string, unknown>}
+                        metadata={
+                          output.metadata as Record<string, unknown> | undefined
+                        }
+                        outputType={output.outputType}
+                      />
+                    </CollapsibleOutput>
                   </div>
                 )}
               </div>
