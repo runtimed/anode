@@ -16,7 +16,7 @@
     "build:dev": "NODE_ENV=development tsc && vite build",
     "build:sync": "wrangler deploy --dry-run",
     "deploy:worker": "wrangler deploy --env production",
-    "deploy:web": "pnpm build:prod && wrangler pages deploy dist --project-name anode --commit-dirty=true",
+    "deploy:web": "pnpm build:prod && wrangler pages deploy dist --project-name anode",
     "deploy": "pnpm deploy:web && pnpm deploy:worker",
     "preview": "vite preview",
     "clean": "rm -rf dist",
