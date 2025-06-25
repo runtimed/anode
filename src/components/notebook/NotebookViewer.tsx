@@ -34,6 +34,7 @@ const LazyDebugPanel = React.lazy(() =>
 
 // Import prefetch utilities
 import { prefetchOutputsAdaptive } from "../../util/prefetch.js";
+import { MobileOmnibar } from "./MobileOmnibar.js";
 
 interface NotebookViewerProps {
   notebookId: string;
@@ -679,7 +680,7 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
           </div>
 
           <div
-            className={`w-full px-0 py-3 ${debugMode ? "px-4" : "sm:mx-auto sm:max-w-4xl sm:p-4"}`}
+            className={`w-full px-0 py-3 pb-24 ${debugMode ? "px-4" : "sm:mx-auto sm:max-w-4xl sm:p-4 sm:pb-4"}`}
           >
             {/* Keyboard Shortcuts Help - Desktop only */}
             {sortedCells.length > 0 && (
@@ -852,6 +853,9 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
             />
           </Suspense>
         )}
+
+        {/* Mobile Omnibar - sticky at bottom on mobile */}
+        <MobileOmnibar />
       </div>
     </div>
   );
