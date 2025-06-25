@@ -14,7 +14,7 @@
     "build:prod": "NODE_ENV=production tsc && vite build",
     "build:dev": "NODE_ENV=development tsc && vite build",
     "build:sync": "wrangler deploy --dry-run",
-    "deploy:worker": "wrangler deploy",
+    "deploy:worker": "wrangler deploy --env production",
     "deploy:web": "pnpm build && wrangler pages deploy dist --project-name anode",
     "deploy": "pnpm deploy:web && pnpm deploy:worker",
     "deploy:production": "test -f .env.production || (echo 'Error: .env.production file is required for production deployment' && exit 1) && pnpm build:prod && wrangler pages deploy dist --project-name anode --commit-dirty=true",
