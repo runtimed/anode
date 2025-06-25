@@ -344,7 +344,7 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
             <img src="/logo.svg" alt="Anode" className="h-6 w-auto sm:h-8" />
             <a
               href={window.location.origin}
-              className="ring-offset-background focus-visible:ring-ring border-input bg-background hover:bg-accent hover:text-accent-foreground inline-flex h-8 items-center justify-center whitespace-nowrap rounded-md border px-2 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 sm:h-9 sm:px-3"
+              className="ring-offset-background focus-visible:ring-ring border-input bg-background hover:bg-accent hover:text-accent-foreground inline-flex h-8 items-center justify-center rounded-md border px-2 text-sm font-medium whitespace-nowrap transition-colors focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none disabled:pointer-events-none disabled:opacity-50 sm:h-9 sm:px-3"
             >
               <span className="text-xs sm:text-sm">+ Notebook</span>
             </a>
@@ -701,7 +701,7 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
             {/* Cells */}
             <div className="space-y-3">
               {sortedCells.length === 0 ? (
-                <div className="px-4 pb-6 pt-6 text-center sm:px-0 sm:pt-12">
+                <div className="px-4 pt-6 pb-6 text-center sm:px-0 sm:pt-12">
                   <div className="text-muted-foreground mb-6">
                     Welcome to your notebook! Choose a cell type to get started.
                   </div>

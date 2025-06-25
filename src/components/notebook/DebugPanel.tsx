@@ -80,7 +80,7 @@ const DebugPanel: React.FC<DebugPanelProps> = ({
       <div className="space-y-4 p-4">
         {/* Available Tables */}
         <div>
-          <h4 className="text-muted-foreground mb-2 text-xs font-medium uppercase tracking-wide">
+          <h4 className="text-muted-foreground mb-2 text-xs font-medium tracking-wide uppercase">
             Available Tables ({availableTables.length})
           </h4>
           <div className="bg-card max-h-32 overflow-y-auto rounded border p-2 text-xs">
@@ -102,7 +102,7 @@ const DebugPanel: React.FC<DebugPanelProps> = ({
 
         {/* Notebook Data */}
         <div>
-          <h4 className="text-muted-foreground mb-2 text-xs font-medium uppercase tracking-wide">
+          <h4 className="text-muted-foreground mb-2 text-xs font-medium tracking-wide uppercase">
             Notebook
           </h4>
           <pre className="bg-card overflow-x-auto rounded border p-2 text-xs">
@@ -112,7 +112,7 @@ const DebugPanel: React.FC<DebugPanelProps> = ({
 
         {/* Cells Data */}
         <div>
-          <h4 className="text-muted-foreground mb-2 text-xs font-medium uppercase tracking-wide">
+          <h4 className="text-muted-foreground mb-2 text-xs font-medium tracking-wide uppercase">
             Cells ({cells.length})
           </h4>
           <div className="space-y-2">
@@ -131,7 +131,7 @@ const DebugPanel: React.FC<DebugPanelProps> = ({
 
         {/* Runtime Sessions */}
         <div>
-          <h4 className="text-muted-foreground mb-2 text-xs font-medium uppercase tracking-wide">
+          <h4 className="text-muted-foreground mb-2 text-xs font-medium tracking-wide uppercase">
             Runtime Sessions ({allKernelSessions.length})
           </h4>
           <div className="space-y-2">
@@ -153,7 +153,7 @@ const DebugPanel: React.FC<DebugPanelProps> = ({
 
         {/* Execution Queue */}
         <div>
-          <h4 className="text-muted-foreground mb-2 text-xs font-medium uppercase tracking-wide">
+          <h4 className="text-muted-foreground mb-2 text-xs font-medium tracking-wide uppercase">
             Execution Queue ({executionQueue.length})
           </h4>
           <div className="space-y-2">
@@ -178,7 +178,7 @@ const DebugPanel: React.FC<DebugPanelProps> = ({
 
         {/* Store Info */}
         <div>
-          <h4 className="text-muted-foreground mb-2 text-xs font-medium uppercase tracking-wide">
+          <h4 className="text-muted-foreground mb-2 text-xs font-medium tracking-wide uppercase">
             Store Info
           </h4>
           <div className="bg-card space-y-1 rounded border p-2 text-xs">
@@ -197,7 +197,7 @@ const DebugPanel: React.FC<DebugPanelProps> = ({
 
         {/* Debug Actions */}
         <div>
-          <h4 className="text-muted-foreground mb-2 text-xs font-medium uppercase tracking-wide">
+          <h4 className="text-muted-foreground mb-2 text-xs font-medium tracking-wide uppercase">
             Debug Actions
           </h4>
           <div className="space-y-2">
