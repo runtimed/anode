@@ -19,21 +19,50 @@ export const CollapsibleOutput: React.FC<CollapsibleOutputProps> = ({
   useEffect(() => {
     const checkOverflow = () => {
       if (contentRef.current) {
-        const { scrollHeight } = contentRef.current;
-        const shouldCollapse = scrollHeight > maxHeight;
+        const element = contentRef.current;
+
+        // For SVG/images, measure the actual rendered content
+        let actualHeight = element.scrollHeight;
+
+        // Check for SVG elements specifically
+        const svgElement = element.querySelector("svg");
+        if (svgElement) {
+          const svgRect = svgElement.getBoundingClientRect();
+          actualHeight = Math.max(actualHeight, svgRect.height);
+        }
+
+        // Check for images
+        const imgElements = element.querySelectorAll("img");
+        imgElements.forEach((img) => {
+          if (img.complete) {
+            actualHeight = Math.max(actualHeight, img.offsetHeight);
+          }
+        });
+
+        console.log(
+          `CollapsibleOutput: actualHeight=${actualHeight}, maxHeight=${maxHeight}, scrollHeight=${element.scrollHeight}`
+        );
+
+        const shouldCollapse = actualHeight > maxHeight;
+        console.log(`Should collapse: ${shouldCollapse}`);
         setIsOverflowing(shouldCollapse);
         setIsCollapsed(shouldCollapse);
       }
     };
 
-    // Check overflow after content renders
-    const timer = setTimeout(checkOverflow, 100);
+    // Check overflow after content renders - multiple timeouts for dynamic content
+    const timers = [
+      setTimeout(checkOverflow, 100),
+      setTimeout(checkOverflow, 500),
+      setTimeout(checkOverflow, 1000),
+      setTimeout(checkOverflow, 2000),
+    ];
 
     // Also check on window resize
     window.addEventListener("resize", checkOverflow);
 
     return () => {
-      clearTimeout(timer);
+      timers.forEach(clearTimeout);
       window.removeEventListener("resize", checkOverflow);
     };
   }, [children, maxHeight]);
