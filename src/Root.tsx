@@ -1,14 +1,15 @@
 import { makePersistedAdapter } from "@livestore/adapter-web";
 import LiveStoreSharedWorker from "@livestore/adapter-web/shared-worker?sharedworker";
 import { LiveStoreProvider } from "@livestore/react";
+
+import React, { useEffect, useState, Suspense } from "react";
+
 // Dynamic import for FPSMeter - development tool only
 const FPSMeter = React.lazy(() =>
   import("@overengineering/fps-meter").then((m) => ({
     default: m.FPSMeter,
   }))
 );
-
-import React, { useEffect, useState, Suspense } from "react";
 import { unstable_batchedUpdates as batchUpdates } from "react-dom";
 
 import { NotebookViewer } from "./components/notebook/NotebookViewer.js";
