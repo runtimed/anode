@@ -1,9 +1,14 @@
 import { makePersistedAdapter } from "@livestore/adapter-web";
 import LiveStoreSharedWorker from "@livestore/adapter-web/shared-worker?sharedworker";
 import { LiveStoreProvider } from "@livestore/react";
-import { FPSMeter } from "@overengineering/fps-meter";
+// Dynamic import for FPSMeter - development tool only
+const FPSMeter = React.lazy(() =>
+  import("@overengineering/fps-meter").then((m) => ({
+    default: m.FPSMeter,
+  }))
+);
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, Suspense } from "react";
 import { unstable_batchedUpdates as batchUpdates } from "react-dom";
 
 import { NotebookViewer } from "./components/notebook/NotebookViewer.js";
@@ -156,7 +161,9 @@ const NotebookApp: React.FC = () => {
             zIndex: 50,
           }}
         >
-          <FPSMeter height={40} />
+          <Suspense fallback={<div>Loading FPS meter...</div>}>
+            <FPSMeter height={40} />
+          </Suspense>
         </div>
       )}
       {/* Main Content */}

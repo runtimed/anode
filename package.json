@@ -83,10 +83,12 @@
     "postcss": "^8.5.5",
     "prettier": "^3.6.0",
     "prettier-plugin-tailwindcss": "^0.6.13",
+    "rollup-plugin-visualizer": "^6.0.3",
     "tailwindcss": "^4.1.10",
     "typescript": "^5.8.3",
     "vite": "^6.3.5",
     "vitest": "^3.0.0",
+    "webpack-bundle-analyzer": "^4.10.2",
     "wrangler": "4.19.2"
   },
   "pnpm": {
