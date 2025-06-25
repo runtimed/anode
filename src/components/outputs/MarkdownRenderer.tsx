@@ -1,7 +1,6 @@
 import React from "react";
 import ReactMarkdown from "react-markdown";
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
-import { oneLight } from "react-syntax-highlighter/dist/esm/styles/prism";
 import { Check, Copy } from "lucide-react";
 
 interface MarkdownRendererProps {
@@ -23,6 +22,14 @@ const CodeBlock: React.FC<CodeBlockProps> = ({
   enableCopy = true,
 }) => {
   const [copied, setCopied] = React.useState(false);
+  const [syntaxStyle, setSyntaxStyle] = React.useState<any>(null);
+
+  React.useEffect(() => {
+    // Dynamically import syntax highlighting theme
+    import("react-syntax-highlighter/dist/esm/styles/prism")
+      .then((styles) => setSyntaxStyle(styles.oneLight))
+      .catch(() => setSyntaxStyle({})); // Fallback to no styling
+  }, []);
 
   const handleCopy = async () => {
     try {
@@ -38,7 +45,7 @@ const CodeBlock: React.FC<CodeBlockProps> = ({
     <div className="group/codeblock relative">
       <SyntaxHighlighter
         language={language}
-        style={oneLight}
+        style={syntaxStyle || {}}
         PreTag="div"
         customStyle={{
           margin: 0,
