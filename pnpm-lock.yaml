@@ -56,8 +56,8 @@ importers:
         specifier: ^1.1.6
         version: 1.2.7(@types/react-dom@19.1.6(@types/react@19.1.8))(@types/react@19.1.8)(react-dom@19.0.0(react@19.0.0))(react@19.0.0)
       '@runt/schema':
-        specifier: jsr:^0.2.0
-        version: '@jsr/runt__schema@0.2.0(c8a6ab75252475c2bbdc72175802283e)'
+        specifier: jsr:^0.4.0
+        version: '@jsr/runt__schema@0.4.0(c8a6ab75252475c2bbdc72175802283e)'
       '@types/react-syntax-highlighter':
         specifier: ^15.5.13
         version: 15.5.13
@@ -1096,6 +1096,9 @@ packages:
 
   '@jsr/runt__schema@0.2.0':
     resolution: {integrity: sha512-CIYeQmdDt3ne1zyTZSMRxMOdbnglCscWSbtbVAHaaH5CzTvKVJuzgPaj+YUnruxjSWL+T4Bc+++Bv+2QBEgk7A==, tarball: https://npm.jsr.io/~/11/@jsr/runt__schema/0.2.0.tgz}
+
+  '@jsr/runt__schema@0.4.0':
+    resolution: {integrity: sha512-rb4hNlzUp9taxxpBI4MpBZW0sydS5/biaVfSDukzvvrze1NtuIbTR/MCywjspZ5qBUxhKXerEHe/Ftw6M77WRQ==, tarball: https://npm.jsr.io/~/11/@jsr/runt__schema/0.4.0.tgz}
 
   '@livestore/adapter-node@0.3.1':
     resolution: {integrity: sha512-qP6nGY8du3r+4aS4yJ2YgaDVp/KzE/qBzOzleFTBR9DEM0faeLI9EXzwVq9A/k8pbxm5heF78l0ConExxxl42Q==}
@@ -4098,6 +4101,26 @@ snapshots:
       '@jridgewell/sourcemap-codec': 1.5.0
 
   '@jsr/runt__schema@0.2.0(c8a6ab75252475c2bbdc72175802283e)':
+    dependencies:
+      '@livestore/livestore': 0.3.1(c8a6ab75252475c2bbdc72175802283e)
+    transitivePeerDependencies:
+      - '@effect/cli'
+      - '@effect/cluster'
+      - '@effect/experimental'
+      - '@effect/opentelemetry'
+      - '@effect/platform'
+      - '@effect/platform-browser'
+      - '@effect/platform-bun'
+      - '@effect/platform-node'
+      - '@effect/printer'
+      - '@effect/printer-ansi'
+      - '@effect/rpc'
+      - '@effect/sql'
+      - '@effect/typeclass'
+      - '@opentelemetry/resources'
+      - effect
+
+  '@jsr/runt__schema@0.4.0(c8a6ab75252475c2bbdc72175802283e)':
     dependencies:
       '@livestore/livestore': 0.3.1(c8a6ab75252475c2bbdc72175802283e)
     transitivePeerDependencies:
