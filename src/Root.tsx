@@ -202,7 +202,7 @@ const LiveStoreApp: React.FC = () => {
     storage: { type: "opfs" },
     worker: LiveStoreWorker,
     sharedWorker: LiveStoreSharedWorker,
-    resetPersistence: true,
+    resetPersistence,
   });
 
   // Get current auth token (this is called after auth is validated)
