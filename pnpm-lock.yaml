@@ -61,9 +61,6 @@ importers:
       '@types/react-syntax-highlighter':
         specifier: ^15.5.13
         version: 15.5.13
-      ansi-to-react:
-        specifier: ^6.1.6
-        version: 6.1.6(react-dom@19.0.0(react@19.0.0))(react@19.0.0)
       class-variance-authority:
         specifier: ^0.7.1
         version: 0.7.1
@@ -94,9 +91,6 @@ importers:
       react-syntax-highlighter:
         specifier: ^15.6.1
         version: 15.6.1(react@19.0.0)
-      strip-ansi:
-        specifier: ^7.1.0
-        version: 7.1.0
       tailwind-merge:
         specifier: ^3.3.1
         version: 3.3.1
