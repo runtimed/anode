@@ -27,6 +27,7 @@ export const useCellKeyboardNavigation = ({
       ) {
         e.preventDefault();
         onDeleteCell?.();
+        onFocusPrevious?.();
         return;
       }
 
