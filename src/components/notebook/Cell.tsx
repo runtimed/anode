@@ -39,6 +39,8 @@ import {
 } from "lucide-react";
 
 import { groupConsecutiveStreamOutputs } from "../../util/output-grouping.js";
+import { CodeMirrorEditor } from "./CodeMirror.js";
+import { CellBase } from "./CellBase.js";
 
 type CellType = typeof tables.cells.Type;
 
@@ -528,32 +530,57 @@ export const Cell: React.FC<CellProps> = ({
               autoFocus ? "bg-white" : "bg-white"
             }`}
           >
-            <div className="relative min-h-[1.5rem]">
-              <Textarea
-                ref={textareaRef}
+            {/* Mobile: fallback to Textarea */}
+            <div className="block sm:hidden">
+              <CellBase asChild>
+                <Textarea
+                  ref={textareaRef}
+                  value={localSource}
+                  onChange={handleSourceChange}
+                  onBlur={updateSource}
+                  onKeyDown={handleKeyDown}
+                  placeholder={
+                    cell.cellType === "code"
+                      ? "Enter your code here..."
+                      : cell.cellType === "markdown"
+                        ? "Enter markdown..."
+                        : "Enter raw text..."
+                  }
+                  onFocus={handleFocus}
+                  autoCapitalize="off"
+                  autoCorrect="off"
+                  autoComplete="off"
+                  spellCheck={false}
+                />
+              </CellBase>
+            </div>
+            {/* Desktop: CodeMirror Editor */}
+            {/* TODO: don't even load CodeMirror on mobile */}
+            <div className="relative hidden min-h-[1.5rem] sm:block">
+              <CodeMirrorEditor
                 value={localSource}
-                onChange={handleSourceChange}
-                onBlur={updateSource}
-                onKeyDown={handleKeyDown}
-                placeholder={
+                language={
                   cell.cellType === "code"
-                    ? "Enter your code here..."
+                    ? "python"
                     : cell.cellType === "markdown"
-                      ? "Enter markdown..."
-                      : "Enter raw text..."
+                      ? "markdown"
+                      : "raw"
                 }
-                className={`placeholder:text-muted-foreground/60 w-full resize-none border-0 bg-white px-2 py-2 font-mono text-base shadow-none transition-all duration-200 focus-visible:ring-0 sm:py-1 sm:text-sm ${
-                  isMaximized
-                    ? "fixed inset-4 top-16 z-50 max-h-[calc(100vh-8rem)] min-h-[calc(100vh-8rem)] rounded-lg border bg-white shadow-2xl"
-                    : "max-h-[40vh] min-h-[2.5rem] sm:max-h-none sm:min-h-[1.5rem]"
-                }`}
+                onChange={(e) =>
+                  handleSourceChange({
+                    target: { value: e.target.value },
+                  } as React.ChangeEvent<HTMLTextAreaElement>)
+                }
+                autoFocus={autoFocus}
+                isMaximized={isMaximized}
                 onFocus={handleFocus}
-                autoCapitalize="off"
-                autoCorrect="off"
-                autoComplete="off"
-                spellCheck={false}
+                onKeyDown={(e) =>
+                  handleKeyDown(
+                    e as unknown as React.KeyboardEvent<HTMLTextAreaElement>
+                  )
+                }
+                onBlur={updateSource}
               />
-
               {/* Mobile maximize/minimize button */}
               <Button
                 variant="ghost"
@@ -567,7 +594,6 @@ export const Cell: React.FC<CellProps> = ({
                   <Maximize2 className="h-3 w-3" />
                 )}
               </Button>
-
               {/* Overlay for maximized mode */}
               {isMaximized && (
                 <div
