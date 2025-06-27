@@ -8,6 +8,7 @@
   },
   "scripts": {
     "dev": "vite --port 5173",
+    "dev:scan": "pnpm run dev & npx react-scan@latest localhost:5173",
     "dev:prod": "vite --port 5173 --mode production",
     "dev:sync": "wrangler dev",
     "dev:runtime": "deno run --allow-all --env-file=.env \"jsr:@runt/pyodide-runtime-agent\"",
