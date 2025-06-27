@@ -1,0 +1,10 @@
+{
+  "files.associations": {
+		"*.css": "tailwindcss"
+	},
+  "search.exclude": {
+		"**/node_modules": true,
+		"pnpm-lock.json": true,
+		"pnpm-lock.yaml": true
+	},
+}
