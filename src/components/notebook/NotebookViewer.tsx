@@ -719,6 +719,7 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
                   </div>
                   <div className="mb-4 flex flex-wrap justify-center gap-2">
                     <Button
+                      autoFocus
                       onClick={() => addCell()}
                       className="flex items-center gap-2"
                     >
