@@ -237,6 +237,7 @@ export const Cell: React.FC<CellProps> = ({
   const { handleKeyDown } = useCellKeyboardNavigation({
     onFocusNext,
     onFocusPrevious,
+    onDeleteCell,
     onExecute: cell.cellType === "code" ? executeCell : undefined,
     onUpdateSource: updateSource,
   });

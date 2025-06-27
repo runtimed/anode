@@ -5,11 +5,13 @@ interface CellKeyboardNavigationOptions {
   onFocusPrevious?: () => void;
   onExecute?: () => void;
   onUpdateSource?: () => void;
+  onDeleteCell?: () => void;
 }
 
 export const useCellKeyboardNavigation = ({
   onFocusNext,
   onFocusPrevious,
+  onDeleteCell,
   onExecute,
   onUpdateSource,
 }: CellKeyboardNavigationOptions) => {
@@ -17,6 +19,17 @@ export const useCellKeyboardNavigation = ({
     (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
       const textarea = e.currentTarget;
       const { selectionStart, selectionEnd, value } = textarea;
+
+      if (
+        e.key === "Backspace" &&
+        selectionStart === selectionEnd &&
+        selectionStart === 0
+      ) {
+        e.preventDefault();
+        onDeleteCell?.();
+        onFocusPrevious?.();
+        return;
+      }
 
       // Handle Home/End keys to prevent page navigation
       if (e.key === "Home" || e.key === "End") {

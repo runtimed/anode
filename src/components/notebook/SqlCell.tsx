@@ -114,6 +114,7 @@ export const SqlCell: React.FC<SqlCellProps> = ({
   const { handleKeyDown } = useCellKeyboardNavigation({
     onFocusNext,
     onFocusPrevious,
+    onDeleteCell,
     onExecute: executeQuery,
     onUpdateSource: updateQuery,
   });
