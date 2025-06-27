@@ -155,6 +155,7 @@ export const AiCell: React.FC<AiCellProps> = ({
   const { handleKeyDown } = useCellKeyboardNavigation({
     onFocusNext,
     onFocusPrevious,
+    onDeleteCell,
     onExecute: executeAiPrompt,
     onUpdateSource: updateSource,
   });
