@@ -45,7 +45,7 @@ const ANSI_BG_COLORS: Record<number, string> = {
   46: "bg-cyan-600",
   47: "bg-white",
 
-  // Bright background colors
+  // Bright background colors (codes 100-107)
   100: "bg-gray-500",
   101: "bg-red-400",
   102: "bg-green-400",
@@ -117,10 +117,12 @@ function parseAnsiEscapeSequences(text: string): AnsiSegment[] {
         currentSegment.strikethrough = false;
       } else if (code >= 30 && code <= 37) {
         // Standard foreground colors
-        currentSegment.fg = ANSI_COLORS[code - 30];
+        const colorKey = code - 30;
+        currentSegment.fg = ANSI_COLORS[colorKey];
       } else if (code >= 90 && code <= 97) {
         // Bright foreground colors
-        currentSegment.fg = ANSI_COLORS[code - 90 + 8];
+        const colorKey = code - 90 + 8;
+        currentSegment.fg = ANSI_COLORS[colorKey];
       } else if (code >= 40 && code <= 47) {
         // Standard background colors
         currentSegment.bg = ANSI_BG_COLORS[code];
