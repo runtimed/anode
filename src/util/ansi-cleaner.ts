@@ -1,4 +1,4 @@
-import stripAnsi from "strip-ansi";
+// Simple ANSI cleaning using regex - runtime agent handles this for AI context
 
 /**
  * Cleans ANSI escape codes from text for AI context consumption
@@ -15,7 +15,7 @@ export function cleanForAI(text: string): string {
     return text;
   }
 
-  return stripAnsi(text);
+  return text.replace(/\x1b\[[0-9;]*m/g, "");
 }
 
 /**
