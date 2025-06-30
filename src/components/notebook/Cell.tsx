@@ -559,6 +559,13 @@ export const Cell: React.FC<CellProps> = ({
             <div className="relative hidden min-h-[1.5rem] sm:block">
               <CodeMirrorEditor
                 value={localSource}
+                placeholder={
+                  cell.cellType === "code"
+                    ? "Enter your code here..."
+                    : cell.cellType === "markdown"
+                      ? "Enter markdown..."
+                      : "Enter raw text..."
+                }
                 language={
                   cell.cellType === "code"
                     ? "python"

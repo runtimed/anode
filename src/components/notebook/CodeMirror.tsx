@@ -3,6 +3,7 @@ import { EditorState } from "@codemirror/state";
 import { githubLight } from "@uiw/codemirror-theme-github";
 import { EditorView } from "codemirror";
 import { useEffect, useRef } from "react";
+import { placeholder as placeholderExt } from "@codemirror/view";
 
 import { CellBase } from "./CellBase.js";
 import { markdown } from "@codemirror/lang-markdown";
@@ -16,6 +17,7 @@ type CodeMirrorEditorProps = {
   onKeyDown?: (e: KeyboardEvent) => void;
   onFocus?: () => void;
   onBlur?: () => void;
+  placeholder?: string;
 };
 
 export const CodeMirrorEditor: React.FC<CodeMirrorEditorProps> = ({
@@ -27,6 +29,7 @@ export const CodeMirrorEditor: React.FC<CodeMirrorEditorProps> = ({
   onKeyDown,
   onFocus,
   onBlur,
+  placeholder,
 }) => {
   const editorRef = useRef<HTMLDivElement | null>(null);
   const viewRef = useRef<EditorView | null>(null);
@@ -38,30 +41,37 @@ export const CodeMirrorEditor: React.FC<CodeMirrorEditorProps> = ({
       viewRef.current = null;
     }
 
-    let extensions = [githubLight];
-    if (language === "python") {
-      extensions.push(python());
-    } else if (language === "markdown") {
-      extensions.push(markdown());
-    }
-    const state = EditorState.create({
-      doc: value,
-      extensions: [
-        ...extensions,
-        EditorView.updateListener.of((v) => {
-          if (v.docChanged) {
-            const newValue = v.state.doc.toString();
-            if (newValue !== value) onChange({ target: { value: newValue } });
-          }
-        }),
-        EditorView.domEventHandlers({
-          blur: onBlur,
-          focus: onFocus,
-          keydown: onKeyDown,
-        }),
-        autoFocus ? EditorView.editable.of(true) : [],
-      ],
-    });
+    const createEditorState = () => {
+      let extensions = [githubLight];
+      if (language === "python") {
+        extensions.push(python());
+      } else if (language === "markdown") {
+        extensions.push(markdown());
+      }
+      if (placeholder) {
+        extensions.push(placeholderExt(placeholder));
+      }
+      return EditorState.create({
+        doc: value,
+        extensions: [
+          ...extensions,
+          EditorView.updateListener.of((v) => {
+            if (v.docChanged) {
+              const newValue = v.state.doc.toString();
+              if (newValue !== value) onChange({ target: { value: newValue } });
+            }
+          }),
+          EditorView.domEventHandlers({
+            blur: onBlur,
+            focus: onFocus,
+            keydown: onKeyDown,
+          }),
+          autoFocus ? EditorView.editable.of(true) : [],
+        ],
+      });
+    };
+
+    const state = createEditorState();
     viewRef.current = new EditorView({
       state,
       parent: editorRef.current,
@@ -77,6 +87,7 @@ export const CodeMirrorEditor: React.FC<CodeMirrorEditorProps> = ({
     };
   }, [editorRef, language, autoFocus]);
 
+  // Ensure the editor is updated when the value changes
   useEffect(() => {
     if (viewRef.current) {
       const currentValue = viewRef.current.state.doc.toString();
