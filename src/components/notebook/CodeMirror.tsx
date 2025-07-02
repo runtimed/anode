@@ -87,7 +87,11 @@ export const CodeMirrorEditor: React.FC<CodeMirrorEditorProps> = ({
           console.log("onBlur", editorRef.current);
           onBlur?.();
         }}
-        onFocus={onFocus}
+        onFocus={() => {
+          console.log("onFocus", editorRef.current);
+          editorRef.current?.scrollIntoView({ block: "nearest" });
+          onFocus?.();
+        }}
       />
     </CellBase>
   );
