@@ -111,7 +111,7 @@ export const SqlCell: React.FC<SqlCellProps> = ({
   }, [cell.id, cell.sqlConnectionId, localQuery, store]);
 
   // Use shared keyboard navigation hook
-  const { handleKeyDown } = useCellKeyboardNavigation({
+  const { keyMap } = useCellKeyboardNavigation({
     onFocusNext,
     onFocusPrevious,
     onDeleteCell,
@@ -495,6 +495,7 @@ export const SqlCell: React.FC<SqlCellProps> = ({
                 onValueChange={handleSourceChange}
                 onBlur={updateQuery}
                 onFocus={handleFocus}
+                keyMap={keyMap}
               />
             </div>
           </div>

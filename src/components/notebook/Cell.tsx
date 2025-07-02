@@ -236,7 +236,7 @@ export const Cell: React.FC<CellProps> = ({
   }, [cell.id, localSource, cell.executionCount, store]);
 
   // Use shared keyboard navigation hook
-  const { handleKeyDown } = useCellKeyboardNavigation({
+  const { handleKeyDown, keyMap } = useCellKeyboardNavigation({
     onFocusNext,
     onFocusPrevious,
     onDeleteCell,
@@ -558,14 +558,6 @@ export const Cell: React.FC<CellProps> = ({
             {/* TODO: don't even load CodeMirror on mobile */}
             <div className="relative hidden min-h-[1.5rem] sm:block">
               <CodeMirrorEditor
-                value={localSource}
-                placeholder={
-                  cell.cellType === "code"
-                    ? "Enter your code here..."
-                    : cell.cellType === "markdown"
-                      ? "Enter markdown..."
-                      : "Enter raw text..."
-                }
                 language={
                   cell.cellType === "code"
                     ? "python"
@@ -573,15 +565,19 @@ export const Cell: React.FC<CellProps> = ({
                       ? "markdown"
                       : "raw"
                 }
+                placeholder={
+                  cell.cellType === "code"
+                    ? "Enter your code here..."
+                    : cell.cellType === "markdown"
+                      ? "Enter markdown..."
+                      : "Enter raw text..."
+                }
+                value={localSource}
                 onValueChange={handleSourceChange}
                 autoFocus={autoFocus}
                 isMaximized={isMaximized}
                 onFocus={handleFocus}
-                onKeyDown={(e) =>
-                  handleKeyDown(
-                    e as unknown as React.KeyboardEvent<HTMLTextAreaElement>
-                  )
-                }
+                keyMap={keyMap}
                 onBlur={updateSource}
               />
               {/* Mobile maximize/minimize button */}
