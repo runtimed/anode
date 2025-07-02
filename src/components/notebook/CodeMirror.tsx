@@ -170,6 +170,7 @@ export const CodeMirrorEditor: React.FC<CodeMirrorEditorProps> = ({
           console.log("onBlur", editorRef.current);
           onBlur?.();
         }}
+        onFocus={onFocus}
         // onKeyDownCapture={(e) => {
         //   console.log("e.key:", e.key);
         //   if (e.key === "Enter" && e.shiftKey) {
