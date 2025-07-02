@@ -563,7 +563,7 @@ export const Cell: React.FC<CellProps> = ({
                     ? "python"
                     : cell.cellType === "markdown"
                       ? "markdown"
-                      : "raw"
+                      : undefined
                 }
                 placeholder={
                   cell.cellType === "code"
