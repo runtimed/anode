@@ -489,11 +489,11 @@ export const SqlCell: React.FC<SqlCellProps> = ({
           >
             <div className="min-h-[1.5rem]">
               <CodeMirrorEditor
-                value={localQuery}
                 language="sql"
+                placeholder="SELECT * FROM your_table WHERE condition = 'value';"
+                value={localQuery}
                 onValueChange={handleSourceChange}
                 onBlur={updateQuery}
-                placeholder="SELECT * FROM your_table WHERE condition = 'value';"
                 onFocus={handleFocus}
               />
             </div>
