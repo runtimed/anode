@@ -153,6 +153,7 @@ export const CodeMirrorEditor: React.FC<CodeMirrorEditorProps> = ({
       console.log("val:", val);
       onValueChange(val);
     },
+    autoFocus,
   });
 
   useEffect(() => {
