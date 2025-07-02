@@ -4,7 +4,6 @@ import { events, SqlResultData, tables } from "@runt/schema";
 import { useCellKeyboardNavigation } from "../../hooks/useCellKeyboardNavigation.js";
 import { useCellContent } from "../../hooks/useCellContent.js";
 import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import {
   DropdownMenu,
@@ -27,6 +26,7 @@ import {
   Plus,
   X,
 } from "lucide-react";
+import { CodeMirrorEditor } from "./CodeMirror.js";
 
 interface SqlCellProps {
   cell: typeof tables.cells.Type;
@@ -111,7 +111,7 @@ export const SqlCell: React.FC<SqlCellProps> = ({
   }, [cell.id, cell.sqlConnectionId, localQuery, store]);
 
   // Use shared keyboard navigation hook
-  const { handleKeyDown } = useCellKeyboardNavigation({
+  const { keyMap } = useCellKeyboardNavigation({
     onFocusNext,
     onFocusPrevious,
     onDeleteCell,
@@ -488,19 +488,14 @@ export const SqlCell: React.FC<SqlCellProps> = ({
             }`}
           >
             <div className="min-h-[1.5rem]">
-              <Textarea
-                ref={textareaRef}
-                value={localQuery}
-                onChange={handleSourceChange}
-                onBlur={updateQuery}
-                onKeyDown={handleKeyDown}
+              <CodeMirrorEditor
+                language="sql"
                 placeholder="SELECT * FROM your_table WHERE condition = 'value';"
-                className="placeholder:text-muted-foreground/60 min-h-[1.5rem] w-full resize-none border-0 bg-white px-2 py-1 font-mono shadow-none focus-visible:ring-0"
+                value={localQuery}
+                onValueChange={handleSourceChange}
+                onBlur={updateQuery}
                 onFocus={handleFocus}
-                autoCapitalize="off"
-                autoCorrect="off"
-                autoComplete="off"
-                spellCheck={false}
+                keyMap={keyMap}
               />
             </div>
           </div>

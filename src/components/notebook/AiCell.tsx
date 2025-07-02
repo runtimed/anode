@@ -32,6 +32,7 @@ import {
   Plus,
   X,
 } from "lucide-react";
+import { CellBase } from "./CellBase.js";
 
 interface AiCellProps {
   cell: typeof tables.cells.Type;
@@ -567,7 +568,7 @@ export const AiCell: React.FC<AiCellProps> = ({
                 <Textarea
                   ref={textareaRef}
                   value={localSource}
-                  onChange={handleSourceChange}
+                  onChange={(e) => handleSourceChange(e.target.value)}
                   onBlur={updateSource}
                   onKeyDown={handleKeyDown}
                   placeholder="Ask me anything about your notebook, data, or analysis..."
@@ -631,16 +632,17 @@ export const AiCell: React.FC<AiCellProps> = ({
 
             {/* Desktop Traditional Input */}
             <div className="hidden min-h-[1.5rem] sm:block">
-              <Textarea
-                ref={textareaRef}
-                value={localSource}
-                onChange={handleSourceChange}
-                onBlur={updateSource}
-                onKeyDown={handleKeyDown}
-                placeholder="Ask me anything about your notebook, data, or analysis..."
-                className="placeholder:text-muted-foreground/60 min-h-[1.5rem] w-full resize-none border-0 bg-white px-2 py-1 font-mono text-sm shadow-none focus-visible:ring-0"
-                onFocus={handleFocus}
-              />
+              <CellBase asChild>
+                <textarea
+                  ref={textareaRef}
+                  value={localSource}
+                  onChange={(e) => handleSourceChange(e.target.value)}
+                  onBlur={updateSource}
+                  onKeyDown={handleKeyDown}
+                  placeholder="Ask me anything about your notebook, data, or analysis..."
+                  onFocus={handleFocus}
+                />
+              </CellBase>
             </div>
           </div>
         )}

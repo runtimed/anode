@@ -1,4 +1,5 @@
-import { useCallback } from "react";
+import { KeyBinding } from "@codemirror/view";
+import { useCallback, useMemo } from "react";
 
 interface CellKeyboardNavigationOptions {
   onFocusNext?: () => void;
@@ -15,6 +16,73 @@ export const useCellKeyboardNavigation = ({
   onExecute,
   onUpdateSource,
 }: CellKeyboardNavigationOptions) => {
+  const keyMap = useMemo(() => {
+    const map: KeyBinding[] = [
+      {
+        mac: "Meta-Enter",
+        win: "Ctrl-Enter",
+        linux: "Meta-Enter",
+        run: () => {
+          onUpdateSource?.();
+          onExecute?.();
+          return true;
+        },
+      },
+      {
+        key: "Shift-Enter",
+        run: () => {
+          onUpdateSource?.();
+          onExecute?.();
+          onFocusNext?.();
+          return true;
+        },
+      },
+      {
+        key: "ArrowDown",
+        run: (editor) => {
+          const { state } = editor;
+          const { selection } = state;
+          const cursorPos = selection.main.head;
+          const docLength = state.doc.length;
+
+          if (cursorPos === docLength) {
+            onFocusNext?.();
+          }
+          return false;
+        },
+      },
+      {
+        key: "ArrowUp",
+        run: (editor) => {
+          const { state } = editor;
+          const { selection } = state;
+          const cursorPos = selection.main.head;
+
+          if (cursorPos === 0) {
+            onFocusPrevious?.();
+          }
+          return false;
+        },
+      },
+      {
+        key: "Backspace",
+        preventDefault: true,
+        run: (editor) => {
+          if (editor.state.doc.length === 0) {
+            onDeleteCell?.();
+            if (onFocusPrevious) {
+              onFocusPrevious();
+            } else {
+              onFocusNext?.();
+            }
+          }
+          return false;
+        },
+      },
+    ];
+    return map;
+  }, [onExecute]);
+
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
       const textarea = e.currentTarget;
@@ -118,5 +186,5 @@ export const useCellKeyboardNavigation = ({
     [onFocusNext, onFocusPrevious, onExecute, onUpdateSource]
   );
 
-  return { handleKeyDown };
+  return { handleKeyDown, keyMap };
 };
