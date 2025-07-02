@@ -133,7 +133,7 @@ real-time collaboration across devices.
 3. **Start services**:
 
    ```bash
-   pnpm dev:web-only  # Web client connects to deployed worker
+   pnpm dev:web  # Web client connects to deployed worker
    NOTEBOOK_ID=test-notebook pnpm dev:runtime
    ```
 
@@ -198,8 +198,8 @@ Want to run Anode locally or contribute? Here's the essentials:
 pnpm install             # Installs dependencies and creates .env files
 
 # Start the development servers (in separate terminals)
-pnpm dev:web-only       # Web interface at http://localhost:5173
-pnpm dev:sync-only      # Sync backend
+pnpm dev:web       # Web interface at http://localhost:5173
+pnpm dev:sync      # Sync backend
 
 # For Python execution, get the command from the notebook UI
 # Then run: NOTEBOOK_ID=your-notebook-id pnpm dev:runtime
