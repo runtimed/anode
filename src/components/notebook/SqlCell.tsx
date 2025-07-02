@@ -491,7 +491,7 @@ export const SqlCell: React.FC<SqlCellProps> = ({
               <Textarea
                 ref={textareaRef}
                 value={localQuery}
-                onChange={handleSourceChange}
+                onChange={(e) => handleSourceChange(e.target.value)}
                 onBlur={updateQuery}
                 onKeyDown={handleKeyDown}
                 placeholder="SELECT * FROM your_table WHERE condition = 'value';"

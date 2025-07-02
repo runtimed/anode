@@ -536,7 +536,7 @@ export const Cell: React.FC<CellProps> = ({
                 <Textarea
                   ref={textareaRef}
                   value={localSource}
-                  onChange={handleSourceChange}
+                  onChange={(e) => handleSourceChange(e.target.value)}
                   onBlur={updateSource}
                   onKeyDown={handleKeyDown}
                   placeholder={
@@ -573,11 +573,7 @@ export const Cell: React.FC<CellProps> = ({
                       ? "markdown"
                       : "raw"
                 }
-                onChange={(e) =>
-                  handleSourceChange({
-                    target: { value: e.target.value },
-                  } as React.ChangeEvent<HTMLTextAreaElement>)
-                }
+                onValueChange={handleSourceChange}
                 autoFocus={autoFocus}
                 isMaximized={isMaximized}
                 onFocus={handleFocus}

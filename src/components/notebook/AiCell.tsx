@@ -567,7 +567,7 @@ export const AiCell: React.FC<AiCellProps> = ({
                 <Textarea
                   ref={textareaRef}
                   value={localSource}
-                  onChange={handleSourceChange}
+                  onChange={(e) => handleSourceChange(e.target.value)}
                   onBlur={updateSource}
                   onKeyDown={handleKeyDown}
                   placeholder="Ask me anything about your notebook, data, or analysis..."
@@ -634,7 +634,7 @@ export const AiCell: React.FC<AiCellProps> = ({
               <Textarea
                 ref={textareaRef}
                 value={localSource}
-                onChange={handleSourceChange}
+                onChange={(e) => handleSourceChange(e.target.value)}
                 onBlur={updateSource}
                 onKeyDown={handleKeyDown}
                 placeholder="Ask me anything about your notebook, data, or analysis..."

@@ -1,17 +1,94 @@
 import { python } from "@codemirror/lang-python";
-import { EditorState } from "@codemirror/state";
+import { keymap, placeholder as placeholderExt } from "@codemirror/view";
 import { githubLight } from "@uiw/codemirror-theme-github";
-import { EditorView } from "codemirror";
-import { useEffect, useRef } from "react";
-import { placeholder as placeholderExt } from "@codemirror/view";
+import { basicSetup, EditorView } from "codemirror";
+import { useCallback, useEffect, useRef } from "react";
 
-import { CellBase } from "./CellBase.js";
 import { markdown } from "@codemirror/lang-markdown";
+import { CellBase } from "./CellBase.js";
+
+import { SupportedLanguage } from "@/types/misc.js";
+import { events } from "@runt/schema";
+import { useCodeMirror } from "@uiw/react-codemirror";
+import { useStore } from "@livestore/react";
+
+const customKeyMap = keymap.of([
+  {
+    win: "Ctrl-Enter",
+    run: () => {
+      alert("Ctrl-Enter");
+      console.log("Ctrl-Enter");
+      return true;
+    },
+  },
+  {
+    key: "Shift-Enter",
+    run: () => {
+      alert("Shift-Enter");
+      console.log("Shift-Enter");
+      return true;
+    },
+  },
+  {
+    mac: "Meta-Enter",
+    run: (editor) => {
+      const { state } = editor;
+      const { selection } = state;
+      const cursorPos = selection.main.head;
+      const docLength = state.doc.length;
+
+      if (cursorPos === docLength) {
+        console.log("Cursor is at the end of the document");
+        // You can add your logic here for when cursor is at the end
+      } else {
+        console.log("Cursor is not at the end of the document");
+        // You can add your logic here for when cursor is not at the end
+      }
+      alert("Meta-Enter");
+      console.log("Meta-Enter");
+      return true;
+    },
+  },
+  {
+    key: "ArrowDown",
+    run: (editor) => {
+      const { state } = editor;
+      const { selection } = state;
+      const cursorPos = selection.main.head;
+      const docLength = state.doc.length;
+
+      if (cursorPos === docLength) {
+        console.log("Cursor is at the end of the document");
+        // You can add your logic here for when cursor is at the end
+      }
+      return false;
+    },
+  },
+  {
+    key: "ArrowUp",
+    run: (editor) => {
+      const { state } = editor;
+      const { selection } = state;
+      const cursorPos = selection.main.head;
+
+      if (cursorPos === 0) {
+        console.log("Cursor is at the start of the document");
+        // You can add your logic here for when cursor is at the start
+      }
+      return false;
+    },
+  },
+]);
+
+// Putting basicSetup last so we can override the default keymap
+const extensions = [customKeyMap, basicSetup, githubLight];
+
+// ---
 
 type CodeMirrorEditorProps = {
   value: string;
-  language: string;
-  onChange: (e: { target: { value: string } }) => void;
+  language: SupportedLanguage;
+  onValueChange: (val: string) => void;
   autoFocus?: boolean;
   isMaximized?: boolean;
   onKeyDown?: (e: KeyboardEvent) => void;
@@ -20,10 +97,19 @@ type CodeMirrorEditorProps = {
   placeholder?: string;
 };
 
+function languageExtension(language: SupportedLanguage) {
+  if (language === "python") {
+    return python();
+  } else if (language === "markdown") {
+    return markdown();
+  }
+  return [];
+}
+
 export const CodeMirrorEditor: React.FC<CodeMirrorEditorProps> = ({
   value,
   language,
-  onChange,
+  onValueChange,
   autoFocus,
   isMaximized,
   onKeyDown,
@@ -32,76 +118,63 @@ export const CodeMirrorEditor: React.FC<CodeMirrorEditorProps> = ({
   placeholder,
 }) => {
   const editorRef = useRef<HTMLDivElement | null>(null);
-  const viewRef = useRef<EditorView | null>(null);
+
+  // const { store } = useStore();
+  // const doc = store.useQuery(doc$);
+
+  // const onChange2 = useCallback(
+  //   (val: string, viewUpdate: any) => {
+  //     console.log("val:", val);
+  //     // setValue(val);
+  //     store.commit(
+  //       events.cellSourceChanged({
+  //         source: val,
+  //         id: "123",
+  //         modifiedBy: "user",
+  //       })
+  //     );
+  //   },
+  //   [store]
+  // );
+
+  const { setContainer } = useCodeMirror({
+    container: editorRef.current,
+    extensions: [
+      ...extensions,
+      languageExtension(language),
+      placeholder ? placeholderExt(placeholder) : [],
+    ],
+    basicSetup: false,
+    value,
+    onChange: (val) => {
+      console.log("val:", val);
+      onValueChange(val);
+    },
+  });
 
   useEffect(() => {
-    if (!editorRef.current) return;
-    if (viewRef.current) {
-      viewRef.current.destroy();
-      viewRef.current = null;
+    if (editorRef.current) {
+      setContainer(editorRef.current);
     }
-
-    const createEditorState = () => {
-      let extensions = [githubLight];
-      if (language === "python") {
-        extensions.push(python());
-      } else if (language === "markdown") {
-        extensions.push(markdown());
-      }
-      if (placeholder) {
-        extensions.push(placeholderExt(placeholder));
-      }
-      return EditorState.create({
-        doc: value,
-        extensions: [
-          ...extensions,
-          EditorView.updateListener.of((v) => {
-            if (v.docChanged) {
-              const newValue = v.state.doc.toString();
-              if (newValue !== value) onChange({ target: { value: newValue } });
-            }
-          }),
-          EditorView.domEventHandlers({
-            blur: onBlur,
-            focus: onFocus,
-            keydown: onKeyDown,
-          }),
-          autoFocus ? EditorView.editable.of(true) : [],
-        ],
-      });
-    };
-
-    const state = createEditorState();
-    viewRef.current = new EditorView({
-      state,
-      parent: editorRef.current,
-    });
-    if (autoFocus && viewRef.current) {
-      viewRef.current.focus();
-    }
-    return () => {
-      if (viewRef.current) {
-        viewRef.current.destroy();
-        viewRef.current = null;
-      }
-    };
-  }, [editorRef, language, autoFocus]);
-
-  // Ensure the editor is updated when the value changes
-  useEffect(() => {
-    if (viewRef.current) {
-      const currentValue = viewRef.current.state.doc.toString();
-      if (currentValue !== value) {
-        viewRef.current.dispatch({
-          changes: { from: 0, to: currentValue.length, insert: value },
-        });
-      }
-    }
-  }, [value]);
+  }, [editorRef.current]);
 
   return (
     <CellBase isMaximized={isMaximized} asChild>
-      <div ref={editorRef} />
+      <div
+        ref={editorRef}
+        onBlur={() => {
+          console.log("onBlur", editorRef.current);
+          onBlur?.();
+        }}
+        // onKeyDownCapture={(e) => {
+        //   console.log("e.key:", e.key);
+        //   if (e.key === "Enter" && e.shiftKey) {
+        //     e.preventDefault();
+        //     e.stopPropagation();
+        //     alert("Enter+Shift");
+        //   }
+        // }}
+      />
     </CellBase>
   );
 };

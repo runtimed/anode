@@ -22,6 +22,7 @@ export const useCellContent = ({
   }, [initialSource]);
 
   const updateSource = useCallback(() => {
+    console.log("updateSource", localSource, initialSource);
     if (localSource !== initialSource) {
       store.commit(
         events.cellSourceChanged({
@@ -34,12 +35,9 @@ export const useCellContent = ({
     }
   }, [localSource, initialSource, cellId, store, onUpdate]);
 
-  const handleSourceChange = useCallback(
-    (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-      setLocalSource(e.target.value);
-    },
-    []
-  );
+  const handleSourceChange = useCallback((value: string) => {
+    setLocalSource(value);
+  }, []);
 
   return {
     localSource,
