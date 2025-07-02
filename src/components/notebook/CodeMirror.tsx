@@ -11,6 +11,7 @@ import { SupportedLanguage } from "@/types/misc.js";
 import { events } from "@runt/schema";
 import { useCodeMirror } from "@uiw/react-codemirror";
 import { useStore } from "@livestore/react";
+import { sql } from "@codemirror/lang-sql";
 
 const customKeyMap = keymap.of([
   {
@@ -102,6 +103,8 @@ function languageExtension(language: SupportedLanguage) {
     return python();
   } else if (language === "markdown") {
     return markdown();
+  } else if (language === "sql") {
+    return sql();
   }
   return [];
 }

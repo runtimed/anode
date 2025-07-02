@@ -40,6 +40,7 @@
     "@codemirror/commands": "^6.8.1",
     "@codemirror/lang-markdown": "^6.3.3",
     "@codemirror/lang-python": "^6.2.1",
+    "@codemirror/lang-sql": "^6.9.0",
     "@codemirror/state": "^6.5.2",
     "@codemirror/view": "^6.38.0",
     "@livestore/adapter-web": "^0.3.1",

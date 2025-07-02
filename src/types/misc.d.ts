@@ -1,1 +1,1 @@
-export type SupportedLanguage = "python" | "markdown" | "raw";
+export type SupportedLanguage = "python" | "sql" | "markdown" | "raw";
