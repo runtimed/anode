@@ -5,6 +5,7 @@ import { useCellKeyboardNavigation } from "../../hooks/useCellKeyboardNavigation
 import { useCellContent } from "../../hooks/useCellContent.js";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Textarea } from "@/components/ui/textarea";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -27,6 +28,7 @@ import {
   X,
 } from "lucide-react";
 import { CodeMirrorEditor } from "./CodeMirror.js";
+import { CellBase } from "./CellBase.js";
 
 interface SqlCellProps {
   cell: typeof tables.cells.Type;
@@ -110,7 +112,7 @@ export const SqlCell: React.FC<SqlCellProps> = ({
   }, [cell.id, cell.sqlConnectionId, localQuery, store]);
 
   // Use shared keyboard navigation hook
-  const { keyMap } = useCellKeyboardNavigation({
+  const { handleKeyDown, keyMap } = useCellKeyboardNavigation({
     onFocusNext,
     onFocusPrevious,
     onDeleteCell,
@@ -486,7 +488,26 @@ export const SqlCell: React.FC<SqlCellProps> = ({
               autoFocus ? "bg-white" : "bg-white"
             }`}
           >
-            <div className="min-h-[1.5rem]">
+            {/* Mobile: fallback to Textarea */}
+            <div className="block sm:hidden">
+              <CellBase asChild>
+                <Textarea
+                  ref={textareaRef}
+                  value={localQuery}
+                  onChange={(e) => handleSourceChange(e.target.value)}
+                  onBlur={updateQuery}
+                  onKeyDown={handleKeyDown}
+                  placeholder="SELECT * FROM your_table WHERE condition = 'value';"
+                  onFocus={handleFocus}
+                  autoCapitalize="off"
+                  autoCorrect="off"
+                  autoComplete="off"
+                  spellCheck={false}
+                />
+              </CellBase>
+            </div>
+            {/* Desktop: CodeMirror Editor */}
+            <div className="relative hidden min-h-[1.5rem] sm:block">
               <CodeMirrorEditor
                 language="sql"
                 placeholder="SELECT * FROM your_table WHERE condition = 'value';"
