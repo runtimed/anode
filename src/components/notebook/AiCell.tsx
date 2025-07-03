@@ -89,11 +89,8 @@ export const AiCell: React.FC<AiCellProps> = ({
     // Use localSource instead of cell.source to get the current typed content
     const sourceToExecute = localSource || cell.source;
     if (!sourceToExecute?.trim()) {
-      console.log("No prompt to execute");
       return;
     }
-
-    console.log("🤖 Executing AI prompt via execution queue:", cell.id);
 
     try {
       // Clear previous outputs first
@@ -120,8 +117,6 @@ export const AiCell: React.FC<AiCellProps> = ({
           priority: 1,
         })
       );
-
-      console.log("✅ AI execution queued with ID:", queueId);
 
       // The kernel service will now:
       // 1. See the pending execution in the queue

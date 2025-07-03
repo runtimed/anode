@@ -22,7 +22,6 @@ export const useCellContent = ({
   }, [initialSource]);
 
   const updateSource = useCallback(() => {
-    console.log("updateSource", localSource, initialSource);
     if (localSource !== initialSource) {
       store.commit(
         events.cellSourceChanged({

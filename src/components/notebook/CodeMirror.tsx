@@ -67,7 +67,6 @@ export const CodeMirrorEditor: React.FC<CodeMirrorEditorProps> = ({
     basicSetup: false,
     value,
     onChange: (val) => {
-      console.log("val:", val);
       onValueChange(val);
     },
     autoFocus,
@@ -84,11 +83,9 @@ export const CodeMirrorEditor: React.FC<CodeMirrorEditorProps> = ({
       <div
         ref={editorRef}
         onBlur={() => {
-          console.log("onBlur", editorRef.current);
           onBlur?.();
         }}
         onFocus={() => {
-          console.log("onFocus", editorRef.current);
           editorRef.current?.scrollIntoView({ block: "nearest" });
           onFocus?.();
         }}
