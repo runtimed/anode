@@ -16,7 +16,7 @@ import { baseExtensions } from "./baseExtensions.js";
 type CodeMirrorEditorProps = {
   value: string;
   language: SupportedLanguage;
-  onValueChange: (val: string) => void;
+  onValueChange?: (val: string) => void;
   autoFocus?: boolean;
   onFocus?: () => void;
   onBlur?: () => void;
@@ -65,7 +65,7 @@ export const CodeMirrorEditor: React.FC<CodeMirrorEditorProps> = ({
 
   const handleChange = useCallback(
     (val: string) => {
-      onValueChange(val);
+      onValueChange?.(val);
     },
     [onValueChange]
   );
