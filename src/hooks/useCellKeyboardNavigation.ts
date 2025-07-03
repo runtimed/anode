@@ -172,22 +172,19 @@ export const useCellKeyboardNavigation = ({
       }
 
       // Handle execution shortcuts
-      if (e.key === "Enter" && e.ctrlKey && !e.metaKey) {
+      if ((e.key === "Enter" && e.ctrlKey) || e.metaKey) {
         // Ctrl+Enter: Run cell but stay in current cell
         e.preventDefault();
         onUpdateSource?.();
         onExecute?.();
         // Don't move to next cell - stay in current cell
-      } else if (e.key === "Enter" && e.metaKey && !e.ctrlKey) {
+      } else if (e.key === "Enter" && e.shiftKey) {
         // Cmd+Enter: Run cell and move to next (or create new cell if at end)
         e.preventDefault();
         onUpdateSource?.();
         onExecute?.();
-        if (onFocusNext) {
-          onFocusNext(); // Move to next cell (or create new if at end)
-        }
+        onFocusNext?.(); // Move to next cell (or create new if at end)
       }
-      // Shift+Enter now creates a newline (default behavior) - no special handling needed
     },
     [onFocusNext, onFocusPrevious, onExecute, onUpdateSource]
   );
