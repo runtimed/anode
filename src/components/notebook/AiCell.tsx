@@ -629,7 +629,7 @@ export const AiCell: React.FC<AiCellProps> = ({
             {/* Mobile: Textarea */}
             <div className="block sm:hidden">
               <CellBase asChild>
-                <textarea
+                <Textarea
                   ref={textareaRef}
                   value={localSource}
                   onChange={(e) => handleSourceChange(e.target.value)}
