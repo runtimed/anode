@@ -82,7 +82,6 @@ export const CodeMirrorEditor: React.FC<CodeMirrorEditorProps> = ({
     maxHeight,
     value,
     onChange: handleChange,
-    // Handle focus manually
     autoFocus,
   });
 
