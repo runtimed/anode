@@ -33,7 +33,7 @@ import {
   X,
 } from "lucide-react";
 import { CellBase } from "./CellBase.js";
-import { CodeMirrorEditor } from "./CodeMirror.js";
+import { CodeMirrorEditor } from "./codemirror/CodeMirrorEditor.js";
 
 interface AiCellProps {
   cell: typeof tables.cells.Type;
@@ -629,7 +629,7 @@ export const AiCell: React.FC<AiCellProps> = ({
             {/* Mobile: Textarea */}
             <div className="block sm:hidden">
               <CellBase asChild>
-                <textarea
+                <Textarea
                   ref={textareaRef}
                   value={localSource}
                   onChange={(e) => handleSourceChange(e.target.value)}

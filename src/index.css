@@ -371,3 +371,17 @@
     padding-bottom: max(env(safe-area-inset-bottom), 0px);
   }
 }
+
+/* CodeMirror overrides */
+
+.cm-focused {
+  outline: none !important;
+}
+
+.cm-content {
+  padding: 0 0;
+}
+
+.cm-line {
+  padding: 0 0;
+}

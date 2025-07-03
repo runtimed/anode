@@ -29,7 +29,7 @@ import {
   Plus,
   X,
 } from "lucide-react";
-import { CodeMirrorEditor } from "./CodeMirror.js";
+import { CodeMirrorEditor } from "./codemirror/CodeMirrorEditor.js";
 import { CellBase } from "./CellBase.js";
 
 interface SqlCellProps {
@@ -517,7 +517,6 @@ export const SqlCell: React.FC<SqlCellProps> = ({
                 value={localQuery}
                 onValueChange={handleSourceChange}
                 autoFocus={autoFocus}
-                isMaximized={isMaximized}
                 onBlur={updateQuery}
                 onFocus={handleFocus}
                 keyMap={keyMap}

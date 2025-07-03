@@ -1,52 +1,29 @@
 import { python } from "@codemirror/lang-python";
 import {
-  EditorView,
   KeyBinding,
   keymap,
   placeholder as placeholderExt,
 } from "@codemirror/view";
-import { githubLight } from "@uiw/codemirror-theme-github";
-import { basicSetup } from "codemirror";
-import { useEffect, useRef, useMemo, useCallback } from "react";
+import { useCallback, useEffect, useMemo, useRef } from "react";
 
 import { markdown } from "@codemirror/lang-markdown";
-import { CellBase } from "./CellBase.js";
 
 import { SupportedLanguage } from "@/types/misc.js";
 import { sql } from "@codemirror/lang-sql";
 import { useCodeMirror } from "@uiw/react-codemirror";
-
-const baseExtensions = [
-  basicSetup,
-  githubLight,
-  EditorView.theme({
-    // Disable active line highlighting
-    ".cm-activeLine": {
-      backgroundColor: "transparent !important",
-    },
-    ".cm-focused .cm-activeLine": {
-      backgroundColor: "transparent !important",
-    },
-    // Disable gutter active line highlighting
-    ".cm-activeLineGutter": {
-      backgroundColor: "transparent !important",
-    },
-    ".cm-focused .cm-activeLineGutter": {
-      backgroundColor: "transparent !important",
-    },
-  }),
-];
+import { baseExtensions } from "./baseExtensions.js";
 
 type CodeMirrorEditorProps = {
   value: string;
   language: SupportedLanguage;
-  onValueChange: (val: string) => void;
+  onValueChange?: (val: string) => void;
   autoFocus?: boolean;
-  isMaximized?: boolean;
   onFocus?: () => void;
   onBlur?: () => void;
   placeholder?: string;
   keyMap?: KeyBinding[];
+  className?: string;
+  maxHeight?: string;
 };
 
 function languageExtension(language: SupportedLanguage) {
@@ -61,15 +38,16 @@ function languageExtension(language: SupportedLanguage) {
 }
 
 export const CodeMirrorEditor: React.FC<CodeMirrorEditorProps> = ({
+  className,
   value,
   language,
   onValueChange,
   autoFocus,
-  isMaximized,
   keyMap,
   onFocus,
   onBlur,
   placeholder,
+  maxHeight,
 }) => {
   const editorRef = useRef<HTMLDivElement | null>(null);
 
@@ -87,7 +65,7 @@ export const CodeMirrorEditor: React.FC<CodeMirrorEditorProps> = ({
 
   const handleChange = useCallback(
     (val: string) => {
-      onValueChange(val);
+      onValueChange?.(val);
     },
     [onValueChange]
   );
@@ -97,14 +75,14 @@ export const CodeMirrorEditor: React.FC<CodeMirrorEditorProps> = ({
     onFocus?.();
   }, [onFocus]);
 
-  const { setContainer, view } = useCodeMirror({
+  const { setContainer } = useCodeMirror({
     container: editorRef.current,
     extensions,
     basicSetup: false,
+    maxHeight,
     value,
     onChange: handleChange,
-    // Handle focus manually
-    autoFocus: false,
+    autoFocus,
   });
 
   useEffect(() => {
@@ -113,18 +91,12 @@ export const CodeMirrorEditor: React.FC<CodeMirrorEditorProps> = ({
     }
   }, [setContainer]);
 
-  useEffect(() => {
-    if (autoFocus && view) {
-      // Defer focus until after the editor has been mounted
-      setTimeout(() => {
-        view.focus();
-      }, 0);
-    }
-  }, [autoFocus, view]);
-
   return (
-    <CellBase isMaximized={isMaximized} asChild>
-      <div ref={editorRef} onBlur={onBlur} onFocus={handleFocus} />
-    </CellBase>
+    <div
+      ref={editorRef}
+      onBlur={onBlur}
+      onFocus={handleFocus}
+      className={className}
+    />
   );
 };
