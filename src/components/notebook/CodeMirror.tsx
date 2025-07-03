@@ -1,5 +1,6 @@
 import { python } from "@codemirror/lang-python";
 import {
+  EditorView,
   KeyBinding,
   keymap,
   placeholder as placeholderExt,
@@ -15,7 +16,26 @@ import { SupportedLanguage } from "@/types/misc.js";
 import { sql } from "@codemirror/lang-sql";
 import { useCodeMirror } from "@uiw/react-codemirror";
 
-const baseExtensions = [basicSetup, githubLight];
+const baseExtensions = [
+  basicSetup,
+  githubLight,
+  EditorView.theme({
+    // Disable active line highlighting
+    ".cm-activeLine": {
+      backgroundColor: "transparent !important",
+    },
+    ".cm-focused .cm-activeLine": {
+      backgroundColor: "transparent !important",
+    },
+    // Disable gutter active line highlighting
+    ".cm-activeLineGutter": {
+      backgroundColor: "transparent !important",
+    },
+    ".cm-focused .cm-activeLineGutter": {
+      backgroundColor: "transparent !important",
+    },
+  }),
+];
 
 type CodeMirrorEditorProps = {
   value: string;
