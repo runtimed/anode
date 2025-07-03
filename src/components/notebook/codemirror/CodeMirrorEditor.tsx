@@ -74,14 +74,14 @@ export const CodeMirrorEditor: React.FC<CodeMirrorEditorProps> = ({
     onFocus?.();
   }, [onFocus]);
 
-  const { setContainer, view } = useCodeMirror({
+  const { setContainer } = useCodeMirror({
     container: editorRef.current,
     extensions,
     basicSetup: false,
     value,
     onChange: handleChange,
     // Handle focus manually
-    autoFocus: false,
+    autoFocus,
   });
 
   useEffect(() => {
@@ -89,15 +89,6 @@ export const CodeMirrorEditor: React.FC<CodeMirrorEditorProps> = ({
       setContainer(editorRef.current);
     }
   }, [setContainer]);
-
-  useEffect(() => {
-    if (autoFocus && view) {
-      // Defer focus until after the editor has been mounted
-      setTimeout(() => {
-        view.focus();
-      }, 0);
-    }
-  }, [autoFocus, view]);
 
   return (
     <CellBase isMaximized={isMaximized} asChild>
