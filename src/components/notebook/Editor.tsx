@@ -78,7 +78,10 @@ export function Editor({
         <Button
           variant="ghost"
           size="sm"
-          className="absolute top-1 right-1 z-50 h-6 w-6 p-1 sm:hidden"
+          className={cn(
+            "absolute top-1 right-1 h-6 w-6 p-1 sm:hidden",
+            isMaximized && "z-50"
+          )}
           onClick={() => setIsMaximized(!isMaximized)}
         >
           {isMaximized ? (
