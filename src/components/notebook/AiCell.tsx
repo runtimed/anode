@@ -33,7 +33,7 @@ import {
   X,
 } from "lucide-react";
 import { CellBase } from "./CellBase.js";
-import { CodeMirrorEditor } from "./CodeMirror.js";
+import { CodeMirrorEditor } from "./codemirror/CodeMirrorEditor.js";
 
 interface AiCellProps {
   cell: typeof tables.cells.Type;

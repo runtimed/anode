@@ -39,7 +39,7 @@ import {
 } from "lucide-react";
 
 import { groupConsecutiveStreamOutputs } from "../../util/output-grouping.js";
-import { CodeMirrorEditor } from "./CodeMirror.js";
+import { CodeMirrorEditor } from "./codemirror/CodeMirrorEditor.js";
 import { CellBase } from "./CellBase.js";
 
 type CellType = typeof tables.cells.Type;

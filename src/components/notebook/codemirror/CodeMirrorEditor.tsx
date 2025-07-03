@@ -1,41 +1,18 @@
 import { python } from "@codemirror/lang-python";
 import {
-  EditorView,
   KeyBinding,
   keymap,
   placeholder as placeholderExt,
 } from "@codemirror/view";
-import { githubLight } from "@uiw/codemirror-theme-github";
-import { basicSetup } from "codemirror";
-import { useEffect, useRef, useMemo, useCallback } from "react";
+import { useCallback, useEffect, useMemo, useRef } from "react";
 
 import { markdown } from "@codemirror/lang-markdown";
-import { CellBase } from "./CellBase.js";
+import { CellBase } from "../CellBase.js";
 
 import { SupportedLanguage } from "@/types/misc.js";
 import { sql } from "@codemirror/lang-sql";
 import { useCodeMirror } from "@uiw/react-codemirror";
-
-const baseExtensions = [
-  basicSetup,
-  githubLight,
-  EditorView.theme({
-    // Disable active line highlighting
-    ".cm-activeLine": {
-      backgroundColor: "transparent !important",
-    },
-    ".cm-focused .cm-activeLine": {
-      backgroundColor: "transparent !important",
-    },
-    // Disable gutter active line highlighting
-    ".cm-activeLineGutter": {
-      backgroundColor: "transparent !important",
-    },
-    ".cm-focused .cm-activeLineGutter": {
-      backgroundColor: "transparent !important",
-    },
-  }),
-];
+import { baseExtensions } from "./baseExtensions.js";
 
 type CodeMirrorEditorProps = {
   value: string;
