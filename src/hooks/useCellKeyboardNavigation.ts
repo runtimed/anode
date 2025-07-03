@@ -172,7 +172,7 @@ export const useCellKeyboardNavigation = ({
       }
 
       // Handle execution shortcuts
-      if ((e.key === "Enter" && e.ctrlKey) || e.metaKey) {
+      if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) {
         // Ctrl+Enter: Run cell but stay in current cell
         e.preventDefault();
         onUpdateSource?.();
