@@ -517,7 +517,6 @@ export const SqlCell: React.FC<SqlCellProps> = ({
                 value={localQuery}
                 onValueChange={handleSourceChange}
                 autoFocus={autoFocus}
-                isMaximized={isMaximized}
                 onBlur={updateQuery}
                 onFocus={handleFocus}
                 keyMap={keyMap}

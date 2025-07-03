@@ -1,13 +1,12 @@
-import React, { useCallback, useState } from "react";
+import { queryDb } from "@livestore/livestore";
 import { useStore } from "@livestore/react";
 import { events, isErrorOutput, OutputData, tables } from "@runt/schema";
-import { queryDb } from "@livestore/livestore";
-import { useCellKeyboardNavigation } from "../../hooks/useCellKeyboardNavigation.js";
+import React, { useCallback } from "react";
 import { useCellContent } from "../../hooks/useCellContent.js";
+import { useCellKeyboardNavigation } from "../../hooks/useCellKeyboardNavigation.js";
 
-import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -15,10 +14,10 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 
-import { SqlCell } from "./SqlCell.js";
 import { AiCell } from "./AiCell.js";
-import { RichOutput } from "./RichOutput";
 import { AnsiErrorOutput } from "./AnsiOutput.js";
+import { RichOutput } from "./RichOutput";
+import { SqlCell } from "./SqlCell.js";
 
 import {
   ArrowDown,
@@ -31,16 +30,13 @@ import {
   Eye,
   EyeOff,
   FileText,
-  Maximize2,
-  Minimize2,
   Play,
   Plus,
   X,
 } from "lucide-react";
 
 import { groupConsecutiveStreamOutputs } from "../../util/output-grouping.js";
-import { CodeMirrorEditor } from "./codemirror/CodeMirrorEditor.js";
-import { CellBase } from "./CellBase.js";
+import { Editor } from "./Editor.js";
 
 type CellType = typeof tables.cells.Type;
 
@@ -106,8 +102,6 @@ export const Cell: React.FC<CellProps> = ({
 
   // Default cell component for code, markdown, raw
   const { store } = useStore();
-  const textareaRef = React.useRef<HTMLTextAreaElement>(null);
-  const [isMaximized, setIsMaximized] = useState(false);
 
   // Create stable query using useMemo to prevent React Hook issues
   const outputsQuery = React.useMemo(
@@ -115,13 +109,6 @@ export const Cell: React.FC<CellProps> = ({
     [cell.id]
   );
   const outputs = store.useQuery(outputsQuery) as OutputData[];
-
-  // Auto-focus when requested
-  React.useEffect(() => {
-    if (autoFocus && textareaRef.current) {
-      textareaRef.current.focus();
-    }
-  }, [autoFocus]);
 
   // Use shared content management hook
   const { localSource, updateSource, handleSourceChange } = useCellContent({
@@ -231,7 +218,7 @@ export const Cell: React.FC<CellProps> = ({
   }, [cell.id, localSource, cell.executionCount, store]);
 
   // Use shared keyboard navigation hook
-  const { handleKeyDown, keyMap } = useCellKeyboardNavigation({
+  const { keyMap } = useCellKeyboardNavigation({
     onFocusNext,
     onFocusPrevious,
     onDeleteCell,
@@ -525,77 +512,15 @@ export const Cell: React.FC<CellProps> = ({
               autoFocus ? "bg-white" : "bg-white"
             }`}
           >
-            {/* Mobile: fallback to Textarea */}
-            <div className="block sm:hidden">
-              <CellBase asChild>
-                <Textarea
-                  ref={textareaRef}
-                  value={localSource}
-                  onChange={(e) => handleSourceChange(e.target.value)}
-                  onBlur={updateSource}
-                  onKeyDown={handleKeyDown}
-                  placeholder={
-                    cell.cellType === "code"
-                      ? "Enter your code here..."
-                      : cell.cellType === "markdown"
-                        ? "Enter markdown..."
-                        : "Enter raw text..."
-                  }
-                  onFocus={handleFocus}
-                  autoCapitalize="off"
-                  autoCorrect="off"
-                  autoComplete="off"
-                  spellCheck={false}
-                />
-              </CellBase>
-            </div>
-            {/* Desktop: CodeMirror Editor */}
-            {/* TODO: don't even load CodeMirror on mobile */}
-            <div className="relative hidden min-h-[1.5rem] sm:block">
-              <CodeMirrorEditor
-                language={
-                  cell.cellType === "code"
-                    ? "python"
-                    : cell.cellType === "markdown"
-                      ? "markdown"
-                      : undefined
-                }
-                placeholder={
-                  cell.cellType === "code"
-                    ? "Enter your code here..."
-                    : cell.cellType === "markdown"
-                      ? "Enter markdown..."
-                      : "Enter raw text..."
-                }
-                value={localSource}
-                onValueChange={handleSourceChange}
-                autoFocus={autoFocus}
-                isMaximized={isMaximized}
-                onFocus={handleFocus}
-                keyMap={keyMap}
-                onBlur={updateSource}
-              />
-              {/* Mobile maximize/minimize button */}
-              <Button
-                variant="ghost"
-                size="sm"
-                className="absolute top-1 right-1 h-6 w-6 p-1 sm:hidden"
-                onClick={() => setIsMaximized(!isMaximized)}
-              >
-                {isMaximized ? (
-                  <Minimize2 className="h-3 w-3" />
-                ) : (
-                  <Maximize2 className="h-3 w-3" />
-                )}
-              </Button>
-              {/* Overlay for maximized mode */}
-              {isMaximized && (
-                <div
-                  className="fixed inset-0 z-40 bg-black/20 sm:hidden"
-                  onClick={() => setIsMaximized(false)}
-                />
-              )}
-            </div>
+            <Editor
+              localSource={localSource}
+              handleSourceChange={handleSourceChange}
+              updateSource={updateSource}
+              handleFocus={handleFocus}
+              cell={cell}
+              autoFocus={autoFocus}
+              keyMap={keyMap}
+            />
           </div>
         )}
       </div>
