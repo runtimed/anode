@@ -1,4 +1,4 @@
-import React, { useCallback } from "react";
+import React, { useCallback, useState } from "react";
 import { useStore } from "@livestore/react";
 import { events, SqlResultData, tables } from "@runt/schema";
 import { useCellKeyboardNavigation } from "../../hooks/useCellKeyboardNavigation.js";
@@ -23,6 +23,8 @@ import {
   Eye,
   EyeOff,
   FileText,
+  Maximize2,
+  Minimize2,
   Play,
   Plus,
   X,
@@ -57,6 +59,7 @@ export const SqlCell: React.FC<SqlCellProps> = ({
 }) => {
   const { store } = useStore();
   const textareaRef = React.useRef<HTMLTextAreaElement>(null);
+  const [isMaximized, setIsMaximized] = useState(false);
 
   // Auto-focus when requested
   React.useEffect(() => {
@@ -514,10 +517,31 @@ export const SqlCell: React.FC<SqlCellProps> = ({
                 value={localQuery}
                 onValueChange={handleSourceChange}
                 autoFocus={autoFocus}
+                isMaximized={isMaximized}
                 onBlur={updateQuery}
                 onFocus={handleFocus}
                 keyMap={keyMap}
               />
+              {/* Mobile maximize/minimize button */}
+              <Button
+                variant="ghost"
+                size="sm"
+                className="absolute top-1 right-1 h-6 w-6 p-1 sm:hidden"
+                onClick={() => setIsMaximized(!isMaximized)}
+              >
+                {isMaximized ? (
+                  <Minimize2 className="h-3 w-3" />
+                ) : (
+                  <Maximize2 className="h-3 w-3" />
+                )}
+              </Button>
+              {/* Overlay for maximized mode */}
+              {isMaximized && (
+                <div
+                  className="fixed inset-0 z-40 bg-black/20 sm:hidden"
+                  onClick={() => setIsMaximized(false)}
+                />
+              )}
             </div>
           </div>
         )}
