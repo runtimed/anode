@@ -7,7 +7,6 @@ import {
 import { useCallback, useEffect, useMemo, useRef } from "react";
 
 import { markdown } from "@codemirror/lang-markdown";
-import { CellBase } from "../CellBase.js";
 
 import { SupportedLanguage } from "@/types/misc.js";
 import { sql } from "@codemirror/lang-sql";
@@ -19,11 +18,12 @@ type CodeMirrorEditorProps = {
   language: SupportedLanguage;
   onValueChange: (val: string) => void;
   autoFocus?: boolean;
-  isMaximized?: boolean;
   onFocus?: () => void;
   onBlur?: () => void;
   placeholder?: string;
   keyMap?: KeyBinding[];
+  className?: string;
+  maxHeight?: string;
 };
 
 function languageExtension(language: SupportedLanguage) {
@@ -38,15 +38,16 @@ function languageExtension(language: SupportedLanguage) {
 }
 
 export const CodeMirrorEditor: React.FC<CodeMirrorEditorProps> = ({
+  className,
   value,
   language,
   onValueChange,
   autoFocus,
-  isMaximized,
   keyMap,
   onFocus,
   onBlur,
   placeholder,
+  maxHeight,
 }) => {
   const editorRef = useRef<HTMLDivElement | null>(null);
 
@@ -78,6 +79,7 @@ export const CodeMirrorEditor: React.FC<CodeMirrorEditorProps> = ({
     container: editorRef.current,
     extensions,
     basicSetup: false,
+    maxHeight,
     value,
     onChange: handleChange,
     // Handle focus manually
@@ -91,8 +93,11 @@ export const CodeMirrorEditor: React.FC<CodeMirrorEditorProps> = ({
   }, [setContainer]);
 
   return (
-    <CellBase isMaximized={isMaximized} asChild>
-      <div ref={editorRef} onBlur={onBlur} onFocus={handleFocus} />
-    </CellBase>
+    <div
+      ref={editorRef}
+      onBlur={onBlur}
+      onFocus={handleFocus}
+      className={className}
+    />
   );
 };
