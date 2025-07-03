@@ -33,6 +33,7 @@ import {
   X,
 } from "lucide-react";
 import { CellBase } from "./CellBase.js";
+import { CodeMirrorEditor } from "./CodeMirror.js";
 
 interface AiCellProps {
   cell: typeof tables.cells.Type;
@@ -148,7 +149,7 @@ export const AiCell: React.FC<AiCellProps> = ({
   }, [cell.id, localSource, cell.executionCount, store]);
 
   // Use shared keyboard navigation hook
-  const { handleKeyDown } = useCellKeyboardNavigation({
+  const { handleKeyDown, keyMap } = useCellKeyboardNavigation({
     onFocusNext,
     onFocusPrevious,
     onDeleteCell,
@@ -625,8 +626,8 @@ export const AiCell: React.FC<AiCellProps> = ({
               </div>
             </div>
 
-            {/* Desktop Traditional Input */}
-            <div className="hidden min-h-[1.5rem] sm:block">
+            {/* Mobile: Textarea */}
+            <div className="block sm:hidden">
               <CellBase asChild>
                 <textarea
                   ref={textareaRef}
@@ -638,6 +639,19 @@ export const AiCell: React.FC<AiCellProps> = ({
                   onFocus={handleFocus}
                 />
               </CellBase>
+            </div>
+            {/* Desktop: CodeMirror Editor */}
+            <div className="relative hidden min-h-[1.5rem] sm:block">
+              <CodeMirrorEditor
+                language="markdown"
+                placeholder="Ask me anything about your notebook, data, or analysis..."
+                value={localSource}
+                onValueChange={handleSourceChange}
+                onBlur={updateSource}
+                onFocus={handleFocus}
+                keyMap={keyMap}
+                autoFocus={autoFocus}
+              />
             </div>
           </div>
         )}

@@ -1,10 +1,11 @@
-import React, { useCallback } from "react";
+import React, { useCallback, useState } from "react";
 import { useStore } from "@livestore/react";
 import { events, SqlResultData, tables } from "@runt/schema";
 import { useCellKeyboardNavigation } from "../../hooks/useCellKeyboardNavigation.js";
 import { useCellContent } from "../../hooks/useCellContent.js";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Textarea } from "@/components/ui/textarea";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -22,11 +23,14 @@ import {
   Eye,
   EyeOff,
   FileText,
+  Maximize2,
+  Minimize2,
   Play,
   Plus,
   X,
 } from "lucide-react";
 import { CodeMirrorEditor } from "./CodeMirror.js";
+import { CellBase } from "./CellBase.js";
 
 interface SqlCellProps {
   cell: typeof tables.cells.Type;
@@ -55,6 +59,7 @@ export const SqlCell: React.FC<SqlCellProps> = ({
 }) => {
   const { store } = useStore();
   const textareaRef = React.useRef<HTMLTextAreaElement>(null);
+  const [isMaximized, setIsMaximized] = useState(false);
 
   // Auto-focus when requested
   React.useEffect(() => {
@@ -110,7 +115,7 @@ export const SqlCell: React.FC<SqlCellProps> = ({
   }, [cell.id, cell.sqlConnectionId, localQuery, store]);
 
   // Use shared keyboard navigation hook
-  const { keyMap } = useCellKeyboardNavigation({
+  const { handleKeyDown, keyMap } = useCellKeyboardNavigation({
     onFocusNext,
     onFocusPrevious,
     onDeleteCell,
@@ -486,16 +491,57 @@ export const SqlCell: React.FC<SqlCellProps> = ({
               autoFocus ? "bg-white" : "bg-white"
             }`}
           >
-            <div className="min-h-[1.5rem]">
+            {/* Mobile: fallback to Textarea */}
+            <div className="block sm:hidden">
+              <CellBase asChild>
+                <Textarea
+                  ref={textareaRef}
+                  value={localQuery}
+                  onChange={(e) => handleSourceChange(e.target.value)}
+                  onBlur={updateQuery}
+                  onKeyDown={handleKeyDown}
+                  placeholder="SELECT * FROM your_table WHERE condition = 'value';"
+                  onFocus={handleFocus}
+                  autoCapitalize="off"
+                  autoCorrect="off"
+                  autoComplete="off"
+                  spellCheck={false}
+                />
+              </CellBase>
+            </div>
+            {/* Desktop: CodeMirror Editor */}
+            <div className="relative hidden min-h-[1.5rem] sm:block">
               <CodeMirrorEditor
                 language="sql"
                 placeholder="SELECT * FROM your_table WHERE condition = 'value';"
                 value={localQuery}
                 onValueChange={handleSourceChange}
+                autoFocus={autoFocus}
+                isMaximized={isMaximized}
                 onBlur={updateQuery}
                 onFocus={handleFocus}
                 keyMap={keyMap}
               />
+              {/* Mobile maximize/minimize button */}
+              <Button
+                variant="ghost"
+                size="sm"
+                className="absolute top-1 right-1 h-6 w-6 p-1 sm:hidden"
+                onClick={() => setIsMaximized(!isMaximized)}
+              >
+                {isMaximized ? (
+                  <Minimize2 className="h-3 w-3" />
+                ) : (
+                  <Maximize2 className="h-3 w-3" />
+                )}
+              </Button>
+              {/* Overlay for maximized mode */}
+              {isMaximized && (
+                <div
+                  className="fixed inset-0 z-40 bg-black/20 sm:hidden"
+                  onClick={() => setIsMaximized(false)}
+                />
+              )}
             </div>
           </div>
         )}
