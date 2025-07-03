@@ -508,7 +508,7 @@ export const Cell: React.FC<CellProps> = ({
         {/* Text Content Area */}
         {cell.sourceVisible && (
           <div
-            className={`cell-content px-4 py-1 transition-colors sm:px-4 ${
+            className={`cell-content py-1 pl-4 transition-colors ${
               autoFocus ? "bg-white" : "bg-white"
             }`}
           >
