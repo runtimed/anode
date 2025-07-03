@@ -27,7 +27,6 @@ import {
   bracketMatching,
 } from "@codemirror/language";
 import { defaultKeymap, history, historyKeymap } from "@codemirror/commands";
-import { searchKeymap, highlightSelectionMatches } from "@codemirror/search";
 import {
   autocompletion,
   completionKeymap,
@@ -62,13 +61,10 @@ const customSetup = [
   rectangularSelection(),
   // Show a crosshair cursor when rectangular selecting
   crosshairCursor(),
-  // Highlight matching search results
-  highlightSelectionMatches(),
   // Key bindings
   keymap.of([
     ...closeBracketsKeymap,
     ...defaultKeymap,
-    ...searchKeymap,
     ...historyKeymap,
     ...completionKeymap,
     ...lintKeymap,
