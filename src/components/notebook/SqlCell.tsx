@@ -513,6 +513,7 @@ export const SqlCell: React.FC<SqlCellProps> = ({
                 placeholder="SELECT * FROM your_table WHERE condition = 'value';"
                 value={localQuery}
                 onValueChange={handleSourceChange}
+                autoFocus={autoFocus}
                 onBlur={updateQuery}
                 onFocus={handleFocus}
                 keyMap={keyMap}
