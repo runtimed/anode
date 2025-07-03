@@ -172,11 +172,8 @@ export const Cell: React.FC<CellProps> = ({
     // Use localSource instead of cell.source to get the current typed content
     const sourceToExecute = localSource || cell.source;
     if (!sourceToExecute?.trim()) {
-      console.log("No code to execute");
       return;
     }
-
-    console.log("🚀 Executing cell via execution queue:", cell.id);
 
     try {
       // Clear previous outputs first
@@ -203,8 +200,6 @@ export const Cell: React.FC<CellProps> = ({
           priority: 1,
         })
       );
-
-      console.log("✅ Execution queued with ID:", queueId);
 
       // The kernel service will now:
       // 1. See the pending execution in the queue

@@ -6,7 +6,7 @@ import {
 } from "@codemirror/view";
 import { githubLight } from "@uiw/codemirror-theme-github";
 import { basicSetup } from "codemirror";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useMemo, useCallback } from "react";
 
 import { markdown } from "@codemirror/lang-markdown";
 import { CellBase } from "./CellBase.js";
@@ -15,10 +15,7 @@ import { SupportedLanguage } from "@/types/misc.js";
 import { sql } from "@codemirror/lang-sql";
 import { useCodeMirror } from "@uiw/react-codemirror";
 
-// Putting basicSetup last so we can override the default keymap
-const extensions = [basicSetup, githubLight];
-
-// ---
+const baseExtensions = [basicSetup, githubLight];
 
 type CodeMirrorEditorProps = {
   value: string;
@@ -56,43 +53,58 @@ export const CodeMirrorEditor: React.FC<CodeMirrorEditorProps> = ({
 }) => {
   const editorRef = useRef<HTMLDivElement | null>(null);
 
-  const { setContainer } = useCodeMirror({
-    container: editorRef.current,
-    extensions: [
-      keymap.of(keyMap || []),
-      ...extensions,
-      languageExtension(language),
-      placeholder ? placeholderExt(placeholder) : [],
-    ],
-    basicSetup: false,
-    value,
-    onChange: (val) => {
-      console.log("val:", val);
+  const langExtension = useMemo(() => languageExtension(language), [language]);
+
+  const extensions = useMemo(() => {
+    const exts = [keymap.of(keyMap || []), ...baseExtensions, langExtension];
+
+    if (placeholder) {
+      exts.push(placeholderExt(placeholder));
+    }
+
+    return exts;
+  }, [keyMap, langExtension, placeholder]);
+
+  const handleChange = useCallback(
+    (val: string) => {
       onValueChange(val);
     },
-    autoFocus,
+    [onValueChange]
+  );
+
+  const handleFocus = useCallback(() => {
+    editorRef.current?.scrollIntoView({ block: "nearest" });
+    onFocus?.();
+  }, [onFocus]);
+
+  const { setContainer, view } = useCodeMirror({
+    container: editorRef.current,
+    extensions,
+    basicSetup: false,
+    value,
+    onChange: handleChange,
+    // Handle focus manually
+    autoFocus: false,
   });
 
   useEffect(() => {
     if (editorRef.current) {
       setContainer(editorRef.current);
     }
-  }, [editorRef.current]);
+  }, [setContainer]);
+
+  useEffect(() => {
+    if (autoFocus && view) {
+      // Defer focus until after the editor has been mounted
+      setTimeout(() => {
+        view.focus();
+      }, 0);
+    }
+  }, [autoFocus, view]);
 
   return (
     <CellBase isMaximized={isMaximized} asChild>
-      <div
-        ref={editorRef}
-        onBlur={() => {
-          console.log("onBlur", editorRef.current);
-          onBlur?.();
-        }}
-        onFocus={() => {
-          console.log("onFocus", editorRef.current);
-          editorRef.current?.scrollIntoView({ block: "nearest" });
-          onFocus?.();
-        }}
-      />
+      <div ref={editorRef} onBlur={onBlur} onFocus={handleFocus} />
     </CellBase>
   );
 };

@@ -76,7 +76,6 @@ export const SqlCell: React.FC<SqlCellProps> = ({
   const executeQuery = useCallback(() => {
     if (!cell.sqlConnectionId) {
       // TODO: Show connection selection modal
-      console.log("No connection selected for SQL cell");
       return;
     }
 
