@@ -7,7 +7,6 @@ import { useState } from "react";
 import { Button } from "../ui/button";
 import { CodeMirrorEditor } from "./codemirror/CodeMirrorEditor";
 
-// TODO: use radix modal primitives for this to make state management easier
 export function Editor({
   localSource,
   handleSourceChange,
