@@ -12,7 +12,6 @@ import {
   syntaxHighlighting,
 } from "@codemirror/language";
 import { lintKeymap } from "@codemirror/lint";
-import { highlightSelectionMatches, searchKeymap } from "@codemirror/search";
 import { EditorState, Extension } from "@codemirror/state";
 import {
   crosshairCursor,
@@ -35,11 +34,9 @@ export const basicSetup: Extension = (() => [
   autocompletion(),
   rectangularSelection(),
   crosshairCursor(),
-  highlightSelectionMatches(),
   keymap.of([
     ...closeBracketsKeymap,
     ...defaultKeymap,
-    ...searchKeymap,
     ...historyKeymap,
     ...completionKeymap,
     ...lintKeymap,
