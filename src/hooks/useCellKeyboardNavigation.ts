@@ -47,7 +47,10 @@ export const useCellKeyboardNavigation = ({
 
           if (cursorPos === docLength) {
             onFocusNext?.();
+            // Prevent CodeMirror from handling
+            return true;
           }
+          // Pass on to CodeMirror
           return false;
         },
       },
@@ -60,7 +63,10 @@ export const useCellKeyboardNavigation = ({
 
           if (cursorPos === 0) {
             onFocusPrevious?.();
+            // Prevent CodeMirror from handling
+            return true;
           }
+          // Pass on to CodeMirror
           return false;
         },
       },
@@ -81,7 +87,7 @@ export const useCellKeyboardNavigation = ({
       },
     ];
     return map;
-  }, [onExecute]);
+  }, [onExecute, onFocusNext, onFocusPrevious, onDeleteCell, onUpdateSource]);
 
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
