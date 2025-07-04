@@ -17,10 +17,18 @@ import {
   crosshairCursor,
   drawSelection,
   dropCursor,
+  EditorView,
   keymap,
   rectangularSelection,
 } from "@codemirror/view";
 import { githubLight } from "@uiw/codemirror-theme-github";
+
+const customStyles = EditorView.theme({
+  // Remove focus dotted outline
+  "&.cm-focused": {
+    outline: "none",
+  },
+});
 
 export const basicSetup: Extension = (() => [
   history(),
@@ -41,6 +49,7 @@ export const basicSetup: Extension = (() => [
     ...completionKeymap,
     ...lintKeymap,
   ]),
+  customStyles,
 ])();
 
 export const baseExtensions = [basicSetup, githubLight];
