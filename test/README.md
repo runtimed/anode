@@ -324,5 +324,5 @@ When adding new tests:
 **Note**: Python execution and AI features are now tested in the separate
 `@runt` packages.
 
-- Runtime testing: https://github.com/rgbkrk/runt
+- Runtime testing: https://github.com/runtimed/runt
 - This repository focuses on notebook interface and collaboration testing

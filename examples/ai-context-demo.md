@@ -16,7 +16,7 @@ pnpm dev        # Web client
 pnpm dev:sync   # Sync worker (in separate terminal)
 
 # Python runtime and AI features are now handled by @runt packages
-# See https://github.com/rgbkrk/runt for setup
+# See https://github.com/runtimed/runt for setup
 ```
 
 ## Demo Workflow
@@ -237,7 +237,7 @@ This functionality is now implemented in the separate `@runt` packages:
 
 To use this functionality:
 
-1. Set up the `@runt` runtime packages (see https://github.com/rgbkrk/runt)
+1. Set up the `@runt` runtime packages (see https://github.com/runtimed/runt)
 2. Configure OpenAI API key in the runtime environment
 3. Try this workflow in your own notebook to experience AI context awareness
 

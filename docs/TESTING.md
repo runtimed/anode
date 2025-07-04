@@ -119,7 +119,7 @@ pnpm test:debug
 ### What We Don't Test Here
 
 - **Python Execution**: Handled by `@runt` packages (see
-  https://github.com/rgbkrk/runt)
+  https://github.com/runtimed/runt)
 - **AI Integration**: Runtime-specific features moved to separate repository
 - **Rich Output Rendering**: Display logic is part of runtime system
 
@@ -252,7 +252,7 @@ handled by the separate `@runt` packages.
 
 For runtime testing, see:
 
-- https://github.com/rgbkrk/runt - Python execution and AI integration
+- https://github.com/runtimed/runt - Python execution and AI integration
 - `@runt/schema` - Shared event schema testing
 
 The UI tests focus on:

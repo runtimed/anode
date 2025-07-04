@@ -54,7 +54,7 @@ Core collaborative editing and notebook interface deployed:
 🚧 **Python Runtime & AI Features:**
 
 - Now handled by separate `@runt` packages
-- See https://github.com/rgbkrk/runt for Python execution and AI integration
+- See https://github.com/runtimed/runt for Python execution and AI integration
 
 ### 🎯 Current Focus
 
@@ -117,7 +117,7 @@ pnpm build        # Build web client
 pnpm type-check   # TypeScript validation
 
 # Python Runtime (separate setup)
-# See https://github.com/rgbkrk/runt
+# See https://github.com/runtimed/runt
 ```
 
 ### 🧠 Design Philosophy
@@ -158,7 +158,7 @@ When working on the UI:
 
 - Moved to separate `@runt` packages
 - Allows anode to focus on UI and collaboration
-- See https://github.com/rgbkrk/runt for execution and AI integration
+- See https://github.com/runtimed/runt for execution and AI integration
 
 ---
 

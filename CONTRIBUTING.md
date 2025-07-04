@@ -36,7 +36,7 @@ pnpm dev  # Starts web client + sync backend
 Python runtime and AI features are now handled by the separate @runt packages:
 
 ```bash
-# See https://github.com/rgbkrk/runt for setup
+# See https://github.com/runtimed/runt for setup
 ```
 
 ## Development Workflow
@@ -53,7 +53,7 @@ Python runtime and AI features are now handled by the separate @runt packages:
 - **Web client**: `pnpm dev` - React application
 - **Sync worker**: `pnpm dev:sync` - Cloudflare Worker for LiveStore sync
 - **Python runtime**: Separate @runt packages (see
-  https://github.com/rgbkrk/runt)
+  https://github.com/runtimed/runt)
 
 ### Key Commands
 
@@ -105,7 +105,7 @@ AUTH_TOKEN=insecure-token-change-me
 **Python Runtime** - Now handled by @runt packages:
 
 ```bash
-# See https://github.com/rgbkrk/runt for configuration
+# See https://github.com/runtimed/runt for configuration
 ```
 
 ### Port Configuration

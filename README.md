@@ -107,7 +107,7 @@ NOTEBOOK_ID=your-notebook-id pnpm dev:runtime
 ```
 
 - Uses @runt packages for Python execution and AI features
-- See https://github.com/rgbkrk/runt for more configuration options
+- See https://github.com/runtimed/runt for more configuration options
 
 ## Using Deployed Cloudflare Workers (Optional)
 
@@ -208,7 +208,7 @@ pnpm dev:sync      # Sync backend
 ### Configuration
 
 Python runtime and AI features are now handled by the separate @runt packages.
-See https://github.com/rgbkrk/runt for setup.
+See https://github.com/runtimed/runt for setup.
 
 ## Troubleshooting
 
@@ -216,7 +216,7 @@ See https://github.com/rgbkrk/runt for setup.
 | ------------------------- | --------------------------------------------------------------------------- |
 | Schema version mismatches | Ensure all services (web, runtime, sync) are restarted after schema changes |
 | Type errors               | TypeScript catches invalid queries at compile time - check column names     |
-| Execution not working     | Check @runt runtime setup - see https://github.com/rgbkrk/runt              |
+| Execution not working     | Check @runt runtime setup - see https://github.com/runtimed/runt              |
 | Stale state               | Run `pnpm reset-storage`                                                    |
 | Build errors              | Run `pnpm build` to check for TypeScript issues                             |
 
