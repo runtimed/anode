@@ -216,7 +216,7 @@ See https://github.com/runtimed/runt for setup.
 | ------------------------- | --------------------------------------------------------------------------- |
 | Schema version mismatches | Ensure all services (web, runtime, sync) are restarted after schema changes |
 | Type errors               | TypeScript catches invalid queries at compile time - check column names     |
-| Execution not working     | Check @runt runtime setup - see https://github.com/runtimed/runt              |
+| Execution not working     | Check @runt runtime setup - see https://github.com/runtimed/runt            |
 | Stale state               | Run `pnpm reset-storage`                                                    |
 | Build errors              | Run `pnpm build` to check for TypeScript issues                             |
 
