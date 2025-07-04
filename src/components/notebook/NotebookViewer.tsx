@@ -1,4 +1,4 @@
-import React, { useCallback, Suspense } from "react";
+import React, { useCallback, useRef, Suspense } from "react";
 import { useStore } from "@livestore/react";
 import { CellData, events, KernelSessionData, tables } from "@runt/schema";
 import { queryDb } from "@livestore/livestore";
@@ -31,6 +31,23 @@ const LazyDebugPanel = React.lazy(() =>
     default: module.DebugPanel,
   }))
 );
+
+// Memoized Cell component to prevent unnecessary re-renders
+const MemoizedCell = React.memo(Cell, (prevProps, nextProps) => {
+  // Only re-render if cell data or focus state actually changes
+  return (
+    prevProps.cell.id === nextProps.cell.id &&
+    prevProps.cell.source === nextProps.cell.source &&
+    prevProps.cell.executionState === nextProps.cell.executionState &&
+    prevProps.cell.executionCount === nextProps.cell.executionCount &&
+    prevProps.cell.cellType === nextProps.cell.cellType &&
+    prevProps.cell.sourceVisible === nextProps.cell.sourceVisible &&
+    prevProps.cell.outputVisible === nextProps.cell.outputVisible &&
+    prevProps.cell.aiContextVisible === nextProps.cell.aiContextVisible &&
+    prevProps.autoFocus === nextProps.autoFocus &&
+    prevProps.contextSelectionMode === nextProps.contextSelectionMode
+  );
+});
 
 // Import prefetch utilities
 import { prefetchOutputsAdaptive } from "../../util/prefetch.js";
@@ -272,8 +289,17 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
     [cells, store]
   );
 
+  // Debounced focus handling to prevent excessive re-renders
+  const focusTimeoutRef = useRef<number | null>(null);
+
   const focusCell = useCallback((cellId: string) => {
-    setFocusedCellId(cellId);
+    if (focusTimeoutRef.current) {
+      clearTimeout(focusTimeoutRef.current);
+    }
+
+    focusTimeoutRef.current = window.setTimeout(() => {
+      setFocusedCellId(cellId);
+    }, 16); // One frame delay
   }, []);
 
   const focusNextCell = useCallback(
@@ -322,6 +348,15 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
       setFocusedCellId(null);
     }
   }, [focusedCellId, cells]);
+
+  // Cleanup timeout on unmount
+  React.useEffect(() => {
+    return () => {
+      if (focusTimeoutRef.current) {
+        clearTimeout(focusTimeoutRef.current);
+      }
+    };
+  }, []);
 
   // Focus first cell when notebook loads and has cells
   React.useEffect(() => {
@@ -757,8 +792,8 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
                   </div>
                 </div>
               ) : (
-                sortedCells.map((cell: CellData) => (
-                  <Cell
+                cells.map((cell: CellData) => (
+                  <MemoizedCell
                     key={cell.id}
                     cell={cell}
                     onAddCell={() =>
