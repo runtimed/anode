@@ -1,4 +1,4 @@
-import React, { useCallback, useRef, Suspense } from "react";
+import React, { useCallback, useMemo, useRef, Suspense } from "react";
 import { useStore } from "@livestore/react";
 import { CellData, events, KernelSessionData, tables } from "@runt/schema";
 import { queryDb } from "@livestore/livestore";
@@ -73,6 +73,15 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
   const [showRuntimeHelper, setShowRuntimeHelper] = React.useState(false);
   const [focusedCellId, setFocusedCellId] = React.useState<string | null>(null);
   const [contextSelectionMode, setContextSelectionMode] = React.useState(false);
+
+  // Create cell position index for O(1) lookups
+  const cellPositionMap = useMemo(() => {
+    const map = new Map<string, number>();
+    cells.forEach((cell, index) => {
+      map.set(cell.id, index);
+    });
+    return map;
+  }, [cells]);
 
   const currentNotebookId = getCurrentNotebookId();
   const runtimeCommand = getRuntimeCommand(currentNotebookId);
@@ -223,7 +232,8 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
       const currentCell = cells.find((c: CellData) => c.id === cellId);
       if (!currentCell) return;
 
-      const currentIndex = cells.findIndex((c: CellData) => c.id === cellId);
+      const currentIndex = cellPositionMap.get(cellId);
+      if (currentIndex === undefined) return;
 
       if (direction === "up" && currentIndex > 0) {
         const targetCell = cells[currentIndex - 1];
@@ -261,7 +271,7 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
         }
       }
     },
-    [cells, store]
+    [cellPositionMap, cells, store]
   );
 
   const focusTimeoutRef = useRef<number | null>(null);
@@ -277,9 +287,8 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
 
   const focusNextCell = useCallback(
     (currentCellId: string) => {
-      const currentIndex = cells.findIndex(
-        (c: CellData) => c.id === currentCellId
-      );
+      const currentIndex = cellPositionMap.get(currentCellId);
+      if (currentIndex === undefined) return;
 
       if (currentIndex < cells.length - 1) {
         const nextCell = cells[currentIndex + 1];
@@ -292,29 +301,28 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
         addCell(currentCellId, newCellType);
       }
     },
-    [cells, addCell]
+    [cellPositionMap, cells, addCell]
   );
 
   const focusPreviousCell = useCallback(
     (currentCellId: string) => {
-      const currentIndex = cells.findIndex(
-        (c: CellData) => c.id === currentCellId
-      );
+      const currentIndex = cellPositionMap.get(currentCellId);
+      if (currentIndex === undefined) return;
 
       if (currentIndex > 0) {
         const previousCell = cells[currentIndex - 1];
         setFocusedCellId(previousCell.id);
       }
     },
-    [cells]
+    [cellPositionMap, cells]
   );
 
   // Reset focus when focused cell changes or is removed
   React.useEffect(() => {
-    if (focusedCellId && !cells.find((c: CellData) => c.id === focusedCellId)) {
+    if (focusedCellId && !cellPositionMap.has(focusedCellId)) {
       setFocusedCellId(null);
     }
-  }, [focusedCellId, cells]);
+  }, [focusedCellId, cellPositionMap]);
 
   // Focus first cell when notebook loads and has cells
   React.useEffect(() => {
@@ -761,7 +769,7 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
                     onFocusNext={() => focusNextCell(cell.id)}
                     onFocusPrevious={() => focusPreviousCell(cell.id)}
                     onFocus={() => focusCell(cell.id)}
-                    autoFocus={cell.id === focusedCellId}
+                    {...(cell.id === focusedCellId && { autoFocus: true })}
                     contextSelectionMode={contextSelectionMode}
                   />
                 ))
