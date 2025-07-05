@@ -14,7 +14,6 @@ import { Button } from "@/components/ui/button";
 
 interface DebugPanelProps {
   notebook: any;
-  cells: CellData[];
   allKernelSessions: KernelSessionData[];
   executionQueue: any[];
   currentNotebookId: string;
@@ -56,7 +55,6 @@ const useAvailableTables = () => {
 
 const DebugPanel: React.FC<DebugPanelProps> = ({
   notebook,
-  cells,
   allKernelSessions,
   executionQueue,
   currentNotebookId,
@@ -64,6 +62,11 @@ const DebugPanel: React.FC<DebugPanelProps> = ({
 }) => {
   const { store } = useStore();
   const availableTables = useAvailableTables();
+
+  // Query cell data for debug panel
+  const cells = store.useQuery(
+    queryDb(tables.cells.select().orderBy("position", "asc"))
+  ) as CellData[];
   const [buttonState, setButtonState] = useState<"default" | "success">(
     "default"
   );

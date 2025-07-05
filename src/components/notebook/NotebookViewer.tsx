@@ -52,10 +52,6 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
     queryDb(tables.cells.select("id", "position").orderBy("position", "asc"))
   ) as { id: string; position: number }[];
 
-  // Keep full cell data for debug panel compatibility
-  const cells = store.useQuery(
-    queryDb(tables.cells.select().orderBy("position", "asc"))
-  ) as any[];
   const notebooks = store.useQuery(
     queryDb(tables.notebook.select().limit(1))
   ) as any[];
@@ -835,7 +831,6 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
           >
             <LazyDebugPanel
               notebook={notebook}
-              cells={cells}
               allKernelSessions={allKernelSessions}
               executionQueue={executionQueue}
               currentNotebookId={currentNotebookId}
