@@ -36,7 +36,7 @@ import { CellBase } from "./CellBase.js";
 import { CodeMirrorEditor } from "./codemirror/CodeMirrorEditor.js";
 
 interface AiCellProps {
-  cell: typeof tables.cells.Type;
+  cellId: string;
   onAddCell: () => void;
   onDeleteCell: () => void;
   onMoveUp: () => void;
@@ -49,7 +49,7 @@ interface AiCellProps {
 }
 
 export const AiCell: React.FC<AiCellProps> = ({
-  cell,
+  cellId,
   onAddCell,
   onDeleteCell,
   onMoveUp,
@@ -61,12 +61,20 @@ export const AiCell: React.FC<AiCellProps> = ({
   contextSelectionMode = false,
 }) => {
   const { store } = useStore();
+
+  // Query cell data
+  const cellQuery = React.useMemo(
+    () => queryDb(tables.cells.select().where({ id: cellId })),
+    [cellId]
+  );
+  const cellData = store.useQuery(cellQuery) as (typeof tables.cells.Type)[];
+  const cell = cellData[0];
   const textareaRef = React.useRef<HTMLTextAreaElement>(null);
 
   // Create stable query using useMemo to prevent React Hook issues
   const outputsQuery = React.useMemo(
-    () => queryDb(tables.outputs.select().where({ cellId: cell.id })),
-    [cell.id]
+    () => queryDb(tables.outputs.select().where({ cellId: cellId })),
+    [cellId]
   );
   const outputs = store.useQuery(outputsQuery) as OutputData[];
 
@@ -82,9 +90,14 @@ export const AiCell: React.FC<AiCellProps> = ({
 
   // Use shared content management hook
   const { localSource, updateSource, handleSourceChange } = useCellContent({
-    cellId: cell.id,
-    initialSource: cell.source,
+    cellId: cellId,
+    initialSource: cell?.source || "",
   });
+
+  // Return early if cell data hasn't loaded yet
+  if (!cell) {
+    return <div>Loading...</div>;
+  }
 
   const executeAiPrompt = useCallback(async () => {
     // Use localSource instead of cell.source to get the current typed content
@@ -167,40 +180,40 @@ export const AiCell: React.FC<AiCellProps> = ({
     (newType: "code" | "markdown" | "sql" | "ai") => {
       store.commit(
         events.cellTypeChanged({
-          id: cell.id,
+          id: cellId,
           cellType: newType,
         })
       );
     },
-    [cell.id, store]
+    [cellId, store]
   );
 
   const toggleSourceVisibility = useCallback(() => {
     store.commit(
       events.cellSourceVisibilityToggled({
-        id: cell.id,
+        id: cellId,
         sourceVisible: !cell.sourceVisible,
       })
     );
-  }, [cell.id, cell.sourceVisible, store]);
+  }, [cellId, cell.sourceVisible, store]);
 
   const toggleOutputVisibility = useCallback(() => {
     store.commit(
       events.cellOutputVisibilityToggled({
-        id: cell.id,
+        id: cellId,
         outputVisible: !cell.outputVisible,
       })
     );
-  }, [cell.id, cell.outputVisible, store]);
+  }, [cellId, cell.outputVisible, store]);
 
   const toggleAiContextVisibility = useCallback(() => {
     store.commit(
       events.cellAiContextVisibilityToggled({
-        id: cell.id,
+        id: cellId,
         aiContextVisible: !cell.aiContextVisible,
       })
     );
-  }, [cell.id, cell.aiContextVisible, store]);
+  }, [cellId, cell.aiContextVisible, store]);
 
   const changeProvider = useCallback(
     (newProvider: string, newModel: string) => {

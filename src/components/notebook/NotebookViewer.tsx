@@ -1,6 +1,6 @@
 import React, { useCallback, useMemo, useRef, Suspense } from "react";
 import { useStore } from "@livestore/react";
-import { CellData, events, KernelSessionData, tables } from "@runt/schema";
+import { events, KernelSessionData, tables } from "@runt/schema";
 import { queryDb } from "@livestore/livestore";
 import { MemoizedCell } from "./Cell.js";
 import { formatDistanceToNow } from "date-fns";
@@ -48,9 +48,14 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
 }) => {
   const { store } = useStore();
 
+  const cellIds = store.useQuery(
+    queryDb(tables.cells.select("id", "position").orderBy("position", "asc"))
+  ) as { id: string; position: number }[];
+
+  // Keep full cell data for debug panel compatibility
   const cells = store.useQuery(
     queryDb(tables.cells.select().orderBy("position", "asc"))
-  ) as CellData[];
+  ) as any[];
   const notebooks = store.useQuery(
     queryDb(tables.notebook.select().limit(1))
   ) as any[];
@@ -77,11 +82,11 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
   // Create cell position index for O(1) lookups
   const cellPositionMap = useMemo(() => {
     const map = new Map<string, number>();
-    cells.forEach((cell, index) => {
+    cellIds.forEach((cell, index) => {
       map.set(cell.id, index);
     });
     return map;
-  }, [cells]);
+  }, [cellIds]);
 
   const currentNotebookId = getCurrentNotebookId();
   const runtimeCommand = getRuntimeCommand(currentNotebookId);
@@ -172,14 +177,12 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
       let newPosition: number;
       if (afterCellId) {
         // Find the current cell and insert after it
-        const currentCell = cells.find((c: CellData) => c.id === afterCellId);
+        const currentCell = cellIds.find((c) => c.id === afterCellId);
         if (currentCell) {
           newPosition = currentCell.position + 1;
           // Shift all subsequent cells down by 1
-          const cellsToShift = cells.filter(
-            (c: CellData) => c.position >= newPosition
-          );
-          cellsToShift.forEach((cell: CellData) => {
+          const cellsToShift = cellIds.filter((c) => c.position >= newPosition);
+          cellsToShift.forEach((cell) => {
             store.commit(
               events.cellMoved({
                 id: cell.id,
@@ -188,14 +191,12 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
             );
           });
         } else {
-          // Fallback: add at end
-          newPosition =
-            Math.max(...cells.map((c: CellData) => c.position), -1) + 1;
+          // If we can't find the target cell, append to the end
+          newPosition = Math.max(...cellIds.map((c) => c.position), -1) + 1;
         }
       } else {
-        // Add at end
-        newPosition =
-          Math.max(...cells.map((c: CellData) => c.position), -1) + 1;
+        // Insert at the beginning or end
+        newPosition = Math.max(...cellIds.map((c) => c.position), -1) + 1;
       }
 
       store.commit(
@@ -213,7 +214,7 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
       // Focus the new cell after creation
       setTimeout(() => setFocusedCellId(cellId), 0);
     },
-    [cells, store]
+    [cellIds, store]
   );
 
   const deleteCell = useCallback(
@@ -229,14 +230,14 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
 
   const moveCell = useCallback(
     (cellId: string, direction: "up" | "down") => {
-      const currentCell = cells.find((c: CellData) => c.id === cellId);
+      const currentCell = cellIds.find((c) => c.id === cellId);
       if (!currentCell) return;
 
       const currentIndex = cellPositionMap.get(cellId);
       if (currentIndex === undefined) return;
 
       if (direction === "up" && currentIndex > 0) {
-        const targetCell = cells[currentIndex - 1];
+        const targetCell = cellIds[currentIndex - 1];
         if (targetCell) {
           // Swap positions
           store.commit(
@@ -252,8 +253,8 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
             })
           );
         }
-      } else if (direction === "down" && currentIndex < cells.length - 1) {
-        const targetCell = cells[currentIndex + 1];
+      } else if (direction === "down" && currentIndex < cellIds.length - 1) {
+        const targetCell = cellIds[currentIndex + 1];
         if (targetCell) {
           // Swap positions
           store.commit(
@@ -271,7 +272,7 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
         }
       }
     },
-    [cellPositionMap, cells, store]
+    [cellPositionMap, cellIds, store]
   );
 
   const focusTimeoutRef = useRef<number | null>(null);
@@ -290,18 +291,15 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
       const currentIndex = cellPositionMap.get(currentCellId);
       if (currentIndex === undefined) return;
 
-      if (currentIndex < cells.length - 1) {
-        const nextCell = cells[currentIndex + 1];
+      if (currentIndex < cellIds.length - 1) {
+        const nextCell = cellIds[currentIndex + 1];
         setFocusedCellId(nextCell.id);
       } else {
-        // At the last cell, create a new one with same cell type (but never raw)
-        const currentCell = cells[currentIndex];
-        const newCellType =
-          currentCell.cellType === "raw" ? "code" : currentCell.cellType;
-        addCell(currentCellId, newCellType);
+        // At the last cell, create a new one - default to code type
+        addCell(currentCellId, "code");
       }
     },
-    [cellPositionMap, cells, addCell]
+    [cellPositionMap, cellIds, addCell]
   );
 
   const focusPreviousCell = useCallback(
@@ -310,11 +308,11 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
       if (currentIndex === undefined) return;
 
       if (currentIndex > 0) {
-        const previousCell = cells[currentIndex - 1];
+        const previousCell = cellIds[currentIndex - 1];
         setFocusedCellId(previousCell.id);
       }
     },
-    [cellPositionMap, cells]
+    [cellPositionMap, cellIds]
   );
 
   // Reset focus when focused cell changes or is removed
@@ -326,10 +324,10 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
 
   // Focus first cell when notebook loads and has cells
   React.useEffect(() => {
-    if (!focusedCellId && cells.length > 0) {
-      setFocusedCellId(cells[0].id);
+    if (!focusedCellId && cellIds.length > 0) {
+      setFocusedCellId(cellIds[0].id);
     }
-  }, [focusedCellId, cells]);
+  }, [focusedCellId, cellIds]);
 
   if (!notebook) {
     return (
@@ -679,7 +677,7 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
             className={`w-full px-0 py-3 pb-24 ${debugMode ? "px-4" : "sm:mx-auto sm:max-w-4xl sm:p-4 sm:pb-4"}`}
           >
             {/* Keyboard Shortcuts Help - Desktop only */}
-            {cells.length > 0 && (
+            {cellIds.length > 0 && (
               <div className="mb-6 hidden sm:block">
                 <div className="bg-muted/30 rounded-md px-4 py-2">
                   <div className="text-muted-foreground flex items-center justify-center gap-6 text-xs">
@@ -708,7 +706,7 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
 
             {/* Cells */}
             <div className="space-y-3">
-              {cells.length === 0 ? (
+              {cellIds.length === 0 ? (
                 <div className="px-4 pt-6 pb-6 text-center sm:px-0 sm:pt-12">
                   <div className="text-muted-foreground mb-6">
                     Welcome to your notebook! Choose a cell type to get started.
@@ -753,23 +751,18 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
                   </div>
                 </div>
               ) : (
-                cells.map((cell: CellData) => (
+                cellIds.map((cellMeta) => (
                   <MemoizedCell
-                    key={cell.id}
-                    cell={cell}
-                    onAddCell={() =>
-                      addCell(
-                        cell.id,
-                        cell.cellType === "raw" ? "code" : cell.cellType
-                      )
-                    }
-                    onDeleteCell={() => deleteCell(cell.id)}
-                    onMoveUp={() => moveCell(cell.id, "up")}
-                    onMoveDown={() => moveCell(cell.id, "down")}
-                    onFocusNext={() => focusNextCell(cell.id)}
-                    onFocusPrevious={() => focusPreviousCell(cell.id)}
-                    onFocus={() => focusCell(cell.id)}
-                    {...(cell.id === focusedCellId && { autoFocus: true })}
+                    key={cellMeta.id}
+                    cellId={cellMeta.id}
+                    onAddCell={() => addCell(cellMeta.id, "code")}
+                    onDeleteCell={() => deleteCell(cellMeta.id)}
+                    onMoveUp={() => moveCell(cellMeta.id, "up")}
+                    onMoveDown={() => moveCell(cellMeta.id, "down")}
+                    onFocusNext={() => focusNextCell(cellMeta.id)}
+                    onFocusPrevious={() => focusPreviousCell(cellMeta.id)}
+                    onFocus={() => focusCell(cellMeta.id)}
+                    {...(cellMeta.id === focusedCellId && { autoFocus: true })}
                     contextSelectionMode={contextSelectionMode}
                   />
                 ))
@@ -777,7 +770,7 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
             </div>
 
             {/* Add Cell Buttons */}
-            {cells.length > 0 && (
+            {cellIds.length > 0 && (
               <div className="border-border/30 mt-6 border-t px-4 pt-4 sm:mt-8 sm:px-0 sm:pt-6">
                 <div className="space-y-3 text-center">
                   <div className="flex flex-wrap justify-center gap-2">

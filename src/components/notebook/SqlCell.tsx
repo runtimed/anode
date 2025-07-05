@@ -1,6 +1,7 @@
 import React, { useCallback, useState } from "react";
 import { useStore } from "@livestore/react";
 import { events, SqlResultData, tables } from "@runt/schema";
+import { queryDb } from "@livestore/livestore";
 import { useCellKeyboardNavigation } from "../../hooks/useCellKeyboardNavigation.js";
 import { useCellContent } from "../../hooks/useCellContent.js";
 import { Button } from "@/components/ui/button";
@@ -33,7 +34,7 @@ import { CodeMirrorEditor } from "./codemirror/CodeMirrorEditor.js";
 import { CellBase } from "./CellBase.js";
 
 interface SqlCellProps {
-  cell: typeof tables.cells.Type;
+  cellId: string;
   onAddCell: () => void;
   onDeleteCell: () => void;
   onMoveUp: () => void;
@@ -46,7 +47,7 @@ interface SqlCellProps {
 }
 
 export const SqlCell: React.FC<SqlCellProps> = ({
-  cell,
+  cellId,
   onAddCell,
   onDeleteCell,
   onMoveUp,
@@ -58,15 +59,21 @@ export const SqlCell: React.FC<SqlCellProps> = ({
   contextSelectionMode = false,
 }) => {
   const { store } = useStore();
-  const textareaRef = React.useRef<HTMLTextAreaElement>(null);
   const [isMaximized, setIsMaximized] = useState(false);
+  const textareaRef = React.useRef<HTMLTextAreaElement>(null);
 
-  // Auto-focus when requested
-  React.useEffect(() => {
-    if (autoFocus && textareaRef.current) {
-      textareaRef.current.focus();
-    }
-  }, [autoFocus]);
+  // Query cell data
+  const cellQuery = React.useMemo(
+    () => queryDb(tables.cells.select().where({ id: cellId })),
+    [cellId]
+  );
+  const cellData = store.useQuery(cellQuery) as (typeof tables.cells.Type)[];
+  const cell = cellData[0];
+
+  // Return early if cell data hasn't loaded yet
+  if (!cell) {
+    return <div>Loading...</div>;
+  }
 
   // Use shared content management hook
   const {
@@ -74,9 +81,16 @@ export const SqlCell: React.FC<SqlCellProps> = ({
     updateSource: updateQuery,
     handleSourceChange,
   } = useCellContent({
-    cellId: cell.id,
+    cellId: cellId,
     initialSource: cell.source,
   });
+
+  // Auto-focus when requested
+  React.useEffect(() => {
+    if (autoFocus && textareaRef.current) {
+      textareaRef.current.focus();
+    }
+  }, [autoFocus]);
 
   const executeQuery = useCallback(() => {
     if (!cell.sqlConnectionId) {
@@ -133,40 +147,40 @@ export const SqlCell: React.FC<SqlCellProps> = ({
     (newType: "code" | "markdown" | "sql" | "ai") => {
       store.commit(
         events.cellTypeChanged({
-          id: cell.id,
+          id: cellId,
           cellType: newType,
         })
       );
     },
-    [cell.id, store]
+    [cellId, store]
   );
 
   const toggleSourceVisibility = useCallback(() => {
     store.commit(
       events.cellSourceVisibilityToggled({
-        id: cell.id,
+        id: cellId,
         sourceVisible: !cell.sourceVisible,
       })
     );
-  }, [cell.id, cell.sourceVisible, store]);
+  }, [cellId, cell.sourceVisible, store]);
 
   const toggleOutputVisibility = useCallback(() => {
     store.commit(
       events.cellOutputVisibilityToggled({
-        id: cell.id,
+        id: cellId,
         outputVisible: !cell.outputVisible,
       })
     );
-  }, [cell.id, cell.outputVisible, store]);
+  }, [cellId, cell.outputVisible, store]);
 
   const toggleAiContextVisibility = useCallback(() => {
     store.commit(
       events.cellAiContextVisibilityToggled({
-        id: cell.id,
+        id: cellId,
         aiContextVisible: !cell.aiContextVisible,
       })
     );
-  }, [cell.id, cell.aiContextVisible, store]);
+  }, [cellId, cell.aiContextVisible, store]);
 
   const getCellTypeIcon = () => {
     return <Database className="h-3 w-3" />;

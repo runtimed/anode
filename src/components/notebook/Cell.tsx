@@ -41,7 +41,7 @@ import { Editor } from "./Editor.js";
 type CellType = typeof tables.cells.Type;
 
 interface CellProps {
-  cell: CellType;
+  cellId: string;
   onAddCell: () => void;
   onDeleteCell: () => void;
   onMoveUp: () => void;
@@ -54,7 +54,7 @@ interface CellProps {
 }
 
 export const Cell: React.FC<CellProps> = ({
-  cell,
+  cellId,
   onAddCell,
   onDeleteCell,
   onMoveUp,
@@ -68,57 +68,70 @@ export const Cell: React.FC<CellProps> = ({
   // All hooks must be called at the top level before any conditional returns
   const { store } = useStore();
 
+  // Query cell data
+  const cellQuery = React.useMemo(
+    () => queryDb(tables.cells.select().where({ id: cellId })),
+    [cellId]
+  );
+  const cellData = store.useQuery(cellQuery) as CellType[];
+  const cell = cellData[0];
+
   // Create stable query using useMemo to prevent React Hook issues
   const outputsQuery = React.useMemo(
-    () => queryDb(tables.outputs.select().where({ cellId: cell.id })),
-    [cell.id]
+    () => queryDb(tables.outputs.select().where({ cellId: cellId })),
+    [cellId]
   );
   const outputs = store.useQuery(outputsQuery) as OutputData[];
 
   // Use shared content management hook
   const { localSource, updateSource, handleSourceChange } = useCellContent({
-    cellId: cell.id,
-    initialSource: cell.source,
+    cellId: cellId,
+    initialSource: cell?.source || "",
   });
+
+  // Return early if cell data hasn't loaded yet
+  if (!cell) {
+    return <div>Loading...</div>;
+  }
 
   const changeCellType = useCallback(
     (newType: "code" | "markdown" | "sql" | "ai") => {
       store.commit(
         events.cellTypeChanged({
-          id: cell.id,
+          id: cellId,
           cellType: newType,
         })
       );
     },
-    [cell.id, store]
+    [cellId, store]
   );
 
   const toggleSourceVisibility = useCallback(() => {
     store.commit(
       events.cellSourceVisibilityToggled({
-        id: cell.id,
+        id: cellId,
         sourceVisible: !cell.sourceVisible,
       })
     );
-  }, [cell.id, cell.sourceVisible, store]);
+  }, [cellId, cell.sourceVisible, store]);
 
   const toggleOutputVisibility = useCallback(() => {
     store.commit(
       events.cellOutputVisibilityToggled({
-        id: cell.id,
+        id: cellId,
         outputVisible: !cell.outputVisible,
       })
     );
-  }, [cell.id, cell.outputVisible, store]);
+  }, [cellId, cell.outputVisible, store]);
 
   const toggleAiContextVisibility = useCallback(() => {
     store.commit(
       events.cellAiContextVisibilityToggled({
-        id: cell.id,
+        id: cellId,
         aiContextVisible: !cell.aiContextVisible,
       })
     );
-  }, [cell.id, cell.aiContextVisible, store]);
+  }, [cellId, cell.aiContextVisible, store]);
 
   const executeCell = useCallback(async () => {
     // Use localSource instead of cell.source to get the current typed content
@@ -199,7 +212,7 @@ export const Cell: React.FC<CellProps> = ({
   if (cell.cellType === "sql") {
     return (
       <MemoizedSqlCell
-        cell={cell}
+        cellId={cellId}
         onAddCell={onAddCell}
         onDeleteCell={onDeleteCell}
         onMoveUp={onMoveUp}
@@ -216,7 +229,7 @@ export const Cell: React.FC<CellProps> = ({
   if (cell.cellType === "ai") {
     return (
       <MemoizedAiCell
-        cell={cell}
+        cellId={cellId}
         onAddCell={onAddCell}
         onDeleteCell={onDeleteCell}
         onMoveUp={onMoveUp}
