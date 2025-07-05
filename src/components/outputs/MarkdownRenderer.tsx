@@ -86,6 +86,13 @@ export const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({
     <div className={`${className} [&_pre]:!bg-gray-50`}>
       <ReactMarkdown
         components={{
+          img({ src, alt, ...props }) {
+            // Prevent empty src attribute warnings
+            if (!src || src === "") {
+              return null;
+            }
+            return <img src={src} alt={alt} {...props} />;
+          },
           code({ node, className, children, ...props }) {
             const match = /language-(\w+)/.exec(className || "");
             const language = match ? match[1] : "";

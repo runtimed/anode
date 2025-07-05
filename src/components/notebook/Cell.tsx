@@ -486,7 +486,7 @@ export const Cell: React.FC<CellProps> = ({
                 cell.executionState === "running" ||
                 cell.executionState === "queued"
               }
-              className={`h-6 w-6 rounded-sm border-0 bg-white p-0 transition-colors hover:bg-white ${
+              className={`h-6 w-6 rounded-sm border-0 bg-white p-1 transition-colors hover:bg-white ${
                 autoFocus
                   ? "text-foreground"
                   : "text-muted-foreground/40 hover:text-foreground group-hover:text-foreground"
@@ -497,7 +497,7 @@ export const Cell: React.FC<CellProps> = ({
               ) : cell.executionState === "queued" ? (
                 <div className="h-2 w-2 rounded-full bg-amber-500"></div>
               ) : (
-                <Play className="h-3 w-3" />
+                <Play className="h-4 w-4" />
               )}
             </Button>
           </div>

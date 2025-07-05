@@ -2,7 +2,8 @@ import React, { useCallback, Suspense } from "react";
 import { useStore } from "@livestore/react";
 import { CellData, events, KernelSessionData, tables } from "@runt/schema";
 import { queryDb } from "@livestore/livestore";
-import { Cell } from "./Cell.js";
+
+import { VirtualizedCellList } from "./VirtualizedCellList.js";
 import { formatDistanceToNow } from "date-fns";
 
 import { Button } from "@/components/ui/button";
@@ -738,26 +739,24 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
                   </div>
                 </div>
               ) : (
-                cells.map((cell: CellData) => (
-                  <Cell
-                    key={cell.id}
-                    cell={cell}
-                    onAddCell={() =>
-                      addCell(
-                        cell.id,
-                        cell.cellType === "raw" ? "code" : cell.cellType
-                      )
-                    }
-                    onDeleteCell={() => deleteCell(cell.id)}
-                    onMoveUp={() => moveCell(cell.id, "up")}
-                    onMoveDown={() => moveCell(cell.id, "down")}
-                    onFocusNext={() => focusNextCell(cell.id)}
-                    onFocusPrevious={() => focusPreviousCell(cell.id)}
-                    onFocus={() => focusCell(cell.id)}
-                    autoFocus={cell.id === focusedCellId}
-                    contextSelectionMode={contextSelectionMode}
-                  />
-                ))
+                <VirtualizedCellList
+                  cells={cells}
+                  focusedCellId={focusedCellId}
+                  onAddCell={(afterCellId, cellType) =>
+                    addCell(
+                      afterCellId,
+                      cellType as "code" | "markdown" | "sql" | "ai"
+                    )
+                  }
+                  onDeleteCell={deleteCell}
+                  onMoveUp={(cellId) => moveCell(cellId, "up")}
+                  onMoveDown={(cellId) => moveCell(cellId, "down")}
+                  onFocusNext={focusNextCell}
+                  onFocusPrevious={focusPreviousCell}
+                  onFocus={focusCell}
+                  contextSelectionMode={contextSelectionMode}
+                  threshold={50}
+                />
               )}
             </div>
 

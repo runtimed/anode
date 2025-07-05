@@ -186,7 +186,7 @@ export const useCellKeyboardNavigation = ({
         onFocusNext?.(); // Move to next cell (or create new if at end)
       }
     },
-    [onFocusNext, onFocusPrevious, onExecute, onUpdateSource]
+    [onFocusNext, onFocusPrevious, onExecute, onUpdateSource, onDeleteCell]
   );
 
   return { handleKeyDown, keyMap };
