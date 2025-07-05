@@ -65,42 +65,7 @@ export const Cell: React.FC<CellProps> = ({
   onFocus,
   contextSelectionMode = false,
 }) => {
-  // Route to specialized cell components
-  if (cell.cellType === "sql") {
-    return (
-      <SqlCell
-        cell={cell}
-        onAddCell={onAddCell}
-        onDeleteCell={onDeleteCell}
-        onMoveUp={onMoveUp}
-        onMoveDown={onMoveDown}
-        onFocusNext={onFocusNext}
-        onFocusPrevious={onFocusPrevious}
-        autoFocus={autoFocus}
-        onFocus={onFocus}
-        contextSelectionMode={contextSelectionMode}
-      />
-    );
-  }
-
-  if (cell.cellType === "ai") {
-    return (
-      <AiCell
-        cell={cell}
-        onAddCell={onAddCell}
-        onDeleteCell={onDeleteCell}
-        onMoveUp={onMoveUp}
-        onMoveDown={onMoveDown}
-        onFocusNext={onFocusNext}
-        onFocusPrevious={onFocusPrevious}
-        autoFocus={autoFocus}
-        onFocus={onFocus}
-        contextSelectionMode={contextSelectionMode}
-      />
-    );
-  }
-
-  // Default cell component for code, markdown, raw
+  // All hooks must be called at the top level before any conditional returns
   const { store } = useStore();
 
   // Create stable query using useMemo to prevent React Hook issues
@@ -215,7 +180,7 @@ export const Cell: React.FC<CellProps> = ({
         })
       );
     }
-  }, [cell.id, localSource, cell.executionCount, store]);
+  }, [cell.id, localSource, cell.source, cell.executionCount, store]);
 
   // Use shared keyboard navigation hook
   const { keyMap } = useCellKeyboardNavigation({
@@ -227,10 +192,43 @@ export const Cell: React.FC<CellProps> = ({
   });
 
   const handleFocus = useCallback(() => {
-    if (onFocus) {
-      onFocus();
-    }
+    onFocus?.();
   }, [onFocus]);
+
+  // Route to specialized cell components
+  if (cell.cellType === "sql") {
+    return (
+      <SqlCell
+        cell={cell}
+        onAddCell={onAddCell}
+        onDeleteCell={onDeleteCell}
+        onMoveUp={onMoveUp}
+        onMoveDown={onMoveDown}
+        onFocusNext={onFocusNext}
+        onFocusPrevious={onFocusPrevious}
+        autoFocus={autoFocus}
+        onFocus={onFocus}
+        contextSelectionMode={contextSelectionMode}
+      />
+    );
+  }
+
+  if (cell.cellType === "ai") {
+    return (
+      <AiCell
+        cell={cell}
+        onAddCell={onAddCell}
+        onDeleteCell={onDeleteCell}
+        onMoveUp={onMoveUp}
+        onMoveDown={onMoveDown}
+        onFocusNext={onFocusNext}
+        onFocusPrevious={onFocusPrevious}
+        autoFocus={autoFocus}
+        onFocus={onFocus}
+        contextSelectionMode={contextSelectionMode}
+      />
+    );
+  }
 
   const getCellTypeIcon = () => {
     switch (cell.cellType) {

@@ -223,15 +223,10 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
       const currentCell = cells.find((c: CellData) => c.id === cellId);
       if (!currentCell) return;
 
-      const sortedCells = cells.sort(
-        (a: CellData, b: CellData) => a.position - b.position
-      );
-      const currentIndex = sortedCells.findIndex(
-        (c: CellData) => c.id === cellId
-      );
+      const currentIndex = cells.findIndex((c: CellData) => c.id === cellId);
 
       if (direction === "up" && currentIndex > 0) {
-        const targetCell = sortedCells[currentIndex - 1];
+        const targetCell = cells[currentIndex - 1];
         if (targetCell) {
           // Swap positions
           store.commit(
@@ -247,11 +242,8 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
             })
           );
         }
-      } else if (
-        direction === "down" &&
-        currentIndex < sortedCells.length - 1
-      ) {
-        const targetCell = sortedCells[currentIndex + 1];
+      } else if (direction === "down" && currentIndex < cells.length - 1) {
+        const targetCell = cells[currentIndex + 1];
         if (targetCell) {
           // Swap positions
           store.commit(
@@ -278,19 +270,16 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
 
   const focusNextCell = useCallback(
     (currentCellId: string) => {
-      const sortedCells = cells.sort(
-        (a: CellData, b: CellData) => a.position - b.position
-      );
-      const currentIndex = sortedCells.findIndex(
+      const currentIndex = cells.findIndex(
         (c: CellData) => c.id === currentCellId
       );
 
-      if (currentIndex < sortedCells.length - 1) {
-        const nextCell = sortedCells[currentIndex + 1];
+      if (currentIndex < cells.length - 1) {
+        const nextCell = cells[currentIndex + 1];
         setFocusedCellId(nextCell.id);
       } else {
         // At the last cell, create a new one with same cell type (but never raw)
-        const currentCell = sortedCells[currentIndex];
+        const currentCell = cells[currentIndex];
         const newCellType =
           currentCell.cellType === "raw" ? "code" : currentCell.cellType;
         addCell(currentCellId, newCellType);
@@ -301,15 +290,12 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
 
   const focusPreviousCell = useCallback(
     (currentCellId: string) => {
-      const sortedCells = cells.sort(
-        (a: CellData, b: CellData) => a.position - b.position
-      );
-      const currentIndex = sortedCells.findIndex(
+      const currentIndex = cells.findIndex(
         (c: CellData) => c.id === currentCellId
       );
 
       if (currentIndex > 0) {
-        const previousCell = sortedCells[currentIndex - 1];
+        const previousCell = cells[currentIndex - 1];
         setFocusedCellId(previousCell.id);
       }
     },
@@ -326,10 +312,7 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
   // Focus first cell when notebook loads and has cells
   React.useEffect(() => {
     if (!focusedCellId && cells.length > 0) {
-      const sortedCells = cells.sort(
-        (a: CellData, b: CellData) => a.position - b.position
-      );
-      setFocusedCellId(sortedCells[0].id);
+      setFocusedCellId(cells[0].id);
     }
   }, [focusedCellId, cells]);
 
@@ -341,9 +324,7 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
     );
   }
 
-  const sortedCells = cells.sort(
-    (a: CellData, b: CellData) => a.position - b.position
-  );
+  // cells are already sorted by position from the database query
 
   return (
     <div className="bg-background min-h-screen">
@@ -683,7 +664,7 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
             className={`w-full px-0 py-3 pb-24 ${debugMode ? "px-4" : "sm:mx-auto sm:max-w-4xl sm:p-4 sm:pb-4"}`}
           >
             {/* Keyboard Shortcuts Help - Desktop only */}
-            {sortedCells.length > 0 && (
+            {cells.length > 0 && (
               <div className="mb-6 hidden sm:block">
                 <div className="bg-muted/30 rounded-md px-4 py-2">
                   <div className="text-muted-foreground flex items-center justify-center gap-6 text-xs">
@@ -712,7 +693,7 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
 
             {/* Cells */}
             <div className="space-y-3">
-              {sortedCells.length === 0 ? (
+              {cells.length === 0 ? (
                 <div className="px-4 pt-6 pb-6 text-center sm:px-0 sm:pt-12">
                   <div className="text-muted-foreground mb-6">
                     Welcome to your notebook! Choose a cell type to get started.
@@ -757,7 +738,7 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
                   </div>
                 </div>
               ) : (
-                sortedCells.map((cell: CellData) => (
+                cells.map((cell: CellData) => (
                   <Cell
                     key={cell.id}
                     cell={cell}
@@ -781,7 +762,7 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
             </div>
 
             {/* Add Cell Buttons */}
-            {sortedCells.length > 0 && (
+            {cells.length > 0 && (
               <div className="border-border/30 mt-6 border-t px-4 pt-4 sm:mt-8 sm:px-0 sm:pt-6">
                 <div className="space-y-3 text-center">
                   <div className="flex flex-wrap justify-center gap-2">
