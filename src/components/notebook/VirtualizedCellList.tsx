@@ -66,8 +66,11 @@ export const VirtualizedCellList: React.FC<VirtualizedCellListProps> = ({
   const [heightsVersion, setHeightsVersion] = useState(0);
 
   // Cells are already sorted by database query (orderBy("position", "asc"))
+  // Memoize cells array to prevent unnecessary recalculations
+  const memoizedCells = useMemo(() => cells, [cells]);
+
   // Check if we should use virtualization
-  const shouldVirtualize = cells.length > threshold;
+  const shouldVirtualize = memoizedCells.length > threshold;
 
   // Calculate cumulative heights for positioning
   const cellPositions = useMemo(() => {
@@ -75,32 +78,32 @@ export const VirtualizedCellList: React.FC<VirtualizedCellListProps> = ({
     let cumulativeHeight = 0;
     const CELL_SPACING = 16; // 1rem spacing between cells
 
-    cells.forEach((cell) => {
+    memoizedCells.forEach((cell) => {
       const height = cellHeights.current.get(cell.id) || itemHeight;
       positions.set(cell.id, { top: cumulativeHeight, height });
       cumulativeHeight += height + CELL_SPACING;
     });
 
     return { positions, totalHeight: cumulativeHeight };
-  }, [cells, itemHeight, heightsVersion]); // Re-calculate when heights change
+  }, [memoizedCells, itemHeight, heightsVersion]); // Re-calculate when heights change
 
   // Calculate visible range for virtualization using actual heights
   const visibleRange = useMemo(() => {
-    if (!shouldVirtualize) return { start: 0, end: cells.length };
+    if (!shouldVirtualize) return { start: 0, end: memoizedCells.length };
 
     // If containerHeight is 0 (initial load), show first few cells as fallback
     if (containerHeight === 0) {
-      return { start: 0, end: Math.min(overscan * 2, cells.length) };
+      return { start: 0, end: Math.min(overscan * 2, memoizedCells.length) };
     }
 
     const viewportTop = scrollTop;
     const viewportBottom = scrollTop + containerHeight;
     let start = 0;
-    let end = cells.length;
+    let end = memoizedCells.length;
 
     // Find first visible cell
-    for (let i = 0; i < cells.length; i++) {
-      const cell = cells[i];
+    for (let i = 0; i < memoizedCells.length; i++) {
+      const cell = memoizedCells[i];
       const position = cellPositions.positions.get(cell.id);
       if (position && position.top + position.height >= viewportTop) {
         start = Math.max(0, i - overscan);
@@ -109,11 +112,11 @@ export const VirtualizedCellList: React.FC<VirtualizedCellListProps> = ({
     }
 
     // Find last visible cell
-    for (let i = start; i < cells.length; i++) {
-      const cell = cells[i];
+    for (let i = start; i < memoizedCells.length; i++) {
+      const cell = memoizedCells[i];
       const position = cellPositions.positions.get(cell.id);
       if (position && position.top > viewportBottom) {
-        end = Math.min(i + overscan, cells.length);
+        end = Math.min(i + overscan, memoizedCells.length);
         break;
       }
     }
@@ -124,14 +127,14 @@ export const VirtualizedCellList: React.FC<VirtualizedCellListProps> = ({
     scrollTop,
     containerHeight,
     overscan,
-    cells,
+    memoizedCells,
     cellPositions.positions,
   ]);
 
   // Get visible cells
   const visibleCells = useMemo(() => {
-    return cells.slice(visibleRange.start, visibleRange.end);
-  }, [cells, visibleRange.start, visibleRange.end]);
+    return memoizedCells.slice(visibleRange.start, visibleRange.end);
+  }, [memoizedCells, visibleRange.start, visibleRange.end]);
 
   // Use calculated heights instead of estimated
   const totalHeight = shouldVirtualize ? cellPositions.totalHeight : 0;
@@ -139,8 +142,9 @@ export const VirtualizedCellList: React.FC<VirtualizedCellListProps> = ({
   // Calculate offset based on actual cell positions
   const offsetY =
     shouldVirtualize && visibleRange.start > 0
-      ? (cells[visibleRange.start] &&
-          cellPositions.positions.get(cells[visibleRange.start].id)?.top) ||
+      ? (memoizedCells[visibleRange.start] &&
+          cellPositions.positions.get(memoizedCells[visibleRange.start].id)
+            ?.top) ||
         0
       : 0;
 
