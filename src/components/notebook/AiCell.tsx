@@ -146,7 +146,7 @@ export const AiCell: React.FC<AiCellProps> = ({
         })
       );
     }
-  }, [cell.id, localSource, cell.executionCount, store]);
+  }, [cell.id, localSource, cell.source, cell.executionCount, store]);
 
   // Use shared keyboard navigation hook
   const { handleKeyDown, keyMap } = useCellKeyboardNavigation({
