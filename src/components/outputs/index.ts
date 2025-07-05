@@ -15,6 +15,7 @@ export interface OutputData {
   "image/jpeg"?: string;
   "application/json"?: unknown;
   "application/vnd.anode.aitool+json"?: ToolCallData;
+  "application/vnd.anode.aitool.result+json"?: ToolResultData;
   [key: string]: unknown;
 }
 
@@ -25,4 +26,10 @@ export interface ToolCallData {
   status: "success" | "error";
   timestamp: string;
   execution_time_ms?: number;
+}
+
+export interface ToolResultData {
+  tool_call_id: string;
+  result?: string;
+  status: string;
 }

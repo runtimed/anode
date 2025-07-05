@@ -4,6 +4,7 @@ import {
   AnsiStreamOutput,
   OutputData,
   ToolCallData,
+  ToolResultData,
 } from "../outputs/index.js";
 import "../outputs/outputs.css";
 
@@ -19,6 +20,11 @@ const JsonOutput = React.lazy(() =>
 const AiToolCallOutput = React.lazy(() =>
   import("../outputs/AiToolCallOutput.js").then((m) => ({
     default: m.AiToolCallOutput,
+  }))
+);
+const AiToolResultOutput = React.lazy(() =>
+  import("../outputs/AiToolResultOutput.js").then((m) => ({
+    default: m.AiToolResultOutput,
   }))
 );
 const HtmlOutput = React.lazy(() =>
@@ -60,6 +66,7 @@ export const RichOutput: React.FC<RichOutputProps> = ({
   const getPreferredMediaType = (): string | null => {
     const preferenceOrder = [
       "application/vnd.anode.aitool+json",
+      "application/vnd.anode.aitool.result+json",
       "text/markdown",
       "text/html",
       "image/png",
@@ -105,6 +112,15 @@ export const RichOutput: React.FC<RichOutputProps> = ({
           <Suspense fallback={<LoadingSpinner />}>
             <AiToolCallOutput
               toolData={outputData[mediaType] as ToolCallData}
+            />
+          </Suspense>
+        );
+
+      case "application/vnd.anode.aitool.result+json":
+        return (
+          <Suspense fallback={<LoadingSpinner />}>
+            <AiToolResultOutput
+              resultData={outputData[mediaType] as ToolResultData}
             />
           </Suspense>
         );
