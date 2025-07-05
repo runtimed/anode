@@ -161,3 +161,6 @@ Caddyfile
 
 .env
 .env.*
+
+# Temp file for working with local agents
+HANDOFF.md
