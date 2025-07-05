@@ -74,6 +74,7 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
   const [showRuntimeHelper, setShowRuntimeHelper] = React.useState(false);
   const [focusedCellId, setFocusedCellId] = React.useState<string | null>(null);
   const [contextSelectionMode, setContextSelectionMode] = React.useState(false);
+  const hasEverFocusedRef = React.useRef(false);
 
   const currentNotebookId = getCurrentNotebookId();
   const runtimeCommand = getRuntimeCommand(currentNotebookId);
@@ -267,6 +268,7 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
 
   const focusCell = useCallback((cellId: string) => {
     setFocusedCellId(cellId);
+    hasEverFocusedRef.current = true;
   }, []);
 
   const focusNextCell = useCallback(
@@ -310,10 +312,11 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
     }
   }, [focusedCellId, cells]);
 
-  // Focus first cell when notebook loads and has cells
+  // Focus first cell when notebook loads and has cells (but not after deletion)
   React.useEffect(() => {
-    if (!focusedCellId && cells.length > 0) {
+    if (!focusedCellId && cells.length > 0 && !hasEverFocusedRef.current) {
       setFocusedCellId(cells[0].id);
+      hasEverFocusedRef.current = true;
     }
   }, [focusedCellId, cells]);
 
