@@ -31,7 +31,6 @@ export function Editor({
       <div className={cn("relative min-h-[1.5rem]")}>
         <CodeMirrorEditor
           className="text-base sm:text-sm"
-          maxHeight="40vh"
           language={languageFromCellType(cell.cellType)}
           placeholder={placeholderFromCellType(cell.cellType)}
           value={localSource}
@@ -57,7 +56,6 @@ export function Editor({
           {/* Duplicate editor for dialog to prevent layout shift */}
           <CodeMirrorEditor
             className="text-base sm:text-sm"
-            maxHeight="40vh"
             language={languageFromCellType(cell.cellType)}
             placeholder={placeholderFromCellType(cell.cellType)}
             value={localSource}
@@ -94,7 +92,7 @@ export function Editor({
               onBlur={updateSource}
             />
             <MaxMinButton
-              className="absolute top-1 right-1"
+              className="top-1 right-1"
               isMaximized={isMaximized}
               setIsMaximized={setIsMaximized}
             />
