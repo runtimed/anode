@@ -81,6 +81,7 @@ export function prefetchOutputChunks(): void {
     import("../components/outputs/ImageOutput.js").catch(() => {});
     import("../components/outputs/SvgOutput.js").catch(() => {});
     import("../components/outputs/AiToolCallOutput.js").catch(() => {});
+    import("../components/outputs/AiToolResultOutput.js").catch(() => {});
   });
 }
 

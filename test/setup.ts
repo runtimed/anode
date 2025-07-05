@@ -1,5 +1,6 @@
 import { afterAll, afterEach, beforeAll, beforeEach, vi } from "vitest";
 import { Effect, TestContext } from "effect";
+import "@testing-library/jest-dom";
 
 // Global test setup
 beforeAll(async () => {
