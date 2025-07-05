@@ -21,10 +21,8 @@ export const useCellFocus = ({ cells, onAddCell }: UseCellFocusOptions) => {
   const [focusedCellId, setFocusedCellId] = useState<string | null>(null);
   const focusTimeoutRef = useRef<number | null>(null);
 
-  // Memoize sorted cells to avoid repeated sorting operations
-  const sortedCells = useMemo(() => {
-    return [...cells].sort((a, b) => a.position - b.position);
-  }, [cells]);
+  // Cells are already sorted by database query (orderBy("position", "asc"))
+  const sortedCells = cells;
 
   // Create cell position index for O(1) lookups
   const cellPositionMap = useMemo(() => {
@@ -46,9 +44,12 @@ export const useCellFocus = ({ cells, onAddCell }: UseCellFocusOptions) => {
     }, 10);
   }, []);
 
-  const focusCell = useCallback((cellId: string) => {
-    debouncedSetFocus(cellId);
-  }, [debouncedSetFocus]);
+  const focusCell = useCallback(
+    (cellId: string) => {
+      debouncedSetFocus(cellId);
+    },
+    [debouncedSetFocus]
+  );
 
   const focusNextCell = useCallback(
     (currentCellId: string) => {

@@ -65,45 +65,42 @@ export const VirtualizedCellList: React.FC<VirtualizedCellListProps> = ({
   const cellRefs = useRef<Map<string, HTMLDivElement>>(new Map());
   const [heightsVersion, setHeightsVersion] = useState(0);
 
-  // Sort cells by position
-  const sortedCells = useMemo(() => {
-    return [...cells].sort((a, b) => a.position - b.position);
-  }, [cells]);
-
+  // Cells are already sorted by database query (orderBy("position", "asc"))
   // Check if we should use virtualization
-  const shouldVirtualize = sortedCells.length > threshold;
+  const shouldVirtualize = cells.length > threshold;
 
   // Calculate cumulative heights for positioning
   const cellPositions = useMemo(() => {
     const positions = new Map<string, { top: number; height: number }>();
     let cumulativeHeight = 0;
+    const CELL_SPACING = 16; // 1rem spacing between cells
 
-    sortedCells.forEach((cell) => {
+    cells.forEach((cell) => {
       const height = cellHeights.current.get(cell.id) || itemHeight;
       positions.set(cell.id, { top: cumulativeHeight, height });
-      cumulativeHeight += height;
+      cumulativeHeight += height + CELL_SPACING;
     });
 
     return { positions, totalHeight: cumulativeHeight };
-  }, [sortedCells, itemHeight, heightsVersion]); // Re-calculate when heights change
+  }, [cells, itemHeight, heightsVersion]); // Re-calculate when heights change
 
   // Calculate visible range for virtualization using actual heights
   const visibleRange = useMemo(() => {
-    if (!shouldVirtualize) return { start: 0, end: sortedCells.length };
+    if (!shouldVirtualize) return { start: 0, end: cells.length };
 
     // If containerHeight is 0 (initial load), show first few cells as fallback
     if (containerHeight === 0) {
-      return { start: 0, end: Math.min(overscan * 2, sortedCells.length) };
+      return { start: 0, end: Math.min(overscan * 2, cells.length) };
     }
 
     const viewportTop = scrollTop;
     const viewportBottom = scrollTop + containerHeight;
     let start = 0;
-    let end = sortedCells.length;
+    let end = cells.length;
 
     // Find first visible cell
-    for (let i = 0; i < sortedCells.length; i++) {
-      const cell = sortedCells[i];
+    for (let i = 0; i < cells.length; i++) {
+      const cell = cells[i];
       const position = cellPositions.positions.get(cell.id);
       if (position && position.top + position.height >= viewportTop) {
         start = Math.max(0, i - overscan);
@@ -112,11 +109,11 @@ export const VirtualizedCellList: React.FC<VirtualizedCellListProps> = ({
     }
 
     // Find last visible cell
-    for (let i = start; i < sortedCells.length; i++) {
-      const cell = sortedCells[i];
+    for (let i = start; i < cells.length; i++) {
+      const cell = cells[i];
       const position = cellPositions.positions.get(cell.id);
       if (position && position.top > viewportBottom) {
-        end = Math.min(i + overscan, sortedCells.length);
+        end = Math.min(i + overscan, cells.length);
         break;
       }
     }
@@ -127,14 +124,14 @@ export const VirtualizedCellList: React.FC<VirtualizedCellListProps> = ({
     scrollTop,
     containerHeight,
     overscan,
-    sortedCells,
+    cells,
     cellPositions.positions,
   ]);
 
   // Get visible cells
   const visibleCells = useMemo(() => {
-    return sortedCells.slice(visibleRange.start, visibleRange.end);
-  }, [sortedCells, visibleRange.start, visibleRange.end]);
+    return cells.slice(visibleRange.start, visibleRange.end);
+  }, [cells, visibleRange.start, visibleRange.end]);
 
   // Use calculated heights instead of estimated
   const totalHeight = shouldVirtualize ? cellPositions.totalHeight : 0;
@@ -142,9 +139,8 @@ export const VirtualizedCellList: React.FC<VirtualizedCellListProps> = ({
   // Calculate offset based on actual cell positions
   const offsetY =
     shouldVirtualize && visibleRange.start > 0
-      ? (sortedCells[visibleRange.start] &&
-          cellPositions.positions.get(sortedCells[visibleRange.start].id)
-            ?.top) ||
+      ? (cells[visibleRange.start] &&
+          cellPositions.positions.get(cells[visibleRange.start].id)?.top) ||
         0
       : 0;
 
