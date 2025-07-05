@@ -758,3 +758,6 @@ export const AiCell: React.FC<AiCellProps> = ({
     </div>
   );
 };
+
+// Memoized AiCell component for performance optimization
+export const MemoizedAiCell = React.memo(AiCell);

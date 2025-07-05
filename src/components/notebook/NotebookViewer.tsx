@@ -1,8 +1,8 @@
-import React, { useCallback, Suspense } from "react";
+import React, { useCallback, useRef, Suspense } from "react";
 import { useStore } from "@livestore/react";
 import { CellData, events, KernelSessionData, tables } from "@runt/schema";
 import { queryDb } from "@livestore/livestore";
-import { Cell } from "./Cell.js";
+import { MemoizedCell } from "./Cell.js";
 import { formatDistanceToNow } from "date-fns";
 
 import { Button } from "@/components/ui/button";
@@ -264,8 +264,15 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
     [cells, store]
   );
 
+  const focusTimeoutRef = useRef<number | null>(null);
+
   const focusCell = useCallback((cellId: string) => {
-    setFocusedCellId(cellId);
+    if (focusTimeoutRef.current) {
+      clearTimeout(focusTimeoutRef.current);
+    }
+    focusTimeoutRef.current = window.setTimeout(() => {
+      setFocusedCellId(cellId);
+    }, 16); // One frame delay
   }, []);
 
   const focusNextCell = useCallback(
@@ -739,7 +746,7 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
                 </div>
               ) : (
                 cells.map((cell: CellData) => (
-                  <Cell
+                  <MemoizedCell
                     key={cell.id}
                     cell={cell}
                     onAddCell={() =>

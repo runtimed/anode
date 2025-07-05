@@ -14,10 +14,10 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 
-import { AiCell } from "./AiCell.js";
+import { MemoizedAiCell } from "./AiCell.js";
 import { AnsiErrorOutput } from "./AnsiOutput.js";
 import { RichOutput } from "./RichOutput";
-import { SqlCell } from "./SqlCell.js";
+import { MemoizedSqlCell } from "./SqlCell.js";
 
 import {
   ArrowDown,
@@ -198,7 +198,7 @@ export const Cell: React.FC<CellProps> = ({
   // Route to specialized cell components
   if (cell.cellType === "sql") {
     return (
-      <SqlCell
+      <MemoizedSqlCell
         cell={cell}
         onAddCell={onAddCell}
         onDeleteCell={onDeleteCell}
@@ -215,7 +215,7 @@ export const Cell: React.FC<CellProps> = ({
 
   if (cell.cellType === "ai") {
     return (
-      <AiCell
+      <MemoizedAiCell
         cell={cell}
         onAddCell={onAddCell}
         onDeleteCell={onDeleteCell}
@@ -638,3 +638,6 @@ export const Cell: React.FC<CellProps> = ({
     </div>
   );
 };
+
+// Memoized Cell component for performance optimization
+export const MemoizedCell = React.memo(Cell);

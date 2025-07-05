@@ -599,3 +599,6 @@ export const SqlCell: React.FC<SqlCellProps> = ({
     </div>
   );
 };
+
+// Memoized SqlCell component for performance optimization
+export const MemoizedSqlCell = React.memo(SqlCell);
