@@ -85,7 +85,7 @@ export const VirtualizedCellList: React.FC<VirtualizedCellListProps> = ({
     });
 
     return { positions, totalHeight: cumulativeHeight };
-  }, [memoizedCells, itemHeight, heightsVersion]); // Re-calculate when heights change
+  }, [memoizedCells, itemHeight, heightsVersion]); // eslint-disable-line react-hooks/exhaustive-deps -- heightsVersion is needed to trigger recalculation when cellHeights ref changes
 
   // Calculate visible range for virtualization using actual heights
   const visibleRange = useMemo(() => {

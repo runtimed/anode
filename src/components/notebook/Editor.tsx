@@ -73,7 +73,7 @@ export function Editor({
           />
           <Dialog.Content
             className={cn(
-              "animate-in fade-in slide-in-from-top-5 absolute fixed top-0 z-50 w-full duration-200 outline-none"
+              "animate-in fade-in slide-in-from-top-5 fixed top-0 z-50 w-full duration-200 outline-none"
             )}
             onOpenAutoFocus={(e) => e.preventDefault()}
             onInteractOutside={() => setIsMaximized(false)}
