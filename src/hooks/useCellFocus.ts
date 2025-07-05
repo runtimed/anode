@@ -20,6 +20,7 @@ interface UseCellFocusOptions {
 export const useCellFocus = ({ cells, onAddCell }: UseCellFocusOptions) => {
   const [focusedCellId, setFocusedCellId] = useState<string | null>(null);
   const focusTimeoutRef = useRef<number | null>(null);
+  const hasEverFocusedRef = useRef(false);
 
   // Cells are already sorted by database query (orderBy("position", "asc"))
   const sortedCells = cells;
@@ -41,6 +42,9 @@ export const useCellFocus = ({ cells, onAddCell }: UseCellFocusOptions) => {
 
     focusTimeoutRef.current = window.setTimeout(() => {
       setFocusedCellId(cellId);
+      if (cellId) {
+        hasEverFocusedRef.current = true;
+      }
     }, 10);
   }, []);
 
@@ -90,9 +94,13 @@ export const useCellFocus = ({ cells, onAddCell }: UseCellFocusOptions) => {
     }
   }, [focusedCellId, cellPositionMap]);
 
-  // Focus first cell when notebook loads and has cells
+  // Focus first cell when notebook loads and has cells (but not after deletion)
   useEffect(() => {
-    if (!focusedCellId && sortedCells.length > 0) {
+    if (
+      !focusedCellId &&
+      sortedCells.length > 0 &&
+      !hasEverFocusedRef.current
+    ) {
       debouncedSetFocus(sortedCells[0].id);
     }
   }, [focusedCellId, sortedCells, debouncedSetFocus]);
