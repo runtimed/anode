@@ -30,6 +30,7 @@ import {
   FileText,
   Play,
   Plus,
+  Square,
   X,
 } from "lucide-react";
 import { CellBase } from "./CellBase.js";
@@ -147,6 +148,31 @@ export const AiCell: React.FC<AiCellProps> = ({
       );
     }
   }, [cell.id, localSource, cell.source, cell.executionCount, store]);
+
+  const interruptAiCell = useCallback(async () => {
+    // Find the current execution in the queue for this cell
+    const executionQueue = store.query(
+      queryDb(tables.executionQueue.select().where({ cellId: cell.id }))
+    );
+
+    const currentExecution = executionQueue.find(
+      (exec: any) =>
+        exec.status === "executing" ||
+        exec.status === "pending" ||
+        exec.status === "assigned"
+    );
+
+    if (currentExecution) {
+      store.commit(
+        events.executionCancelled({
+          queueId: currentExecution.id,
+          cellId: cell.id,
+          cancelledBy: "current-user",
+          reason: "User interrupted AI execution",
+        })
+      );
+    }
+  }, [cell.id, store]);
 
   // Use shared keyboard navigation hook
   const { handleKeyDown, keyMap } = useCellKeyboardNavigation({
@@ -415,18 +441,24 @@ export const AiCell: React.FC<AiCellProps> = ({
           <Button
             variant="ghost"
             size="sm"
-            onClick={executeAiPrompt}
-            disabled={
+            onClick={
               cell.executionState === "running" ||
               cell.executionState === "queued"
+                ? interruptAiCell
+                : executeAiPrompt
             }
             className="mobile-play-btn hover:bg-muted/80 block h-8 w-8 p-0 sm:hidden"
-            title="Generate AI response"
+            title={
+              cell.executionState === "running" ||
+              cell.executionState === "queued"
+                ? "Stop AI execution"
+                : "Generate AI response"
+            }
           >
             {cell.executionState === "running" ? (
-              <div className="h-4 w-4 animate-spin rounded-full border border-purple-600 border-t-transparent"></div>
+              <Square className="h-4 w-4" />
             ) : cell.executionState === "queued" ? (
-              <div className="h-3 w-3 rounded-full bg-purple-500"></div>
+              <Square className="h-4 w-4" />
             ) : (
               <Play className="h-4 w-4" />
             )}
@@ -530,21 +562,28 @@ export const AiCell: React.FC<AiCellProps> = ({
           <Button
             variant="ghost"
             size="sm"
-            onClick={executeAiPrompt}
-            disabled={
+            onClick={
               cell.executionState === "running" ||
               cell.executionState === "queued"
+                ? interruptAiCell
+                : executeAiPrompt
             }
             className={`h-6 w-6 rounded-sm border-0 bg-white p-0 transition-colors hover:bg-white ${
               autoFocus
                 ? "text-purple-600"
                 : "text-muted-foreground/40 group-hover:text-purple-600 hover:text-purple-600"
             }`}
+            title={
+              cell.executionState === "running" ||
+              cell.executionState === "queued"
+                ? "Stop AI execution"
+                : "Generate AI response"
+            }
           >
             {cell.executionState === "running" ? (
-              <div className="h-3 w-3 animate-spin rounded-full border border-purple-600 border-t-transparent bg-white"></div>
+              <Square className="h-3 w-3" />
             ) : cell.executionState === "queued" ? (
-              <div className="h-2 w-2 rounded-full bg-purple-500"></div>
+              <Square className="h-3 w-3" />
             ) : (
               <Play className="h-3 w-3" />
             )}
