@@ -32,6 +32,7 @@ import {
   FileText,
   Play,
   Plus,
+  Square,
   X,
 } from "lucide-react";
 
@@ -181,6 +182,31 @@ export const Cell: React.FC<CellProps> = ({
       );
     }
   }, [cell.id, localSource, cell.source, cell.executionCount, store]);
+
+  const interruptCell = useCallback(async () => {
+    // Find the current execution in the queue for this cell
+    const executionQueue = store.query(
+      queryDb(tables.executionQueue.select().where({ cellId: cell.id }))
+    );
+
+    const currentExecution = executionQueue.find(
+      (exec: any) =>
+        exec.status === "executing" ||
+        exec.status === "pending" ||
+        exec.status === "assigned"
+    );
+
+    if (currentExecution) {
+      store.commit(
+        events.executionCancelled({
+          queueId: currentExecution.id,
+          cellId: cell.id,
+          cancelledBy: "current-user",
+          reason: "User interrupted execution",
+        })
+      );
+    }
+  }, [cell.id, store]);
 
   // Use shared keyboard navigation hook
   const { keyMap } = useCellKeyboardNavigation({
@@ -364,18 +390,24 @@ export const Cell: React.FC<CellProps> = ({
             <Button
               variant="ghost"
               size="sm"
-              onClick={executeCell}
-              disabled={
+              onClick={
                 cell.executionState === "running" ||
                 cell.executionState === "queued"
+                  ? interruptCell
+                  : executeCell
               }
               className="mobile-play-btn hover:bg-muted/80 block h-8 w-8 p-0 sm:hidden"
-              title="Run cell"
+              title={
+                cell.executionState === "running" ||
+                cell.executionState === "queued"
+                  ? "Stop execution"
+                  : "Run cell"
+              }
             >
               {cell.executionState === "running" ? (
-                <div className="h-4 w-4 animate-spin rounded-full border border-current border-t-transparent"></div>
+                <Square className="h-4 w-4" />
               ) : cell.executionState === "queued" ? (
-                <div className="h-3 w-3 rounded-full bg-amber-500"></div>
+                <Square className="h-4 w-4" />
               ) : (
                 <Play className="h-4 w-4" />
               )}
@@ -481,21 +513,28 @@ export const Cell: React.FC<CellProps> = ({
             <Button
               variant="ghost"
               size="sm"
-              onClick={executeCell}
-              disabled={
+              onClick={
                 cell.executionState === "running" ||
                 cell.executionState === "queued"
+                  ? interruptCell
+                  : executeCell
               }
               className={`h-6 w-6 rounded-sm border-0 bg-white p-1 transition-colors hover:bg-white ${
                 autoFocus
                   ? "text-foreground"
                   : "text-muted-foreground/40 hover:text-foreground group-hover:text-foreground"
               }`}
+              title={
+                cell.executionState === "running" ||
+                cell.executionState === "queued"
+                  ? "Stop execution"
+                  : "Run cell"
+              }
             >
               {cell.executionState === "running" ? (
-                <div className="h-3 w-3 animate-spin rounded-full border border-current border-t-transparent bg-white"></div>
+                <Square className="h-4 w-4" />
               ) : cell.executionState === "queued" ? (
-                <div className="h-2 w-2 rounded-full bg-amber-500"></div>
+                <Square className="h-4 w-4" />
               ) : (
                 <Play className="h-4 w-4" />
               )}

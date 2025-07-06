@@ -19,6 +19,7 @@ import {
   FileText,
   Filter,
   Plus,
+  Square,
   Terminal,
   X,
 } from "lucide-react";
@@ -115,6 +116,28 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
     navigator.clipboard.writeText(runtimeCommand);
     // Could add a toast notification here
   }, [runtimeCommand]);
+
+  const interruptAllExecutions = useCallback(async () => {
+    // Find all running or queued executions
+    const runningExecutions = executionQueue.filter(
+      (exec: any) =>
+        exec.status === "executing" ||
+        exec.status === "pending" ||
+        exec.status === "assigned"
+    );
+
+    // Cancel each execution
+    for (const execution of runningExecutions) {
+      store.commit(
+        events.executionCancelled({
+          queueId: execution.id,
+          cellId: execution.cellId,
+          cancelledBy: "current-user",
+          reason: "User interrupted all executions from runtime UI",
+        })
+      );
+    }
+  }, [executionQueue, store]);
 
   // Helper function to format heartbeat time
   const formatHeartbeatTime = (heartbeatTime: Date | string | null) => {
@@ -616,6 +639,39 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
                           )}
                         </div>
                       </div>
+
+                      {/* Interrupt Button */}
+                      {executionQueue.some(
+                        (exec: any) =>
+                          exec.status === "executing" ||
+                          exec.status === "pending" ||
+                          exec.status === "assigned"
+                      ) && (
+                        <div className="mt-4 border-t pt-4">
+                          <div className="flex items-center justify-between">
+                            <span className="text-muted-foreground text-sm">
+                              Running Executions:{" "}
+                              {
+                                executionQueue.filter(
+                                  (exec: any) =>
+                                    exec.status === "executing" ||
+                                    exec.status === "pending" ||
+                                    exec.status === "assigned"
+                                ).length
+                              }
+                            </span>
+                            <Button
+                              variant="destructive"
+                              size="sm"
+                              onClick={interruptAllExecutions}
+                              className="flex items-center gap-1"
+                            >
+                              <Square className="h-3 w-3" />
+                              <span>Interrupt All</span>
+                            </Button>
+                          </div>
+                        </div>
+                      )}
                     </div>
                   )}
 
