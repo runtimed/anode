@@ -12,6 +12,7 @@ This refactor replaces the single `cellOutputAdded` event with granular, type-sa
 ## What We're Changing
 
 ### From: Single Event + Discriminated Union
+
 ```typescript
 // Old approach
 "cellOutputAdded": {
@@ -22,6 +23,7 @@ This refactor replaces the single `cellOutputAdded` event with granular, type-sa
 ```
 
 ### To: Granular Events
+
 ```typescript
 // New approach - each event has precise, known structure
 "multimediaDisplayOutputAdded": {
@@ -43,8 +45,9 @@ This refactor replaces the single `cellOutputAdded` event with granular, type-sa
 ## Schema Changes Required
 
 ### New Events to Add
+
 - `multimediaDisplayOutputAdded` - for display() calls
-- `multimediaResultOutputAdded` - for execution results  
+- `multimediaResultOutputAdded` - for execution results
 - `terminalOutputAdded` - for stdout/stderr
 - `terminalOutputAppended` - for streaming terminal output
 - `markdownOutputAdded` - for AI responses
@@ -52,27 +55,32 @@ This refactor replaces the single `cellOutputAdded` event with granular, type-sa
 - `errorOutputAdded` - for execution errors
 
 ### Enhanced Clear Support
+
 - Update `cellOutputsCleared` with `wait: boolean` field
 - Add `pendingClears` table for `clear_output(wait=True)` support
 
 ### Remove/Replace
+
 - Replace `cellOutputAdded` entirely (breaking change)
 
 ## Implementation Priority
 
 ### Phase 1: Schema Updates (Week 1)
+
 - [ ] Update `runt/packages/schema/mod.ts` with new events
 - [ ] Add `pendingClears` table definition
 - [ ] Update materializers with `handlePendingClear` logic
 - [ ] **Important**: Link local schema for cross-workspace development
 
-### Phase 2: Client Updates (Week 2)  
+### Phase 2: Client Updates (Week 2)
+
 - [ ] Update output rendering components in `src/components/notebook/`
 - [ ] Implement terminal block grouping (display() calls break terminal blocks)
 - [ ] Add streaming UI for append operations
 - [ ] Test multi-media representation selection
 
 ### Phase 3: Integration Testing (Week 3-4)
+
 - [ ] Test all output scenarios thoroughly
 - [ ] Verify `clear_output(wait=True)` works correctly
 - [ ] Performance testing with streaming outputs
@@ -81,16 +89,19 @@ This refactor replaces the single `cellOutputAdded` event with granular, type-sa
 ## Key Technical Decisions
 
 ### Terminal Output Rendering
+
 - **Store separately**: Keep `streamName: "stdout" | "stderr"` for debugging
 - **Render merged**: Default UI merges chronologically like real terminals
 - **Display breakups**: `display()` calls create separate output blocks
 
-### MediaBundle Integration  
+### MediaBundle Integration
+
 - **Direct mapping**: Existing `MediaBundle` becomes `representations` field
 - **No conversion needed**: All existing media handling works unchanged
 - **AI compatibility**: `toAIMediaBundle()` works with new structure
 
 ### Clear Output Strategy
+
 - **Pending clear table**: Separate table tracks `clear_output(wait=True)`
 - **All events check**: Every `*OutputAdded` event must check for pending clears
 - **Smooth replacement**: No flicker when replacing outputs
@@ -98,17 +109,20 @@ This refactor replaces the single `cellOutputAdded` event with granular, type-sa
 ## Files That Need Updates
 
 ### Schema Package (runt)
+
 - `runt/packages/schema/mod.ts` - event definitions and materializers
 
-### Client Components (anode)  
+### Client Components (anode)
+
 - `src/components/notebook/NotebookViewer.tsx` - output grouping logic
 - `src/components/notebook/Cell.tsx` - cell rendering
-- `src/components/notebook/AnsiOutput.tsx` - terminal rendering  
+- `src/components/notebook/AnsiOutput.tsx` - terminal rendering
 - `src/components/notebook/RichOutput.tsx` - multimedia rendering
 
 ### Key Functions to Update
+
 - All ExecutionContext output methods (handled in runt)
-- Output rendering components  
+- Output rendering components
 - Terminal block grouping logic
 - Streaming append UI
 
@@ -123,6 +137,7 @@ Since both anode and runt need to work together during this refactor, the anode 
 ```
 
 After schema changes in runt:
+
 ```bash
 # In anode workspace, reinstall to pick up changes
 cd anode
@@ -132,17 +147,20 @@ pnpm install
 ## Testing Strategy
 
 ### Unit Tests
+
 - [ ] Test all new materializers
 - [ ] Test pending clear logic
 - [ ] Test representation selection
 
-### Integration Tests  
+### Integration Tests
+
 - [ ] Test terminal output merging
 - [ ] Test display() breakups
 - [ ] Test streaming append operations
 - [ ] Test `clear_output(wait=True)` scenarios
 
 ### Real-world Scenarios
+
 - [ ] matplotlib plots with text fallbacks
 - [ ] Long terminal output sessions
 - [ ] AI streaming responses
@@ -151,19 +169,22 @@ pnpm install
 ## Migration Notes
 
 ### Breaking Changes
+
 - All existing `cellOutputAdded` events become invalid
 - Client components must handle new event structure
 - Materializers completely rewritten
 
 ### Preserved Functionality
+
 - All MediaBundle handling and AI conversion
-- MIME type support and custom `+json` extensions  
+- MIME type support and custom `+json` extensions
 - Rich output rendering capabilities
 - Real-time collaborative updates
 
 ## Rollback Plan
 
 If issues arise:
+
 1. **Schema rollback**: Revert to previous event structure
 2. **Client fallback**: Keep old rendering components as backup
 3. **Data migration**: May need to replay events with old materializers

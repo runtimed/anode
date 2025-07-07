@@ -134,7 +134,7 @@ NOTEBOOK_ID=notebook-id-from-ui pnpm dev:runtime
 
 1. **Enhanced Schema** - Replace cellOutputAdded with granular events
    - multimediaDisplayOutputAdded, multimediaResultOutputAdded
-   - terminalOutputAdded, terminalOutputAppended  
+   - terminalOutputAdded, terminalOutputAppended
    - markdownOutputAdded, markdownOutputAppended
    - errorOutputAdded, cellOutputsCleared with wait=True support
 2. **Runtime Integration** - Update ExecutionContext methods to use new events
@@ -197,7 +197,7 @@ payload, not looked up during materialization.
 pass it when committing the event. Materializers must be deterministic and
 reproducible.
 
-**New Rule**: All *OutputAdded events must check for pending clears (clear_output(wait=True) support).
+**New Rule**: All \*OutputAdded events must check for pending clears (clear_output(wait=True) support).
 Use ctx.query() to check tables.pendingClears and handle accordingly.
 
 ### Recent Critical Fixes (Resolved June 2025)
