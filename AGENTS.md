@@ -146,12 +146,10 @@ NOTEBOOK_ID=notebook-id-from-ui pnpm dev:runtime
 
 ### ⚠️ CRITICAL: Materializer Determinism Requirements
 
-**NEVER use `ctx.query()` in materializers** - This was the root cause of
-runtime restart bug #34.
-
 LiveStore requires all materializers to be **pure functions without side
-effects**. Any data needed by a materializer must be passed via the event
-payload, not looked up during materialization.
+effects**. Avoid non-deterministic operations (like `Date()` calls) that could
+produce different results across clients. Using `ctx.query()` for deterministic
+data access is fine.
 
 **What caused the bug:**
 
@@ -184,9 +182,9 @@ payload, not looked up during materialization.
 - `6e0fb4f`: Fixed ExecutionCompleted/ExecutionCancelled materializers
 - `a1bf20d`: Fixed ExecutionStarted materializer
 
-**Rule**: If you need data in a materializer, add it to the event schema and
-pass it when committing the event. Materializers must be deterministic and
-reproducible.
+**Rule**: Materializers must be deterministic and reproducible. Avoid
+non-deterministic operations, but using `ctx.query()` for deterministic data
+lookups is acceptable.
 
 ### Local-First Architecture
 
@@ -201,8 +199,8 @@ reproducible.
 - Event sourcing over direct state mutations
 - Reactive queries over imperative data fetching
 - TypeScript strict mode enabled
-- Granular, type-safe events over discriminated unions
-- Event names determine exact structure (no optional fields)
+- Granular, type-safe events with clear schemas
+- Prefer specific event types over complex discriminated unions
 
 ## File Structure
 
