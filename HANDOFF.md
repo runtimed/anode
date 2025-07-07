@@ -114,17 +114,19 @@ This refactor replaces the single `cellOutputAdded` event with granular, type-sa
 
 ## Local Development Setup
 
-Since both anode and runt need to work together during this refactor:
+Since both anode and runt need to work together during this refactor, the anode package.json has been updated to use the local runt schema:
 
+```json
+"dependencies": {
+  "@runt/schema": "file:../runt/packages/schema"
+}
+```
+
+After schema changes in runt:
 ```bash
-# In anode workspace, link to local runt schema
+# In anode workspace, reinstall to pick up changes
 cd anode
-npm link ../runt/packages/schema
-
-# Or use package.json workspace resolution
-# "dependencies": {
-#   "@runt/schema": "workspace:../runt/packages/schema"
-# }
+pnpm install
 ```
 
 ## Testing Strategy
