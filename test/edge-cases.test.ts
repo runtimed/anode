@@ -11,7 +11,7 @@ import { events, schema, tables } from "@runt/schema";
 console.log("🧪 Starting Anode edge case test suite...");
 
 describe("Edge Cases and Stress Tests", () => {
-  let store: any;
+  let store: ReturnType<typeof createStorePromise>;
   let storeId: string;
   let sessionId: string;
 
