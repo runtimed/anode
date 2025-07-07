@@ -4,7 +4,7 @@ This document provides essential context for AI assistants working on the Anode
 project.
 
 Current work state and next steps. What works, what doesn't. Last updated:
-July 2025.
+January 2025.
 
 **Development Workflow**: The user will typically be running the wrangler server
 and web client in separate tabs. If you need to check work, run a build and/or
@@ -16,9 +16,7 @@ them how to start it at the base of the repo with pnpm.
 Anode is a real-time collaborative notebook system built on LiveStore, an
 event-sourcing based local-first data synchronization library.
 
-**Current Status**: Unified Output System implemented and production-ready.
-Real-time collaboration works. Python execution works with rich outputs.
-AI integration works. New granular event system provides full type safety.
+**Current Status**: Production-ready collaborative notebook system. Real-time collaboration, Python execution with rich outputs, and AI integration all working. Uses unified output system with granular, type-safe events.
 
 ## Architecture
 
@@ -66,23 +64,11 @@ AI integration works. New granular event system provides full type safety.
   matplotlib) for faster startup
 - ✅ **AI context with outputs** - AI sees execution results, not just source
   code, for intelligent assistance with data analysis
-- ✅ **Unified Output System** - Granular, type-safe events replace discriminated unions
+- ✅ **Unified Output System** - Granular, type-safe events for all output types
 - ✅ **Clear output functionality** - `clear_output(wait=True/False)` working properly
 - ✅ **Terminal output grouping** - Consecutive terminal outputs merge naturally
 - ✅ **Error output rendering** - Proper traceback display with JSON error parsing
-- ✅ **All tests passing** - 58/58 tests covering new output system
-
-### Recently Completed (January 2025) ✅
-
-- ✅ **Unified Output System** - Replaced single cellOutputAdded with granular, type-safe events
-  - ✅ Granular events: multimediaDisplayOutputAdded, terminalOutputAdded, etc.
-  - ✅ Streaming append operations for real-time terminal and AI output
-  - ✅ Type safety with no optional fields (event names determine structure)
-  - ✅ Natural terminal behavior (consecutive outputs merge properly)
-- ✅ **clear_output(wait=True) support** - Implemented with proper pending clear logic
-- ✅ **Schema migration complete** - Breaking changes implemented with full type safety
-- ✅ **Error handling fixed** - JSON error parsing and proper traceback display
-- ✅ **All tests updated** - 58/58 tests passing with new output structure
+- ✅ **All tests passing** - 58/58 tests covering output system
 
 ### Core Architecture Constraints
 
@@ -133,8 +119,6 @@ NOTEBOOK_ID=notebook-id-from-ui pnpm dev:runtime
 
 ## Current Priorities
 
-**Unified Output System implementation complete!** ✅
-
 **Current Focus**: Enhanced user experience and future features
 
 ### Potential Next Development Phase
@@ -151,7 +135,7 @@ NOTEBOOK_ID=notebook-id-from-ui pnpm dev:runtime
    - Better session management
    - Health monitoring
 
-**Recently Completed**: Core output system refactor providing type safety, performance, and streaming capabilities foundations
+**Foundation Complete**: Core output system provides type safety, performance, and streaming capabilities
 
 ## Important Considerations
 
@@ -204,39 +188,6 @@ payload, not looked up during materialization.
 pass it when committing the event. Materializers must be deterministic and
 reproducible.
 
-**New Rule**: All \*OutputAdded events must check for pending clears (clear_output(wait=True) support).
-Use ctx.query() to check tables.pendingClears and handle accordingly.
-
-### Recent Critical Fixes (Resolved June 2025)
-
-### Major Completed Projects ✅
-
-**Unified Output System (January 2025) - COMPLETE** ✅
-
-Successfully implemented a major refactor replacing discriminated union outputs
-with granular, type-safe events providing better performance and type safety.
-
-**What was implemented:**
-
-- ✅ New granular events: multimediaDisplayOutputAdded, terminalOutputAdded, etc.
-- ✅ Type-safe event schemas with no optional fields
-- ✅ Flattened output table structure with representations preserved
-- ✅ Terminal output grouping for better UX
-- ✅ Proper clear_output(wait=True/False) functionality
-- ✅ Error output rendering with JSON parsing
-- ✅ All tests updated and passing (58/58)
-
-**Runtime Restart Bug (#34) - RESOLVED** ✅
-
-Previously resolved stability issue where runtime sessions would fail due to
-non-deterministic materializers using `ctx.query()` calls.
-
-**Impact:**
-
-- ✅ Runtime sessions reliable across restarts
-- ✅ Unified output system maintains deterministic materializers
-- ✅ All new materializers follow pure function requirements
-
 ### Local-First Architecture
 
 - All data operations happen locally first
@@ -250,8 +201,8 @@ non-deterministic materializers using `ctx.query()` calls.
 - Event sourcing over direct state mutations
 - Reactive queries over imperative data fetching
 - TypeScript strict mode enabled
-- **New**: Granular, type-safe events over discriminated unions
-- **New**: Event names should determine exact structure (no optional fields)
+- Granular, type-safe events over discriminated unions
+- Event names determine exact structure (no optional fields)
 
 ## File Structure
 
