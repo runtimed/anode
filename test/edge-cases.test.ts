@@ -240,19 +240,27 @@ describe("Edge Cases and Stress Tests", () => {
       };
 
       store.commit(
-        events.cellOutputAdded({
+        events.multimediaDisplayOutputAdded({
           id: outputId,
           cellId,
-          outputType: "display_data",
-          data: largeData,
+          representations: {
+            "application/json": {
+              type: "inline",
+              data: largeData,
+            },
+          },
           position: 0,
         })
       );
 
       const outputs = store.query(tables.outputs.select().where({ cellId }));
       expect(outputs).toHaveLength(1);
-      expect(outputs[0].data.text).toHaveLength(1024 * 1024);
-      expect(outputs[0].data.metadata.size).toBe(1024 * 1024);
+      expect(outputs[0].data["application/json"].data.text).toHaveLength(
+        1024 * 1024
+      );
+      expect(outputs[0].data["application/json"].data.metadata.size).toBe(
+        1024 * 1024
+      );
     });
 
     it("should handle unicode and special characters in all text fields", async () => {
@@ -624,18 +632,38 @@ describe("Edge Cases and Stress Tests", () => {
 
       // Add many outputs
       for (let i = 0; i < outputCount; i++) {
-        store.commit(
-          events.cellOutputAdded({
-            id: `output-${i}`,
-            cellId,
-            outputType: i % 4 === 0 ? "error" : "stream",
-            data: {
-              text: `Output ${i} with data`,
-              value: i,
-            },
-            position: i,
-          })
-        );
+        if (i % 4 === 0) {
+          // Error output
+          store.commit(
+            events.errorOutputAdded({
+              id: `output-${i}`,
+              cellId,
+              content: {
+                type: "inline",
+                data: {
+                  ename: "TestError",
+                  evalue: `Error ${i}`,
+                  traceback: [`Output ${i} with data`],
+                },
+              },
+              position: i,
+            })
+          );
+        } else {
+          // Stream output
+          store.commit(
+            events.terminalOutputAdded({
+              id: `output-${i}`,
+              cellId,
+              content: {
+                type: "inline",
+                data: `Output ${i} with data`,
+              },
+              streamName: "stdout",
+              position: i,
+            })
+          );
+        }
       }
 
       const outputs = store.query(tables.outputs.select().where({ cellId }));
@@ -646,6 +674,7 @@ describe("Edge Cases and Stress Tests", () => {
         events.cellOutputsCleared({
           cellId,
           clearedBy: "test-user",
+          wait: false,
         })
       );
 

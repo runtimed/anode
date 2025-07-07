@@ -167,16 +167,20 @@ describe("End-to-End Execution Flow", () => {
         events.cellOutputsCleared({
           cellId,
           clearedBy: kernelId,
+          wait: false,
         })
       );
 
       // Step 8: Add execution output
       store.commit(
-        events.cellOutputAdded({
+        events.terminalOutputAdded({
           id: outputId,
           cellId,
-          outputType: "stream",
-          data: { name: "stdout", text: "Hello from integration test!\n" },
+          content: {
+            type: "inline",
+            data: "Hello from integration test!\n",
+          },
+          streamName: "stdout",
           position: 0,
         })
       );
@@ -289,18 +293,20 @@ describe("End-to-End Execution Flow", () => {
 
       // Add error output
       store.commit(
-        events.cellOutputAdded({
+        events.errorOutputAdded({
           id: "error-output",
           cellId,
-          outputType: "error",
-          data: {
-            ename: "ValueError",
-            evalue: "Test error",
-            traceback: [
-              "Traceback (most recent call last):",
-              '  File "<stdin>", line 1, in <module>',
-              "ValueError: Test error",
-            ],
+          content: {
+            type: "inline",
+            data: {
+              ename: "ValueError",
+              evalue: "Test error",
+              traceback: [
+                "Traceback (most recent call last):",
+                '  File "<stdin>", line 1, in <module>',
+                "ValueError: Test error",
+              ],
+            },
           },
           position: 0,
         })
@@ -423,11 +429,14 @@ describe("End-to-End Execution Flow", () => {
       // Complete all executions
       cells.forEach(({ cellId, queueId, outputId }, index) => {
         store.commit(
-          events.cellOutputAdded({
+          events.terminalOutputAdded({
             id: outputId,
             cellId,
-            outputType: "stream",
-            data: { name: "stdout", text: `Output from cell ${index}\n` },
+            content: {
+              type: "inline",
+              data: `Output from cell ${index}\n`,
+            },
+            streamName: "stdout",
             position: 0,
           })
         );
@@ -515,11 +524,14 @@ describe("End-to-End Execution Flow", () => {
       );
 
       store.commit(
-        events.cellOutputAdded({
+        events.terminalOutputAdded({
           id: "reactive-output",
           cellId,
-          outputType: "stream",
-          data: "Test output",
+          content: {
+            type: "inline",
+            data: "Test output",
+          },
+          streamName: "stdout",
           position: 0,
         })
       );
@@ -781,11 +793,14 @@ describe("End-to-End Execution Flow", () => {
       );
 
       store.commit(
-        events.cellOutputAdded({
+        events.terminalOutputAdded({
           id: outputId,
           cellId,
-          outputType: "stream",
-          data: "Test output",
+          content: {
+            type: "inline",
+            data: "Test output",
+          },
+          streamName: "stdout",
           position: 0,
         })
       );
