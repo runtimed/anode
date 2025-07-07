@@ -62,12 +62,33 @@ export default [
     },
   },
   {
-    ignores: [
-      "dist/**",
-      "node_modules/**",
-      "*.d.ts",
-      "vite.config.ts",
-      "vitest.config.ts",
-    ],
+    files: ["vite.config.ts", "vitest.config.ts", "schema.ts"],
+    languageOptions: {
+      globals: {
+        // Node.js globals for config files
+        process: "readonly",
+        Buffer: "readonly",
+        __dirname: "readonly",
+        __filename: "readonly",
+        global: "readonly",
+        module: "readonly",
+        require: "readonly",
+        exports: "readonly",
+      },
+    },
+    rules: {
+      // Disable noisy rules for config files
+      "@typescript-eslint/no-explicit-any": "off",
+      "@typescript-eslint/no-unused-vars": "off",
+      "no-unused-vars": "off",
+      "@typescript-eslint/no-unsafe-assignment": "off",
+      "@typescript-eslint/no-unsafe-member-access": "off",
+      "@typescript-eslint/no-unsafe-call": "off",
+      "@typescript-eslint/no-unsafe-return": "off",
+      "@typescript-eslint/no-unsafe-argument": "off",
+    },
+  },
+  {
+    ignores: ["dist/**", "node_modules/**", "*.d.ts"],
   },
 ];
