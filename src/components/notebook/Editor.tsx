@@ -136,6 +136,8 @@ function languageFromCellType(
     return "python";
   } else if (cellType === "markdown") {
     return "markdown";
+  } else if (cellType === "ai") {
+    return "markdown";
   }
   return undefined;
 }
@@ -147,6 +149,8 @@ function placeholderFromCellType(
     return "Enter your code here...";
   } else if (cellType === "markdown") {
     return "Enter markdown...";
+  } else if (cellType === "ai") {
+    return "Ask me anything about your notebook, data, or analysis...";
   }
   return "Enter raw text...";
 }

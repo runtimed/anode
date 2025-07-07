@@ -682,14 +682,17 @@ export const AiCell: React.FC<AiCellProps> = ({
             {/* Desktop: CodeMirror Editor */}
             <div className="relative hidden min-h-[1.5rem] sm:block">
               <CodeMirrorEditor
+                className="text-base sm:text-sm"
                 language="markdown"
                 placeholder="Ask me anything about your notebook, data, or analysis..."
                 value={localSource}
                 onValueChange={handleSourceChange}
-                onBlur={updateSource}
+                autoFocus={autoFocus}
                 onFocus={handleFocus}
                 keyMap={keyMap}
-                autoFocus={autoFocus}
+                onBlur={updateSource}
+                enableLineWrapping={true}
+                disableAutocompletion={true}
               />
             </div>
           </div>

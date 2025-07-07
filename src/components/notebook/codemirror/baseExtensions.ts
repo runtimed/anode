@@ -52,4 +52,27 @@ export const basicSetup: Extension = (() => [
   customStyles,
 ])();
 
+export const aiBasicSetup: Extension = (() => [
+  history(),
+  drawSelection(),
+  dropCursor(),
+  EditorState.allowMultipleSelections.of(true),
+  indentOnInput(),
+  syntaxHighlighting(defaultHighlightStyle, { fallback: true }),
+  bracketMatching(),
+  closeBrackets(),
+  // Note: autocompletion() is excluded for AI cells
+  rectangularSelection(),
+  crosshairCursor(),
+  keymap.of([
+    ...closeBracketsKeymap,
+    ...defaultKeymap,
+    ...historyKeymap,
+    // Note: completionKeymap is excluded for AI cells
+    ...lintKeymap,
+  ]),
+  customStyles,
+])();
+
 export const baseExtensions = [basicSetup, githubLight];
+export const aiBaseExtensions = [aiBasicSetup, githubLight];

@@ -3,6 +3,7 @@ import {
   KeyBinding,
   keymap,
   placeholder as placeholderExt,
+  EditorView,
 } from "@codemirror/view";
 import { useCallback, useEffect, useMemo, useRef } from "react";
 
@@ -11,7 +12,7 @@ import { markdown } from "@codemirror/lang-markdown";
 import { SupportedLanguage } from "@/types/misc.js";
 import { sql } from "@codemirror/lang-sql";
 import { useCodeMirror } from "@uiw/react-codemirror";
-import { baseExtensions } from "./baseExtensions.js";
+import { baseExtensions, aiBaseExtensions } from "./baseExtensions.js";
 
 type CodeMirrorEditorProps = {
   value: string;
@@ -24,6 +25,8 @@ type CodeMirrorEditorProps = {
   keyMap?: KeyBinding[];
   className?: string;
   maxHeight?: string;
+  enableLineWrapping?: boolean;
+  disableAutocompletion?: boolean;
 };
 
 function languageExtension(language: SupportedLanguage) {
@@ -48,20 +51,40 @@ export const CodeMirrorEditor: React.FC<CodeMirrorEditorProps> = ({
   onBlur,
   placeholder,
   maxHeight,
+  enableLineWrapping = false,
+  disableAutocompletion = false,
 }) => {
   const editorRef = useRef<HTMLDivElement | null>(null);
 
   const langExtension = useMemo(() => languageExtension(language), [language]);
 
   const extensions = useMemo(() => {
-    const exts = [keymap.of(keyMap || []), ...baseExtensions, langExtension];
+    const selectedBaseExtensions = disableAutocompletion
+      ? aiBaseExtensions
+      : baseExtensions;
+
+    const exts = [
+      keymap.of(keyMap || []),
+      ...selectedBaseExtensions,
+      langExtension,
+    ];
 
     if (placeholder) {
       exts.push(placeholderExt(placeholder));
     }
 
+    if (enableLineWrapping) {
+      exts.push(EditorView.lineWrapping);
+    }
+
     return exts;
-  }, [keyMap, langExtension, placeholder]);
+  }, [
+    keyMap,
+    langExtension,
+    placeholder,
+    enableLineWrapping,
+    disableAutocompletion,
+  ]);
 
   const handleChange = useCallback(
     (val: string) => {
