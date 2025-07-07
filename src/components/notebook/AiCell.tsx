@@ -794,9 +794,12 @@ export const AiCell: React.FC<AiCellProps> = ({
                   <div className="max-w-full overflow-hidden rounded-lg border border-gray-200 bg-gray-50 p-3 sm:rounded-none sm:border-0 sm:bg-transparent sm:p-0">
                     <RichOutput
                       data={
-                        output.representations || {
-                          "text/plain": output.data || "",
-                        }
+                        (output.outputType as string) === "markdown" ||
+                        (output.outputType as string) === "terminal"
+                          ? output.data || ""
+                          : output.representations || {
+                              "text/plain": output.data || "",
+                            }
                       }
                       metadata={
                         output.metadata as Record<string, unknown> | undefined

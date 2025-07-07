@@ -683,9 +683,12 @@ export const Cell: React.FC<CellProps> = ({
                   <div className="max-w-full overflow-hidden py-2">
                     <RichOutput
                       data={
-                        output.representations || {
-                          "text/plain": output.data || "",
-                        }
+                        (output.outputType as string) === "markdown" ||
+                        (output.outputType as string) === "terminal"
+                          ? output.data || ""
+                          : output.representations || {
+                              "text/plain": output.data || "",
+                            }
                       }
                       metadata={
                         output.metadata as Record<string, unknown> | undefined
