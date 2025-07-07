@@ -1,6 +1,6 @@
 import React, { useCallback } from "react";
 import { useStore } from "@livestore/react";
-import { events, isErrorOutput, OutputData, tables } from "@runt/schema";
+import { events, OutputData, tables } from "@runt/schema";
 import { queryDb } from "@livestore/livestore";
 import { useCellKeyboardNavigation } from "../../hooks/useCellKeyboardNavigation.js";
 import { useCellContent } from "../../hooks/useCellContent.js";
@@ -766,19 +766,28 @@ export const AiCell: React.FC<AiCellProps> = ({
             >
               {output.outputType === "error" ? (
                 // Use AnsiErrorOutput for colored error rendering
-                <AnsiErrorOutput
-                  ename={
-                    isErrorOutput(output.data) ? output.data.ename : undefined
+                (() => {
+                  let errorData;
+                  try {
+                    errorData =
+                      typeof output.data === "string"
+                        ? JSON.parse(output.data)
+                        : output.data;
+                  } catch {
+                    errorData = {
+                      ename: "Error",
+                      evalue: String(output.data),
+                      traceback: [],
+                    };
                   }
-                  evalue={
-                    isErrorOutput(output.data) ? output.data.evalue : undefined
-                  }
-                  traceback={
-                    isErrorOutput(output.data)
-                      ? output.data.traceback
-                      : undefined
-                  }
-                />
+                  return (
+                    <AnsiErrorOutput
+                      ename={errorData?.ename}
+                      evalue={errorData?.evalue}
+                      traceback={errorData?.traceback || []}
+                    />
+                  );
+                })()
               ) : (
                 // Use RichOutput for all other output types - chat bubble style on mobile
                 <div className="max-w-full overflow-hidden py-2">
