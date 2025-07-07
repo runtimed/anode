@@ -6,12 +6,12 @@ import {
 } from "./setup.js";
 import { makeAdapter } from "@livestore/adapter-node";
 import { createStorePromise } from "@livestore/livestore";
-import { events, schema, tables } from "@runt/schema";
+import { events, schema, Store, tables } from "@runt/schema";
 
 console.log("🧪 Starting Anode edge case test suite...");
 
 describe("Edge Cases and Stress Tests", () => {
-  let store: ReturnType<typeof createStorePromise>;
+  let store: Store;
   let storeId: string;
   let sessionId: string;
 
@@ -255,12 +255,12 @@ describe("Edge Cases and Stress Tests", () => {
 
       const outputs = store.query(tables.outputs.select().where({ cellId }));
       expect(outputs).toHaveLength(1);
-      expect(outputs[0].data["application/json"].data.text).toHaveLength(
-        1024 * 1024
-      );
-      expect(outputs[0].data["application/json"].data.metadata.size).toBe(
-        1024 * 1024
-      );
+      expect(
+        outputs[0].representations["application/json"].data.text
+      ).toHaveLength(1024 * 1024);
+      expect(
+        outputs[0].representations["application/json"].data.metadata.size
+      ).toBe(1024 * 1024);
     });
 
     it("should handle unicode and special characters in all text fields", async () => {

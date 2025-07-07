@@ -215,10 +215,9 @@ describe("End-to-End Execution Flow", () => {
       const outputs = store.query(tables.outputs.select());
       expect(outputs).toHaveLength(1);
       expect(outputs[0].cellId).toBe(cellId);
-      expect(outputs[0].data).toEqual({
-        name: "stdout",
-        text: "Hello from integration test!\n",
-      });
+      expect(outputs[0].outputType).toBe("terminal");
+      expect(outputs[0].streamName).toBe("stdout");
+      expect(outputs[0].data).toBe("Hello from integration test!\n");
     });
 
     it("should handle execution errors gracefully", async () => {
@@ -330,7 +329,8 @@ describe("End-to-End Execution Flow", () => {
 
       const outputs = store.query(tables.outputs.select());
       expect(outputs[0].outputType).toBe("error");
-      expect(outputs[0].data.ename).toBe("ValueError");
+      const errorData = JSON.parse(outputs[0].data);
+      expect(errorData.ename).toBe("ValueError");
     });
 
     it("should handle multiple concurrent executions", async () => {
@@ -460,7 +460,7 @@ describe("End-to-End Execution Flow", () => {
       const outputs = store.query(tables.outputs.select());
       expect(outputs).toHaveLength(numCells);
       outputs.forEach((output, index) => {
-        expect(output.data.text).toBe(`Output from cell ${index}\n`);
+        expect(output.data).toBe(`Output from cell ${index}\n`);
       });
     });
   });

@@ -15,7 +15,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 
 import { AiCell } from "./AiCell.js";
-import { AnsiErrorOutput } from "./AnsiOutput.js";
+import { AnsiStreamOutput, AnsiErrorOutput } from "./AnsiOutput.js";
 import { RichOutput } from "./RichOutput";
 import { SqlCell } from "./SqlCell.js";
 
@@ -661,8 +661,18 @@ export const Cell: React.FC<CellProps> = ({
                         : undefined
                     }
                   />
+                ) : output.outputType === "terminal" ? (
+                  // Handle terminal outputs directly
+                  <div className="max-w-full overflow-hidden py-2">
+                    <AnsiStreamOutput
+                      text={output.data || ""}
+                      streamName={
+                        (output.streamName as "stdout" | "stderr") || "stdout"
+                      }
+                    />
+                  </div>
                 ) : (
-                  // Use RichOutput for all other output types
+                  // Use RichOutput for multimedia outputs
                   <div className="max-w-full overflow-hidden py-2">
                     <RichOutput
                       data={
