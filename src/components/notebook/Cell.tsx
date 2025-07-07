@@ -1,6 +1,6 @@
 import { queryDb } from "@livestore/livestore";
 import { useStore } from "@livestore/react";
-import { events, isErrorOutput, OutputData, tables } from "@runt/schema";
+import { events, OutputData, tables } from "@runt/schema";
 import React, { useCallback } from "react";
 import { useCellContent } from "../../hooks/useCellContent.js";
 import { useCellKeyboardNavigation } from "../../hooks/useCellKeyboardNavigation.js";
@@ -15,7 +15,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 
 import { AiCell } from "./AiCell.js";
-import { AnsiErrorOutput } from "./AnsiOutput.js";
+import { AnsiStreamOutput, AnsiErrorOutput } from "./AnsiOutput.js";
 import { RichOutput } from "./RichOutput";
 import { SqlCell } from "./SqlCell.js";
 
@@ -133,6 +133,7 @@ export const Cell: React.FC<CellProps> = ({
       store.commit(
         events.cellOutputsCleared({
           cellId: cell.id,
+          wait: false,
           clearedBy: "current-user",
         })
       );
@@ -165,19 +166,21 @@ export const Cell: React.FC<CellProps> = ({
 
       // Store error information directly
       store.commit(
-        events.cellOutputAdded({
+        events.errorOutputAdded({
           id: `error-${Date.now()}-${Math.random().toString(36).slice(2)}`,
           cellId: cell.id,
-          outputType: "error",
-          data: {
-            ename: "LiveStoreError",
-            evalue:
-              error instanceof Error
-                ? error.message
-                : "Failed to queue execution request",
-            traceback: ["Error occurred while emitting LiveStore event"],
-          },
           position: 0,
+          content: {
+            type: "inline",
+            data: {
+              ename: "LiveStoreError",
+              evalue:
+                error instanceof Error
+                  ? error.message
+                  : "Failed to queue execution request",
+              traceback: ["Error occurred while emitting LiveStore event"],
+            },
+          },
         })
       );
     }
@@ -643,26 +646,50 @@ export const Cell: React.FC<CellProps> = ({
               >
                 {output.outputType === "error" ? (
                   // Use AnsiErrorOutput for colored error rendering
-                  <AnsiErrorOutput
-                    ename={
-                      isErrorOutput(output.data) ? output.data.ename : undefined
+                  (() => {
+                    let errorData;
+                    try {
+                      errorData =
+                        typeof output.data === "string"
+                          ? JSON.parse(output.data)
+                          : output.data;
+                    } catch {
+                      errorData = {
+                        ename: "Error",
+                        evalue: String(output.data),
+                        traceback: [],
+                      };
                     }
-                    evalue={
-                      isErrorOutput(output.data)
-                        ? output.data.evalue
-                        : undefined
-                    }
-                    traceback={
-                      isErrorOutput(output.data)
-                        ? output.data.traceback
-                        : undefined
-                    }
-                  />
+                    return (
+                      <AnsiErrorOutput
+                        ename={errorData?.ename}
+                        evalue={errorData?.evalue}
+                        traceback={errorData?.traceback || []}
+                      />
+                    );
+                  })()
+                ) : output.outputType === "terminal" ? (
+                  // Handle terminal outputs directly
+                  <div className="max-w-full overflow-hidden py-2">
+                    <AnsiStreamOutput
+                      text={output.data || ""}
+                      streamName={
+                        (output.streamName as "stdout" | "stderr") || "stdout"
+                      }
+                    />
+                  </div>
                 ) : (
-                  // Use RichOutput for all other output types
+                  // Use RichOutput for multimedia outputs
                   <div className="max-w-full overflow-hidden py-2">
                     <RichOutput
-                      data={output.data as Record<string, unknown>}
+                      data={
+                        (output.outputType as string) === "markdown" ||
+                        (output.outputType as string) === "terminal"
+                          ? output.data || ""
+                          : output.representations || {
+                              "text/plain": output.data || "",
+                            }
+                      }
                       metadata={
                         output.metadata as Record<string, unknown> | undefined
                       }

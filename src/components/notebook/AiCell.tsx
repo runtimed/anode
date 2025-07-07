@@ -1,6 +1,6 @@
 import React, { useCallback } from "react";
 import { useStore } from "@livestore/react";
-import { events, isErrorOutput, OutputData, tables } from "@runt/schema";
+import { events, OutputData, tables } from "@runt/schema";
 import { queryDb } from "@livestore/livestore";
 import { useCellKeyboardNavigation } from "../../hooks/useCellKeyboardNavigation.js";
 import { useCellContent } from "../../hooks/useCellContent.js";
@@ -99,6 +99,7 @@ export const AiCell: React.FC<AiCellProps> = ({
       store.commit(
         events.cellOutputsCleared({
           cellId: cell.id,
+          wait: false,
           clearedBy: "current-user",
         })
       );
@@ -131,19 +132,21 @@ export const AiCell: React.FC<AiCellProps> = ({
 
       // Store error information directly
       store.commit(
-        events.cellOutputAdded({
+        events.errorOutputAdded({
           id: `error-${Date.now()}-${Math.random().toString(36).slice(2)}`,
           cellId: cell.id,
-          outputType: "error",
-          data: {
-            ename: "AIExecutionError",
-            evalue:
-              error instanceof Error
-                ? error.message
-                : "Failed to queue AI execution request",
-            traceback: ["Error occurred while emitting LiveStore event"],
-          },
           position: 0,
+          content: {
+            type: "inline",
+            data: {
+              ename: "AIExecutionError",
+              evalue:
+                error instanceof Error
+                  ? error.message
+                  : "Failed to queue AI execution request",
+              traceback: ["Error occurred while emitting LiveStore event"],
+            },
+          },
         })
       );
     }
@@ -766,25 +769,41 @@ export const AiCell: React.FC<AiCellProps> = ({
             >
               {output.outputType === "error" ? (
                 // Use AnsiErrorOutput for colored error rendering
-                <AnsiErrorOutput
-                  ename={
-                    isErrorOutput(output.data) ? output.data.ename : undefined
+                (() => {
+                  let errorData;
+                  try {
+                    errorData =
+                      typeof output.data === "string"
+                        ? JSON.parse(output.data)
+                        : output.data;
+                  } catch {
+                    errorData = {
+                      ename: "Error",
+                      evalue: String(output.data),
+                      traceback: [],
+                    };
                   }
-                  evalue={
-                    isErrorOutput(output.data) ? output.data.evalue : undefined
-                  }
-                  traceback={
-                    isErrorOutput(output.data)
-                      ? output.data.traceback
-                      : undefined
-                  }
-                />
+                  return (
+                    <AnsiErrorOutput
+                      ename={errorData?.ename}
+                      evalue={errorData?.evalue}
+                      traceback={errorData?.traceback || []}
+                    />
+                  );
+                })()
               ) : (
                 // Use RichOutput for all other output types - chat bubble style on mobile
                 <div className="max-w-full overflow-hidden py-2">
                   <div className="max-w-full overflow-hidden rounded-lg border border-gray-200 bg-gray-50 p-3 sm:rounded-none sm:border-0 sm:bg-transparent sm:p-0">
                     <RichOutput
-                      data={output.data as Record<string, unknown>}
+                      data={
+                        (output.outputType as string) === "markdown" ||
+                        (output.outputType as string) === "terminal"
+                          ? output.data || ""
+                          : output.representations || {
+                              "text/plain": output.data || "",
+                            }
+                      }
                       metadata={
                         output.metadata as Record<string, unknown> | undefined
                       }

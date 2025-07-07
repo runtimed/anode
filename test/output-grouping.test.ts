@@ -37,24 +37,27 @@ describe("groupConsecutiveStreamOutputs", () => {
       {
         id: "1",
         cellId: "cell1",
-        outputType: "stream",
-        data: { name: "stdout", text: "Hello " },
+        outputType: "terminal",
+        streamName: "stdout",
+        data: "Hello ",
         metadata: null,
         position: 1,
       },
       {
         id: "2",
         cellId: "cell1",
-        outputType: "stream",
-        data: { name: "stdout", text: "World" },
+        outputType: "terminal",
+        streamName: "stdout",
+        data: "World",
         metadata: null,
         position: 2,
       },
       {
         id: "3",
         cellId: "cell1",
-        outputType: "stream",
-        data: { name: "stdout", text: "!" },
+        outputType: "terminal",
+        streamName: "stdout",
+        data: "!",
         metadata: null,
         position: 3,
       },
@@ -65,8 +68,9 @@ describe("groupConsecutiveStreamOutputs", () => {
     expect(result[0]).toEqual({
       id: "1",
       cellId: "cell1",
-      outputType: "stream",
-      data: { name: "stdout", text: "Hello World!" },
+      outputType: "terminal",
+      streamName: "stdout",
+      data: "Hello World!",
       metadata: null,
       position: 1,
     });
@@ -77,16 +81,18 @@ describe("groupConsecutiveStreamOutputs", () => {
       {
         id: "1",
         cellId: "cell1",
-        outputType: "stream",
-        data: { name: "stderr", text: "Error: " },
+        outputType: "terminal",
+        streamName: "stderr",
+        data: "Error 1 ",
         metadata: null,
         position: 1,
       },
       {
         id: "2",
         cellId: "cell1",
-        outputType: "stream",
-        data: { name: "stderr", text: "Something went wrong" },
+        outputType: "terminal",
+        streamName: "stderr",
+        data: "Error 2",
         metadata: null,
         position: 2,
       },
@@ -97,8 +103,9 @@ describe("groupConsecutiveStreamOutputs", () => {
     expect(result[0]).toEqual({
       id: "1",
       cellId: "cell1",
-      outputType: "stream",
-      data: { name: "stderr", text: "Error: Something went wrong" },
+      outputType: "terminal",
+      streamName: "stderr",
+      data: "Error 1 Error 2",
       metadata: null,
       position: 1,
     });
@@ -109,16 +116,18 @@ describe("groupConsecutiveStreamOutputs", () => {
       {
         id: "1",
         cellId: "cell1",
-        outputType: "stream",
-        data: { name: "stdout", text: "Hello" },
+        outputType: "terminal",
+        streamName: "stdout",
+        data: "stdout line",
         metadata: null,
         position: 1,
       },
       {
         id: "2",
         cellId: "cell1",
-        outputType: "stream",
-        data: { name: "stderr", text: "Error" },
+        outputType: "terminal",
+        streamName: "stderr",
+        data: "stderr line",
         metadata: null,
         position: 2,
       },
@@ -126,8 +135,8 @@ describe("groupConsecutiveStreamOutputs", () => {
 
     const result = groupConsecutiveStreamOutputs(outputs);
     expect(result).toHaveLength(2);
-    expect(result[0].data).toEqual({ name: "stdout", text: "Hello" });
-    expect(result[1].data).toEqual({ name: "stderr", text: "Error" });
+    expect(result[0].data).toBe("stdout line");
+    expect(result[1].data).toBe("stderr line");
   });
 
   it("should handle mixed output types correctly", () => {
@@ -135,40 +144,47 @@ describe("groupConsecutiveStreamOutputs", () => {
       {
         id: "1",
         cellId: "cell1",
-        outputType: "stream",
-        data: { name: "stdout", text: "Line 1\n" },
+        outputType: "terminal",
+        streamName: "stdout",
+        data: "Line 1\n",
         metadata: null,
         position: 1,
       },
       {
         id: "2",
         cellId: "cell1",
-        outputType: "stream",
-        data: { name: "stdout", text: "Line 2\n" },
+        outputType: "terminal",
+        streamName: "stdout",
+        data: "Line 2\n",
         metadata: null,
         position: 2,
       },
       {
         id: "3",
         cellId: "cell1",
-        outputType: "display_data",
-        data: { "text/plain": "Some output" },
+        outputType: "multimedia_display",
+        data: null,
+        representations: {
+          "text/html": { type: "inline", data: "<div>Chart</div>" },
+        },
         metadata: null,
         position: 3,
       },
       {
         id: "4",
         cellId: "cell1",
-        outputType: "stream",
-        data: { name: "stdout", text: "Line 3\n" },
+        outputType: "terminal",
+        streamName: "stderr",
+        data: "Error 1\n",
         metadata: null,
         position: 4,
       },
       {
         id: "5",
         cellId: "cell1",
-        outputType: "stream",
-        data: { name: "stdout", text: "Line 4\n" },
+        outputType: "terminal",
+        streamName: "stderr",
+        data: "Error 2\n",
         metadata: null,
         position: 5,
       },
@@ -181,28 +197,33 @@ describe("groupConsecutiveStreamOutputs", () => {
     expect(result[0]).toEqual({
       id: "1",
       cellId: "cell1",
-      outputType: "stream",
-      data: { name: "stdout", text: "Line 1\nLine 2\n" },
+      outputType: "terminal",
+      streamName: "stdout",
+      data: "Line 1\nLine 2\n",
       metadata: null,
       position: 1,
     });
 
-    // Middle: display_data unchanged
+    // Second item: display data (unchanged)
     expect(result[1]).toEqual({
       id: "3",
       cellId: "cell1",
-      outputType: "display_data",
-      data: { "text/plain": "Some output" },
+      outputType: "multimedia_display",
+      data: null,
+      representations: {
+        "text/html": { type: "inline", data: "<div>Chart</div>" },
+      },
       metadata: null,
       position: 3,
     });
 
-    // Last group: stdout lines 3-4 concatenated
+    // Third group: stderr lines 4-5 concatenated
     expect(result[2]).toEqual({
       id: "4",
       cellId: "cell1",
-      outputType: "stream",
-      data: { name: "stdout", text: "Line 3\nLine 4\n" },
+      outputType: "terminal",
+      streamName: "stderr",
+      data: "Error 1\nError 2\n",
       metadata: null,
       position: 4,
     });
@@ -213,40 +234,45 @@ describe("groupConsecutiveStreamOutputs", () => {
       {
         id: "1",
         cellId: "cell1",
-        outputType: "stream",
-        data: { name: "stdout", text: "Out 1\n" },
+        outputType: "terminal",
+        streamName: "stdout",
+        data: "stdout 1\n",
         metadata: null,
         position: 1,
       },
       {
         id: "2",
         cellId: "cell1",
-        outputType: "stream",
-        data: { name: "stdout", text: "Out 2\n" },
+        outputType: "terminal",
+        streamName: "stdout",
+        data: "stdout 2\n",
         metadata: null,
         position: 2,
       },
       {
         id: "3",
         cellId: "cell1",
-        outputType: "stream",
-        data: { name: "stderr", text: "Error 1\n" },
+        outputType: "terminal",
+        streamName: "stderr",
+        data: "stderr 1\n",
         metadata: null,
         position: 3,
       },
       {
         id: "4",
         cellId: "cell1",
-        outputType: "stream",
-        data: { name: "stderr", text: "Error 2\n" },
+        outputType: "terminal",
+        streamName: "stderr",
+        data: "stderr 2\n",
         metadata: null,
         position: 4,
       },
       {
         id: "5",
         cellId: "cell1",
-        outputType: "stream",
-        data: { name: "stdout", text: "Out 3\n" },
+        outputType: "terminal",
+        streamName: "stdout",
+        data: "stdout 3\n",
         metadata: null,
         position: 5,
       },
@@ -256,16 +282,13 @@ describe("groupConsecutiveStreamOutputs", () => {
     expect(result).toHaveLength(3);
 
     // First group: stdout
-    expect(result[0].data).toEqual({ name: "stdout", text: "Out 1\nOut 2\n" });
+    expect(result[0].data).toBe("stdout 1\nstdout 2\n");
 
     // Second group: stderr
-    expect(result[1].data).toEqual({
-      name: "stderr",
-      text: "Error 1\nError 2\n",
-    });
+    expect(result[1].data).toBe("stderr 1\nstderr 2\n");
 
     // Third group: stdout again
-    expect(result[2].data).toEqual({ name: "stdout", text: "Out 3\n" });
+    expect(result[2].data).toBe("stdout 3\n");
   });
 
   it("should handle single stream output", () => {
@@ -273,9 +296,10 @@ describe("groupConsecutiveStreamOutputs", () => {
       {
         id: "1",
         cellId: "cell1",
-        outputType: "stream",
-        data: { name: "stdout", text: "Single line" },
-        metadata: null,
+        outputType: "terminal",
+        streamName: "stdout",
+        data: "Line 1\n",
+        metadata: { timestamp: "2023-01-01T00:00:00Z" },
         position: 1,
       },
     ];
@@ -290,17 +314,19 @@ describe("groupConsecutiveStreamOutputs", () => {
       {
         id: "1",
         cellId: "cell1",
-        outputType: "stream",
-        data: { name: "stdout", text: "Hello " },
-        metadata: { someKey: "someValue" },
+        outputType: "terminal",
+        streamName: "stdout",
+        data: "Part 1 ",
+        metadata: { timestamp: "2023-01-01T00:00:00Z" },
         position: 1,
       },
       {
         id: "2",
         cellId: "cell1",
-        outputType: "stream",
-        data: { name: "stdout", text: "World" },
-        metadata: { otherKey: "otherValue" },
+        outputType: "terminal",
+        streamName: "stdout",
+        data: "Part 2",
+        metadata: { timestamp: "2023-01-01T00:00:01Z" },
         position: 2,
       },
     ];
@@ -310,9 +336,10 @@ describe("groupConsecutiveStreamOutputs", () => {
     expect(result[0]).toEqual({
       id: "1",
       cellId: "cell1",
-      outputType: "stream",
-      data: { name: "stdout", text: "Hello World" },
-      metadata: { someKey: "someValue" }, // Takes metadata from first output
+      outputType: "terminal",
+      streamName: "stdout",
+      data: "Part 1 Part 2",
+      metadata: { timestamp: "2023-01-01T00:00:00Z" },
       position: 1,
     });
   });

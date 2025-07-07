@@ -1,11 +1,12 @@
 import React, { Suspense } from "react";
-import { StreamOutputData } from "@runt/schema";
+
 import {
   AnsiStreamOutput,
   OutputData,
   ToolCallData,
   ToolResultData,
 } from "../outputs/index.js";
+import { AnsiErrorOutput } from "./AnsiOutput.js";
 import "../outputs/outputs.css";
 
 // Dynamic imports for heavy components
@@ -45,22 +46,95 @@ const PlainTextOutput = React.lazy(() =>
 interface RichOutputProps {
   data: Record<string, unknown>;
   metadata?: Record<string, unknown>;
-  outputType?: "display_data" | "execute_result" | "stream" | "error";
+  outputType?:
+    | "multimedia_display"
+    | "multimedia_result"
+    | "terminal"
+    | "markdown"
+    | "error";
 }
+
+const LoadingSpinner = () => (
+  <div className="flex items-center justify-center p-4">
+    <div className="h-4 w-4 animate-spin rounded-full border-b-2 border-gray-900"></div>
+  </div>
+);
 
 export const RichOutput: React.FC<RichOutputProps> = ({
   data,
-  outputType = "display_data",
+
+  outputType = "multimedia_display",
 }) => {
-  // Handle stream outputs specially
-  if (outputType === "stream") {
-    const streamData = data as unknown as StreamOutputData;
+  // Handle terminal outputs specially
+  if (outputType === "terminal") {
+    const textData = typeof data === "string" ? data : String(data || "");
+    return <AnsiStreamOutput text={textData} streamName="stdout" />;
+  }
+
+  // Handle markdown outputs specially
+  if (outputType === "markdown") {
+    const markdownData = typeof data === "string" ? data : String(data || "");
     return (
-      <AnsiStreamOutput text={streamData.text} streamName={streamData.name} />
+      <Suspense fallback={<LoadingSpinner />}>
+        <MarkdownRenderer content={markdownData} enableCopyCode={true} />
+      </Suspense>
     );
   }
 
-  const outputData = data as OutputData;
+  // Handle error outputs specially
+  if (outputType === "error") {
+    let errorData;
+    try {
+      errorData = typeof data === "string" ? JSON.parse(data) : data;
+    } catch {
+      errorData = { ename: "Error", evalue: String(data), traceback: [] };
+    }
+    return (
+      <AnsiErrorOutput
+        ename={errorData.ename}
+        evalue={errorData.evalue}
+        traceback={errorData.traceback}
+      />
+    );
+  }
+
+  // Handle multimedia outputs (multimedia_display, multimedia_result)
+  let outputData: OutputData;
+
+  // Check if data contains representations (new format)
+  if (data && typeof data === "object" && !Array.isArray(data)) {
+    const potentialRepresentations = data as Record<string, any>;
+
+    // Check if this looks like representations (has MediaRepresentation structure)
+    const hasRepresentations = Object.values(potentialRepresentations).some(
+      (value: any) =>
+        value &&
+        typeof value === "object" &&
+        (value.type === "inline" || value.type === "artifact")
+    );
+
+    if (hasRepresentations) {
+      // Convert from representations to rendering format
+      outputData = {};
+      for (const [mimeType, representation] of Object.entries(
+        potentialRepresentations
+      )) {
+        if (
+          representation &&
+          typeof representation === "object" &&
+          representation.data !== undefined
+        ) {
+          outputData[mimeType] = representation.data;
+        }
+      }
+    } else {
+      // Direct data format
+      outputData = potentialRepresentations as OutputData;
+    }
+  } else {
+    // Fallback for simple data
+    outputData = { "text/plain": String(data || "") };
+  }
 
   // Determine the best media type to render, in order of preference
   const getPreferredMediaType = (): string | null => {
@@ -100,12 +174,6 @@ export const RichOutput: React.FC<RichOutputProps> = ({
   }
 
   const renderContent = () => {
-    const LoadingSpinner = () => (
-      <div className="flex items-center justify-center p-4">
-        <div className="h-4 w-4 animate-spin rounded-full border-b-2 border-gray-900"></div>
-      </div>
-    );
-
     switch (mediaType) {
       case "application/vnd.anode.aitool+json":
         return (

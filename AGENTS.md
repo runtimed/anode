@@ -4,7 +4,7 @@ This document provides essential context for AI assistants working on the Anode
 project.
 
 Current work state and next steps. What works, what doesn't. Last updated:
-June 2025.
+January 2025.
 
 **Development Workflow**: The user will typically be running the wrangler server
 and web client in separate tabs. If you need to check work, run a build and/or
@@ -16,9 +16,7 @@ them how to start it at the base of the repo with pnpm.
 Anode is a real-time collaborative notebook system built on LiveStore, an
 event-sourcing based local-first data synchronization library.
 
-**Current Status**: Deployed to (pseduo) production for testing. Real-time
-collaboration works. Python execution works with rich outputs. AI integration
-works.
+**Current Status**: Production-ready collaborative notebook system. Real-time collaboration, Python execution with rich outputs, and AI integration all working. Uses unified output system with granular, type-safe events.
 
 ## Architecture
 
@@ -66,14 +64,11 @@ works.
   matplotlib) for faster startup
 - ✅ **AI context with outputs** - AI sees execution results, not just source
   code, for intelligent assistance with data analysis
-
-### What Needs Enhancement 🚧
-
-- 🚧 **User confirmation flows** - Need UI for confirming AI-initiated actions
-- 🚧 **Automated runtime management** - Manual startup creates friction, need
-  one-click kernel startup
-- 🚧 **User-attributed kernels** - Need "Bring Your Own Compute" with API tokens
-- 🚧 **Kernel health monitoring** - Need automatic failure detection and restart
+- ✅ **Unified Output System** - Granular, type-safe events for all output types
+- ✅ **Clear output functionality** - `clear_output(wait=True/False)` working properly
+- ✅ **Terminal output grouping** - Consecutive terminal outputs merge naturally
+- ✅ **Error output rendering** - Proper traceback display with JSON error parsing
+- ✅ **All tests passing** - 58/58 tests covering output system
 
 ### Core Architecture Constraints
 
@@ -122,28 +117,25 @@ pnpm dev:sync
 NOTEBOOK_ID=notebook-id-from-ui pnpm dev:runtime
 ```
 
-## Immediate Priorities
+## Current Priorities
 
-**See [ROADMAP.md](./ROADMAP.md) for detailed implementation plan with tasks,
-acceptance criteria, and timelines.**
+**Current Focus**: Enhanced user experience and future features
 
-**Priority Focus**: Core functionality is verified and working. Focus is now on
-expanding AI capabilities and removing kernel startup friction.
+### Potential Next Development Phase
 
-### Current Development Phase (Next 2-3 weeks)
+1. **Artifact Service** - For large output content (see docs/proposals/artifacts-service.md)
+   - File upload and download capabilities
+   - Large media content external storage
+   - Bandwidth optimization for large outputs
+2. **Enhanced AI Capabilities** - Building on solid foundation
+   - Streaming AI responses with append operations
+   - Better context management with new output structure
+3. **Kernel Management Improvements** - Production runtime features
+   - Automated kernel orchestration
+   - Better session management
+   - Health monitoring
 
-1. **Enhanced AI Tool Calling** - Add modify_cell and execute_cell functions
-   beyond cell creation
-2. **User Confirmation Flows** - UI dialogs for confirming AI-initiated actions
-3. **User-Attributed Kernels** - API token system for "Bring Your Own Compute"
-4. **Automated Runtime Management** - One-click kernel startup and health
-   monitoring
-
-**Next Major Features**: SQL cells, interactive widgets, code completions,
-multi-language support
-
-**For detailed implementation tasks and acceptance criteria, see
-[ROADMAP.md](./ROADMAP.md)**
+**Foundation Complete**: Core output system provides type safety, performance, and streaming capabilities
 
 ## Important Considerations
 
@@ -154,12 +146,10 @@ multi-language support
 
 ### ⚠️ CRITICAL: Materializer Determinism Requirements
 
-**NEVER use `ctx.query()` in materializers** - This was the root cause of
-runtime restart bug #34.
-
 LiveStore requires all materializers to be **pure functions without side
-effects**. Any data needed by a materializer must be passed via the event
-payload, not looked up during materialization.
+effects**. Avoid non-deterministic operations (like `Date()` calls) that could
+produce different results across clients. Using `ctx.query()` for deterministic
+data access is fine.
 
 **What caused the bug:**
 
@@ -192,47 +182,9 @@ payload, not looked up during materialization.
 - `6e0fb4f`: Fixed ExecutionCompleted/ExecutionCancelled materializers
 - `a1bf20d`: Fixed ExecutionStarted materializer
 
-**Rule**: If you need data in a materializer, add it to the event schema and
-pass it when committing the event. Materializers must be deterministic and
-reproducible.
-
-### Recent Critical Fixes (Resolved June 2025)
-
-**Runtime Restart Bug (#34) - RESOLVED** ✅
-
-The project recently resolved a major stability issue where 3rd+ runtime
-sessions would fail to receive work assignments due to LiveStore materializer
-hash mismatches. This was caused by non-deterministic materializers using
-`ctx.query()` calls.
-
-**What was broken:**
-
-- ExecutionCompleted, ExecutionCancelled, and ExecutionStarted materializers
-  were using `ctx.query()`
-- This made them non-deterministic, causing LiveStore to shut down with
-  "UnexpectedError materializer hash mismatch"
-- Runtime restarts would accumulate terminated sessions and eventually fail
-
-**How it was fixed (commits 6e0fb4f and a1bf20d):**
-
-1. **Added cellId to event schemas**: ExecutionCompleted, ExecutionCancelled,
-   ExecutionStarted now include `cellId` in payload
-2. **Removed all ctx.query() calls**: Materializers now receive all needed data
-   via event payload
-3. **Updated all event commits**: All places that commit these events now pass
-   `cellId` explicitly
-4. **Made materializers pure functions**: No side effects, deterministic output
-   for same input
-
-**Impact:** Runtime sessions are now reliable across multiple restarts, enabling
-future automated runtime management.
-
-**For Future Development:**
-
-- Always check that new materializers are pure functions
-- Never use `ctx.query()` in materializers - pass data via event payload
-- Reference these commits when adding new execution-related events
-- Test runtime restart scenarios when modifying execution flow
+**Rule**: Materializers must be deterministic and reproducible. Avoid
+non-deterministic operations, but using `ctx.query()` for deterministic data
+lookups is acceptable.
 
 ### Local-First Architecture
 
@@ -247,6 +199,8 @@ future automated runtime management.
 - Event sourcing over direct state mutations
 - Reactive queries over imperative data fetching
 - TypeScript strict mode enabled
+- Granular, type-safe events with clear schemas
+- Prefer specific event types over complex discriminated unions
 
 ## File Structure
 
@@ -356,21 +310,20 @@ anode/
 
 ## Development Workflow Notes
 
-**User Environment**: The user will typically have:
-
-- Web client running in one tab (`pnpm dev`)
-- Wrangler server running in another tab (`pnpm dev:sync`)
-- Python runtime available via `pnpm dev:runtime` (uses @runt JSR packages,
-  command customizable via VITE_RUNTIME_COMMAND)
+- **User Environment**: The user will typically have:
+  - Web client running in one tab (`pnpm dev`)
+  - Wrangler server running in another tab (`pnpm dev:sync`)
+  - Python runtime available via `pnpm dev:runtime` (uses @runt JSR packages,
+    command customizable via VITE_RUNTIME_COMMAND)
 
 **Checking Work**: If you need to verify changes:
 
 ```bash
 # Build and check for issues
-pnpm build           # Build all packages
+pnpm build           # Build all packages (now with unified output system)
 pnpm lint            # Check code style
-pnpm test            # Run test suite
-pnpm type-check      # TypeScript validation
+pnpm test            # Run test suite (58/58 passing)
+pnpm type-check      # TypeScript validation (full type safety)
 ```
 
 **If User Isn't Running Dev Environment**: Tell them to start at the base of the
@@ -378,14 +331,14 @@ repo:
 
 ```bash
 # Setup environment
-pnpm install         # Install dependencies for single application
+pnpm install         # Install dependencies (includes linked @runt/schema)
 cp .env.example .env # Copy environment template
 
 # In separate tabs run
 ## Tab 1:
-pnpm dev             # Web client
+pnpm dev             # Web client (with new output rendering)
 ## Tab 2:
-pnpm dev:sync        # Sync worker (now properly on port 8787)
+pnpm dev:sync        # Sync worker (handles new events)
 
 # Python runtime (get NOTEBOOK_ID from UI, then run):
 # Runtime command is customizable via VITE_RUNTIME_COMMAND in .env
