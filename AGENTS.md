@@ -4,7 +4,7 @@ This document provides essential context for AI assistants working on the Anode
 project.
 
 Current work state and next steps. What works, what doesn't. Last updated:
-June 2025.
+July 2025.
 
 **Development Workflow**: The user will typically be running the wrangler server
 and web client in separate tabs. If you need to check work, run a build and/or
@@ -67,13 +67,15 @@ works.
 - ✅ **AI context with outputs** - AI sees execution results, not just source
   code, for intelligent assistance with data analysis
 
-### What Needs Enhancement 🚧
+### Current Development Focus 🚧
 
-- 🚧 **User confirmation flows** - Need UI for confirming AI-initiated actions
-- 🚧 **Automated runtime management** - Manual startup creates friction, need
-  one-click kernel startup
-- 🚧 **User-attributed kernels** - Need "Bring Your Own Compute" with API tokens
-- 🚧 **Kernel health monitoring** - Need automatic failure detection and restart
+- 🚧 **Unified Output System** - Replacing single cellOutputAdded with granular, type-safe events
+  - Granular events: multimediaDisplayOutputAdded, terminalOutputAdded, etc.
+  - Streaming append operations for real-time terminal and AI output
+  - Future artifact support for large content
+  - Natural terminal behavior (merged stdout/stderr, broken by display calls)
+- 🚧 **clear_output(wait=True) support** - Pending clear logic for smooth output replacement
+- 🚧 **Enhanced schema migration** - Breaking changes to improve type safety and performance
 
 ### Core Architecture Constraints
 
@@ -124,26 +126,25 @@ NOTEBOOK_ID=notebook-id-from-ui pnpm dev:runtime
 
 ## Immediate Priorities
 
-**See [ROADMAP.md](./ROADMAP.md) for detailed implementation plan with tasks,
-acceptance criteria, and timelines.**
+**See [docs/proposals/unified-output-system.md](./docs/proposals/unified-output-system.md) for detailed implementation plan.**
 
-**Priority Focus**: Core functionality is verified and working. Focus is now on
-expanding AI capabilities and removing kernel startup friction.
+**Priority Focus**: Core output system refactor to improve type safety, performance, and streaming capabilities.
 
-### Current Development Phase (Next 2-3 weeks)
+### Current Development Phase (Next 2-4 weeks)
 
-1. **Enhanced AI Tool Calling** - Add modify_cell and execute_cell functions
-   beyond cell creation
-2. **User Confirmation Flows** - UI dialogs for confirming AI-initiated actions
-3. **User-Attributed Kernels** - API token system for "Bring Your Own Compute"
-4. **Automated Runtime Management** - One-click kernel startup and health
-   monitoring
+1. **Enhanced Schema** - Replace cellOutputAdded with granular events
+   - multimediaDisplayOutputAdded, multimediaResultOutputAdded
+   - terminalOutputAdded, terminalOutputAppended  
+   - markdownOutputAdded, markdownOutputAppended
+   - errorOutputAdded, cellOutputsCleared with wait=True support
+2. **Runtime Integration** - Update ExecutionContext methods to use new events
+   - Map existing context.stdout/stderr/display/result/error methods
+   - Integrate MediaBundle → representations seamlessly
+3. **Client Updates** - Update output rendering for new output types
+   - Natural terminal behavior (merged streams, display breakups)
+   - Type-safe component logic using event discriminants
 
-**Next Major Features**: SQL cells, interactive widgets, code completions,
-multi-language support
-
-**For detailed implementation tasks and acceptance criteria, see
-[ROADMAP.md](./ROADMAP.md)**
+**Next Major Features**: Artifact service implementation, enhanced AI capabilities, kernel management improvements
 
 ## Important Considerations
 
@@ -196,6 +197,9 @@ payload, not looked up during materialization.
 pass it when committing the event. Materializers must be deterministic and
 reproducible.
 
+**New Rule**: All *OutputAdded events must check for pending clears (clear_output(wait=True) support).
+Use ctx.query() to check tables.pendingClears and handle accordingly.
+
 ### Recent Critical Fixes (Resolved June 2025)
 
 **Runtime Restart Bug (#34) - RESOLVED** ✅
@@ -247,6 +251,8 @@ future automated runtime management.
 - Event sourcing over direct state mutations
 - Reactive queries over imperative data fetching
 - TypeScript strict mode enabled
+- **New**: Granular, type-safe events over discriminated unions
+- **New**: Event names should determine exact structure (no optional fields)
 
 ## File Structure
 
