@@ -1,70 +1,59 @@
-import { isStreamOutput, OutputData, StreamOutputData } from "@runt/schema";
+import { OutputData } from "@runt/schema";
 
 /**
- * Groups consecutive stream outputs of the same type (stdout/stderr) and concatenates their text.
- * Other output types are left unchanged.
- *
+ * Groups consecutive terminal outputs of the same type (stdout/stderr) into single outputs
+ * This improves readability by avoiding fragmented terminal output
  * @param outputs - Array of output data objects sorted by position
- * @returns Array with consecutive stream outputs of the same type merged into single outputs
+ * @returns Array with consecutive terminal outputs of the same type merged into single outputs
  */
+function isTerminalOutput(output: OutputData): boolean {
+  return output.outputType === "terminal" && typeof output.data === "string";
+}
+
 export function groupConsecutiveStreamOutputs(
   outputs: OutputData[]
 ): OutputData[] {
-  if (outputs.length === 0) return outputs;
-
   const result: OutputData[] = [];
-  let i = 0;
 
-  while (i < outputs.length) {
+  for (let i = 0; i < outputs.length; i++) {
     const currentOutput = outputs[i];
 
-    // If it's not a stream output, just add it as-is
-    if (
-      currentOutput.outputType !== "stream" ||
-      !isStreamOutput(currentOutput.data)
-    ) {
+    // If it's not a terminal output, just add it as-is
+    if (!isTerminalOutput(currentOutput)) {
       result.push(currentOutput);
-      i++;
       continue;
     }
 
-    // It's a stream output - look for consecutive stream outputs of the same type
-    const streamData = currentOutput.data as StreamOutputData;
-    const streamType = streamData.name;
-    const textParts: string[] = [streamData.text];
-    let j = i + 1;
+    // Start collecting consecutive terminal outputs of the same stream type
+    const currentStreamName = currentOutput.streamName;
+    const textParts = [currentOutput.data as string];
 
-    // Collect consecutive stream outputs of the same type
+    // Look ahead for more consecutive terminal outputs of the same type
+    let j = i + 1;
     while (j < outputs.length) {
       const nextOutput = outputs[j];
 
-      if (
-        nextOutput.outputType !== "stream" ||
-        !isStreamOutput(nextOutput.data)
-      ) {
+      if (!isTerminalOutput(nextOutput)) {
         break;
       }
 
-      const nextStreamData = nextOutput.data as StreamOutputData;
-      if (nextStreamData.name !== streamType) {
+      // Only group outputs of the same stream type (stdout/stderr)
+      if (nextOutput.streamName !== currentStreamName) {
         break;
       }
 
-      textParts.push(nextStreamData.text);
+      textParts.push(nextOutput.data as string);
       j++;
     }
 
-    // Create the merged output
+    // Create the merged output with concatenated text
     const mergedOutput: OutputData = {
       ...currentOutput,
-      data: {
-        name: streamType,
-        text: textParts.join(""),
-      },
+      data: textParts.join(""),
     };
 
     result.push(mergedOutput);
-    i = j; // Skip all the outputs we just merged
+    i = j - 1; // Skip all the outputs we just merged (will be incremented by for loop)
   }
 
   return result;
