@@ -133,6 +133,7 @@ export const Cell: React.FC<CellProps> = ({
       store.commit(
         events.cellOutputsCleared({
           cellId: cell.id,
+          wait: false,
           clearedBy: "current-user",
         })
       );
@@ -165,19 +166,21 @@ export const Cell: React.FC<CellProps> = ({
 
       // Store error information directly
       store.commit(
-        events.cellOutputAdded({
+        events.errorOutputAdded({
           id: `error-${Date.now()}-${Math.random().toString(36).slice(2)}`,
           cellId: cell.id,
-          outputType: "error",
-          data: {
-            ename: "LiveStoreError",
-            evalue:
-              error instanceof Error
-                ? error.message
-                : "Failed to queue execution request",
-            traceback: ["Error occurred while emitting LiveStore event"],
-          },
           position: 0,
+          content: {
+            type: "inline",
+            data: {
+              ename: "LiveStoreError",
+              evalue:
+                error instanceof Error
+                  ? error.message
+                  : "Failed to queue execution request",
+              traceback: ["Error occurred while emitting LiveStore event"],
+            },
+          },
         })
       );
     }

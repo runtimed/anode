@@ -86,8 +86,8 @@ importers:
         specifier: ^1.1.6
         version: 1.2.7(@types/react-dom@19.1.6(@types/react@19.1.8))(@types/react@19.1.8)(react-dom@19.0.0(react@19.0.0))(react@19.0.0)
       '@runt/schema':
-        specifier: jsr:^0.4.0
-        version: '@jsr/runt__schema@0.4.0(c8a6ab75252475c2bbdc72175802283e)'
+        specifier: file:../runt/packages/schema
+        version: file:../runt/packages/schema(c8a6ab75252475c2bbdc72175802283e)
       '@tanstack/react-virtual':
         specifier: ^3.13.12
         version: 3.13.12(react-dom@19.0.0(react@19.0.0))(react@19.0.0)
@@ -1264,9 +1264,6 @@ packages:
   '@jsr/runt__schema@0.2.0':
     resolution: {integrity: sha512-CIYeQmdDt3ne1zyTZSMRxMOdbnglCscWSbtbVAHaaH5CzTvKVJuzgPaj+YUnruxjSWL+T4Bc+++Bv+2QBEgk7A==, tarball: https://npm.jsr.io/~/11/@jsr/runt__schema/0.2.0.tgz}
 
-  '@jsr/runt__schema@0.4.0':
-    resolution: {integrity: sha512-rb4hNlzUp9taxxpBI4MpBZW0sydS5/biaVfSDukzvvrze1NtuIbTR/MCywjspZ5qBUxhKXerEHe/Ftw6M77WRQ==, tarball: https://npm.jsr.io/~/11/@jsr/runt__schema/0.4.0.tgz}
-
   '@lezer/common@1.2.3':
     resolution: {integrity: sha512-w7ojc8ejBqr2REPsWxJjrMFsA/ysDCFICn8zEOR9mrqzOu2amhITYuLD8ag6XZf0CFXDrhKqw7+tW8cX66NaDA==}
 
@@ -1930,6 +1927,9 @@ packages:
     resolution: {integrity: sha512-SnGhLiE5rlK0ofq8kzuDkM0g7FN1s5VYY+YSMTibP7CqShxCQvqtNxTARS4xX4PFJfHjG0ZQYX9iGzI3FQh5Aw==}
     cpu: [x64]
     os: [win32]
+
+  '@runt/schema@file:../runt/packages/schema':
+    resolution: {directory: ../runt/packages/schema, type: directory}
 
   '@standard-schema/spec@1.0.0':
     resolution: {integrity: sha512-m2bOd0f2RT9k8QJx1JN85cZYyH1RqFBdlwtkSlf4tBDYLCiiZnv1fIIwacK6cqwXavOydf0NPToMQgpKq+dVlA==}
@@ -4990,26 +4990,6 @@ snapshots:
       - '@opentelemetry/resources'
       - effect
 
-  '@jsr/runt__schema@0.4.0(c8a6ab75252475c2bbdc72175802283e)':
-    dependencies:
-      '@livestore/livestore': 0.3.1(c8a6ab75252475c2bbdc72175802283e)
-    transitivePeerDependencies:
-      - '@effect/cli'
-      - '@effect/cluster'
-      - '@effect/experimental'
-      - '@effect/opentelemetry'
-      - '@effect/platform'
-      - '@effect/platform-browser'
-      - '@effect/platform-bun'
-      - '@effect/platform-node'
-      - '@effect/printer'
-      - '@effect/printer-ansi'
-      - '@effect/rpc'
-      - '@effect/sql'
-      - '@effect/typeclass'
-      - '@opentelemetry/resources'
-      - effect
-
   '@lezer/common@1.2.3': {}
 
   '@lezer/css@1.2.1':
@@ -5826,6 +5806,26 @@ snapshots:
 
   '@rollup/rollup-win32-x64-msvc@4.43.0':
     optional: true
+
+  '@runt/schema@file:../runt/packages/schema(c8a6ab75252475c2bbdc72175802283e)':
+    dependencies:
+      '@livestore/livestore': 0.3.1(c8a6ab75252475c2bbdc72175802283e)
+    transitivePeerDependencies:
+      - '@effect/cli'
+      - '@effect/cluster'
+      - '@effect/experimental'
+      - '@effect/opentelemetry'
+      - '@effect/platform'
+      - '@effect/platform-browser'
+      - '@effect/platform-bun'
+      - '@effect/platform-node'
+      - '@effect/printer'
+      - '@effect/printer-ansi'
+      - '@effect/rpc'
+      - '@effect/sql'
+      - '@effect/typeclass'
+      - '@opentelemetry/resources'
+      - effect
 
   '@standard-schema/spec@1.0.0': {}
 

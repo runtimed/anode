@@ -60,7 +60,42 @@ export const RichOutput: React.FC<RichOutputProps> = ({
     );
   }
 
-  const outputData = data as OutputData;
+  // Handle new unified output system - data now contains representations
+  let outputData: OutputData;
+
+  // Check if data is in new MediaRepresentation format (representations object)
+  if (data && typeof data === "object" && !Array.isArray(data)) {
+    const representations = data as Record<string, any>;
+
+    // Check if this looks like representations (has MediaRepresentation structure)
+    const hasRepresentations = Object.values(representations).some(
+      (value: any) =>
+        value &&
+        typeof value === "object" &&
+        (value.type === "inline" || value.type === "artifact")
+    );
+
+    if (hasRepresentations) {
+      // Convert from representations to legacy format for rendering
+      outputData = {};
+      for (const [mimeType, representation] of Object.entries(
+        representations
+      )) {
+        if (
+          representation &&
+          typeof representation === "object" &&
+          representation.data !== undefined
+        ) {
+          outputData[mimeType] = representation.data;
+        }
+      }
+    } else {
+      // Legacy format - data is direct MIME type mapping
+      outputData = data as OutputData;
+    }
+  } else {
+    outputData = data as OutputData;
+  }
 
   // Determine the best media type to render, in order of preference
   const getPreferredMediaType = (): string | null => {

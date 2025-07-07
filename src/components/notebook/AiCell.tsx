@@ -99,6 +99,7 @@ export const AiCell: React.FC<AiCellProps> = ({
       store.commit(
         events.cellOutputsCleared({
           cellId: cell.id,
+          wait: false,
           clearedBy: "current-user",
         })
       );
@@ -131,19 +132,21 @@ export const AiCell: React.FC<AiCellProps> = ({
 
       // Store error information directly
       store.commit(
-        events.cellOutputAdded({
+        events.errorOutputAdded({
           id: `error-${Date.now()}-${Math.random().toString(36).slice(2)}`,
           cellId: cell.id,
-          outputType: "error",
-          data: {
-            ename: "AIExecutionError",
-            evalue:
-              error instanceof Error
-                ? error.message
-                : "Failed to queue AI execution request",
-            traceback: ["Error occurred while emitting LiveStore event"],
-          },
           position: 0,
+          content: {
+            type: "inline",
+            data: {
+              ename: "AIExecutionError",
+              evalue:
+                error instanceof Error
+                  ? error.message
+                  : "Failed to queue AI execution request",
+              traceback: ["Error occurred while emitting LiveStore event"],
+            },
+          },
         })
       );
     }
