@@ -81,43 +81,19 @@ export const SqlCell: React.FC<SqlCellProps> = ({
     initialSource: cell.source,
   });
 
-  const executeQuery = useCallback(() => {
-    if (!cell.sqlConnectionId) {
-      // TODO: Show connection selection modal
+  const executeQuery = () => {
+    if (!localQuery.trim()) {
       return;
     }
 
-    // TODO: Implement actual SQL execution
-    console.log(
-      "Execute SQL query:",
-      localQuery,
-      "on connection:",
-      cell.sqlConnectionId
+    // Submit execution request like other cell types
+    store.commit(
+      events.executeCellRequested({
+        cellId: cell.id,
+        requestedBy: "current-user",
+      })
     );
-
-    // Mock execution for now
-    // TODO: Mock result temporarily removed for schema 0.6.0 compatibility
-    // const mockResult = {
-    //   columns: ["id", "name", "value"],
-    //   rows: [
-    //     [1, "Example Row 1", 42],
-    //     [2, "Example Row 2", 84],
-    //   ],
-    //   rowCount: 2,
-    //   executionTime: "15ms",
-    // };
-
-    // TODO: sqlQueryExecuted event removed in schema 0.6.0 - needs refactoring
-    // store.commit(
-    //   events.sqlQueryExecuted({
-    //     cellId: cell.id,
-    //     connectionId: cell.sqlConnectionId,
-    //     query: localQuery,
-    //     resultData: mockResult,
-    //     executedBy: "current-user",
-    //   })
-    // );
-  }, [cell.id, cell.sqlConnectionId, localQuery, store]);
+  };
 
   // Use shared keyboard navigation hook
   const { handleKeyDown, keyMap } = useCellKeyboardNavigation({
@@ -569,7 +545,7 @@ export const SqlCell: React.FC<SqlCellProps> = ({
                     : null}
             </span>
             {/* TODO: Refactor SQL results display for schema 0.6.0 */}
-            {false && (
+            {hasOutputs() && (
               <Button
                 variant="ghost"
                 size="sm"
