@@ -107,17 +107,16 @@ describe("Edge Cases and Stress Tests", () => {
             cellId: cellIds[i],
             executionCount: 1,
             requestedBy: "stress-test",
-            priority: Math.floor(Math.random() * 100), // Random integer priorities
           })
         );
       }
 
       // Start a kernel session
       store.commit(
-        events.kernelSessionStarted({
+        events.runtimeSessionStarted({
           sessionId,
-          kernelId: "stress-kernel",
-          kernelType: "python3",
+          runtimeId: "stress-runtime",
+          runtimeType: "python3",
           capabilities: {
             canExecuteCode: true,
             canExecuteSql: false,
@@ -131,7 +130,7 @@ describe("Edge Cases and Stress Tests", () => {
         store.commit(
           events.executionAssigned({
             queueId: queueIds[i],
-            kernelSessionId: sessionId,
+            runtimeSessionId: sessionId,
           })
         );
 
@@ -139,7 +138,7 @@ describe("Edge Cases and Stress Tests", () => {
           events.executionStarted({
             queueId: queueIds[i],
             cellId: cellIds[i],
-            kernelSessionId: sessionId,
+            runtimeSessionId: sessionId,
             startedAt: new Date(),
           })
         );
@@ -319,10 +318,10 @@ describe("Edge Cases and Stress Tests", () => {
 
         // Start session
         store.commit(
-          events.kernelSessionStarted({
+          events.runtimeSessionStarted({
             sessionId: currentSessionId,
-            kernelId: `cycle-kernel-${i}`,
-            kernelType: "python3",
+            runtimeId: `cycle-runtime-${i}`,
+            runtimeType: "python3",
             capabilities: {
               canExecuteCode: true,
               canExecuteSql: false,
@@ -333,23 +332,22 @@ describe("Edge Cases and Stress Tests", () => {
 
         // Send heartbeat
         store.commit(
-          events.kernelSessionHeartbeat({
+          events.runtimeSessionStatusChanged({
             sessionId: currentSessionId,
             status: "ready",
-            timestamp: new Date(),
           })
         );
 
         // Terminate session
         store.commit(
-          events.kernelSessionTerminated({
+          events.runtimeSessionTerminated({
             sessionId: currentSessionId,
             reason: "restart",
           })
         );
       }
 
-      const sessions = store.query(tables.kernelSessions.select());
+      const sessions = store.query(tables.runtimeSessions.select());
       expect(sessions).toHaveLength(cycleCount);
       expect(sessions.every((s: any) => s.status === "terminated")).toBe(true);
       expect(sessions.every((s: any) => s.isActive === false)).toBe(true);
@@ -357,10 +355,10 @@ describe("Edge Cases and Stress Tests", () => {
 
     it("should handle heartbeat flood without corruption", async () => {
       store.commit(
-        events.kernelSessionStarted({
+        events.runtimeSessionStarted({
           sessionId,
-          kernelId: "heartbeat-kernel",
-          kernelType: "python3",
+          runtimeId: "heartbeat-runtime",
+          runtimeType: "python3",
           capabilities: {
             canExecuteCode: true,
             canExecuteSql: false,
@@ -376,17 +374,15 @@ describe("Edge Cases and Stress Tests", () => {
       for (let i = 0; i < heartbeatCount; i++) {
         lastTimestamp = new Date(lastTimestamp.getTime() + 1000); // 1 second apart
         store.commit(
-          events.kernelSessionHeartbeat({
+          events.runtimeSessionStatusChanged({
             sessionId,
             status: i % 2 === 0 ? "ready" : "busy",
-            timestamp: lastTimestamp,
           })
         );
       }
 
-      const session = store.query(tables.kernelSessions.select())[0];
-      expect(session.lastHeartbeat).toEqual(lastTimestamp);
-      expect(session.status).toBe("busy"); // Last heartbeat was busy (odd index)
+      const session = store.query(tables.runtimeSessions.select())[0];
+      expect(session.status).toBe("busy"); // Last heartbeat was busy status
     });
   });
 
@@ -403,7 +399,7 @@ describe("Edge Cases and Stress Tests", () => {
         tables.executionQueue
           .select()
           .where({ status: "pending" })
-          .where({ priority: { op: ">", value: 1000 } })
+          .where({ id: { op: "!=", value: "nonexistent" } })
       );
       expect(emptyQueue).toEqual([]);
 
@@ -436,7 +432,6 @@ describe("Edge Cases and Stress Tests", () => {
             cellId,
             executionCount: 1,
             requestedBy: "test-user",
-            priority: i + 1,
           })
         );
       }
@@ -463,12 +458,12 @@ describe("Edge Cases and Stress Tests", () => {
       expect(cellsByPosition[0].position).toBe(0);
       expect(cellsByPosition[cellCount - 1].position).toBe(cellCount - 1);
 
-      const queueByPriority = store.query(
-        tables.executionQueue.select().orderBy("priority", "desc")
+      const queueByStatus = store.query(
+        tables.executionQueue.select().orderBy("id", "desc")
       );
-      expect(queueByPriority).toHaveLength(cellCount);
-      expect(queueByPriority[0].priority).toBe(cellCount);
-      expect(queueByPriority[cellCount - 1].priority).toBe(1);
+      expect(queueByStatus).toHaveLength(cellCount);
+      expect(queueByStatus[0].status).toBe("pending");
+      expect(queueByStatus[cellCount - 1].status).toBe("pending");
     });
   });
 
@@ -487,10 +482,10 @@ describe("Edge Cases and Stress Tests", () => {
       );
 
       store.commit(
-        events.kernelSessionStarted({
+        events.runtimeSessionStarted({
           sessionId,
-          kernelId: "error-kernel",
-          kernelType: "python3",
+          runtimeId: "error-runtime",
+          runtimeType: "python3",
           capabilities: {
             canExecuteCode: true,
             canExecuteSql: false,
@@ -506,14 +501,13 @@ describe("Edge Cases and Stress Tests", () => {
           cellId,
           executionCount: 1,
           requestedBy: "test-user",
-          priority: 1,
         })
       );
 
       store.commit(
         events.executionAssigned({
           queueId,
-          kernelSessionId: sessionId,
+          runtimeSessionId: sessionId,
         })
       );
 
@@ -521,7 +515,7 @@ describe("Edge Cases and Stress Tests", () => {
         events.executionStarted({
           queueId,
           cellId,
-          kernelSessionId: sessionId,
+          runtimeSessionId: sessionId,
           startedAt: new Date(),
         })
       );
@@ -560,10 +554,10 @@ describe("Edge Cases and Stress Tests", () => {
       );
 
       store.commit(
-        events.kernelSessionStarted({
+        events.runtimeSessionStarted({
           sessionId,
-          kernelId: "termination-kernel",
-          kernelType: "python3",
+          runtimeId: "termination-runtime",
+          runtimeType: "python3",
           capabilities: {
             canExecuteCode: true,
             canExecuteSql: false,
@@ -578,14 +572,13 @@ describe("Edge Cases and Stress Tests", () => {
           cellId,
           executionCount: 1,
           requestedBy: "test-user",
-          priority: 1,
         })
       );
 
       store.commit(
         events.executionAssigned({
           queueId,
-          kernelSessionId: sessionId,
+          runtimeSessionId: sessionId,
         })
       );
 
@@ -593,20 +586,20 @@ describe("Edge Cases and Stress Tests", () => {
         events.executionStarted({
           queueId,
           cellId,
-          kernelSessionId: sessionId,
+          runtimeSessionId: sessionId,
           startedAt: new Date(),
         })
       );
 
       // Terminate kernel while execution is running
       store.commit(
-        events.kernelSessionTerminated({
+        events.runtimeSessionTerminated({
           sessionId,
           reason: "error",
         })
       );
 
-      const session = store.query(tables.kernelSessions.select())[0];
+      const session = store.query(tables.runtimeSessions.select())[0];
       expect(session.status).toBe("terminated");
       expect(session.isActive).toBe(false);
 
@@ -802,10 +795,10 @@ describe("Edge Cases and Stress Tests", () => {
       );
 
       store.commit(
-        events.kernelSessionStarted({
+        events.runtimeSessionStarted({
           sessionId,
-          kernelId: "state-kernel",
-          kernelType: "python3",
+          runtimeId: "state-runtime",
+          runtimeType: "python3",
           capabilities: {
             canExecuteCode: true,
             canExecuteSql: false,
@@ -824,7 +817,6 @@ describe("Edge Cases and Stress Tests", () => {
           cellId,
           executionCount: 1,
           requestedBy: "test-user",
-          priority: 1,
         })
       );
 
@@ -834,7 +826,7 @@ describe("Edge Cases and Stress Tests", () => {
       store.commit(
         events.executionAssigned({
           queueId,
-          kernelSessionId: sessionId,
+          runtimeSessionId: sessionId,
         })
       );
 
@@ -846,7 +838,7 @@ describe("Edge Cases and Stress Tests", () => {
         events.executionStarted({
           queueId,
           cellId,
-          kernelSessionId: sessionId,
+          runtimeSessionId: sessionId,
           startedAt: new Date(),
         })
       );
