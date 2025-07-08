@@ -123,17 +123,17 @@ NOTEBOOK_ID=notebook-id-from-ui pnpm dev:runtime
 ### Key Development Areas
 
 1.  **Enhanced AI Tool Calling**: AI can now create, modify, and execute cells.
-    -   Function calling infrastructure is in place.
-    -   AI can create new cells (`create_cell`).
-    -   AI can modify existing cells (`modify_cell`).
-    -   AI can execute code cells (`execute_cell`).
-    -   *Next Step*: Add comprehensive JSDoc and parameter validation for tool calls.
+    - Function calling infrastructure is in place.
+    - AI can create new cells (`create_cell`).
+    - AI can modify existing cells (`modify_cell`).
+    - AI can execute code cells (`execute_cell`).
+    - _Next Step_: Add comprehensive JSDoc and parameter validation for tool calls.
 2.  **User Confirmation Flows**: Implementing UI for confirming AI-initiated actions.
-    -   *Next Step*: Design and implement confirmation dialogs, categorize risks, integrate with LiveStore events, and allow safe operations to bypass confirmation.
+    - _Next Step_: Design and implement confirmation dialogs, categorize risks, integrate with LiveStore events, and allow safe operations to bypass confirmation.
 3.  **User-Attributed Runtime Agents ("Bring Your Own Compute")**: Enabling users to run standalone runtime agents with API tokens.
-    -   *Next Step*: Develop API token system, token management UI, and documentation for user-owned runtimes.
+    - _Next Step_: Develop API token system, token management UI, and documentation for user-owned runtimes.
 4.  **Automated Runtime Management**: Reducing manual friction in starting and managing runtimes.
-    -   *Next Step*: Design runtime orchestration, implement one-click startup, and add health monitoring.
+    - _Next Step_: Design runtime orchestration, implement one-click startup, and add health monitoring.
 
 **Foundation Complete**: The core output system provides type safety, performance, and streaming capabilities, forming a solid base for these enhancements.
 
@@ -306,7 +306,6 @@ anode/
 - State facts without marketing language
 - Say "this is a prototype" or "this part needs work" when true
 - Always bring a towel
-
 
 ## Development Workflow Notes
 

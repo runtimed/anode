@@ -193,6 +193,7 @@ Anode's user interface as a next-generation Jupyter notebook replacement.
 ## Responsive Design
 
 ### Desktop First
+
 Primary design targets desktop/laptop usage for development workflows.
 
 ### Mobile Considerations
@@ -222,6 +223,7 @@ Primary design targets desktop/laptop usage for development workflows.
 ### Key Classes
 
 - **Container Structure**:
+
   ```css
   .cell-container {
     @apply group relative mb-3 border-l-2 transition-all duration-200;

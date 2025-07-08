@@ -148,8 +148,6 @@ const toggleAiContextVisibility = useCallback(() => {
 - Include: Problem description, current approach, specific questions
 - Exclude: Unrelated experiments, personal notes, sensitive configurations
 
-
-
 ## Implementation Status: COMPLETE ✅
 
 The AI context visibility feature is now **fully functional**:
