@@ -56,9 +56,152 @@ export default [
     },
   },
   {
-    files: ["**/*.test.{js,jsx,ts,tsx}"],
+    files: ["test/**/*.{js,jsx,ts,tsx}"],
+    languageOptions: {
+      parser: tsparser,
+      ecmaVersion: 2022,
+      sourceType: "module",
+      globals: {
+        // Node.js globals for test files
+        process: "readonly",
+        Buffer: "readonly",
+        __dirname: "readonly",
+        __filename: "readonly",
+        global: "readonly",
+        module: "readonly",
+        require: "readonly",
+        exports: "readonly",
+        // Vitest globals
+        describe: "readonly",
+        it: "readonly",
+        test: "readonly",
+        expect: "readonly",
+        beforeEach: "readonly",
+        afterEach: "readonly",
+        beforeAll: "readonly",
+        afterAll: "readonly",
+        vi: "readonly",
+        vitest: "readonly",
+        // Browser globals that might be used in tests
+        window: "readonly",
+        document: "readonly",
+        console: "readonly",
+        navigator: "readonly",
+        localStorage: "readonly",
+        sessionStorage: "readonly",
+        setTimeout: "readonly",
+        clearTimeout: "readonly",
+        setInterval: "readonly",
+        clearInterval: "readonly",
+        fetch: "readonly",
+        atob: "readonly",
+        crypto: "readonly",
+        location: "readonly",
+        alert: "readonly",
+        addEventListener: "readonly",
+        // React
+        React: "readonly",
+      },
+      parserOptions: {
+        ecmaFeatures: {
+          jsx: true,
+        },
+        project: "./tsconfig.test.json",
+      },
+    },
+    plugins: {
+      "@typescript-eslint": tseslint,
+    },
     rules: {
       "no-control-regex": "off", // Allow control characters in test files
+      "no-undef": "off", // TypeScript handles this
+      "no-unused-vars": "off", // TypeScript handles this
+      "@typescript-eslint/no-explicit-any": "off", // Allow any in tests
+      "@typescript-eslint/no-unused-vars": "off", // Allow unused vars in tests
+      "@typescript-eslint/no-unsafe-assignment": "off", // Allow unsafe operations in tests
+      "@typescript-eslint/no-unsafe-member-access": "off",
+      "@typescript-eslint/no-unsafe-call": "off",
+      "@typescript-eslint/no-unsafe-return": "off",
+      "@typescript-eslint/no-unsafe-argument": "off",
+    },
+  },
+  {
+    files: ["**/*.test.{js,jsx,ts,tsx}"],
+    languageOptions: {
+      parser: tsparser,
+      ecmaVersion: 2022,
+      sourceType: "module",
+      globals: {
+        // Node.js globals for test files
+        process: "readonly",
+        Buffer: "readonly",
+        __dirname: "readonly",
+        __filename: "readonly",
+        global: "readonly",
+        module: "readonly",
+        require: "readonly",
+        exports: "readonly",
+        // Vitest globals
+        describe: "readonly",
+        it: "readonly",
+        test: "readonly",
+        expect: "readonly",
+        beforeEach: "readonly",
+        afterEach: "readonly",
+        beforeAll: "readonly",
+        afterAll: "readonly",
+        vi: "readonly",
+        vitest: "readonly",
+        // Browser globals that might be used in tests
+        window: "readonly",
+        document: "readonly",
+        console: "readonly",
+        navigator: "readonly",
+        localStorage: "readonly",
+        sessionStorage: "readonly",
+        setTimeout: "readonly",
+        clearTimeout: "readonly",
+        setInterval: "readonly",
+        clearInterval: "readonly",
+        fetch: "readonly",
+        atob: "readonly",
+        crypto: "readonly",
+        location: "readonly",
+        alert: "readonly",
+        addEventListener: "readonly",
+        // React
+        React: "readonly",
+      },
+      parserOptions: {
+        ecmaFeatures: {
+          jsx: true,
+        },
+        // Don't use project for test files in src - they use Vitest types
+        project: null,
+      },
+    },
+    plugins: {
+      "@typescript-eslint": tseslint,
+    },
+    rules: {
+      "no-control-regex": "off", // Allow control characters in test files
+      "no-undef": "off", // TypeScript handles this
+      "no-unused-vars": "off", // TypeScript handles this
+      "@typescript-eslint/no-explicit-any": "off", // Allow any in tests
+      "@typescript-eslint/no-unused-vars": "off", // Allow unused vars in tests
+      "@typescript-eslint/no-unsafe-assignment": "off", // Allow unsafe operations in tests
+      "@typescript-eslint/no-unsafe-member-access": "off",
+      "@typescript-eslint/no-unsafe-call": "off",
+      "@typescript-eslint/no-unsafe-return": "off",
+      "@typescript-eslint/no-unsafe-argument": "off",
+      // Disable TypeScript rules that require type checking for test files
+      "@typescript-eslint/no-floating-promises": "off",
+      "@typescript-eslint/no-misused-promises": "off",
+      "@typescript-eslint/require-await": "off",
+      "@typescript-eslint/await-thenable": "off",
+      "@typescript-eslint/no-unnecessary-type-assertion": "off",
+      "@typescript-eslint/prefer-nullish-coalescing": "off",
+      "@typescript-eslint/prefer-optional-chain": "off",
     },
   },
   {
