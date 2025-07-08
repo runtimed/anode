@@ -8,10 +8,6 @@ collaborative notebook system with AI integration.
 ### 📖 Core Documentation
 
 - **[UI Design](./ui-design.md)** - Design principles and interface guidelines
-- **[UI Enhancements Demo](./ui-enhancements-demo.md)** - UI improvement
-  showcase
-- **[AI Context Visibility](./ai-context-visibility.md)** - Context control
-  implementation
 - **[Testing](./TESTING.md)** - Testing strategy and current gaps
 - **[Technologies](./technologies/README.md)** - Introduction to the various technologies used
 
@@ -38,40 +34,12 @@ Anode is a simplified single-application notebook system that provides:
 - **Vite**: Build system and development server
 - **Cloudflare**: Pages (web client) + Workers (sync backend) deployment
 
-### 🚀 Current Status: Production System Working
+### 🚀 Current Status
 
-Core collaborative editing and notebook interface deployed:
+For the most up-to-date information on current status and features, please refer to:
 
-✅ **Working Features:**
-
-- Real-time collaborative notebook editing via LiveStore
-- Cell management (create, edit, move, delete) with keyboard navigation
-- Production deployment on Cloudflare Pages + Workers with authentication
-- Mobile responsive design with optimized keyboard handling
-- Context visibility controls - users can hide cells from AI context
-- Event-sourced architecture with offline capability
-- Clean single-application structure (no workspace complexity)
-
-🚧 **Python Runtime & AI Features:**
-
-- Now handled by separate `@runt` packages
-- See https://github.com/runtimed/runt for Python execution and AI integration
-
-### 🎯 Current Focus
-
-**Simplified Architecture:**
-
-- ✅ Single application structure (no monorepo complexity)
-- ✅ Root-level Vite + Wrangler setup
-- ✅ Standard TypeScript project layout
-- ✅ All tests passing (36/36)
-
-**UI & Collaboration:**
-
-- Real-time collaborative editing without conflicts
-- Clean, minimal interface design
-- Context controls for AI integration
-- Mobile-responsive notebook interface
+- [AGENTS.md](../AGENTS.md) - AI agent development context and current status
+- [ROADMAP.md](../ROADMAP.md) - Long-term vision and milestones
 
 ### 📚 Documentation Structure
 
@@ -79,12 +47,18 @@ Core collaborative editing and notebook interface deployed:
 docs/
 ├── README.md                      # This file - documentation index
 ├── ui-design.md                   # Interface design guidelines
-├── ui-enhancements-demo.md        # UI improvement showcase
 ├── ai-context-visibility.md       # Context visibility feature
 ├── TESTING.md                     # Testing strategy
-└── proposals/
-    ├── ai-context-controls.md     # User controls for AI context ✅ Implemented
-    └── updateable-outputs.md      # Jupyter-compatible output updates
+├── local-auth-testing.md          # Local authentication testing guide
+├── DEPLOYMENT.md                  # Deployment instructions
+├── proposals/
+│   ├── ai-context-controls.md     # User controls for AI context
+│   └── unified-output-system.md   # Unified output system proposal
+└── technologies/
+    ├── README.md                  # Introduction to technologies
+    ├── deno.md                    # Deno technology overview
+    ├── livestore.md               # LiveStore technology overview
+    └── pyodide.md                 # Pyodide technology overview
 ```
 
 ### 🔧 For Developers
@@ -102,8 +76,8 @@ docs/
 - `src/components/notebook/` - Notebook interface components
 - `src/sync/sync.ts` - Cloudflare Worker for LiveStore sync
 - `src/components/ui/` - Reusable UI components
-- `schema.ts` - LiveStore event definitions
-- `@runt/schema` - Runtime schema (JSR package)
+- `schema.ts` - Local LiveStore schema definitions (for web client)
+- `@runt/schema` - Primary LiveStore schema (JSR package, used by runtimes)
 
 **Development Commands:**
 
@@ -123,43 +97,28 @@ pnpm type-check   # TypeScript validation
 
 ### 🧠 Design Philosophy
 
-**Local-First**: Work offline, sync when connected **Event-Sourced**: All
-changes flow through LiveStore events **Collaborative**: Real-time multi-user
-editing without conflicts **Simple**: Single application, standard project
-structure **Type-Safe**: End-to-end TypeScript **Modular**: Clean separation
-between UI and runtime concerns
+Anode's design is guided by these principles:
+
+- **Local-First**: Works offline, syncs when connected.
+- **Event-Sourced**: All changes flow through LiveStore events.
+- **Collaborative**: Real-time multi-user editing without conflicts.
+- **Simple**: Single application, standard project structure.
+- **Type-Safe**: End-to-end TypeScript.
+- **Modular**: Clean separation between UI and runtime concerns.
 
 ### 🤝 Contributing
 
-When working on the UI:
+When contributing to the UI:
 
-1. **Follow design system** - Use established patterns from ui-design.md
-2. **Test thoroughly** - Add tests for new features (see TESTING.md)
-3. **Consider collaboration** - How will features work with multiple users?
-4. **Think mobile-first** - Ensure responsive design
-5. **Maintain accessibility** - Follow ARIA guidelines
+1.  **Follow design system**: Use established patterns from `ui-design.md`.
+2.  **Test thoroughly**: Add tests for new features (see `TESTING.md`).
+3.  **Consider collaboration**: How will features work with multiple users?
+4.  **Think mobile-first**: Ensure responsive design.
+5.  **Maintain accessibility**: Follow ARIA guidelines.
 
-### 📈 Current Architecture
+### 📈 Architecture Overview
 
-**Phase 1: Simplified Structure** ✅ **COMPLETED**
-
-- Single application (no monorepo complexity)
-- Standard Vite + React + TypeScript setup
-- Cloudflare Pages + Workers deployment
-- All tests passing with good coverage
-
-**Phase 2: UI & Collaboration Focus** 🎯 **CURRENT**
-
-- Real-time collaborative editing
-- Clean, minimal interface design
-- Context controls and user experience
-- Mobile-responsive design
-
-**Python Runtime & AI Features:**
-
-- Moved to separate `@runt` packages
-- Allows anode to focus on UI and collaboration
-- See https://github.com/runtimed/runt for execution and AI integration
+For a detailed architecture overview and future plans, please refer to the main [ROADMAP.md](../ROADMAP.md) file.
 
 ---
 
