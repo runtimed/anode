@@ -3,8 +3,7 @@
 This document provides essential context for AI assistants working on the Anode
 project.
 
-Current work state and next steps. What works, what doesn't. Last updated:
-January 2025.
+Current work state and next steps. What works, what doesn't. Last updated: July 2025.
 
 **Development Workflow**: The user will typically be running the wrangler server
 and web client in separate tabs. If you need to check work, run a build and/or
@@ -16,7 +15,7 @@ them how to start it at the base of the repo with pnpm.
 Anode is a real-time collaborative notebook system built on LiveStore, an
 event-sourcing based local-first data synchronization library.
 
-**Current Status**: Production-ready collaborative notebook system. Real-time collaboration, Python execution with rich outputs, and AI integration all working. Uses unified output system with granular, type-safe events.
+**Current Status**: A robust, real-time collaborative notebook system. It features Python execution with rich outputs and integrated AI capabilities, all built on a unified, event-sourced output system. The system is stable and deployed, with ongoing enhancements focused on advanced AI interaction and runtime management.
 
 ## Architecture
 
@@ -119,23 +118,24 @@ NOTEBOOK_ID=notebook-id-from-ui pnpm dev:runtime
 
 ## Current Priorities
 
-**Current Focus**: Enhanced user experience and future features
+**Current Focus**: Enhancing AI capabilities and improving runtime management.
 
-### Potential Next Development Phase
+### Key Development Areas
 
-1. **Artifact Service** - For large output content (see docs/proposals/artifacts-service.md)
-   - File upload and download capabilities
-   - Large media content external storage
-   - Bandwidth optimization for large outputs
-2. **Enhanced AI Capabilities** - Building on solid foundation
-   - Streaming AI responses with append operations
-   - Better context management with new output structure
-3. **Runtime Management Improvements** - Production runtime features
-   - Automated runtime orchestration
-   - Better session management
-   - Health monitoring
+1.  **Enhanced AI Tool Calling**: AI can now create, modify, and execute cells.
+    -   Function calling infrastructure is in place.
+    -   AI can create new cells (`create_cell`).
+    -   AI can modify existing cells (`modify_cell`).
+    -   AI can execute code cells (`execute_cell`).
+    -   *Next Step*: Add comprehensive JSDoc and parameter validation for tool calls.
+2.  **User Confirmation Flows**: Implementing UI for confirming AI-initiated actions.
+    -   *Next Step*: Design and implement confirmation dialogs, categorize risks, integrate with LiveStore events, and allow safe operations to bypass confirmation.
+3.  **User-Attributed Runtime Agents ("Bring Your Own Compute")**: Enabling users to run standalone runtime agents with API tokens.
+    -   *Next Step*: Develop API token system, token management UI, and documentation for user-owned runtimes.
+4.  **Automated Runtime Management**: Reducing manual friction in starting and managing runtimes.
+    -   *Next Step*: Design runtime orchestration, implement one-click startup, and add health monitoring.
 
-**Foundation Complete**: Core output system provides type safety, performance, and streaming capabilities
+**Foundation Complete**: The core output system provides type safety, performance, and streaming capabilities, forming a solid base for these enhancements.
 
 ## Important Considerations
 
@@ -288,15 +288,14 @@ anode/
 
 ### Key Development Insights
 
-- **Deployment Ready** - Full stack working on Cloudflare infrastructure
-- **Rich outputs working** - Complete IPython display compatibility with
-  matplotlib, pandas
-- **AI context awareness** - AI sees full notebook state including outputs
+- **Deployment Ready**: The full stack is working on Cloudflare infrastructure.
+- **Rich outputs working**: Complete IPython display compatibility with matplotlib and pandas.
+- **AI context awareness**: AI sees the full notebook state, including outputs.
 
 ### Immediate Technical Goals
 
-- **User-attributed runtimes** - API token system for "Bring Your Own Compute"
-- **Automated runtime orchestration** - Production runtime provisioning
+- **User-attributed runtimes**: Implement API token system for "Bring Your Own Compute".
+- **Automated runtime orchestration**: Develop production runtime provisioning.
 
 ### Communication Style
 
@@ -306,7 +305,7 @@ anode/
 - Keep commit messages short and factual
 - State facts without marketing language
 - Say "this is a prototype" or "this part needs work" when true
-- Always bring a towel
+
 
 ## Development Workflow Notes
 
@@ -316,32 +315,29 @@ anode/
   - Python runtime available via `pnpm dev:runtime` (uses @runt JSR packages,
     command customizable via VITE_RUNTIME_COMMAND)
 
-**Checking Work**: If you need to verify changes:
+**Checking Work**: To verify changes, run:
 
 ```bash
-# Build and check for issues
-pnpm build           # Build all packages (now with unified output system)
+pnpm build           # Build all packages
 pnpm lint            # Check code style
 pnpm test            # Run test suite (58/58 passing)
-pnpm type-check      # TypeScript validation (full type safety)
+pnpm type-check      # TypeScript validation
 ```
 
-**If User Isn't Running Dev Environment**: Tell them to start at the base of the
-repo:
+**If Dev Environment Not Running**: To start the development environment:
 
 ```bash
 # Setup environment
 pnpm install         # Install dependencies (includes linked @runt/schema)
 cp .env.example .env # Copy environment template
 
-# In separate tabs run
-## Tab 1:
-pnpm dev             # Web client (with new output rendering)
-## Tab 2:
-pnpm dev:sync        # Sync worker (handles new events)
+# In separate terminals, run:
+## Terminal 1:
+pnpm dev             # Web client
+## Terminal 2:
+pnpm dev:sync        # Sync worker
 
-# Python runtime (get NOTEBOOK_ID from UI, then run):
-# Runtime command is customizable via VITE_RUNTIME_COMMAND in .env
+# For Python runtime (get NOTEBOOK_ID from UI, then run):
 NOTEBOOK_ID=your-notebook-id pnpm dev:runtime
 ```
 

@@ -225,8 +225,7 @@ attach runtimes with their own API tokens
 
 ### Code Quality
 
-- [x] **Comprehensive testing** - 107 passing tests with good integration
-      coverage
+- [x] **Solid testing foundation** - 58 passing tests with good integration coverage
 - [ ] **Re-enable skipped tests** - Some Pyodide integration tests disabled due
       to import issues
 - [ ] **Browser automation testing** - Add Playwright/Cypress for E2E testing
