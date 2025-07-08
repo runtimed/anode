@@ -86,8 +86,8 @@ importers:
         specifier: ^1.1.6
         version: 1.2.7(@types/react-dom@19.1.6(@types/react@19.1.8))(@types/react@19.1.8)(react-dom@19.0.0(react@19.0.0))(react@19.0.0)
       '@runt/schema':
-        specifier: github:runtimed/runt#1d52f9e51b9f28e81e366a7053d1e5fa6164c390&path:/packages/schema
-        version: https://codeload.github.com/runtimed/runt/tar.gz/1d52f9e51b9f28e81e366a7053d1e5fa6164c390#path:/packages/schema(acef09458561487e0833c9131402e6fe)
+        specifier: github:runtimed/runt#5deedddf5dd296dbf35b731b313bb6b25735aa07&path:/packages/schema
+        version: https://codeload.github.com/runtimed/runt/tar.gz/5deedddf5dd296dbf35b731b313bb6b25735aa07#path:/packages/schema(acef09458561487e0833c9131402e6fe)
       '@tanstack/react-virtual':
         specifier: ^3.13.12
         version: 3.13.12(react-dom@19.0.0(react@19.0.0))(react@19.0.0)
@@ -1741,8 +1741,8 @@ packages:
     cpu: [x64]
     os: [win32]
 
-  '@runt/schema@https://codeload.github.com/runtimed/runt/tar.gz/1d52f9e51b9f28e81e366a7053d1e5fa6164c390#path:/packages/schema':
-    resolution: {path: /packages/schema, tarball: https://codeload.github.com/runtimed/runt/tar.gz/1d52f9e51b9f28e81e366a7053d1e5fa6164c390}
+  '@runt/schema@https://codeload.github.com/runtimed/runt/tar.gz/5deedddf5dd296dbf35b731b313bb6b25735aa07#path:/packages/schema':
+    resolution: {path: /packages/schema, tarball: https://codeload.github.com/runtimed/runt/tar.gz/5deedddf5dd296dbf35b731b313bb6b25735aa07}
     version: 0.4.2
 
   '@standard-schema/spec@1.0.0':
@@ -5431,7 +5431,7 @@ snapshots:
   '@rollup/rollup-win32-x64-msvc@4.44.2':
     optional: true
 
-  '@runt/schema@https://codeload.github.com/runtimed/runt/tar.gz/1d52f9e51b9f28e81e366a7053d1e5fa6164c390#path:/packages/schema(acef09458561487e0833c9131402e6fe)':
+  '@runt/schema@https://codeload.github.com/runtimed/runt/tar.gz/5deedddf5dd296dbf35b731b313bb6b25735aa07#path:/packages/schema(acef09458561487e0833c9131402e6fe)':
     dependencies:
       '@livestore/livestore': 0.3.1(acef09458561487e0833c9131402e6fe)
     transitivePeerDependencies:
