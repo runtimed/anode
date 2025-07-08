@@ -247,7 +247,7 @@ const context: ExecutionContext = {
       events.cellOutputsCleared({
         cellId: cell.id,
         wait,
-        clearedBy: `kernel-${this.config.kernelId}`,
+        clearedBy: `runtime-${this.config.kernelId}`,
       })
     );
   },

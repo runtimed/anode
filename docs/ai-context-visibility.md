@@ -154,7 +154,7 @@ const toggleAiContextVisibility = useCallback(() => {
 
 - **Individual cell toggles**: Eye icon controls in all cell types
 - **Visual feedback**: Opacity changes for excluded cells
-- **Actual AI filtering**: Kernel filters context based on visibility settings
+- **Actual AI filtering**: Runtime filters context based on visibility settings
 - **System prompt clarity**: AI knows when cells are hidden from context
 
 ### Planned Features
@@ -182,7 +182,7 @@ The AI context visibility feature is now **fully functional**:
 1. **UI Controls**: Eye icons in all cell types (Cell, SqlCell, AiCell) ✅
 2. **Visual Feedback**: Opacity changes for excluded cells ✅
 3. **Database Schema**: `aiContextVisible` field with proper events ✅
-4. **Kernel Integration**: Context filtering in `gatherNotebookContext()` ✅
+4. **Runtime Integration**: Context filtering in `gatherNotebookContext()` ✅
 5. **AI Model Integration**: Only visible cells sent to OpenAI/Anthropic ✅
 6. **System Prompt**: AI models informed about context filtering ✅
 

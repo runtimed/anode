@@ -62,31 +62,31 @@ documentation.
 
 ## Component Design Patterns
 
-### Kernel Selection & Status
+### Runtime Selection & Status
 
-**One Kernel Per Notebook**: The UI should clearly communicate that each
-notebook has exactly one active kernel at a time.
+**One Runtime Agent Per Notebook**: The UI should clearly communicate that each
+notebook has exactly one active runtime agent at a time.
 
-**Kernel States**:
+**Runtime States**:
 
-- **No Kernel** - Show "No kernel selected" with prominent "Start Kernel" button
-- **Single Active Kernel** - Show kernel type and status (ready/busy/starting)
-- **Transition State** - Show "Switching kernels..." during handoffs
-- **Error State** - Show "Kernel disconnected" with restart options
+- **No Runtime** - Show "No runtime selected" with prominent "Start Runtime" button
+- **Single Active Runtime** - Show runtime type and status (ready/busy/starting)
+- **Transition State** - Show "Switching Runtime..." during handoffs
+- **Error State** - Show "Runtime dead" with restart options
 
 **UI Behavior**:
 
-- Starting a new kernel while one exists should prompt: "Replace current
-  kernel?"
-- Kernel dropdown should show current kernel + available types, not multiple
-  active kernels
+- Starting a new runtime while one exists should prompt: "Replace current
+  runtime?"
+- Runtime selection should show current runtime + available types, not multiple
+  active runtimes
 - Status indicator should be prominent: green dot (ready), amber (busy), red
   (error)
-- Avoid showing multiple "active" kernels simultaneously in the UI
+- Avoid showing multiple "active" runtimes simultaneously in the UI
 
-**Not Yet Implemented**: Automatic kernel orchestration means users may see
-brief multi-kernel states during manual startup. Future versions will enforce
-single-kernel constraints.
+**Not Yet Implemented**: Automatic runtime orchestration means users may see
+brief multi-runtime states during manual startup. Future versions will enforce
+single-runtime constraints.
 
 **Consistent Padding**:
 
@@ -121,9 +121,9 @@ separate breadcrumbs or back buttons.
 **Features**:
 
 - Editable title (click to edit inline)
-- Kernel status with visual indicator
+- Runtime status with visual indicator
 - Cell count display
-- Kernel info expansion panel
+- Runtime info expansion panel
 
 ### Cell Design
 
@@ -192,7 +192,7 @@ that state
 
 - **Cell Type Badge** → Cell type dropdown
 - **AI Model Badge** → Model selection dropdown
-- **Kernel Status** → Kernel info panel
+- **Runtime Status** → Runtime info panel
 
 ### State Indication
 
