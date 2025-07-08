@@ -111,7 +111,7 @@ describe("Edge Cases and Stress Tests", () => {
         );
       }
 
-      // Start a kernel session
+      // Start a runtime session
       store.commit(
         events.runtimeSessionStarted({
           sessionId,
@@ -309,8 +309,8 @@ describe("Edge Cases and Stress Tests", () => {
     });
   });
 
-  describe("Kernel Session Edge Cases", () => {
-    it("should handle rapid kernel session start/stop cycles", async () => {
+  describe("Runtime Session Edge Cases", () => {
+    it("should handle rapid runtime session start/stop cycles", async () => {
       const cycleCount = 10;
 
       for (let i = 0; i < cycleCount; i++) {
@@ -540,7 +540,7 @@ describe("Edge Cases and Stress Tests", () => {
       expect(cell.executionState).toBe("error");
     });
 
-    it("should handle kernel session termination during execution", async () => {
+    it("should handle runtime session termination during execution", async () => {
       const cellId = "termination-cell";
       const queueId = "termination-queue";
 
@@ -591,7 +591,7 @@ describe("Edge Cases and Stress Tests", () => {
         })
       );
 
-      // Terminate kernel while execution is running
+      // Terminate runtime while execution is running
       store.commit(
         events.runtimeSessionTerminated({
           sessionId,

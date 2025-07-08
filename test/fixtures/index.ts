@@ -153,7 +153,7 @@ export const mockEvents = {
     name: "v1.CellOutputsCleared",
     args: {
       cellId: mockCellData.id,
-      clearedBy: "test-kernel",
+      clearedBy: "test-runtime",
     },
   },
 };
@@ -199,13 +199,13 @@ export const mockPyodideOutputs = {
 export const testEnvironments = {
   minimal: {
     NOTEBOOK_ID: "test-notebook",
-    KERNEL_ID: "test-kernel",
+    RUNTIME_ID: "test-runtime",
     LIVESTORE_SYNC_URL: "ws://localhost:8787",
     AUTH_TOKEN: "test-token",
   },
   withSession: {
     NOTEBOOK_ID: "test-notebook",
-    KERNEL_ID: "test-kernel",
+    RUNTIME_ID: "test-runtime",
     SESSION_ID: "test-session",
     LIVESTORE_SYNC_URL: "ws://localhost:8787",
     AUTH_TOKEN: "test-token",

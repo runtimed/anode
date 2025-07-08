@@ -13,12 +13,12 @@ describe("Reactivity Debugging", () => {
   let store: any;
   let storeId: string;
   let sessionId: string;
-  let kernelId: string;
+  let runtimeId: string;
 
   beforeEach(async () => {
     storeId = createTestStoreId();
     sessionId = createTestSessionId();
-    kernelId = `kernel-${Date.now()}`;
+    runtimeId = `runtime-${Date.now()}`;
 
     const adapter = makeAdapter({
       storage: { type: "in-memory" },
@@ -366,7 +366,7 @@ describe("Reactivity Debugging", () => {
       store.commit(
         events.runtimeSessionStarted({
           sessionId,
-          runtimeId: kernelId,
+          runtimeId: runtimeId,
           runtimeType: "python3",
           capabilities: {
             canExecuteCode: true,

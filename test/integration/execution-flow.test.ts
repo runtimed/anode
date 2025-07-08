@@ -143,7 +143,7 @@ describe("End-to-End Execution Flow", () => {
 
       await waitFor(() => stateChanges.includes("queue"));
 
-      // Step 5: Assign execution to kernel
+      // Step 5: Assign execution to runtime
       store.commit(
         events.executionAssigned({
           queueId,
@@ -249,7 +249,7 @@ describe("End-to-End Execution Flow", () => {
         })
       );
 
-      // Start kernel and request execution
+      // Start runtime and request execution
       store.commit(
         events.runtimeSessionStarted({
           sessionId,
@@ -368,7 +368,7 @@ describe("End-to-End Execution Flow", () => {
         );
       });
 
-      // Start multiple kernel sessions
+      // Start multiple runtime sessions
       const sessions = Array.from({ length: 2 }, (_, i) => ({
         sessionId: `${sessionId}-${i}`,
         runtimeId: `${runtimeId}-${i}`,
@@ -634,8 +634,8 @@ describe("End-to-End Execution Flow", () => {
     });
   });
 
-  describe("Kernel Session Lifecycle", () => {
-    it("should handle kernel restart during execution", async () => {
+  describe("Runtime Session Lifecycle", () => {
+    it("should handle runtime restart during execution", async () => {
       const cellId = "restart-test-cell";
       const queueId = "restart-test-queue";
       const newSessionId = `${sessionId}-restarted`;
@@ -688,7 +688,7 @@ describe("End-to-End Execution Flow", () => {
         })
       );
 
-      // Simulate kernel restart during execution
+      // Simulate runtime restart during execution
       store.commit(
         events.runtimeSessionTerminated({
           sessionId,
@@ -696,7 +696,7 @@ describe("End-to-End Execution Flow", () => {
         })
       );
 
-      // Start new kernel session
+      // Start new runtime session
       store.commit(
         events.runtimeSessionStarted({
           sessionId: newSessionId,
@@ -718,7 +718,7 @@ describe("End-to-End Execution Flow", () => {
         })
       );
 
-      // Verify kernel states
+      // Verify runtime states
       const sessions = store.query(tables.runtimeSessions.select());
       expect(sessions).toHaveLength(2);
 
@@ -731,7 +731,7 @@ describe("End-to-End Execution Flow", () => {
       expect(newSession.isActive).toBe(true);
     });
 
-    it("should track heartbeats and session health", async () => {
+    it("should track status and session health", async () => {
       store.commit(
         events.runtimeSessionStarted({
           sessionId,
