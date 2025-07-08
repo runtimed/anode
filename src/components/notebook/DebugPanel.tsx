@@ -4,7 +4,7 @@ import { queryDb, sql, Schema } from "@livestore/livestore";
 
 import {
   CellData,
-  KernelSessionData,
+  RuntimeSessionData,
   tables,
   schema,
   events,
@@ -15,7 +15,7 @@ import { Button } from "@/components/ui/button";
 interface DebugPanelProps {
   notebook: any;
   cells: CellData[];
-  allKernelSessions: KernelSessionData[];
+  allRuntimeSessions: RuntimeSessionData[];
   executionQueue: any[];
   currentNotebookId: string;
   runtimeHealth: string;
@@ -57,7 +57,7 @@ const useAvailableTables = () => {
 const DebugPanel: React.FC<DebugPanelProps> = ({
   notebook,
   cells,
-  allKernelSessions,
+  allRuntimeSessions,
   executionQueue,
   currentNotebookId,
   runtimeHealth,
@@ -132,10 +132,10 @@ const DebugPanel: React.FC<DebugPanelProps> = ({
         {/* Runtime Sessions */}
         <div>
           <h4 className="text-muted-foreground mb-2 text-xs font-medium tracking-wide uppercase">
-            Runtime Sessions ({allKernelSessions.length})
+            Runtime Sessions ({allRuntimeSessions.length})
           </h4>
           <div className="space-y-2">
-            {allKernelSessions.map((session, index) => (
+            {allRuntimeSessions.map((session, index) => (
               <details key={session.sessionId} className="group">
                 <summary className="hover:bg-muted/50 cursor-pointer rounded p-1 font-mono text-xs">
                   {index + 1}. {session.status} ({session.sessionId.slice(-8)})
