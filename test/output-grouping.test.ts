@@ -102,15 +102,21 @@ describe("groupConsecutiveStreamOutputs", () => {
   });
 
   it("should handle mixed output types correctly", () => {
-    const multimediaOutput = createMultimediaOutput(
-      "3",
-      "multimedia_display",
-      3
-    );
-    multimediaOutput.data = "<div>Chart</div>";
-    multimediaOutput.mimeType = "text/html";
-    multimediaOutput.representations = {
-      "text/html": { type: "inline", data: "<div>Chart</div>" },
+    const multimediaOutput: OutputData = {
+      id: "3",
+      cellId: "cell1",
+      outputType: "multimedia_display",
+      position: 3,
+      streamName: null,
+      executionCount: null,
+      displayId: null,
+      data: "<div>Chart</div>",
+      artifactId: null,
+      mimeType: "text/html",
+      metadata: null,
+      representations: {
+        "text/html": { type: "inline", data: "<div>Chart</div>" },
+      },
     };
 
     const outputs: OutputData[] = [
@@ -161,8 +167,10 @@ describe("groupConsecutiveStreamOutputs", () => {
   });
 
   it("should handle single stream output", () => {
-    const output = createTerminalOutput("1", "stdout", "Line 1\n", 1);
-    output.metadata = { timestamp: "2023-01-01T00:00:00Z" };
+    const output: OutputData = {
+      ...createTerminalOutput("1", "stdout", "Line 1\n", 1),
+      metadata: { timestamp: "2023-01-01T00:00:00Z" },
+    };
     const outputs: OutputData[] = [output];
 
     const result = groupConsecutiveStreamOutputs(outputs);
@@ -171,19 +179,25 @@ describe("groupConsecutiveStreamOutputs", () => {
   });
 
   it("should preserve metadata and other properties", () => {
-    const output1 = createTerminalOutput("1", "stdout", "Part 1 ", 1);
-    output1.metadata = { timestamp: "2023-01-01T00:00:00Z" };
+    const output1: OutputData = {
+      ...createTerminalOutput("1", "stdout", "Part 1 ", 1),
+      metadata: { timestamp: "2023-01-01T00:00:00Z" },
+    };
 
-    const output2 = createTerminalOutput("2", "stdout", "Part 2", 2);
-    output2.metadata = { timestamp: "2023-01-01T00:00:01Z" };
+    const output2: OutputData = {
+      ...createTerminalOutput("2", "stdout", "Part 2", 2),
+      metadata: { timestamp: "2023-01-01T00:00:01Z" },
+    };
 
     const outputs: OutputData[] = [output1, output2];
 
     const result = groupConsecutiveStreamOutputs(outputs);
     expect(result).toHaveLength(1);
 
-    const expected = createTerminalOutput("1", "stdout", "Part 1 Part 2", 1);
-    expected.metadata = { timestamp: "2023-01-01T00:00:00Z" };
+    const expected: OutputData = {
+      ...createTerminalOutput("1", "stdout", "Part 1 Part 2", 1),
+      metadata: { timestamp: "2023-01-01T00:00:00Z" },
+    };
 
     expect(result[0]).toEqual(expected);
   });
