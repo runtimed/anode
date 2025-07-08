@@ -2,6 +2,50 @@ import { describe, expect, it } from "vitest";
 import { groupConsecutiveStreamOutputs } from "../src/util/output-grouping.js";
 import { OutputData } from "@runt/schema";
 
+// Helper to create minimal test objects with only the fields the function uses
+function createTerminalOutput(
+  id: string,
+  streamName: string,
+  data: string,
+  position: number
+): OutputData {
+  return {
+    id,
+    cellId: "cell1",
+    outputType: "terminal",
+    streamName,
+    data,
+    position,
+    executionCount: null,
+    displayId: null,
+    artifactId: null,
+    mimeType: null,
+    metadata: null,
+    representations: null,
+  } as OutputData;
+}
+
+function createMultimediaOutput(
+  id: string,
+  outputType: "multimedia_display" | "multimedia_result",
+  position: number
+): OutputData {
+  return {
+    id,
+    cellId: "cell1",
+    outputType,
+    position,
+    streamName: null,
+    executionCount: outputType === "multimedia_result" ? 1 : null,
+    displayId: outputType === "multimedia_display" ? null : null,
+    data: "test data",
+    artifactId: null,
+    mimeType: "text/plain",
+    metadata: null,
+    representations: { "text/plain": "test data" },
+  } as OutputData;
+}
+
 describe("groupConsecutiveStreamOutputs", () => {
   it("should return empty array for empty input", () => {
     const result = groupConsecutiveStreamOutputs([]);
@@ -10,22 +54,8 @@ describe("groupConsecutiveStreamOutputs", () => {
 
   it("should leave non-stream outputs unchanged", () => {
     const outputs: OutputData[] = [
-      {
-        id: "1",
-        cellId: "cell1",
-        outputType: "display_data",
-        data: { "text/plain": "Hello" },
-        metadata: null,
-        position: 1,
-      },
-      {
-        id: "2",
-        cellId: "cell1",
-        outputType: "execute_result",
-        data: { "text/plain": "World" },
-        metadata: null,
-        position: 2,
-      },
+      createMultimediaOutput("1", "multimedia_display", 1),
+      createMultimediaOutput("2", "multimedia_result", 2),
     ];
 
     const result = groupConsecutiveStreamOutputs(outputs);
@@ -34,103 +64,35 @@ describe("groupConsecutiveStreamOutputs", () => {
 
   it("should concatenate consecutive stdout outputs", () => {
     const outputs: OutputData[] = [
-      {
-        id: "1",
-        cellId: "cell1",
-        outputType: "terminal",
-        streamName: "stdout",
-        data: "Hello ",
-        metadata: null,
-        position: 1,
-      },
-      {
-        id: "2",
-        cellId: "cell1",
-        outputType: "terminal",
-        streamName: "stdout",
-        data: "World",
-        metadata: null,
-        position: 2,
-      },
-      {
-        id: "3",
-        cellId: "cell1",
-        outputType: "terminal",
-        streamName: "stdout",
-        data: "!",
-        metadata: null,
-        position: 3,
-      },
+      createTerminalOutput("1", "stdout", "Hello ", 1),
+      createTerminalOutput("2", "stdout", "World", 2),
+      createTerminalOutput("3", "stdout", "!", 3),
     ];
 
     const result = groupConsecutiveStreamOutputs(outputs);
     expect(result).toHaveLength(1);
-    expect(result[0]).toEqual({
-      id: "1",
-      cellId: "cell1",
-      outputType: "terminal",
-      streamName: "stdout",
-      data: "Hello World!",
-      metadata: null,
-      position: 1,
-    });
+    expect(result[0]).toEqual(
+      createTerminalOutput("1", "stdout", "Hello World!", 1)
+    );
   });
 
   it("should concatenate consecutive stderr outputs", () => {
     const outputs: OutputData[] = [
-      {
-        id: "1",
-        cellId: "cell1",
-        outputType: "terminal",
-        streamName: "stderr",
-        data: "Error 1 ",
-        metadata: null,
-        position: 1,
-      },
-      {
-        id: "2",
-        cellId: "cell1",
-        outputType: "terminal",
-        streamName: "stderr",
-        data: "Error 2",
-        metadata: null,
-        position: 2,
-      },
+      createTerminalOutput("1", "stderr", "Error 1 ", 1),
+      createTerminalOutput("2", "stderr", "Error 2", 2),
     ];
 
     const result = groupConsecutiveStreamOutputs(outputs);
     expect(result).toHaveLength(1);
-    expect(result[0]).toEqual({
-      id: "1",
-      cellId: "cell1",
-      outputType: "terminal",
-      streamName: "stderr",
-      data: "Error 1 Error 2",
-      metadata: null,
-      position: 1,
-    });
+    expect(result[0]).toEqual(
+      createTerminalOutput("1", "stderr", "Error 1 Error 2", 1)
+    );
   });
 
   it("should not concatenate stdout and stderr outputs", () => {
     const outputs: OutputData[] = [
-      {
-        id: "1",
-        cellId: "cell1",
-        outputType: "terminal",
-        streamName: "stdout",
-        data: "stdout line",
-        metadata: null,
-        position: 1,
-      },
-      {
-        id: "2",
-        cellId: "cell1",
-        outputType: "terminal",
-        streamName: "stderr",
-        data: "stderr line",
-        metadata: null,
-        position: 2,
-      },
+      createTerminalOutput("1", "stdout", "stdout line", 1),
+      createTerminalOutput("2", "stderr", "stderr line", 2),
     ];
 
     const result = groupConsecutiveStreamOutputs(outputs);
@@ -140,142 +102,55 @@ describe("groupConsecutiveStreamOutputs", () => {
   });
 
   it("should handle mixed output types correctly", () => {
+    const multimediaOutput: OutputData = {
+      id: "3",
+      cellId: "cell1",
+      outputType: "multimedia_display",
+      position: 3,
+      streamName: null,
+      executionCount: null,
+      displayId: null,
+      data: "<div>Chart</div>",
+      artifactId: null,
+      mimeType: "text/html",
+      metadata: null,
+      representations: {
+        "text/html": { type: "inline", data: "<div>Chart</div>" },
+      },
+    };
+
     const outputs: OutputData[] = [
-      {
-        id: "1",
-        cellId: "cell1",
-        outputType: "terminal",
-        streamName: "stdout",
-        data: "Line 1\n",
-        metadata: null,
-        position: 1,
-      },
-      {
-        id: "2",
-        cellId: "cell1",
-        outputType: "terminal",
-        streamName: "stdout",
-        data: "Line 2\n",
-        metadata: null,
-        position: 2,
-      },
-      {
-        id: "3",
-        cellId: "cell1",
-        outputType: "multimedia_display",
-        data: null,
-        representations: {
-          "text/html": { type: "inline", data: "<div>Chart</div>" },
-        },
-        metadata: null,
-        position: 3,
-      },
-      {
-        id: "4",
-        cellId: "cell1",
-        outputType: "terminal",
-        streamName: "stderr",
-        data: "Error 1\n",
-        metadata: null,
-        position: 4,
-      },
-      {
-        id: "5",
-        cellId: "cell1",
-        outputType: "terminal",
-        streamName: "stderr",
-        data: "Error 2\n",
-        metadata: null,
-        position: 5,
-      },
+      createTerminalOutput("1", "stdout", "Line 1\n", 1),
+      createTerminalOutput("2", "stdout", "Line 2\n", 2),
+      multimediaOutput,
+      createTerminalOutput("4", "stderr", "Error 1\n", 4),
+      createTerminalOutput("5", "stderr", "Error 2\n", 5),
     ];
 
     const result = groupConsecutiveStreamOutputs(outputs);
     expect(result).toHaveLength(3);
 
     // First group: stdout lines 1-2 concatenated
-    expect(result[0]).toEqual({
-      id: "1",
-      cellId: "cell1",
-      outputType: "terminal",
-      streamName: "stdout",
-      data: "Line 1\nLine 2\n",
-      metadata: null,
-      position: 1,
-    });
+    expect(result[0]).toEqual(
+      createTerminalOutput("1", "stdout", "Line 1\nLine 2\n", 1)
+    );
 
     // Second item: display data (unchanged)
-    expect(result[1]).toEqual({
-      id: "3",
-      cellId: "cell1",
-      outputType: "multimedia_display",
-      data: null,
-      representations: {
-        "text/html": { type: "inline", data: "<div>Chart</div>" },
-      },
-      metadata: null,
-      position: 3,
-    });
+    expect(result[1]).toEqual(multimediaOutput);
 
     // Third group: stderr lines 4-5 concatenated
-    expect(result[2]).toEqual({
-      id: "4",
-      cellId: "cell1",
-      outputType: "terminal",
-      streamName: "stderr",
-      data: "Error 1\nError 2\n",
-      metadata: null,
-      position: 4,
-    });
+    expect(result[2]).toEqual(
+      createTerminalOutput("4", "stderr", "Error 1\nError 2\n", 4)
+    );
   });
 
   it("should handle stdout followed by stderr followed by stdout", () => {
     const outputs: OutputData[] = [
-      {
-        id: "1",
-        cellId: "cell1",
-        outputType: "terminal",
-        streamName: "stdout",
-        data: "stdout 1\n",
-        metadata: null,
-        position: 1,
-      },
-      {
-        id: "2",
-        cellId: "cell1",
-        outputType: "terminal",
-        streamName: "stdout",
-        data: "stdout 2\n",
-        metadata: null,
-        position: 2,
-      },
-      {
-        id: "3",
-        cellId: "cell1",
-        outputType: "terminal",
-        streamName: "stderr",
-        data: "stderr 1\n",
-        metadata: null,
-        position: 3,
-      },
-      {
-        id: "4",
-        cellId: "cell1",
-        outputType: "terminal",
-        streamName: "stderr",
-        data: "stderr 2\n",
-        metadata: null,
-        position: 4,
-      },
-      {
-        id: "5",
-        cellId: "cell1",
-        outputType: "terminal",
-        streamName: "stdout",
-        data: "stdout 3\n",
-        metadata: null,
-        position: 5,
-      },
+      createTerminalOutput("1", "stdout", "stdout 1\n", 1),
+      createTerminalOutput("2", "stdout", "stdout 2\n", 2),
+      createTerminalOutput("3", "stderr", "stderr 1\n", 3),
+      createTerminalOutput("4", "stderr", "stderr 2\n", 4),
+      createTerminalOutput("5", "stdout", "stdout 3\n", 5),
     ];
 
     const result = groupConsecutiveStreamOutputs(outputs);
@@ -292,55 +167,38 @@ describe("groupConsecutiveStreamOutputs", () => {
   });
 
   it("should handle single stream output", () => {
-    const outputs: OutputData[] = [
-      {
-        id: "1",
-        cellId: "cell1",
-        outputType: "terminal",
-        streamName: "stdout",
-        data: "Line 1\n",
-        metadata: { timestamp: "2023-01-01T00:00:00Z" },
-        position: 1,
-      },
-    ];
+    const output: OutputData = {
+      ...createTerminalOutput("1", "stdout", "Line 1\n", 1),
+      metadata: { timestamp: "2023-01-01T00:00:00Z" },
+    };
+    const outputs: OutputData[] = [output];
 
     const result = groupConsecutiveStreamOutputs(outputs);
     expect(result).toHaveLength(1);
-    expect(result[0]).toEqual(outputs[0]);
+    expect(result[0]).toEqual(output);
   });
 
   it("should preserve metadata and other properties", () => {
-    const outputs: OutputData[] = [
-      {
-        id: "1",
-        cellId: "cell1",
-        outputType: "terminal",
-        streamName: "stdout",
-        data: "Part 1 ",
-        metadata: { timestamp: "2023-01-01T00:00:00Z" },
-        position: 1,
-      },
-      {
-        id: "2",
-        cellId: "cell1",
-        outputType: "terminal",
-        streamName: "stdout",
-        data: "Part 2",
-        metadata: { timestamp: "2023-01-01T00:00:01Z" },
-        position: 2,
-      },
-    ];
+    const output1: OutputData = {
+      ...createTerminalOutput("1", "stdout", "Part 1 ", 1),
+      metadata: { timestamp: "2023-01-01T00:00:00Z" },
+    };
+
+    const output2: OutputData = {
+      ...createTerminalOutput("2", "stdout", "Part 2", 2),
+      metadata: { timestamp: "2023-01-01T00:00:01Z" },
+    };
+
+    const outputs: OutputData[] = [output1, output2];
 
     const result = groupConsecutiveStreamOutputs(outputs);
     expect(result).toHaveLength(1);
-    expect(result[0]).toEqual({
-      id: "1",
-      cellId: "cell1",
-      outputType: "terminal",
-      streamName: "stdout",
-      data: "Part 1 Part 2",
+
+    const expected: OutputData = {
+      ...createTerminalOutput("1", "stdout", "Part 1 Part 2", 1),
       metadata: { timestamp: "2023-01-01T00:00:00Z" },
-      position: 1,
-    });
+    };
+
+    expect(result[0]).toEqual(expected);
   });
 });
