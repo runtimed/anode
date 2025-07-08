@@ -117,7 +117,7 @@ describe("End-to-End Execution Flow", () => {
 
       await waitFor(() => stateChanges.includes("cells"));
 
-      // Step 3: Start kernel session
+      // Step 3: Start runtime session
       store.commit(
         events.runtimeSessionStarted({
           sessionId,

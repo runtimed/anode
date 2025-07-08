@@ -117,7 +117,6 @@ export const AiCell: React.FC<AiCellProps> = ({
           cellId: cell.id,
           executionCount,
           requestedBy: "current-user",
-          priority: 1,
         })
       );
 

@@ -362,7 +362,7 @@ describe("Reactivity Debugging", () => {
 
       // Trigger a sequence of related events
 
-      // 1. Start kernel session
+      // 1. Start runtime session
       store.commit(
         events.runtimeSessionStarted({
           sessionId,
@@ -521,7 +521,7 @@ describe("Reactivity Debugging", () => {
         }, i * heartbeatInterval);
       }
 
-      // Start a kernel session first
+      // Start a runtime session first
       store.commit(
         events.runtimeSessionStarted({
           sessionId: "high-freq-session-0",

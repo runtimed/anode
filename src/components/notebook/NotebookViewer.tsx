@@ -4,7 +4,6 @@ import { CellData, events, RuntimeSessionData, tables } from "@runt/schema";
 import { queryDb } from "@livestore/livestore";
 
 import { VirtualizedCellList } from "./VirtualizedCellList.js";
-import { formatDistanceToNow } from "date-fns";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -145,21 +144,6 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
       );
     }
   }, [executionQueue, store]);
-
-  // Helper function to format heartbeat time
-  const formatHeartbeatTime = (heartbeatTime: Date | string | null) => {
-    if (!heartbeatTime) return "Never";
-
-    const heartbeat = new Date(heartbeatTime);
-    const now = new Date();
-    const diffMs = now.getTime() - heartbeat.getTime();
-
-    // Show "Now" for very recent heartbeats (within 2 seconds)
-    if (diffMs < 2000) return "Now";
-
-    // Use date-fns for clean relative formatting
-    return formatDistanceToNow(heartbeat, { addSuffix: true });
-  };
 
   React.useEffect(() => {
     if (notebook?.title) {
@@ -457,7 +441,7 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
                             ? "text-amber-500"
                             : activeRuntime && runtimeHealth === "connecting"
                               ? "text-blue-500"
-                              : activeRuntime && runtimeHealth === "stale"
+                              : activeRuntime && runtimeHealth === "warning"
                                 ? "text-amber-500"
                                 : runtimeStatus === "starting"
                                   ? "text-blue-500"
@@ -500,7 +484,7 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
                               ? "text-amber-500"
                               : activeRuntime && runtimeHealth === "connecting"
                                 ? "text-blue-500"
-                                : activeRuntime && runtimeHealth === "stale"
+                                : activeRuntime && runtimeHealth === "warning"
                                   ? "text-amber-500"
                                   : runtimeStatus === "starting"
                                     ? "text-blue-500"
@@ -515,7 +499,7 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
                               ? "text-amber-600"
                               : activeRuntime && runtimeHealth === "connecting"
                                 ? "text-blue-600"
-                                : activeRuntime && runtimeHealth === "stale"
+                                : activeRuntime && runtimeHealth === "warning"
                                   ? "text-amber-600"
                                   : runtimeStatus === "starting"
                                     ? "text-blue-600"
@@ -528,8 +512,8 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
                             ? "Connected (Slow)"
                             : activeRuntime && runtimeHealth === "connecting"
                               ? "Connecting..."
-                              : activeRuntime && runtimeHealth === "stale"
-                                ? "Connected (Stale)"
+                              : activeRuntime && runtimeHealth === "warning"
+                                ? "Connected (Warning)"
                                 : runtimeStatus === "starting"
                                   ? "Starting"
                                   : "Disconnected"}
@@ -608,13 +592,13 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
                                 activeRuntime.status.slice(1)}
                         </span>
                       </div>
-                      {activeRuntime.lastHeartbeat && (
+                      {activeRuntime.status && (
                         <div className="flex justify-between">
                           <span className="text-muted-foreground">
                             Last Heartbeat:
                           </span>
                           <span className="flex items-center gap-1 text-xs">
-                            {formatHeartbeatTime(activeRuntime.lastHeartbeat)}
+                            Status: {activeRuntime.status}
                           </span>
                         </div>
                       )}
@@ -705,9 +689,9 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
                               >
                                 {session.status}
                               </span>
-                              {session.lastHeartbeat && (
+                              {session.status && (
                                 <span className="text-muted-foreground">
-                                  {formatHeartbeatTime(session.lastHeartbeat)}
+                                  Status: {session.status}
                                 </span>
                               )}
                             </div>

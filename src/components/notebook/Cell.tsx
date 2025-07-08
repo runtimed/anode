@@ -151,7 +151,6 @@ export const Cell: React.FC<CellProps> = ({
           cellId: cell.id,
           executionCount,
           requestedBy: "current-user",
-          priority: 1,
         })
       );
 

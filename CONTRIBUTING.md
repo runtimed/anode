@@ -157,13 +157,13 @@ pnpm test:schema             # Schema validation tests
 
 ## Common Issues
 
-| Problem                     | Solution                                                     |
-| --------------------------- | ------------------------------------------------------------ |
-| Missing .env files          | Run `pnpm setup` to auto-create with defaults                |
-| Environment variable errors | Validate with `pnpm setup`                                   |
+| Problem                     | Solution                                                      |
+| --------------------------- | ------------------------------------------------------------- |
+| Missing .env files          | Run `pnpm setup` to auto-create with defaults                 |
+| Environment variable errors | Validate with `pnpm setup`                                    |
 | Runtime not connecting      | Use exact command from notebook UI, check runtime server .env |
-| Build failures              | Run `pnpm clean && pnpm build`                               |
-| Type errors                 | Run `pnpm type-check` for detailed errors                    |
+| Build failures              | Run `pnpm clean && pnpm build`                                |
+| Type errors                 | Run `pnpm type-check` for detailed errors                     |
 
 ## Current Development Priorities
 
