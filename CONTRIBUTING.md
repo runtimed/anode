@@ -26,7 +26,7 @@ pnpm dev  # Starts web client + sync backend
 
 1. Open http://localhost:5173
 2. Create a notebook (URL will show: `?notebook=notebook-123-abc`)
-3. Click the **Kernel** button in the notebook header
+3. Click the **Runtime** button in the notebook header
 4. Copy the exact runtime command shown (e.g.,
    `NOTEBOOK_ID=notebook-123-abc pnpm dev:runtime`)
 5. Run that command in a new terminal
@@ -151,7 +151,7 @@ AUTH_TOKEN=insecure-token-change-me
 ```bash
 pnpm test                    # Run all tests
 pnpm test:integration        # Integration tests
-pnpm test:kernel             # Python kernel tests
+pnpm test:runtime            # Python runtime tests
 pnpm test:schema             # Schema validation tests
 ```
 
@@ -161,7 +161,7 @@ pnpm test:schema             # Schema validation tests
 | --------------------------- | ------------------------------------------------------------ |
 | Missing .env files          | Run `pnpm setup` to auto-create with defaults                |
 | Environment variable errors | Validate with `pnpm setup`                                   |
-| Kernel not connecting       | Use exact command from notebook UI, check kernel server .env |
+| Runtime not connecting      | Use exact command from notebook UI, check runtime server .env |
 | Build failures              | Run `pnpm clean && pnpm build`                               |
 | Type errors                 | Run `pnpm type-check` for detailed errors                    |
 
@@ -170,7 +170,7 @@ pnpm test:schema             # Schema validation tests
 ### Immediate Focus
 
 - **Integration Testing** - Verify Python execution and rich outputs
-- **Kernel Management** - Automated startup and health monitoring
+- **Runtime Management** - Automated startup and health monitoring
 - **Error Handling** - Better user feedback and recovery
 
 ### Upcoming Features

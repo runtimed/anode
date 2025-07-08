@@ -79,25 +79,25 @@ event-sourcing based local-first data synchronization library.
   execution queue
 - **Direct TypeScript schema**: No build step, imports work across packages
 - **Session-based runtimes**: Each runtime restart gets unique `sessionId`
-- **One kernel per notebook**: Each notebook has exactly one active kernel at a
+- **One runtime per notebook**: Each notebook has exactly one active runtime at a
   time
 
-### Kernel-Notebook Relationship
+### Runtime-Notebook Relationship
 
-**One Kernel Per Notebook**: Each notebook should have exactly one active kernel
-at any time. Multiple kernels on the same notebook should only occur during
-transition periods (kernel restart/handoff).
+**One Runtime Per Notebook**: Each notebook should have exactly one active runtime
+at any time. Multiple runtimes on the same notebook should only occur during
+transition periods (runtime restart/handoff).
 
-**Kernel Lifecycle**:
+**Runtime Lifecycle**:
 
-- Notebook created → No kernel (user must start one)
-- User starts kernel → Becomes the sole kernel for that notebook
-- Kernel crashes/stops → Notebook has no kernel until user starts new one
-- Kernel restart → Brief overlap during handoff, then old kernel terminates
+- Notebook created → No runtime (user must start one)
+- User starts runtime → Becomes the sole runtime for that notebook
+- Runtime crashes/stops → Notebook has no runtime until user starts new one
+- Runtime restart → Brief overlap during handoff, then old runtime terminates
 
-**Not Yet Implemented**: Automatic kernel orchestration, graceful handoffs,
-kernel health monitoring. Currently manual kernel startup creates potential for
-multiple kernels during transitions.
+**Not Yet Implemented**: Automatic runtime orchestration, graceful handoffs,
+runtime health monitoring. Currently manual runtime startup creates potential for
+multiple runtimes during transitions.
 
 ## Development Commands
 
@@ -130,8 +130,8 @@ NOTEBOOK_ID=notebook-id-from-ui pnpm dev:runtime
 2. **Enhanced AI Capabilities** - Building on solid foundation
    - Streaming AI responses with append operations
    - Better context management with new output structure
-3. **Kernel Management Improvements** - Production runtime features
-   - Automated kernel orchestration
+3. **Runtime Management Improvements** - Production runtime features
+   - Automated runtime orchestration
    - Better session management
    - Health monitoring
 
@@ -295,8 +295,8 @@ anode/
 
 ### Immediate Technical Goals
 
-- **User-attributed kernels** - API token system for "Bring Your Own Compute"
-- **Automated kernel orchestration** - Production runtime provisioning
+- **User-attributed runtimes** - API token system for "Bring Your Own Compute"
+- **Automated runtime orchestration** - Production runtime provisioning
 
 ### Communication Style
 
