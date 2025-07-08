@@ -305,6 +305,7 @@ anode/
 - Keep commit messages short and factual
 - State facts without marketing language
 - Say "this is a prototype" or "this part needs work" when true
+- Always bring a towel
 
 
 ## Development Workflow Notes

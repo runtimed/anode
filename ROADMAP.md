@@ -171,7 +171,7 @@ attach runtimes with their own API tokens
 
 **Goal**: Support diverse Python execution environments beyond Pyodide
 
-- [ ] **ZeroMQ Integration** - Connect to external Python kernels via ZeroMQ
+- [ ] **ZeroMQ Integration** - Connect Runtime Agent to external Python kernels via ZeroMQ
 - [ ] **Containerized Runtimes** - Support arbitrary Python environments (e.g., Docker)
 - [ ] **Runtime Discovery** - Mechanism to discover and connect to available runtimes
 
