@@ -1,8 +1,10 @@
 import React, { useCallback, useState } from "react";
 import { useStore } from "@livestore/react";
-import { events, SqlResultData, tables } from "@runt/schema";
+import { events, tables, OutputData } from "@runt/schema";
+import { queryDb } from "@livestore/livestore";
 import { useCellKeyboardNavigation } from "../../hooks/useCellKeyboardNavigation.js";
 import { useCellContent } from "../../hooks/useCellContent.js";
+import { groupConsecutiveStreamOutputs } from "../../util/output-grouping.js";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
@@ -31,6 +33,7 @@ import {
 } from "lucide-react";
 import { CodeMirrorEditor } from "./codemirror/CodeMirrorEditor.js";
 import { CellBase } from "./CellBase.js";
+import { RichOutput } from "./RichOutput.js";
 
 interface SqlCellProps {
   cell: typeof tables.cells.Type;
@@ -93,25 +96,27 @@ export const SqlCell: React.FC<SqlCellProps> = ({
     );
 
     // Mock execution for now
-    const mockResult = {
-      columns: ["id", "name", "value"],
-      rows: [
-        [1, "Example Row 1", 42],
-        [2, "Example Row 2", 84],
-      ],
-      rowCount: 2,
-      executionTime: "15ms",
-    };
+    // TODO: Mock result temporarily removed for schema 0.6.0 compatibility
+    // const mockResult = {
+    //   columns: ["id", "name", "value"],
+    //   rows: [
+    //     [1, "Example Row 1", 42],
+    //     [2, "Example Row 2", 84],
+    //   ],
+    //   rowCount: 2,
+    //   executionTime: "15ms",
+    // };
 
-    store.commit(
-      events.sqlQueryExecuted({
-        cellId: cell.id,
-        connectionId: cell.sqlConnectionId,
-        query: localQuery,
-        resultData: mockResult,
-        executedBy: "current-user",
-      })
-    );
+    // TODO: sqlQueryExecuted event removed in schema 0.6.0 - needs refactoring
+    // store.commit(
+    //   events.sqlQueryExecuted({
+    //     cellId: cell.id,
+    //     connectionId: cell.sqlConnectionId,
+    //     query: localQuery,
+    //     resultData: mockResult,
+    //     executedBy: "current-user",
+    //   })
+    // );
   }, [cell.id, cell.sqlConnectionId, localQuery, store]);
 
   // Use shared keyboard navigation hook
@@ -215,46 +220,42 @@ export const SqlCell: React.FC<SqlCellProps> = ({
     }
   };
 
-  const renderResults = () => {
-    if (!cell.sqlResultData) return null;
+  // Create stable query using useMemo to prevent React Hook issues
+  const outputsQuery = React.useMemo(
+    () => queryDb(tables.outputs.select().where({ cellId: cell.id })),
+    [cell.id]
+  );
+  const outputs = store.useQuery(outputsQuery) as OutputData[];
 
-    const data = cell.sqlResultData as SqlResultData;
+  const renderResults = () => {
+    if (!outputs.length) return null;
+
+    const groupedOutputs = groupConsecutiveStreamOutputs(outputs);
 
     return (
       <div className="mt-4 space-y-3">
-        <div className="text-muted-foreground flex items-center justify-between text-sm">
-          <span>{data.rowCount} rows returned</span>
-          <span>Executed in {data.executionTime}</span>
-        </div>
-
-        <div className="overflow-hidden rounded-md border">
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead className="bg-muted">
-                <tr>
-                  {data.columns.map((col) => (
-                    <th key={col} className="px-3 py-2 text-left font-medium">
-                      {col}
-                    </th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {data.rows.map((row, i) => (
-                  <tr key={i} className="border-t">
-                    {row.map((cell, j) => (
-                      <td key={j} className="px-3 py-2">
-                        {String(cell ?? "")}
-                      </td>
-                    ))}
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+        {groupedOutputs.map((output) => (
+          <div key={output.id} className="max-w-full overflow-hidden py-2">
+            <RichOutput
+              data={
+                (output.outputType as string) === "markdown" ||
+                (output.outputType as string) === "terminal"
+                  ? output.data || ""
+                  : output.representations || {
+                      "text/plain": output.data || "",
+                    }
+              }
+              metadata={output.metadata as Record<string, unknown> | undefined}
+              outputType={output.outputType}
+            />
           </div>
-        </div>
+        ))}
       </div>
     );
+  };
+
+  const hasOutputs = () => {
+    return outputs.length > 0;
   };
 
   return (
@@ -281,11 +282,11 @@ export const SqlCell: React.FC<SqlCellProps> = ({
         }`}
         style={{
           height:
-            cell.sqlResultData ||
+            hasOutputs() ||
             cell.executionState === "running" ||
             cell.executionState === "queued"
               ? "100%"
-              : "4rem",
+              : "auto",
         }}
       />
       {/* Cell Header */}
@@ -567,7 +568,8 @@ export const SqlCell: React.FC<SqlCellProps> = ({
                       : "Completed"
                     : null}
             </span>
-            {cell.sqlResultData && (
+            {/* TODO: Refactor SQL results display for schema 0.6.0 */}
+            {false && (
               <Button
                 variant="ghost"
                 size="sm"
@@ -591,7 +593,7 @@ export const SqlCell: React.FC<SqlCellProps> = ({
       )}
 
       {/* Query Results */}
-      {cell.sqlResultData && cell.outputVisible && (
+      {cell.outputVisible && (
         <div className="cell-content bg-background mt-1 max-w-full overflow-hidden px-4 sm:px-4">
           {renderResults()}
         </div>
