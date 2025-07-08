@@ -86,10 +86,16 @@ export const SqlCell: React.FC<SqlCellProps> = ({
       return;
     }
 
+    // Generate unique queue ID
+    const queueId = `exec-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+    const executionCount = (cell.executionCount || 0) + 1;
+
     // Submit execution request like other cell types
     store.commit(
-      events.executeCellRequested({
+      events.executionRequested({
+        queueId,
         cellId: cell.id,
+        executionCount,
         requestedBy: "current-user",
       })
     );
