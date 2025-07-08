@@ -205,13 +205,13 @@ pnpm dev:sync      # Sync backend
 # Then run: NOTEBOOK_ID=your-notebook-id pnpm dev:runtime
 ```
 
-If you want to iterate on the schema, you wouldn't pnpm link the project. The easiest way to do it is to run:
+If you want to iterate on the schema make sure to have `anode` and `runt` cloned in the same parent directory. Then run:
 
 ```bash
 pnpm install @runt/schema@file:../runt/packages/schema
 ```
 
-We assume you have `anode` and `runt` in the same directory, otherwise you'd update the install command above.
+If you have them cloned in a different way you'll need the relative path to match where the `@runt/schema` package is.
 
 ### Configuration
 
