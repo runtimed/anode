@@ -13,12 +13,12 @@ describe("Reactivity Debugging", () => {
   let store: any;
   let storeId: string;
   let sessionId: string;
-  let kernelId: string;
+  let runtimeId: string;
 
   beforeEach(async () => {
     storeId = createTestStoreId();
     sessionId = createTestSessionId();
-    kernelId = `kernel-${Date.now()}`;
+    runtimeId = `runtime-${Date.now()}`;
 
     const adapter = makeAdapter({
       storage: { type: "in-memory" },
@@ -44,7 +44,7 @@ describe("Reactivity Debugging", () => {
       const assignedWork$ = queryDb(
         tables.executionQueue
           .select()
-          .where({ status: "assigned", assignedKernelSession: sessionId }),
+          .where({ assignedRuntimeSession: sessionId }),
         { label: "assignedWork" }
       );
 
@@ -77,14 +77,13 @@ describe("Reactivity Debugging", () => {
           cellId,
           executionCount: 1,
           requestedBy: "test-user",
-          priority: 1,
         })
       );
 
       store.commit(
         events.executionAssigned({
           queueId,
-          kernelSessionId: sessionId,
+          runtimeSessionId: sessionId,
         })
       );
 
@@ -100,7 +99,7 @@ describe("Reactivity Debugging", () => {
         events.executionStarted({
           queueId,
           cellId,
-          kernelSessionId: sessionId,
+          runtimeSessionId: sessionId,
           startedAt: new Date(),
         })
       );
@@ -119,7 +118,7 @@ describe("Reactivity Debugging", () => {
         tables.executionQueue
           .select()
           .where({ status: "pending" })
-          .orderBy("priority", "desc")
+          .orderBy("id", "desc")
           .limit(5),
         { label: "pendingWork" }
       );
@@ -147,7 +146,6 @@ describe("Reactivity Debugging", () => {
           cellId: "multi-sub-cell",
           executionCount: 1,
           requestedBy: "test-user",
-          priority: 1,
         })
       );
 
@@ -320,21 +318,21 @@ describe("Reactivity Debugging", () => {
 
     it("should handle query dependencies correctly", async () => {
       const updates: { [key: string]: any[] } = {
-        kernelSessions: [],
+        runtimeSessions: [],
         assignedWork: [],
         pendingWork: [],
       };
 
       // Create dependent queries
-      const kernelSessions$ = queryDb(
-        tables.kernelSessions.select().where({ isActive: true }),
-        { label: "activeKernelSessions" }
+      const runtimeSessions$ = queryDb(
+        tables.runtimeSessions.select().where({ isActive: true }),
+        { label: "activeRuntimeSessions" }
       );
 
       const assignedWork$ = queryDb(
         tables.executionQueue
           .select()
-          .where({ status: "assigned", assignedKernelSession: sessionId }),
+          .where({ status: "assigned", assignedRuntimeSession: sessionId }),
         { label: "assignedWork" }
       );
 
@@ -342,15 +340,15 @@ describe("Reactivity Debugging", () => {
         tables.executionQueue
           .select()
           .where({ status: "pending" })
-          .orderBy("priority", "desc"),
+          .orderBy("id", "desc"),
         { label: "pendingWork" }
       );
 
       // Subscribe to all queries
       const subscriptions = [
-        store.subscribe(kernelSessions$, {
+        store.subscribe(runtimeSessions$, {
           onUpdate: (data: any) =>
-            updates.kernelSessions.push({ timestamp: Date.now(), data }),
+            updates.runtimeSessions.push({ timestamp: Date.now(), data }),
         }),
         store.subscribe(assignedWork$, {
           onUpdate: (data: any) =>
@@ -364,12 +362,12 @@ describe("Reactivity Debugging", () => {
 
       // Trigger a sequence of related events
 
-      // 1. Start kernel session
+      // 1. Start runtime session
       store.commit(
-        events.kernelSessionStarted({
+        events.runtimeSessionStarted({
           sessionId,
-          kernelId,
-          kernelType: "python3",
+          runtimeId: runtimeId,
+          runtimeType: "python3",
           capabilities: {
             canExecuteCode: true,
             canExecuteSql: false,
@@ -397,7 +395,6 @@ describe("Reactivity Debugging", () => {
           cellId,
           executionCount: 1,
           requestedBy: "test-user",
-          priority: 1,
         })
       );
 
@@ -405,33 +402,33 @@ describe("Reactivity Debugging", () => {
       store.commit(
         events.executionAssigned({
           queueId,
-          kernelSessionId: sessionId,
+          runtimeSessionId: sessionId,
         })
       );
 
       // Wait for all updates
       await waitFor(
         () =>
-          updates.kernelSessions.length > 0 &&
+          updates.runtimeSessions.length > 0 &&
           updates.assignedWork.length > 0 &&
           updates.pendingWork.length > 0
       );
 
       // Verify all queries received updates
-      expect(updates.kernelSessions.length).toBeGreaterThan(0);
+      expect(updates.runtimeSessions.length).toBeGreaterThan(0);
       expect(updates.assignedWork.length).toBeGreaterThan(0);
       expect(updates.pendingWork.length).toBeGreaterThan(0);
 
       // Verify final states are consistent
-      const finalKernelSessions =
-        updates.kernelSessions[updates.kernelSessions.length - 1].data;
+      const finalRuntimeSessions =
+        updates.runtimeSessions[updates.runtimeSessions.length - 1].data;
       const finalAssignedWork =
         updates.assignedWork[updates.assignedWork.length - 1].data;
 
-      expect(finalKernelSessions).toHaveLength(1);
-      expect(finalKernelSessions[0].sessionId).toBe(sessionId);
+      expect(finalRuntimeSessions).toHaveLength(1);
+      expect(finalRuntimeSessions[0].sessionId).toBe(sessionId);
       expect(finalAssignedWork).toHaveLength(1);
-      expect(finalAssignedWork[0].assignedKernelSession).toBe(sessionId);
+      expect(finalAssignedWork[0].assignedRuntimeSession).toBe(sessionId);
 
       // Clean up
       subscriptions.forEach((unsub) => unsub());
@@ -499,7 +496,7 @@ describe("Reactivity Debugging", () => {
       const updateCounts: number[] = [];
       const startTime = Date.now();
 
-      const highFreqQuery$ = queryDb(tables.kernelSessions.select(), {
+      const highFreqQuery$ = queryDb(tables.runtimeSessions.select(), {
         label: "highFrequencyQuery",
       });
 
@@ -516,21 +513,20 @@ describe("Reactivity Debugging", () => {
       for (let i = 0; i < updateCount; i++) {
         setTimeout(() => {
           store.commit(
-            events.kernelSessionHeartbeat({
+            events.runtimeSessionStatusChanged({
               sessionId: `high-freq-session-${i % 3}`, // Cycle through 3 sessions
               status: i % 2 === 0 ? "ready" : "busy",
-              timestamp: new Date(),
             })
           );
         }, i * heartbeatInterval);
       }
 
-      // Start a kernel session first
+      // Start a runtime session first
       store.commit(
-        events.kernelSessionStarted({
+        events.runtimeSessionStarted({
           sessionId: "high-freq-session-0",
-          kernelId: "high-freq-kernel",
-          kernelType: "python3",
+          runtimeId: "high-freq-runtime",
+          runtimeType: "python3",
           capabilities: {
             canExecuteCode: true,
             canExecuteSql: false,

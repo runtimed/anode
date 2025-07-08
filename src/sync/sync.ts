@@ -89,13 +89,13 @@ async function validateGoogleToken(
 }
 
 async function validateAuthPayload(
-  payload: AuthPayload & { kernel?: boolean },
+  payload: AuthPayload & { runtime?: boolean },
   env: any
 ): Promise<void> {
   console.log("🔐 Starting auth validation:", {
     hasPayload: !!payload,
     hasAuthToken: !!payload?.authToken,
-    isKernel: payload?.kernel === true,
+    isRuntime: payload?.runtime === true,
     hasGoogleClientId: !!env.GOOGLE_CLIENT_ID,
     hasEnvAuthToken: !!env.AUTH_TOKEN,
   });
@@ -115,7 +115,7 @@ async function validateAuthPayload(
   });
 
   // For runtime agents, always allow service token authentication
-  if (payload.kernel === true) {
+  if (payload.runtime === true) {
     console.log("🤖 Validating runtime agent token");
     if (env.AUTH_TOKEN && token === env.AUTH_TOKEN) {
       console.log("✅ Authenticated runtime agent with service token");
@@ -268,7 +268,7 @@ export default {
           console.log("🔐 Validating payload:", {
             hasAuthToken: !!payload?.authToken,
             authTokenLength: payload?.authToken?.length || 0,
-            isKernel: payload?.kernel === true,
+            isRuntime: payload?.runtime === true,
           });
           try {
             await validateAuthPayload(payload, env);

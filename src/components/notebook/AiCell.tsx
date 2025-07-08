@@ -110,18 +110,17 @@ export const AiCell: React.FC<AiCellProps> = ({
         .slice(2)}`;
       const executionCount = (cell.executionCount || 0) + 1;
 
-      // Add to execution queue - kernels will pick this up
+      // Add to execution queue - runtimes will pick this up
       store.commit(
         events.executionRequested({
           queueId,
           cellId: cell.id,
           executionCount,
           requestedBy: "current-user",
-          priority: 1,
         })
       );
 
-      // The kernel service will now:
+      // The runtime service will now:
       // 1. See the pending execution in the queue
       // 2. Recognize it's an AI cell and handle accordingly
       // 3. Make the AI API call (OpenAI, Anthropic, etc.)

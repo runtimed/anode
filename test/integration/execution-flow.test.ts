@@ -26,12 +26,12 @@ describe("End-to-End Execution Flow", () => {
   let store: any;
   let storeId: string;
   let sessionId: string;
-  let kernelId: string;
+  let runtimeId: string;
 
   beforeEach(async () => {
     storeId = createTestStoreId();
     sessionId = createTestSessionId();
-    kernelId = `kernel-${Date.now()}`;
+    runtimeId = `runtime-${Date.now()}`;
 
     const adapter = makeAdapter({
       storage: { type: "in-memory" },
@@ -117,12 +117,12 @@ describe("End-to-End Execution Flow", () => {
 
       await waitFor(() => stateChanges.includes("cells"));
 
-      // Step 3: Start kernel session
+      // Step 3: Start runtime session
       store.commit(
-        events.kernelSessionStarted({
+        events.runtimeSessionStarted({
           sessionId,
-          kernelId,
-          kernelType: "python3",
+          runtimeId,
+          runtimeType: "python3",
           capabilities: {
             canExecuteCode: true,
             canExecuteSql: false,
@@ -138,17 +138,16 @@ describe("End-to-End Execution Flow", () => {
           cellId,
           executionCount: 1,
           requestedBy: "test-user",
-          priority: 1,
         })
       );
 
       await waitFor(() => stateChanges.includes("queue"));
 
-      // Step 5: Assign execution to kernel
+      // Step 5: Assign execution to runtime
       store.commit(
         events.executionAssigned({
           queueId,
-          kernelSessionId: sessionId,
+          runtimeSessionId: sessionId,
         })
       );
 
@@ -157,7 +156,7 @@ describe("End-to-End Execution Flow", () => {
         events.executionStarted({
           queueId,
           cellId,
-          kernelSessionId: sessionId,
+          runtimeSessionId: sessionId,
           startedAt: new Date(),
         })
       );
@@ -166,7 +165,7 @@ describe("End-to-End Execution Flow", () => {
       store.commit(
         events.cellOutputsCleared({
           cellId,
-          clearedBy: kernelId,
+          clearedBy: runtimeId,
           wait: false,
         })
       );
@@ -250,12 +249,12 @@ describe("End-to-End Execution Flow", () => {
         })
       );
 
-      // Start kernel and request execution
+      // Start runtime and request execution
       store.commit(
-        events.kernelSessionStarted({
+        events.runtimeSessionStarted({
           sessionId,
-          kernelId,
-          kernelType: "python3",
+          runtimeId,
+          runtimeType: "python3",
           capabilities: {
             canExecuteCode: true,
             canExecuteSql: false,
@@ -270,14 +269,13 @@ describe("End-to-End Execution Flow", () => {
           cellId,
           executionCount: 1,
           requestedBy: "test-user",
-          priority: 1,
         })
       );
 
       store.commit(
         events.executionAssigned({
           queueId,
-          kernelSessionId: sessionId,
+          runtimeSessionId: sessionId,
         })
       );
 
@@ -285,7 +283,7 @@ describe("End-to-End Execution Flow", () => {
         events.executionStarted({
           queueId,
           cellId,
-          kernelSessionId: sessionId,
+          runtimeSessionId: sessionId,
           startedAt: new Date(),
         })
       );
@@ -370,18 +368,18 @@ describe("End-to-End Execution Flow", () => {
         );
       });
 
-      // Start multiple kernel sessions
+      // Start multiple runtime sessions
       const sessions = Array.from({ length: 2 }, (_, i) => ({
         sessionId: `${sessionId}-${i}`,
-        kernelId: `${kernelId}-${i}`,
+        runtimeId: `${runtimeId}-${i}`,
       }));
 
-      sessions.forEach(({ sessionId: sid, kernelId: kid }) => {
+      sessions.forEach(({ sessionId: sid, runtimeId: rid }) => {
         store.commit(
-          events.kernelSessionStarted({
+          events.runtimeSessionStarted({
             sessionId: sid,
-            kernelId: kid,
-            kernelType: "python3",
+            runtimeId: rid,
+            runtimeType: "python3",
             capabilities: {
               canExecuteCode: true,
               canExecuteSql: false,
@@ -399,7 +397,6 @@ describe("End-to-End Execution Flow", () => {
             cellId,
             executionCount: 1,
             requestedBy: "test-user",
-            priority: index + 1,
           })
         );
       });
@@ -412,7 +409,7 @@ describe("End-to-End Execution Flow", () => {
         store.commit(
           events.executionAssigned({
             queueId,
-            kernelSessionId: sid,
+            runtimeSessionId: sid,
           })
         );
 
@@ -420,7 +417,7 @@ describe("End-to-End Execution Flow", () => {
           events.executionStarted({
             queueId,
             cellId,
-            kernelSessionId: sid,
+            runtimeSessionId: sid,
             startedAt: new Date(),
           })
         );
@@ -519,7 +516,6 @@ describe("End-to-End Execution Flow", () => {
           cellId,
           executionCount: 1,
           requestedBy: "test-user",
-          priority: 1,
         })
       );
 
@@ -638,8 +634,8 @@ describe("End-to-End Execution Flow", () => {
     });
   });
 
-  describe("Kernel Session Lifecycle", () => {
-    it("should handle kernel restart during execution", async () => {
+  describe("Runtime Session Lifecycle", () => {
+    it("should handle runtime restart during execution", async () => {
       const cellId = "restart-test-cell";
       const queueId = "restart-test-queue";
       const newSessionId = `${sessionId}-restarted`;
@@ -655,10 +651,10 @@ describe("End-to-End Execution Flow", () => {
       );
 
       store.commit(
-        events.kernelSessionStarted({
+        events.runtimeSessionStarted({
           sessionId,
-          kernelId,
-          kernelType: "python3",
+          runtimeId,
+          runtimeType: "python3",
           capabilities: {
             canExecuteCode: true,
             canExecuteSql: false,
@@ -673,14 +669,13 @@ describe("End-to-End Execution Flow", () => {
           cellId,
           executionCount: 1,
           requestedBy: "test-user",
-          priority: 1,
         })
       );
 
       store.commit(
         events.executionAssigned({
           queueId,
-          kernelSessionId: sessionId,
+          runtimeSessionId: sessionId,
         })
       );
 
@@ -688,25 +683,25 @@ describe("End-to-End Execution Flow", () => {
         events.executionStarted({
           queueId,
           cellId,
-          kernelSessionId: sessionId,
+          runtimeSessionId: sessionId,
           startedAt: new Date(),
         })
       );
 
-      // Simulate kernel restart during execution
+      // Simulate runtime restart during execution
       store.commit(
-        events.kernelSessionTerminated({
+        events.runtimeSessionTerminated({
           sessionId,
           reason: "restart",
         })
       );
 
-      // Start new kernel session
+      // Start new runtime session
       store.commit(
-        events.kernelSessionStarted({
+        events.runtimeSessionStarted({
           sessionId: newSessionId,
-          kernelId,
-          kernelType: "python3",
+          runtimeId,
+          runtimeType: "python3",
           capabilities: {
             canExecuteCode: true,
             canExecuteSql: false,
@@ -715,8 +710,16 @@ describe("End-to-End Execution Flow", () => {
         })
       );
 
-      // Verify kernel states
-      const sessions = store.query(tables.kernelSessions.select());
+      // Update session status to ready
+      store.commit(
+        events.runtimeSessionStatusChanged({
+          sessionId: newSessionId,
+          status: "ready",
+        })
+      );
+
+      // Verify runtime states
+      const sessions = store.query(tables.runtimeSessions.select());
       expect(sessions).toHaveLength(2);
 
       const oldSession = sessions.find((s) => s.sessionId === sessionId);
@@ -728,12 +731,12 @@ describe("End-to-End Execution Flow", () => {
       expect(newSession.isActive).toBe(true);
     });
 
-    it("should track heartbeats and session health", async () => {
+    it("should track status and session health", async () => {
       store.commit(
-        events.kernelSessionStarted({
+        events.runtimeSessionStarted({
           sessionId,
-          kernelId,
-          kernelType: "python3",
+          runtimeId,
+          runtimeType: "python3",
           capabilities: {
             canExecuteCode: true,
             canExecuteSql: false,
@@ -750,18 +753,15 @@ describe("End-to-End Execution Flow", () => {
         heartbeatTimes.push(heartbeatTime);
 
         store.commit(
-          (events as any).kernelSessionHeartbeat({
+          events.runtimeSessionStatusChanged({
             sessionId,
             status: i % 2 === 1 ? "ready" : "busy",
-            timestamp: heartbeatTime,
           })
         );
       }
 
-      const session = store.query(tables.kernelSessions.select())[0];
-      expect(session.lastHeartbeat).toEqual(
-        heartbeatTimes[heartbeatTimes.length - 1]
-      );
+      const session = store.query(tables.runtimeSessions.select())[0];
+      expect(session.status).toBeDefined();
       expect(session.status).toBe("busy"); // Last heartbeat status
     });
   });
@@ -788,7 +788,6 @@ describe("End-to-End Execution Flow", () => {
           cellId,
           executionCount: 1,
           requestedBy: "test-user",
-          priority: 1,
         })
       );
 

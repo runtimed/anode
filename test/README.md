@@ -204,7 +204,7 @@ pnpm test:watch
 Pre-built test data includes:
 
 - Mock notebook and cell structures
-- Kernel session configurations
+- Runtime session configurations
 - Execution queue entries
 - Python code samples for testing
 

@@ -46,7 +46,7 @@ import/export. Your computation lives independently of any browser session.
 
 - **AI as development partner** - AI sees your outputs, creates cells, suggests
   next steps
-- **Persistent computation** - Your work survives kernel crashes, tab closes,
+- **Persistent computation** - Your work survives runtime crashes, tab closes,
   browser restarts, vpn disconnects, cafe WiFi
 - **Seamless collaboration** - Your friends, local models, and foundational
   models working on the same notebook
@@ -161,7 +161,7 @@ secrets configured in the dashboard.
 
 ### 🔄 Persistent Computation
 
-- Outputs survive kernel restarts and browser crashes
+- Outputs survive runtime restarts and browser crashes
 - Work offline, sync when connected
 - Rich outputs: plots, tables, colorized terminal output
 - Package caching for fast startup (numpy, pandas, matplotlib)
@@ -180,7 +180,7 @@ See [ROADMAP.md](./ROADMAP.md) for detailed implementation plan.
 **Enhanced AI Partnership** - AI will modify existing cells and execute code,
 not just create new ones.
 
-**Frictionless Setup** - One-click kernel startup instead of copy/paste
+**Frictionless Setup** - One-click runtime startup instead of copy/paste
 commands.
 
 **Production Scale** - "Bring Your Own Compute" with API tokens for enterprise
@@ -277,7 +277,7 @@ there:
 
 **⚡ Remove Friction**
 
-- Enable one-click kernel startup
+- Enable one-click runtime startup
 - Build "Bring Your Own Compute" for production scale
 - Design better error recovery and guidance
 

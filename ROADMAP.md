@@ -80,22 +80,22 @@ for confirming destructive operations
 - Safe operations (create_cell) can bypass confirmation
 - Destructive operations (modify_cell, execute_cell) require confirmation
 
-### 3. User-Attributed Kernels ("Bring Your Own Compute")
+### 3. User-Attributed Runtime Agents ("Bring Your Own Compute")
 
 **Goal**: Enable users to run standalone runtime agents with API tokens
 
-**Current State**: All kernels use shared authentication **Target**: Users can
-run kernels with their own API tokens
+**Current State**: All runtimes use shared authentication **Target**: Users can
+attach runtimes with their own API tokens
 
 **Implementation Tasks**:
 
-- [ ] **API token system** - Generate user-specific tokens for kernel
+- [ ] **API token system** - Generate user-specific tokens for runtime
       authentication
 - [ ] **Token management UI** - Users can create, view, revoke tokens
-- [ ] **Standalone runtime agents** - Kernels authenticate with user tokens
+- [ ] **Standalone runtime agents** - Runtimes authenticate with user tokens
       instead of shared auth
-- [ ] **Kernel attribution** - Show which user's compute is running the kernel
-- [ ] **Documentation** - Clear instructions for running user-owned kernels
+- [ ] **Runtime attribution** - Show which user's compute is running the runtime
+- [ ] **Documentation** - Clear instructions for running user-owned runtime agents
 
 **Benefits**:
 
@@ -109,33 +109,20 @@ run kernels with their own API tokens
 
 **Technical Challenges**:
 
-- Kernel spawning in browser environment
+- Runtime spawning in browser environment
 - Cross-platform compatibility (Windows, macOS, Linux)
-- Security considerations for kernel execution
+- Security considerations for runtime execution
 - Resource management and cleanup
 
 **Implementation Tasks**:
 
-- [x] **Kernel session reliability** - Fixed materializer side effects causing
-      restart failures (#34)
-- [ ] **Kernel orchestration architecture** - Design kernel spawning mechanism
-- [ ] **One-click kernel startup** - Create "Start Kernel" button in notebook UI
-- [ ] **Kernel health monitoring** - Detect failures and restart automatically
-- [ ] **Better status indicators** - Clear feedback on kernel state
-- [ ] **Error recovery** - Graceful handling of kernel disconnections
+- [ ] **Runtime orchestration architecture** - Design runtime spawning mechanism
+- [ ] **One-click runtime startup** - Create "Start Runtime" button in notebook UI
+- [ ] **Auto-spawning Runtime** - One-click notebook startup
+- [ ] **Runtime health monitoring** - Detect failures and restart automatically
+- [ ] **Better status indicators** - Clear feedback on runtime state
 
 ## Short-term Goals (Next 1-2 Months)
-
-### Automated Kernel Management
-
-**Goal**: Remove manual `NOTEBOOK_ID=xyz pnpm dev:runtime` friction
-
-- [x] **Kernel session reliability** - Fixed materializer side effects causing
-      restart failures (#34)
-- [ ] **Auto-spawning kernels** - One-click notebook startup
-- [ ] **Kernel health monitoring** - Detect failures and restart
-- [ ] **Better status UI** - Clear feedback on kernel state
-- [ ] **Error recovery** - Graceful handling of kernel disconnections
 
 ### Rich Output System Enhancement
 
@@ -173,7 +160,7 @@ run kernels with their own API tokens
 **Goal**: Extensible AI tooling through Python ecosystem
 
 - [ ] **MCP Registry Architecture** - Discover and manage MCP providers
-- [ ] **Python Kernel Integration** - Use Python introspection to find MCP
+- [ ] **Python Runtime Integration** - Use Python introspection to find MCP
       modules
 - [ ] **Tool Routing System** - Seamlessly route between notebook and MCP tools
 - [ ] **Provider Lifecycle Management** - Connect, disconnect, monitor MCP
@@ -182,7 +169,7 @@ run kernels with their own API tokens
 
 ### SQL Cell Implementation
 
-- [ ] **DuckDB integration** - SQL execution via Python kernel
+- [ ] **DuckDB integration** - SQL execution via Runtime bridge
 - [ ] **Database connections** - Connect to external databases
 - [ ] **Result visualization** - Rich display of query results
 - [ ] **Python interop** - Share data between SQL and Python cells
@@ -261,7 +248,7 @@ run kernels with their own API tokens
 
 1. **Phase 1 Complete**: Before moving to Phase 2, validate all enhanced AI tool
    calling works
-2. **Phase 2 Complete**: Before Phase 3, ensure user-attributed kernels work
+2. **Phase 2 Complete**: Before Phase 3, ensure user-attributed runtimes work
    reliably
 3. **Continuous**: Infrastructure improvements happen alongside feature
    development
@@ -275,7 +262,7 @@ run kernels with their own API tokens
 
 ### Resource Allocation
 
-- **60% Feature Development**: Enhanced AI, user kernels, automation
+- **60% Feature Development**: Enhanced AI, user runtimes, automation
 - **30% Infrastructure**: Testing, documentation, performance
 - **10% Maintenance**: Bug fixes, dependency updates
 
@@ -283,7 +270,7 @@ run kernels with their own API tokens
 
 ### User Experience
 
-- Kernel startup time: < 10 seconds (currently ~30s with manual process)
+- Runtime startup time: < 10 seconds (currently ~30s with manual process)
 - Python execution latency: < 1 second for simple operations
 - AI tool execution time: < 3 seconds for cell creation/modification
 - Collaboration sync delay: < 100ms
@@ -294,7 +281,7 @@ run kernels with their own API tokens
 ### Technical Performance
 
 - Test suite execution: < 30 seconds (currently ~2s)
-- Zero-latency execution: < 100ms for kernel work detection
+- Zero-latency execution: < 100ms for runtime work detection
 - Memory efficiency: Handle 100+ cell notebooks without issues
 - Collaboration latency: < 100ms for real-time updates
 
@@ -307,7 +294,7 @@ run kernels with their own API tokens
 
 ### Reliability
 
-- Kernel uptime: > 99% during active use
+- Runtime uptime: > 99% during active use
 - Data loss incidents: Zero tolerance
 - Recovery time from failures: < 30 seconds
 - Cross-browser compatibility: Chrome, Firefox, Safari

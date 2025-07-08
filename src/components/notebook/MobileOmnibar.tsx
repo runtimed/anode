@@ -64,7 +64,6 @@ export const MobileOmnibar: React.FC<MobileOmnibarProps> = ({
           cellId,
           executionCount: 1,
           requestedBy: "current-user",
-          priority: 1,
         })
       );
     } catch (error) {

@@ -49,7 +49,7 @@ export const createMockStore = () => ({
   },
 });
 
-export const createMockKernel = () => ({
+export const createMockRuntime = () => ({
   initialize: vi.fn(),
   execute: vi.fn(),
   terminate: vi.fn(),

@@ -1,10 +1,9 @@
 import React, { useCallback, Suspense } from "react";
 import { useStore } from "@livestore/react";
-import { CellData, events, KernelSessionData, tables } from "@runt/schema";
+import { CellData, events, RuntimeSessionData, tables } from "@runt/schema";
 import { queryDb } from "@livestore/livestore";
 
 import { VirtualizedCellList } from "./VirtualizedCellList.js";
-import { formatDistanceToNow } from "date-fns";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -56,17 +55,16 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
   const notebooks = store.useQuery(
     queryDb(tables.notebook.select().limit(1))
   ) as any[];
-  // TODO: Update schema to use runtime terminology (kernelSessions → runtimeSessions, KernelSessionData → RuntimeSessionData)
-  const kernelSessions = store.useQuery(
-    queryDb(tables.kernelSessions.select().where({ isActive: true }))
-  ) as KernelSessionData[];
-  // Get all kernel sessions for debug panel
-  const allKernelSessions = store.useQuery(
-    queryDb(tables.kernelSessions.select())
-  ) as KernelSessionData[];
+  const runtimeSessions = store.useQuery(
+    queryDb(tables.runtimeSessions.select().where({ isActive: true }))
+  ) as RuntimeSessionData[];
+  // Get all runtime sessions for debug panel
+  const allRuntimeSessions = store.useQuery(
+    queryDb(tables.runtimeSessions.select())
+  ) as RuntimeSessionData[];
   // Get execution queue for debug panel
   const executionQueue = store.useQuery(
-    queryDb(tables.executionQueue.select().orderBy("priority", "desc"))
+    queryDb(tables.executionQueue.select().orderBy("id", "desc"))
   ) as any[];
   const notebook = notebooks[0];
 
@@ -80,23 +78,31 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
   const currentNotebookId = getCurrentNotebookId();
   const runtimeCommand = getRuntimeCommand(currentNotebookId);
 
-  // Check kernel status with heartbeat-based health assessment
-  const getRuntimeHealth = (session: KernelSessionData) => {
-    if (!session.lastHeartbeat) {
-      // If session is active but no heartbeat yet, it's connecting (not disconnected)
+  // Check runtime status
+  const getRuntimeHealth = (session: RuntimeSessionData) => {
+    if (session.status === "starting") {
+      // If session is starting, it's connecting
       return session.isActive ? "connecting" : "unknown";
     }
-    const now = new Date();
-    const lastHeartbeat = new Date(session.lastHeartbeat);
-    const diffMs = now.getTime() - lastHeartbeat.getTime();
-
-    if (diffMs > 300000) return "stale"; // 5+ minutes
-    if (diffMs > 60000) return "warning"; // 1+ minute
-    return "healthy";
+    if (!session.isActive) {
+      return "disconnected";
+    }
+    // For active sessions, use status to determine health
+    switch (session.status) {
+      case "ready":
+      case "busy":
+        return "healthy";
+      case "restarting":
+        return "warning";
+      case "terminated":
+        return "disconnected";
+      default:
+        return "unknown";
+    }
   };
 
-  const activeRuntime = kernelSessions.find(
-    (session: KernelSessionData) =>
+  const activeRuntime = runtimeSessions.find(
+    (session: RuntimeSessionData) =>
       session.status === "ready" || session.status === "busy"
   );
   const hasActiveRuntime = Boolean(
@@ -110,7 +116,7 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
     : "disconnected";
   const runtimeStatus =
     activeRuntime?.status ||
-    (kernelSessions.length > 0 ? kernelSessions[0].status : "disconnected");
+    (runtimeSessions.length > 0 ? runtimeSessions[0].status : "disconnected");
 
   const copyRuntimeCommand = useCallback(() => {
     navigator.clipboard.writeText(runtimeCommand);
@@ -138,21 +144,6 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
       );
     }
   }, [executionQueue, store]);
-
-  // Helper function to format heartbeat time
-  const formatHeartbeatTime = (heartbeatTime: Date | string | null) => {
-    if (!heartbeatTime) return "Never";
-
-    const heartbeat = new Date(heartbeatTime);
-    const now = new Date();
-    const diffMs = now.getTime() - heartbeat.getTime();
-
-    // Show "Now" for very recent heartbeats (within 2 seconds)
-    if (diffMs < 2000) return "Now";
-
-    // Use date-fns for clean relative formatting
-    return formatDistanceToNow(heartbeat, { addSuffix: true });
-  };
 
   React.useEffect(() => {
     if (notebook?.title) {
@@ -440,9 +431,7 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
                   >
                     <Terminal className="h-3 w-3 sm:h-4 sm:w-4" />
                     <span className="hidden text-xs capitalize sm:block sm:text-sm">
-                      {
-                        /* TODO: Update schema property kernelType → runtimeType */ notebook.kernelType
-                      }
+                      {notebook.runtimeType}
                     </span>
                     <Circle
                       className={`h-2 w-2 fill-current ${
@@ -452,7 +441,7 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
                             ? "text-amber-500"
                             : activeRuntime && runtimeHealth === "connecting"
                               ? "text-blue-500"
-                              : activeRuntime && runtimeHealth === "stale"
+                              : activeRuntime && runtimeHealth === "warning"
                                 ? "text-amber-500"
                                 : runtimeStatus === "starting"
                                   ? "text-blue-500"
@@ -495,7 +484,7 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
                               ? "text-amber-500"
                               : activeRuntime && runtimeHealth === "connecting"
                                 ? "text-blue-500"
-                                : activeRuntime && runtimeHealth === "stale"
+                                : activeRuntime && runtimeHealth === "warning"
                                   ? "text-amber-500"
                                   : runtimeStatus === "starting"
                                     ? "text-blue-500"
@@ -510,7 +499,7 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
                               ? "text-amber-600"
                               : activeRuntime && runtimeHealth === "connecting"
                                 ? "text-blue-600"
-                                : activeRuntime && runtimeHealth === "stale"
+                                : activeRuntime && runtimeHealth === "warning"
                                   ? "text-amber-600"
                                   : runtimeStatus === "starting"
                                     ? "text-blue-600"
@@ -523,8 +512,8 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
                             ? "Connected (Slow)"
                             : activeRuntime && runtimeHealth === "connecting"
                               ? "Connecting..."
-                              : activeRuntime && runtimeHealth === "stale"
-                                ? "Connected (Stale)"
+                              : activeRuntime && runtimeHealth === "warning"
+                                ? "Connected (Warning)"
                                 : runtimeStatus === "starting"
                                   ? "Starting"
                                   : "Disconnected"}
@@ -582,11 +571,7 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
                         <span className="text-muted-foreground">
                           Runtime Type:
                         </span>
-                        <span>
-                          {
-                            /* TODO: Update schema property kernelType → runtimeType */ activeRuntime.kernelType
-                          }
-                        </span>
+                        <span>{activeRuntime.runtimeType}</span>
                       </div>
                       <div className="flex justify-between">
                         <span className="text-muted-foreground">Status:</span>
@@ -607,13 +592,13 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
                                 activeRuntime.status.slice(1)}
                         </span>
                       </div>
-                      {activeRuntime.lastHeartbeat && (
+                      {activeRuntime.status && (
                         <div className="flex justify-between">
                           <span className="text-muted-foreground">
                             Last Heartbeat:
                           </span>
                           <span className="flex items-center gap-1 text-xs">
-                            {formatHeartbeatTime(activeRuntime.lastHeartbeat)}
+                            Status: {activeRuntime.status}
                           </span>
                         </div>
                       )}
@@ -676,13 +661,13 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
                   )}
 
                   {/* Show all runtime sessions for debugging */}
-                  {kernelSessions.length > 1 && (
+                  {runtimeSessions.length > 1 && (
                     <div className="mt-4 border-t pt-4">
                       <h5 className="text-muted-foreground mb-2 text-xs font-medium">
                         All Sessions:
                       </h5>
                       <div className="space-y-1">
-                        {kernelSessions.map((session: KernelSessionData) => (
+                        {runtimeSessions.map((session: RuntimeSessionData) => (
                           <div
                             key={session.sessionId}
                             className="flex items-center justify-between text-xs"
@@ -704,9 +689,9 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
                               >
                                 {session.status}
                               </span>
-                              {session.lastHeartbeat && (
+                              {session.status && (
                                 <span className="text-muted-foreground">
-                                  {formatHeartbeatTime(session.lastHeartbeat)}
+                                  Status: {session.status}
                                 </span>
                               )}
                             </div>
@@ -886,7 +871,7 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
             <LazyDebugPanel
               notebook={notebook}
               cells={cells}
-              allKernelSessions={allKernelSessions}
+              allRuntimeSessions={allRuntimeSessions}
               executionQueue={executionQueue}
               currentNotebookId={currentNotebookId}
               runtimeHealth={runtimeHealth}

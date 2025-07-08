@@ -148,8 +148,6 @@ tmp/
 .wrangler/
 SQLite/
 
-# Dev kernel state
-kernel-state/
 # Pyodide cache
 pyodide-cache/
 

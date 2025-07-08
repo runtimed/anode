@@ -13,13 +13,12 @@ export const mockCellData = {
   position: 0,
 };
 
-export const mockKernelSession = {
+export const mockRuntimeSession = {
   sessionId: "test-session-789",
-  kernelId: "test-kernel-101",
-  kernelType: "python3" as const,
+  runtimeId: "test-runtime-101",
+  runtimeType: "python3" as const,
   isActive: true,
   status: "ready" as const,
-  lastHeartbeat: new Date("2024-01-01T00:00:00Z"),
   capabilities: {
     canExecuteCode: true,
     canExecuteSql: false,
@@ -31,9 +30,7 @@ export const mockExecutionQueueEntry = {
   id: "test-queue-202",
   cellId: "test-cell-456",
   status: "pending" as const,
-  priority: 1,
-  assignedKernelSession: null,
-  error: null,
+  assignedRuntimeSession: null,
 };
 
 export const mockCellOutput = {
@@ -99,14 +96,15 @@ export const mockEvents = {
     args: {
       cellId: mockCellData.id,
       queueId: mockExecutionQueueEntry.id,
-      priority: mockExecutionQueueEntry.priority,
+      executionCount: 1,
+      requestedBy: "test-user",
     },
   },
   executionAssigned: {
     name: "v1.ExecutionAssigned",
     args: {
       queueId: mockExecutionQueueEntry.id,
-      kernelSessionId: mockKernelSession.sessionId,
+      runtimeSessionId: mockRuntimeSession.sessionId,
     },
   },
   executionStarted: {
@@ -114,7 +112,7 @@ export const mockEvents = {
     args: {
       queueId: mockExecutionQueueEntry.id,
       cellId: mockCellData.id,
-      kernelSessionId: mockKernelSession.sessionId,
+      runtimeSessionId: mockRuntimeSession.sessionId,
       startedAt: new Date(),
     },
   },
@@ -129,22 +127,21 @@ export const mockEvents = {
       executionDurationMs: 100,
     },
   },
-  kernelSessionStarted: {
-    name: "v1.KernelSessionStarted",
-    args: mockKernelSession,
+  runtimeSessionStarted: {
+    name: "v1.RuntimeSessionStarted",
+    args: mockRuntimeSession,
   },
-  kernelSessionHeartbeat: {
-    name: "v1.KernelSessionHeartbeat",
+  runtimeSessionStatusChanged: {
+    name: "v1.RuntimeSessionStatusChanged",
     args: {
-      sessionId: mockKernelSession.sessionId,
+      sessionId: mockRuntimeSession.sessionId,
       status: "ready" as const,
-      timestamp: new Date(),
     },
   },
-  kernelSessionTerminated: {
-    name: "v1.KernelSessionTerminated",
+  runtimeSessionTerminated: {
+    name: "v1.RuntimeSessionTerminated",
     args: {
-      sessionId: mockKernelSession.sessionId,
+      sessionId: mockRuntimeSession.sessionId,
       reason: "shutdown",
     },
   },
@@ -156,7 +153,7 @@ export const mockEvents = {
     name: "v1.CellOutputsCleared",
     args: {
       cellId: mockCellData.id,
-      clearedBy: "test-kernel",
+      clearedBy: "test-runtime",
     },
   },
 };
@@ -202,13 +199,13 @@ export const mockPyodideOutputs = {
 export const testEnvironments = {
   minimal: {
     NOTEBOOK_ID: "test-notebook",
-    KERNEL_ID: "test-kernel",
+    RUNTIME_ID: "test-runtime",
     LIVESTORE_SYNC_URL: "ws://localhost:8787",
     AUTH_TOKEN: "test-token",
   },
   withSession: {
     NOTEBOOK_ID: "test-notebook",
-    KERNEL_ID: "test-kernel",
+    RUNTIME_ID: "test-runtime",
     SESSION_ID: "test-session",
     LIVESTORE_SYNC_URL: "ws://localhost:8787",
     AUTH_TOKEN: "test-token",
@@ -226,10 +223,10 @@ export const createMockCell = (
     `test-cell-${Date.now()}-${Math.random().toString(36).slice(2)}`,
 });
 
-export const createMockKernelSession = (
-  overrides: Partial<typeof mockKernelSession> = {}
+export const createMockRuntimeSession = (
+  overrides: Partial<typeof mockRuntimeSession> = {}
 ) => ({
-  ...mockKernelSession,
+  ...mockRuntimeSession,
   ...overrides,
   sessionId:
     overrides.sessionId ||
