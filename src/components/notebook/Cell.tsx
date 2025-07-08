@@ -144,7 +144,7 @@ export const Cell: React.FC<CellProps> = ({
         .slice(2)}`;
       const executionCount = (cell.executionCount || 0) + 1;
 
-      // Add to execution queue - kernels will pick this up
+      // Add to execution queue - runtimes will pick this up
       store.commit(
         events.executionRequested({
           queueId,
@@ -155,7 +155,7 @@ export const Cell: React.FC<CellProps> = ({
         })
       );
 
-      // The kernel service will now:
+      // The runtime service will now:
       // 1. See the pending execution in the queue
       // 2. Assign itself to the execution
       // 3. Execute the code

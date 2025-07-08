@@ -447,9 +447,7 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
                   >
                     <Terminal className="h-3 w-3 sm:h-4 sm:w-4" />
                     <span className="hidden text-xs capitalize sm:block sm:text-sm">
-                      {
-                        /* TODO: Update schema property kernelType → runtimeType */ notebook.kernelType
-                      }
+                      {notebook.runtimeType}
                     </span>
                     <Circle
                       className={`h-2 w-2 fill-current ${
@@ -589,11 +587,7 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
                         <span className="text-muted-foreground">
                           Runtime Type:
                         </span>
-                        <span>
-                          {
-                            /* TODO: Update schema property kernelType → runtimeType */ activeRuntime.kernelType
-                          }
-                        </span>
+                        <span>{activeRuntime.runtimeType}</span>
                       </div>
                       <div className="flex justify-between">
                         <span className="text-muted-foreground">Status:</span>
