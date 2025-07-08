@@ -205,6 +205,14 @@ pnpm dev:sync      # Sync backend
 # Then run: NOTEBOOK_ID=your-notebook-id pnpm dev:runtime
 ```
 
+If you want to iterate on the schema, you wouldn't pnpm link the project. The easiest way to do it is to run:
+
+```bash
+pnpm install @runt/schema@file:../runt/packages/schema
+```
+
+We assume you have `anode` and `runt` in the same directory, otherwise you'd update the install command above.
+
 ### Configuration
 
 Python runtime and AI features are now handled by the separate @runt packages.
