@@ -205,6 +205,14 @@ pnpm dev:sync      # Sync backend
 # Then run: NOTEBOOK_ID=your-notebook-id pnpm dev:runtime
 ```
 
+If you want to iterate on the schema make sure to have `anode` and `runt` cloned in the same parent directory. Then run:
+
+```bash
+pnpm install @runt/schema@file:../runt/packages/schema
+```
+
+If you have them cloned in a different way you'll need the relative path to match where the `@runt/schema` package is.
+
 ### Configuration
 
 Python runtime and AI features are now handled by the separate @runt packages.
