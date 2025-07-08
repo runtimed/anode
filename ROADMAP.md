@@ -167,6 +167,22 @@ attach runtimes with their own API tokens
       providers
 - [ ] **Unified Tool Interface** - Single AI interface for all available tools
 
+### Arbitrary Runtime Connectivity
+
+**Goal**: Support diverse Python execution environments beyond Pyodide
+
+- [ ] **ZeroMQ Integration** - Connect Runtime Agent to external Python kernels via ZeroMQ
+- [ ] **Containerized Runtimes** - Support arbitrary Python environments (e.g., Docker)
+- [ ] **Runtime Discovery** - Mechanism to discover and connect to available runtimes
+
+### Document-level Access Control (RBAC)
+
+**Goal**: Implement granular permissions for notebooks
+
+- [ ] **Role-Based Permissions** - Define roles (e.g., owner, editor, viewer)
+- [ ] **Per-Document ACLs** - Assign permissions to users/groups on individual notebooks
+- [ ] **UI for Permissions Management** - Interface to manage document access
+
 ### SQL Cell Implementation
 
 - [ ] **DuckDB integration** - SQL execution via Runtime bridge
@@ -213,6 +229,7 @@ attach runtimes with their own API tokens
 - [ ] **Better error messages** - Clear feedback for all failure modes
 - [ ] **Execution indicators** - Visual feedback during code execution
 - [ ] **Cell output management** - Clear outputs, output collapsing
+- [ ] **Recently Opened Notebooks** - Display a list of recently accessed notebooks for quick navigation
 
 ### Developer Ecosystem
 
@@ -225,8 +242,7 @@ attach runtimes with their own API tokens
 
 ### Code Quality
 
-- [x] **Comprehensive testing** - 107 passing tests with good integration
-      coverage
+- [x] **Solid testing foundation** - 58 passing tests with good integration coverage
 - [ ] **Re-enable skipped tests** - Some Pyodide integration tests disabled due
       to import issues
 - [ ] **Browser automation testing** - Add Playwright/Cypress for E2E testing

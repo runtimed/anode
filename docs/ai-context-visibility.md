@@ -148,33 +148,6 @@ const toggleAiContextVisibility = useCallback(() => {
 - Include: Problem description, current approach, specific questions
 - Exclude: Unrelated experiments, personal notes, sensitive configurations
 
-## Future Enhancements
-
-### Completed Features ✅
-
-- **Individual cell toggles**: Eye icon controls in all cell types
-- **Visual feedback**: Opacity changes for excluded cells
-- **Actual AI filtering**: Runtime filters context based on visibility settings
-- **System prompt clarity**: AI knows when cells are hidden from context
-
-### Planned Features
-
-- **Bulk selection mode**: Select multiple cells at once for context
-  inclusion/exclusion
-- **Smart defaults**: Auto-exclude certain cell types (e.g., cells with errors,
-  very long outputs)
-- **Context preview**: Show token count and preview of what AI will see
-- **Cell groups**: Toggle entire sections or notebooks at once
-- **Persistence**: Remember context settings across sessions
-
-### Integration Points
-
-- **AI cell execution**: ✅ **IMPLEMENTED** - Only include visible cells when
-  building AI context
-- **Context API**: Provide programmatic access to context-visible cells
-- **Export features**: Option to export only AI-context-visible cells
-- **Collaboration**: Share context visibility settings with team members
-
 ## Implementation Status: COMPLETE ✅
 
 The AI context visibility feature is now **fully functional**:

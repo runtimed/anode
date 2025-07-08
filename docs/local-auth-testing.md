@@ -13,7 +13,7 @@ For testing auth improvements and session management, you'll want to use product
 
 ## Setup
 
-First you'll need to setup a `.env.production` with the right variables
+First, set up a `.env.production` file with the following variables:
 
 ```
 VITE_LIVESTORE_SYNC_URL=wss://anode-docworker.rgbkrk.workers.dev/api
@@ -37,36 +37,36 @@ pnpm dev:prod
 
 This command:
 
-- Starts the local development server at `http://localhost:5173`
-- Uses production environment variables (including Google Client ID)
-- Connects to the production sync worker
-- Enables hot reloading for local development
+- Starts the local development server at `http://localhost:5173`.
+- Uses production environment variables (including Google Client ID).
+- Connects to the production sync worker.
+- Enables hot reloading for local development.
 
 **Note**: `.env.local` takes precedence over other environment files and is gitignored.
 
 ## What You Get
 
-**Production Auth Locally**:
+### Production Auth Locally
 
-- Real Google OAuth sign-in flow
-- Production Google Client ID configuration
-- 7-day session cookies
+- Real Google OAuth sign-in flow.
+- Production Google Client ID configuration.
+- 7-day session cookies.
 
-**Production Sync Backend**:
+### Production Sync Backend
 
-- No need to run `pnpm dev:sync` locally
-- Uses production Cloudflare Worker for sync
-- Real-time collaboration with production infrastructure
+- No need to run `pnpm dev:sync` locally.
+- Uses production Cloudflare Worker for sync.
+- Real-time collaboration with production infrastructure.
 
 ## Testing Auth Improvements
 
-### 1. **Session Persistence**
+### 1. Session Persistence
 
-- Sign in once
+- Sign in once.
 - Should stay logged in across:
-  - Page refreshes
-  - Browser tab closures
-  - Browser restarts (for up to 7 days)
+  - Page refreshes.
+  - Browser tab closures.
+  - Browser restarts (for up to 7 days).
 
 ## Environment Variables
 
@@ -79,12 +79,12 @@ VITE_GOOGLE_AUTH_ENABLED="true"
 
 The production Google Client ID must have `http://localhost:5173` configured in:
 
-- **Authorized JavaScript origins**
-- **Authorized redirect URIs** (if applicable)
+- **Authorized JavaScript origins**.
+- **Authorized redirect URIs** (if applicable).
 
 ## Fallback Mode
 
-If you can't configure production OAuth locally:
+If you cannot configure production OAuth locally:
 
 ```bash
 # In .env.local
@@ -92,7 +92,7 @@ VITE_GOOGLE_AUTH_ENABLED="false"
 VITE_AUTH_TOKEN="local-dev-token"
 ```
 
-This bypasses Google auth entirely but won't let you test session management improvements.
+This bypasses Google auth entirely but will not allow you to test session management improvements.
 
 ## Commands Summary
 
@@ -104,4 +104,4 @@ pnpm dev:prod
 pnpm dev
 ```
 
-The `pnpm dev:prod` approach is the cleanest way to test auth improvements while maintaining fast local development workflow.
+The `pnpm dev:prod` approach is the cleanest way to test auth improvements while maintaining a fast local development workflow.
