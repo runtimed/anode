@@ -1,36 +1,34 @@
-# Deno introduction
+# Deno Introduction
 
-Deno is an alternative to node.js. It is a command line tool that can install packages, and execute typescript or wasm. It additionally has built-in dev tooling around linting, formatting, and testing, removing the need for configuring these manually.
+Deno is an alternative to Node.js, functioning as a command-line tool capable of installing packages and executing TypeScript or WebAssembly. It includes built-in development tools for linting, formatting, and testing, eliminating the need for manual configuration.
 
-# Do I need to install deno to run anode?
+## Do I Need to Install Deno to Run Anode?
 
-Not directly. This anode repository is a traditional node-based application. It uses traditional nodejs paradigms (the only difference is using pnpm instead of npm for managing packages).
+Not directly. The Anode repository is a traditional Node.js-based application, utilizing standard Node.js paradigms (with pnpm for package management). However, to execute Python code, Anode requires connection to a runtime agent. For example, the command `NOTEBOOK_ID=notebook-abc-123 deno run --allow-all --env-file=.env "jsr:@runt/pyodide-runtime-agent"` uses Deno for this purpose. While local development typically involves running the runtime agent with Deno on the same machine, it can also operate on a separate machine.
 
-However, once you launch anode, you'll need to connect it to a runtime agent to execute python code. For example, the given command of `NOTEBOOK_ID=notebook-abc-123 deno run --allow-all --env-file=.env "jsr:@runt/pyodide-runtime-agent"` uses deno for this part of the application. For local development, you'll probably run the runtime agent with deno on the same machine, otherwise it could be run on a completely different computer.
+Deno is chosen for the runtime agent due to its superior WebAssembly support for asynchronous networking and other native features, which are essential for our Pyodide runtime.
 
-Deno is chosen for the runtime agent because it offers better WASM support for async networking and other native features, which are required for our pyodide runtime.
+## What Kinds of Files Can You Run with Deno?
 
-# What kinds of files can you run with deno?
+Deno supports subsets of web standards (e.g., import statements), Promises, and async/await. Therefore, standard TypeScript packages will likely work out-of-the-box.
 
-Deno supports subsets of web standards (think import package), promises, async/await. So, if your package is regular typescript, this will probably work out-of-the box.
+However, Deno does not natively run Node.js code. When writing a Deno-native package, source code transformations are often necessary. For instance, `import { promises as fs } from 'fs';` needs to be changed to use Deno's Node.js compatibility layer: `import * as fs from 'node:fs/promises';`.
 
-However, deno won't run Node code out of the box. If you're writing a deno-native package, this means making a series of source code transformations. So, instead of `import { promises as fs } from 'fs';`, you need to change the code to use the node shim layer of deno, which would be `import * as fs from 'node:fs/promises';`
+Similarly, npm packages require a prefix. Instead of `import React from 'react'`, you would use `import React from 'npm:react'`. All imports in Deno are URLs (unless aliased), adhering to the JavaScript import specification. These specifiers can also be aliased or mapped in the `deno.json` import map, allowing for customized or simplified import paths.
 
-Similarly, npm packages require a prefix. Instead of `import React from 'react'`, you would use `import React from 'npm:react'`. All imports in Deno are URLs (unless aliased), following the JavaScript import specification. You can also alias or map these specifiers in the import map found in deno.json, allowing you to customize or simplify import paths as needed.
+## Permission Model
 
-# Permission model
+When starting the Deno runtime, you must explicitly specify the permissions the application is allowed to have (defaults to none). For example, `deno --allow-net` grants the program the ability to bind network sockets. Refer to the [Deno security documentation](https://docs.deno.com/runtime/fundamentals/security/) for a comprehensive understanding of this model.
 
-When you start the deno runtime, you need to specify on the command line what types of permissions the app should be allowed to have (defaults to none). For example `deno --allow-net` would give the program the ability to bind network sockets. You should give the [security docs](https://docs.deno.com/runtime/fundamentals/security/) a read to understand how this works.
+## NPM, JSR, and Deno Land
 
-# NPM, JSR, and Deno Land
+These are all package repositories. JSR is a superset of npm, containing packages compatible with Node.js, Deno, Cloudflare Workers, and other runtimes. JSR is responsible for transpiling TypeScript-only packages to work with JavaScript-only runtimes (e.g., Node.js).
 
-These are all package repositories. JSR is a superset of npm - it contains packages that work for the node runtime, as well as deno, cloudflare workers etc. JSR itself will be responsible for transpiling any typescript-only package to work for javascript-only runtimes (node).
+The distinction between deno.land and JSR lies in deno.land's function as a caching service for third-party URLs. For example, a package published to GitHub can be cached on deno.land. However, since deno.land does not maintain ownership, changes to the underlying host will affect deno.land. JSR, conversely, provides a more stable and owned registry.
 
-The difference between deno.land and jsr is that deno.land is a caching service behind some 3rd party URL. For example, you can publish a package to github, and have it cached on deno. Since deno.land doesn't maintain ownership, this means if the underlying host changes, then deno.land will change as well.
+Another notable feature of Deno's TypeScript understanding is the elimination of import bundling. You can directly `import React from https://esm.sh/react` (using built-in ECMAScript standards) to fetch packages remotely.
 
-Another interesting thing that comes from deno understanding typescript is that we don't _need_ to bundle the imports. We can just `import React from https://esm.sh/react` (using the built in ecmascript standards) to pull the package remotely.
-
-# Where do I learn more?
+## Learn More
 
 - [What is Deno](https://docs.deno.com/examples/what_is_deno/)
 - [Video Tutorial series](https://www.youtube.com/watch?v=KPTOo4k8-GE&list=PLvvLnBDNuTEov9EBIp3MMfHlBxaKGRWTe&index=1)

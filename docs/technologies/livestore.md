@@ -21,9 +21,9 @@ Then, what happens if someone else does a git push in between steps 2 and 3? In 
 
 This has the downside that although the system as a whole makes progress (since some push always wins), there's no guarantee a particular client will make progress
 
-# More info
+## Learn More
 
 - [React getting started](https://docs.livestore.dev/getting-started/expo/)
-- [Livestore vs redux](https://docs.livestore.dev/evaluation/technology-comparison/#livestore-vs-redux)
+- [LiveStore vs Redux](https://docs.livestore.dev/evaluation/technology-comparison/#livestore-vs-redux)
 - [Thinking about event logs](https://engineering.linkedin.com/distributed-systems/log-what-every-software-engineer-should-know-about-real-time-datas-unifying)
 - [Syncing diagrams](https://docs.livestore.dev/reference/syncing/#advanced)

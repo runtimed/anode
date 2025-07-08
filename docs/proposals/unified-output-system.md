@@ -1,31 +1,22 @@
 # Unified Output System Design
 
-**Status**: Draft Proposal
+**Status**: Implemented
 **Author**: Development Team
 **Date**: July 2025
 
 ## Overview
 
-This document proposes a unified output system for Anode that replaces the current single `cellOutputAdded` event with granular, type-safe events that integrate seamlessly with the existing runtime agent and media handling systems.
-
-## Motivation
-
-Current output handling has several gaps:
-
-- **Single event with discriminated unions** creates complex runtime type checking
-- **Large outputs** bloat the event log and memory (future artifact support)
-- **Streaming scenarios** require efficient append operations
-- **Type safety** is lacking with optional fields that don't apply to all output types
+This document describes the unified output system for Anode, which uses granular, type-safe events that integrate seamlessly with the existing runtime agent and media handling systems.
 
 ## Architecture Overview
 
-The unified system replaces the existing single event with granular, type-safe events:
+The unified system uses granular, type-safe events:
 
-1. **Granular events** with precise schemas (no optional fields)
-2. **Multi-media representation** using existing MediaBundle system
-3. **Streaming append** operations for efficient incremental updates
-4. **Future artifact integration** via discriminated union content
-5. **SQL-friendly output types** for easy querying and concatenation
+1.  **Granular events** with precise schemas (no optional fields)
+2.  **Multi-media representation** using existing MediaBundle system
+3.  **Streaming append** operations for efficient incremental updates
+4.  **Future artifact integration** via discriminated union content
+5.  **SQL-friendly output types** for easy querying and concatenation
 
 ```
 ┌───────┐    events   ┌──────────┐    materialize    ┌──────────┐
@@ -551,36 +542,6 @@ WHERE output_type IN ('multimedia_display', 'multimedia_result')
   AND representations LIKE '%"image/png"%';
 ```
 
-## Implementation Plan
-
-### Phase 1: Enhanced Schema
-
-- [ ] **Breaking change**: Replace `cellOutputAdded` with granular events
-- [ ] Add `pending_clears` table for `clear_output(wait=True)` support
-- [ ] Update materializers for SQL-friendly flattening
-- [ ] Add `artifactCreated` event (schema only, no service implementation)
-
-### Phase 2: Runtime Integration
-
-- [ ] Update ExecutionContext methods to use new events
-- [ ] Integrate MediaBundle → representations mapping
-- [ ] Test all output scenarios (stdout, display, result, error)
-- [ ] Ensure `clear_output(wait=True)` works correctly
-
-### Phase 3: Client Updates
-
-- [ ] Update output rendering components for new output types
-- [ ] Implement streaming UI for terminal and markdown outputs
-- [ ] Test multi-media representation selection
-- [ ] Performance testing and optimization
-
-### Phase 4: Future - Artifact Service (deferred)
-
-- [ ] Implement artifact content routes in sync worker
-- [ ] Add artifact storage backends (local/R2)
-- [ ] Large content transition logic
-- [ ] Environment-aware serving strategies
-
 ## Benefits
 
 - **Type Safety**: No optional fields, event name determines exact structure
@@ -591,24 +552,6 @@ WHERE output_type IN ('multimedia_display', 'multimedia_result')
 - **Future Proof**: Artifact support in schema, extensible for new output types
 - **Jupyter Compatible**: Full MediaBundle support for multi-media outputs
 
-## Migration Strategy
-
-**Breaking changes approach** (prototype phase):
-
-- Replace entire event schema with granular events
-- Update runtime agent ExecutionContext methods
-- Migrate client rendering to new output type structure
-- Clean migration since we're still in prototype stage
-
-**Preserved functionality**:
-
-- All existing MediaBundle handling and AI conversion
-- MIME type support and custom `+json` extensions
-- Rich output rendering capabilities
-- Real-time collaborative updates
-
 ## Related Work
 
 This design consolidates and supersedes previous proposals with a unified, type-safe approach that provides better performance and maintainability than separate systems.
-
-**Note**: Artifact service implementation is deferred to focus on core schema and runtime integration first.

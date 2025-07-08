@@ -1,4 +1,4 @@
-The anode ecosystem uses several modern technologies together, in order to drive this experience. Some or all of these technologies might be unfamiliar to developers, so this section is meant to provide an overview as to what these technologies are, and how they're specifically used in the codebase.
+The Anode ecosystem leverages several modern technologies to deliver its user experience. This section provides an overview of these technologies and their specific applications within the codebase, particularly for developers who may be unfamiliar with them.
 
 # Table Of Contents
 
