@@ -86,7 +86,7 @@ importers:
         specifier: ^1.1.6
         version: 1.2.7(@types/react-dom@19.1.6(@types/react@19.1.8))(@types/react@19.1.8)(react-dom@19.0.0(react@19.0.0))(react@19.0.0)
       '@runt/schema':
-        specifier: jsr:@runt/schema@^0.6.0
+        specifier: jsr:^0.6.0
         version: '@jsr/runt__schema@0.6.0(acef09458561487e0833c9131402e6fe)'
       '@tanstack/react-virtual':
         specifier: ^3.13.12
