@@ -11,27 +11,14 @@
     "resolveJsonModule": true,
     "isolatedModules": true,
     "noEmit": true,
-    "composite": false,
-    "allowImportingTsExtensions": true,
     "lib": ["ES2022", "DOM"],
-    "types": ["vitest/globals", "node"],
+    "types": ["vitest/globals", "node", "vite/client"],
+    "jsx": "react-jsx",
     "baseUrl": ".",
     "paths": {
-      "@anode/web-client": ["./packages/web-client/src"],
-      "@anode/web-client/*": ["./packages/web-client/src/*"],
-      "@anode/docworker": ["./packages/docworker/src"],
-      "@anode/docworker/*": ["./packages/docworker/src/*"],
-      "@anode/pyodide-runtime-agent": ["./packages/pyodide-runtime-agent/src"],
-      "@anode/pyodide-runtime-agent/*": [
-        "./packages/pyodide-runtime-agent/src/*"
-      ]
+      "@/*": ["./src/*"]
     }
   },
-  "include": ["test/**/*", "packages/*/test/**/*", "packages/*/src/**/*"],
-  "exclude": ["node_modules", "dist", "**/*.d.ts"],
-  "references": [
-    { "path": "./packages/web-client" },
-    { "path": "./packages/docworker" },
-    { "path": "./packages/pyodide-runtime-agent" }
-  ]
+  "include": ["test/**/*"],
+  "exclude": ["node_modules", "dist", "**/*.d.ts"]
 }
