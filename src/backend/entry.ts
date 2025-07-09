@@ -1,4 +1,4 @@
-import syncWorker, { WebSocketServer } from "./backend/index.ts";
+import syncWorker, { WebSocketServer } from "./sync.ts";
 
 // The preview worker needs to re-export the Durable Object class
 // so the Workers runtime can find and instantiate it.
