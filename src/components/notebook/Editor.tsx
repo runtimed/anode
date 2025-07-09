@@ -39,6 +39,7 @@ export function Editor({
           onFocus={handleFocus}
           keyMap={keyMap}
           onBlur={updateSource}
+          enableLineWrapping={cell.cellType === "markdown"}
         />
         <MaxMinButton
           className="absolute top-1 right-1 sm:hidden"
@@ -59,6 +60,7 @@ export function Editor({
             language={languageFromCellType(cell.cellType)}
             placeholder={placeholderFromCellType(cell.cellType)}
             value={localSource}
+            enableLineWrapping={cell.cellType === "markdown"}
           />
           <MaxMinButton
             className="absolute top-1 right-1 sm:hidden"
@@ -90,6 +92,7 @@ export function Editor({
               autoFocus={true}
               onFocus={handleFocus}
               onBlur={updateSource}
+              enableLineWrapping={cell.cellType === "markdown"}
             />
             <MaxMinButton
               className="top-1 right-1"

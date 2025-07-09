@@ -12,13 +12,6 @@ name = "anode-docworker"
 main = "./src/backend/sync.ts"
 compatibility_date = "2025-05-08"
 
-# Build configuration for the frontend assets.
-# `wrangler deploy` will run this command before deploying the worker.
-# The environment variables from the target environment's `[vars]` section
-# will be available to this build process.
-[build]
-command = "pnpm build:production"
-
 [dev]
 port = 8787
 
