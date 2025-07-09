@@ -17,7 +17,7 @@ compatibility_date = "2025-05-08"
 # The environment variables from the target environment's `[vars]` section
 # will be available to this build process.
 [build]
-command = "pnpm build"
+command = "pnpm build:production"
 
 [dev]
 port = 8787
