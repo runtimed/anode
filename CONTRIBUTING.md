@@ -9,6 +9,7 @@ Anode is a real-time, collaborative notebook environment built on a modern, loca
 ## Prerequisites
 
 Before you begin, ensure you have the following installed:
+
 - [Node.js](https://nodejs.org/) (version 23.0.0 or higher)
 - [Deno](https://docs.deno.com/runtime/getting_started/installation/) (version v2.4.1 or higher)
 - [pnpm](https://pnpm.io/installation)
@@ -40,9 +41,11 @@ pnpm install
 Your development environment requires a couple of configuration files for the frontend (Vite) and the backend (Wrangler/Miniflare). You can create these by copying the provided example files.
 
 - **For the backend Worker:**
+
   ```bash
   cp .dev.vars.example .dev.vars
   ```
+
   This file provides local secrets and variables to your Worker. The default values are suitable for getting started.
 
 - **For the frontend application:**
@@ -79,8 +82,8 @@ Your notebook is now connected to a Python runtime and can execute code cells.
 
 We have streamlined deployment scripts for our different environments:
 
--   **Preview**: `pnpm deploy:preview`
--   **Production**: `pnpm deploy:production`
+- **Preview**: `pnpm deploy:preview`
+- **Production**: `pnpm deploy:production`
 
 **Note**: Before deploying, you must configure the required secrets (like `AUTH_TOKEN`, `GOOGLE_CLIENT_SECRET`, etc.) for the target environment using the `wrangler secret put` command. For example:
 
@@ -91,6 +94,7 @@ pnpm wrangler secret put AUTH_TOKEN --env preview
 ## Code Style and Conventions
 
 We follow a consistent code style to keep the project maintainable.
+
 - **TypeScript**: We use strict mode across the project.
 - **Formatting**: We use Prettier for code formatting. Please run `pnpm format` before committing.
 - **Linting**: We use ESLint to catch common errors. Run `pnpm lint` to check your code.
