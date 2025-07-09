@@ -37,6 +37,8 @@ const MemoizedCell = React.memo(Cell, (prevProps, nextProps) => {
     prevProps.cell.sourceVisible === nextProps.cell.sourceVisible &&
     prevProps.cell.outputVisible === nextProps.cell.outputVisible &&
     prevProps.cell.aiContextVisible === nextProps.cell.aiContextVisible &&
+    prevProps.cell.aiProvider === nextProps.cell.aiProvider &&
+    prevProps.cell.aiModel === nextProps.cell.aiModel &&
     prevProps.autoFocus === nextProps.autoFocus &&
     prevProps.contextSelectionMode === nextProps.contextSelectionMode
   );

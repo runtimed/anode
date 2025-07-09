@@ -5,6 +5,12 @@ import { queryDb } from "@livestore/livestore";
 import { useCellKeyboardNavigation } from "../../hooks/useCellKeyboardNavigation.js";
 import { useCellContent } from "../../hooks/useCellContent.js";
 import { groupConsecutiveStreamOutputs } from "../../util/output-grouping.js";
+import {
+  useAvailableAiModels,
+  getNotebookAiModels,
+  getProviderBadgeColor,
+  getModelSizeDisplay,
+} from "../../util/ai-models.js";
 
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -13,6 +19,8 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { RichOutput } from "./RichOutput.js";
@@ -71,8 +79,26 @@ export const AiCell: React.FC<AiCellProps> = ({
   );
   const outputs = store.useQuery(outputsQuery) as OutputData[];
 
+  // Get available AI models from runtime capabilities
   const provider = cell.aiProvider || "openai";
   const model = cell.aiModel || "gpt-4o-mini";
+
+  // Get available AI models from runtime capabilities
+  const { models: availableModels } = useAvailableAiModels();
+  const notebookModels = getNotebookAiModels(availableModels);
+
+  // Pre-compute provider groups for dropdown rendering
+  const providerGroups = React.useMemo(() => {
+    const groups = new Map<string, typeof notebookModels>();
+    notebookModels.forEach((model) => {
+      if (!groups.has(model.provider)) {
+        groups.set(model.provider, []);
+      }
+      groups.get(model.provider)!.push(model);
+    });
+
+    return Array.from(groups.entries()).sort(([a], [b]) => a.localeCompare(b));
+  }, [notebookModels]);
 
   // Auto-focus when requested
   React.useEffect(() => {
@@ -252,19 +278,23 @@ export const AiCell: React.FC<AiCellProps> = ({
   };
 
   const getProviderBadge = () => {
-    const colors = {
-      openai: "text-green-700 bg-green-50 border-green-200",
-      anthropic: "text-orange-700 bg-orange-50 border-orange-200",
-      local: "text-purple-700 bg-purple-50 border-purple-200",
-    };
+    // Find the current model in available models
+    const currentModel = availableModels.find(
+      (m) => m.name === model && m.provider === provider
+    );
+
+    const displayName =
+      provider === "ollama" ? "Ollama" : provider.toUpperCase();
+    const modelDisplay = currentModel ? currentModel.displayName : model;
+    const colorClass = getProviderBadgeColor(provider);
+
     return (
       <Badge
         variant="outline"
-        className={`h-5 cursor-pointer text-xs hover:opacity-80 ${
-          colors[provider as keyof typeof colors] || "bg-gray-50"
-        }`}
+        className={`h-5 cursor-pointer text-xs hover:opacity-80 ${colorClass}`}
+        title={`Provider: ${displayName}, Model: ${modelDisplay}`}
       >
-        {provider.toUpperCase()} • {model}
+        {displayName} • {modelDisplay}
       </Badge>
     );
   };
@@ -397,41 +427,32 @@ export const AiCell: React.FC<AiCellProps> = ({
               </div>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-              <DropdownMenuItem
-                onClick={() => changeProvider("openai", "gpt-4o")}
-              >
-                OpenAI GPT-4o
-              </DropdownMenuItem>
-              <DropdownMenuItem
-                onClick={() => changeProvider("openai", "gpt-4o-mini")}
-              >
-                OpenAI GPT-4o Mini
-              </DropdownMenuItem>
-              <DropdownMenuItem
-                onClick={() => changeProvider("openai", "gpt-4")}
-              >
-                OpenAI GPT-4 (Legacy)
-              </DropdownMenuItem>
-              <DropdownMenuItem
-                onClick={() => changeProvider("openai", "gpt-3.5-turbo")}
-              >
-                OpenAI GPT-3.5 Turbo
-              </DropdownMenuItem>
-              <DropdownMenuItem
-                onClick={() => changeProvider("anthropic", "claude-3-sonnet")}
-              >
-                Anthropic Claude 3 Sonnet
-              </DropdownMenuItem>
-              <DropdownMenuItem
-                onClick={() => changeProvider("anthropic", "claude-3-haiku")}
-              >
-                Anthropic Claude 3 Haiku
-              </DropdownMenuItem>
-              <DropdownMenuItem
-                onClick={() => changeProvider("local", "llama-2")}
-              >
-                Local Llama 2
-              </DropdownMenuItem>
+              {notebookModels.length > 0 ? (
+                providerGroups.map(([provider, models], providerIndex) => (
+                  <React.Fragment key={provider}>
+                    {providerIndex > 0 && <DropdownMenuSeparator />}
+                    <DropdownMenuLabel className="px-2 py-1 text-xs font-medium text-gray-600">
+                      {provider.toUpperCase()}
+                    </DropdownMenuLabel>
+                    {models.map((model) => (
+                      <DropdownMenuItem
+                        key={`${model.provider}-${model.name}`}
+                        onClick={() =>
+                          changeProvider(model.provider, model.name)
+                        }
+                      >
+                        {model.displayName}
+                        {model.provider === "ollama" &&
+                          getModelSizeDisplay(model)}
+                      </DropdownMenuItem>
+                    ))}
+                  </React.Fragment>
+                ))
+              ) : (
+                <DropdownMenuItem disabled>
+                  No AI models available
+                </DropdownMenuItem>
+              )}
             </DropdownMenuContent>
           </DropdownMenu>
           {getExecutionStatus()}
@@ -619,48 +640,35 @@ export const AiCell: React.FC<AiCellProps> = ({
                         {provider.toUpperCase()} • {model}
                       </button>
                     </DropdownMenuTrigger>
-                    <DropdownMenuContent align="start">
-                      <DropdownMenuItem
-                        onClick={() => changeProvider("openai", "gpt-4o")}
-                      >
-                        OpenAI GPT-4o
-                      </DropdownMenuItem>
-                      <DropdownMenuItem
-                        onClick={() => changeProvider("openai", "gpt-4o-mini")}
-                      >
-                        OpenAI GPT-4o Mini
-                      </DropdownMenuItem>
-                      <DropdownMenuItem
-                        onClick={() => changeProvider("openai", "gpt-4")}
-                      >
-                        OpenAI GPT-4 (Legacy)
-                      </DropdownMenuItem>
-                      <DropdownMenuItem
-                        onClick={() =>
-                          changeProvider("openai", "gpt-3.5-turbo")
-                        }
-                      >
-                        OpenAI GPT-3.5 Turbo
-                      </DropdownMenuItem>
-                      <DropdownMenuItem
-                        onClick={() =>
-                          changeProvider("anthropic", "claude-3-sonnet")
-                        }
-                      >
-                        Anthropic Claude 3 Sonnet
-                      </DropdownMenuItem>
-                      <DropdownMenuItem
-                        onClick={() =>
-                          changeProvider("anthropic", "claude-3-haiku")
-                        }
-                      >
-                        Anthropic Claude 3 Haiku
-                      </DropdownMenuItem>
-                      <DropdownMenuItem
-                        onClick={() => changeProvider("local", "llama-2")}
-                      >
-                        Local Llama 2
-                      </DropdownMenuItem>
+                    <DropdownMenuContent align="end">
+                      {notebookModels.length > 0 ? (
+                        providerGroups.map(
+                          ([provider, models], providerIndex) => (
+                            <React.Fragment key={provider}>
+                              {providerIndex > 0 && <DropdownMenuSeparator />}
+                              <DropdownMenuLabel className="px-2 py-1 text-xs font-medium text-gray-600">
+                                {provider.toUpperCase()}
+                              </DropdownMenuLabel>
+                              {models.map((model) => (
+                                <DropdownMenuItem
+                                  key={`${model.provider}-${model.name}`}
+                                  onClick={() =>
+                                    changeProvider(model.provider, model.name)
+                                  }
+                                >
+                                  {model.displayName}
+                                  {model.provider === "ollama" &&
+                                    getModelSizeDisplay(model)}
+                                </DropdownMenuItem>
+                              ))}
+                            </React.Fragment>
+                          )
+                        )
+                      ) : (
+                        <DropdownMenuItem disabled>
+                          No AI models available
+                        </DropdownMenuItem>
+                      )}
                     </DropdownMenuContent>
                   </DropdownMenu>
                 </div>

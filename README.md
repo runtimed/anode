@@ -205,13 +205,35 @@ pnpm dev:sync      # Sync backend
 # Then run: NOTEBOOK_ID=your-notebook-id pnpm dev:runtime
 ```
 
-If you want to iterate on the schema make sure to have `anode` and `runt` cloned in the same parent directory. Then run:
+### Schema Linking for Development
 
-```bash
-pnpm install @runt/schema@file:../runt/packages/schema
+The `@runt/schema` package provides shared types and events between Anode and Runt. Use the appropriate linking method based on your development phase:
+
+**Production (JSR Package)**:
+
+```json
+"@runt/schema": "jsr:^0.6.0"
 ```
 
-If you have them cloned in a different way you'll need the relative path to match where the `@runt/schema` package is.
+**Testing PR Changes (GitHub Reference)**:
+
+```json
+"@runt/schema": "github:runtimed/runt#1d52f9e51b9f28e81e366a7053d1e5fa6164c390&path:/packages/schema"
+```
+
+**Local Development (File Link)**:
+
+```json
+"@runt/schema": "file:../runt/packages/schema"
+```
+
+**To switch between modes:**
+
+1. Update `package.json` with the appropriate schema reference
+2. Run `pnpm install` to update dependencies
+3. Restart development servers (`pnpm dev` and `pnpm dev:sync`)
+
+**Important**: Ensure both repositories use compatible schema versions. Type errors usually indicate schema mismatches.
 
 ### Configuration
 
