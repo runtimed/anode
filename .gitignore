@@ -90,6 +90,7 @@ typings/
 .env.production.local
 .env.production
 .env.development
+.env.preview
 
 # Wrangler development secrets
 .dev.vars

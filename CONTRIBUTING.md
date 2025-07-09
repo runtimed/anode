@@ -1,201 +1,107 @@
 # Contributing to Anode
 
-Thank you for your interest in contributing to Anode! This guide will help you
-get set up and understand how to contribute effectively.
+Thank you for your interest in contributing to Anode! This guide provides everything you need to get your development environment set up and start contributing.
 
-## Quick Start
+## Core Philosophy
 
-### 1. Clone and Setup
+Anode is a real-time, collaborative notebook environment built on a modern, local-first stack. We prioritize a clean, maintainable codebase and a smooth developer experience. Our goal is to make it as easy as possible for you to contribute.
+
+## Prerequisites
+
+Before you begin, ensure you have the following installed:
+- [Node.js](https://nodejs.org/) (version 23.0.0 or higher)
+- [Deno](https://docs.deno.com/runtime/getting_started/installation/) (version v2.4.1 or higher)
+- [pnpm](https://pnpm.io/installation)
+- [Git](https://git-scm.com/)
+
+## Development Setup
+
+Getting started with Anode is designed to be as simple as possible.
+
+### 1. Clone the Repository
+
+First, clone the Anode repository to your local machine:
 
 ```bash
-git clone https://github.com/your-org/anode.git
+git clone https://github.com/runtimed/anode.git
 cd anode
-pnpm install  # Automatically creates .env with defaults
 ```
 
-The `pnpm install` command automatically runs a setup script that creates
-separate `.env` files with sensible defaults. No manual copying required!
+### 2. Install Dependencies
 
-### 2. Start Development
+Install all project dependencies using `pnpm`. This command will also set up all necessary tooling.
 
 ```bash
-pnpm dev  # Starts web client + sync backend
+pnpm install
 ```
 
-### 3. Enable Python Execution
+### 3. Configure Your Local Environment
 
-1. Open http://localhost:5173
-2. Create a notebook (URL will show: `?notebook=notebook-123-abc`)
-3. Click the **Runtime** button in the notebook header
-4. Copy the exact runtime command shown (e.g.,
-   `NOTEBOOK_ID=notebook-123-abc pnpm dev:runtime`)
-5. Run that command in a new terminal
+Your development environment requires a couple of configuration files for the frontend (Vite) and the backend (Wrangler/Miniflare). You can create these by copying the provided example files.
 
-### 4. Optional: Add AI Features
+- **For the backend Worker:**
+  ```bash
+  cp .dev.vars.example .dev.vars
+  ```
+  This file provides local secrets and variables to your Worker. The default values are suitable for getting started.
 
-Python runtime and AI features are now handled by the separate @runt packages:
+- **For the frontend application:**
+  ```bash
+  cp .env.example .env.development
+  ```
+  This file provides environment variables to the Vite build process for local development. The default values point to your local backend services.
+
+These `.dev.vars` and `.env.development` files are already in `.gitignore` and should **never** be committed to the repository.
+
+### 4. Run the Development Server
+
+Start the entire Anode application (both the React frontend and the Cloudflare Worker backend) with a single command:
 
 ```bash
-# See https://github.com/runtimed/runt for setup
+pnpm dev
 ```
 
-## Development Workflow
+This will start the Vite development server. You can now access the Anode application in your browser at **`http://localhost:5173`**. The Vite plugin automatically runs your Worker code, so any API requests from the frontend will be handled by your local Worker.
 
-### Environment Setup
+### 5. Enable Python Execution
 
-- **Single .env**: One `.env` file at repository root contains all configuration
-- **Security**: Server-side variables (AUTH*TOKEN) kept separate from client
-  variables (VITE*\*)
-- **Python runtime**: Handled by separate @runt packages
+To run Python code cells, you need to start the separate Pyodide runtime agent.
 
-### Running Services
+1.  Open Anode in your browser (`http://localhost:5173`).
+2.  Create a new notebook.
+3.  Click the **Runtime** button in the notebook header to view the required startup command.
+4.  Copy the command (it will look something like `NOTEBOOK_ID=notebook-xyz... pnpm dev:runtime`).
+5.  Run that command in a **new terminal window**.
 
-- **Web client**: `pnpm dev` - React application
-- **Sync worker**: `pnpm dev:sync` - Cloudflare Worker for LiveStore sync
-- **Python runtime**: Separate @runt packages (see
-  https://github.com/runtimed/runt)
+Your notebook is now connected to a Python runtime and can execute code cells.
 
-### Key Commands
+## Deployment
+
+We have streamlined deployment scripts for our different environments:
+
+-   **Preview**: `pnpm deploy:preview`
+-   **Production**: `pnpm deploy:production`
+
+**Note**: Before deploying, you must configure the required secrets (like `AUTH_TOKEN`, `GOOGLE_CLIENT_SECRET`, etc.) for the target environment using the `wrangler secret put` command. For example:
 
 ```bash
-# Setup and development
-pnpm setup              # Create/validate .env files
-pnpm dev                # Start core services
-pnpm build              # Build all packages
-pnpm test               # Run test suite
-pnpm lint               # Check code style
-pnpm type-check         # TypeScript validation
-
-# Utilities
-pnpm reset-storage      # Clear all local storage
-pnpm cache:warm-up      # Pre-load Python packages for faster startup
+pnpm wrangler secret put AUTH_TOKEN --env preview
 ```
 
-## Project Structure
+## Code Style and Conventions
 
-```
-anode/
-├── src/                # Application source code
-│   ├── components/     # React components
-│   ├── sync/          # Cloudflare Worker sync backend
-│   └── types/         # TypeScript definitions
-├── docs/              # Documentation
-├── schema.ts          # LiveStore schema definitions
-└── CONTRIBUTING.md    # This file
-```
+We follow a consistent code style to keep the project maintainable.
+- **TypeScript**: We use strict mode across the project.
+- **Formatting**: We use Prettier for code formatting. Please run `pnpm format` before committing.
+- **Linting**: We use ESLint to catch common errors. Run `pnpm lint` to check your code.
+- **Architecture**: We prefer functional programming patterns (using the Effect library) and an event-sourced architecture via LiveStore.
 
-### Environment Configuration
+## Submitting a Contribution
 
-Copy `.env.example` to `.env` and configure as needed:
+1.  Create a new branch for your feature or bugfix: `git checkout -b feature/my-awesome-feature`.
+2.  Make your changes and add tests where appropriate.
+3.  Ensure all checks pass by running `pnpm check`.
+4.  Commit your changes with a clear and descriptive message.
+5.  Push your branch and open a Pull Request against the `main` branch.
 
-**Web Client** (`.env`) - Browser-exposed variables (VITE\_ prefix):
-
-```bash
-VITE_LIVESTORE_SYNC_URL=ws://localhost:8787/api
-VITE_AUTH_TOKEN=insecure-token-change-me
-```
-
-**Sync Worker** (`.dev.vars`) - Server-only secrets:
-
-```bash
-# Authentication token for sync backend
-AUTH_TOKEN=insecure-token-change-me
-```
-
-**Python Runtime** - Now handled by @runt packages:
-
-```bash
-# See https://github.com/runtimed/runt for configuration
-```
-
-### Port Configuration
-
-- **Web Client**: http://localhost:5173
-- **Sync Backend**: ws://localhost:8787
-- **Python Runtime**: Handled by @runt packages
-
-## Architecture Overview
-
-- **LiveStore Foundation**: Event-sourcing with real-time collaboration
-- **JSR Schema Package**: `jsr:@runt/schema` imported directly by application
-- **Reactive Architecture**: Subscriptions instead of polling for instant
-  execution
-- **Local-First Design**: Works offline, syncs when connected
-- **Event-Sourced State**: All changes flow through LiveStore events
-
-## Contributing Guidelines
-
-### Before You Start
-
-1. Check existing issues and discussions
-2. For new features, open an issue to discuss the approach
-3. Make sure your development environment is working properly
-
-### Development Process
-
-1. Create a feature branch: `git checkout -b feature/your-feature-name`
-2. Make your changes with proper tests
-3. Run the validation suite: `pnpm check` (lint + type-check)
-4. Test your changes with the full development environment
-5. Submit a pull request with clear description
-
-### Code Style
-
-- **TypeScript strict mode** enabled across the project
-- **Functional programming patterns** preferred (Effect library)
-- **Event sourcing** over direct state mutations
-- **Reactive queries** over imperative data fetching
-
-### Testing
-
-```bash
-pnpm test                    # Run all tests
-pnpm test:integration        # Integration tests
-pnpm test:runtime            # Python runtime tests
-pnpm test:schema             # Schema validation tests
-```
-
-## Common Issues
-
-| Problem                     | Solution                                                      |
-| --------------------------- | ------------------------------------------------------------- |
-| Missing .env files          | Run `pnpm setup` to auto-create with defaults                 |
-| Environment variable errors | Validate with `pnpm setup`                                    |
-| Runtime not connecting      | Use exact command from notebook UI, check runtime server .env |
-| Build failures              | Run `pnpm clean && pnpm build`                                |
-| Type errors                 | Run `pnpm type-check` for detailed errors                     |
-
-## Current Development Priorities
-
-### Immediate Focus
-
-- **Integration Testing** - Verify Python execution and rich outputs
-- **Runtime Management** - Automated startup and health monitoring
-- **Error Handling** - Better user feedback and recovery
-
-### Upcoming Features
-
-- **AI Tool Calling** - Enable AI to create/modify cells using OpenAI function
-  calling
-- **Context Controls** - Let users control what cells AI can see
-- **MCP Integration** - Model Context Protocol support for extensible AI tools
-
-## Getting Help
-
-- **Documentation**: Check the [docs/](./docs/) directory
-- **Issues**: Browse existing GitHub issues
-- **Discussions**: Start a GitHub discussion for questions
-- **Architecture**: See [AGENTS.md](./AGENTS.md) for AI development context
-
-## License
-
-This project is licensed under the MIT License. See [LICENSE](./LICENSE) for
-details.
-
----
-
-**Happy contributing!** 🚀
-
-The automated setup with separate `.env` files should make it easy to get
-started securely. If you encounter any friction in the development process,
-please open an issue - we want contributing to be as smooth as possible.
+We appreciate your contributions and will review your PR as soon as possible!
