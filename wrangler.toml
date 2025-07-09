@@ -9,7 +9,7 @@
 
 # Default environment (local development)
 name = "anode-docworker"
-main = "./src/backend/index.ts"
+main = "./src/backend/sync.ts"
 compatibility_date = "2025-05-08"
 
 [dev]
@@ -33,11 +33,15 @@ database_id = "local"
 # Environment variables (non-sensitive)
 DEPLOYMENT_ENV = "development"
 
-# Worker only serves API endpoints - no web client vars needed
+# ---
+# Deployed Environments
+# ---
 
 # Legacy Production environment (worker only)
+# This points to the original backend worker on pages.dev
 [env.legacy]
 name = "anode-docworker"
+main = "./src/backend/sync.ts"
 
 [[env.legacy.durable_objects.bindings]]
 name = "WEBSOCKET_SERVER"
@@ -52,11 +56,12 @@ database_id = "5339094f-f406-4236-97c3-ada460373f18"
 DEPLOYMENT_ENV = "production"
 GOOGLE_CLIENT_ID = "94663405566-1go7jlpd2ar9u9urbfirmtjv1bm0tcis.apps.googleusercontent.com"
 
-# New Production Environment for all-in-one worker
+
+# New Production Environment (all-in-one worker)
 [env.production]
 name = "anode-main-prod"
-main = "./src/entry.ts"
-routes = [{ pattern = "app.runt.run", custom_domain = true }]
+main = "./src/backend/entry.ts"
+routes = [{ pattern = "app.runt.run/*", custom_domain = true }]
 assets = { directory = "./dist" }
 
 [[env.production.durable_objects.bindings]]
@@ -78,11 +83,12 @@ GOOGLE_CLIENT_ID = "94663405566-1go7jlpd2ar9u9urbfirmtjv1bm0tcis.apps.googleuser
 ARTIFACT_STORAGE = "r2"
 ARTIFACT_THRESHOLD = "16384"
 
-# Preview Environment for all-in-one worker
+
+# Preview Environment (all-in-one worker)
 [env.preview]
 name = "anode-docworker-preview"
-main = "./src/entry.ts"
-routes = [{ pattern = "preview.runt.run", custom_domain = true }]
+main = "./src/backend/entry.ts"
+routes = [{ pattern = "preview.runt.run/*", custom_domain = true }]
 assets = { directory = "./dist" }
 
 [[env.preview.durable_objects.bindings]]
@@ -105,6 +111,14 @@ GOOGLE_CLIENT_ID = "94663405566-1go7jlpd2ar9u9urbfirmtjv1bm0tcis.apps.googleuser
 ARTIFACT_STORAGE = "r2"
 ARTIFACT_THRESHOLD = "16384"
 
-# Secrets for preview and production will need to be set separately, e.g.:
-# pnpm wrangler secret put AUTH_TOKEN --env preview
+
+# ---
+# Secrets Management Notes
+# ---
+# Secrets must be set per environment via: `pnpm wrangler secret put <NAME> --env <ENV>`
+#
+# Example for production:
 # pnpm wrangler secret put GOOGLE_CLIENT_SECRET --env production
+#
+# Example for preview:
+# pnpm wrangler secret put AUTH_TOKEN --env preview
