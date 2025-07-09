@@ -7,10 +7,17 @@
 # 4. Deploy: pnpm wrangler deploy --env production
 # 5. Set secrets: pnpm wrangler secret put AUTH_TOKEN --env production
 
-# Default environment (local development)
+# Default environment (local development for the sync worker)
 name = "anode-docworker"
 main = "./src/backend/sync.ts"
 compatibility_date = "2025-05-08"
+
+# Build configuration for the frontend assets.
+# `wrangler deploy` will run this command before deploying the worker.
+# The environment variables from the target environment's `[vars]` section
+# will be available to this build process.
+[build]
+command = "pnpm build"
 
 [dev]
 port = 8787
@@ -30,8 +37,15 @@ database_name = "anode-docworker-dev-db"
 database_id = "local"
 
 [vars]
-# Environment variables (non-sensitive)
+# Environment variables for local development (`wrangler dev`)
+# These are injected into the local worker process. The Vite dev server (`pnpm dev`)
+# will pick up variables from the `.env` file. Ensure they match.
 DEPLOYMENT_ENV = "development"
+VITE_LIVESTORE_SYNC_URL = "ws://localhost:8787/livestore"
+VITE_GOOGLE_CLIENT_ID = "94663405566-1go7jlpd2ar9u9urbfirmtjv1bm0tcis.apps.googleusercontent.com"
+VITE_GOOGLE_AUTH_ENABLED = "false"
+VITE_RUNTIME_COMMAND = "deno run --unstable-broadcast-channel --allow-all --env-file=./.env jsr:@runt/pyodide-runtime-agent@0.6.0"
+
 
 # ---
 # Deployed Environments
@@ -78,10 +92,16 @@ binding = "ARTIFACT_BUCKET"
 bucket_name = "anode-artifacts-prod"
 
 [env.production.vars]
+# Worker runtime variables
 DEPLOYMENT_ENV = "production"
 GOOGLE_CLIENT_ID = "94663405566-1go7jlpd2ar9u9urbfirmtjv1bm0tcis.apps.googleusercontent.com"
 ARTIFACT_STORAGE = "r2"
 ARTIFACT_THRESHOLD = "16384"
+# Vite build-time variables
+VITE_LIVESTORE_SYNC_URL = "wss://app.runt.run/livestore"
+VITE_GOOGLE_CLIENT_ID = "94663405566-1go7jlpd2ar9u9urbfirmtjv1bm0tcis.apps.googleusercontent.com"
+VITE_GOOGLE_AUTH_ENABLED = "true"
+VITE_RUNTIME_COMMAND = "deno run --unstable-broadcast-channel --allow-all --env-file=./.env.production jsr:@runt/pyodide-runtime-agent@0.6.0"
 
 
 # Preview Environment (all-in-one worker)
@@ -106,10 +126,16 @@ bucket_name = "anode-artifacts-preview"
 preview_bucket_name = "anode-artifacts-preview"
 
 [env.preview.vars]
+# Worker runtime variables
 DEPLOYMENT_ENV = "preview"
 GOOGLE_CLIENT_ID = "94663405566-1go7jlpd2ar9u9urbfirmtjv1bm0tcis.apps.googleusercontent.com"
 ARTIFACT_STORAGE = "r2"
 ARTIFACT_THRESHOLD = "16384"
+# Vite build-time variables
+VITE_LIVESTORE_SYNC_URL = "wss://preview.runt.run/livestore"
+VITE_GOOGLE_CLIENT_ID = "94663405566-1go7jlpd2ar9u9urbfirmtjv1bm0tcis.apps.googleusercontent.com"
+VITE_GOOGLE_AUTH_ENABLED = "true"
+VITE_RUNTIME_COMMAND = "deno run --unstable-broadcast-channel --allow-all --env-file=./.env.preview jsr:@runt/pyodide-runtime-agent@0.6.0"
 
 
 # ---
