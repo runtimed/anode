@@ -14,7 +14,6 @@ import { sql } from "@codemirror/lang-sql";
 import { useCodeMirror } from "@uiw/react-codemirror";
 import { baseExtensions, aiBaseExtensions } from "./baseExtensions.js";
 import { OtherUserPresence, updatePresenceStateEffect } from "./presence.js";
-import { Button } from "@/components/ui/button";
 
 type CodeMirrorEditorProps = {
   value: string;
@@ -29,7 +28,7 @@ type CodeMirrorEditorProps = {
   maxHeight?: string;
   enableLineWrapping?: boolean;
   disableAutocompletion?: boolean;
-  otherUserPresence?: OtherUserPresence;
+  otherUserPresence?: OtherUserPresence[];
 };
 
 function languageExtension(language: SupportedLanguage) {
@@ -139,10 +138,13 @@ export const CodeMirrorEditor: React.FC<CodeMirrorEditorProps> = ({
       {otherUserPresence && (
         <div className="">
           <div className="text-xs text-gray-500">
-            {otherUserPresence.userId}
-            {otherUserPresence.ranges.map((range) => (
-              <div key={range.from}>
-                {range.from} - {range.to}
+            {otherUserPresence.map((v) => (
+              <div key={v.userId}>
+                {v.userId}: [
+                {v.ranges
+                  .map((range) => range.from + "-" + range.to)
+                  .join(", ")}
+                ]
               </div>
             ))}
           </div>

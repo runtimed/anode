@@ -6,6 +6,7 @@ import { Maximize2, Minimize2 } from "lucide-react";
 import { useState } from "react";
 import { Button } from "../ui/button";
 import { CodeMirrorEditor } from "./codemirror/CodeMirrorEditor";
+import { OtherUserPresence } from "./codemirror/presence";
 
 export function Editor({
   localSource,
@@ -26,15 +27,19 @@ export function Editor({
 }) {
   const [isMaximized, setIsMaximized] = useState(false);
 
-  const [otherUserPresence, setOtherUserPresence] = useState({
-    userId: "123",
-    ranges: [
-      {
-        from: 0,
-        to: 0,
-      },
-    ],
-  });
+  const [otherUserPresence, setOtherUserPresence] = useState<
+    OtherUserPresence[]
+  >([
+    {
+      userId: "123",
+      ranges: [
+        {
+          from: 0,
+          to: 0,
+        },
+      ],
+    },
+  ]);
 
   if (!isMaximized) {
     return (
@@ -61,13 +66,15 @@ export function Editor({
           variant="outline"
           size="sm"
           onClick={() => {
-            setOtherUserPresence({
-              userId: "react" + Math.random().toString(),
-              ranges: [
-                { from: 0, to: 10 },
-                { from: 10, to: 20 },
-              ],
-            });
+            setOtherUserPresence([
+              {
+                userId: "react" + Math.random().toString(),
+                ranges: [
+                  { from: 0, to: 10 },
+                  { from: 10, to: 20 },
+                ],
+              },
+            ]);
           }}
         >
           Update presence (from React)
