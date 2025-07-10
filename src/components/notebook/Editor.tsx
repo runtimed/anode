@@ -1,12 +1,14 @@
 import { cn } from "@/lib/utils";
 import { KeyBinding } from "@codemirror/view";
 import * as Dialog from "@radix-ui/react-dialog";
-import { tables } from "@runt/schema";
+import { events, tables } from "@runt/schema";
 import { Maximize2, Minimize2 } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Button } from "../ui/button";
 import { CodeMirrorEditor } from "./codemirror/CodeMirrorEditor";
-import { OtherUserPresence } from "./codemirror/presence";
+import { OtherUserPresence, UserRange } from "./codemirror/presence";
+import { useQuery, useStore } from "@livestore/react";
+import { queryDb } from "@livestore/livestore";
 
 export function Editor({
   localSource,
@@ -25,21 +27,52 @@ export function Editor({
   autoFocus: boolean;
   keyMap: KeyBinding[];
 }) {
+  const { store } = useStore();
   const [isMaximized, setIsMaximized] = useState(false);
 
-  const [otherUserPresence, setOtherUserPresence] = useState<
-    OtherUserPresence[]
-  >([
+  const [myRanges, setMyRanges] = useState<UserRange[]>([
     {
-      userId: "123",
-      ranges: [
-        {
-          from: 0,
-          to: 0,
-        },
-      ],
+      from: 0,
+      to: 0,
     },
   ]);
+
+  const otherUserPresenceResult = useQuery(
+    queryDb(
+      tables.presence.select().where({
+        notebookId: store.storeId,
+        cellId: cell.id,
+        userId: { op: "!=", value: store.sessionId },
+      })
+    )
+  );
+
+  const otherUserPresence: OtherUserPresence[] = otherUserPresenceResult.map(
+    (presence) => ({
+      userId: presence.userId,
+      // Convert readonly ranges to mutable array for type compatibility
+      ranges: presence.ranges
+        ? presence.ranges.map((r) => ({ from: r.from, to: r.to }))
+        : [],
+    })
+  );
+
+  useEffect(() => {
+    console.log("otherUserPresence useEffect:", myRanges);
+    myRanges.forEach((user) => {
+      store.commit(
+        events.presenceUpdated({
+          userId: store.sessionId,
+          isAnonymous: true,
+          //
+          notebookId: store.storeId,
+          cellId: cell.id,
+          ranges: myRanges,
+          lastActiveAt: new Date(),
+        })
+      );
+    });
+  }, [myRanges]);
 
   if (!isMaximized) {
     return (
@@ -67,12 +100,7 @@ export function Editor({
           size="sm"
           onClick={() => {
             const from = Math.floor(Math.random() * 10);
-            setOtherUserPresence([
-              {
-                userId: "react" + Math.random().toString(),
-                ranges: [{ from, to: from }],
-              },
-            ]);
+            setMyRanges([{ from, to: from }]);
           }}
         >
           Update presence (from React)

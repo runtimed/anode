@@ -9,14 +9,14 @@ import { PanelConstructor, showPanel } from "@codemirror/view";
  * So, current user sends up their state to LiveStore, other users consume that state, which travels through LiveStore, down to React, and finally to CodeMirror.
  */
 
-export type OtherUserRanges = {
+export type UserRange = {
   from: number;
   to: number;
 };
 
 export type OtherUserPresence = {
   userId: string;
-  ranges: OtherUserRanges[];
+  ranges: UserRange[];
 };
 
 function createPresencePanel(value: OtherUserPresence[]): PanelConstructor {

@@ -1,12 +1,14 @@
 import React, { useState } from "react";
 import { useGoogleAuth } from "../../auth/useGoogleAuth.js";
 import { googleAuthManager } from "../../auth/google-auth.js";
+import { useStore } from "@livestore/react";
 
 interface UserProfileProps {
   className?: string;
 }
 
 export const UserProfile: React.FC<UserProfileProps> = ({ className = "" }) => {
+  const { store } = useStore();
   const { user, signOut, isLoading } = useGoogleAuth();
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
@@ -28,7 +30,10 @@ export const UserProfile: React.FC<UserProfileProps> = ({ className = "" }) => {
             <span className="text-sm font-medium text-gray-700">A</span>
           </div>
           <div className="hidden text-left sm:block">
-            <div className="text-sm font-medium text-gray-900">Anonymous</div>
+            <div className="text-sm font-medium text-gray-900">
+              {store.sessionId}{" "}
+              <span className="text-xs text-gray-500">anon</span>
+            </div>
             <div className="text-xs text-gray-500">Local Development</div>
           </div>
         </div>
