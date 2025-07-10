@@ -1,7 +1,7 @@
 import React from "react";
 import { Button } from "@/components/ui/button";
-import { Square } from "lucide-react";
-import { TerminalPlay } from "../../ui/TerminalPlay.js";
+import { Square, Play } from "lucide-react";
+// import { TerminalPlay } from "../../ui/TerminalPlay.js";
 import { tables } from "@runt/schema";
 
 interface PlayButtonProps {
@@ -40,7 +40,7 @@ export const PlayButton: React.FC<PlayButtonProps> = ({
     if (cell.executionState === "queued") {
       return <Square className="h-3 w-3" />;
     }
-    return <TerminalPlay className="h-4 w-4" />;
+    return <Play className="h-4 w-4" />;
   };
 
   return (
