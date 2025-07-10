@@ -13,6 +13,7 @@ import { SupportedLanguage } from "@/types/misc.js";
 import { sql } from "@codemirror/lang-sql";
 import { useCodeMirror } from "@uiw/react-codemirror";
 import { baseExtensions, aiBaseExtensions } from "./baseExtensions.js";
+import { OtherUserPresence, updatePresenceStateEffect } from "./presence.js";
 
 type CodeMirrorEditorProps = {
   value: string;
@@ -27,6 +28,7 @@ type CodeMirrorEditorProps = {
   maxHeight?: string;
   enableLineWrapping?: boolean;
   disableAutocompletion?: boolean;
+  otherUserPresence?: OtherUserPresence;
 };
 
 function languageExtension(language: SupportedLanguage) {
@@ -53,6 +55,7 @@ export const CodeMirrorEditor: React.FC<CodeMirrorEditorProps> = ({
   maxHeight,
   enableLineWrapping = false,
   disableAutocompletion = false,
+  otherUserPresence,
 }) => {
   const editorRef = useRef<HTMLDivElement | null>(null);
 
@@ -98,7 +101,7 @@ export const CodeMirrorEditor: React.FC<CodeMirrorEditorProps> = ({
     onFocus?.();
   }, [onFocus]);
 
-  const { setContainer } = useCodeMirror({
+  const { setContainer, view } = useCodeMirror({
     container: editorRef.current,
     extensions,
     basicSetup: false,
@@ -113,6 +116,15 @@ export const CodeMirrorEditor: React.FC<CodeMirrorEditorProps> = ({
       setContainer(editorRef.current);
     }
   }, [setContainer]);
+
+  useEffect(() => {
+    if (otherUserPresence) {
+      const val = updatePresenceStateEffect.of(otherUserPresence);
+      view?.dispatch({
+        effects: [val],
+      });
+    }
+  }, [otherUserPresence, view]);
 
   return (
     <div
