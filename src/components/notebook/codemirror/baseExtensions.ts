@@ -12,25 +12,19 @@ import {
   syntaxHighlighting,
 } from "@codemirror/language";
 import { lintKeymap } from "@codemirror/lint";
-import {
-  EditorState,
-  Extension,
-  Facet,
-  StateEffect,
-  StateField,
-} from "@codemirror/state";
+import { EditorState, Extension, Facet, StateField } from "@codemirror/state";
 import {
   crosshairCursor,
-  Decoration,
-  DecorationSet,
   drawSelection,
   dropCursor,
   EditorView,
   keymap,
+  PanelConstructor,
   rectangularSelection,
   showPanel,
 } from "@codemirror/view";
 import { githubLight } from "@uiw/codemirror-theme-github";
+import { otherUserPresenceStateField } from "./presence.js";
 import {
   cursorTooltipBaseTheme,
   cursorTooltipField,
@@ -115,30 +109,31 @@ const panel = showPanel.of((view) => {
   return { dom };
 });
 
-// const changeCounterStateField = StateField.define<number>({
-//   create: (_state) => {
-//     return 0;
-//   },
-//   update: (currentValue, transaction) => {
-//     let newValue = currentValue;
+function createCounterPanel(value: number): PanelConstructor {
+  return () => {
+    const dom = document.createElement("div");
+    dom.textContent = `Current count is ${value}`;
 
-//     if (transaction.docChanged) {
-//       newValue += 1;
-//     }
+    return { dom };
+  };
+}
 
-//     return newValue;
-//   },
-// });
+const changeCounterStateField = StateField.define<number>({
+  create: (_state) => {
+    return 0;
+  },
+  update: (currentValue, transaction) => {
+    let newValue = currentValue;
 
-// const updateCounterStateEffect = StateEffect.define<number>();
+    if (transaction.docChanged) {
+      newValue += 1;
+    }
 
-// const countPanel = showPanel.of((view) => {
-//   const dom = document.createElement("div");
-//   const count = view.state.facet(changeCounterStateField.facet);
-//   dom.textContent = `This is my bottom panel. count is ${count}.`;
+    return newValue;
+  },
 
-//   return { dom };
-// });
+  provide: (value) => showPanel.from(value, createCounterPanel),
+});
 
 // ---
 
@@ -151,7 +146,11 @@ export const underlineKeymap = keymap.of([
 ]);
 
 export const baseExtensions = [
-  panel,
+  // panel,
+  // countPanel,
+  // updateCounterStateEffect.of(0),
+  otherUserPresenceStateField,
+  // changeCounterStateField,
   basicSetup,
   githubLight,
   cursorTooltipBaseTheme,

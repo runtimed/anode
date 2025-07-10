@@ -26,6 +26,16 @@ export function Editor({
 }) {
   const [isMaximized, setIsMaximized] = useState(false);
 
+  const [otherUserPresence, setOtherUserPresence] = useState({
+    userId: "123",
+    ranges: [
+      {
+        from: 0,
+        to: 0,
+      },
+    ],
+  });
+
   if (!isMaximized) {
     return (
       <div className={cn("relative min-h-[1.5rem]")}>
@@ -40,12 +50,28 @@ export function Editor({
           keyMap={keyMap}
           onBlur={updateSource}
           enableLineWrapping={cell.cellType === "markdown"}
+          otherUserPresence={otherUserPresence}
         />
         <MaxMinButton
           className="absolute top-1 right-1 sm:hidden"
           isMaximized={isMaximized}
           setIsMaximized={setIsMaximized}
         />
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => {
+            setOtherUserPresence({
+              userId: "react" + Math.random().toString(),
+              ranges: [
+                { from: 0, to: 10 },
+                { from: 10, to: 20 },
+              ],
+            });
+          }}
+        >
+          Update presence (from React)
+        </Button>
       </div>
     );
   }
@@ -61,6 +87,7 @@ export function Editor({
             placeholder={placeholderFromCellType(cell.cellType)}
             value={localSource}
             enableLineWrapping={cell.cellType === "markdown"}
+            otherUserPresence={otherUserPresence}
           />
           <MaxMinButton
             className="absolute top-1 right-1 sm:hidden"

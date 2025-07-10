@@ -14,6 +14,7 @@ import { sql } from "@codemirror/lang-sql";
 import { useCodeMirror } from "@uiw/react-codemirror";
 import { baseExtensions, aiBaseExtensions } from "./baseExtensions.js";
 import { OtherUserPresence, updatePresenceStateEffect } from "./presence.js";
+import { Button } from "@/components/ui/button";
 
 type CodeMirrorEditorProps = {
   value: string;
@@ -119,6 +120,7 @@ export const CodeMirrorEditor: React.FC<CodeMirrorEditorProps> = ({
 
   useEffect(() => {
     if (otherUserPresence) {
+      console.log("otherUserPresence", otherUserPresence);
       const val = updatePresenceStateEffect.of(otherUserPresence);
       view?.dispatch({
         effects: [val],
@@ -127,11 +129,41 @@ export const CodeMirrorEditor: React.FC<CodeMirrorEditorProps> = ({
   }, [otherUserPresence, view]);
 
   return (
-    <div
-      ref={editorRef}
-      onBlur={onBlur}
-      onFocus={handleFocus}
-      className={className}
-    />
+    <>
+      <div
+        ref={editorRef}
+        onBlur={onBlur}
+        onFocus={handleFocus}
+        className={className}
+      />
+      {otherUserPresence && (
+        <div className="">
+          <div className="text-xs text-gray-500">
+            {otherUserPresence.userId}
+            {otherUserPresence.ranges.map((range) => (
+              <div key={range.from}>
+                {range.from} - {range.to}
+              </div>
+            ))}
+          </div>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => {
+              view?.dispatch({
+                effects: [
+                  updatePresenceStateEffect.of({
+                    userId: "wat",
+                    ranges: [{ from: 0, to: 10 }],
+                  }),
+                ],
+              });
+            }}
+          >
+            Update presence
+          </Button>
+        </div>
+      )}
+    </>
   );
 };
