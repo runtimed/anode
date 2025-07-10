@@ -1,38 +1,48 @@
 import { EditorView, Tooltip, showTooltip } from "@codemirror/view";
-import { EditorState, StateField } from "@codemirror/state";
+import { StateField, Transaction } from "@codemirror/state";
+import {
+  otherUserPresenceStateField,
+  updatePresenceStateEffect,
+} from "./presence";
 
 export const cursorTooltipField = StateField.define<readonly Tooltip[]>({
-  create: getCursorTooltips,
+  create: () => [],
 
   update(tooltips, tr) {
-    if (!tr.docChanged && !tr.selection) return tooltips;
-    return getCursorTooltips(tr.state);
+    console.log("update tooltips", tooltips, tr);
+    return getCursorTooltips(tr);
   },
 
   provide: (f) => showTooltip.computeN([f], (state) => state.field(f)),
 });
 
-function getCursorTooltips(state: EditorState): readonly Tooltip[] {
-  return (
-    state.selection.ranges
-      // .filter((range) => range.empty)
-      .map((range) => {
-        let line = state.doc.lineAt(range.head);
-        // let text = line.number + ":" + (range.head - line.from);
+function getCursorTooltips(tr: Transaction): readonly Tooltip[] {
+  const state = tr.state;
+  let otherUserPresenceTooltips: Tooltip[] = [];
+
+  for (const effect of tr.effects) {
+    if (effect.is(updatePresenceStateEffect)) {
+      console.log("updatePresenceStateEffect", effect);
+      const otherUserPresence = state.field(otherUserPresenceStateField);
+
+      otherUserPresenceTooltips = otherUserPresence.map((user) => {
         return {
-          pos: range.head,
+          pos: user.ranges[0].from,
           above: true,
           strictSide: true,
           arrow: true,
           create: () => {
             let dom = document.createElement("div");
             dom.className = "cm-tooltip-cursor";
-            dom.textContent = "end";
+            dom.textContent = user.userId;
             return { dom };
           },
         };
-      })
-  );
+      });
+    }
+  }
+
+  return otherUserPresenceTooltips;
 }
 
 // Theme

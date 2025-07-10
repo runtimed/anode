@@ -66,13 +66,11 @@ export function Editor({
           variant="outline"
           size="sm"
           onClick={() => {
+            const from = Math.floor(Math.random() * 10);
             setOtherUserPresence([
               {
                 userId: "react" + Math.random().toString(),
-                ranges: [
-                  { from: 0, to: 10 },
-                  { from: 10, to: 20 },
-                ],
+                ranges: [{ from, to: from }],
               },
             ]);
           }}

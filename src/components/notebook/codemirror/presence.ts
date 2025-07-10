@@ -36,9 +36,9 @@ export const otherUserPresenceStateField = StateField.define<
   create() {
     return [];
   },
-  update(currentValue, transaction) {
+  update(currentValue, tr) {
     let newValue = currentValue;
-    for (const effect of transaction.effects) {
+    for (const effect of tr.effects) {
       if (effect.is(updatePresenceStateEffect)) {
         newValue = effect.value;
       }
