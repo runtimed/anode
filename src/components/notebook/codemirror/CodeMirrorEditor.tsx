@@ -146,22 +146,6 @@ export const CodeMirrorEditor: React.FC<CodeMirrorEditorProps> = ({
               </div>
             ))}
           </div>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => {
-              view?.dispatch({
-                effects: [
-                  updatePresenceStateEffect.of({
-                    userId: "wat",
-                    ranges: [{ from: 0, to: 10 }],
-                  }),
-                ],
-              });
-            }}
-          >
-            Update presence
-          </Button>
         </div>
       )}
     </>
