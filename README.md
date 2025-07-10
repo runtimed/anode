@@ -67,6 +67,9 @@ pnpm install  # Install dependencies
 cp .env.example .env
 # Edit .env if needed (defaults work for local development)
 
+# Copy development variables
+cp .dev.vars.example .dev.vars
+
 # Start web client
 pnpm dev
 
