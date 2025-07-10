@@ -12,16 +12,32 @@ import {
   syntaxHighlighting,
 } from "@codemirror/language";
 import { lintKeymap } from "@codemirror/lint";
-import { EditorState, Extension } from "@codemirror/state";
+import {
+  EditorState,
+  Extension,
+  Facet,
+  StateEffect,
+  StateField,
+} from "@codemirror/state";
 import {
   crosshairCursor,
+  Decoration,
+  DecorationSet,
   drawSelection,
   dropCursor,
   EditorView,
   keymap,
   rectangularSelection,
+  showPanel,
 } from "@codemirror/view";
 import { githubLight } from "@uiw/codemirror-theme-github";
+import {
+  cursorTooltipBaseTheme,
+  cursorTooltipField,
+} from "./tooltipExtension.js";
+import { underlineSelection } from "./underlineExtension.js";
+
+const nameFacet = Facet.define<string>();
 
 const customStyles = EditorView.theme({
   // Remove focus dotted outline
@@ -49,6 +65,7 @@ export const basicSetup: Extension = (() => [
   drawSelection(),
   dropCursor(),
   EditorState.allowMultipleSelections.of(true),
+  nameFacet.of("ANODE"),
   indentOnInput(),
   syntaxHighlighting(defaultHighlightStyle, { fallback: true }),
   bracketMatching(),
@@ -88,5 +105,62 @@ export const aiBasicSetup: Extension = (() => [
   customStyles,
 ])();
 
-export const baseExtensions = [basicSetup, githubLight];
-export const aiBaseExtensions = [aiBasicSetup, githubLight];
+// ---
+
+const panel = showPanel.of((view) => {
+  const dom = document.createElement("div");
+  const name = view.state.facet(nameFacet);
+  dom.textContent = `This is my bottom panel. name is ${name}.`;
+
+  return { dom };
+});
+
+// const changeCounterStateField = StateField.define<number>({
+//   create: (_state) => {
+//     return 0;
+//   },
+//   update: (currentValue, transaction) => {
+//     let newValue = currentValue;
+
+//     if (transaction.docChanged) {
+//       newValue += 1;
+//     }
+
+//     return newValue;
+//   },
+// });
+
+// const updateCounterStateEffect = StateEffect.define<number>();
+
+// const countPanel = showPanel.of((view) => {
+//   const dom = document.createElement("div");
+//   const count = view.state.facet(changeCounterStateField.facet);
+//   dom.textContent = `This is my bottom panel. count is ${count}.`;
+
+//   return { dom };
+// });
+
+// ---
+
+export const underlineKeymap = keymap.of([
+  {
+    key: "Mod-h",
+    preventDefault: true,
+    run: underlineSelection,
+  },
+]);
+
+export const baseExtensions = [
+  panel,
+  basicSetup,
+  githubLight,
+  cursorTooltipBaseTheme,
+  cursorTooltipField,
+  underlineKeymap,
+];
+export const aiBaseExtensions = [
+  aiBasicSetup,
+  githubLight,
+  cursorTooltipBaseTheme,
+  cursorTooltipField,
+];
