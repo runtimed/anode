@@ -1,48 +1,19 @@
 import React, { useCallback } from "react";
 import { useStore } from "@livestore/react";
-import { events, OutputData, tables } from "@runt/schema";
+import { events, tables } from "@runt/schema";
 import { queryDb } from "@livestore/livestore";
 import { useCellKeyboardNavigation } from "../../hooks/useCellKeyboardNavigation.js";
 import { useCellContent } from "../../hooks/useCellContent.js";
-import { groupConsecutiveStreamOutputs } from "../../util/output-grouping.js";
-import {
-  useAvailableAiModels,
-  getNotebookAiModels,
-  getProviderBadgeColor,
-  getModelSizeDisplay,
-} from "../../util/ai-models.js";
-
-import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
-import { Badge } from "@/components/ui/badge";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { RichOutput } from "./RichOutput.js";
-import { AnsiErrorOutput } from "./AnsiOutput.js";
-import {
-  ArrowDown,
-  ArrowUp,
-  Bot,
-  ChevronDown,
-  ChevronUp,
-  Code,
-  Database,
-  Eye,
-  EyeOff,
-  FileText,
-  Play,
-  Plus,
-  Square,
-  X,
-} from "lucide-react";
-import { CellBase } from "./CellBase.js";
+import { useCellOutputs } from "../../hooks/useCellOutputs.js";
+import { useAvailableAiModels } from "../../util/ai-models.js";
+import { AiToolbar } from "./toolbars/AiToolbar.js";
 import { CodeMirrorEditor } from "./codemirror/CodeMirrorEditor.js";
+import { CellContainer } from "./shared/CellContainer.js";
+import { CellControls } from "./shared/CellControls.js";
+import { PlayButton } from "./shared/PlayButton.js";
+import { AiCellTypeSelector } from "./shared/AiCellTypeSelector.js";
+import { Button } from "@/components/ui/button";
+import { ChevronUp, ChevronDown } from "lucide-react";
 
 interface AiCellProps {
   cell: typeof tables.cells.Type;
@@ -70,47 +41,27 @@ export const AiCell: React.FC<AiCellProps> = ({
   contextSelectionMode = false,
 }) => {
   const { store } = useStore();
-  const textareaRef = React.useRef<HTMLTextAreaElement>(null);
 
-  // Create stable query using useMemo to prevent React Hook issues
-  const outputsQuery = React.useMemo(
-    () => queryDb(tables.outputs.select().where({ cellId: cell.id })),
-    [cell.id]
-  );
-  const outputs = store.useQuery(outputsQuery) as OutputData[];
-
-  // Get available AI models from runtime capabilities
+  // Get AI model settings
   const provider = cell.aiProvider || "openai";
   const model = cell.aiModel || "gpt-4o-mini";
 
   // Get available AI models from runtime capabilities
-  const { models: availableModels } = useAvailableAiModels();
-  const notebookModels = getNotebookAiModels(availableModels);
-
-  // Pre-compute provider groups for dropdown rendering
-  const providerGroups = React.useMemo(() => {
-    const groups = new Map<string, typeof notebookModels>();
-    notebookModels.forEach((model) => {
-      if (!groups.has(model.provider)) {
-        groups.set(model.provider, []);
-      }
-      groups.get(model.provider)!.push(model);
-    });
-
-    return Array.from(groups.entries()).sort(([a], [b]) => a.localeCompare(b));
-  }, [notebookModels]);
-
-  // Auto-focus when requested
-  React.useEffect(() => {
-    if (autoFocus && textareaRef.current) {
-      textareaRef.current.focus();
-    }
-  }, [autoFocus]);
+  const { models: _ } = useAvailableAiModels();
 
   // Use shared content management hook
   const { localSource, updateSource, handleSourceChange } = useCellContent({
     cellId: cell.id,
     initialSource: cell.source,
+  });
+
+  // Use shared outputs hook with AI-specific configuration
+  const { outputs, hasOutputs, renderOutputs } = useCellOutputs({
+    cellId: cell.id,
+    groupConsecutiveStreams: false,
+    enableErrorOutput: true,
+    enableTerminalOutput: true,
+    mobileStyle: "chat-bubble",
   });
 
   const executeAiPrompt = useCallback(async () => {
@@ -145,13 +96,6 @@ export const AiCell: React.FC<AiCellProps> = ({
           requestedBy: "current-user",
         })
       );
-
-      // The runtime service will now:
-      // 1. See the pending execution in the queue
-      // 2. Recognize it's an AI cell and handle accordingly
-      // 3. Make the AI API call (OpenAI, Anthropic, etc.)
-      // 4. Emit execution events and cell outputs
-      // 5. All clients will see the results in real-time!
     } catch (error) {
       console.error("❌ LiveStore AI execution error:", error);
 
@@ -203,7 +147,7 @@ export const AiCell: React.FC<AiCellProps> = ({
   }, [cell.id, store]);
 
   // Use shared keyboard navigation hook
-  const { handleKeyDown, keyMap } = useCellKeyboardNavigation({
+  const { keyMap } = useCellKeyboardNavigation({
     onFocusNext,
     onFocusPrevious,
     onDeleteCell,
@@ -216,6 +160,23 @@ export const AiCell: React.FC<AiCellProps> = ({
       onFocus();
     }
   }, [onFocus]);
+
+  const changeProvider = useCallback(
+    (newProvider: string, newModel: string) => {
+      store.commit(
+        events.aiSettingsChanged({
+          cellId: cell.id,
+          provider: newProvider,
+          model: newModel,
+          settings: {
+            temperature: 0.7,
+            maxTokens: 1000,
+          },
+        })
+      );
+    },
+    [cell.id, store]
+  );
 
   const changeCellType = useCallback(
     (newType: "code" | "markdown" | "sql" | "ai") => {
@@ -238,15 +199,6 @@ export const AiCell: React.FC<AiCellProps> = ({
     );
   }, [cell.id, cell.sourceVisible, store]);
 
-  const toggleOutputVisibility = useCallback(() => {
-    store.commit(
-      events.cellOutputVisibilityToggled({
-        id: cell.id,
-        outputVisible: !cell.outputVisible,
-      })
-    );
-  }, [cell.id, cell.outputVisible, store]);
-
   const toggleAiContextVisibility = useCallback(() => {
     store.commit(
       events.cellAiContextVisibilityToggled({
@@ -256,323 +208,55 @@ export const AiCell: React.FC<AiCellProps> = ({
     );
   }, [cell.id, cell.aiContextVisible, store]);
 
-  const changeProvider = useCallback(
-    (newProvider: string, newModel: string) => {
-      store.commit(
-        events.aiSettingsChanged({
-          cellId: cell.id,
-          provider: newProvider,
-          model: newModel,
-          settings: {
-            temperature: 0.7,
-            maxTokens: 1000,
-          },
-        })
-      );
-    },
-    [cell.id, store]
-  );
-
-  const getCellTypeIcon = () => {
-    return <Bot className="h-3 w-3" />;
-  };
-
-  const getProviderBadge = () => {
-    // Find the current model in available models
-    const currentModel = availableModels.find(
-      (m) => m.name === model && m.provider === provider
+  const toggleOutputVisibility = useCallback(() => {
+    store.commit(
+      events.cellOutputVisibilityToggled({
+        id: cell.id,
+        outputVisible: !cell.outputVisible,
+      })
     );
-
-    const displayName =
-      provider === "ollama" ? "Ollama" : provider.toUpperCase();
-    const modelDisplay = currentModel ? currentModel.displayName : model;
-    const colorClass = getProviderBadgeColor(provider);
-
-    return (
-      <Badge
-        variant="outline"
-        className={`h-5 cursor-pointer text-xs hover:opacity-80 ${colorClass}`}
-        title={`Provider: ${displayName}, Model: ${modelDisplay}`}
-      >
-        {displayName} • {modelDisplay}
-      </Badge>
-    );
-  };
-
-  const getExecutionStatus = () => {
-    switch (cell.executionState) {
-      case "idle":
-        return null;
-      case "queued":
-        return (
-          <Badge variant="secondary" className="h-5 text-xs">
-            Queued
-          </Badge>
-        );
-      case "running":
-        return (
-          <Badge
-            variant="outline"
-            className="h-5 border-purple-200 bg-purple-50 text-xs text-purple-700"
-          >
-            <div className="mr-1 h-2 w-2 animate-spin rounded-full border border-purple-600 border-t-transparent"></div>
-            Generating
-          </Badge>
-        );
-      case "completed":
-        return (
-          <Badge
-            variant="outline"
-            className="h-5 border-green-200 bg-green-50 text-xs text-green-700"
-          >
-            ✓
-          </Badge>
-        );
-      case "error":
-        return (
-          <Badge
-            variant="outline"
-            className="h-5 border-red-200 bg-red-50 text-xs text-red-700"
-          >
-            Error
-          </Badge>
-        );
-      default:
-        return null;
-    }
-  };
+  }, [cell.id, cell.outputVisible, store]);
 
   return (
-    <div
-      className={`cell-container group relative mb-2 pt-2 transition-all duration-200 sm:mb-3 ${
-        autoFocus && !contextSelectionMode
-          ? "bg-purple-50/30"
-          : "hover:bg-muted/10"
-      } ${contextSelectionMode && !cell.aiContextVisible ? "opacity-60" : ""} ${
-        contextSelectionMode
-          ? cell.aiContextVisible
-            ? "bg-purple-50/30 ring-2 ring-purple-300"
-            : "bg-gray-50/30 ring-2 ring-gray-300"
-          : ""
-      }`}
-      style={{
-        position: "relative",
-      }}
+    <CellContainer
+      cell={cell}
+      autoFocus={autoFocus}
+      contextSelectionMode={contextSelectionMode}
+      onFocus={handleFocus}
+      focusColor="bg-purple-500/60"
+      focusBgColor="bg-purple-50/30"
     >
-      {/* Custom left border with controlled height */}
-      <div
-        className={`cell-border absolute top-0 left-3 w-0.5 transition-all duration-200 sm:left-0 ${
-          autoFocus && !contextSelectionMode
-            ? "bg-purple-500/60"
-            : "bg-border/30"
-        }`}
-        style={{
-          height:
-            outputs.length > 0 ||
-            cell.executionState === "running" ||
-            cell.executionState === "queued"
-              ? "100%"
-              : "4rem",
-        }}
-      />
       {/* Cell Header */}
       <div className="cell-header mb-2 flex items-center justify-between pr-1 pl-6 sm:pr-4">
         <div className="flex items-center gap-2 sm:gap-3">
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button
-                variant="ghost"
-                size="sm"
-                className="hover:bg-muted/50 h-7 gap-1.5 border border-purple-200 bg-purple-50 px-2 text-xs font-medium text-purple-700 sm:h-6"
-              >
-                {getCellTypeIcon()}
-                <span className="cell-type-label hidden sm:inline">AI</span>
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="start" className="w-40">
-              <DropdownMenuItem
-                onClick={() => changeCellType("code")}
-                className="gap-2"
-              >
-                <Code className="h-4 w-4" />
-                Code
-              </DropdownMenuItem>
-              <DropdownMenuItem
-                onClick={() => changeCellType("markdown")}
-                className="gap-2"
-              >
-                <FileText className="h-4 w-4" />
-                Markdown
-              </DropdownMenuItem>
-              <DropdownMenuItem
-                onClick={() => changeCellType("sql")}
-                className="gap-2"
-              >
-                <Database className="h-4 w-4" />
-                SQL Query
-              </DropdownMenuItem>
-              <DropdownMenuItem
-                onClick={() => changeCellType("ai")}
-                className="gap-2"
-              >
-                <Bot className="h-4 w-4" />
-                AI Assistant
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <div className="provider-badge hidden sm:block">
-                {getProviderBadge()}
-              </div>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              {notebookModels.length > 0 ? (
-                providerGroups.map(([provider, models], providerIndex) => (
-                  <React.Fragment key={provider}>
-                    {providerIndex > 0 && <DropdownMenuSeparator />}
-                    <DropdownMenuLabel className="px-2 py-1 text-xs font-medium text-gray-600">
-                      {provider.toUpperCase()}
-                    </DropdownMenuLabel>
-                    {models.map((model) => (
-                      <DropdownMenuItem
-                        key={`${model.provider}-${model.name}`}
-                        onClick={() =>
-                          changeProvider(model.provider, model.name)
-                        }
-                      >
-                        {model.displayName}
-                        {model.provider === "ollama" &&
-                          getModelSizeDisplay(model)}
-                      </DropdownMenuItem>
-                    ))}
-                  </React.Fragment>
-                ))
-              ) : (
-                <DropdownMenuItem disabled>
-                  No AI models available
-                </DropdownMenuItem>
-              )}
-            </DropdownMenuContent>
-          </DropdownMenu>
-          {getExecutionStatus()}
+          <AiCellTypeSelector onCellTypeChange={changeCellType} />
+          <AiToolbar
+            provider={provider}
+            model={model}
+            onProviderChange={changeProvider}
+          />
         </div>
 
-        {/* Cell Controls - visible on hover or always on mobile */}
-        <div className="cell-controls flex items-center gap-0.5 opacity-100 transition-opacity sm:opacity-0 sm:group-hover:opacity-100">
-          {/* Mobile Play Button - AI cells */}
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={
-              cell.executionState === "running" ||
-              cell.executionState === "queued"
-                ? interruptAiCell
-                : executeAiPrompt
-            }
-            className="mobile-play-btn hover:bg-muted/80 block h-8 w-8 p-0 sm:hidden"
-            title={
-              cell.executionState === "running" ||
-              cell.executionState === "queued"
-                ? "Stop AI execution"
-                : "Generate AI response"
-            }
-          >
-            {cell.executionState === "running" ? (
-              <Square className="h-4 w-4" />
-            ) : cell.executionState === "queued" ? (
-              <Square className="h-4 w-4" />
-            ) : (
-              <Play className="h-4 w-4" />
-            )}
-          </Button>
-
-          <div className="flex-1" />
-
-          {/* Add Cell Button */}
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={onAddCell}
-            className="hover:bg-muted/80 h-8 w-8 p-0 sm:h-7 sm:w-7"
-            title="Add cell below"
-          >
-            <Plus className="h-4 w-4 sm:h-3 sm:w-3" />
-          </Button>
-
-          {/* Source Visibility Toggle */}
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={toggleSourceVisibility}
-            className={`hover:bg-muted/80 h-8 w-8 p-0 sm:h-7 sm:w-7 ${
-              cell.sourceVisible ? "" : "text-muted-foreground/60"
-            }`}
-            title={cell.sourceVisible ? "Hide source" : "Show source"}
-          >
-            {cell.sourceVisible ? (
-              <ChevronUp className="h-4 w-4 sm:h-3 sm:w-3" />
-            ) : (
-              <ChevronDown className="h-4 w-4 sm:h-3 sm:w-3" />
-            )}
-          </Button>
-
-          {/* Context Selection Mode Button */}
-          {contextSelectionMode && (
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={toggleAiContextVisibility}
-              className={`hover:bg-muted/80 h-8 w-8 p-0 sm:h-7 sm:w-7 ${
-                cell.aiContextVisible ? "text-purple-600" : "text-gray-500"
-              }`}
-              title={
-                cell.aiContextVisible
-                  ? "Hide from AI context"
-                  : "Show in AI context"
-              }
-            >
-              {cell.aiContextVisible ? (
-                <Eye className="h-4 w-4 sm:h-3 sm:w-3" />
-              ) : (
-                <EyeOff className="h-4 w-4 sm:h-3 sm:w-3" />
-              )}
-            </Button>
-          )}
-
-          {/* Desktop-only controls */}
-          <div className="desktop-controls hidden items-center gap-0.5 sm:flex">
-            {/* Separator */}
-            <div className="bg-border/50 mx-1 h-4 w-px" />
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={onMoveUp}
-              className="hover:bg-muted/80 h-7 w-7 p-0"
-              title="Move cell up"
-            >
-              <ArrowUp className="h-3 w-3" />
-            </Button>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={onMoveDown}
-              className="hover:bg-muted/80 h-7 w-7 p-0"
-              title="Move cell down"
-            >
-              <ArrowDown className="h-3 w-3" />
-            </Button>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={onDeleteCell}
-              className="text-muted-foreground hover:text-destructive hover:bg-destructive/10 h-7 w-7 p-0"
-              title="Delete cell"
-            >
-              <X className="h-3 w-3" />
-            </Button>
-          </div>
-        </div>
+        <CellControls
+          cell={cell}
+          contextSelectionMode={contextSelectionMode}
+          onAddCell={onAddCell}
+          onMoveUp={onMoveUp}
+          onMoveDown={onMoveDown}
+          onDeleteCell={onDeleteCell}
+          toggleSourceVisibility={toggleSourceVisibility}
+          toggleAiContextVisibility={toggleAiContextVisibility}
+          playButton={
+            <PlayButton
+              cell={cell}
+              autoFocus={autoFocus}
+              onExecute={executeAiPrompt}
+              onInterrupt={interruptAiCell}
+              className="mobile-play-btn block sm:hidden"
+              primaryColor="text-purple-600"
+            />
+          }
+        />
       </div>
 
       {/* Cell Content with Desktop Play Button */}
@@ -580,117 +264,25 @@ export const AiCell: React.FC<AiCellProps> = ({
         {/* Desktop Play Button Breaking Through Left Border */}
         <div
           className="desktop-play-btn absolute -left-3 z-10 hidden sm:block"
-          style={{ top: cell.sourceVisible ? "0.375rem" : "-1.5rem" }}
+          style={{
+            top: cell.sourceVisible ? "0.3rem" : "-1.5rem",
+          }}
         >
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={
-              cell.executionState === "running" ||
-              cell.executionState === "queued"
-                ? interruptAiCell
-                : executeAiPrompt
-            }
-            className={`h-6 w-6 rounded-sm border-0 bg-white p-0 transition-colors hover:bg-white ${
-              autoFocus
-                ? "text-purple-600"
-                : "text-muted-foreground/40 group-hover:text-purple-600 hover:text-purple-600"
-            }`}
-            title={
-              cell.executionState === "running" ||
-              cell.executionState === "queued"
-                ? "Stop AI execution"
-                : "Generate AI response"
-            }
-          >
-            {cell.executionState === "running" ? (
-              <Square className="h-3 w-3" />
-            ) : cell.executionState === "queued" ? (
-              <Square className="h-3 w-3" />
-            ) : (
-              <Play className="h-3 w-3" />
-            )}
-          </Button>
+          <PlayButton
+            cell={cell}
+            autoFocus={autoFocus}
+            onExecute={executeAiPrompt}
+            onInterrupt={interruptAiCell}
+            size="default"
+            className="h-6 w-6 rounded-sm border-0 bg-white p-0 transition-colors hover:bg-white"
+            primaryColor="text-purple-600"
+          />
         </div>
 
-        {/* Text Content Area - Chat-like on mobile */}
+        {/* Editor Content Area */}
         {cell.sourceVisible && (
-          <div
-            className={`cell-content px-4 py-1 transition-colors sm:px-4 ${
-              autoFocus ? "bg-white" : "bg-white"
-            }`}
-          >
-            {/* Mobile Chat-like Input */}
-            <div className="block sm:hidden">
-              <div className="mb-16 rounded-lg border border-purple-200/50 bg-purple-50/50 p-3">
-                <Textarea
-                  ref={textareaRef}
-                  value={localSource}
-                  onChange={(e) => handleSourceChange(e.target.value)}
-                  onBlur={updateSource}
-                  onKeyDown={handleKeyDown}
-                  placeholder="Ask me anything about your notebook, data, or analysis..."
-                  className="max-h-32 min-h-[3rem] w-full resize-none border-0 bg-transparent px-0 py-0 text-base leading-relaxed shadow-none placeholder:text-purple-400/70 focus-visible:ring-0"
-                  onFocus={handleFocus}
-                />
-                <div className="mt-2 flex items-center justify-between border-t border-purple-200/50 pt-2">
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <button className="cursor-pointer text-xs text-purple-600/60 transition-colors hover:text-purple-600">
-                        {provider.toUpperCase()} • {model}
-                      </button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                      {notebookModels.length > 0 ? (
-                        providerGroups.map(
-                          ([provider, models], providerIndex) => (
-                            <React.Fragment key={provider}>
-                              {providerIndex > 0 && <DropdownMenuSeparator />}
-                              <DropdownMenuLabel className="px-2 py-1 text-xs font-medium text-gray-600">
-                                {provider.toUpperCase()}
-                              </DropdownMenuLabel>
-                              {models.map((model) => (
-                                <DropdownMenuItem
-                                  key={`${model.provider}-${model.name}`}
-                                  onClick={() =>
-                                    changeProvider(model.provider, model.name)
-                                  }
-                                >
-                                  {model.displayName}
-                                  {model.provider === "ollama" &&
-                                    getModelSizeDisplay(model)}
-                                </DropdownMenuItem>
-                              ))}
-                            </React.Fragment>
-                          )
-                        )
-                      ) : (
-                        <DropdownMenuItem disabled>
-                          No AI models available
-                        </DropdownMenuItem>
-                      )}
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                </div>
-              </div>
-            </div>
-
-            {/* Mobile: Textarea */}
-            <div className="block sm:hidden">
-              <CellBase asChild>
-                <Textarea
-                  ref={textareaRef}
-                  value={localSource}
-                  onChange={(e) => handleSourceChange(e.target.value)}
-                  onBlur={updateSource}
-                  onKeyDown={handleKeyDown}
-                  placeholder="Ask me anything about your notebook, data, or analysis..."
-                  onFocus={handleFocus}
-                />
-              </CellBase>
-            </div>
-            {/* Desktop: CodeMirror Editor */}
-            <div className="relative hidden min-h-[1.5rem] sm:block">
+          <div className="cell-content bg-white py-1 pl-4 transition-colors">
+            <div className="relative min-h-[1.5rem]">
               <CodeMirrorEditor
                 className="text-base sm:text-sm"
                 language="markdown"
@@ -702,7 +294,6 @@ export const AiCell: React.FC<AiCellProps> = ({
                 keyMap={keyMap}
                 onBlur={updateSource}
                 enableLineWrapping={true}
-                disableAutocompletion={true}
               />
             </div>
           </div>
@@ -732,7 +323,7 @@ export const AiCell: React.FC<AiCellProps> = ({
             </span>
             {(outputs.length > 0 || cell.executionState === "running") && (
               <div className="flex items-center gap-2">
-                {!cell.outputVisible && outputs.length > 0 && (
+                {!cell.outputVisible && hasOutputs && (
                   <span className="text-muted-foreground text-xs">
                     {outputs.length === 1
                       ? "1 response hidden"
@@ -762,67 +353,8 @@ export const AiCell: React.FC<AiCellProps> = ({
         </div>
       )}
 
-      {/* Output Area for AI Responses */}
-      {outputs.length > 0 && cell.outputVisible && (
-        <div className="cell-content bg-background mt-1 max-w-full overflow-hidden px-4 sm:px-4">
-          {groupConsecutiveStreamOutputs(
-            outputs.sort(
-              (a: OutputData, b: OutputData) => a.position - b.position
-            )
-          ).map((output: OutputData, index: number) => (
-            <div
-              key={output.id}
-              className={index > 0 ? "border-border/30 mt-2 border-t pt-2" : ""}
-            >
-              {output.outputType === "error" ? (
-                // Use AnsiErrorOutput for colored error rendering
-                (() => {
-                  let errorData;
-                  try {
-                    errorData =
-                      typeof output.data === "string"
-                        ? JSON.parse(output.data)
-                        : output.data;
-                  } catch {
-                    errorData = {
-                      ename: "Error",
-                      evalue: String(output.data),
-                      traceback: [],
-                    };
-                  }
-                  return (
-                    <AnsiErrorOutput
-                      ename={errorData?.ename}
-                      evalue={errorData?.evalue}
-                      traceback={errorData?.traceback || []}
-                    />
-                  );
-                })()
-              ) : (
-                // Use RichOutput for all other output types - chat bubble style on mobile
-                <div className="max-w-full overflow-hidden py-2">
-                  <div className="max-w-full overflow-hidden rounded-lg border border-gray-200 bg-gray-50 p-3 sm:rounded-none sm:border-0 sm:bg-transparent sm:p-0">
-                    <RichOutput
-                      data={
-                        (output.outputType as string) === "markdown" ||
-                        (output.outputType as string) === "terminal"
-                          ? output.data || ""
-                          : output.representations || {
-                              "text/plain": output.data || "",
-                            }
-                      }
-                      metadata={
-                        output.metadata as Record<string, unknown> | undefined
-                      }
-                      outputType={output.outputType}
-                    />
-                  </div>
-                </div>
-              )}
-            </div>
-          ))}
-        </div>
-      )}
-    </div>
+      {/* Outputs Section */}
+      {hasOutputs && cell.outputVisible && renderOutputs()}
+    </CellContainer>
   );
 };

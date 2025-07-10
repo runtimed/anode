@@ -1,43 +1,26 @@
 import { queryDb } from "@livestore/livestore";
 import { useStore } from "@livestore/react";
-import { events, OutputData, tables } from "@runt/schema";
+import { events, tables } from "@runt/schema";
 import React, { useCallback } from "react";
 import { useCellContent } from "../../hooks/useCellContent.js";
 import { useCellKeyboardNavigation } from "../../hooks/useCellKeyboardNavigation.js";
+import { useCellOutputs } from "../../hooks/useCellOutputs.js";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 
 import { AiCell } from "./AiCell.js";
-import { AnsiStreamOutput, AnsiErrorOutput } from "./AnsiOutput.js";
-import { RichOutput } from "./RichOutput";
 import { SqlCell } from "./SqlCell.js";
 
-import {
-  ArrowDown,
-  ArrowUp,
-  Bot,
-  ChevronDown,
-  ChevronUp,
-  Code,
-  Database,
-  Eye,
-  EyeOff,
-  FileText,
-  Play,
-  Plus,
-  Square,
-  X,
-} from "lucide-react";
+import { ChevronDown, ChevronUp } from "lucide-react";
 
-import { groupConsecutiveStreamOutputs } from "../../util/output-grouping.js";
 import { Editor } from "./Editor.js";
+import { CellContainer } from "./shared/CellContainer.js";
+import { CellControls } from "./shared/CellControls.js";
+import { PlayButton } from "./shared/PlayButton.js";
+import { CellTypeSelector } from "./shared/CellTypeSelector.js";
+import { CodeToolbar } from "./toolbars/CodeToolbar.js";
+import { MarkdownToolbar } from "./toolbars/MarkdownToolbar.js";
 
 type CellType = typeof tables.cells.Type;
 
@@ -69,17 +52,19 @@ export const Cell: React.FC<CellProps> = ({
   // All hooks must be called at the top level before any conditional returns
   const { store } = useStore();
 
-  // Create stable query using useMemo to prevent React Hook issues
-  const outputsQuery = React.useMemo(
-    () => queryDb(tables.outputs.select().where({ cellId: cell.id })),
-    [cell.id]
-  );
-  const outputs = store.useQuery(outputsQuery) as OutputData[];
-
   // Use shared content management hook
   const { localSource, updateSource, handleSourceChange } = useCellContent({
     cellId: cell.id,
     initialSource: cell.source,
+  });
+
+  // Use shared outputs hook with code-specific configuration
+  const { outputs, hasOutputs, renderOutputs } = useCellOutputs({
+    cellId: cell.id,
+    groupConsecutiveStreams: true,
+    enableErrorOutput: true,
+    enableTerminalOutput: true,
+    mobileStyle: "default",
   });
 
   const changeCellType = useCallback(
@@ -258,21 +243,6 @@ export const Cell: React.FC<CellProps> = ({
     );
   }
 
-  const getCellTypeIcon = () => {
-    switch (cell.cellType) {
-      case "code":
-        return <Code className="h-3 w-3" />;
-      case "markdown":
-        return <FileText className="h-3 w-3" />;
-      case "sql":
-        return <Database className="h-3 w-3" />;
-      case "ai":
-        return <Bot className="h-3 w-3" />;
-      default:
-        return <Code className="h-3 w-3" />;
-    }
-  };
-
   const getExecutionStatus = () => {
     switch (cell.executionState) {
       case "idle":
@@ -307,201 +277,65 @@ export const Cell: React.FC<CellProps> = ({
     }
   };
 
+  const focusColor =
+    cell.cellType === "code"
+      ? "bg-primary/60"
+      : cell.cellType === "markdown"
+        ? "bg-amber-500/40"
+        : "bg-red-500/60";
+  const focusBgColor =
+    cell.cellType === "code"
+      ? "bg-primary/5"
+      : cell.cellType === "markdown"
+        ? "bg-amber-50/20"
+        : "bg-red-50/30";
+  const primaryColor =
+    cell.cellType === "code"
+      ? "text-foreground"
+      : cell.cellType === "markdown"
+        ? "text-amber-600"
+        : "text-red-600";
+
   return (
-    <div
-      className={`cell-container group relative mb-2 pt-2 transition-all duration-200 sm:mb-3 ${
-        autoFocus && !contextSelectionMode
-          ? "bg-primary/5"
-          : "hover:bg-muted/10"
-      } ${contextSelectionMode && !cell.aiContextVisible ? "opacity-60" : ""} ${
-        contextSelectionMode
-          ? cell.aiContextVisible
-            ? "bg-purple-50/30 ring-2 ring-purple-300"
-            : "bg-gray-50/30 ring-2 ring-gray-300"
-          : ""
-      }`}
+    <CellContainer
+      cell={cell}
+      autoFocus={autoFocus}
+      contextSelectionMode={contextSelectionMode}
+      onFocus={onFocus}
+      focusColor={focusColor}
+      focusBgColor={focusBgColor}
     >
-      {/* Custom left border with controlled height */}
-      <div
-        className={`cell-border absolute top-0 left-3 w-0.5 transition-all duration-200 sm:left-0 ${
-          autoFocus && !contextSelectionMode ? "bg-primary/60" : "bg-border/30"
-        }`}
-        style={{
-          height:
-            outputs.length > 0 ||
-            cell.executionState === "running" ||
-            cell.executionState === "queued"
-              ? "100%"
-              : "4rem",
-        }}
-      />
       {/* Cell Header */}
       <div className="cell-header mb-2 flex items-center justify-between pr-1 pl-6 sm:pr-4">
         <div className="flex items-center gap-3">
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button
-                variant="ghost"
-                size="sm"
-                className="hover:bg-muted/50 h-7 gap-1.5 px-2 text-xs font-medium sm:h-6"
-              >
-                {getCellTypeIcon()}
-                <span className="cell-type-label hidden capitalize sm:inline">
-                  {cell.cellType}
-                </span>
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="start" className="w-40">
-              <DropdownMenuItem
-                onClick={() => changeCellType("code")}
-                className="gap-2"
-              >
-                <Code className="h-4 w-4" />
-                Code
-              </DropdownMenuItem>
-              <DropdownMenuItem
-                onClick={() => changeCellType("markdown")}
-                className="gap-2"
-              >
-                <FileText className="h-4 w-4" />
-                Markdown
-              </DropdownMenuItem>
-              <DropdownMenuItem
-                onClick={() => changeCellType("sql")}
-                className="gap-2"
-              >
-                <Database className="h-4 w-4" />
-                SQL Query
-              </DropdownMenuItem>
-              <DropdownMenuItem
-                onClick={() => changeCellType("ai")}
-                className="gap-2"
-              >
-                <Bot className="h-4 w-4" />
-                AI Assistant
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+          <CellTypeSelector cell={cell} onCellTypeChange={changeCellType} />
+          {cell.cellType === "code" && <CodeToolbar />}
+          {cell.cellType === "markdown" && <MarkdownToolbar />}
           {getExecutionStatus()}
         </div>
 
-        {/* Cell Controls - visible on hover or always on mobile */}
-        <div className="cell-controls flex items-center gap-0.5 opacity-100 transition-opacity sm:opacity-0 sm:group-hover:opacity-100">
-          {/* Mobile Play Button - Code cells only */}
-          {cell.cellType === "code" && (
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={
-                cell.executionState === "running" ||
-                cell.executionState === "queued"
-                  ? interruptCell
-                  : executeCell
-              }
-              className="mobile-play-btn hover:bg-muted/80 block h-8 w-8 p-0 sm:hidden"
-              title={
-                cell.executionState === "running" ||
-                cell.executionState === "queued"
-                  ? "Stop execution"
-                  : "Run cell"
-              }
-            >
-              {cell.executionState === "running" ? (
-                <Square className="h-4 w-4" />
-              ) : cell.executionState === "queued" ? (
-                <Square className="h-4 w-4" />
-              ) : (
-                <Play className="h-4 w-4" />
-              )}
-            </Button>
-          )}
-
-          <div className="flex-1" />
-
-          {/* Add Cell Button */}
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={onAddCell}
-            className="hover:bg-muted/80 h-8 w-8 p-0 sm:h-7 sm:w-7"
-            title="Add cell below"
-          >
-            <Plus className="h-4 w-4 sm:h-3 sm:w-3" />
-          </Button>
-
-          {/* Source Visibility Toggle */}
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={toggleSourceVisibility}
-            className={`hover:bg-muted/80 h-8 w-8 p-0 sm:h-7 sm:w-7 ${
-              cell.sourceVisible ? "" : "text-muted-foreground/60"
-            }`}
-            title={cell.sourceVisible ? "Hide source" : "Show source"}
-          >
-            {cell.sourceVisible ? (
-              <ChevronUp className="h-4 w-4 sm:h-3 sm:w-3" />
-            ) : (
-              <ChevronDown className="h-4 w-4 sm:h-3 sm:w-3" />
-            )}
-          </Button>
-
-          {/* Context Selection Mode Button */}
-          {contextSelectionMode && (
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={toggleAiContextVisibility}
-              className={`hover:bg-muted/80 h-8 w-8 p-0 sm:h-7 sm:w-7 ${
-                cell.aiContextVisible ? "text-purple-600" : "text-gray-500"
-              }`}
-              title={
-                cell.aiContextVisible
-                  ? "Hide from AI context"
-                  : "Show in AI context"
-              }
-            >
-              {cell.aiContextVisible ? (
-                <Eye className="h-4 w-4 sm:h-3 sm:w-3" />
-              ) : (
-                <EyeOff className="h-4 w-4 sm:h-3 sm:w-3" />
-              )}
-            </Button>
-          )}
-
-          {/* Desktop-only controls */}
-          <div className="desktop-controls hidden items-center gap-0.5 sm:flex">
-            {/* Separator */}
-            <div className="bg-border/50 mx-1 h-4 w-px" />
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={onMoveUp}
-              className="hover:bg-muted/80 h-7 w-7 p-0"
-              title="Move cell up"
-            >
-              <ArrowUp className="h-3 w-3" />
-            </Button>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={onMoveDown}
-              className="hover:bg-muted/80 h-7 w-7 p-0"
-              title="Move cell down"
-            >
-              <ArrowDown className="h-3 w-3" />
-            </Button>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={onDeleteCell}
-              className="text-muted-foreground hover:text-destructive hover:bg-destructive/10 h-7 w-7 p-0"
-              title="Delete cell"
-            >
-              <X className="h-3 w-3" />
-            </Button>
-          </div>
-        </div>
+        <CellControls
+          cell={cell}
+          contextSelectionMode={contextSelectionMode}
+          onAddCell={onAddCell}
+          onMoveUp={onMoveUp}
+          onMoveDown={onMoveDown}
+          onDeleteCell={onDeleteCell}
+          toggleSourceVisibility={toggleSourceVisibility}
+          toggleAiContextVisibility={toggleAiContextVisibility}
+          playButton={
+            cell.cellType === "code" ? (
+              <PlayButton
+                cell={cell}
+                autoFocus={autoFocus}
+                onExecute={executeCell}
+                onInterrupt={interruptCell}
+                className="mobile-play-btn block sm:hidden"
+                primaryColor={primaryColor}
+              />
+            ) : undefined
+          }
+        />
       </div>
 
       {/* Cell Content with Left Gutter Play Button - Desktop Only */}
@@ -510,47 +344,25 @@ export const Cell: React.FC<CellProps> = ({
         {cell.cellType === "code" && (
           <div
             className="desktop-play-btn absolute -left-3 z-10 hidden sm:block"
-            style={{ top: cell.sourceVisible ? "0.375rem" : "-1.5rem" }}
+            style={{
+              top: cell.sourceVisible ? "0.35rem" : "-1.5rem",
+            }}
           >
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={
-                cell.executionState === "running" ||
-                cell.executionState === "queued"
-                  ? interruptCell
-                  : executeCell
-              }
-              className={`h-6 w-6 rounded-sm border-0 bg-white p-1 transition-colors hover:bg-white ${
-                autoFocus
-                  ? "text-foreground"
-                  : "text-muted-foreground/40 hover:text-foreground group-hover:text-foreground"
-              }`}
-              title={
-                cell.executionState === "running" ||
-                cell.executionState === "queued"
-                  ? "Stop execution"
-                  : "Run cell"
-              }
-            >
-              {cell.executionState === "running" ? (
-                <Square className="h-4 w-4" />
-              ) : cell.executionState === "queued" ? (
-                <Square className="h-4 w-4" />
-              ) : (
-                <Play className="h-4 w-4" />
-              )}
-            </Button>
+            <PlayButton
+              cell={cell}
+              autoFocus={autoFocus}
+              onExecute={executeCell}
+              onInterrupt={interruptCell}
+              size="default"
+              className="h-6 w-6 rounded-sm border-0 bg-white p-0 transition-colors hover:bg-white"
+              primaryColor={primaryColor}
+            />
           </div>
         )}
 
-        {/* Text Content Area */}
+        {/* Editor Content Area */}
         {cell.sourceVisible && (
-          <div
-            className={`cell-content py-1 pl-4 transition-colors ${
-              autoFocus ? "bg-white" : "bg-white"
-            }`}
-          >
+          <div className="cell-content bg-white py-1 pl-4 transition-colors">
             <Editor
               localSource={localSource}
               handleSourceChange={handleSourceChange}
@@ -573,26 +385,26 @@ export const Cell: React.FC<CellProps> = ({
             <div className="text-muted-foreground flex items-center justify-between pb-1 text-xs">
               <span>
                 {cell.executionState === "running"
-                  ? "Running..."
+                  ? "Executing code..."
                   : cell.executionState === "queued"
-                    ? "Queued"
+                    ? "Queued for execution"
                     : cell.executionCount
                       ? cell.lastExecutionDurationMs
-                        ? `${
+                        ? `Executed in ${
                             cell.lastExecutionDurationMs < 1000
                               ? `${cell.lastExecutionDurationMs}ms`
                               : `${(cell.lastExecutionDurationMs / 1000).toFixed(1)}s`
                           }`
-                        : "Completed"
+                        : "Executed"
                       : null}
               </span>
               {(outputs.length > 0 || cell.executionState === "running") && (
                 <div className="flex items-center gap-2">
-                  {!cell.outputVisible && outputs.length > 0 && (
+                  {!cell.outputVisible && hasOutputs && (
                     <span className="text-muted-foreground text-xs">
                       {outputs.length === 1
-                        ? "1 output hidden"
-                        : `${outputs.length} outputs hidden`}
+                        ? "1 result hidden"
+                        : `${outputs.length} results hidden`}
                     </span>
                   )}
                   <Button
@@ -604,7 +416,7 @@ export const Cell: React.FC<CellProps> = ({
                         ? "opacity-100"
                         : "opacity-100 sm:opacity-0 sm:group-hover:opacity-100"
                     } ${cell.outputVisible ? "" : "text-muted-foreground/60"}`}
-                    title={cell.outputVisible ? "Hide output" : "Show output"}
+                    title={cell.outputVisible ? "Hide results" : "Show results"}
                   >
                     {cell.outputVisible ? (
                       <ChevronUp className="h-4 w-4 sm:h-3 sm:w-3" />
@@ -621,9 +433,9 @@ export const Cell: React.FC<CellProps> = ({
       {/* Output Area for Code Cells */}
       {cell.cellType === "code" &&
         cell.outputVisible &&
-        (outputs.length > 0 || cell.executionState === "running") && (
+        (hasOutputs || cell.executionState === "running") && (
           <div className="cell-content bg-background mt-1 max-w-full overflow-hidden px-4 sm:px-4">
-            {cell.executionState === "running" && outputs.length === 0 && (
+            {cell.executionState === "running" && !hasOutputs && (
               <div className="border-l-2 border-blue-200 py-3 pl-1">
                 <div className="flex items-center gap-2">
                   <div className="h-4 w-4 animate-spin rounded-full border-2 border-blue-600 border-t-transparent"></div>
@@ -632,74 +444,9 @@ export const Cell: React.FC<CellProps> = ({
               </div>
             )}
 
-            {groupConsecutiveStreamOutputs(
-              outputs.sort(
-                (a: OutputData, b: OutputData) => a.position - b.position
-              )
-            ).map((output: OutputData, index: number) => (
-              <div
-                key={output.id}
-                className={
-                  index > 0 ? "border-border/30 mt-2 border-t pt-2" : ""
-                }
-              >
-                {output.outputType === "error" ? (
-                  // Use AnsiErrorOutput for colored error rendering
-                  (() => {
-                    let errorData;
-                    try {
-                      errorData =
-                        typeof output.data === "string"
-                          ? JSON.parse(output.data)
-                          : output.data;
-                    } catch {
-                      errorData = {
-                        ename: "Error",
-                        evalue: String(output.data),
-                        traceback: [],
-                      };
-                    }
-                    return (
-                      <AnsiErrorOutput
-                        ename={errorData?.ename}
-                        evalue={errorData?.evalue}
-                        traceback={errorData?.traceback || []}
-                      />
-                    );
-                  })()
-                ) : output.outputType === "terminal" ? (
-                  // Handle terminal outputs directly
-                  <div className="max-w-full overflow-hidden py-2">
-                    <AnsiStreamOutput
-                      text={output.data || ""}
-                      streamName={
-                        (output.streamName as "stdout" | "stderr") || "stdout"
-                      }
-                    />
-                  </div>
-                ) : (
-                  // Use RichOutput for multimedia outputs
-                  <div className="max-w-full overflow-hidden py-2">
-                    <RichOutput
-                      data={
-                        (output.outputType as string) === "markdown" ||
-                        (output.outputType as string) === "terminal"
-                          ? output.data || ""
-                          : output.representations || {
-                              "text/plain": output.data || "",
-                            }
-                      }
-                      metadata={
-                        output.metadata as Record<string, unknown> | undefined
-                      }
-                      outputType={output.outputType}
-                    />
-                  </div>
-                )}
-              </div>
-            ))}
+            {hasOutputs && renderOutputs()}
           </div>
         )}
-    </div>
+    </CellContainer>
   );
 };
