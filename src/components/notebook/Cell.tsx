@@ -21,6 +21,8 @@ import { PlayButton } from "./shared/PlayButton.js";
 import { CellTypeSelector } from "./shared/CellTypeSelector.js";
 import { CodeToolbar } from "./toolbars/CodeToolbar.js";
 import { MarkdownToolbar } from "./toolbars/MarkdownToolbar.js";
+import { ErrorBoundary } from "react-error-boundary";
+import { OutputsErrorBoundary } from "./shared/OutputsErrorBoundary.js";
 
 type CellType = typeof tables.cells.Type;
 
@@ -59,7 +61,7 @@ export const Cell: React.FC<CellProps> = ({
   });
 
   // Use shared outputs hook with code-specific configuration
-  const { outputs, hasOutputs, renderOutputs } = useCellOutputs({
+  const { outputs, hasOutputs, MaybeOutputs } = useCellOutputs({
     cellId: cell.id,
     groupConsecutiveStreams: true,
     enableErrorOutput: true,
@@ -211,35 +213,39 @@ export const Cell: React.FC<CellProps> = ({
   // Route to specialized cell components
   if (cell.cellType === "sql") {
     return (
-      <SqlCell
-        cell={cell}
-        onAddCell={onAddCell}
-        onDeleteCell={onDeleteCell}
-        onMoveUp={onMoveUp}
-        onMoveDown={onMoveDown}
-        onFocusNext={onFocusNext}
-        onFocusPrevious={onFocusPrevious}
-        autoFocus={autoFocus}
-        onFocus={onFocus}
-        contextSelectionMode={contextSelectionMode}
-      />
+      <ErrorBoundary fallback={<div>Error rendering SQL cell</div>}>
+        <SqlCell
+          cell={cell}
+          onAddCell={onAddCell}
+          onDeleteCell={onDeleteCell}
+          onMoveUp={onMoveUp}
+          onMoveDown={onMoveDown}
+          onFocusNext={onFocusNext}
+          onFocusPrevious={onFocusPrevious}
+          autoFocus={autoFocus}
+          onFocus={onFocus}
+          contextSelectionMode={contextSelectionMode}
+        />
+      </ErrorBoundary>
     );
   }
 
   if (cell.cellType === "ai") {
     return (
-      <AiCell
-        cell={cell}
-        onAddCell={onAddCell}
-        onDeleteCell={onDeleteCell}
-        onMoveUp={onMoveUp}
-        onMoveDown={onMoveDown}
-        onFocusNext={onFocusNext}
-        onFocusPrevious={onFocusPrevious}
-        autoFocus={autoFocus}
-        onFocus={onFocus}
-        contextSelectionMode={contextSelectionMode}
-      />
+      <ErrorBoundary fallback={<div>Error rendering AI cell</div>}>
+        <AiCell
+          cell={cell}
+          onAddCell={onAddCell}
+          onDeleteCell={onDeleteCell}
+          onMoveUp={onMoveUp}
+          onMoveDown={onMoveDown}
+          onFocusNext={onFocusNext}
+          onFocusPrevious={onFocusPrevious}
+          autoFocus={autoFocus}
+          onFocus={onFocus}
+          contextSelectionMode={contextSelectionMode}
+        />
+      </ErrorBoundary>
     );
   }
 
@@ -363,15 +369,17 @@ export const Cell: React.FC<CellProps> = ({
         {/* Editor Content Area */}
         {cell.sourceVisible && (
           <div className="cell-content bg-white py-1 pl-4 transition-colors">
-            <Editor
-              localSource={localSource}
-              handleSourceChange={handleSourceChange}
-              updateSource={updateSource}
-              handleFocus={handleFocus}
-              cell={cell}
-              autoFocus={autoFocus}
-              keyMap={keyMap}
-            />
+            <ErrorBoundary fallback={<div>Error rendering editor</div>}>
+              <Editor
+                localSource={localSource}
+                handleSourceChange={handleSourceChange}
+                updateSource={updateSource}
+                handleFocus={handleFocus}
+                cell={cell}
+                autoFocus={autoFocus}
+                keyMap={keyMap}
+              />
+            </ErrorBoundary>
           </div>
         )}
       </div>
@@ -443,8 +451,9 @@ export const Cell: React.FC<CellProps> = ({
                 </div>
               </div>
             )}
-
-            {hasOutputs && renderOutputs()}
+            <ErrorBoundary FallbackComponent={OutputsErrorBoundary}>
+              {hasOutputs && <MaybeOutputs />}
+            </ErrorBoundary>
           </div>
         )}
     </CellContainer>

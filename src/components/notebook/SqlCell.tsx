@@ -13,6 +13,8 @@ import { PlayButton } from "./shared/PlayButton.js";
 import { CellTypeSelector } from "./shared/CellTypeSelector.js";
 import { Button } from "@/components/ui/button";
 import { ChevronUp, ChevronDown } from "lucide-react";
+import { ErrorBoundary } from "react-error-boundary";
+import { OutputsErrorBoundary } from "./shared/OutputsErrorBoundary.js";
 
 interface SqlCellProps {
   cell: typeof tables.cells.Type;
@@ -52,7 +54,7 @@ export const SqlCell: React.FC<SqlCellProps> = ({
   });
 
   // Use shared outputs hook with SQL-specific configuration
-  const { outputs, hasOutputs, renderOutputs } = useCellOutputs({
+  const { outputs, hasOutputs, MaybeOutputs } = useCellOutputs({
     cellId: cell.id,
     groupConsecutiveStreams: true,
     enableErrorOutput: true,
@@ -308,7 +310,9 @@ export const SqlCell: React.FC<SqlCellProps> = ({
       )}
 
       {/* Outputs Section */}
-      {hasOutputs && cell.outputVisible && renderOutputs()}
+      <ErrorBoundary FallbackComponent={OutputsErrorBoundary}>
+        {cell.outputVisible && <MaybeOutputs />}
+      </ErrorBoundary>
     </CellContainer>
   );
 };

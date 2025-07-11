@@ -20,9 +20,11 @@ interface UseCellOutputsOptions {
 interface CellOutputsResult {
   outputs: OutputData[];
   hasOutputs: boolean;
-  renderOutputs: () => React.ReactNode;
+  MaybeOutputs: React.FC;
 }
 
+// TODO: extract components and have them consume the outputs of this
+// If prop drilling is needed, use React context
 export const useCellOutputs = ({
   cellId,
   groupConsecutiveStreams = false,
@@ -116,7 +118,10 @@ export const useCellOutputs = ({
     [enableErrorOutput, enableTerminalOutput, mobileStyle]
   );
 
-  const renderOutputs = useCallback(() => {
+  // Note: this approach is not ideal, but it ensures that if this component throws, we can put an error boundary that works
+  // Otherwise, just calling `<ErrorBoundary FallbackComponent={OutputsErrorBoundary}>renderOutputs()</ErrorBoundary>` will not work as expected
+  const MaybeOutputs = useCallback(() => {
+    throw new Error("test");
     if (!hasOutputs) return null;
 
     // Apply grouping strategy based on cell type
@@ -145,6 +150,6 @@ export const useCellOutputs = ({
   return {
     outputs,
     hasOutputs,
-    renderOutputs,
+    MaybeOutputs,
   };
 };

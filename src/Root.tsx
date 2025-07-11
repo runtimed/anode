@@ -21,6 +21,7 @@ import { getCurrentNotebookId, getStoreId } from "./util/store-id.js";
 import { useStore } from "@livestore/react";
 import { queryDb } from "@livestore/livestore";
 import { getCurrentAuthToken, isAuthStateValid } from "./auth/google-auth.js";
+import { ErrorBoundary } from "react-error-boundary";
 
 const NotebookApp: React.FC = () => {
   // In the simplified architecture, we always show the current notebook
@@ -168,11 +169,13 @@ const NotebookApp: React.FC = () => {
         </div>
       )}
       {/* Main Content */}
-      <NotebookViewer
-        notebookId={currentNotebookId}
-        debugMode={debugMode}
-        onDebugToggle={setDebugMode}
-      />
+      <ErrorBoundary fallback={<div>Error loading notebook</div>}>
+        <NotebookViewer
+          notebookId={currentNotebookId}
+          debugMode={debugMode}
+          onDebugToggle={setDebugMode}
+        />
+      </ErrorBoundary>
     </div>
   );
 };

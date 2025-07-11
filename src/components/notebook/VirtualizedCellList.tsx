@@ -8,6 +8,7 @@ import React, {
 } from "react";
 import { CellData } from "@runt/schema";
 import { Cell } from "./Cell.js";
+import { ErrorBoundary } from "react-error-boundary";
 
 interface VirtualizedCellListProps {
   cells: CellData[];
@@ -270,23 +271,25 @@ export const VirtualizedCellList: React.FC<VirtualizedCellListProps> = ({
             marginBottom: "1rem", // Add spacing between cells
           }}
         >
-          <MemoizedCell
-            cell={cell}
-            onAddCell={() =>
-              onAddCell(
-                cell.id,
-                cell.cellType === "raw" ? "code" : cell.cellType
-              )
-            }
-            onDeleteCell={() => onDeleteCell(cell.id)}
-            onMoveUp={() => onMoveUp(cell.id)}
-            onMoveDown={() => onMoveDown(cell.id)}
-            onFocusNext={() => onFocusNext(cell.id)}
-            onFocusPrevious={() => onFocusPrevious(cell.id)}
-            onFocus={() => onFocus(cell.id)}
-            autoFocus={cell.id === focusedCellId}
-            contextSelectionMode={contextSelectionMode}
-          />
+          <ErrorBoundary fallback={<div>Error rendering cell</div>}>
+            <MemoizedCell
+              cell={cell}
+              onAddCell={() =>
+                onAddCell(
+                  cell.id,
+                  cell.cellType === "raw" ? "code" : cell.cellType
+                )
+              }
+              onDeleteCell={() => onDeleteCell(cell.id)}
+              onMoveUp={() => onMoveUp(cell.id)}
+              onMoveDown={() => onMoveDown(cell.id)}
+              onFocusNext={() => onFocusNext(cell.id)}
+              onFocusPrevious={() => onFocusPrevious(cell.id)}
+              onFocus={() => onFocus(cell.id)}
+              autoFocus={cell.id === focusedCellId}
+              contextSelectionMode={contextSelectionMode}
+            />
+          </ErrorBoundary>
         </div>
       )),
     [

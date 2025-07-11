@@ -2,6 +2,7 @@ import React, { useCallback, Suspense } from "react";
 import { useStore } from "@livestore/react";
 import { CellData, events, RuntimeSessionData, tables } from "@runt/schema";
 import { queryDb } from "@livestore/livestore";
+import { ErrorBoundary } from "react-error-boundary";
 
 import { VirtualizedCellList } from "./VirtualizedCellList.js";
 
@@ -379,7 +380,9 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
                 )}
               </Button>
             )}
-            <UserProfile />
+            <ErrorBoundary fallback={<div>Error loading user profile</div>}>
+              <UserProfile />
+            </ErrorBoundary>
           </div>
         </div>
       </nav>
@@ -783,24 +786,26 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
                   </div>
                 </div>
               ) : (
-                <VirtualizedCellList
-                  cells={cells}
-                  focusedCellId={focusedCellId}
-                  onAddCell={(afterCellId, cellType) =>
-                    addCell(
-                      afterCellId,
-                      cellType as "code" | "markdown" | "sql" | "ai"
-                    )
-                  }
-                  onDeleteCell={deleteCell}
-                  onMoveUp={(cellId) => moveCell(cellId, "up")}
-                  onMoveDown={(cellId) => moveCell(cellId, "down")}
-                  onFocusNext={focusNextCell}
-                  onFocusPrevious={focusPreviousCell}
-                  onFocus={focusCell}
-                  contextSelectionMode={contextSelectionMode}
-                  threshold={50}
-                />
+                <ErrorBoundary fallback={<div>Error rendering cell list</div>}>
+                  <VirtualizedCellList
+                    cells={cells}
+                    focusedCellId={focusedCellId}
+                    onAddCell={(afterCellId, cellType) =>
+                      addCell(
+                        afterCellId,
+                        cellType as "code" | "markdown" | "sql" | "ai"
+                      )
+                    }
+                    onDeleteCell={deleteCell}
+                    onMoveUp={(cellId) => moveCell(cellId, "up")}
+                    onMoveDown={(cellId) => moveCell(cellId, "down")}
+                    onFocusNext={focusNextCell}
+                    onFocusPrevious={focusPreviousCell}
+                    onFocus={focusCell}
+                    contextSelectionMode={contextSelectionMode}
+                    threshold={50}
+                  />
+                </ErrorBoundary>
               )}
             </div>
 
@@ -868,14 +873,16 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
               </div>
             }
           >
-            <LazyDebugPanel
-              notebook={notebook}
-              cells={cells}
-              allRuntimeSessions={allRuntimeSessions}
-              executionQueue={executionQueue}
-              currentNotebookId={currentNotebookId}
-              runtimeHealth={runtimeHealth}
-            />
+            <ErrorBoundary fallback={<div>Error rendering debug panel</div>}>
+              <LazyDebugPanel
+                notebook={notebook}
+                cells={cells}
+                allRuntimeSessions={allRuntimeSessions}
+                executionQueue={executionQueue}
+                currentNotebookId={currentNotebookId}
+                runtimeHealth={runtimeHealth}
+              />
+            </ErrorBoundary>
           </Suspense>
         )}
 
