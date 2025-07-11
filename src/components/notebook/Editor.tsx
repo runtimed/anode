@@ -7,6 +7,7 @@ import { useState } from "react";
 import { Button } from "../ui/button";
 import { CodeMirrorEditor } from "./codemirror/CodeMirrorEditor";
 import { ErrorBoundary } from "react-error-boundary";
+import { useStore } from "@livestore/react";
 
 const ErrorFallback = () => {
   return <div>Error rendering editor</div>;
@@ -29,6 +30,7 @@ export function Editor({
   autoFocus: boolean;
   keyMap: KeyBinding[];
 }) {
+  const { store } = useStore();
   const [isMaximized, setIsMaximized] = useState(false);
 
   if (!isMaximized) {
@@ -49,7 +51,7 @@ export function Editor({
           />
         </ErrorBoundary>
         <MaxMinButton
-          className="absolute top-1 right-1 sm:hidden"
+          className="absolute right-1 top-1 sm:hidden"
           isMaximized={isMaximized}
           setIsMaximized={setIsMaximized}
         />
@@ -72,7 +74,7 @@ export function Editor({
             />
           </ErrorBoundary>
           <MaxMinButton
-            className="absolute top-1 right-1 sm:hidden"
+            className="absolute right-1 top-1 sm:hidden"
             isMaximized={isMaximized}
             setIsMaximized={setIsMaximized}
           />
@@ -84,7 +86,7 @@ export function Editor({
           />
           <Dialog.Content
             className={cn(
-              "animate-in fade-in slide-in-from-top-5 fixed top-0 z-50 w-full duration-200 outline-none"
+              "animate-in fade-in slide-in-from-top-5 fixed top-0 z-50 w-full outline-none duration-200"
             )}
             onOpenAutoFocus={(e) => e.preventDefault()}
             onInteractOutside={() => setIsMaximized(false)}
@@ -106,7 +108,7 @@ export function Editor({
               />
             </ErrorBoundary>
             <MaxMinButton
-              className="top-1 right-1"
+              className="right-1 top-1"
               isMaximized={isMaximized}
               setIsMaximized={setIsMaximized}
             />
@@ -130,7 +132,7 @@ function MaxMinButton({
     <Button
       variant="ghost"
       size="sm"
-      className={cn(className, "absolute top-1 right-1 h-6 w-6 p-1")}
+      className={cn(className, "absolute right-1 top-1 h-6 w-6 p-1")}
       onClick={() => setIsMaximized(!isMaximized)}
       aria-label={isMaximized ? "Minimize editor" : "Maximize editor"}
     >
