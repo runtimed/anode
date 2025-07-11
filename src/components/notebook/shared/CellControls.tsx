@@ -141,10 +141,7 @@ export const CellControls: React.FC<CellControlsProps> = ({
               <Eraser className="mr-2 h-4 w-4" />
               <span>Clear outputs</span>
             </DropdownMenuItem>
-            <DropdownMenuItem
-              onClick={onDeleteCell}
-              variant="destructive"
-            >
+            <DropdownMenuItem onClick={onDeleteCell} variant="destructive">
               <X className="mr-2 h-4 w-4" />
               <span>Delete cell</span>
             </DropdownMenuItem>
