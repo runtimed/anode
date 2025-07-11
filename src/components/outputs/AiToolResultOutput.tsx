@@ -1,16 +1,9 @@
 import React from "react";
 import { CheckCircle, XCircle, Clock, Info } from "lucide-react";
+import { AiToolResultData } from "@runt/schema";
 
 interface AiToolResultOutputProps {
-  resultData: {
-    tool_call_id: string;
-    result?: string;
-    status: string;
-    // Optional fields from full schema
-    tool_name?: string;
-    arguments?: Record<string, unknown>;
-    timestamp?: string;
-  };
+  resultData: AiToolResultData;
 }
 
 // Tool icon and message mapping for AI tool results
@@ -55,11 +48,6 @@ export const AiToolResultOutput: React.FC<AiToolResultOutputProps> = ({
       {resultData.result && (
         <div className="text-foreground text-sm whitespace-pre-wrap">
           {resultData.result}
-        </div>
-      )}
-      {!resultData.result && (
-        <div className="text-muted-foreground text-sm italic">
-          {config.label}
         </div>
       )}
     </div>
