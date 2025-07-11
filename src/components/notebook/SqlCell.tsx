@@ -80,6 +80,18 @@ export const SqlCell: React.FC<SqlCellProps> = ({
     );
   }, [localQuery, cell.id, cell.executionCount, store]);
 
+  const clearCellOutputs = useCallback(async () => {
+    if (hasOutputs) {
+      store.commit(
+        events.cellOutputsCleared({
+          cellId: cell.id,
+          wait: false,
+          clearedBy: "current-user",
+        })
+      );
+    }
+  }, [cell.id, store, hasOutputs]);
+
   const interruptQuery = useCallback(() => {
     // Find the current execution in the queue for this cell
     const executionQueue = store.query(
@@ -198,6 +210,8 @@ export const SqlCell: React.FC<SqlCellProps> = ({
           onMoveUp={onMoveUp}
           onMoveDown={onMoveDown}
           onDeleteCell={onDeleteCell}
+          onClearOutputs={clearCellOutputs}
+          hasOutputs={hasOutputs}
           toggleSourceVisibility={toggleSourceVisibility}
           toggleAiContextVisibility={toggleAiContextVisibility}
           playButton={

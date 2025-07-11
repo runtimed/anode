@@ -1,6 +1,12 @@
 import React from "react";
 import { Button } from "@/components/ui/button";
 import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
   Plus,
   ChevronUp,
   ChevronDown,
@@ -9,6 +15,8 @@ import {
   ArrowUp,
   ArrowDown,
   X,
+  MoreVertical,
+  Eraser,
 } from "lucide-react";
 import { tables } from "@runt/schema";
 
@@ -19,6 +27,8 @@ interface CellControlsProps {
   onMoveUp: () => void;
   onMoveDown: () => void;
   onDeleteCell: () => void;
+  onClearOutputs: () => void;
+  hasOutputs: boolean;
   toggleSourceVisibility: () => void;
   toggleAiContextVisibility?: () => void;
   playButton?: React.ReactNode;
@@ -31,6 +41,8 @@ export const CellControls: React.FC<CellControlsProps> = ({
   onMoveUp,
   onMoveDown,
   onDeleteCell,
+  onClearOutputs,
+  hasOutputs,
   toggleSourceVisibility,
   toggleAiContextVisibility,
   playButton,
@@ -113,15 +125,31 @@ export const CellControls: React.FC<CellControlsProps> = ({
         >
           <ArrowDown className="h-3 w-3" />
         </Button>
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={onDeleteCell}
-          className="hover:bg-muted/80 h-7 w-7 p-0 text-red-500 hover:text-red-600"
-          title="Delete cell"
-        >
-          <X className="h-3 w-3" />
-        </Button>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="hover:bg-muted/80 h-7 w-7 p-0"
+              title="More options"
+            >
+              <MoreVertical className="h-3 w-3" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <DropdownMenuItem onClick={onClearOutputs} disabled={!hasOutputs}>
+              <Eraser className="mr-2 h-4 w-4" />
+              <span>Clear outputs</span>
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              onClick={onDeleteCell}
+              variant="destructive"
+            >
+              <X className="mr-2 h-4 w-4" />
+              <span>Delete cell</span>
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
     </div>
   );
