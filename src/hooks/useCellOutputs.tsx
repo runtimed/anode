@@ -121,7 +121,6 @@ export const useCellOutputs = ({
   // Note: this approach is not ideal, but it ensures that if this component throws, we can put an error boundary that works
   // Otherwise, just calling `<ErrorBoundary FallbackComponent={OutputsErrorBoundary}>renderOutputs()</ErrorBoundary>` will not work as expected
   const MaybeOutputs = useCallback(() => {
-    throw new Error("test");
     if (!hasOutputs) return null;
 
     // Apply grouping strategy based on cell type
