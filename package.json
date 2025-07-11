@@ -11,7 +11,7 @@
     "dev:scan": "pnpm run dev & npx react-scan@latest localhost:5173",
     "dev:prod": "vite --mode production",
     "dev:sync": "wrangler dev",
-    "dev:runtime": "deno run --allow-all --env-file=.env \"jsr:@runt/pyodide-runtime-agent@^0.6.0\"",
+    "dev:runtime": "deno run --allow-all --env-file=.env \"jsr:@runt/pyodide-runtime-agent@^0.6.2\"",
     "build": "vite build --mode development",
     "build:preview": "vite build --mode preview",
     "build:production": "vite build --mode production",
