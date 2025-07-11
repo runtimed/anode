@@ -1,10 +1,10 @@
 # PM2 Development Setup
 
-This setup uses PM2 to manage your development processes and automatically watch for changes in the pyodide runtime agent.
+This setup uses PM2 to manage your development processes and automatically watch for changes in the schema.
 
 ## What it does
 
-1. **Watches** `../runt/packages/pyodide-runtime-agent/src/mod.ts` for changes
+1. **Watches** `../runt/packages/schema/mod.ts` for changes
 2. **Automatically runs** these commands when the file changes:
    - `rm -rf node_modules/.vite` (clears Vite cache)
    - `pnpm install @runt/schema@file:../runt/packages/schema` (updates schema package)
@@ -50,7 +50,7 @@ pm2 delete all
 
 - `anode-dev`: Runs `pnpm run dev`
 - `anode-sync`: Runs `pnpm run dev:sync`
-- `file-watcher`: Monitors the pyodide runtime agent file
+- `file-watcher`: Monitors the schema file
 
 ## Files Created
 
@@ -62,7 +62,7 @@ pm2 delete all
 
 If the file watcher isn't working:
 
-1. Check if the file path exists: `ls -la ../runt/packages/pyodide-runtime-agent/src/mod.ts`
+1. Check if the file path exists: `ls -la ../runt/packages/schema/mod.ts`
 2. Check PM2 logs: `pm2 logs file-watcher`
 3. Restart the file watcher: `pm2 restart file-watcher`
 
@@ -71,7 +71,7 @@ If the file watcher isn't working:
 To test the file watcher manually, you can touch the watched file:
 
 ```bash
-touch ../runt/packages/pyodide-runtime-agent/src/mod.ts
+touch ../runt/packages/schema/mod.ts
 ```
 
 This should trigger the update process and restart the development servers.
