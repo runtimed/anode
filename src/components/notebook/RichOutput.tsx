@@ -6,6 +6,12 @@ import {
   isArtifactContainer,
   isAiToolCallData,
   isAiToolResultData,
+  AI_TOOL_CALL_MIME_TYPE,
+  AI_TOOL_RESULT_MIME_TYPE,
+  TEXT_MIME_TYPES,
+  APPLICATION_MIME_TYPES,
+  IMAGE_MIME_TYPES,
+  JUPYTER_MIME_TYPES,
 } from "@runt/schema";
 import { AnsiStreamOutput } from "../outputs/index.js";
 import { AnsiErrorOutput } from "./AnsiOutput.js";
@@ -135,16 +141,21 @@ export const RichOutput: React.FC<RichOutputProps> = ({
   // Determine the best media type to render, in order of preference
   const getPreferredMediaType = (): string | null => {
     const preferenceOrder = [
-      "application/vnd.anode.aitool+json",
-      "application/vnd.anode.aitool.result+json",
-      "text/markdown",
-      "text/html",
-      "image/png",
-      "image/jpeg",
-      "image/svg+xml",
-      "image/svg",
-      "application/json",
-      "text/plain",
+      AI_TOOL_CALL_MIME_TYPE,
+      AI_TOOL_RESULT_MIME_TYPE,
+      // Jupyter rich formats (plots, widgets, etc.)
+      ...JUPYTER_MIME_TYPES,
+      // Text formats
+      TEXT_MIME_TYPES[2], // text/markdown
+      TEXT_MIME_TYPES[1], // text/html
+      // Images
+      IMAGE_MIME_TYPES[0], // image/png
+      IMAGE_MIME_TYPES[1], // image/jpeg
+      IMAGE_MIME_TYPES[2], // image/svg+xml
+      "image/svg", // legacy SVG format
+      // Application formats
+      APPLICATION_MIME_TYPES[0], // application/json
+      TEXT_MIME_TYPES[0], // text/plain
     ];
 
     for (const mediaType of preferenceOrder) {
@@ -171,7 +182,7 @@ export const RichOutput: React.FC<RichOutputProps> = ({
 
   const renderContent = () => {
     switch (mediaType) {
-      case "application/vnd.anode.aitool+json": {
+      case AI_TOOL_CALL_MIME_TYPE: {
         const toolData = outputData[mediaType];
         if (isAiToolCallData(toolData)) {
           return (
@@ -183,7 +194,7 @@ export const RichOutput: React.FC<RichOutputProps> = ({
         return <div className="text-red-500">Invalid tool call data</div>;
       }
 
-      case "application/vnd.anode.aitool.result+json": {
+      case AI_TOOL_RESULT_MIME_TYPE: {
         const resultData = outputData[mediaType];
         if (isAiToolResultData(resultData)) {
           return (
@@ -195,7 +206,7 @@ export const RichOutput: React.FC<RichOutputProps> = ({
         return <div className="text-red-500">Invalid tool result data</div>;
       }
 
-      case "text/markdown":
+      case TEXT_MIME_TYPES[2]: // text/markdown
         return (
           <Suspense fallback={<LoadingSpinner />}>
             <MarkdownRenderer
@@ -205,15 +216,15 @@ export const RichOutput: React.FC<RichOutputProps> = ({
           </Suspense>
         );
 
-      case "text/html":
+      case TEXT_MIME_TYPES[1]: // text/html
         return (
           <Suspense fallback={<LoadingSpinner />}>
             <HtmlOutput content={String(outputData[mediaType] || "")} />
           </Suspense>
         );
 
-      case "image/png":
-      case "image/jpeg":
+      case IMAGE_MIME_TYPES[0]: // image/png
+      case IMAGE_MIME_TYPES[1]: // image/jpeg
         return (
           <Suspense fallback={<LoadingSpinner />}>
             <ImageOutput
@@ -223,22 +234,50 @@ export const RichOutput: React.FC<RichOutputProps> = ({
           </Suspense>
         );
 
-      case "image/svg+xml":
-      case "image/svg":
+      case IMAGE_MIME_TYPES[2]: // image/svg+xml
+      case "image/svg": // legacy SVG format
         return (
           <Suspense fallback={<LoadingSpinner />}>
             <SvgOutput content={String(outputData[mediaType] || "")} />
           </Suspense>
         );
 
-      case "application/json":
+      case "application/vnd.plotly.v1+json":
         return (
           <Suspense fallback={<LoadingSpinner />}>
             <JsonOutput data={outputData[mediaType]} />
           </Suspense>
         );
 
-      case "text/plain":
+      case "application/vnd.vegalite.v2+json":
+      case "application/vnd.vegalite.v3+json":
+      case "application/vnd.vegalite.v4+json":
+      case "application/vnd.vegalite.v5+json":
+      case "application/vnd.vegalite.v6+json":
+      case "application/vnd.vega.v3+json":
+      case "application/vnd.vega.v4+json":
+      case "application/vnd.vega.v5+json":
+        return (
+          <Suspense fallback={<LoadingSpinner />}>
+            <JsonOutput data={outputData[mediaType]} />
+          </Suspense>
+        );
+
+      case "application/geo+json":
+        return (
+          <Suspense fallback={<LoadingSpinner />}>
+            <JsonOutput data={outputData[mediaType]} />
+          </Suspense>
+        );
+
+      case APPLICATION_MIME_TYPES[0]: // application/json
+        return (
+          <Suspense fallback={<LoadingSpinner />}>
+            <JsonOutput data={outputData[mediaType]} />
+          </Suspense>
+        );
+
+      case TEXT_MIME_TYPES[0]: // text/plain
       default:
         return (
           <Suspense fallback={<LoadingSpinner />}>
