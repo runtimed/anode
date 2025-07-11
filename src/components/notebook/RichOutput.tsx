@@ -5,6 +5,7 @@ import {
   isInlineContainer,
   isArtifactContainer,
   isAiToolCallData,
+  isAiToolResultData,
   AI_TOOL_CALL_MIME_TYPE,
   AI_TOOL_RESULT_MIME_TYPE,
   TEXT_MIME_TYPES,
@@ -195,18 +196,10 @@ export const RichOutput: React.FC<RichOutputProps> = ({
 
       case AI_TOOL_RESULT_MIME_TYPE: {
         const resultData = outputData[mediaType];
-        // Handle actual runtime data structure (more flexible than strict schema)
-        if (
-          resultData &&
-          typeof resultData === "object" &&
-          "tool_call_id" in resultData &&
-          "status" in resultData &&
-          typeof (resultData as any).tool_call_id === "string" &&
-          typeof (resultData as any).status === "string"
-        ) {
+        if (isAiToolResultData(resultData)) {
           return (
             <Suspense fallback={<LoadingSpinner />}>
-              <AiToolResultOutput resultData={resultData as any} />
+              <AiToolResultOutput resultData={resultData} />
             </Suspense>
           );
         }
