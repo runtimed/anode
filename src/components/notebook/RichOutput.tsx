@@ -1,11 +1,18 @@
 import React, { Suspense } from "react";
 
 import {
-  AnsiStreamOutput,
-  OutputData,
-  ToolCallData,
-  ToolResultData,
-} from "../outputs/index.js";
+  MediaContainer,
+  isInlineContainer,
+  isArtifactContainer,
+  isAiToolCallData,
+  AI_TOOL_CALL_MIME_TYPE,
+  AI_TOOL_RESULT_MIME_TYPE,
+  TEXT_MIME_TYPES,
+  APPLICATION_MIME_TYPES,
+  IMAGE_MIME_TYPES,
+  JUPYTER_MIME_TYPES,
+} from "@runt/schema";
+import { AnsiStreamOutput } from "../outputs/index.js";
 import { AnsiErrorOutput } from "./AnsiOutput.js";
 import "../outputs/outputs.css";
 
@@ -44,7 +51,7 @@ const PlainTextOutput = React.lazy(() =>
 );
 
 interface RichOutputProps {
-  data: Record<string, unknown>;
+  data: string | Record<string, MediaContainer>;
   metadata?: Record<string, unknown>;
   outputType?:
     | "multimedia_display"
@@ -99,37 +106,31 @@ export const RichOutput: React.FC<RichOutputProps> = ({
   }
 
   // Handle multimedia outputs (multimedia_display, multimedia_result)
-  let outputData: OutputData;
+  let outputData: Record<string, unknown> = {};
 
-  // Check if data contains representations (new format)
+  // Check if data contains media containers (new format)
   if (data && typeof data === "object" && !Array.isArray(data)) {
-    const potentialRepresentations = data as Record<string, any>;
+    const potentialContainers = data as Record<string, MediaContainer>;
 
-    // Check if this looks like representations (has MediaRepresentation structure)
-    const hasRepresentations = Object.values(potentialRepresentations).some(
-      (value: any) =>
-        value &&
-        typeof value === "object" &&
-        (value.type === "inline" || value.type === "artifact")
+    // Check if this looks like media containers
+    const hasContainers = Object.values(potentialContainers).some(
+      (value: any) => isInlineContainer(value) || isArtifactContainer(value)
     );
 
-    if (hasRepresentations) {
-      // Convert from representations to rendering format
-      outputData = {};
-      for (const [mimeType, representation] of Object.entries(
-        potentialRepresentations
-      )) {
-        if (
-          representation &&
-          typeof representation === "object" &&
-          representation.data !== undefined
-        ) {
-          outputData[mimeType] = representation.data;
+    if (hasContainers) {
+      // Convert from media containers to rendering format
+      for (const [mimeType, container] of Object.entries(potentialContainers)) {
+        if (isInlineContainer(container)) {
+          outputData[mimeType] = container.data;
+        } else if (isArtifactContainer(container)) {
+          // For artifacts, we'll need to handle them differently
+          // For now, just mark as artifact reference
+          outputData[mimeType] = `[Artifact: ${container.artifactId}]`;
         }
       }
     } else {
-      // Direct data format
-      outputData = potentialRepresentations as OutputData;
+      // Direct data format (legacy support)
+      outputData = potentialContainers as Record<string, unknown>;
     }
   } else {
     // Fallback for simple data
@@ -139,16 +140,21 @@ export const RichOutput: React.FC<RichOutputProps> = ({
   // Determine the best media type to render, in order of preference
   const getPreferredMediaType = (): string | null => {
     const preferenceOrder = [
-      "application/vnd.anode.aitool+json",
-      "application/vnd.anode.aitool.result+json",
-      "text/markdown",
-      "text/html",
-      "image/png",
-      "image/jpeg",
-      "image/svg+xml",
-      "image/svg",
-      "application/json",
-      "text/plain",
+      AI_TOOL_CALL_MIME_TYPE,
+      AI_TOOL_RESULT_MIME_TYPE,
+      // Jupyter rich formats (plots, widgets, etc.)
+      ...JUPYTER_MIME_TYPES,
+      // Text formats
+      TEXT_MIME_TYPES[2], // text/markdown
+      TEXT_MIME_TYPES[1], // text/html
+      // Images
+      IMAGE_MIME_TYPES[0], // image/png
+      IMAGE_MIME_TYPES[1], // image/jpeg
+      IMAGE_MIME_TYPES[2], // image/svg+xml
+      "image/svg", // legacy SVG format
+      // Application formats
+      APPLICATION_MIME_TYPES[0], // application/json
+      TEXT_MIME_TYPES[0], // text/plain
     ];
 
     for (const mediaType of preferenceOrder) {
@@ -175,25 +181,39 @@ export const RichOutput: React.FC<RichOutputProps> = ({
 
   const renderContent = () => {
     switch (mediaType) {
-      case "application/vnd.anode.aitool+json":
-        return (
-          <Suspense fallback={<LoadingSpinner />}>
-            <AiToolCallOutput
-              toolData={outputData[mediaType] as ToolCallData}
-            />
-          </Suspense>
-        );
+      case AI_TOOL_CALL_MIME_TYPE: {
+        const toolData = outputData[mediaType];
+        if (isAiToolCallData(toolData)) {
+          return (
+            <Suspense fallback={<LoadingSpinner />}>
+              <AiToolCallOutput toolData={toolData} />
+            </Suspense>
+          );
+        }
+        return <div className="text-red-500">Invalid tool call data</div>;
+      }
 
-      case "application/vnd.anode.aitool.result+json":
-        return (
-          <Suspense fallback={<LoadingSpinner />}>
-            <AiToolResultOutput
-              resultData={outputData[mediaType] as ToolResultData}
-            />
-          </Suspense>
-        );
+      case AI_TOOL_RESULT_MIME_TYPE: {
+        const resultData = outputData[mediaType];
+        // Handle actual runtime data structure (more flexible than strict schema)
+        if (
+          resultData &&
+          typeof resultData === "object" &&
+          "tool_call_id" in resultData &&
+          "status" in resultData &&
+          typeof (resultData as any).tool_call_id === "string" &&
+          typeof (resultData as any).status === "string"
+        ) {
+          return (
+            <Suspense fallback={<LoadingSpinner />}>
+              <AiToolResultOutput resultData={resultData as any} />
+            </Suspense>
+          );
+        }
+        return <div className="text-red-500">Invalid tool result data</div>;
+      }
 
-      case "text/markdown":
+      case TEXT_MIME_TYPES[2]: // text/markdown
         return (
           <Suspense fallback={<LoadingSpinner />}>
             <MarkdownRenderer
@@ -203,15 +223,15 @@ export const RichOutput: React.FC<RichOutputProps> = ({
           </Suspense>
         );
 
-      case "text/html":
+      case TEXT_MIME_TYPES[1]: // text/html
         return (
           <Suspense fallback={<LoadingSpinner />}>
             <HtmlOutput content={String(outputData[mediaType] || "")} />
           </Suspense>
         );
 
-      case "image/png":
-      case "image/jpeg":
+      case IMAGE_MIME_TYPES[0]: // image/png
+      case IMAGE_MIME_TYPES[1]: // image/jpeg
         return (
           <Suspense fallback={<LoadingSpinner />}>
             <ImageOutput
@@ -221,22 +241,50 @@ export const RichOutput: React.FC<RichOutputProps> = ({
           </Suspense>
         );
 
-      case "image/svg+xml":
-      case "image/svg":
+      case IMAGE_MIME_TYPES[2]: // image/svg+xml
+      case "image/svg": // legacy SVG format
         return (
           <Suspense fallback={<LoadingSpinner />}>
             <SvgOutput content={String(outputData[mediaType] || "")} />
           </Suspense>
         );
 
-      case "application/json":
+      case "application/vnd.plotly.v1+json":
         return (
           <Suspense fallback={<LoadingSpinner />}>
             <JsonOutput data={outputData[mediaType]} />
           </Suspense>
         );
 
-      case "text/plain":
+      case "application/vnd.vegalite.v2+json":
+      case "application/vnd.vegalite.v3+json":
+      case "application/vnd.vegalite.v4+json":
+      case "application/vnd.vegalite.v5+json":
+      case "application/vnd.vegalite.v6+json":
+      case "application/vnd.vega.v3+json":
+      case "application/vnd.vega.v4+json":
+      case "application/vnd.vega.v5+json":
+        return (
+          <Suspense fallback={<LoadingSpinner />}>
+            <JsonOutput data={outputData[mediaType]} />
+          </Suspense>
+        );
+
+      case "application/geo+json":
+        return (
+          <Suspense fallback={<LoadingSpinner />}>
+            <JsonOutput data={outputData[mediaType]} />
+          </Suspense>
+        );
+
+      case APPLICATION_MIME_TYPES[0]: // application/json
+        return (
+          <Suspense fallback={<LoadingSpinner />}>
+            <JsonOutput data={outputData[mediaType]} />
+          </Suspense>
+        );
+
+      case TEXT_MIME_TYPES[0]: // text/plain
       default:
         return (
           <Suspense fallback={<LoadingSpinner />}>

@@ -6,6 +6,10 @@ interface AiToolResultOutputProps {
     tool_call_id: string;
     result?: string;
     status: string;
+    // Optional fields from full schema
+    tool_name?: string;
+    arguments?: Record<string, unknown>;
+    timestamp?: string;
   };
 }
 
@@ -51,6 +55,11 @@ export const AiToolResultOutput: React.FC<AiToolResultOutputProps> = ({
       {resultData.result && (
         <div className="text-foreground text-sm whitespace-pre-wrap">
           {resultData.result}
+        </div>
+      )}
+      {!resultData.result && (
+        <div className="text-muted-foreground text-sm italic">
+          {config.label}
         </div>
       )}
     </div>

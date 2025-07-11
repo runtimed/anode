@@ -2,20 +2,14 @@ import React from "react";
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
 import { oneLight } from "react-syntax-highlighter/dist/esm/styles/prism";
 import { ChevronDown, Edit, FilePlus, Info } from "lucide-react";
+import { AiToolCallData } from "@runt/schema";
 
 interface AiToolCallOutputProps {
-  toolData: {
-    tool_call_id: string;
-    tool_name: string;
-    arguments: Record<string, any>;
-    status: "success" | "error";
-    timestamp: string;
-    execution_time_ms?: number;
-  };
+  toolData: AiToolCallData;
 }
 
 // Tool icon and action mapping for AI tools
-const getToolConfig = (toolName: string, status: "success" | "error") => {
+const getToolConfig = (toolName: string, status: string) => {
   const toolConfigs: Record<
     string,
     {
@@ -55,8 +49,9 @@ const getToolConfig = (toolName: string, status: "success" | "error") => {
 export const AiToolCallOutput: React.FC<AiToolCallOutputProps> = ({
   toolData,
 }) => {
-  const isSuccess = toolData.status === "success";
-  const toolConfig = getToolConfig(toolData.tool_name, toolData.status);
+  // AiToolCallData doesn't have status, so we'll assume success for tool calls
+  const isSuccess = true;
+  const toolConfig = getToolConfig(toolData.tool_name, "success");
   const ToolIcon = toolConfig.icon;
 
   return (
@@ -76,10 +71,7 @@ export const AiToolCallOutput: React.FC<AiToolCallOutputProps> = ({
           </summary>
           <div className="bg-card/30 border-border/50 mt-2 ml-6 rounded border p-3 text-xs">
             <div className="text-muted-foreground mb-2">
-              {new Date(toolData.timestamp).toLocaleTimeString()}
-              {toolData.execution_time_ms && (
-                <span className="ml-2">({toolData.execution_time_ms}ms)</span>
-              )}
+              Tool Call ID: {toolData.tool_call_id}
             </div>
             <SyntaxHighlighter
               language="json"
@@ -104,11 +96,9 @@ export const AiToolCallOutput: React.FC<AiToolCallOutputProps> = ({
           <span className="text-muted-foreground">
             {toolConfig.displayVerb} {toolConfig.label}
           </span>
-          {toolData.execution_time_ms && (
-            <span className="text-muted-foreground text-xs">
-              ({toolData.execution_time_ms}ms)
-            </span>
-          )}
+          <span className="text-muted-foreground text-xs">
+            ({toolData.tool_call_id})
+          </span>
         </div>
       )}
     </div>
