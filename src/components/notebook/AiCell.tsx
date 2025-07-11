@@ -64,6 +64,18 @@ export const AiCell: React.FC<AiCellProps> = ({
     mobileStyle: "chat-bubble",
   });
 
+  const clearCellOutputs = useCallback(async () => {
+    if (hasOutputs) {
+      store.commit(
+        events.cellOutputsCleared({
+          cellId: cell.id,
+          wait: false,
+          clearedBy: "current-user",
+        })
+      );
+    }
+  }, [cell.id, store, hasOutputs]);
+
   const executeAiPrompt = useCallback(async () => {
     // Use localSource instead of cell.source to get the current typed content
     const sourceToExecute = localSource || cell.source;
@@ -244,6 +256,8 @@ export const AiCell: React.FC<AiCellProps> = ({
           onMoveUp={onMoveUp}
           onMoveDown={onMoveDown}
           onDeleteCell={onDeleteCell}
+          onClearOutputs={clearCellOutputs}
+          hasOutputs={hasOutputs}
           toggleSourceVisibility={toggleSourceVisibility}
           toggleAiContextVisibility={toggleAiContextVisibility}
           playButton={
