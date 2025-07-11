@@ -1,6 +1,6 @@
 const fs = require("fs");
 const path = require("path");
-const { exec } = require("child_process");
+const { exec, spawn } = require("child_process");
 const pm2 = require("pm2");
 
 const WATCH_FILE = "../runt/packages/schema/mod.ts";
@@ -27,6 +27,10 @@ async function runUpdateCommands() {
     // await execCommand("pm2 restart anode-sync");
     await execCommand("pm2 restart anode-dev");
 
+    console.log("🏃💨 Starting runtime...");
+    // For bla.sh, we don't want to wait for it to complete since it runs a long-running process
+    execCommandAsync("./start-runtime.sh");
+
     console.log("✅ Update completed successfully!");
   } catch (error) {
     console.error("❌ Error during update:", error);
@@ -36,17 +40,58 @@ async function runUpdateCommands() {
 // Helper function to execute shell commands
 function execCommand(command) {
   return new Promise((resolve, reject) => {
-    exec(command, { cwd: __dirname }, (error, stdout, stderr) => {
-      if (error) {
-        console.error(`Error executing command: ${command}`, error);
-        reject(error);
-        return;
+    // Use spawn for real-time output, especially for long-running processes
+    const child = spawn(command, [], {
+      cwd: __dirname,
+      shell: true,
+      stdio: ["inherit", "pipe", "pipe"],
+    });
+
+    child.stdout.on("data", (data) => {
+      console.log(data.toString());
+    });
+
+    child.stderr.on("data", (data) => {
+      console.error(data.toString());
+    });
+
+    child.on("error", (error) => {
+      console.error(`Error executing command: ${command}`, error);
+      reject(error);
+    });
+
+    child.on("close", (code) => {
+      if (code !== 0) {
+        console.error(`Command exited with code ${code}`);
+        reject(new Error(`Command exited with code ${code}`));
+      } else {
+        resolve();
       }
-      if (stdout) console.log(stdout);
-      if (stderr) console.error(stderr);
-      resolve();
     });
   });
+}
+
+// Helper function to execute long-running commands (don't wait for completion)
+function execCommandAsync(command) {
+  const child = spawn(command, [], {
+    cwd: __dirname,
+    shell: true,
+    stdio: ["inherit", "pipe", "pipe"],
+  });
+
+  child.stdout.on("data", (data) => {
+    console.log(data.toString());
+  });
+
+  child.stderr.on("data", (data) => {
+    console.error(data.toString());
+  });
+
+  child.on("error", (error) => {
+    console.error(`Error executing command: ${command}`, error);
+  });
+
+  return child;
 }
 
 // Function to restart PM2 processes
