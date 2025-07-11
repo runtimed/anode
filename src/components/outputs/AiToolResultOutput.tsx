@@ -1,12 +1,9 @@
 import React from "react";
 import { CheckCircle, XCircle, Clock, Info } from "lucide-react";
+import { AiToolResultData } from "@runt/schema";
 
 interface AiToolResultOutputProps {
-  resultData: {
-    tool_call_id: string;
-    result?: string;
-    status: string;
-  };
+  resultData: AiToolResultData;
 }
 
 // Tool icon and message mapping for AI tool results

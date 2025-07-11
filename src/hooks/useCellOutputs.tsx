@@ -1,6 +1,6 @@
 import React, { useMemo, useCallback } from "react";
 import { useStore } from "@livestore/react";
-import { OutputData, tables } from "@runt/schema";
+import { OutputData, tables, MediaContainer } from "@runt/schema";
 import { queryDb } from "@livestore/livestore";
 import { groupConsecutiveStreamOutputs } from "../util/output-grouping.js";
 import { RichOutput } from "../components/notebook/RichOutput.js";
@@ -88,7 +88,7 @@ export const useCellOutputs = ({
             (output.outputType as string) === "markdown" ||
             (output.outputType as string) === "terminal"
               ? output.data || ""
-              : output.representations || {
+              : (output.representations as Record<string, MediaContainer>) || {
                   "text/plain": output.data || "",
                 }
           }
