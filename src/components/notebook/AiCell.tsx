@@ -14,6 +14,8 @@ import { PlayButton } from "./shared/PlayButton.js";
 import { AiCellTypeSelector } from "./shared/AiCellTypeSelector.js";
 import { Button } from "@/components/ui/button";
 import { ChevronUp, ChevronDown } from "lucide-react";
+import { ErrorBoundary } from "react-error-boundary";
+import { OutputsErrorBoundary } from "./shared/OutputsErrorBoundary.js";
 
 interface AiCellProps {
   cell: typeof tables.cells.Type;
@@ -56,7 +58,7 @@ export const AiCell: React.FC<AiCellProps> = ({
   });
 
   // Use shared outputs hook with AI-specific configuration
-  const { outputs, hasOutputs, renderOutputs } = useCellOutputs({
+  const { outputs, hasOutputs, MaybeOutputs } = useCellOutputs({
     cellId: cell.id,
     groupConsecutiveStreams: false,
     enableErrorOutput: true,
@@ -368,7 +370,9 @@ export const AiCell: React.FC<AiCellProps> = ({
       )}
 
       {/* Outputs Section */}
-      {hasOutputs && cell.outputVisible && renderOutputs()}
+      <ErrorBoundary FallbackComponent={OutputsErrorBoundary}>
+        {cell.outputVisible && <MaybeOutputs />}
+      </ErrorBoundary>
     </CellContainer>
   );
 };

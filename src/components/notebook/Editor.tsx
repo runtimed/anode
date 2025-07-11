@@ -6,6 +6,11 @@ import { Maximize2, Minimize2 } from "lucide-react";
 import { useState } from "react";
 import { Button } from "../ui/button";
 import { CodeMirrorEditor } from "./codemirror/CodeMirrorEditor";
+import { ErrorBoundary } from "react-error-boundary";
+
+const ErrorFallback = () => {
+  return <div>Error rendering editor</div>;
+};
 
 export function Editor({
   localSource,
@@ -29,18 +34,20 @@ export function Editor({
   if (!isMaximized) {
     return (
       <div className={cn("relative min-h-[1.5rem]")}>
-        <CodeMirrorEditor
-          className="text-base sm:text-sm"
-          language={languageFromCellType(cell.cellType)}
-          placeholder={placeholderFromCellType(cell.cellType)}
-          value={localSource}
-          onValueChange={handleSourceChange}
-          autoFocus={autoFocus}
-          onFocus={handleFocus}
-          keyMap={keyMap}
-          onBlur={updateSource}
-          enableLineWrapping={cell.cellType === "markdown"}
-        />
+        <ErrorBoundary FallbackComponent={ErrorFallback}>
+          <CodeMirrorEditor
+            className="text-base sm:text-sm"
+            language={languageFromCellType(cell.cellType)}
+            placeholder={placeholderFromCellType(cell.cellType)}
+            value={localSource}
+            onValueChange={handleSourceChange}
+            autoFocus={autoFocus}
+            onFocus={handleFocus}
+            keyMap={keyMap}
+            onBlur={updateSource}
+            enableLineWrapping={cell.cellType === "markdown"}
+          />
+        </ErrorBoundary>
         <MaxMinButton
           className="absolute top-1 right-1 sm:hidden"
           isMaximized={isMaximized}
@@ -55,13 +62,15 @@ export function Editor({
       <Dialog.Root defaultOpen={true} onOpenChange={setIsMaximized}>
         <div className={cn("relative min-h-[1.5rem]")}>
           {/* Duplicate editor for dialog to prevent layout shift */}
-          <CodeMirrorEditor
-            className="text-base sm:text-sm"
-            language={languageFromCellType(cell.cellType)}
-            placeholder={placeholderFromCellType(cell.cellType)}
-            value={localSource}
-            enableLineWrapping={cell.cellType === "markdown"}
-          />
+          <ErrorBoundary FallbackComponent={ErrorFallback}>
+            <CodeMirrorEditor
+              className="text-base sm:text-sm"
+              language={languageFromCellType(cell.cellType)}
+              placeholder={placeholderFromCellType(cell.cellType)}
+              value={localSource}
+              enableLineWrapping={cell.cellType === "markdown"}
+            />
+          </ErrorBoundary>
           <MaxMinButton
             className="absolute top-1 right-1 sm:hidden"
             isMaximized={isMaximized}
@@ -82,18 +91,20 @@ export function Editor({
             onEscapeKeyDown={() => setIsMaximized(false)}
           >
             <Dialog.Title className="sr-only">Editor</Dialog.Title>
-            <CodeMirrorEditor
-              className="relative text-base sm:text-sm"
-              maxHeight="100svh"
-              language={languageFromCellType(cell.cellType)}
-              placeholder={placeholderFromCellType(cell.cellType)}
-              value={localSource}
-              onValueChange={handleSourceChange}
-              autoFocus={true}
-              onFocus={handleFocus}
-              onBlur={updateSource}
-              enableLineWrapping={cell.cellType === "markdown"}
-            />
+            <ErrorBoundary FallbackComponent={ErrorFallback}>
+              <CodeMirrorEditor
+                className="relative text-base sm:text-sm"
+                maxHeight="100svh"
+                language={languageFromCellType(cell.cellType)}
+                placeholder={placeholderFromCellType(cell.cellType)}
+                value={localSource}
+                onValueChange={handleSourceChange}
+                autoFocus={true}
+                onFocus={handleFocus}
+                onBlur={updateSource}
+                enableLineWrapping={cell.cellType === "markdown"}
+              />
+            </ErrorBoundary>
             <MaxMinButton
               className="top-1 right-1"
               isMaximized={isMaximized}
