@@ -65,11 +65,11 @@ export async function reproduceHashMismatch() {
   });
 
   try {
-    console.log("🧪 Testing ctx.query() materializer issue...");
+    process.stdout.write("🧪 Testing ctx.query() materializer issue...\n");
 
     // Step 1: Create message
     await store.commit(events.messageCreated({ id: "test" }));
-    console.log("✅ Created message");
+    process.stdout.write("✅ Created message\n");
 
     // Step 2: Append "hello"
     await store.commit(
@@ -79,7 +79,7 @@ export async function reproduceHashMismatch() {
     let result = store.query(
       tables.messages.select().where({ id: "test" }).limit(1)
     )[0];
-    console.log(`✅ After append "hello": "${result.content}"`);
+    process.stdout.write(`✅ After append "hello": "${result.content}"\n`);
 
     // Step 3: Append "world"
     await store.commit(
@@ -89,22 +89,24 @@ export async function reproduceHashMismatch() {
     result = store.query(
       tables.messages.select().where({ id: "test" }).limit(1)
     )[0];
-    console.log(`✅ After append "world": "${result.content}"`);
+    process.stdout.write(`✅ After append "world": "${result.content}"\n`);
 
-    console.log("\n🚨 ISSUE EXPLANATION:");
-    console.log(
-      "This test passes in isolation, but creates a hash mismatch when:"
+    process.stdout.write("\n🚨 ISSUE EXPLANATION:\n");
+    process.stdout.write(
+      "This test passes in isolation, but creates a hash mismatch when:\n"
     );
-    console.log("• Events arrive in different order across clients");
-    console.log(
-      "• Client A: create → append('hello') → append('world') = 'helloworld'"
+    process.stdout.write("• Events arrive in different order across clients\n");
+    process.stdout.write(
+      "• Client A: create → append('hello') → append('world') = 'helloworld'\n"
     );
-    console.log(
-      "• Client B: create → append('world') → append('hello') = 'worldhello'"
+    process.stdout.write(
+      "• Client B: create → append('world') → append('hello') = 'worldhello'\n"
     );
-    console.log("• Different materializer results = hash mismatch = crash");
-    console.log(
-      "\n💡 ROOT CAUSE: ctx.query() makes materializers non-deterministic"
+    process.stdout.write(
+      "• Different materializer results = hash mismatch = crash\n"
+    );
+    process.stdout.write(
+      "\n💡 ROOT CAUSE: ctx.query() makes materializers non-deterministic\n"
     );
 
     return result.content;
@@ -117,11 +119,13 @@ export async function reproduceHashMismatch() {
 if (import.meta.main) {
   reproduceHashMismatch()
     .then((result) => {
-      console.log(`\n🎯 Final result: "${result}"`);
-      console.log(
-        "\n🔧 SOLUTION NEEDED: Column expression API for safe concatenation"
+      process.stdout.write(`\n🎯 Final result: "${result}"\n`);
+      process.stdout.write(
+        "\n🔧 SOLUTION NEEDED: Column expression API for safe concatenation\n"
       );
-      console.log("Example: Column.concat(Column.ref('content'), appendText)");
+      process.stdout.write(
+        "Example: Column.concat(Column.ref('content'), appendText)\n"
+      );
     })
     .catch((error) => {
       console.error("❌ Error:", error);

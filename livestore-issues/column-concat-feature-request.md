@@ -1,25 +1,25 @@
-# Feature Request: Column Expression API for Efficient Append Operations
+# Feature Request: Column Concatenation API for LiveStore
 
 ## Summary
 
 LiveStore needs a convenient API for concatenating data to existing column values in materializers, providing better developer experience and performance compared to current `ctx.query()` patterns.
 
-## Problem Statement
+## Problem
 
 Currently, appending data to existing column values in LiveStore materializers requires verbose and inefficient patterns. This impacts developer experience and performance:
 
 ### Current Approaches and Their Drawbacks
 
-**1. Using `ctx.query()` (verbose and performance overhead)**
+**1. Using `ctx.query()`**
 ```typescript
 "v1.TerminalOutputAppended": ({ outputId, content }, ctx) => {
   // Requires separate query to fetch current value
   const existing = ctx.query(
     tables.outputs.select().where({ id: outputId }).limit(1)
   )[0];
-  
+
   if (!existing) return [];
-  
+
   // Then update with concatenated value
   return tables.outputs
     .update({ data: existing.data + content })
@@ -32,7 +32,7 @@ Currently, appending data to existing column values in LiveStore materializers r
 - More complex error handling (missing records)
 - Verbose materializer code
 
-**2. Event payload inflation (increased network overhead)**
+**2. Event payload inflation**
 ```typescript
 "v1.TerminalOutputAppended": ({ outputId, previousData, content }) => {
   // Must include full previous data in every event
@@ -47,10 +47,10 @@ Currently, appending data to existing column values in LiveStore materializers r
 - Network overhead increases
 - More complex event creation logic
 
-**3. Raw SQL (security and maintainability concerns)**
+**3. Raw SQL**
 ```typescript
 "v1.TerminalOutputAppended": ({ outputId, content }) => {
-  // Raw SQL concatenation
+  // Raw SQL concatenation (not currently possible, but illustrates the need)
   return tables.outputs
     .update({ data: sql`data || ${content}` })
     .where({ id: outputId });
@@ -64,63 +64,50 @@ Currently, appending data to existing column values in LiveStore materializers r
 
 ## Proposed Solution
 
-Add a **Column Expression API** that provides clean, efficient column operations:
+Add a **Column Expression API** focused on string concatenation and null handling:
 
 ```typescript
 import { Column } from '@livestore/livestore'
 
 const materializers = State.SQLite.materializers(events, {
   "v1.TerminalOutputAppended": ({ outputId, content }) =>
-    tables.outputs.update({ 
-      data: Column.concat(Column.ref('data'), content) 
+    tables.outputs.update({
+      data: Column.concat(Column.ref('data'), content)
     }).where({ id: outputId }),
-    
-  "v1.CounterIncremented": ({ counterId }) =>
-    tables.counters.update({ 
-      count: Column.add(Column.ref('count'), 1),
-      lastUpdated: Column.now()
-    }).where({ id: counterId }),
-    
-  "v1.JsonFieldUpdated": ({ recordId, patch }) =>
-    tables.records.update({ 
-      metadata: Column.jsonMerge(Column.ref('metadata'), patch) 
-    }).where({ id: recordId })
+
+  "v1.LogMessageAppended": ({ logId, message }) =>
+    tables.logs.update({
+      content: Column.concat(
+        Column.coalesce(Column.ref('content'), ''),
+        '\n',
+        message
+      )
+    }).where({ id: logId })
 })
 ```
 
 ## Use Cases
 
-This feature would enable safe implementation of common patterns:
-
-### 1. **Terminal/Log Output Streaming**
+### **Terminal/Log Output Streaming**
 ```typescript
 // Append new terminal output to existing content
 data: Column.concat(Column.ref('data'), newOutput)
 ```
 
-### 2. **Markdown Content Building**
+### **AI Content Building**
 ```typescript
-// Build up markdown content incrementally
+// Build up AI content incrementally
 content: Column.concat(Column.ref('content'), newSection)
 ```
 
-### 3. **Error Message Accumulation**
+### **Error Message Accumulation**
 ```typescript
-// Collect multiple error messages
-errors: Column.concat(Column.ref('errors'), '\n', newError)
-```
-
-### 4. **Counters and Statistics**
-```typescript
-// Increment counters safely
-count: Column.add(Column.ref('count'), 1),
-totalBytes: Column.add(Column.ref('totalBytes'), newBytes)
-```
-
-### 5. **JSON Object Updates**
-```typescript
-// Merge JSON objects
-settings: Column.jsonMerge(Column.ref('settings'), updates)
+// Collect multiple error messages with safe null handling
+errors: Column.concat(
+  Column.coalesce(Column.ref('errors'), ''),
+  '\n',
+  newError
+)
 ```
 
 ## Proposed API Design
@@ -130,20 +117,12 @@ settings: Column.jsonMerge(Column.ref('settings'), updates)
 namespace Column {
   // Column reference
   ref<T>(columnName: string): ColumnExpression<T>
-  
-  // String operations
+
+  // String concatenation
   concat(...expressions: (ColumnExpression<string> | string)[]): ColumnExpression<string>
+
+  // Null coalescing
   coalesce<T>(...expressions: ColumnExpression<T>[]): ColumnExpression<T>
-  
-  // Numeric operations
-  add(left: ColumnExpression<number>, right: number | ColumnExpression<number>): ColumnExpression<number>
-  subtract(left: ColumnExpression<number>, right: number | ColumnExpression<number>): ColumnExpression<number>
-  
-  // Convenience methods
-  increment(amount?: number): ColumnExpression<number>
-  
-  // Utility functions
-  now(): ColumnExpression<Date>
 }
 ```
 
@@ -153,10 +132,10 @@ namespace Column {
 tables.outputs.update({
   // ✅ Valid: string concatenation
   data: Column.concat(Column.ref('data'), newText),
-  
-  // ❌ Type error: can't add number to string column
-  data: Column.add(Column.ref('data'), 5),
-  
+
+  // ✅ Valid: null-safe concatenation
+  content: Column.concat(Column.coalesce(Column.ref('content'), ''), newText),
+
   // ❌ Runtime error: column doesn't exist
   invalid: Column.ref('nonexistentColumn')
 })
@@ -181,35 +160,25 @@ Column.concat(Column.ref('data'), newContent)
 // Generated SQL (SQLite)
 UPDATE outputs SET data = data || ? WHERE id = ?
 
-// Column expression  
-Column.add(Column.ref('count'), 1)
+// Column expression with coalesce
+Column.concat(Column.coalesce(Column.ref('data'), ''), newContent)
 
-// Generated SQL
-UPDATE counters SET count = count + ? WHERE id = ?
+// Generated SQL (SQLite)
+UPDATE outputs SET data = COALESCE(data, '') || ? WHERE id = ?
 ```
-
-### Implementation Strategy
-1. **Phase 1**: Core string operations (`concat`, `coalesce`)
-2. **Phase 2**: Numeric operations (`add`, `subtract`, `increment`)  
-3. **Phase 3**: JSON operations (`jsonMerge`, `jsonSet`)
-4. **Phase 4**: Conditional expressions (`when`, `case`)
 
 ## Real-World Examples from Anode
 
-This feature would immediately solve several issues in the Anode codebase:
+In the Agentic Notebook I'm building on top of LiveStore, there are two main output streams I'm putting into the document (serverside):
 
-**Current problematic materializers:**
-- `TerminalOutputAppended` in `runt/packages/schema/mod.ts:1047-1060`
-- `MarkdownOutputAppended` in `runt/packages/schema/mod.ts:1095-1112`
+* Terminal Output
+* LLM Completions
 
-**After Column API:**
+With this column API it makes our materializers more like this:
+
 ```typescript
 "v1.TerminalOutputAppended": ({ outputId, content }) =>
-  tables.outputs.update({ 
-    data: Column.concat(Column.ref('data'), content) 
+  tables.outputs.update({
+    data: Column.concat(Column.ref('data'), content)
   }).where({ id: outputId })
 ```
-
-## Priority
-
-**High** - This would significantly improve developer experience for common streaming/append use cases. A clean column expression API would enable more efficient and maintainable materializers throughout the LiveStore ecosystem.

@@ -8,23 +8,23 @@ Anode uses LiveStore for event-sourced, real-time collaborative editing. During 
 
 ## Issues
 
-### 1. [Materializer Hash Mismatches with ctx.query()](./issue-1-ctx-query-nondeterminism.md)
-**Priority: Critical** - Production crashes due to non-deterministic materializers
+### 1. [Column Expression API Feature Request](./column-concat-feature-request.md)
+**Priority: High** - Significant developer experience improvement
 
-**Problem**: Materializers using `ctx.query()` to read existing data cause hash mismatches when events arrive in different orders across clients.
+**Problem**: Appending data to existing column values requires verbose `ctx.query()` calls or bloated event payloads.
 
-**Root Cause**: `ctx.query()` makes materializers non-deterministic, violating LiveStore's requirement for pure functions.
+**Proposed Solution**: Add a Column Expression API for efficient database-level operations.
 
-**Current Impact**: Blocks terminal output streaming, markdown content building, and other append operations.
+**Example**: `Column.concat(Column.ref('content'), newText)` instead of separate query + update patterns.
 
-### 2. [Column Expression API Feature Request](./issue-2-column-expression-api.md)
-**Priority: High** - Needed to solve Issue 1 safely
+**Benefits**: Better performance, cleaner code, type safety, reduced event payload sizes.
 
-**Problem**: No safe way to reference existing column values in materializers for common operations like string concatenation, numeric increments, or JSON updates.
+### 2. [Materializer Hash Mismatches with ctx.query()](./issue-1-ctx-query-nondeterminism.md)
+**Priority: Medium** - Investigation needed
 
-**Proposed Solution**: Add a Column Expression API that allows deterministic column operations without `ctx.query()`.
+**Problem**: Materializers using `ctx.query()` to read existing data may cause issues in collaborative environments.
 
-**Example**: `Column.concat(Column.ref('content'), newText)` instead of unsafe query patterns.
+**Status**: Under investigation - may be related to event reordering during rebasing.
 
 ### 3. [Event Ordering Guarantees](./issue-3-event-ordering-semantics.md)
 **Priority: Medium** - Documentation and clarification needed
@@ -46,7 +46,21 @@ pnpm test hash-mismatch-reproduction
 
 # Run existing materializer tests that show the issue
 pnpm test materializer-hash
+
+# Run REAL multi-client reproduction (requires sync backend)
+# Terminal 1: Start sync backend
+pnpm dev:sync
+
+# Terminal 2: Run real sync test
+pnpm test real-sync-hash-mismatch
 ```
+
+### Real Multi-Client Reproduction
+The [`real-sync-hash-mismatch.test.ts`](../test/real-sync-hash-mismatch.test.ts) test demonstrates the actual production failure scenario:
+- Two clients connected to the same sync backend
+- Events syncing between clients in different orders
+- `ctx.query()` materializers producing different results
+- **Actual hash mismatch detection** (when timing is right)
 
 ### Real-World Examples
 The issue manifests in Anode's production code in these materializers:
