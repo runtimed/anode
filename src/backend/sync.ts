@@ -252,6 +252,364 @@ export default {
       });
     }
 
+    // Handle artifact upload before LiveStore routing
+    if (url.pathname === "/api/artifacts" && request.method === "POST") {
+      console.log("📁 Artifact upload request received");
+
+      try {
+        // Support both form data and raw binary uploads
+        const contentType = request.headers.get("content-type") || "";
+        let file: File | null = null;
+        let notebookId: string | null = null;
+        let authToken: string | null = null;
+        let fileData: ArrayBuffer | null = null;
+        let mimeType: string = "application/octet-stream";
+
+        if (contentType.startsWith("multipart/form-data")) {
+          // Handle form data uploads
+          const formData = await request.formData();
+          file = formData.get("file") as File;
+          notebookId = formData.get("notebookId") as string;
+          authToken = formData.get("authToken") as string;
+
+          if (file) {
+            fileData = await file.arrayBuffer();
+            mimeType = file.type || "application/octet-stream";
+          } else {
+            mimeType = "application/octet-stream";
+          }
+        } else {
+          // Handle raw binary uploads
+          notebookId = request.headers.get("x-notebook-id");
+          authToken =
+            request.headers.get("authorization")?.replace("Bearer ", "") ||
+            request.headers.get("x-auth-token");
+          mimeType = contentType || "application/octet-stream";
+          fileData = await request.arrayBuffer();
+        }
+
+        // Validate authentication
+        if (!authToken) {
+          return new Response(
+            JSON.stringify({
+              error: "MISSING_AUTH_TOKEN",
+              message: "Authentication token is required",
+            }),
+            {
+              status: 401,
+              headers: {
+                "Content-Type": "application/json",
+                "Access-Control-Allow-Origin": "*",
+                "Access-Control-Allow-Methods":
+                  "GET, POST, PUT, DELETE, OPTIONS",
+                "Access-Control-Allow-Headers": "*",
+              },
+            }
+          );
+        }
+
+        try {
+          await validateAuthPayload({ authToken }, env);
+        } catch (authError: any) {
+          return new Response(
+            JSON.stringify({
+              error: "AUTHENTICATION_FAILED",
+              message: authError.message,
+            }),
+            {
+              status: 401,
+              headers: {
+                "Content-Type": "application/json",
+                "Access-Control-Allow-Origin": "*",
+                "Access-Control-Allow-Methods":
+                  "GET, POST, PUT, DELETE, OPTIONS",
+                "Access-Control-Allow-Headers": "*",
+              },
+            }
+          );
+        }
+
+        if (!fileData || !notebookId) {
+          return new Response(
+            JSON.stringify({
+              error: "MISSING_REQUIRED_FIELDS",
+              message: "Both file data and notebookId are required",
+            }),
+            {
+              status: 400,
+              headers: {
+                "Content-Type": "application/json",
+                "Access-Control-Allow-Origin": "*",
+                "Access-Control-Allow-Methods":
+                  "GET, POST, PUT, DELETE, OPTIONS",
+                "Access-Control-Allow-Headers": "*",
+              },
+            }
+          );
+        }
+
+        // Validate notebook ID format for security
+        if (!/^[a-zA-Z0-9_-]+$/.test(notebookId)) {
+          return new Response(
+            JSON.stringify({
+              error: "INVALID_NOTEBOOK_ID",
+              message: "Notebook ID contains invalid characters",
+            }),
+            {
+              status: 400,
+              headers: {
+                "Content-Type": "application/json",
+                "Access-Control-Allow-Origin": "*",
+                "Access-Control-Allow-Methods":
+                  "GET, POST, PUT, DELETE, OPTIONS",
+                "Access-Control-Allow-Headers": "*",
+              },
+            }
+          );
+        }
+
+        // Check size threshold
+        const threshold = parseInt(env.ARTIFACT_THRESHOLD || "16384");
+
+        // Check size threshold
+        if (fileData.byteLength <= threshold) {
+          return new Response(
+            JSON.stringify({
+              error: "FILE_TOO_SMALL",
+              message: `File size ${fileData.byteLength} bytes is below threshold ${threshold} bytes. Use inline data instead.`,
+            }),
+            {
+              status: 400,
+              headers: {
+                "Content-Type": "application/json",
+                "Access-Control-Allow-Origin": "*",
+                "Access-Control-Allow-Methods":
+                  "GET, POST, PUT, DELETE, OPTIONS",
+                "Access-Control-Allow-Headers": "*",
+              },
+            }
+          );
+        }
+
+        // Generate content-addressed artifact ID
+        const hashBuffer = await crypto.subtle.digest("SHA-256", fileData);
+        const hashArray = new Uint8Array(hashBuffer);
+        const hashHex = Array.from(hashArray)
+          .map((b) => b.toString(16).padStart(2, "0"))
+          .join("");
+        const artifactId = `${notebookId}/${hashHex}`;
+
+        // Store based on environment configuration
+        const storageType = env.ARTIFACT_STORAGE || "local";
+
+        if (storageType === "r2" && env.ARTIFACT_BUCKET) {
+          // Store in R2
+          await env.ARTIFACT_BUCKET.put(artifactId, fileData, {
+            httpMetadata: {
+              contentType: mimeType,
+            },
+          });
+        } else if (storageType === "local") {
+          // For local development, store in Durable Object storage
+          // This is a simple in-memory storage that persists during the session
+          const storage = await env.WEBSOCKET_SERVER.get(
+            env.WEBSOCKET_SERVER.idFromName("artifact-storage")
+          ).storage;
+
+          await storage.put(`artifact:${artifactId}`, {
+            data: Array.from(new Uint8Array(fileData)),
+            mimeType: mimeType,
+            byteLength: fileData.byteLength,
+          });
+        } else {
+          return new Response(
+            JSON.stringify({
+              error: "STORAGE_NOT_CONFIGURED",
+              message: `Storage type '${storageType}' not properly configured`,
+            }),
+            {
+              status: 500,
+              headers: {
+                "Content-Type": "application/json",
+                "Access-Control-Allow-Origin": "*",
+                "Access-Control-Allow-Methods":
+                  "GET, POST, PUT, DELETE, OPTIONS",
+                "Access-Control-Allow-Headers": "*",
+              },
+            }
+          );
+        }
+
+        console.log("✅ Artifact uploaded successfully:", {
+          artifactId,
+          byteLength: fileData.byteLength,
+          mimeType,
+          storageType,
+        });
+
+        return new Response(
+          JSON.stringify({
+            artifactId,
+            byteLength: fileData.byteLength,
+            mimeType: mimeType,
+          }),
+          {
+            status: 201,
+            headers: {
+              "Content-Type": "application/json",
+              "Access-Control-Allow-Origin": "*",
+              "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
+              "Access-Control-Allow-Headers": "*",
+            },
+          }
+        );
+      } catch (error: any) {
+        console.error("❌ Artifact upload failed:", error);
+        return new Response(
+          JSON.stringify({
+            error: "UPLOAD_FAILED",
+            message: error.message || "Unknown error occurred during upload",
+          }),
+          {
+            status: 500,
+            headers: {
+              "Content-Type": "application/json",
+              "Access-Control-Allow-Origin": "*",
+              "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
+              "Access-Control-Allow-Headers": "*",
+            },
+          }
+        );
+      }
+    }
+
+    // Handle artifact content serving
+    if (
+      url.pathname.startsWith("/api/artifacts/") &&
+      request.method === "GET"
+    ) {
+      console.log("📁 Artifact content request received");
+
+      const artifactId = url.pathname.replace("/api/artifacts/", "");
+      const authToken = url.searchParams.get("token");
+
+      if (!artifactId) {
+        return new Response("Artifact ID required", {
+          status: 400,
+          headers: {
+            "Access-Control-Allow-Origin": "*",
+            "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
+            "Access-Control-Allow-Headers": "*",
+          },
+        });
+      }
+
+      // Validate authentication for content access
+      if (!authToken) {
+        return new Response("Authentication token required", {
+          status: 401,
+          headers: {
+            "Access-Control-Allow-Origin": "*",
+            "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
+            "Access-Control-Allow-Headers": "*",
+          },
+        });
+      }
+
+      try {
+        await validateAuthPayload({ authToken }, env);
+      } catch (authError: any) {
+        return new Response("Authentication failed", {
+          status: 401,
+          headers: {
+            "Access-Control-Allow-Origin": "*",
+            "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
+            "Access-Control-Allow-Headers": "*",
+          },
+        });
+      }
+
+      // Extract notebook ID from artifact ID for access control
+      const [notebookId] = artifactId.split("/");
+      if (!notebookId) {
+        return new Response("Invalid artifact ID format", {
+          status: 400,
+          headers: {
+            "Access-Control-Allow-Origin": "*",
+            "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
+            "Access-Control-Allow-Headers": "*",
+          },
+        });
+      }
+
+      try {
+        const storageType = env.ARTIFACT_STORAGE || "local";
+
+        if (storageType === "r2" && env.ARTIFACT_BUCKET) {
+          // Get from R2
+          const object = await env.ARTIFACT_BUCKET.get(artifactId);
+
+          if (!object) {
+            return new Response("Artifact not found", {
+              status: 404,
+              headers: {
+                "Access-Control-Allow-Origin": "*",
+                "Access-Control-Allow-Methods":
+                  "GET, POST, PUT, DELETE, OPTIONS",
+                "Access-Control-Allow-Headers": "*",
+              },
+            });
+          }
+
+          const headers = new Headers({
+            "Content-Type":
+              object.httpMetadata?.contentType || "application/octet-stream",
+            "Content-Length": object.size.toString(),
+            "Access-Control-Allow-Origin": "*",
+            "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
+            "Access-Control-Allow-Headers": "*",
+          });
+
+          return new Response(object.body, { headers });
+        } else {
+          return new Response(
+            JSON.stringify({
+              error: "STORAGE_NOT_CONFIGURED",
+              message: `Storage type '${storageType}' not properly configured for content serving`,
+            }),
+            {
+              status: 500,
+              headers: {
+                "Content-Type": "application/json",
+                "Access-Control-Allow-Origin": "*",
+                "Access-Control-Allow-Methods":
+                  "GET, POST, PUT, DELETE, OPTIONS",
+                "Access-Control-Allow-Headers": "*",
+              },
+            }
+          );
+        }
+      } catch (error: any) {
+        console.error("❌ Artifact content serving failed:", error);
+        return new Response(
+          JSON.stringify({
+            error: "CONTENT_SERVING_FAILED",
+            message:
+              error.message || "Unknown error occurred while serving content",
+          }),
+          {
+            status: 500,
+            headers: {
+              "Content-Type": "application/json",
+              "Access-Control-Allow-Origin": "*",
+              "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
+              "Access-Control-Allow-Headers": "*",
+            },
+          }
+        );
+      }
+    }
+
     // Handle API routes (WebSocket and LiveStore sync)
     if (
       url.pathname.startsWith("/api/") ||

@@ -15,6 +15,7 @@ import {
 } from "@runt/schema";
 import { AnsiStreamOutput } from "../outputs/index.js";
 import { AnsiErrorOutput } from "./AnsiOutput.js";
+import { ArtifactRenderer } from "./ArtifactRenderer.js";
 import "../outputs/outputs.css";
 
 // Dynamic imports for heavy components
@@ -124,9 +125,8 @@ export const RichOutput: React.FC<RichOutputProps> = ({
         if (isInlineContainer(container)) {
           outputData[mimeType] = container.data;
         } else if (isArtifactContainer(container)) {
-          // For artifacts, we'll need to handle them differently
-          // For now, just mark as artifact reference
-          outputData[mimeType] = `[Artifact: ${container.artifactId}]`;
+          // Store the actual MediaContainer for artifact rendering
+          outputData[mimeType] = container;
         }
       }
     } else {
@@ -181,6 +181,28 @@ export const RichOutput: React.FC<RichOutputProps> = ({
   }
 
   const renderContent = () => {
+    // Check if this is an artifact container
+    const contentData = outputData[mediaType];
+    if (
+      contentData &&
+      typeof contentData === "object" &&
+      (contentData as any).type === "artifact"
+    ) {
+      const artifactContainer = contentData as {
+        type: "artifact";
+        artifactId: string;
+        metadata?: Record<string, unknown>;
+      };
+
+      return (
+        <ArtifactRenderer
+          artifactId={artifactContainer.artifactId}
+          mimeType={mediaType}
+          metadata={artifactContainer.metadata}
+        />
+      );
+    }
+
     switch (mediaType) {
       case AI_TOOL_CALL_MIME_TYPE: {
         const toolData = outputData[mediaType];
