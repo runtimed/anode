@@ -7,9 +7,9 @@
 # 4. Deploy: pnpm wrangler deploy --env production
 # 5. Set secrets: pnpm wrangler secret put AUTH_TOKEN --env production
 
-# Default environment (local development for the sync worker)
+# Default environment (local development for the all-in-one worker)
 name = "anode-docworker"
-main = "./src/backend/sync.ts"
+main = "./src/backend/entry.ts"
 compatibility_date = "2025-05-08"
 
 [dev]
@@ -29,6 +29,10 @@ database_name = "anode-docworker-dev-db"
 # Local development uses local SQLite in .wrangler/ - database_id is ignored
 database_id = "local"
 
+[[r2_buckets]]
+binding = "ARTIFACT_BUCKET"
+bucket_name = "anode-artifacts-dev"
+
 [vars]
 # Environment variables for local development (`wrangler dev`)
 # These are injected into the local worker process. The Vite dev server (`pnpm dev`)
@@ -38,7 +42,6 @@ VITE_LIVESTORE_SYNC_URL = "ws://localhost:8787/livestore"
 VITE_GOOGLE_CLIENT_ID = "94663405566-1go7jlpd2ar9u9urbfirmtjv1bm0tcis.apps.googleusercontent.com"
 VITE_GOOGLE_AUTH_ENABLED = "false"
 VITE_RUNTIME_COMMAND = "deno run --unstable-broadcast-channel --allow-all --env-file=./.env jsr:@runt/pyodide-runtime-agent@0.6.2"
-
 
 # ---
 # Deployed Environments
