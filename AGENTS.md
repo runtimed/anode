@@ -23,7 +23,7 @@ event-sourcing based local-first data synchronization library.
   materializers) - Published JSR package imported by all packages with full type
   inference. Comes via https://github.com/runtimed/runt's deno monorepo
 - **Web Client** (`@anode/web-client`): React-based web interface
-- **Document Worker** (`@anode/docworker`): Cloudflare Worker for sync backend
+- **Document Worker** (`@anode/docworker`): Cloudflare Worker for sync backend with artifact storage
 - **Pyodide Runtime Agent** (`@anode/pyodide-runtime-agent`): Python execution
   client
 
@@ -68,6 +68,7 @@ event-sourcing based local-first data synchronization library.
 - ✅ **Terminal output grouping** - Consecutive terminal outputs merge naturally
 - ✅ **Error output rendering** - Proper traceback display with JSON error parsing
 - ✅ **All tests passing** - 58/58 tests covering output system
+- 🚧 **Artifact service** - First version deployed with basic upload/download endpoints (has known security limitations)
 
 ### Core Architecture Constraints
 
@@ -80,6 +81,7 @@ event-sourcing based local-first data synchronization library.
 - **Session-based runtimes**: Each runtime restart gets unique `sessionId`
 - **One runtime per notebook**: Each notebook has exactly one active runtime at a
   time
+- **Artifact storage**: First version backend for external storage (uploads authenticated, downloads currently unauthenticated)
 
 ### Runtime-Notebook Relationship
 
@@ -259,6 +261,12 @@ anode/
 ├── public/
 ├── src/
 │   ├── auth/
+│   ├── backend/
+│   │   ├── artifact.ts
+│   │   ├── auth.ts
+│   │   ├── entry.ts
+│   │   ├── sync.ts
+│   │   └── types.ts
 │   ├── components/
 │   │   ├── auth/
 │   │   ├── notebook/
@@ -304,10 +312,9 @@ anode/
 
 **Deployment (Cloudflare):**
 
-- Pages: `https://anode.pages.dev` (from `/dist`)
-- Workers: `https://anode-docworker.rgbkrk.workers.dev` (from
-  `/src/sync/sync.ts`)
+- All-in-one Worker: `https://app.runt.run` (unified worker serving both backend and frontend)
 - D1: Production data persistence
+- R2: Artifact storage for large outputs
 - Secrets: Auth tokens, API keys
 - Runtime: Python execution via `@runt` packages
 
