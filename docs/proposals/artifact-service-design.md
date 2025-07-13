@@ -9,6 +9,7 @@ while still allowing reasonably fast display of images, files, and tables.
 ## Implementation Status
 
 **✅ First Version Deployed:**
+
 - POST /api/artifacts endpoint for uploading large outputs (with auth token authentication)
 - GET /api/artifacts/{id} content routes for serving artifacts (currently unauthenticated)
 - R2 and local storage backends with environment-aware switching
@@ -16,6 +17,7 @@ while still allowing reasonably fast display of images, files, and tables.
 - Integration with unified worker architecture
 
 **⚠️ Known Limitations (First Version):**
+
 - Downloads are currently unauthenticated (security concern)
 - No multipart upload support for very large files
 - No validation that users have permission to add artifacts to specific notebooks
@@ -24,6 +26,7 @@ while still allowing reasonably fast display of images, files, and tables.
 - No garbage collection for orphaned artifacts
 
 **🚧 Immediate Security & Reliability Fixes:**
+
 - Authenticated downloads (cookies or signed URLs)
 - User permission validation for notebook artifacts
 - Multipart upload support for large files
@@ -31,12 +34,14 @@ while still allowing reasonably fast display of images, files, and tables.
 - Garbage collection for orphaned artifacts
 
 **🚧 Runtime Integration (Next Steps):**
+
 - Runtime agents automatically uploading large outputs to artifact service
 - MediaRepresentationSchema usage in output events (inline vs artifact)
 - Frontend rendering of artifact-based outputs
 - Size threshold enforcement in runtime execution context
 
 **🔮 Future Enhancements:**
+
 - Streaming upload/download for very large files
 - Pre-signed URLs for R2 optimization
 - Compression for text-based artifacts

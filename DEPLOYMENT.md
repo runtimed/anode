@@ -235,20 +235,20 @@ echo "your-google-client-secret" | pnpm wrangler secret put GOOGLE_CLIENT_SECRET
 
 ### Deployment Issues
 
-| Problem | Solution |
-|---------|----------|
-| Missing database ID | Create D1 database and update `wrangler.toml` |
-| Missing R2 bucket | Create R2 bucket and update `wrangler.toml` |
+| Problem               | Solution                                        |
+| --------------------- | ----------------------------------------------- |
+| Missing database ID   | Create D1 database and update `wrangler.toml`   |
+| Missing R2 bucket     | Create R2 bucket and update `wrangler.toml`     |
 | Authentication errors | Set required secrets with `wrangler secret put` |
-| Build failures | Run `pnpm build` locally to check for errors |
+| Build failures        | Run `pnpm build` locally to check for errors    |
 
 ### Artifact Storage Issues
 
-| Problem | Solution |
-|---------|----------|
+| Problem                   | Solution                                             |
+| ------------------------- | ---------------------------------------------------- |
 | Large outputs not storing | Check R2 bucket configuration and ARTIFACT_THRESHOLD |
-| Artifact fetch failures | Verify R2 bucket permissions and CORS settings |
-| Upload authentication | Ensure AUTH_TOKEN is set correctly |
+| Artifact fetch failures   | Verify R2 bucket permissions and CORS settings       |
+| Upload authentication     | Ensure AUTH_TOKEN is set correctly                   |
 
 ### WebSocket Connection Issues
 

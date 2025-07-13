@@ -15,9 +15,9 @@ collaborative notebook system with AI integration.
 
 - **[AI Context Controls](./proposals/ai-context-controls.md)** - User controls
   for AI context inclusion/exclusion ✅ **Implemented**
-- **[Artifact Service Design](./proposals/artifact-service-design.md)** - 
+- **[Artifact Service Design](./proposals/artifact-service-design.md)** -
   External storage for large outputs 🚧 **First Version (has limitations)**
-- **[Unified Output System](./proposals/unified-output-system.md)** - 
+- **[Unified Output System](./proposals/unified-output-system.md)** -
   Granular, type-safe events for all output types ✅ **Implemented**
 
 ### 🏗️ Architecture Overview
