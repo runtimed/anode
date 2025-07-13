@@ -1,8 +1,46 @@
 # Artifact Service Design
 
+**Status: 🚧 FIRST VERSION DEPLOYED** - Basic artifact service is operational but has known limitations.
+
 This document describes how runt will store large outputs as external artifacts
 instead of embedding them in LiveStore events. The goal is to keep events small
 while still allowing reasonably fast display of images, files, and tables.
+
+## Implementation Status
+
+**✅ First Version Deployed:**
+- POST /api/artifacts endpoint for uploading large outputs (with auth token authentication)
+- GET /api/artifacts/{id} content routes for serving artifacts (currently unauthenticated)
+- R2 and local storage backends with environment-aware switching
+- Basic artifact ID generation with notebook scoping
+- Integration with unified worker architecture
+
+**⚠️ Known Limitations (First Version):**
+- Downloads are currently unauthenticated (security concern)
+- No multipart upload support for very large files
+- No validation that users have permission to add artifacts to specific notebooks
+- No validation that users can view specific artifacts
+- Basic UUID-based artifact IDs instead of content addressing
+- No garbage collection for orphaned artifacts
+
+**🚧 Immediate Security & Reliability Fixes:**
+- Authenticated downloads (cookies or signed URLs)
+- User permission validation for notebook artifacts
+- Multipart upload support for large files
+- Proper content addressing with deduplication
+- Garbage collection for orphaned artifacts
+
+**🚧 Runtime Integration (Next Steps):**
+- Runtime agents automatically uploading large outputs to artifact service
+- MediaRepresentationSchema usage in output events (inline vs artifact)
+- Frontend rendering of artifact-based outputs
+- Size threshold enforcement in runtime execution context
+
+**🔮 Future Enhancements:**
+- Streaming upload/download for very large files
+- Pre-signed URLs for R2 optimization
+- Compression for text-based artifacts
+- CDN integration for faster artifact serving
 
 ## Motivation
 
@@ -297,12 +335,14 @@ event log while still making it accessible to other tools.
 
 ## Implementation Priority
 
-1. **Happy path**: POST `/api/artifacts` → storage upload → return `artifactId`
-2. **Content routes**: GET `/api/artifacts/{id}` → serve content directly
-3. **Runtime integration**: Update ExecutionContext to use artifact threshold
-4. **Auth integration**: Environment-aware serving (cookies vs pre-signed URLs)
-5. **Size threshold**: Configurable via environment variable
-6. **Deduplication**: Content addressing within notebook scope
+1. ✅ **Backend endpoints**: POST `/api/artifacts` → storage upload → return `artifactId`
+2. ⚠️ **Content routes**: GET `/api/artifacts/{id}` → serve content directly (unauthenticated)
+3. ⚠️ **Auth integration**: Upload authentication working, download authentication pending
+4. ✅ **Size threshold**: Configurable via environment variable (ARTIFACT_THRESHOLD)
+5. 🚧 **Security fixes**: Authenticated downloads, permission validation, multipart uploads
+6. 🚧 **Runtime integration**: Update ExecutionContext to use artifact threshold
+7. 🚧 **Frontend rendering**: Display artifact-based outputs in notebook interface
+8. 🚧 **Content addressing**: SHA-256 deduplication within notebook scope
 
 ## Error Handling
 
