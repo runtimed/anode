@@ -1,0 +1,34 @@
+{
+  "apps": [
+    {
+      "name": "anode-dev",
+      "script": "pnpm",
+      "args": "run dev:web",
+      // "cwd": "/Users/mm/p/anode",
+      "watch": false,
+      "env": {
+        "NODE_ENV": "development"
+      }
+    },
+    {
+      "name": "anode-sync",
+      "script": "pnpm",
+      "args": "run dev:sync",
+      // "cwd": "/Users/mm/p/anode",
+      "watch": false,
+      "env": {
+        "NODE_ENV": "development"
+      }
+    },
+    {
+      "name": "file-watcher",
+      "script": "node",
+      "args": "watch-script.cjs",
+      // "cwd": "/Users/mm/p/anode",
+      "watch": false,
+      "env": {
+        "NODE_ENV": "development"
+      }
+    }
+  ]
+}

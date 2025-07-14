@@ -1,14 +1,56 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useGoogleAuth } from "../../auth/useGoogleAuth.js";
 import { googleAuthManager } from "../../auth/google-auth.js";
+import { useQuery, useStore } from "@livestore/react";
+import { events, tables } from "@runt/schema";
+import { queryDb } from "@livestore/livestore";
+import { getCurrentNotebookId } from "@/util/store-id.js";
 
 interface UserProfileProps {
   className?: string;
 }
 
 export const UserProfile: React.FC<UserProfileProps> = ({ className = "" }) => {
+  const { store } = useStore();
   const { user, signOut, isLoading } = useGoogleAuth();
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+
+  const isUsingBrowserSession = !googleAuthManager.isEnabled() || !user;
+
+  const userId = isUsingBrowserSession ? store.sessionId : user?.id;
+  const authProvider = isUsingBrowserSession ? "browser-session" : "google";
+
+  const otherUserPresence = useQuery(
+    queryDb(
+      tables.presence.select().where({
+        notebookId: store.storeId,
+        userId: { op: "!=", value: userId },
+        deleted: false,
+        authProvider: authProvider,
+      })
+    )
+  );
+
+  const currentNotebookId = getCurrentNotebookId();
+
+  // Initial presence commit
+  useEffect(() => {
+    const lastActiveAt = new Date();
+    console.log("Initial presence commit", {
+      userId,
+      notebookId: currentNotebookId,
+      authProvider,
+      lastActiveAt: lastActiveAt.toISOString(),
+    });
+    store.commit(
+      events.presenceUpdated({
+        userId: userId,
+        notebookId: currentNotebookId,
+        authProvider: authProvider,
+        lastActiveAt,
+      })
+    );
+  }, [store, userId, currentNotebookId]);
 
   const handleSignOut = async () => {
     try {
@@ -20,7 +62,7 @@ export const UserProfile: React.FC<UserProfileProps> = ({ className = "" }) => {
   };
 
   // Show Anonymous if Google Auth is not enabled or no user
-  if (!googleAuthManager.isEnabled() || !user) {
+  if (isUsingBrowserSession) {
     return (
       <div className={`${className}`}>
         <div className="flex items-center space-x-2 p-1">
@@ -28,9 +70,15 @@ export const UserProfile: React.FC<UserProfileProps> = ({ className = "" }) => {
             <span className="text-sm font-medium text-gray-700">A</span>
           </div>
           <div className="hidden text-left sm:block">
-            <div className="text-sm font-medium text-gray-900">Anonymous</div>
+            <div className="text-sm font-medium text-gray-900">
+              {store.sessionId}{" "}
+              <span className="text-xs text-gray-500">anon</span>
+            </div>
             <div className="text-xs text-gray-500">Local Development</div>
           </div>
+        </div>
+        <div className="text-xs text-gray-500">
+          {otherUserPresence.length} other users
         </div>
       </div>
     );
