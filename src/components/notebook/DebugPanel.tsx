@@ -298,7 +298,7 @@ function DebugPin() {
       Debug Pin Title: {!firstItem && "NONE"}
       {firstItem.length === 0 && "EMPTY"}
       {/* If using VSCode, updating the schema doesn't automatically update the types in VSCode. Open command palette and run "TypeScript: Restart TS Server" */}
-      {firstItem.length > 0 && firstItem.map((item) => item.title2).join(", ")}
+      {firstItem.length > 0 && firstItem.map((item) => item.title1).join(", ")}
     </div>
   );
 }
