@@ -1,11 +1,11 @@
 const fs = require("fs");
 const path = require("path");
-const { exec, spawn } = require("child_process");
+const { spawn } = require("child_process");
 
 // Not using PM2 here because importing it doesn't work
 // const pm2 = require("pm2");
 
-const WATCH_FILE = "../runt/packages/schema/mod.ts";
+const WATCH_FILE = "../../runt/packages/schema/mod.ts";
 const ABSOLUTE_WATCH_PATH = path.resolve(__dirname, WATCH_FILE);
 const PROJECT_ROOT = path.resolve(__dirname, "..");
 
