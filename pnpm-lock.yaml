@@ -86,8 +86,8 @@ importers:
         specifier: ^1.1.6
         version: 1.2.7(@types/react-dom@19.1.6(@types/react@19.1.8))(@types/react@19.1.8)(react-dom@19.0.0(react@19.0.0))(react@19.0.0)
       '@runt/schema':
-        specifier: jsr:^0.6.2
-        version: '@jsr/runt__schema@0.6.2(acef09458561487e0833c9131402e6fe)'
+        specifier: github:runtimed/runt#d360a01c14d76f638d9545b44487c17b9cafb8b4&path:/packages/schema
+        version: https://codeload.github.com/runtimed/runt/tar.gz/d360a01c14d76f638d9545b44487c17b9cafb8b4#path:/packages/schema(acef09458561487e0833c9131402e6fe)
       '@tanstack/react-virtual':
         specifier: ^3.13.12
         version: 3.13.12(react-dom@19.0.0(react@19.0.0))(react@19.0.0)
@@ -1083,9 +1083,6 @@ packages:
   '@jridgewell/trace-mapping@0.3.9':
     resolution: {integrity: sha512-3Belt6tdc8bPgAtbcmdtNJlirVoTmEb5e2gC94PnkwEW9jI6CAHUeoG85tjWP5WquqfavoMtMwiG4P926ZKKuQ==}
 
-  '@jsr/runt__schema@0.6.2':
-    resolution: {integrity: sha512-IDMKlP1CbcZyp6i+aGLOJX1425d5vcUgl6VUkyQ0NUFbQDQxXZ3BEzE36GmPXfKzcXww0ya98vlcOUbDu0xm0g==, tarball: https://npm.jsr.io/~/11/@jsr/runt__schema/0.6.2.tgz}
-
   '@lezer/common@1.2.3':
     resolution: {integrity: sha512-w7ojc8ejBqr2REPsWxJjrMFsA/ysDCFICn8zEOR9mrqzOu2amhITYuLD8ag6XZf0CFXDrhKqw7+tW8cX66NaDA==}
 
@@ -1749,6 +1746,10 @@ packages:
     resolution: {integrity: sha512-3+QZROYfJ25PDcxFF66UEk8jGWigHJeecZILvkPkyQN7oc5BvFo4YEXFkOs154j3FTMp9mn9Ky8RCOwastduEA==}
     cpu: [x64]
     os: [win32]
+
+  '@runt/schema@https://codeload.github.com/runtimed/runt/tar.gz/d360a01c14d76f638d9545b44487c17b9cafb8b4#path:/packages/schema':
+    resolution: {path: /packages/schema, tarball: https://codeload.github.com/runtimed/runt/tar.gz/d360a01c14d76f638d9545b44487c17b9cafb8b4}
+    version: 0.6.0
 
   '@standard-schema/spec@1.0.0':
     resolution: {integrity: sha512-m2bOd0f2RT9k8QJx1JN85cZYyH1RqFBdlwtkSlf4tBDYLCiiZnv1fIIwacK6cqwXavOydf0NPToMQgpKq+dVlA==}
@@ -4630,26 +4631,6 @@ snapshots:
       '@jridgewell/resolve-uri': 3.1.2
       '@jridgewell/sourcemap-codec': 1.5.4
 
-  '@jsr/runt__schema@0.6.2(acef09458561487e0833c9131402e6fe)':
-    dependencies:
-      '@livestore/livestore': 0.3.1(acef09458561487e0833c9131402e6fe)
-    transitivePeerDependencies:
-      - '@effect/cli'
-      - '@effect/cluster'
-      - '@effect/experimental'
-      - '@effect/opentelemetry'
-      - '@effect/platform'
-      - '@effect/platform-browser'
-      - '@effect/platform-bun'
-      - '@effect/platform-node'
-      - '@effect/printer'
-      - '@effect/printer-ansi'
-      - '@effect/rpc'
-      - '@effect/sql'
-      - '@effect/typeclass'
-      - '@opentelemetry/resources'
-      - effect
-
   '@lezer/common@1.2.3': {}
 
   '@lezer/css@1.3.0':
@@ -5466,6 +5447,26 @@ snapshots:
 
   '@rollup/rollup-win32-x64-msvc@4.44.2':
     optional: true
+
+  '@runt/schema@https://codeload.github.com/runtimed/runt/tar.gz/d360a01c14d76f638d9545b44487c17b9cafb8b4#path:/packages/schema(acef09458561487e0833c9131402e6fe)':
+    dependencies:
+      '@livestore/livestore': 0.3.1(acef09458561487e0833c9131402e6fe)
+    transitivePeerDependencies:
+      - '@effect/cli'
+      - '@effect/cluster'
+      - '@effect/experimental'
+      - '@effect/opentelemetry'
+      - '@effect/platform'
+      - '@effect/platform-browser'
+      - '@effect/platform-bun'
+      - '@effect/platform-node'
+      - '@effect/printer'
+      - '@effect/printer-ansi'
+      - '@effect/rpc'
+      - '@effect/sql'
+      - '@effect/typeclass'
+      - '@opentelemetry/resources'
+      - effect
 
   '@standard-schema/spec@1.0.0': {}
 
