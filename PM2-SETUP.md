@@ -8,12 +8,12 @@ This setup uses PM2 to manage your development processes and automatically watch
 2. **Automatically runs** these commands when the file changes:
    - `pnpm install @runt/schema@file:../runt/packages/schema` (updates schema package)
    - `pm2 restart web` (restarts the web development server)
-   - `./start-runtime.sh` (starts a new runtime instance)
+   - `./scripts/start-runtime.sh` (starts a new runtime instance)
 3. **Manages** these development processes:
    - `web`: Runs `pnpm run dev:web` (Vite development server)
    - `sync`: Runs `pnpm run dev:sync` (Wrangler development server)
-   - `nb`: Runs `./start-runtime.sh` (Deno runtime agent)
-   - `watcher`: Runs `node watch-script.cjs` (File watching and auto-restart)
+   - `nb`: Runs `./scripts/start-runtime.sh` (Deno runtime agent)
+   - `watcher`: Runs `node scripts/watch-script.cjs` (File watching and auto-restart)
 
 ## Quick Start
 
@@ -54,12 +54,12 @@ pm2 delete all
 
 - `web`: Runs `pnpm run dev:web` (Vite development server on port 5173)
 - `sync`: Runs `pnpm run dev:sync` (Wrangler development server)
-- `nb`: Runs `./start-runtime.sh` (Deno runtime agent with unique notebook ID)
+- `nb`: Runs `./scripts/start-runtime.sh` (Deno runtime agent with unique notebook ID)
 - `watcher`: Monitors the schema file and triggers updates
 
 ## Runtime Process Details
 
-The `nb` process runs `start-runtime.sh` which:
+The `nb` process runs `scripts/start-runtime.sh` which:
 
 - Sets `DEV_PORT=5173`
 - Generates a unique notebook ID using timestamp and random hex
@@ -86,7 +86,7 @@ This should trigger the update process and restart the development servers.
 
 ## Development Workflow
 
-1. **Start development**: `./start-dev.sh`
+1. **Start development**: `./scripts/start-dev.sh`
 2. **Make changes** to `../runt/packages/schema/mod.ts`
 3. **Auto-restart**: The watcher automatically updates dependencies and restarts services
 4. **Browser**: Automatically refreshes with new changes

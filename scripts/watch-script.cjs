@@ -7,6 +7,7 @@ const { exec, spawn } = require("child_process");
 
 const WATCH_FILE = "../runt/packages/schema/mod.ts";
 const ABSOLUTE_WATCH_PATH = path.resolve(__dirname, WATCH_FILE);
+const PROJECT_ROOT = path.resolve(__dirname, "..");
 
 console.log(`Watching for changes in: ${ABSOLUTE_WATCH_PATH}`);
 
@@ -38,7 +39,7 @@ function execCommand(command) {
   return new Promise((resolve, reject) => {
     // Use spawn for real-time output, especially for long-running processes
     const child = spawn(command, [], {
-      cwd: __dirname,
+      cwd: PROJECT_ROOT,
       shell: true,
       stdio: ["inherit", "pipe", "pipe"],
     });
@@ -70,7 +71,7 @@ function execCommand(command) {
 // Helper function to execute long-running commands (don't wait for completion)
 function execCommandAsync(command) {
   const child = spawn(command, [], {
-    cwd: __dirname,
+    cwd: PROJECT_ROOT,
     shell: true,
     stdio: ["inherit", "pipe", "pipe"],
   });

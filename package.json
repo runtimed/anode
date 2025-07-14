@@ -7,7 +7,7 @@
     "node": ">=23.0.0"
   },
   "scripts": {
-    "dev": "./start-dev.sh && pm2 logs",
+    "dev": "./scripts/start-dev.sh && pm2 logs",
     "dev:web": "vite",
     "dev:scan": "pnpm run dev & npx react-scan@latest localhost:5173",
     "dev:prod": "vite --mode production",

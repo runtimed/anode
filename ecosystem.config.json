@@ -20,13 +20,13 @@
     },
     {
       "name": "nb",
-      "script": "./start-runtime.sh",
+      "script": "./scripts/start-runtime.sh",
       "watch": false
     },
     {
       "name": "watcher",
       "script": "node",
-      "args": "watch-script.cjs",
+      "args": "scripts/watch-script.cjs",
       "watch": false,
       "env": {
         "NODE_ENV": "development"
