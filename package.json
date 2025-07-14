@@ -61,7 +61,7 @@
     "@radix-ui/react-separator": "^1.1.7",
     "@radix-ui/react-slot": "^1.2.3",
     "@radix-ui/react-tooltip": "^1.1.6",
-    "@runt/schema": "jsr:^0.6.2",
+    "@runt/schema": "github:runtimed/runt#676cead9aa40fd2c6482c02141990089a4f08dbd&path:/packages/schema",
     "@tanstack/react-virtual": "^3.13.12",
     "@types/react-syntax-highlighter": "^15.5.13",
     "@uiw/codemirror-theme-github": "^4.23.14",
