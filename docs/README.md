@@ -15,15 +15,17 @@ collaborative notebook system with AI integration.
 
 - **[AI Context Controls](./proposals/ai-context-controls.md)** - User controls
   for AI context inclusion/exclusion ✅ **Implemented**
-- **[Updateable Outputs](./proposals/updateable-outputs.md)** -
-  Jupyter-compatible display updates and stream merging
+- **[Artifact Service Design](./proposals/artifact-service-design.md)** -
+  External storage for large outputs 🚧 **First Version (has limitations)**
+- **[Unified Output System](./proposals/unified-output-system.md)** -
+  Granular, type-safe events for all output types ✅ **Implemented**
 
 ### 🏗️ Architecture Overview
 
 Anode is a simplified single-application notebook system that provides:
 
 - **Web Client**: React-based notebook interface with real-time collaboration
-- **Sync Worker**: Cloudflare Worker handling LiveStore synchronization
+- **Unified Worker**: Cloudflare Worker serving both frontend and backend with artifact storage
 - **Python Runtime**: Handled by separate `@runt` packages for execution and AI
   features
 
@@ -32,7 +34,7 @@ Anode is a simplified single-application notebook system that provides:
 - **LiveStore**: Event-sourcing based local-first data synchronization
 - **React**: Modern web interface with real-time collaborative editing
 - **Vite**: Build system and development server
-- **Cloudflare**: Pages (web client) + Workers (sync backend) deployment
+- **Cloudflare**: Workers (unified backend + frontend) + D1 (database) + R2 (artifact storage)
 
 ### 🚀 Current Status
 
@@ -53,6 +55,7 @@ docs/
 ├── DEPLOYMENT.md                  # Deployment instructions
 ├── proposals/
 │   ├── ai-context-controls.md     # User controls for AI context
+│   ├── artifact-service-design.md # External storage for large outputs
 │   └── unified-output-system.md   # Unified output system proposal
 └── technologies/
     ├── README.md                  # Introduction to technologies
