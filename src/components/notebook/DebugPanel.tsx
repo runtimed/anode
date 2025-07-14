@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { useStore } from "@livestore/react";
+import { useQuery, useStore } from "@livestore/react";
 import { queryDb, sql, Schema } from "@livestore/livestore";
 
 import {
@@ -78,6 +78,7 @@ const DebugPanel: React.FC<DebugPanelProps> = ({
       </div>
 
       <div className="space-y-4 p-4">
+        <DebugPin />
         {/* Available Tables */}
         <div>
           <h4 className="text-muted-foreground mb-2 text-xs font-medium tracking-wide uppercase">
@@ -289,5 +290,17 @@ const DebugPanel: React.FC<DebugPanelProps> = ({
     </div>
   );
 };
+
+function DebugPin() {
+  const firstItem = useQuery(queryDb(tables.debugPin.select()));
+  return (
+    <div className="font-mono text-xs">
+      Debug Pin Title: {!firstItem && "NONE"}
+      {firstItem.length === 0 && "EMPTY"}
+      {/* If using VSCode, updating the schema doesn't automatically update the types in VSCode. Open command palette and run "TypeScript: Restart TS Server" */}
+      {firstItem.length > 0 && firstItem.map((item) => item.title2).join(", ")}
+    </div>
+  );
+}
 
 export { DebugPanel };

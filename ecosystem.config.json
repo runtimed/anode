@@ -1,0 +1,36 @@
+{
+  "apps": [
+    {
+      "name": "web",
+      "script": "pnpm",
+      "args": "run dev:web",
+      "watch": false,
+      "env": {
+        "NODE_ENV": "development"
+      }
+    },
+    {
+      "name": "sync",
+      "script": "pnpm",
+      "args": "run dev:sync",
+      "watch": false,
+      "env": {
+        "NODE_ENV": "development"
+      }
+    },
+    {
+      "name": "nb",
+      "script": "./start-runtime.sh",
+      "watch": false
+    },
+    {
+      "name": "watcher",
+      "script": "node",
+      "args": "watch-script.cjs",
+      "watch": false,
+      "env": {
+        "NODE_ENV": "development"
+      }
+    }
+  ]
+}
