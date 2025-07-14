@@ -53,9 +53,7 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
   const cells = store.useQuery(
     queryDb(tables.cells.select().orderBy("position", "asc"))
   ) as CellData[];
-  const metadata = store.useQuery(
-    queryDb(tables.notebookMetadata.select())
-  ) as Array<{ key: string; value: string }>;
+  const metadata = store.useQuery(queryDb(tables.notebookMetadata.select()));
   const runtimeSessions = store.useQuery(
     queryDb(tables.runtimeSessions.select().where({ isActive: true }))
   ) as RuntimeSessionData[];

@@ -5,6 +5,7 @@ import { queryDb, sql, Schema } from "@livestore/livestore";
 import {
   CellData,
   RuntimeSessionData,
+  NotebookMetadataData,
   tables,
   schema,
   events,
@@ -13,7 +14,7 @@ import { Bug, Database } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 interface DebugPanelProps {
-  metadata: Array<{ key: string; value: string }>;
+  metadata: readonly NotebookMetadataData[];
   cells: CellData[];
   allRuntimeSessions: RuntimeSessionData[];
   executionQueue: any[];
