@@ -2,19 +2,6 @@
 
 This setup uses PM2 to manage your development processes and automatically watch for changes in the schema.
 
-## What it does
-
-1. **Watches** `../runt/packages/schema/mod.ts` for changes
-2. **Automatically runs** these commands when the file changes:
-   - `pnpm install @runt/schema@file:../runt/packages/schema` (updates schema package)
-   - `pm2 restart web` (restarts the web development server)
-   - `./scripts/start-runtime.sh` (starts a new runtime instance)
-3. **Manages** these development processes:
-   - `web`: Runs `pnpm run dev:web` (Vite development server)
-   - `sync`: Runs `pnpm run dev:sync` (Wrangler development server)
-   - `nb`: Runs `./scripts/start-runtime.sh` (Deno runtime agent)
-   - `watcher`: Runs `node scripts/watch-script.cjs` (File watching and auto-restart)
-
 ## Quick Start
 
 ```bash
@@ -86,7 +73,7 @@ This should trigger the update process and restart the development servers.
 
 ## Development Workflow
 
-1. **Start development**: `./scripts/start-dev.sh`
+1. **Start development**: `pnpm run dev`
 2. **Make changes** to `../runt/packages/schema/mod.ts`
 3. **Auto-restart**: The watcher automatically updates dependencies and restarts services
 4. **Browser**: Automatically refreshes with new changes
