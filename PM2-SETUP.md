@@ -105,6 +105,10 @@ pm2 stop all && pm2 delete all && pnpm dev
 
 When you have the watcher from PM2 running, and update the schema, you won't see types reflected in VSCode. For example, updating a table column name in the schema in the `runt` repo, you won't see VSCode show a type error for the wrong column name. Open the VSCode command palette and run "TypeScript: Restart TS Server".
 
+### Things won't update, or you're getting confusing errors
+
+Make sure you only have an incognito window (or Chrome profile) with no other anode tabs. Once you close all tabs, do a hard refresh of the notebook (press **Ctrl+Shift+R** or **Cmd+Shift+R** in your browser).
+
 ## Caveats
 
 Clicking the "+ Notebook" button the browser won't work well in development. You won't get a new notebook backend and running it manually means you won't get any benefits from PM2 orhestration. To create a new notebook, it's often easier to do this:
