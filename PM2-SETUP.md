@@ -110,7 +110,7 @@ Something went wrong - this should never happen:
 
 Close the incognito tabs and run:
 
-```
+```bash
 pm2 stop all && pm2 delete all && pnpm dev
 ```
 
@@ -122,6 +122,6 @@ When you have the watcher from PM2 running, and update the schema, you won't see
 
 Clicking the "+ Notebook" button the browser won't work well in development. You won't get a new notebook backend and running it manually means you won't get any benefits from PM2 orhestration. To create a new notebook, it's often easier to do this:
 
-```
+```bash
 pm2 restart all
 ```
