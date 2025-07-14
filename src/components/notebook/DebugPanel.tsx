@@ -13,7 +13,7 @@ import { Bug, Database } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 interface DebugPanelProps {
-  notebook: any;
+  metadata: Array<{ key: string; value: string }>;
   cells: CellData[];
   allRuntimeSessions: RuntimeSessionData[];
   executionQueue: any[];
@@ -55,7 +55,7 @@ const useAvailableTables = () => {
 };
 
 const DebugPanel: React.FC<DebugPanelProps> = ({
-  notebook,
+  metadata,
   cells,
   allRuntimeSessions,
   executionQueue,
@@ -116,7 +116,11 @@ const DebugPanel: React.FC<DebugPanelProps> = ({
             Notebook
           </h4>
           <pre className="bg-card overflow-x-auto rounded border p-2 text-xs">
-            {JSON.stringify(notebook, null, 2)}
+            {JSON.stringify(
+              Object.fromEntries(metadata.map((m) => [m.key, m.value])),
+              null,
+              2
+            )}
           </pre>
         </div>
 
