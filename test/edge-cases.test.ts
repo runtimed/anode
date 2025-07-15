@@ -6,7 +6,7 @@ import {
 } from "./setup.js";
 import { makeAdapter } from "@livestore/adapter-node";
 import { createStorePromise } from "@livestore/livestore";
-import { events, schema, Store, tables } from "@runt/schema";
+import { events, schema, Store, tables, isInlineContainer } from "@runt/schema";
 
 console.log("🧪 Starting Anode edge case test suite...");
 
@@ -254,12 +254,20 @@ describe("Edge Cases and Stress Tests", () => {
 
       const outputs = store.query(tables.outputs.select().where({ cellId }));
       expect(outputs).toHaveLength(1);
-      expect(
-        outputs[0].representations["application/json"].data.text
-      ).toHaveLength(1024 * 1024);
-      expect(
-        outputs[0].representations["application/json"].data.metadata.size
-      ).toBe(1024 * 1024);
+
+      const representation = outputs[0].representations!["application/json"];
+      expect(representation).toBeDefined();
+
+      if (isInlineContainer(representation)) {
+        const data = representation.data as {
+          text: string;
+          metadata: { size: number; type: string };
+        };
+        expect(data.text).toHaveLength(1024 * 1024);
+        expect(data.metadata.size).toBe(1024 * 1024);
+      } else {
+        throw new Error("Expected inline container but got artifact container");
+      }
     });
 
     it("should handle unicode and special characters in all text fields", async () => {
