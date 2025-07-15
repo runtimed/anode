@@ -68,29 +68,6 @@ function execCommand(command) {
   });
 }
 
-// Helper function to execute long-running commands (don't wait for completion)
-function execCommandAsync(command) {
-  const child = spawn(command, [], {
-    cwd: PROJECT_ROOT,
-    shell: true,
-    stdio: ["inherit", "pipe", "pipe"],
-  });
-
-  child.stdout.on("data", (data) => {
-    console.log(data.toString());
-  });
-
-  child.stderr.on("data", (data) => {
-    console.error(data.toString());
-  });
-
-  child.on("error", (error) => {
-    console.error(`Error executing command: ${command}`, error);
-  });
-
-  return child;
-}
-
 // Watch the file for changes
 let lastModified = 0;
 
