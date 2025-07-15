@@ -1,5 +1,4 @@
 import {
-  autocompletion,
   closeBrackets,
   closeBracketsKeymap,
   completionKeymap,
@@ -53,7 +52,6 @@ export const basicSetup: Extension = (() => [
   syntaxHighlighting(defaultHighlightStyle, { fallback: true }),
   bracketMatching(),
   closeBrackets(),
-  autocompletion(),
   rectangularSelection(),
   crosshairCursor(),
   keymap.of([
