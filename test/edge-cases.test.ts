@@ -711,10 +711,12 @@ describe("Edge Cases and Stress Tests", () => {
         }
       }
 
-      const notebook = store.query(tables.notebook.select())[0];
+      const metadata = store.query(tables.notebookMetadata.select());
+      const notebookTitle =
+        metadata.find((m) => m.key === "title")?.value ?? "Untitled";
       const cells = store.query(tables.cells.select());
 
-      expect(notebook.title).toBe("Large Notebook Test");
+      expect(notebookTitle).toBe("Large Notebook Test");
       expect(cells).toHaveLength(maxCells);
 
       // Test querying specific ranges

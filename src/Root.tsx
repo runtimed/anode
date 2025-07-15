@@ -16,10 +16,8 @@ import { NotebookViewer } from "./components/notebook/NotebookViewer.js";
 import { AuthGuard } from "./components/auth/AuthGuard.js";
 
 import LiveStoreWorker from "./livestore.worker?worker";
-import { events, schema, tables } from "@runt/schema";
+import { schema } from "@runt/schema";
 import { getCurrentNotebookId, getStoreId } from "./util/store-id.js";
-import { useStore } from "@livestore/react";
-import { queryDb } from "@livestore/livestore";
 import { getCurrentAuthToken, isAuthStateValid } from "./auth/google-auth.js";
 import { ErrorBoundary } from "react-error-boundary";
 
@@ -27,8 +25,6 @@ const NotebookApp: React.FC = () => {
   // In the simplified architecture, we always show the current notebook
   // The notebook ID comes from the URL and is the same as the store ID
   const currentNotebookId = getCurrentNotebookId();
-  const { store } = useStore();
-  const [isInitializing, setIsInitializing] = useState(false);
   const [debugMode, setDebugMode] = useState(false);
   // Note: Auth token updates are handled via error detection and page reload
   // rather than dynamic sync payload updates, as LiveStore doesn't support
@@ -108,47 +104,6 @@ const NotebookApp: React.FC = () => {
       window.removeEventListener("beforeunload", handleBeforeUnload);
     };
   }, []);
-
-  // Check if notebook exists
-  const notebooks = store.useQuery(
-    queryDb(tables.notebook.select().limit(1))
-  ) as any[];
-  const currentNotebook = notebooks[0];
-
-  // Auto-initialize notebook if it doesn't exist
-  useEffect(() => {
-    if (!currentNotebook && !isInitializing) {
-      setIsInitializing(true);
-      const notebookId = store.storeId || `notebook-${Date.now()}`;
-      const title = `Notebook ${new Date().toLocaleDateString()}`;
-
-      store.commit(
-        events.notebookInitialized({
-          id: notebookId,
-          title,
-          ownerId: "current-user", // TODO: get from auth context
-        })
-      );
-
-      setIsInitializing(false);
-    }
-  }, [currentNotebook, isInitializing, store]);
-
-  // Show loading while initializing
-  if (!currentNotebook && isInitializing) {
-    return (
-      <div className="bg-background flex min-h-screen items-center justify-center">
-        <div className="text-center">
-          <div className="text-foreground mb-2 text-lg font-semibold">
-            Initializing Notebook...
-          </div>
-          <div className="text-muted-foreground text-sm">
-            Setting up your workspace...
-          </div>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="bg-background min-h-screen">

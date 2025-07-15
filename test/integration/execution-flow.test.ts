@@ -62,8 +62,8 @@ describe("End-to-End Execution Flow", () => {
 
       // Track state changes
       const stateChanges: string[] = [];
-      const notebookQuery$ = queryDb(tables.notebook.select(), {
-        label: "notebook",
+      const metadataQuery$ = queryDb(tables.notebookMetadata.select(), {
+        label: "metadata",
       });
       const cellsQuery$ = queryDb(tables.cells.select(), { label: "cells" });
       const queueQuery$ = queryDb(tables.executionQueue.select(), {
@@ -73,8 +73,8 @@ describe("End-to-End Execution Flow", () => {
         label: "outputs",
       });
 
-      store.subscribe(notebookQuery$, {
-        onUpdate: () => stateChanges.push("notebook"),
+      store.subscribe(metadataQuery$, {
+        onUpdate: () => stateChanges.push("metadata"),
       });
       store.subscribe(cellsQuery$, {
         onUpdate: () => stateChanges.push("cells"),
@@ -95,7 +95,7 @@ describe("End-to-End Execution Flow", () => {
         })
       );
 
-      await waitFor(() => stateChanges.includes("notebook"));
+      await waitFor(() => stateChanges.includes("metadata"));
 
       // Step 2: Create a code cell
       store.commit(
@@ -198,9 +198,10 @@ describe("End-to-End Execution Flow", () => {
       );
 
       // Verify final state
-      const notebook = store.query(tables.notebook.select())[0];
-      expect(notebook.id).toBe(notebookId);
-      expect(notebook.title).toBe("Integration Test Notebook");
+      const metadata = store.query(tables.notebookMetadata.select());
+      const notebookTitle =
+        metadata.find((m) => m.key === "title")?.value ?? "Untitled";
+      expect(notebookTitle).toBe("Integration Test Notebook");
 
       const cells = store.query(tables.cells.select());
       expect(cells).toHaveLength(1);
