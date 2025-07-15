@@ -211,6 +211,17 @@ const DebugPanel: React.FC<DebugPanelProps> = ({
           </div>
         </div>
 
+        <div>
+          <h4 className="text-muted-foreground mb-2 text-xs font-medium tracking-wide uppercase">
+            Session Info
+          </h4>
+          <div className="bg-card space-y-1 rounded border p-2 text-xs">
+            <div>
+              Session ID: <code className="font-mono">{store.sessionId}</code>
+            </div>
+          </div>
+        </div>
+
         {/* Debug Actions */}
         <div>
           <h4 className="text-muted-foreground mb-2 text-xs font-medium tracking-wide uppercase">
