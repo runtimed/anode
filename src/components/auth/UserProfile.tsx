@@ -134,7 +134,7 @@ function PresenceIndicator({ userId }: { userId: string }) {
 
   useEffect(() => {
     store.commit(events.presenceSet({ userId }));
-  }, [presence, userId]);
+  }, [store, presence, userId]);
 
   return (
     <div className="flex items-center gap-0.5 rounded-md border border-gray-200 bg-gray-100 px-2 py-1">
