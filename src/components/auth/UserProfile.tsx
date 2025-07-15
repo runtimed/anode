@@ -21,21 +21,6 @@ export const UserProfile: React.FC<UserProfileProps> = ({ className = "" }) => {
   const isAnonymous = !googleAuthManager.isEnabled() || !user;
   const userId = isAnonymous ? store.sessionId : user?.id;
 
-  // Get all other users in the presence table
-  const presence = useQuery(
-    queryDb(
-      tables.presence
-        .select()
-        .where({ userId: { op: "!=", value: userId } })
-        .orderBy("userId", "asc")
-    )
-  );
-
-  useEffect(() => {
-    if (!userId) return;
-    store.commit(events.presenceSet({ userId }));
-  }, [presence, userId]);
-
   const handleSignOut = async () => {
     try {
       await signOut();
@@ -50,19 +35,7 @@ export const UserProfile: React.FC<UserProfileProps> = ({ className = "" }) => {
     return (
       <div className={`${className}`}>
         <div className="flex items-center gap-1">
-          {presence.length > 0 && (
-            <div className="flex items-center gap-0.5 rounded-md border border-gray-200 bg-gray-100 px-2 py-1">
-              <div className="text-xs text-gray-500">Contributors:</div>
-              {presence.map((p) => (
-                <Avatar
-                  key={p.userId}
-                  size="sm"
-                  initials={generateInitials(p.userId)}
-                  backgroundColor={generateColor(p.userId)}
-                />
-              ))}
-            </div>
-          )}
+          <PresenceIndicator userId={userId} />
           <AvatarWithDetails
             initials={generateInitials(userId)}
             title="Anonymous"
@@ -76,33 +49,37 @@ export const UserProfile: React.FC<UserProfileProps> = ({ className = "" }) => {
 
   return (
     <div className={`relative ${className}`}>
-      <button
-        onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-        className="flex items-center space-x-2 rounded-md p-1 hover:bg-gray-100 focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:outline-none"
-        disabled={isLoading}
-      >
-        <AvatarWithDetails
-          initials={generateInitials(user.name)}
-          title={user.name}
-          image={user.picture}
-          subtitle={user.email}
-        />
-        <svg
-          className={`h-4 w-4 text-gray-400 transition-transform ${
-            isDropdownOpen ? "rotate-180" : ""
-          }`}
-          fill="none"
-          stroke="currentColor"
-          viewBox="0 0 24 24"
+      <div className="flex items-center gap-1">
+        <PresenceIndicator userId={userId} />
+        <button
+          onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+          className="flex items-center space-x-2 rounded-md p-1 hover:bg-gray-100 focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:outline-none"
+          disabled={isLoading}
         >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={2}
-            d="M19 9l-7 7-7-7"
+          <AvatarWithDetails
+            initials={generateInitials(user.name)}
+            title={user.name}
+            image={user.picture}
+            subtitle={user.email}
           />
-        </svg>
-      </button>
+
+          <svg
+            className={`h-4 w-4 text-gray-400 transition-transform ${
+              isDropdownOpen ? "rotate-180" : ""
+            }`}
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M19 9l-7 7-7-7"
+            />
+          </svg>
+        </button>
+      </div>
 
       {isDropdownOpen && (
         <>
@@ -141,3 +118,38 @@ export const UserProfile: React.FC<UserProfileProps> = ({ className = "" }) => {
     </div>
   );
 };
+
+function PresenceIndicator({ userId }: { userId: string }) {
+  const { store } = useStore();
+
+  // Get all other users in the presence table
+  const presence = useQuery(
+    queryDb(
+      tables.presence
+        .select()
+        .where({ userId: { op: "!=", value: userId } })
+        .orderBy("userId", "asc")
+    )
+  );
+
+  useEffect(() => {
+    store.commit(events.presenceSet({ userId }));
+  }, [presence, userId]);
+
+  return (
+    <div className="flex items-center gap-0.5 rounded-md border border-gray-200 bg-gray-100 px-2 py-1">
+      <div className="text-xs text-gray-500">Contributors:</div>
+      {presence.map((p) => (
+        <div key={p.userId}>
+          <div className="flex items-center">
+            <Avatar
+              size="sm"
+              initials={generateInitials(p.userId)}
+              backgroundColor={generateColor(p.userId)}
+            />
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
