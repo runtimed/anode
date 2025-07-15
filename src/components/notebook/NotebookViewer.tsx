@@ -53,9 +53,7 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
   const cells = store.useQuery(
     queryDb(tables.cells.select().orderBy("position", "asc"))
   ) as CellData[];
-  const notebooks = store.useQuery(
-    queryDb(tables.notebook.select().limit(1))
-  ) as any[];
+  const metadata = store.useQuery(queryDb(tables.notebookMetadata.select()));
   const runtimeSessions = store.useQuery(
     queryDb(tables.runtimeSessions.select().where({ isActive: true }))
   ) as RuntimeSessionData[];
@@ -67,10 +65,12 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
   const executionQueue = store.useQuery(
     queryDb(tables.executionQueue.select().orderBy("id", "desc"))
   ) as any[];
-  const notebook = notebooks[0];
+  // Get notebook title from metadata, default to "Untitled"
+  const notebookTitle =
+    metadata.find((m) => m.key === "title")?.value ?? "Untitled";
 
   const [isEditingTitle, setIsEditingTitle] = React.useState(false);
-  const [localTitle, setLocalTitle] = React.useState(notebook?.title || "");
+  const [localTitle, setLocalTitle] = React.useState(notebookTitle);
   const [showRuntimeHelper, setShowRuntimeHelper] = React.useState(false);
   const [focusedCellId, setFocusedCellId] = React.useState<string | null>(null);
   const [contextSelectionMode, setContextSelectionMode] = React.useState(false);
@@ -147,10 +147,8 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
   }, [executionQueue, store]);
 
   React.useEffect(() => {
-    if (notebook?.title) {
-      setLocalTitle(notebook.title);
-    }
-  }, [notebook?.title]);
+    setLocalTitle(notebookTitle);
+  }, [notebookTitle]);
 
   // Prefetch output components adaptively based on connection speed
   React.useEffect(() => {
@@ -158,7 +156,7 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
   }, []);
 
   const updateTitle = useCallback(() => {
-    if (notebook && localTitle !== notebook.title) {
+    if (localTitle !== notebookTitle) {
       store.commit(
         events.notebookTitleChanged({
           title: localTitle,
@@ -166,7 +164,7 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
       );
     }
     setIsEditingTitle(false);
-  }, [notebook, localTitle, store]);
+  }, [notebookTitle, localTitle, store]);
 
   const addCell = useCallback(
     (
@@ -335,14 +333,6 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
     }
   }, [focusedCellId, cells]);
 
-  if (!notebook) {
-    return (
-      <div className="flex h-64 items-center justify-center">
-        <div className="text-muted-foreground">Loading notebook...</div>
-      </div>
-    );
-  }
-
   // cells are already sorted by position from the database query
 
   return (
@@ -408,7 +398,7 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
                       onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => {
                         if (e.key === "Enter") updateTitle();
                         if (e.key === "Escape") {
-                          setLocalTitle(notebook.title);
+                          setLocalTitle(notebookTitle);
                           setIsEditingTitle(false);
                         }
                       }}
@@ -420,7 +410,7 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
                       className="hover:text-muted-foreground cursor-pointer truncate text-base font-semibold transition-colors sm:text-lg"
                       onClick={() => setIsEditingTitle(true)}
                     >
-                      {notebook.title}
+                      {notebookTitle}
                     </h1>
                   )}
                 </div>
@@ -434,7 +424,8 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
                   >
                     <Terminal className="h-3 w-3 sm:h-4 sm:w-4" />
                     <span className="hidden text-xs capitalize sm:block sm:text-sm">
-                      {notebook.runtimeType}
+                      {metadata.find((m) => m.key === "runtimeType")?.value ??
+                        "python3"}
                     </span>
                     <Circle
                       className={`h-2 w-2 fill-current ${
@@ -875,7 +866,7 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
           >
             <ErrorBoundary fallback={<div>Error rendering debug panel</div>}>
               <LazyDebugPanel
-                notebook={notebook}
+                metadata={metadata}
                 cells={cells}
                 allRuntimeSessions={allRuntimeSessions}
                 executionQueue={executionQueue}
