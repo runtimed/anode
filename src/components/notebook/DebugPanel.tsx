@@ -307,7 +307,7 @@ const DebugPanel: React.FC<DebugPanelProps> = ({
 };
 
 function DebugPin() {
-  const firstItem = useQuery(queryDb(tables.debugPin.select()));
+  const firstItem = useQuery(queryDb(tables.debug.select()));
   return (
     <div className="font-mono text-xs">
       Debug Pin Version: {!firstItem && "NONE"}
