@@ -7,7 +7,8 @@
     "node": ">=23.0.0"
   },
   "scripts": {
-    "dev": "vite",
+    "dev": "./scripts/start-dev.sh && pm2 logs",
+    "dev:web": "vite",
     "dev:scan": "pnpm run dev & npx react-scan@latest localhost:5173",
     "dev:prod": "vite --mode production",
     "dev:sync": "wrangler dev",
@@ -105,6 +106,7 @@
     "eslint": "^9.30.1",
     "eslint-plugin-react-hooks": "^5.2.0",
     "happy-dom": "^15.11.6",
+    "pm2": "^6.0.8",
     "postcss": "^8.5.5",
     "prettier": "^3.6.0",
     "prettier-plugin-tailwindcss": "^0.6.13",
