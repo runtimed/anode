@@ -50,20 +50,22 @@ export const UserProfile: React.FC<UserProfileProps> = ({ className = "" }) => {
     return (
       <div className={`${className}`}>
         <div className="flex items-center gap-1">
-          <div className="flex items-center gap-0.5 rounded-md border border-gray-200 bg-gray-100 px-2 py-1">
-            <div className="text-xs text-gray-500">Contributors:</div>
-            {presence.map((p) => (
-              <div key={p.userId}>
-                <div className="flex items-center">
-                  <Avatar
-                    size="sm"
-                    initials={generateInitials(p.userId)}
-                    backgroundColor={generateColor(p.userId)}
-                  />
+          {presence.length > 0 && (
+            <div className="flex items-center gap-0.5 rounded-md border border-gray-200 bg-gray-100 px-2 py-1">
+              <div className="text-xs text-gray-500">Contributors:</div>
+              {presence.map((p) => (
+                <div key={p.userId}>
+                  <div className="flex items-center">
+                    <Avatar
+                      size="sm"
+                      initials={generateInitials(p.userId)}
+                      backgroundColor={generateColor(p.userId)}
+                    />
+                  </div>
                 </div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          )}
           <AvatarWithDetails
             initials={generateInitials(userId)}
             title="Anonymous"
