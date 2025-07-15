@@ -1,6 +1,12 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useGoogleAuth } from "../../auth/useGoogleAuth.js";
 import { googleAuthManager } from "../../auth/google-auth.js";
+import { events, tables } from "@runt/schema";
+import { queryDb } from "@livestore/livestore";
+import { useQuery, useStore } from "@livestore/react";
+import { AvatarWithDetails } from "../ui/AvatarWithDetails.js";
+import { Avatar } from "../ui/Avatar.js";
+import { generateColor, generateInitials } from "@/util/avatar.js";
 
 interface UserProfileProps {
   className?: string;
@@ -9,6 +15,11 @@ interface UserProfileProps {
 export const UserProfile: React.FC<UserProfileProps> = ({ className = "" }) => {
   const { user, signOut, isLoading } = useGoogleAuth();
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+
+  const { store } = useStore();
+
+  const isAnonymous = !googleAuthManager.isEnabled() || !user;
+  const userId = isAnonymous ? store.sessionId : user?.id;
 
   const handleSignOut = async () => {
     try {
@@ -20,17 +31,17 @@ export const UserProfile: React.FC<UserProfileProps> = ({ className = "" }) => {
   };
 
   // Show Anonymous if Google Auth is not enabled or no user
-  if (!googleAuthManager.isEnabled() || !user) {
+  if (isAnonymous) {
     return (
       <div className={`${className}`}>
-        <div className="flex items-center space-x-2 p-1">
-          <div className="flex h-8 w-8 items-center justify-center rounded-full bg-gray-300">
-            <span className="text-sm font-medium text-gray-700">A</span>
-          </div>
-          <div className="hidden text-left sm:block">
-            <div className="text-sm font-medium text-gray-900">Anonymous</div>
-            <div className="text-xs text-gray-500">Local Development</div>
-          </div>
+        <div className="flex items-center gap-1">
+          <PresenceIndicator userId={userId} />
+          <AvatarWithDetails
+            initials={generateInitials(userId)}
+            title="Anonymous"
+            subtitle="Local Development"
+            backgroundColor={generateColor(userId)}
+          />
         </div>
       </div>
     );
@@ -38,44 +49,37 @@ export const UserProfile: React.FC<UserProfileProps> = ({ className = "" }) => {
 
   return (
     <div className={`relative ${className}`}>
-      <button
-        onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-        className="flex items-center space-x-2 rounded-md p-1 hover:bg-gray-100 focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:outline-none"
-        disabled={isLoading}
-      >
-        {user.picture ? (
-          <img
-            src={user.picture}
-            alt={user.name}
-            className="h-8 w-8 rounded-full"
-          />
-        ) : (
-          <div className="flex h-8 w-8 items-center justify-center rounded-full bg-gray-300">
-            <span className="text-sm font-medium text-gray-700">
-              {user.name.charAt(0).toUpperCase()}
-            </span>
-          </div>
-        )}
-        <div className="hidden text-left sm:block">
-          <div className="text-sm font-medium text-gray-900">{user.name}</div>
-          <div className="text-xs text-gray-500">{user.email}</div>
-        </div>
-        <svg
-          className={`h-4 w-4 text-gray-400 transition-transform ${
-            isDropdownOpen ? "rotate-180" : ""
-          }`}
-          fill="none"
-          stroke="currentColor"
-          viewBox="0 0 24 24"
+      <div className="flex items-center gap-1">
+        <PresenceIndicator userId={userId} />
+        <button
+          onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+          className="flex items-center space-x-2 rounded-md p-1 hover:bg-gray-100 focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:outline-none"
+          disabled={isLoading}
         >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={2}
-            d="M19 9l-7 7-7-7"
+          <AvatarWithDetails
+            initials={generateInitials(user.name)}
+            title={user.name}
+            image={user.picture}
+            subtitle={user.email}
           />
-        </svg>
-      </button>
+
+          <svg
+            className={`h-4 w-4 text-gray-400 transition-transform ${
+              isDropdownOpen ? "rotate-180" : ""
+            }`}
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M19 9l-7 7-7-7"
+            />
+          </svg>
+        </button>
+      </div>
 
       {isDropdownOpen && (
         <>
@@ -114,3 +118,38 @@ export const UserProfile: React.FC<UserProfileProps> = ({ className = "" }) => {
     </div>
   );
 };
+
+function PresenceIndicator({ userId }: { userId: string }) {
+  const { store } = useStore();
+
+  // Get all other users in the presence table
+  const presence = useQuery(
+    queryDb(
+      tables.presence
+        .select()
+        .where({ userId: { op: "!=", value: userId } })
+        .orderBy("userId", "asc")
+    )
+  );
+
+  useEffect(() => {
+    store.commit(events.presenceSet({ userId }));
+  }, [store, presence, userId]);
+
+  return (
+    <div className="flex items-center gap-0.5 rounded-md border border-gray-200 bg-gray-100 px-2 py-1">
+      <div className="text-xs text-gray-500">Contributors:</div>
+      {presence.map((p) => (
+        <div key={p.userId}>
+          <div className="flex items-center">
+            <Avatar
+              size="sm"
+              initials={generateInitials(p.userId)}
+              backgroundColor={generateColor(p.userId)}
+            />
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
