@@ -35,37 +35,42 @@ const NotebookApp: React.FC = () => {
   // rather than dynamic sync payload updates, as LiveStore doesn't support
   // runtime sync payload changes
 
-  // Background token refresh and validation
+  // Background token refresh and validation (less aggressive)
   useEffect(() => {
     const validateAndRefreshAuth = async () => {
       if (!googleAuthManager.isEnabled()) {
         return; // Skip validation in local dev mode
       }
 
-      try {
-        // Try to refresh token proactively
-        await googleAuthManager.refreshToken();
+      // For localhost, skip background validation entirely
+      const isLocalhost =
+        window.location.hostname === "localhost" ||
+        window.location.hostname === "127.0.0.1";
 
-        // Validate current auth state
+      if (isLocalhost) {
+        console.log("Skipping background auth validation on localhost");
+        return;
+      }
+
+      try {
+        // Only check auth state, don't force refresh
         const isValid = await isAuthStateValid();
         if (!isValid) {
-          console.warn("Auth state is invalid after refresh, forcing reload");
+          console.warn("Auth state is invalid, forcing reload");
           const url = new URL(window.location.href);
           url.searchParams.set("reset", "auth-invalid");
           window.location.href = url.toString();
         }
       } catch (error) {
-        console.error("Auth validation/refresh failed:", error);
-        // Don't force reload immediately - let user continue for now
+        console.error("Auth validation failed:", error);
+        // Don't force reload immediately - let user continue
       }
     };
 
-    // Check auth state every 2 minutes for proactive refresh
-    const interval = setInterval(validateAndRefreshAuth, 2 * 60 * 1000);
+    // Check auth state every 10 minutes (less frequent)
+    const interval = setInterval(validateAndRefreshAuth, 10 * 60 * 1000);
 
-    // Also check immediately
-    validateAndRefreshAuth();
-
+    // Don't check immediately - let user work uninterrupted
     return () => clearInterval(interval);
   }, []);
 
@@ -79,10 +84,18 @@ const NotebookApp: React.FC = () => {
         return; // Skip in local dev mode
       }
 
-      try {
-        // Try refresh first
-        await googleAuthManager.refreshToken();
+      // For localhost, skip validation entirely
+      const isLocalhost =
+        window.location.hostname === "localhost" ||
+        window.location.hostname === "127.0.0.1";
 
+      if (isLocalhost) {
+        console.log("Skipping auth validation on localhost");
+        return;
+      }
+
+      try {
+        // Only validate, don't refresh
         const isValid = await isAuthStateValid();
         if (!isValid) {
           console.warn("Auth state is invalid, forcing reload with reset");
@@ -100,12 +113,18 @@ const NotebookApp: React.FC = () => {
         document.visibilityState === "visible" &&
         googleAuthManager.isEnabled()
       ) {
-        // When user returns to tab, try refresh then validate
-        googleAuthManager
-          .refreshToken()
-          .then(() => {
-            return isAuthStateValid();
-          })
+        // For localhost, skip visibility-based auth checks
+        const isLocalhost =
+          window.location.hostname === "localhost" ||
+          window.location.hostname === "127.0.0.1";
+
+        if (isLocalhost) {
+          console.log("Skipping visibility-based auth check on localhost");
+          return;
+        }
+
+        // When user returns to tab, just validate (don't refresh)
+        isAuthStateValid()
           .then((isValid) => {
             if (!isValid) {
               console.warn("Auth state invalid on tab focus, reloading");

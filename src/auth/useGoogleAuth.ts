@@ -27,6 +27,35 @@ export const useGoogleAuth = (): AuthState & {
 
         if (googleAuthManager.isEnabled()) {
           await initializeAuth();
+
+          // For localhost, be more permissive to avoid popups
+          const isLocalhost =
+            window.location.hostname === "localhost" ||
+            window.location.hostname === "127.0.0.1";
+
+          if (isLocalhost) {
+            console.log("Localhost detected - using permissive auth mode");
+            // Try to get existing user without triggering popups
+            const user = await googleAuthManager.getCurrentUser();
+            const token = googleAuthManager.getToken();
+
+            // If we have a token, consider it valid on localhost
+            if (token) {
+              setAuthState({
+                isAuthenticated: true,
+                user: user || {
+                  id: "localhost-user",
+                  email: "localhost@example.com",
+                  name: "Localhost User",
+                },
+                token,
+                isLoading: false,
+                error: null,
+              });
+              return;
+            }
+          }
+
           const user = await googleAuthManager.getCurrentUser();
           const token = googleAuthManager.getToken();
 
@@ -117,6 +146,31 @@ export const useGoogleAuth = (): AuthState & {
     try {
       setAuthState((prev) => ({ ...prev, isLoading: true, error: null }));
 
+      // Check if we're on localhost and already have a token
+      const isLocalhost =
+        window.location.hostname === "localhost" ||
+        window.location.hostname === "127.0.0.1";
+
+      if (isLocalhost) {
+        const existingToken = googleAuthManager.getToken();
+        if (existingToken) {
+          console.log("Using existing token on localhost");
+          const user = await googleAuthManager.getCurrentUser();
+          setAuthState({
+            isAuthenticated: true,
+            user: user || {
+              id: "localhost-user",
+              email: "localhost@example.com",
+              name: "Localhost User",
+            },
+            token: existingToken,
+            isLoading: false,
+            error: null,
+          });
+          return;
+        }
+      }
+
       const user = await googleAuthManager.signIn();
       const token = googleAuthManager.getToken();
 
@@ -166,6 +220,16 @@ export const useGoogleAuth = (): AuthState & {
 
   const refreshToken = useCallback(async () => {
     if (!googleAuthManager.isEnabled()) {
+      return;
+    }
+
+    // Skip refresh on localhost to prevent popups
+    const isLocalhost =
+      window.location.hostname === "localhost" ||
+      window.location.hostname === "127.0.0.1";
+
+    if (isLocalhost) {
+      console.log("Skipping token refresh on localhost");
       return;
     }
 
