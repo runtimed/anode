@@ -26,7 +26,7 @@ VITE_GOOGLE_CLIENT_ID=94663405566-1go7jlpd2ar9u9urbfirmtjv1bm0tcis.apps.googleus
 VITE_AUTH_TOKEN=
 
 # You can change this to any runtime agent command, so long as it has access to its own auth token
-VITE_RUNTIME_COMMAND="deno run --allow-all --env-file=.env jsr:@runt/pyodide-runtime-agent"
+VITE_RUNTIME_COMMAND="deno run --allow-all --env-file=.env jsr:@runt/pyodide-runtime-agent@^0.6.4"
 ```
 
 Run the development server with production environment variables (using `.env.production`):

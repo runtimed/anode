@@ -41,7 +41,7 @@ DEPLOYMENT_ENV = "development"
 VITE_LIVESTORE_SYNC_URL = "ws://localhost:8787/livestore"
 VITE_GOOGLE_CLIENT_ID = "94663405566-1go7jlpd2ar9u9urbfirmtjv1bm0tcis.apps.googleusercontent.com"
 VITE_GOOGLE_AUTH_ENABLED = "false"
-VITE_RUNTIME_COMMAND = "deno run --unstable-broadcast-channel --allow-all --env-file=./.env jsr:@runt/pyodide-runtime-agent@0.6.2"
+VITE_RUNTIME_COMMAND = "deno run --unstable-broadcast-channel --allow-all --env-file=./.env jsr:@runt/pyodide-runtime-agent@0.6.4"
 
 # ---
 # Deployed Environments
@@ -97,7 +97,7 @@ ARTIFACT_THRESHOLD = "16384"
 VITE_LIVESTORE_SYNC_URL = "wss://app.runt.run/livestore"
 VITE_GOOGLE_CLIENT_ID = "94663405566-1go7jlpd2ar9u9urbfirmtjv1bm0tcis.apps.googleusercontent.com"
 VITE_GOOGLE_AUTH_ENABLED = "true"
-VITE_RUNTIME_COMMAND = "deno run --unstable-broadcast-channel --allow-all --env-file=./.env.production jsr:@runt/pyodide-runtime-agent@0.6.2"
+VITE_RUNTIME_COMMAND = "deno run --unstable-broadcast-channel --allow-all --env-file=./.env.production jsr:@runt/pyodide-runtime-agent@0.6.4"
 
 
 # Preview Environment (all-in-one worker)
@@ -131,7 +131,7 @@ ARTIFACT_THRESHOLD = "16384"
 VITE_LIVESTORE_SYNC_URL = "wss://preview.runt.run/livestore"
 VITE_GOOGLE_CLIENT_ID = "94663405566-1go7jlpd2ar9u9urbfirmtjv1bm0tcis.apps.googleusercontent.com"
 VITE_GOOGLE_AUTH_ENABLED = "true"
-VITE_RUNTIME_COMMAND = "deno run --unstable-broadcast-channel --allow-all --env-file=./.env.preview jsr:@runt/pyodide-runtime-agent@0.6.2"
+VITE_RUNTIME_COMMAND = "deno run --unstable-broadcast-channel --allow-all --env-file=./.env.preview jsr:@runt/pyodide-runtime-agent@0.6.4"
 
 
 # ---
