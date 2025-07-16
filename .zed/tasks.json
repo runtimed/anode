@@ -47,7 +47,7 @@
   },
   {
     "label": "UI Client (Web)",
-    "command": "pnpm run dev",
+    "command": "pnpm run dev:web",
     "use_new_terminal": true,
     "allow_concurrent_runs": false,
     "reveal": "always",
