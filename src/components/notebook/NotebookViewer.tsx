@@ -385,6 +385,7 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
                         "python3"}
                     </span>
                     <Circle
+                      data-testid="runtime-status-indicator"
                       className={`h-2 w-2 fill-current ${
                         activeRuntime && runtimeHealth === "healthy"
                           ? "text-green-500"
