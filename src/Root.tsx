@@ -20,7 +20,6 @@ import { schema } from "@runt/schema";
 import { getCurrentNotebookId, getStoreId } from "./util/store-id.js";
 import {
   getCurrentAuthToken,
-  isAuthStateValid,
   initializeAuth,
   googleAuthManager,
 } from "./auth/google-auth.js";
@@ -35,30 +34,31 @@ const NotebookApp: React.FC = () => {
   // rather than dynamic sync payload updates, as LiveStore doesn't support
   // runtime sync payload changes
 
-  // Background token validation (production-like flow)
+  // Background token refresh for LiveStore sync continuity
   useEffect(() => {
-    const validateAuth = async () => {
+    const maintainAuthForSync = async () => {
       if (!googleAuthManager.isEnabled()) {
         return; // Skip validation in local dev mode
       }
 
       try {
-        // Check auth state without forcing refresh
-        const isValid = await isAuthStateValid();
-        if (!isValid) {
-          console.warn("Auth state is invalid, forcing reload");
-          const url = new URL(window.location.href);
-          url.searchParams.set("reset", "auth-invalid");
-          window.location.href = url.toString();
+        // Proactively refresh token to maintain LiveStore sync
+        const refreshedToken = await googleAuthManager.refreshToken();
+        if (!refreshedToken) {
+          console.warn("Token refresh failed - sync may be interrupted");
+          // Don't force reload immediately - let LiveStore handle auth failure
+          // User will see auth prompt when they next interact
+        } else {
+          console.log("Token refreshed successfully for sync continuity");
         }
       } catch (error) {
-        console.error("Auth validation failed:", error);
-        // Don't force reload immediately - let user continue
+        console.error("Auth refresh failed:", error);
+        // Don't force reload - let LiveStore handle the auth error gracefully
       }
     };
 
-    // Check auth state every 5 minutes (reasonable for production)
-    const interval = setInterval(validateAuth, 5 * 60 * 1000);
+    // Refresh token every 5 minutes to maintain sync
+    const interval = setInterval(maintainAuthForSync, 5 * 60 * 1000);
 
     return () => clearInterval(interval);
   }, []);
@@ -74,13 +74,11 @@ const NotebookApp: React.FC = () => {
       }
 
       try {
-        // Only validate, don't refresh
-        const isValid = await isAuthStateValid();
-        if (!isValid) {
-          console.warn("Auth state is invalid, forcing reload with reset");
-          const url = new URL(window.location.href);
-          url.searchParams.set("reset", "auth-invalid");
-          window.location.href = url.toString();
+        // Try to refresh token for sync continuity
+        const refreshedToken = await googleAuthManager.refreshToken();
+        if (!refreshedToken) {
+          console.warn("Token refresh failed on reconnection");
+          // Don't force reload - let user continue with potential auth prompt
         }
       } catch (error) {
         console.error("Auth validation failed:", error);
@@ -92,18 +90,18 @@ const NotebookApp: React.FC = () => {
         document.visibilityState === "visible" &&
         googleAuthManager.isEnabled()
       ) {
-        // When user returns to tab, just validate (don't refresh)
-        isAuthStateValid()
-          .then((isValid) => {
-            if (!isValid) {
-              console.warn("Auth state invalid on tab focus, reloading");
-              const url = new URL(window.location.href);
-              url.searchParams.set("reset", "auth-focus-check");
-              window.location.href = url.toString();
+        // When user returns to tab, proactively refresh token for sync
+        googleAuthManager
+          .refreshToken()
+          .then((refreshedToken) => {
+            if (refreshedToken) {
+              console.log("Token refreshed on tab focus");
+            } else {
+              console.warn("Token refresh failed on tab focus");
             }
           })
           .catch((error) => {
-            console.error("Auth validation on focus failed:", error);
+            console.error("Auth refresh on focus failed:", error);
           });
       }
     };
@@ -167,6 +165,9 @@ const NotebookApp: React.FC = () => {
 const LiveStoreApp: React.FC = () => {
   const storeId = getStoreId();
   const [authInitialized, setAuthInitialized] = useState(false);
+  const [currentAuthToken, setCurrentAuthToken] = useState<string>(() =>
+    getCurrentAuthToken()
+  );
 
   // Initialize auth system early
   useEffect(() => {
@@ -182,6 +183,21 @@ const LiveStoreApp: React.FC = () => {
     };
 
     initAuth();
+  }, []);
+
+  // Listen for token changes to update LiveStore sync payload
+  useEffect(() => {
+    if (!googleAuthManager.isEnabled()) {
+      return;
+    }
+
+    const unsubscribe = googleAuthManager.addTokenChangeListener((newToken) => {
+      const token = newToken || getCurrentAuthToken();
+      console.log("Auth token changed, updating sync payload");
+      setCurrentAuthToken(token);
+    });
+
+    return unsubscribe;
   }, []);
 
   // Check for reset parameter to handle schema evolution issues
@@ -208,8 +224,7 @@ const LiveStoreApp: React.FC = () => {
     resetPersistence,
   });
 
-  // Get current auth token (this is called after auth is validated)
-  const currentAuthToken = getCurrentAuthToken();
+  // Use the reactive auth token that updates when token changes
 
   // Show loading while auth is initializing
   if (!authInitialized) {

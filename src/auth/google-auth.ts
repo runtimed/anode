@@ -193,10 +193,13 @@ class GoogleAuthManager {
       // Check if cached user's token is still valid
       const token = this.getToken();
       if (token && this.isTokenExpiringSoon(token)) {
-        // Don't attempt refresh here - it causes popup spam
-        // Instead, just clear the auth state and let the user sign in manually
-        this.clearAuthState();
-        return null;
+        // Try to refresh token silently
+        const refreshed = await this.silentRefresh();
+        if (!refreshed) {
+          // Silent refresh failed - clear auth state
+          this.clearAuthState();
+          return null;
+        }
       }
       return this.currentUser;
     }
@@ -225,10 +228,28 @@ class GoogleAuthManager {
       if (payload && payload.exp > Date.now() / 1000) {
         // Check if token is expiring soon
         if (this.isTokenExpiringSoon(token)) {
-          // Don't attempt refresh here - it causes popup spam
-          // Instead, just clear the auth state and let the user sign in manually
-          this.clearAuthState();
-          return null;
+          // Try to refresh token silently
+          const refreshed = await this.silentRefresh();
+          if (!refreshed) {
+            // Silent refresh failed - clear auth state
+            this.clearAuthState();
+            return null;
+          }
+          // After successful refresh, update token and payload
+          const newToken = this.getToken();
+          if (newToken) {
+            const newPayload = this.parseJWT(newToken);
+            if (newPayload) {
+              this.currentUser = {
+                id: newPayload.sub,
+                email: newPayload.email,
+                name: newPayload.name,
+                picture: newPayload.picture,
+              };
+              this.currentToken = newToken;
+              return this.currentUser;
+            }
+          }
         }
 
         this.currentUser = {
@@ -239,7 +260,7 @@ class GoogleAuthManager {
         };
         this.currentToken = token;
 
-        // Schedule token refresh
+        // Schedule proactive token refresh
         this.scheduleTokenRefresh(payload.exp * 1000);
 
         return this.currentUser;
@@ -269,9 +290,29 @@ class GoogleAuthManager {
   }
 
   async refreshToken(): Promise<string | null> {
-    // Don't automatically refresh - this causes popup spam
-    // Let the user manually sign in when token expires
-    return this.getToken();
+    if (!this.config.enabled || !window.google) {
+      return this.getToken();
+    }
+
+    try {
+      // Check if current token is still valid
+      const currentToken = this.getToken();
+      if (currentToken && !this.isTokenExpiringSoon(currentToken)) {
+        return currentToken;
+      }
+
+      // Attempt silent refresh using Google's existing session
+      const refreshed = await this.silentRefresh();
+      if (refreshed) {
+        return this.getToken();
+      }
+
+      // If silent refresh fails, return null to indicate need for manual sign-in
+      return null;
+    } catch (error) {
+      console.error("Token refresh failed:", error);
+      return null;
+    }
   }
 
   private isTokenExpiringSoon(token: string): boolean {
@@ -281,11 +322,12 @@ class GoogleAuthManager {
         return true; // Treat invalid tokens as expired
       }
 
-      // Check if token expires within 5 minutes (300 seconds) for proactive refresh
+      // Check if token expires within 10 minutes (600 seconds) for proactive refresh
+      // This gives us more time to refresh before LiveStore connection fails
       const expirationTime = payload.exp * 1000; // Convert to milliseconds
-      const fiveMinutesFromNow = Date.now() + 5 * 60 * 1000;
+      const tenMinutesFromNow = Date.now() + 10 * 60 * 1000;
 
-      return expirationTime <= fiveMinutesFromNow;
+      return expirationTime <= tenMinutesFromNow;
     } catch (error) {
       console.error("Error checking token expiration:", error);
       return true; // Treat unparseable tokens as expired
@@ -298,20 +340,70 @@ class GoogleAuthManager {
       clearTimeout(this.refreshTimeout);
     }
 
-    // Schedule refresh 10 minutes before expiration
-    const refreshTime = expirationTime - Date.now() - 10 * 60 * 1000;
+    // Schedule refresh 15 minutes before expiration for LiveStore sync
+    const refreshTime = expirationTime - Date.now() - 15 * 60 * 1000;
 
     if (refreshTime > 0) {
-      this.refreshTimeout = setTimeout(() => {
-        this.silentRefresh().catch(console.error);
+      this.refreshTimeout = setTimeout(async () => {
+        console.log("Proactive token refresh triggered");
+        const refreshed = await this.silentRefresh();
+        if (refreshed) {
+          console.log("Token refreshed successfully");
+          // Notify listeners of token change
+          this.notifyTokenChange(this.getToken());
+        } else {
+          console.warn("Proactive token refresh failed");
+        }
       }, refreshTime);
     }
   }
 
   private async silentRefresh(): Promise<boolean> {
-    // Don't attempt silent refresh - it causes popup spam
-    // Return false to indicate refresh failed, forcing manual sign-in
-    return false;
+    if (!this.config.enabled || !window.google) {
+      return false;
+    }
+
+    try {
+      // Use a more sophisticated approach to silent refresh
+      return new Promise<boolean>((resolve) => {
+        const timeoutId = setTimeout(() => {
+          resolve(false);
+        }, 3000); // 3 second timeout
+
+        // Store original callback
+        const originalCallback = this.handleCredentialResponse.bind(this);
+        let refreshAttempted = false;
+
+        window.google.accounts.id.initialize({
+          client_id: this.config.clientId,
+          callback: (response: any) => {
+            clearTimeout(timeoutId);
+            if (response.credential && !refreshAttempted) {
+              refreshAttempted = true;
+              originalCallback(response);
+              resolve(true);
+            } else {
+              resolve(false);
+            }
+          },
+          // Key settings for silent refresh
+          auto_select: true,
+          cancel_on_tap_outside: true,
+          itp_support: true,
+        });
+
+        // Attempt silent prompt - this should not show UI if user is already signed in
+        try {
+          window.google.accounts.id.prompt();
+        } catch (error) {
+          clearTimeout(timeoutId);
+          resolve(false);
+        }
+      });
+    } catch (error) {
+      console.error("Silent refresh failed:", error);
+      return false;
+    }
   }
 
   private clearAuthState(): void {
