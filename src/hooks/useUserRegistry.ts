@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { useCurrentUser } from "./useCurrentUser.js";
+import { generateInitials } from "../util/avatar.js";
 
 export interface UserInfo {
   id: string;
@@ -148,17 +149,7 @@ export const useUserRegistry = () => {
   const getUserInitials = useCallback(
     (userId: string): string => {
       const userInfo = getUserInfo(userId);
-
-      // Use actual name for initials
-      const nameParts = userInfo.name.split(" ");
-      if (nameParts.length >= 2) {
-        return `${nameParts[0][0]}${nameParts[1][0]}`.toUpperCase();
-      } else if (nameParts.length === 1 && nameParts[0].length >= 2) {
-        return nameParts[0].slice(0, 2).toUpperCase();
-      } else {
-        // Fallback to first 2 characters of user ID
-        return userId.slice(0, 2).toUpperCase();
-      }
+      return generateInitials(userInfo.name);
     },
     [getUserInfo]
   );
