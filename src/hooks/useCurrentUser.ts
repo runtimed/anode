@@ -1,4 +1,4 @@
-import { useCallback } from "react";
+import { useMemo } from "react";
 import { useStore } from "@livestore/react";
 import { useGoogleAuth } from "../auth/useGoogleAuth.js";
 import { googleAuthManager } from "../auth/google-auth.js";
@@ -15,7 +15,7 @@ export const useCurrentUser = (): CurrentUser => {
   const { user, isAuthenticated } = useGoogleAuth();
   const { store } = useStore();
 
-  const getCurrentUser = useCallback((): CurrentUser => {
+  return useMemo((): CurrentUser => {
     // If Google Auth is enabled and we have an authenticated user
     if (googleAuthManager.isEnabled() && isAuthenticated && user) {
       return {
@@ -37,8 +37,6 @@ export const useCurrentUser = (): CurrentUser => {
       isAnonymous: true,
     };
   }, [user, isAuthenticated, store.sessionId]);
-
-  return getCurrentUser();
 };
 
 // Helper hook to get just the user ID for event attribution
