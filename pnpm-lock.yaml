@@ -1088,12 +1088,9 @@ packages:
   '@jridgewell/trace-mapping@0.3.9':
     resolution: {integrity: sha512-3Belt6tdc8bPgAtbcmdtNJlirVoTmEb5e2gC94PnkwEW9jI6CAHUeoG85tjWP5WquqfavoMtMwiG4P926ZKKuQ==}
 
-<<<<<<< HEAD
-=======
   '@jsr/runt__schema@0.6.4':
     resolution: {integrity: sha512-JB09dTh+pLcS353K4Cl4Oua7kXKN2C6qnnNnG6QIUsfh4FIh2dG3jRl3yQ5FqnwTjwH3iY/KAkXdwszobxcXfA==, tarball: https://npm.jsr.io/~/11/@jsr/runt__schema/0.6.4.tgz}
 
->>>>>>> fc7e408 (upgrade: update all @runt/* packages to 0.6.4)
   '@lezer/common@1.2.3':
     resolution: {integrity: sha512-w7ojc8ejBqr2REPsWxJjrMFsA/ysDCFICn8zEOR9mrqzOu2amhITYuLD8ag6XZf0CFXDrhKqw7+tW8cX66NaDA==}
 
@@ -1771,10 +1768,6 @@ packages:
     resolution: {integrity: sha512-SRf1cytG7wqcHVLrBc9VtPK4pU5wxiB/lNIkNmW2ApKXIg+RpqwHfsaEK+e7eH4A1BpI6BX/aBWXxZCIrJg3uA==}
     cpu: [x64]
     os: [win32]
-
-  '@runt/schema@https://codeload.github.com/runtimed/runt/tar.gz/b5c45c3e8b5913e2379dcb60b85d890ac8d5a003#path:/packages/schema':
-    resolution: {path: /packages/schema, tarball: https://codeload.github.com/runtimed/runt/tar.gz/b5c45c3e8b5913e2379dcb60b85d890ac8d5a003}
-    version: 0.6.3
 
   '@standard-schema/spec@1.0.0':
     resolution: {integrity: sha512-m2bOd0f2RT9k8QJx1JN85cZYyH1RqFBdlwtkSlf4tBDYLCiiZnv1fIIwacK6cqwXavOydf0NPToMQgpKq+dVlA==}
@@ -5037,8 +5030,6 @@ snapshots:
       '@jridgewell/resolve-uri': 3.1.2
       '@jridgewell/sourcemap-codec': 1.5.4
 
-<<<<<<< HEAD
-=======
   '@jsr/runt__schema@0.6.4(f9c23af240f2640c0a9abef8711d3cc6)':
     dependencies:
       '@livestore/livestore': 0.3.1(f9c23af240f2640c0a9abef8711d3cc6)
@@ -5059,7 +5050,6 @@ snapshots:
       - '@opentelemetry/resources'
       - effect
 
->>>>>>> fc7e408 (upgrade: update all @runt/* packages to 0.6.4)
   '@lezer/common@1.2.3': {}
 
   '@lezer/css@1.3.0':
@@ -5926,26 +5916,6 @@ snapshots:
 
   '@rollup/rollup-win32-x64-msvc@4.45.0':
     optional: true
-
-  '@runt/schema@https://codeload.github.com/runtimed/runt/tar.gz/b5c45c3e8b5913e2379dcb60b85d890ac8d5a003#path:/packages/schema(f9c23af240f2640c0a9abef8711d3cc6)':
-    dependencies:
-      '@livestore/livestore': 0.3.1(f9c23af240f2640c0a9abef8711d3cc6)
-    transitivePeerDependencies:
-      - '@effect/cli'
-      - '@effect/cluster'
-      - '@effect/experimental'
-      - '@effect/opentelemetry'
-      - '@effect/platform'
-      - '@effect/platform-browser'
-      - '@effect/platform-bun'
-      - '@effect/platform-node'
-      - '@effect/printer'
-      - '@effect/printer-ansi'
-      - '@effect/rpc'
-      - '@effect/sql'
-      - '@effect/typeclass'
-      - '@opentelemetry/resources'
-      - effect
 
   '@standard-schema/spec@1.0.0': {}
 
