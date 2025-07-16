@@ -17,6 +17,14 @@ export function validateProductionEnvironment(env: any): void {
 
 interface AuthPayload {
   authToken: string;
+  runtime?: boolean;
+}
+
+export interface ValidatedUser {
+  id: string;
+  email?: string;
+  name?: string;
+  isAnonymous: boolean;
 }
 
 interface GoogleJWTPayload {
@@ -87,9 +95,9 @@ async function validateGoogleToken(
 }
 
 export async function validateAuthPayload(
-  payload: AuthPayload & { runtime?: boolean },
+  payload: AuthPayload,
   env: any
-): Promise<void> {
+): Promise<ValidatedUser> {
   console.log("🔐 Starting auth validation:", {
     hasPayload: !!payload,
     hasAuthToken: !!payload?.authToken,
@@ -117,7 +125,10 @@ export async function validateAuthPayload(
     console.log("🤖 Validating runtime agent token");
     if (env.AUTH_TOKEN && token === env.AUTH_TOKEN) {
       console.log("✅ Authenticated runtime agent with service token");
-      return;
+      return {
+        id: "runtime-agent",
+        isAnonymous: false,
+      };
     }
     console.error("❌ Invalid service token for runtime agent");
     throw new Error(
@@ -133,12 +144,17 @@ export async function validateAuthPayload(
       env.GOOGLE_CLIENT_ID
     );
     if (googlePayload) {
-      // Google token is valid
+      // Google token is valid - return validated user info
       console.log(
         "✅ Authenticated user via Google OAuth:",
         googlePayload.email
       );
-      return;
+      return {
+        id: googlePayload.sub,
+        email: googlePayload.email,
+        name: googlePayload.name,
+        isAnonymous: false,
+      };
     }
     console.log("⚠️ Google OAuth validation failed, trying fallback");
   }
@@ -146,7 +162,12 @@ export async function validateAuthPayload(
   // Fallback to simple token validation (for local development)
   if (env.AUTH_TOKEN && token === env.AUTH_TOKEN) {
     console.log("✅ Authenticated with fallback token");
-    return;
+    return {
+      id: "local-dev-user",
+      email: "local@example.com",
+      name: "Local Development User",
+      isAnonymous: true,
+    };
   }
 
   console.error("❌ All authentication methods failed");
@@ -161,4 +182,65 @@ export async function validateAuthPayload(
       "INVALID_AUTH_TOKEN: Authentication failed. Please check your credentials and try again."
     );
   }
+}
+
+/**
+ * Event user ID validation functions
+ *
+ * Note: These functions are provided for application-level validation since LiveStore
+ * doesn't support event-level validation hooks at the worker level. Applications should
+ * validate user IDs in events at the component level before committing them to the store.
+ *
+ * For maximum security in production:
+ * 1. Frontend components should only use the authenticated user ID from useCurrentUser()
+ * 2. Backend materializers can optionally validate user IDs if needed
+ * 3. Runtime agents are trusted and can act on behalf of any user
+ */
+
+// Event user ID validation function
+export function validateEventUserId(
+  eventUserId: string,
+  validatedUser: ValidatedUser
+): boolean {
+  // For runtime agents, allow any user ID (they can act on behalf of any user)
+  if (validatedUser.id === "runtime-agent") {
+    return true;
+  }
+
+  // For authenticated users, ensure the event user ID matches their validated ID
+  if (!validatedUser.isAnonymous) {
+    return eventUserId === validatedUser.id;
+  }
+
+  // For anonymous/local dev users, allow the local dev user ID or session IDs
+  if (validatedUser.isAnonymous) {
+    return (
+      eventUserId === validatedUser.id ||
+      eventUserId.startsWith("session-") ||
+      eventUserId.startsWith("client-")
+    );
+  }
+
+  return false;
+}
+
+// Extract user IDs from common event types for validation
+export function extractUserIdFromEvent(event: any): string | null {
+  // Common user ID fields in events
+  const userIdFields = [
+    "createdBy",
+    "modifiedBy",
+    "requestedBy",
+    "cancelledBy",
+    "clearedBy",
+    "changedBy",
+  ];
+
+  for (const field of userIdFields) {
+    if (event[field] && typeof event[field] === "string") {
+      return event[field];
+    }
+  }
+
+  return null;
 }

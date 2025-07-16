@@ -16,6 +16,7 @@ import { Button } from "@/components/ui/button";
 import { ChevronUp, ChevronDown } from "lucide-react";
 import { ErrorBoundary } from "react-error-boundary";
 import { OutputsErrorBoundary } from "./shared/OutputsErrorBoundary.js";
+import { useCurrentUserId } from "../../hooks/useCurrentUser.js";
 
 interface AiCellProps {
   cell: typeof tables.cells.Type;
@@ -43,6 +44,7 @@ export const AiCell: React.FC<AiCellProps> = ({
   contextSelectionMode = false,
 }) => {
   const { store } = useStore();
+  const currentUserId = useCurrentUserId();
 
   // Get AI model settings
   const provider = cell.aiProvider || "openai";
@@ -72,11 +74,11 @@ export const AiCell: React.FC<AiCellProps> = ({
         events.cellOutputsCleared({
           cellId: cell.id,
           wait: false,
-          clearedBy: "current-user",
+          clearedBy: currentUserId,
         })
       );
     }
-  }, [cell.id, store, hasOutputs]);
+  }, [cell.id, store, hasOutputs, currentUserId]);
 
   const executeAiPrompt = useCallback(async () => {
     // Use localSource instead of cell.source to get the current typed content
@@ -91,7 +93,7 @@ export const AiCell: React.FC<AiCellProps> = ({
         events.cellOutputsCleared({
           cellId: cell.id,
           wait: false,
-          clearedBy: "current-user",
+          clearedBy: currentUserId,
         })
       );
 
@@ -107,7 +109,7 @@ export const AiCell: React.FC<AiCellProps> = ({
           queueId,
           cellId: cell.id,
           executionCount,
-          requestedBy: "current-user",
+          requestedBy: currentUserId,
         })
       );
     } catch (error) {
@@ -133,7 +135,14 @@ export const AiCell: React.FC<AiCellProps> = ({
         })
       );
     }
-  }, [cell.id, localSource, cell.source, cell.executionCount, store]);
+  }, [
+    cell.id,
+    localSource,
+    cell.source,
+    cell.executionCount,
+    store,
+    currentUserId,
+  ]);
 
   const interruptAiCell = useCallback(async () => {
     // Find the current execution in the queue for this cell
@@ -153,12 +162,12 @@ export const AiCell: React.FC<AiCellProps> = ({
         events.executionCancelled({
           queueId: currentExecution.id,
           cellId: cell.id,
-          cancelledBy: "current-user",
+          cancelledBy: currentUserId,
           reason: "User interrupted AI execution",
         })
       );
     }
-  }, [cell.id, store]);
+  }, [cell.id, store, currentUserId]);
 
   // Use shared keyboard navigation hook
   const { keyMap } = useCellKeyboardNavigation({
