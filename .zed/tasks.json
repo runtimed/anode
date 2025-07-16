@@ -55,5 +55,16 @@
     "hide": "never",
     "shell": "system",
     "tags": []
+  },
+  {
+    "label": "UI Client with Google Auth",
+    "command": "pnpm run dev:prod",
+    "use_new_terminal": true,
+    "allow_concurrent_runs": false,
+    "reveal": "always",
+    "reveal_target": "dock",
+    "hide": "never",
+    "shell": "system",
+    "tags": []
   }
 ]

@@ -1,12 +1,13 @@
 import React, { useEffect, useState } from "react";
 import { useGoogleAuth } from "../../auth/useGoogleAuth.js";
 import { useCurrentUser } from "../../hooks/useCurrentUser.js";
+import { useUserRegistry } from "../../hooks/useUserRegistry.js";
 import { events, tables } from "@runt/schema";
 import { queryDb } from "@livestore/livestore";
 import { useQuery, useStore } from "@livestore/react";
 import { AvatarWithDetails } from "../ui/AvatarWithDetails.js";
 import { Avatar } from "../ui/Avatar.js";
-import { generateColor, generateInitials } from "@/util/avatar.js";
+import { generateColor } from "@/util/avatar.js";
 
 interface UserProfileProps {
   className?: string;
@@ -15,6 +16,7 @@ interface UserProfileProps {
 export const UserProfile: React.FC<UserProfileProps> = ({ className = "" }) => {
   const { signOut, isLoading } = useGoogleAuth();
   const currentUser = useCurrentUser();
+  const { getUserInitials } = useUserRegistry();
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
   const handleSignOut = async () => {
@@ -33,7 +35,7 @@ export const UserProfile: React.FC<UserProfileProps> = ({ className = "" }) => {
         <div className="flex items-center gap-1">
           <PresenceIndicator userId={currentUser.id} />
           <AvatarWithDetails
-            initials={generateInitials(currentUser.id)}
+            initials={getUserInitials(currentUser.id)}
             title="Anonymous"
             subtitle="Local Development"
             backgroundColor={generateColor(currentUser.id)}
@@ -53,7 +55,7 @@ export const UserProfile: React.FC<UserProfileProps> = ({ className = "" }) => {
           disabled={isLoading}
         >
           <AvatarWithDetails
-            initials={generateInitials(currentUser.name)}
+            initials={getUserInitials(currentUser.id)}
             title={currentUser.name}
             image={currentUser.picture}
             subtitle={currentUser.email}
@@ -117,6 +119,7 @@ export const UserProfile: React.FC<UserProfileProps> = ({ className = "" }) => {
 
 function PresenceIndicator({ userId }: { userId: string }) {
   const { store } = useStore();
+  const { getDisplayName, getUserInitials } = useUserRegistry();
 
   // Get all other users in the presence table
   const presence = useQuery(
@@ -141,11 +144,11 @@ function PresenceIndicator({ userId }: { userId: string }) {
     <div className="flex items-center gap-0.5 rounded-md border border-gray-200 bg-gray-100 px-2 py-1">
       <div className="text-xs text-gray-500">Contributors:</div>
       {presence.map((p) => (
-        <div key={p.userId}>
+        <div key={p.userId} title={getDisplayName(p.userId)}>
           <div className="flex items-center">
             <Avatar
               size="sm"
-              initials={generateInitials(p.userId)}
+              initials={getUserInitials(p.userId)}
               backgroundColor={generateColor(p.userId)}
             />
           </div>
