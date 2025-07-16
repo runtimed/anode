@@ -41,9 +41,7 @@
     //           "args": ["--login"]
     //         }
     //     }
-    "shell": "system",
-    // Represents the tags for inline runnable indicators, or spawning multiple tasks at once.
-    "tags": []
+    "shell": "system"
   },
   {
     "label": "UI Client (Web)",
@@ -53,8 +51,7 @@
     "reveal": "always",
     "reveal_target": "dock",
     "hide": "never",
-    "shell": "system",
-    "tags": []
+    "shell": "system"
   },
   {
     "label": "UI Client with Google Auth",
@@ -64,7 +61,6 @@
     "reveal": "always",
     "reveal_target": "dock",
     "hide": "never",
-    "shell": "system",
-    "tags": []
+    "shell": "system"
   }
 ]
