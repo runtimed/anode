@@ -132,6 +132,11 @@ function PresenceIndicator({ userId }: { userId: string }) {
     store.commit(events.presenceSet({ userId }));
   }, [store, userId]);
 
+  // Only show presence indicator if there are other users
+  if (presence.length === 0) {
+    return null;
+  }
+
   return (
     <div className="flex items-center gap-0.5 rounded-md border border-gray-200 bg-gray-100 px-2 py-1">
       <div className="text-xs text-gray-500">Contributors:</div>
