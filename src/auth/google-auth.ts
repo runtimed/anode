@@ -91,18 +91,32 @@ class GoogleAuthManager {
         };
         this.currentToken = response.credential;
 
-        // Store the token in a secure cookie with longer expiration
+        // Store the token in a secure cookie with proper security settings
         Cookies.set("google_auth_token", response.credential, {
           secure: location.protocol === "https:",
           sameSite: "strict",
           expires: 30, // 30 days for better UX
         });
 
-        // Store user info in localStorage for faster access
-        localStorage.setItem(
-          "google_auth_user",
-          JSON.stringify(this.currentUser)
-        );
+        // Also send to backend for secure HttpOnly storage (async, don't wait)
+        fetch("/api/auth/signin", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          credentials: "include",
+          body: JSON.stringify({
+            authToken: response.credential,
+          }),
+        }).catch(console.error);
+
+        // Store user info in client-accessible cookie for UI
+        Cookies.set("google_auth_user", JSON.stringify(this.currentUser), {
+          secure: location.protocol === "https:",
+          sameSite: "strict",
+          expires: 30,
+          httpOnly: false,
+        });
 
         // Schedule token refresh check
         this.scheduleTokenRefresh(payload.exp * 1000);
@@ -204,8 +218,8 @@ class GoogleAuthManager {
       return this.currentUser;
     }
 
-    // Try to restore from localStorage first (faster than parsing JWT)
-    const storedUser = localStorage.getItem("google_auth_user");
+    // Try to restore from cookie first (faster than parsing JWT)
+    const storedUser = Cookies.get("google_auth_user");
     if (storedUser) {
       try {
         const parsedUser = JSON.parse(storedUser);
@@ -217,7 +231,7 @@ class GoogleAuthManager {
         }
       } catch (error) {
         console.error("Failed to parse stored user:", error);
-        localStorage.removeItem("google_auth_user");
+        Cookies.remove("google_auth_user");
       }
     }
 
@@ -280,6 +294,13 @@ class GoogleAuthManager {
     if (token && this.isTokenExpiringSoon(token)) {
       this.currentToken = null;
       Cookies.remove("google_auth_token");
+      Cookies.remove("google_auth_user");
+
+      // Also clear backend cookies (async, don't wait)
+      fetch("/api/auth/signout", {
+        method: "POST",
+        credentials: "include",
+      }).catch(console.error);
 
       // Notify listeners that token was cleared
       this.notifyTokenChange(null);
@@ -410,7 +431,13 @@ class GoogleAuthManager {
     this.currentUser = null;
     this.currentToken = null;
     Cookies.remove("google_auth_token");
-    localStorage.removeItem("google_auth_user");
+    Cookies.remove("google_auth_user");
+
+    // Clear backend cookies too (async, don't wait)
+    fetch("/api/auth/signout", {
+      method: "POST",
+      credentials: "include",
+    }).catch(console.error);
 
     if (this.refreshTimeout) {
       clearTimeout(this.refreshTimeout);

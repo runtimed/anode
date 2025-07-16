@@ -2,7 +2,11 @@ import { makeDurableObject, makeWorker } from "@livestore/sync-cf/cf-worker";
 
 import { Env } from "./types";
 
-import { validateAuthPayload, validateProductionEnvironment } from "./auth";
+import {
+  validateAuthPayload,
+  validateProductionEnvironment,
+  createAuthResponse,
+} from "./auth";
 
 export class WebSocketServer extends makeDurableObject({
   onPush: async (message) => {
@@ -110,7 +114,11 @@ export default {
             isRuntime: payload?.runtime === true,
           });
           try {
-            const validatedUser = await validateAuthPayload(payload, env);
+            const validatedUser = await validateAuthPayload(
+              payload,
+              env,
+              request
+            );
             console.log("✅ Payload validation successful for user:", {
               userId: validatedUser.id,
               isAnonymous: validatedUser.isAnonymous,
@@ -181,26 +189,32 @@ export default {
 
         // Test authentication
         try {
-          await validateAuthPayload({ authToken }, env);
-          return new Response(
-            JSON.stringify({
+          const validatedUser = await validateAuthPayload(
+            { authToken },
+            env,
+            request
+          );
+
+          // Return secure response with cookies
+          const isSecure = request.url.startsWith("https://");
+          return createAuthResponse(
+            validatedUser,
+            authToken,
+            {
               success: true,
               message: "Authentication successful",
               tokenType: authToken.startsWith("eyJ")
                 ? "Google JWT"
                 : "Service Token",
               timestamp: new Date().toISOString(),
-            }),
-            {
-              status: 200,
-              headers: {
-                "Content-Type": "application/json",
-                "Access-Control-Allow-Origin": "*",
-                "Access-Control-Allow-Methods":
-                  "GET, POST, PUT, DELETE, OPTIONS",
-                "Access-Control-Allow-Headers": "*",
+              user: {
+                id: validatedUser.id,
+                email: validatedUser.email,
+                name: validatedUser.name,
+                isAnonymous: validatedUser.isAnonymous,
               },
-            }
+            },
+            isSecure
           );
         } catch (authError: any) {
           return new Response(
@@ -245,6 +259,135 @@ export default {
           }
         );
       }
+    }
+
+    // Handle cookie-based auth sign-in endpoint
+    if (url.pathname === "/api/auth/signin" && request.method === "POST") {
+      console.log("🔐 Cookie-based auth sign-in endpoint called");
+      try {
+        const body = (await request.json()) as { authToken?: string };
+        const authToken = body.authToken;
+
+        if (!authToken) {
+          return new Response(
+            JSON.stringify({
+              error: "MISSING_AUTH_TOKEN",
+              message: "No authToken provided in request body",
+              timestamp: new Date().toISOString(),
+            }),
+            {
+              status: 400,
+              headers: {
+                "Content-Type": "application/json",
+                "Access-Control-Allow-Origin": "*",
+                "Access-Control-Allow-Methods":
+                  "GET, POST, PUT, DELETE, OPTIONS",
+                "Access-Control-Allow-Headers": "*",
+              },
+            }
+          );
+        }
+
+        // Validate the token and create secure response with cookies
+        try {
+          const validatedUser = await validateAuthPayload(
+            { authToken },
+            env,
+            request
+          );
+
+          const isSecure = request.url.startsWith("https://");
+          return createAuthResponse(
+            validatedUser,
+            authToken,
+            {
+              success: true,
+              message: "Authentication successful",
+              user: {
+                id: validatedUser.id,
+                email: validatedUser.email,
+                name: validatedUser.name,
+                isAnonymous: validatedUser.isAnonymous,
+              },
+              timestamp: new Date().toISOString(),
+            },
+            isSecure
+          );
+        } catch (authError: any) {
+          return new Response(
+            JSON.stringify({
+              error: "AUTHENTICATION_FAILED",
+              message: authError.message,
+              timestamp: new Date().toISOString(),
+            }),
+            {
+              status: 401,
+              headers: {
+                "Content-Type": "application/json",
+                "Access-Control-Allow-Origin": "*",
+                "Access-Control-Allow-Methods":
+                  "GET, POST, PUT, DELETE, OPTIONS",
+                "Access-Control-Allow-Headers": "*",
+              },
+            }
+          );
+        }
+      } catch (parseError) {
+        return new Response(
+          JSON.stringify({
+            error: "INVALID_REQUEST",
+            message: "Invalid JSON in request body",
+            timestamp: new Date().toISOString(),
+          }),
+          {
+            status: 400,
+            headers: {
+              "Content-Type": "application/json",
+              "Access-Control-Allow-Origin": "*",
+              "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
+              "Access-Control-Allow-Headers": "*",
+            },
+          }
+        );
+      }
+    }
+
+    // Handle cookie-based auth sign-out endpoint
+    if (url.pathname === "/api/auth/signout" && request.method === "POST") {
+      console.log("🔐 Cookie-based auth sign-out endpoint called");
+
+      const response = new Response(
+        JSON.stringify({
+          success: true,
+          message: "Signed out successfully",
+          timestamp: new Date().toISOString(),
+        }),
+        {
+          status: 200,
+          headers: {
+            "Content-Type": "application/json",
+            "Access-Control-Allow-Origin": "*",
+            "Access-Control-Allow-Credentials": "true",
+          },
+        }
+      );
+
+      // Clear auth cookies
+      const isSecure = request.url.startsWith("https://");
+      response.headers.append(
+        "Set-Cookie",
+        `auth_token=; HttpOnly; Secure=${isSecure}; SameSite=strict; Max-Age=0; Path=/`
+      );
+      response.headers.append(
+        "Set-Cookie",
+        `user_info=; Secure=${isSecure}; SameSite=strict; Max-Age=0; Path=/`
+      );
+      response.headers.append(
+        "Set-Cookie",
+        `google_auth_token=; Secure=${isSecure}; SameSite=strict; Max-Age=0; Path=/`
+      );
+
+      return response;
     }
 
     console.log("❌ Request not handled, returning 404:", url.pathname);

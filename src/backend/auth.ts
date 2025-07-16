@@ -1,3 +1,40 @@
+// Cookie utilities for secure auth token handling
+function setCookieHeader(
+  name: string,
+  value: string,
+  options: {
+    httpOnly?: boolean;
+    secure?: boolean;
+    sameSite?: "strict" | "lax" | "none";
+    maxAge?: number;
+    path?: string;
+  }
+): string {
+  const cookieOptions = [];
+
+  if (options.httpOnly) cookieOptions.push("HttpOnly");
+  if (options.secure) cookieOptions.push("Secure");
+  if (options.sameSite) cookieOptions.push(`SameSite=${options.sameSite}`);
+  if (options.maxAge) cookieOptions.push(`Max-Age=${options.maxAge}`);
+  if (options.path) cookieOptions.push(`Path=${options.path}`);
+
+  return `${name}=${value}; ${cookieOptions.join("; ")}`;
+}
+
+function parseCookies(cookieHeader: string | null): Record<string, string> {
+  if (!cookieHeader) return {};
+
+  return cookieHeader
+    .split(";")
+    .reduce((cookies: Record<string, string>, cookie) => {
+      const [name, value] = cookie.trim().split("=");
+      if (name && value) {
+        cookies[name] = decodeURIComponent(value);
+      }
+      return cookies;
+    }, {});
+}
+
 // Validate production environment requirements at startup
 export function validateProductionEnvironment(env: any): void {
   if (env.DEPLOYMENT_ENV === "production") {
@@ -94,9 +131,62 @@ async function validateGoogleToken(
   }
 }
 
+// Helper function to create secure auth response with cookies
+export function createAuthResponse(
+  user: ValidatedUser,
+  token: string,
+  responseBody: any,
+  isSecure: boolean = true
+): Response {
+  const response = new Response(JSON.stringify(responseBody), {
+    status: 200,
+    headers: {
+      "Content-Type": "application/json",
+      "Access-Control-Allow-Origin": "*",
+      "Access-Control-Allow-Credentials": "true",
+    },
+  });
+
+  // Set secure HttpOnly cookie for auth token
+  response.headers.append(
+    "Set-Cookie",
+    setCookieHeader("auth_token", token, {
+      httpOnly: true,
+      secure: isSecure,
+      sameSite: "strict",
+      maxAge: 60 * 60 * 24 * 30, // 30 days
+      path: "/",
+    })
+  );
+
+  // Set user info cookie (not HttpOnly, so frontend can read it)
+  response.headers.append(
+    "Set-Cookie",
+    setCookieHeader(
+      "user_info",
+      JSON.stringify({
+        id: user.id,
+        email: user.email,
+        name: user.name,
+        isAnonymous: user.isAnonymous,
+      }),
+      {
+        httpOnly: false,
+        secure: isSecure,
+        sameSite: "strict",
+        maxAge: 60 * 60 * 24 * 30, // 30 days
+        path: "/",
+      }
+    )
+  );
+
+  return response;
+}
+
 export async function validateAuthPayload(
   payload: AuthPayload,
-  env: any
+  env: any,
+  request?: Request
 ): Promise<ValidatedUser> {
   console.log("🔐 Starting auth validation:", {
     hasPayload: !!payload,
@@ -104,16 +194,25 @@ export async function validateAuthPayload(
     isRuntime: payload?.runtime === true,
     hasGoogleClientId: !!env.GOOGLE_CLIENT_ID,
     hasEnvAuthToken: !!env.AUTH_TOKEN,
+    hasCookies: !!request?.headers.get("cookie"),
   });
 
-  if (!payload?.authToken) {
-    console.error("❌ Missing auth token in payload");
+  // Try to get auth token from payload first, then from cookies
+  let token = payload?.authToken;
+
+  if (!token && request) {
+    const cookies = parseCookies(request.headers.get("cookie"));
+    token = cookies["auth_token"] || cookies["google_auth_token"];
+    console.log("🍪 Using token from cookies");
+  }
+
+  if (!token) {
+    console.error("❌ Missing auth token in payload and cookies");
     throw new Error(
       "MISSING_AUTH_TOKEN: No authentication token provided. Please sign in to continue."
     );
   }
 
-  const token = payload.authToken;
   console.log("🎫 Token info:", {
     tokenLength: token.length,
     tokenStart: token.substring(0, 10) + "...",

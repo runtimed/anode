@@ -1,6 +1,21 @@
 import { Env } from "./types.ts";
 import { validateAuthPayload } from "./auth";
 
+// Parse cookies from request headers
+function parseCookies(cookieHeader: string | null): Record<string, string> {
+  if (!cookieHeader) return {};
+
+  return cookieHeader
+    .split(";")
+    .reduce((cookies: Record<string, string>, cookie) => {
+      const [name, value] = cookie.trim().split("=");
+      if (name && value) {
+        cookies[name] = decodeURIComponent(value);
+      }
+      return cookies;
+    }, {});
+}
+
 export default {
   fetch: async (
     request: Request,
@@ -46,7 +61,7 @@ export default {
         );
       }
       try {
-        await validateAuthPayload({ authToken }, env);
+        await validateAuthPayload({ authToken }, env, request);
       } catch (error) {
         return new Response(
           JSON.stringify({
@@ -86,12 +101,7 @@ export default {
       });
     }
 
-    // TODO: Rely on cookies for authenticating the GET request
-    // primarily so that images can be loaded without a token
-    // _OR_ we set up a way to get presigned URLs that go into the
-    // livestore sync
-
-    // Check for a GET, then assume we're fetching it
+    // Use cookies for authenticating GET requests (for images/artifacts)
     if (request.method === "GET") {
       // Extract the full artifact ID from the path after /api/artifacts/
       const artifactId = url.pathname.replace("/api/artifacts/", "");
@@ -101,6 +111,30 @@ export default {
             error: "Bad Request",
           }),
           { status: 400 }
+        );
+      }
+
+      // Authenticate using cookies for GET requests
+      const cookies = parseCookies(request.headers.get("cookie"));
+      const authToken = cookies["auth_token"] || cookies["google_auth_token"];
+
+      if (!authToken) {
+        return new Response(
+          JSON.stringify({
+            error: "Unauthorized - No auth token in cookies",
+          }),
+          { status: 401 }
+        );
+      }
+
+      try {
+        await validateAuthPayload({ authToken }, env, request);
+      } catch (error) {
+        return new Response(
+          JSON.stringify({
+            error: "Unauthorized",
+          }),
+          { status: 401 }
         );
       }
 
@@ -121,6 +155,8 @@ export default {
         status: 200,
         headers: {
           "Content-Type": contentType,
+          "Access-Control-Allow-Origin": "*",
+          "Access-Control-Allow-Credentials": "true",
         },
       });
     }
