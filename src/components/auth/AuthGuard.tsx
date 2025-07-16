@@ -9,8 +9,9 @@ interface AuthGuardProps {
 }
 
 export const AuthGuard: React.FC<AuthGuardProps> = ({ children, fallback }) => {
-  const { isAuthenticated, isLoading, error } = useGoogleAuth();
+  const { isAuthenticated, isLoading, error, refreshToken } = useGoogleAuth();
   const [authExpiredError, setAuthExpiredError] = useState<string | null>(null);
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
   // Listen for authentication errors from LiveStore
   useEffect(() => {
@@ -29,14 +30,29 @@ export const AuthGuard: React.FC<AuthGuardProps> = ({ children, fallback }) => {
     return <>{children}</>;
   }
 
-  // Show loading state while checking authentication
-  if (isLoading) {
+  // If authenticated but there's an error, try to refresh token first
+  useEffect(() => {
+    if (isAuthenticated && error && !isRefreshing) {
+      setIsRefreshing(true);
+      refreshToken()
+        .then(() => {
+          setIsRefreshing(false);
+        })
+        .catch(() => {
+          setIsRefreshing(false);
+          // If refresh fails, let the normal error handling take over
+        });
+    }
+  }, [isAuthenticated, error, refreshToken, isRefreshing]);
+
+  // Show loading state while checking authentication or refreshing
+  if (isLoading || isRefreshing) {
     return (
       <div className="bg-background flex min-h-screen items-center justify-center">
         <div className="text-center">
           <div className="mx-auto mb-4 h-8 w-8 animate-spin rounded-full border-4 border-gray-300 border-t-gray-600" />
           <div className="text-foreground mb-2 text-lg font-semibold">
-            Checking Authentication
+            {isRefreshing ? "Refreshing Session" : "Checking Authentication"}
           </div>
           <div className="text-muted-foreground text-sm">Please wait...</div>
         </div>
@@ -44,8 +60,8 @@ export const AuthGuard: React.FC<AuthGuardProps> = ({ children, fallback }) => {
     );
   }
 
-  // Show error state if authentication failed or auth expired
-  if ((error && !isAuthenticated) || authExpiredError) {
+  // Show error state only if authentication failed after refresh attempt
+  if ((error && !isAuthenticated && !isRefreshing) || authExpiredError) {
     return (
       <div className="bg-background flex min-h-screen items-center justify-center">
         <div className="max-w-md text-center">

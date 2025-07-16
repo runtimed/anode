@@ -40,6 +40,7 @@ class GoogleAuthManager {
   private currentUser: AuthUser | null = null;
   private currentToken: string | null = null;
   private tokenChangeListeners = new Set<(token: string | null) => void>();
+  private refreshTimeout: NodeJS.Timeout | null = null;
 
   constructor(config: GoogleAuthConfig) {
     this.config = config;
@@ -88,12 +89,21 @@ class GoogleAuthManager {
         };
         this.currentToken = response.credential;
 
-        // Store the token in a secure cookie
+        // Store the token in a secure cookie with longer expiration
         Cookies.set("google_auth_token", response.credential, {
           secure: location.protocol === "https:",
           sameSite: "strict",
-          expires: 7, // 7 days
+          expires: 30, // 30 days for better UX
         });
+
+        // Store user info in localStorage for faster access
+        localStorage.setItem(
+          "google_auth_user",
+          JSON.stringify(this.currentUser)
+        );
+
+        // Schedule token refresh check
+        this.scheduleTokenRefresh(payload.exp * 1000);
 
         // Notify listeners of token change
         this.notifyTokenChange(response.credential);
@@ -156,9 +166,7 @@ class GoogleAuthManager {
       return;
     }
 
-    this.currentUser = null;
-    this.currentToken = null;
-    Cookies.remove("google_auth_token");
+    this.clearAuthState();
 
     if (window.google) {
       window.google.accounts.id.disableAutoSelect();
@@ -178,15 +186,31 @@ class GoogleAuthManager {
       // Check if cached user's token is still valid
       const token = this.getToken();
       if (token && this.isTokenExpiringSoon(token)) {
-        this.currentUser = null;
-        this.currentToken = null;
-        Cookies.remove("google_auth_token");
-
-        // Notify listeners that token was cleared
-        this.notifyTokenChange(null);
-        return null;
+        // Try to refresh token before giving up
+        const refreshed = await this.silentRefresh();
+        if (!refreshed) {
+          this.clearAuthState();
+          return null;
+        }
       }
       return this.currentUser;
+    }
+
+    // Try to restore from localStorage first (faster than parsing JWT)
+    const storedUser = localStorage.getItem("google_auth_user");
+    if (storedUser) {
+      try {
+        const parsedUser = JSON.parse(storedUser);
+        const token = this.getToken();
+        if (token && !this.isTokenExpiringSoon(token)) {
+          this.currentUser = parsedUser;
+          this.currentToken = token;
+          return this.currentUser;
+        }
+      } catch (error) {
+        console.error("Failed to parse stored user:", error);
+        localStorage.removeItem("google_auth_user");
+      }
     }
 
     // Check if we have a stored token
@@ -194,14 +218,29 @@ class GoogleAuthManager {
     if (token) {
       const payload = this.parseJWT(token);
       if (payload && payload.exp > Date.now() / 1000) {
-        // Check if token is expiring soon (within 1 minute)
+        // Check if token is expiring soon
         if (this.isTokenExpiringSoon(token)) {
-          Cookies.remove("google_auth_token");
-          this.currentToken = null;
-
-          // Notify listeners that token was cleared
-          this.notifyTokenChange(null);
-          return null;
+          // Try to refresh token
+          const refreshed = await this.silentRefresh();
+          if (!refreshed) {
+            this.clearAuthState();
+            return null;
+          }
+          // After refresh, get the updated token payload
+          const newToken = this.getToken();
+          if (newToken) {
+            const newPayload = this.parseJWT(newToken);
+            if (newPayload) {
+              this.currentUser = {
+                id: newPayload.sub,
+                email: newPayload.email,
+                name: newPayload.name,
+                picture: newPayload.picture,
+              };
+              this.currentToken = newToken;
+              return this.currentUser;
+            }
+          }
         }
 
         this.currentUser = {
@@ -211,14 +250,14 @@ class GoogleAuthManager {
           picture: payload.picture,
         };
         this.currentToken = token;
+
+        // Schedule token refresh
+        this.scheduleTokenRefresh(payload.exp * 1000);
+
         return this.currentUser;
       } else {
         // Token is expired, clean it up
-        Cookies.remove("google_auth_token");
-        this.currentToken = null;
-
-        // Notify listeners that token was cleared
-        this.notifyTokenChange(null);
+        this.clearAuthState();
       }
     }
 
@@ -242,9 +281,9 @@ class GoogleAuthManager {
   }
 
   async refreshToken(): Promise<string | null> {
-    // Google Identity Services handles token refresh automatically
-    // Just return the current token
-    return this.getToken();
+    // Attempt silent refresh
+    const refreshed = await this.silentRefresh();
+    return refreshed ? this.getToken() : null;
   }
 
   private isTokenExpiringSoon(token: string): boolean {
@@ -254,14 +293,84 @@ class GoogleAuthManager {
         return true; // Treat invalid tokens as expired
       }
 
-      // Check if token expires within 1 minute (60 seconds)
+      // Check if token expires within 5 minutes (300 seconds) for proactive refresh
       const expirationTime = payload.exp * 1000; // Convert to milliseconds
-      const oneMinuteFromNow = Date.now() + 1 * 60 * 1000;
+      const fiveMinutesFromNow = Date.now() + 5 * 60 * 1000;
 
-      return expirationTime <= oneMinuteFromNow;
+      return expirationTime <= fiveMinutesFromNow;
     } catch (error) {
       console.error("Error checking token expiration:", error);
       return true; // Treat unparseable tokens as expired
+    }
+  }
+
+  private scheduleTokenRefresh(expirationTime: number): void {
+    // Clear any existing timeout
+    if (this.refreshTimeout) {
+      clearTimeout(this.refreshTimeout);
+    }
+
+    // Schedule refresh 10 minutes before expiration
+    const refreshTime = expirationTime - Date.now() - 10 * 60 * 1000;
+
+    if (refreshTime > 0) {
+      this.refreshTimeout = setTimeout(() => {
+        this.silentRefresh().catch(console.error);
+      }, refreshTime);
+    }
+  }
+
+  private async silentRefresh(): Promise<boolean> {
+    if (!this.config.enabled || !window.google) {
+      return false;
+    }
+
+    try {
+      // Use Google's silent refresh mechanism
+      return new Promise<boolean>((resolve) => {
+        const originalCallback = this.handleCredentialResponse.bind(this);
+
+        window.google.accounts.id.initialize({
+          client_id: this.config.clientId,
+          callback: (response: any) => {
+            if (response.credential) {
+              originalCallback(response);
+              resolve(true);
+            } else {
+              resolve(false);
+            }
+          },
+          auto_select: true, // Enable auto-select for silent refresh
+        });
+
+        // Trigger silent refresh
+        window.google.accounts.id.prompt();
+
+        // Handle the case where prompt doesn't show
+        setTimeout(() => {
+          if (!this.currentToken) {
+            resolve(false);
+          }
+        }, 2000);
+
+        // Timeout after 5 seconds
+        setTimeout(() => resolve(false), 5000);
+      });
+    } catch (error) {
+      console.error("Silent refresh failed:", error);
+      return false;
+    }
+  }
+
+  private clearAuthState(): void {
+    this.currentUser = null;
+    this.currentToken = null;
+    Cookies.remove("google_auth_token");
+    localStorage.removeItem("google_auth_user");
+
+    if (this.refreshTimeout) {
+      clearTimeout(this.refreshTimeout);
+      this.refreshTimeout = null;
     }
   }
 
@@ -332,6 +441,15 @@ export const isAuthStateValid = async (): Promise<boolean> => {
   const token = googleAuthManager.getToken();
 
   return !!(user && token);
+};
+
+// Initialize auth state on app startup
+export const initializeAuth = async (): Promise<void> => {
+  if (googleAuthManager.isEnabled()) {
+    await googleAuthManager.initialize();
+    // Try to restore existing session
+    await googleAuthManager.getCurrentUser();
+  }
 };
 
 // Authentication event listeners helper

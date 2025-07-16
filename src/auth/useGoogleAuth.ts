@@ -3,6 +3,7 @@ import {
   AuthState,
   getCurrentAuthToken,
   googleAuthManager,
+  initializeAuth,
 } from "./google-auth.js";
 
 export const useGoogleAuth = (): AuthState & {
@@ -20,12 +21,12 @@ export const useGoogleAuth = (): AuthState & {
 
   // Initialize auth state
   useEffect(() => {
-    const initializeAuth = async () => {
+    const initializeAuthState = async () => {
       try {
         setAuthState((prev) => ({ ...prev, isLoading: true, error: null }));
 
         if (googleAuthManager.isEnabled()) {
-          await googleAuthManager.initialize();
+          await initializeAuth();
           const user = await googleAuthManager.getCurrentUser();
           const token = googleAuthManager.getToken();
 
@@ -64,10 +65,9 @@ export const useGoogleAuth = (): AuthState & {
       }
     };
 
-    initializeAuth();
+    initializeAuthState();
 
     // Listen for auth state changes
-    // Listen for auth state changes via events instead of polling
     const unsubscribe = googleAuthManager.addTokenChangeListener(
       async (token) => {
         try {
@@ -172,7 +172,14 @@ export const useGoogleAuth = (): AuthState & {
     try {
       const newToken = await googleAuthManager.refreshToken();
       if (newToken) {
-        setAuthState((prev) => ({ ...prev, token: newToken }));
+        // Get updated user info after refresh
+        const user = await googleAuthManager.getCurrentUser();
+        setAuthState((prev) => ({
+          ...prev,
+          token: newToken,
+          user: user || prev.user,
+          error: null, // Clear any previous errors
+        }));
       }
     } catch (error) {
       console.error("Token refresh failed:", error);

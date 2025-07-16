@@ -18,7 +18,12 @@ import { AuthGuard } from "./components/auth/AuthGuard.js";
 import LiveStoreWorker from "./livestore.worker?worker";
 import { schema } from "@runt/schema";
 import { getCurrentNotebookId, getStoreId } from "./util/store-id.js";
-import { getCurrentAuthToken, isAuthStateValid } from "./auth/google-auth.js";
+import {
+  getCurrentAuthToken,
+  isAuthStateValid,
+  initializeAuth,
+  googleAuthManager,
+} from "./auth/google-auth.js";
 import { ErrorBoundary } from "react-error-boundary";
 
 const NotebookApp: React.FC = () => {
@@ -30,23 +35,36 @@ const NotebookApp: React.FC = () => {
   // rather than dynamic sync payload updates, as LiveStore doesn't support
   // runtime sync payload changes
 
-  // Periodic auth validation to detect token expiry
+  // Background token refresh and validation
   useEffect(() => {
-    const validateAuth = async () => {
-      const isValid = await isAuthStateValid();
-      if (!isValid) {
-        console.warn("Auth state is invalid, forcing reload with reset");
-        const url = new URL(window.location.href);
-        url.searchParams.set("reset", "auth-invalid");
-        window.location.href = url.toString();
+    const validateAndRefreshAuth = async () => {
+      if (!googleAuthManager.isEnabled()) {
+        return; // Skip validation in local dev mode
+      }
+
+      try {
+        // Try to refresh token proactively
+        await googleAuthManager.refreshToken();
+
+        // Validate current auth state
+        const isValid = await isAuthStateValid();
+        if (!isValid) {
+          console.warn("Auth state is invalid after refresh, forcing reload");
+          const url = new URL(window.location.href);
+          url.searchParams.set("reset", "auth-invalid");
+          window.location.href = url.toString();
+        }
+      } catch (error) {
+        console.error("Auth validation/refresh failed:", error);
+        // Don't force reload immediately - let user continue for now
       }
     };
 
-    // Check auth state every 30 seconds for faster detection
-    const interval = setInterval(validateAuth, 30 * 1000);
+    // Check auth state every 2 minutes for proactive refresh
+    const interval = setInterval(validateAndRefreshAuth, 2 * 60 * 1000);
 
     // Also check immediately
-    validateAuth();
+    validateAndRefreshAuth();
 
     return () => clearInterval(interval);
   }, []);
@@ -57,26 +75,48 @@ const NotebookApp: React.FC = () => {
     const maxReconnectAttempts = 3;
 
     const validateAuth = async () => {
-      const isValid = await isAuthStateValid();
-      if (!isValid) {
-        console.warn("Auth state is invalid, forcing reload with reset");
-        const url = new URL(window.location.href);
-        url.searchParams.set("reset", "auth-invalid");
-        window.location.href = url.toString();
+      if (!googleAuthManager.isEnabled()) {
+        return; // Skip in local dev mode
+      }
+
+      try {
+        // Try refresh first
+        await googleAuthManager.refreshToken();
+
+        const isValid = await isAuthStateValid();
+        if (!isValid) {
+          console.warn("Auth state is invalid, forcing reload with reset");
+          const url = new URL(window.location.href);
+          url.searchParams.set("reset", "auth-invalid");
+          window.location.href = url.toString();
+        }
+      } catch (error) {
+        console.error("Auth validation failed:", error);
       }
     };
 
     const handleVisibilityChange = () => {
-      if (document.visibilityState === "visible") {
-        // When user returns to tab, validate auth state
-        isAuthStateValid().then((isValid) => {
-          if (!isValid) {
-            console.warn("Auth state invalid on tab focus, reloading");
-            const url = new URL(window.location.href);
-            url.searchParams.set("reset", "auth-focus-check");
-            window.location.href = url.toString();
-          }
-        });
+      if (
+        document.visibilityState === "visible" &&
+        googleAuthManager.isEnabled()
+      ) {
+        // When user returns to tab, try refresh then validate
+        googleAuthManager
+          .refreshToken()
+          .then(() => {
+            return isAuthStateValid();
+          })
+          .then((isValid) => {
+            if (!isValid) {
+              console.warn("Auth state invalid on tab focus, reloading");
+              const url = new URL(window.location.href);
+              url.searchParams.set("reset", "auth-focus-check");
+              window.location.href = url.toString();
+            }
+          })
+          .catch((error) => {
+            console.error("Auth validation on focus failed:", error);
+          });
       }
     };
 
@@ -138,6 +178,23 @@ const NotebookApp: React.FC = () => {
 // LiveStore setup - moved inside AuthGuard to ensure auth happens first
 const LiveStoreApp: React.FC = () => {
   const storeId = getStoreId();
+  const [authInitialized, setAuthInitialized] = useState(false);
+
+  // Initialize auth system early
+  useEffect(() => {
+    const initAuth = async () => {
+      try {
+        await initializeAuth();
+        setAuthInitialized(true);
+      } catch (error) {
+        console.error("Failed to initialize auth:", error);
+        // Continue anyway for fallback mode
+        setAuthInitialized(true);
+      }
+    };
+
+    initAuth();
+  }, []);
 
   // Check for reset parameter to handle schema evolution issues
   const resetPersistence =
@@ -165,6 +222,22 @@ const LiveStoreApp: React.FC = () => {
 
   // Get current auth token (this is called after auth is validated)
   const currentAuthToken = getCurrentAuthToken();
+
+  // Show loading while auth is initializing
+  if (!authInitialized) {
+    return (
+      <div className="bg-background flex min-h-screen items-center justify-center">
+        <div className="text-center">
+          <div className="text-foreground mb-2 text-lg font-semibold">
+            Initializing Authentication
+          </div>
+          <div className="text-muted-foreground text-sm">
+            Setting up secure connection...
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <LiveStoreProvider
