@@ -5,9 +5,9 @@ import { queryDb } from "@livestore/livestore";
 import { ErrorBoundary } from "react-error-boundary";
 
 import { VirtualizedCellList } from "./VirtualizedCellList.js";
+import { NotebookTitle } from "./NotebookTitle.js";
 
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import {
   Bot,
   Bug,
@@ -67,12 +67,6 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
   const executionQueue = store.useQuery(
     queryDb(tables.executionQueue.select().orderBy("id", "desc"))
   ) as any[];
-  // Get notebook title from metadata, default to "Untitled"
-  const notebookTitle =
-    metadata.find((m) => m.key === "title")?.value ?? "Untitled";
-
-  const [isEditingTitle, setIsEditingTitle] = React.useState(false);
-  const [localTitle, setLocalTitle] = React.useState(notebookTitle);
   const [showRuntimeHelper, setShowRuntimeHelper] = React.useState(false);
   const [focusedCellId, setFocusedCellId] = React.useState<string | null>(null);
   const [contextSelectionMode, setContextSelectionMode] = React.useState(false);
@@ -148,25 +142,10 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
     }
   }, [executionQueue, store]);
 
-  React.useEffect(() => {
-    setLocalTitle(notebookTitle);
-  }, [notebookTitle]);
-
   // Prefetch output components adaptively based on connection speed
   React.useEffect(() => {
     prefetchOutputsAdaptive();
   }, []);
-
-  const updateTitle = useCallback(() => {
-    if (localTitle !== notebookTitle) {
-      store.commit(
-        events.notebookTitleChanged({
-          title: localTitle,
-        })
-      );
-    }
-    setIsEditingTitle(false);
-  }, [notebookTitle, localTitle, store]);
 
   const addCell = useCallback(
     (
@@ -390,31 +369,7 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
             >
               <div className="flex items-center justify-between gap-2">
                 <div className="flex min-w-0 flex-1 items-center gap-2 sm:gap-4">
-                  {isEditingTitle ? (
-                    <Input
-                      value={localTitle}
-                      onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                        setLocalTitle(e.target.value)
-                      }
-                      onBlur={updateTitle}
-                      onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => {
-                        if (e.key === "Enter") updateTitle();
-                        if (e.key === "Escape") {
-                          setLocalTitle(notebookTitle);
-                          setIsEditingTitle(false);
-                        }
-                      }}
-                      className="border-none bg-transparent p-0 text-lg font-semibold focus-visible:ring-0"
-                      autoFocus
-                    />
-                  ) : (
-                    <h1
-                      className="hover:text-muted-foreground cursor-pointer truncate text-base font-semibold transition-colors sm:text-lg"
-                      onClick={() => setIsEditingTitle(true)}
-                    >
-                      {notebookTitle}
-                    </h1>
-                  )}
+                  <NotebookTitle />
                 </div>
 
                 <div className="flex flex-shrink-0 items-center gap-1 sm:gap-2">
