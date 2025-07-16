@@ -69,7 +69,6 @@ export const NotebookTitle: React.FC<NotebookTitleProps> = ({ className }) => {
 
   return (
     <h1
-      data-testid="notebook-title"
       className={`hover:text-muted-foreground cursor-pointer truncate text-base font-semibold transition-colors sm:text-lg ${className || ""}`}
       onClick={handleTitleClick}
     >
