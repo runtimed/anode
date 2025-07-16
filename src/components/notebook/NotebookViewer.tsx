@@ -26,6 +26,7 @@ import {
 import { getCurrentNotebookId } from "../../util/store-id.js";
 import { getRuntimeCommand } from "../../util/runtime-command.js";
 import { UserProfile } from "../auth/UserProfile.js";
+import { useCurrentUserId } from "../../hooks/useCurrentUser.js";
 
 // Lazy import DebugPanel only in development
 const LazyDebugPanel = React.lazy(() =>
@@ -49,6 +50,7 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
   onDebugToggle,
 }) => {
   const { store } = useStore();
+  const currentUserId = useCurrentUserId();
 
   const cells = store.useQuery(
     queryDb(tables.cells.select().orderBy("position", "asc"))
@@ -209,7 +211,7 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
           id: cellId,
           position: newPosition,
           cellType,
-          createdBy: "current-user",
+          createdBy: currentUserId,
         })
       );
 
@@ -219,7 +221,7 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
       // Focus the new cell after creation
       setTimeout(() => setFocusedCellId(cellId), 0);
     },
-    [cells, store]
+    [cells, store, currentUserId]
   );
 
   const deleteCell = useCallback(

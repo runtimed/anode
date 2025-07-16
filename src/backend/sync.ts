@@ -110,13 +110,18 @@ export default {
             isRuntime: payload?.runtime === true,
           });
           try {
-            await validateAuthPayload(payload, env);
-            console.log("✅ Payload validation successful");
+            const validatedUser = await validateAuthPayload(payload, env);
+            console.log("✅ Payload validation successful for user:", {
+              userId: validatedUser.id,
+              isAnonymous: validatedUser.isAnonymous,
+              email: validatedUser.email,
+            });
           } catch (error: any) {
             console.error("🚫 Authentication failed:", error.message);
             throw error;
           }
         },
+
         enableCORS: true,
       });
 

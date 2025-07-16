@@ -15,6 +15,7 @@ import { Button } from "@/components/ui/button";
 import { ChevronUp, ChevronDown } from "lucide-react";
 import { ErrorBoundary } from "react-error-boundary";
 import { OutputsErrorBoundary } from "./shared/OutputsErrorBoundary.js";
+import { useCurrentUserId } from "../../hooks/useCurrentUser.js";
 
 interface SqlCellProps {
   cell: typeof tables.cells.Type;
@@ -42,6 +43,7 @@ export const SqlCell: React.FC<SqlCellProps> = ({
   contextSelectionMode = false,
 }) => {
   const { store } = useStore();
+  const currentUserId = useCurrentUserId();
 
   // Use shared content management hook
   const {
@@ -88,11 +90,11 @@ export const SqlCell: React.FC<SqlCellProps> = ({
         events.cellOutputsCleared({
           cellId: cell.id,
           wait: false,
-          clearedBy: "current-user",
+          clearedBy: currentUserId,
         })
       );
     }
-  }, [cell.id, store, hasOutputs]);
+  }, [cell.id, store, hasOutputs, currentUserId]);
 
   const interruptQuery = useCallback(() => {
     // Find the current execution in the queue for this cell
@@ -112,12 +114,12 @@ export const SqlCell: React.FC<SqlCellProps> = ({
         events.executionCancelled({
           queueId: currentExecution.id,
           cellId: cell.id,
-          cancelledBy: "current-user",
+          cancelledBy: currentUserId,
           reason: "User interrupted SQL execution",
         })
       );
     }
-  }, [cell.id, store]);
+  }, [cell.id, store, currentUserId]);
 
   // Use shared keyboard navigation hook
   const { keyMap } = useCellKeyboardNavigation({
@@ -179,11 +181,11 @@ export const SqlCell: React.FC<SqlCellProps> = ({
         events.sqlConnectionChanged({
           cellId: cell.id,
           connectionId: connection,
-          changedBy: "current-user",
+          changedBy: currentUserId,
         })
       );
     },
-    [cell.id, store]
+    [cell.id, store, currentUserId]
   );
 
   return (

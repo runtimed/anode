@@ -15,6 +15,7 @@ import { SqlCell } from "./SqlCell.js";
 import { ChevronDown, ChevronUp } from "lucide-react";
 
 import { Editor } from "./Editor.js";
+import { useCurrentUserId } from "../../hooks/useCurrentUser.js";
 import { CellContainer } from "./shared/CellContainer.js";
 import { CellControls } from "./shared/CellControls.js";
 import { PlayButton } from "./shared/PlayButton.js";
@@ -53,6 +54,7 @@ export const Cell: React.FC<CellProps> = ({
 }) => {
   // All hooks must be called at the top level before any conditional returns
   const { store } = useStore();
+  const currentUserId = useCurrentUserId();
 
   // Use shared content management hook
   const { localSource, updateSource, handleSourceChange } = useCellContent({
@@ -114,11 +116,11 @@ export const Cell: React.FC<CellProps> = ({
         events.cellOutputsCleared({
           cellId: cell.id,
           wait: false,
-          clearedBy: "current-user",
+          clearedBy: currentUserId,
         })
       );
     }
-  }, [cell.id, store, hasOutputs]);
+  }, [cell.id, store, hasOutputs, currentUserId]);
 
   const executeCell = useCallback(async () => {
     // Use localSource instead of cell.source to get the current typed content
@@ -133,7 +135,7 @@ export const Cell: React.FC<CellProps> = ({
         events.cellOutputsCleared({
           cellId: cell.id,
           wait: false,
-          clearedBy: "current-user",
+          clearedBy: currentUserId,
         })
       );
 
@@ -149,7 +151,7 @@ export const Cell: React.FC<CellProps> = ({
           queueId,
           cellId: cell.id,
           executionCount,
-          requestedBy: "current-user",
+          requestedBy: currentUserId,
         })
       );
 
@@ -182,7 +184,14 @@ export const Cell: React.FC<CellProps> = ({
         })
       );
     }
-  }, [cell.id, localSource, cell.source, cell.executionCount, store]);
+  }, [
+    cell.id,
+    localSource,
+    cell.source,
+    cell.executionCount,
+    store,
+    currentUserId,
+  ]);
 
   const interruptCell = useCallback(async () => {
     // Find the current execution in the queue for this cell
@@ -202,12 +211,12 @@ export const Cell: React.FC<CellProps> = ({
         events.executionCancelled({
           queueId: currentExecution.id,
           cellId: cell.id,
-          cancelledBy: "current-user",
+          cancelledBy: currentUserId,
           reason: "User interrupted execution",
         })
       );
     }
-  }, [cell.id, store]);
+  }, [cell.id, store, currentUserId]);
 
   // Use shared keyboard navigation hook
   const { keyMap } = useCellKeyboardNavigation({
