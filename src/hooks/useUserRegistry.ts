@@ -73,21 +73,23 @@ export const useUserRegistry = () => {
 
   // Update current user info in registry
   useEffect(() => {
-    const updatedRegistry = new Map(registry);
-    const now = Date.now();
+    setRegistry((prevRegistry) => {
+      const updatedRegistry = new Map(prevRegistry);
+      const now = Date.now();
 
-    // Always update current user info
-    updatedRegistry.set(currentUser.id, {
-      ...currentUser,
-      lastSeen: now,
+      // Always update current user info
+      updatedRegistry.set(currentUser.id, {
+        ...currentUser,
+        lastSeen: now,
+      });
+
+      // Clean up old entries periodically
+      cleanupOldEntries(updatedRegistry);
+
+      saveUserRegistry(updatedRegistry);
+      return updatedRegistry;
     });
-
-    // Clean up old entries periodically
-    cleanupOldEntries(updatedRegistry);
-
-    setRegistry(updatedRegistry);
-    saveUserRegistry(updatedRegistry);
-  }, [currentUser, registry]);
+  }, [currentUser]);
 
   // Get user info by ID with fallback display logic
   const getUserInfo = useCallback(
