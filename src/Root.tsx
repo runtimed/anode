@@ -35,25 +35,15 @@ const NotebookApp: React.FC = () => {
   // rather than dynamic sync payload updates, as LiveStore doesn't support
   // runtime sync payload changes
 
-  // Background token refresh and validation (less aggressive)
+  // Background token validation (production-like flow)
   useEffect(() => {
-    const validateAndRefreshAuth = async () => {
+    const validateAuth = async () => {
       if (!googleAuthManager.isEnabled()) {
         return; // Skip validation in local dev mode
       }
 
-      // For localhost, skip background validation entirely
-      const isLocalhost =
-        window.location.hostname === "localhost" ||
-        window.location.hostname === "127.0.0.1";
-
-      if (isLocalhost) {
-        console.log("Skipping background auth validation on localhost");
-        return;
-      }
-
       try {
-        // Only check auth state, don't force refresh
+        // Check auth state without forcing refresh
         const isValid = await isAuthStateValid();
         if (!isValid) {
           console.warn("Auth state is invalid, forcing reload");
@@ -67,10 +57,9 @@ const NotebookApp: React.FC = () => {
       }
     };
 
-    // Check auth state every 10 minutes (less frequent)
-    const interval = setInterval(validateAndRefreshAuth, 10 * 60 * 1000);
+    // Check auth state every 5 minutes (reasonable for production)
+    const interval = setInterval(validateAuth, 5 * 60 * 1000);
 
-    // Don't check immediately - let user work uninterrupted
     return () => clearInterval(interval);
   }, []);
 
@@ -82,16 +71,6 @@ const NotebookApp: React.FC = () => {
     const validateAuth = async () => {
       if (!googleAuthManager.isEnabled()) {
         return; // Skip in local dev mode
-      }
-
-      // For localhost, skip validation entirely
-      const isLocalhost =
-        window.location.hostname === "localhost" ||
-        window.location.hostname === "127.0.0.1";
-
-      if (isLocalhost) {
-        console.log("Skipping auth validation on localhost");
-        return;
       }
 
       try {
@@ -113,16 +92,6 @@ const NotebookApp: React.FC = () => {
         document.visibilityState === "visible" &&
         googleAuthManager.isEnabled()
       ) {
-        // For localhost, skip visibility-based auth checks
-        const isLocalhost =
-          window.location.hostname === "localhost" ||
-          window.location.hostname === "127.0.0.1";
-
-        if (isLocalhost) {
-          console.log("Skipping visibility-based auth check on localhost");
-          return;
-        }
-
         // When user returns to tab, just validate (don't refresh)
         isAuthStateValid()
           .then((isValid) => {

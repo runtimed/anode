@@ -69,22 +69,11 @@ class GoogleAuthManager {
   }
 
   private async initGoogleIdentity(): Promise<void> {
-    const isLocalhost =
-      window.location.hostname === "localhost" ||
-      window.location.hostname === "127.0.0.1";
-
-    if (isLocalhost) {
-      console.warn(
-        "Google OAuth on localhost may have restrictions. Consider using production URL for testing."
-      );
-    }
-
     window.google.accounts.id.initialize({
       client_id: this.config.clientId,
       callback: this.handleCredentialResponse.bind(this),
       auto_select: false,
       cancel_on_tap_outside: true,
-      // Prevent automatic popups that cause mobile omnibar issues
       use_fedcm_for_prompt: false,
     });
   }
@@ -174,17 +163,6 @@ class GoogleAuthManager {
         cancel_on_tap_outside: false,
       });
 
-      // Add error handling for common localhost issues
-      const isLocalhost =
-        window.location.hostname === "localhost" ||
-        window.location.hostname === "127.0.0.1";
-
-      if (isLocalhost) {
-        console.warn(
-          "Running on localhost - Google OAuth may have domain restrictions"
-        );
-      }
-
       // Trigger the sign-in flow
       window.google.accounts.id.prompt();
     });
@@ -215,24 +193,10 @@ class GoogleAuthManager {
       // Check if cached user's token is still valid
       const token = this.getToken();
       if (token && this.isTokenExpiringSoon(token)) {
-        // For localhost, be more lenient - don't try to refresh
-        const isLocalhost =
-          window.location.hostname === "localhost" ||
-          window.location.hostname === "127.0.0.1";
-
-        if (isLocalhost) {
-          console.log(
-            "Token expiring on localhost, but allowing continued use"
-          );
-          return this.currentUser;
-        }
-
-        // Try to refresh token before giving up (production only)
-        const refreshed = await this.silentRefresh();
-        if (!refreshed) {
-          this.clearAuthState();
-          return null;
-        }
+        // Don't attempt refresh here - it causes popup spam
+        // Instead, just clear the auth state and let the user sign in manually
+        this.clearAuthState();
+        return null;
       }
       return this.currentUser;
     }
@@ -261,27 +225,10 @@ class GoogleAuthManager {
       if (payload && payload.exp > Date.now() / 1000) {
         // Check if token is expiring soon
         if (this.isTokenExpiringSoon(token)) {
-          // Try to refresh token
-          const refreshed = await this.silentRefresh();
-          if (!refreshed) {
-            this.clearAuthState();
-            return null;
-          }
-          // After refresh, get the updated token payload
-          const newToken = this.getToken();
-          if (newToken) {
-            const newPayload = this.parseJWT(newToken);
-            if (newPayload) {
-              this.currentUser = {
-                id: newPayload.sub,
-                email: newPayload.email,
-                name: newPayload.name,
-                picture: newPayload.picture,
-              };
-              this.currentToken = newToken;
-              return this.currentUser;
-            }
-          }
+          // Don't attempt refresh here - it causes popup spam
+          // Instead, just clear the auth state and let the user sign in manually
+          this.clearAuthState();
+          return null;
         }
 
         this.currentUser = {
@@ -322,19 +269,9 @@ class GoogleAuthManager {
   }
 
   async refreshToken(): Promise<string | null> {
-    // Check if we're on localhost - if so, just return current token
-    const isLocalhost =
-      window.location.hostname === "localhost" ||
-      window.location.hostname === "127.0.0.1";
-
-    if (isLocalhost && this.currentToken) {
-      console.log("Skipping token refresh on localhost");
-      return this.currentToken;
-    }
-
-    // Attempt silent refresh for production
-    const refreshed = await this.silentRefresh();
-    return refreshed ? this.getToken() : null;
+    // Don't automatically refresh - this causes popup spam
+    // Let the user manually sign in when token expires
+    return this.getToken();
   }
 
   private isTokenExpiringSoon(token: string): boolean {
@@ -348,20 +285,7 @@ class GoogleAuthManager {
       const expirationTime = payload.exp * 1000; // Convert to milliseconds
       const fiveMinutesFromNow = Date.now() + 5 * 60 * 1000;
 
-      const isExpiring = expirationTime <= fiveMinutesFromNow;
-
-      // For localhost development, be more lenient with expiration
-      const isLocalhost =
-        window.location.hostname === "localhost" ||
-        window.location.hostname === "127.0.0.1";
-
-      if (isLocalhost && !isExpiring) {
-        // On localhost, only treat as expiring if actually expired (not just soon)
-        const isActuallyExpired = expirationTime <= Date.now();
-        return isActuallyExpired;
-      }
-
-      return isExpiring;
+      return expirationTime <= fiveMinutesFromNow;
     } catch (error) {
       console.error("Error checking token expiration:", error);
       return true; // Treat unparseable tokens as expired
@@ -385,48 +309,9 @@ class GoogleAuthManager {
   }
 
   private async silentRefresh(): Promise<boolean> {
-    if (!this.config.enabled || !window.google) {
-      return false;
-    }
-
-    try {
-      // Check if we're in localhost development mode
-      const isLocalhost =
-        window.location.hostname === "localhost" ||
-        window.location.hostname === "127.0.0.1";
-
-      // For localhost, skip the refresh popup entirely
-      if (isLocalhost) {
-        console.log(
-          "Skipping silent refresh on localhost - using existing token"
-        );
-        // Just return true if we have any token, don't check expiration strictly
-        return !!this.currentToken;
-      }
-
-      // For production, check if current token is still valid before attempting refresh
-      if (this.currentToken && !this.isTokenExpiringSoon(this.currentToken)) {
-        console.log("Current token is still valid, skipping refresh");
-        return true;
-      }
-
-      // Only attempt silent refresh if token is actually expiring
-      console.log("Attempting silent token refresh...");
-
-      // Don't use Google's prompt mechanism as it causes popups
-      // Instead, just validate the current token is still usable
-      const payload = this.currentToken
-        ? this.parseJWT(this.currentToken)
-        : null;
-      if (payload && payload.exp > Date.now() / 1000) {
-        return true;
-      }
-
-      return false;
-    } catch (error) {
-      console.error("Silent refresh failed:", error);
-      return false;
-    }
+    // Don't attempt silent refresh - it causes popup spam
+    // Return false to indicate refresh failed, forcing manual sign-in
+    return false;
   }
 
   private clearAuthState(): void {
@@ -475,15 +360,9 @@ const getAuthConfig = (): GoogleAuthConfig => {
   const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
   const enabled = import.meta.env.VITE_GOOGLE_AUTH_ENABLED === "true";
 
-  // For localhost development, be more permissive
-  const isLocalhost =
-    window.location.hostname === "localhost" ||
-    window.location.hostname === "127.0.0.1";
-
   return {
     clientId: clientId || "",
     enabled: enabled && !!clientId,
-    isLocalhost,
   };
 };
 
@@ -501,18 +380,6 @@ export const getCurrentAuthToken = (): string => {
   if (googleToken && googleAuthManager.isEnabled()) {
     return googleToken;
   }
-
-  // For localhost development, provide a warning about using fallback
-  const isLocalhost =
-    window.location.hostname === "localhost" ||
-    window.location.hostname === "127.0.0.1";
-
-  if (isLocalhost) {
-    console.warn(
-      "Using fallback auth token for localhost development. For production testing, configure Google OAuth properly."
-    );
-  }
-
   return getFallbackAuthToken();
 };
 
@@ -524,19 +391,6 @@ export const isAuthStateValid = async (): Promise<boolean> => {
 
   const user = await googleAuthManager.getCurrentUser();
   const token = googleAuthManager.getToken();
-
-  // For localhost, be more lenient with validation
-  const isLocalhost =
-    window.location.hostname === "localhost" ||
-    window.location.hostname === "127.0.0.1";
-
-  if (isLocalhost && !user) {
-    console.warn(
-      "Google auth failed on localhost - this is common due to domain restrictions. Consider using production URL for testing."
-    );
-    // Return true to allow fallback to continue working
-    return true;
-  }
 
   return !!(user && token);
 };
