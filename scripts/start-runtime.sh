@@ -1,5 +1,10 @@
 export DEV_PORT=5173
-export NOTEBOOK_ID=$(date +%s)-$(openssl rand -hex 4)
+
+# If NOTEBOOK_ID is not set, generate a random one
+if [ -z "$NOTEBOOK_ID" ]; then
+  export NOTEBOOK_ID=$(date +%s)-$(openssl rand -hex 4)
+fi
+
 echo "Starting runtime for notebook: $NOTEBOOK_ID on port: $DEV_PORT"
 
 URL="http://localhost:$DEV_PORT/?notebook=$NOTEBOOK_ID&_t=$(date +%s)"
