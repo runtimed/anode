@@ -35,7 +35,9 @@ export default defineConfig(({ mode }) => {
     plugins: [
       react(),
       tailwindcss(),
-      cloudflare(),
+      cloudflare({
+        configPath: "./wrangler.toml",
+      }),
       livestoreDevtoolsPlugin({ schemaPath: "./schema.ts" }),
       visualizer({
         filename: "dist/bundle-analysis.html",
