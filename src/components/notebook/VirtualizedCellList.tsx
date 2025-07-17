@@ -284,7 +284,9 @@ export const VirtualizedCellList: React.FC<VirtualizedCellListProps> = ({
               onMoveUp={() => onMoveUp(cell.id)}
               onMoveDown={() => onMoveDown(cell.id)}
               onFocusNext={() => onFocusNext(cell.id)}
-              onFocusPrevious={() => onFocusPrevious(cell.id)}
+              onFocusPrevious={
+                index > 0 ? () => onFocusPrevious(cell.id) : undefined
+              }
               onFocus={() => onFocus(cell.id)}
               autoFocus={cell.id === focusedCellId}
               contextSelectionMode={contextSelectionMode}
