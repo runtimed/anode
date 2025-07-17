@@ -85,6 +85,9 @@ class OpenidManager {
           id_token: tokenResp.id_token,
           expires_at,
         };
+      } catch (e) {
+        console.log(`Error handling redirect response: ${e}`);
+        throw(e);
       } finally {
         this.oldCodes.add(code);
       }
@@ -156,23 +159,29 @@ class OpenidManager {
       return null;
     }
     const now = Math.floor(Date.now() / 1000);
-    // Refresh if token will expire within the next hour
-    if (now + 3600 > tokens.expires_at) {
+    // Refresh if token will expire within the next minute
+    if (now + 60 > tokens.expires_at) {
       const refreshToken = tokens.refresh_token;
       if (!refreshToken) {
-        await this.logout();
+        await this.#logout();
         return null;
       }
       const config = await this.#getConfig();
-      const refreshed = await client.refreshTokenGrant(config, refreshToken, { scopes: OPENID_SCOPES });
-      const expires_at = this.computeExpiresAt(refreshed.expires_in);
-      this.sync.openid_tokens = {
-        access_token: refreshed.access_token,
-        refresh_token: refreshed.refresh_token,
-        id_token: refreshed.id_token,
-        expires_at,
-      };
+      try {
+        const refreshed = await client.refreshTokenGrant(config, refreshToken, { scopes: OPENID_SCOPES });
+        const expires_at = this.computeExpiresAt(refreshed.expires_in);
+        this.sync.openid_tokens = {
+          access_token: refreshed.access_token,
+          refresh_token: refreshed.refresh_token,
+          id_token: refreshed.id_token,
+          expires_at,
+        };
       return refreshed.access_token;
+      } catch (e) {
+        console.log(`Error refreshing access token: ${e}`);
+        await this.#logout();
+        return null;
+      }
     }
     return tokens.access_token;
   }
