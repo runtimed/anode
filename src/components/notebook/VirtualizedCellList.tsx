@@ -276,8 +276,14 @@ export const VirtualizedCellList: React.FC<VirtualizedCellListProps> = ({
             marginBottom: "1rem", // Add spacing between cells
           }}
         >
-          <CellBetweener cell={cell} onAddCell={onAddCell} />
           <ErrorBoundary fallback={<div>Error rendering cell</div>}>
+            {index === 0 && (
+              <CellBetweener
+                cell={cell}
+                onAddCell={onAddCell}
+                position="before"
+              />
+            )}
             <MemoizedCell
               cell={cell}
               onAddCell={() =>
@@ -297,6 +303,7 @@ export const VirtualizedCellList: React.FC<VirtualizedCellListProps> = ({
               autoFocus={cell.id === focusedCellId}
               contextSelectionMode={contextSelectionMode}
             />
+            <CellBetweener cell={cell} onAddCell={onAddCell} position="after" />
           </ErrorBoundary>
         </div>
       )),
