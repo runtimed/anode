@@ -197,16 +197,19 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
         const lastUsedProviderKey = metadata.find(
           (meta: any) => meta.key === "lastUsedAiProvider"
         );
-        
+
         if (lastUsedModelKey && lastUsedProviderKey) {
           aiModel = lastUsedModelKey.value;
           aiProvider = lastUsedProviderKey.value;
         } else {
           // Fallback to getting default from available models
-          const groqModels = models.filter(m => m.provider === "groq");
+          const groqModels = models.filter((m) => m.provider === "groq");
           if (groqModels.length > 0) {
             // Prefer Groq Kimi K2 Instruct as default
-            const defaultGroq = groqModels.find(m => m.name === "moonshotai/kimi-k2-instruct") || groqModels[0];
+            const defaultGroq =
+              groqModels.find(
+                (m) => m.name === "moonshotai/kimi-k2-instruct"
+              ) || groqModels[0];
             aiProvider = defaultGroq.provider;
             aiModel = defaultGroq.name;
           } else {
