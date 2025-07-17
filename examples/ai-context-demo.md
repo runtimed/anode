@@ -11,9 +11,8 @@ just source code.
 # Install dependencies
 pnpm install
 
-# Start services
-pnpm dev        # Web client
-pnpm dev:sync   # Sync worker (in separate terminal)
+# Start development (single server with integrated backend)
+pnpm dev        # Web client + backend at http://localhost:5173
 
 # Python runtime and AI features are now handled by @runt packages
 # See https://github.com/runtimed/runt for setup

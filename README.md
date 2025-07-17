@@ -73,8 +73,8 @@ cp .dev.vars.example .dev.vars
 # Start web client
 pnpm dev
 
-# Start sync worker (in separate terminal)
-pnpm dev:sync
+# Start development (single server with integrated backend)
+pnpm dev
 ```
 
 Environment configuration:
@@ -200,9 +200,8 @@ Want to run Anode locally or contribute? Here's the essentials:
 # One-time setup
 pnpm install             # Installs dependencies and creates .env files
 
-# Start the development servers (in separate terminals)
-pnpm dev:web       # Web interface at http://localhost:5173
-pnpm dev:sync      # Sync backend
+# Start development (single server with integrated backend)
+pnpm dev           # Web interface + backend at http://localhost:5173
 
 # For Python execution, get the command from the notebook UI
 # Then run: NOTEBOOK_ID=your-notebook-id pnpm dev:runtime
@@ -234,7 +233,7 @@ The `@runt/schema` package provides shared types and events between Anode and Ru
 
 1. Update `package.json` with the appropriate schema reference
 2. Run `pnpm install` to update dependencies
-3. Restart development servers (`pnpm dev` and `pnpm dev:sync`)
+3. Restart development server (`pnpm dev`)
 
 **Important**: Ensure both repositories use compatible schema versions. Type errors usually indicate schema mismatches.
 

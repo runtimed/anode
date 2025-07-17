@@ -1,6 +1,8 @@
-export DEV_PORT=5173
+export DEV_PORT=${ANODE_DEV_SERVER_PORT:-5173}
 export NOTEBOOK_ID=$(date +%s)-$(openssl rand -hex 4)
+export LIVESTORE_SYNC_URL="ws://localhost:$DEV_PORT/livestore"
 echo "Starting runtime for notebook: $NOTEBOOK_ID on port: $DEV_PORT"
+echo "Sync URL: $LIVESTORE_SYNC_URL"
 
 URL="http://localhost:$DEV_PORT/?notebook=$NOTEBOOK_ID&_t=$(date +%s)"
 echo ""
