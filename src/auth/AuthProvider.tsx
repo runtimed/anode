@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, useCallback, ReactNode } from "react";
+import OpenidManager, { Whoami } from "./openid-manager";
 
 // Placeholder types for auth state and actions
 interface AuthUser {
@@ -24,8 +25,9 @@ interface AuthContextType extends AuthState {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
+const openidManager = new OpenidManager();
+
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
-  // Initial state
   const [state, setState] = useState<AuthState>({
     isAuthenticated: false,
     user: null,
@@ -34,60 +36,110 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     error: null,
   });
 
-  // TODO: Replace with openid-client logic and VITE_* config
+  // On mount, check for existing session and fetch user info
   useEffect(() => {
-    // Placeholder: simulate loading
-    setTimeout(() => {
-      setState((prev) => ({ ...prev, isLoading: false }));
-    }, 500);
+    let cancelled = false;
+    (async () => {
+      setState((prev) => ({ ...prev, isLoading: true }));
+      try {
+        const token = await openidManager.getAccessToken();
+        if (token) {
+          const userInfo = await openidManager.getUserInfo();
+          if (!cancelled) {
+            setState({
+              isAuthenticated: true,
+              user: {
+                id: userInfo.sub || userInfo.id || "unknown",
+                email: userInfo.email || "",
+                name: userInfo.name,
+              },
+              token,
+              isLoading: false,
+              error: null,
+            });
+          }
+        } else {
+          if (!cancelled) setState((prev) => ({ ...prev, isLoading: false }));
+        }
+      } catch (error: any) {
+        if (!cancelled) setState((prev) => ({ ...prev, isLoading: false, error: error.message || String(error) }));
+      }
+    })();
+    return () => { cancelled = true; };
   }, []);
 
   const signIn = useCallback(async () => {
-    // TODO: Implement sign-in with openid-client
-    setState((prev) => ({
-      ...prev,
-      isAuthenticated: true,
-      user: { id: "demo", email: "demo@example.com", name: "Demo User" },
-      token: "demo-token",
-      isLoading: false,
-      error: null,
-    }));
+    try {
+      const url = await openidManager.getAuthorizationUrl("login");
+      window.location.href = url.toString();
+    } catch (error: any) {
+      setState((prev) => ({ ...prev, error: error.message || String(error) }));
+    }
   }, []);
 
   const register = useCallback(async () => {
-    // TODO: Implement registration with openid-client
-    setState((prev) => ({
-      ...prev,
-      isAuthenticated: true,
-      user: { id: "demo", email: "demo@example.com", name: "Demo User" },
-      token: "demo-token",
-      isLoading: false,
-      error: null,
-    }));
+    try {
+      const url = await openidManager.getAuthorizationUrl("registration");
+      window.location.href = url.toString();
+    } catch (error: any) {
+      setState((prev) => ({ ...prev, error: error.message || String(error) }));
+    }
   }, []);
 
   const signOut = useCallback(async () => {
-    // TODO: Implement sign-out with openid-client
-    setState({
-      isAuthenticated: false,
-      user: null,
-      token: null,
-      isLoading: false,
-      error: null,
-    });
+    try {
+      await openidManager.logout();
+      setState({
+        isAuthenticated: false,
+        user: null,
+        token: null,
+        isLoading: false,
+        error: null,
+      });
+    } catch (error: any) {
+      setState((prev) => ({ ...prev, error: error.message || String(error) }));
+    }
   }, []);
 
   const refreshToken = useCallback(async () => {
-    // TODO: Implement token refresh with openid-client
-    setState((prev) => ({ ...prev, token: "demo-token-refreshed" }));
+    try {
+      const token = await openidManager.getAccessToken();
+      setState((prev) => ({ ...prev, token }));
+    } catch (error: any) {
+      setState((prev) => ({ ...prev, error: error.message || String(error) }));
+    }
   }, []);
 
-  const value: AuthContextType = {
+  // Optionally: handle OpenID redirect response (should be called after redirect)
+  const handleRedirect = useCallback(async (url: URL) => {
+    setState((prev) => ({ ...prev, isLoading: true }));
+    try {
+      await openidManager.handleRedirectResponse(url);
+      const token = await openidManager.getAccessToken();
+      const userInfo = await openidManager.getUserInfo();
+      setState({
+        isAuthenticated: true,
+        user: {
+          id: userInfo.sub || userInfo.id || "unknown",
+          email: userInfo.email || "",
+          name: userInfo.name,
+        },
+        token,
+        isLoading: false,
+        error: null,
+      });
+    } catch (error: any) {
+      setState((prev) => ({ ...prev, isLoading: false, error: error.message || String(error) }));
+    }
+  }, []);
+
+  const value: AuthContextType & { handleRedirect: (url: URL) => Promise<void> } = {
     ...state,
     signIn,
     signOut,
     refreshToken,
     register,
+    handleRedirect,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

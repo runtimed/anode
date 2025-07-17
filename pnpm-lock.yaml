@@ -121,6 +121,9 @@ importers:
       lucide-react:
         specifier: ^0.514.0
         version: 0.514.0(react@19.0.0)
+      openid-client:
+        specifier: ^6.6.2
+        version: 6.6.2
       react:
         specifier: 19.0.0
         version: 19.0.0
@@ -145,6 +148,9 @@ importers:
       tw-animate-css:
         specifier: ^1.3.4
         version: 1.3.5
+      uuid:
+        specifier: ^11.1.0
+        version: 11.1.0
     devDependencies:
       '@cloudflare/workers-types':
         specifier: ^4.20250106.0
@@ -2966,6 +2972,9 @@ packages:
     resolution: {integrity: sha512-rg9zJN+G4n2nfJl5MW3BMygZX56zKPNVEYYqq7adpmMh4Jn2QNEwhvQlFy6jPVdcod7txZtKHWnyZiA3a0zP7A==}
     hasBin: true
 
+  jose@6.0.12:
+    resolution: {integrity: sha512-T8xypXs8CpmiIi78k0E+Lk7T2zlK4zDyg+o1CZ4AkOHgDg98ogdP2BeZ61lTFKFyoEwJ9RgAgN+SdM3iPgNonQ==}
+
   js-cookie@3.0.5:
     resolution: {integrity: sha512-cEiJEAEoIbWfCZYKWhVwFuvPX1gETRYPw6LlaTKoxD3s2AkXzkCjnp6h0V77ozyqj0jakteJ4YqDJT830+lVGw==}
     engines: {node: '>=14'}
@@ -3341,6 +3350,9 @@ packages:
     resolution: {integrity: sha512-bdok/XvKII3nUpklnV6P2hxtMNrCboOjAcyBuQnWEhO665FwrSNRxU+AqpsyvO6LgGYPspN+lu5CLtw4jPRKNA==}
     engines: {node: '>=0.10.0'}
 
+  oauth4webapi@3.6.0:
+    resolution: {integrity: sha512-OwXPTXjKPOldTpAa19oksrX9TYHA0rt+VcUFTkJ7QKwgmevPpNm9Cn5vFZUtIo96FiU6AfPuUUGzoXqgOzibWg==}
+
   obliterator@2.0.5:
     resolution: {integrity: sha512-42CPE9AhahZRsMNslczq0ctAEtqk8Eka26QofnqC346BZdHDySk3LWka23LI7ULIw11NmltpiLagIq8gBozxTw==}
 
@@ -3354,6 +3366,9 @@ packages:
   opener@1.5.2:
     resolution: {integrity: sha512-ur5UIdyw5Y7yEj9wLzhqXiy6GZ3Mwx0yGI+5sMn2r0N0v3cKJvUmFH5yPP+WXh9e0xfyzyJX95D8l088DNFj7A==}
     hasBin: true
+
+  openid-client@6.6.2:
+    resolution: {integrity: sha512-Xya5TNMnnZuTM6DbHdB4q0S3ig2NTAELnii/ASie1xDEr8iiB8zZbO871OWBdrw++sd3hW6bqWjgcmSy1RTWHA==}
 
   optionator@0.9.4:
     resolution: {integrity: sha512-6IpQ7mKUxRcZNLIObR0hz7lxsapSSIYNZJwXPGeF0mTVqGKFIXj1DQcMoT22S3ROcLyY/rz0PWaWZ9ayWmad9g==}
@@ -7153,6 +7168,8 @@ snapshots:
 
   jiti@2.4.2: {}
 
+  jose@6.0.12: {}
+
   js-cookie@3.0.5: {}
 
   js-git@0.7.8:
@@ -7618,6 +7635,8 @@ snapshots:
 
   normalize-range@0.1.2: {}
 
+  oauth4webapi@3.6.0: {}
+
   obliterator@2.0.5: {}
 
   ohash@2.0.11: {}
@@ -7629,6 +7648,11 @@ snapshots:
       is-wsl: 2.2.0
 
   opener@1.5.2: {}
+
+  openid-client@6.6.2:
+    dependencies:
+      jose: 6.0.12
+      oauth4webapi: 3.6.0
 
   optionator@0.9.4:
     dependencies:
