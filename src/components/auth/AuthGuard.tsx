@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useAuth } from "../../auth/AuthProvider";
+import LoginPrompt from "./LoginPrompt";
 
 interface AuthGuardProps {
   children: React.ReactNode;
@@ -7,7 +8,7 @@ interface AuthGuardProps {
 }
 
 export const AuthGuard: React.FC<AuthGuardProps> = ({ children, fallback }) => {
-  const { isAuthenticated, isLoading, error } = useAuth();
+  const { isAuthenticated, isLoading, error, signIn, register } = useAuth();
   const [authExpiredError, setAuthExpiredError] = useState<string | null>(null);
 
   // Listen for authentication errors from LiveStore
@@ -53,8 +54,7 @@ export const AuthGuard: React.FC<AuthGuardProps> = ({ children, fallback }) => {
               Your session has expired. Please sign in again to continue.
             </div>
           )}
-          {/* Placeholder for sign-in button */}
-          <div className="mt-4">[Sign In Button Placeholder]</div>
+          <LoginPrompt signIn={signIn} register={register} />
           {authExpiredError && (
             <button
               onClick={() => {
@@ -73,28 +73,10 @@ export const AuthGuard: React.FC<AuthGuardProps> = ({ children, fallback }) => {
 
   // Show sign-in form if not authenticated
   if (!isAuthenticated) {
-    return (
-      fallback || (
-        <div className="bg-background flex min-h-screen items-center justify-center">
-          <div className="max-w-md text-center">
-            <div className="text-foreground mb-2 text-2xl font-bold">
-              Anode Notebooks
-            </div>
-            <div className="text-muted-foreground mb-8 text-sm">
-              Sign in to access your collaborative notebooks
-            </div>
-            {/* Placeholder for sign-in button */}
-            <div>[Sign In Button Placeholder]</div>
-            <div className="text-muted-foreground mt-8 text-xs">
-              <p>
-                Anode is a real-time collaborative notebook system.
-                <br />
-                Sign in to sync your work across devices.
-              </p>
-            </div>
-          </div>
-        </div>
-      )
+    return fallback || (
+      <div className="bg-background flex min-h-screen items-center justify-center">
+        <LoginPrompt signIn={signIn} register={register} />
+      </div>
     );
   }
 
