@@ -1,6 +1,6 @@
-# PM2 Development Setup (Legacy)
+# PM2 Development Setup
 
-**Note**: This PM2 setup is now legacy. The recommended development workflow is to use the integrated development server with `pnpm dev`. This document is kept for reference.
+**Note**: This is an alternative development setup using PM2 process management. The default recommended workflow is to use the integrated development server with `pnpm dev`, but PM2 offers additional features like automatic incognito window launching and process orchestration.
 
 ## Current Recommended Workflow
 
@@ -12,7 +12,7 @@ pnpm dev
 NOTEBOOK_ID=your-notebook-id pnpm dev:runtime
 ```
 
-## Legacy PM2 Setup (Optional)
+## PM2 Setup
 
 This setup uses PM2 to manage your development processes and automatically watch for changes in the schema.
 
@@ -87,21 +87,22 @@ By default, the integrated server runs on port 5173. To use a different port:
 ANODE_DEV_SERVER_PORT=5174 pnpm dev:pm2
 ```
 
-## Why Use Simple `pnpm dev` Instead?
+## PM2 vs Integrated Server
 
-The integrated development server (`pnpm dev`) is now stable and provides:
-
+### Integrated Server (`pnpm dev`)
 - **Simplified workflow**: Single command to start everything
 - **Hot reload stability**: Environment file changes are ignored to prevent crashes
 - **Better error handling**: Unified error reporting and recovery
 - **Faster startup**: No PM2 overhead or process coordination
 
-PM2 is still useful for:
+### PM2 Advantages
+- **Automatic browser launching**: Opens incognito windows for testing
 - **Schema development**: Automatic restarts when schema changes
-- **Complex debugging**: Process isolation and log management
+- **Process isolation**: Better debugging with separate process logs
 - **Development orchestration**: Running multiple notebooks simultaneously
+- **Process management**: Easy restart, stop, and monitoring of services
 
-## Legacy Troubleshooting
+## Troubleshooting
 
 If the file watcher isn't working:
 
@@ -126,7 +127,7 @@ This should trigger the update process and restart the development servers.
 3. **Auto-restart**: The watcher automatically updates dependencies and restarts services
 4. **Browser**: Automatically refreshes with new changes
 
-### Legacy Troubleshooting
+### Additional Troubleshooting
 
 ### `"cannot create file"` error in web browser console
 
@@ -165,12 +166,16 @@ Clicking the "+ Notebook" button the browser won't work well in development. You
 pnpm exec pm2 restart all
 ```
 
-## Migration to Integrated Server
+## Switching Between PM2 and Integrated Server
 
-To migrate from PM2 to the integrated server:
-
+### From PM2 to Integrated Server
 1. **Stop PM2 processes**: `pnpm exec pm2 stop all && pnpm exec pm2 delete all`
 2. **Start integrated server**: `pnpm dev`
 3. **Start runtime manually**: Get command from notebook UI, then run `NOTEBOOK_ID=your-id pnpm dev:runtime`
 
-The integrated server provides the same functionality with simpler management.
+### From Integrated Server to PM2
+1. **Stop integrated server**: `Ctrl+C` in the terminal
+2. **Start PM2**: `pnpm dev:pm2`
+3. **Runtime starts automatically**: PM2 handles runtime startup and browser launching
+
+Both approaches provide the same core functionality with different management styles.
