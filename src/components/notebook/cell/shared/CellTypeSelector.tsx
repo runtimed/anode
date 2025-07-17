@@ -39,7 +39,13 @@ export const CellTypeSelector: React.FC<CellTypeSelectorProps> = ({
         <Button
           variant="ghost"
           size="sm"
-          className="hover:bg-muted/50 h-7 gap-1.5 px-2 text-xs font-medium sm:h-6"
+          className={`hover:bg-muted/50 h-7 gap-1.5 px-2 text-xs font-medium sm:h-6 ${
+            cell.cellType === "sql"
+              ? "text-blue-600 hover:bg-blue-50/50"
+              : cell.cellType === "ai"
+                ? "text-purple-600 hover:bg-purple-50/50"
+                : ""
+          }`}
         >
           {getCellTypeIcon()}
           <span className="cell-type-label hidden capitalize sm:inline">

@@ -22,7 +22,7 @@ export default defineConfig(({ mode }) => {
         ? parseInt(env.ANODE_DEV_SERVER_PORT)
         : 5173,
       watch: {
-        ignored: ["!**/node_modules/@runt/schema/mod.ts"],
+        ignored: ["!**/node_modules/@runt/schema/mod.ts", "**/.env*"],
         followSymlinks: true,
       },
     },
