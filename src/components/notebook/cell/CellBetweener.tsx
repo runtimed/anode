@@ -21,7 +21,7 @@ export function CellBetweener({
         <Button
           variant="ghost"
           size="xs"
-          className="bg-background text-neutral-400 hover:bg-black hover:text-white"
+          className="bg-background text-gray-300 hover:bg-black hover:text-white"
           onClick={() =>
             onAddCell(
               cell.id,
