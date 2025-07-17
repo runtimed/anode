@@ -13,40 +13,42 @@ import {
   IMAGE_MIME_TYPES,
   JUPYTER_MIME_TYPES,
 } from "@runt/schema";
-import { AnsiStreamOutput } from "../outputs/index.js";
+import { AnsiStreamOutput } from "../../outputs/index.js";
 import { AnsiErrorOutput } from "./AnsiOutput.js";
 import "../outputs/outputs.css";
 
 // Dynamic imports for heavy components
 const MarkdownRenderer = React.lazy(() =>
-  import("../outputs/MarkdownRenderer.js").then((m) => ({
+  import("../../outputs/MarkdownRenderer.js").then((m) => ({
     default: m.MarkdownRenderer,
   }))
 );
 const JsonOutput = React.lazy(() =>
-  import("../outputs/JsonOutput.js").then((m) => ({ default: m.JsonOutput }))
+  import("../../outputs/JsonOutput.js").then((m) => ({ default: m.JsonOutput }))
 );
 const AiToolCallOutput = React.lazy(() =>
-  import("../outputs/AiToolCallOutput.js").then((m) => ({
+  import("../../outputs/AiToolCallOutput.js").then((m) => ({
     default: m.AiToolCallOutput,
   }))
 );
 const AiToolResultOutput = React.lazy(() =>
-  import("../outputs/AiToolResultOutput.js").then((m) => ({
+  import("../../outputs/AiToolResultOutput.js").then((m) => ({
     default: m.AiToolResultOutput,
   }))
 );
 const HtmlOutput = React.lazy(() =>
-  import("../outputs/HtmlOutput.js").then((m) => ({ default: m.HtmlOutput }))
+  import("../../outputs/HtmlOutput.js").then((m) => ({ default: m.HtmlOutput }))
 );
 const ImageOutput = React.lazy(() =>
-  import("../outputs/ImageOutput.js").then((m) => ({ default: m.ImageOutput }))
+  import("../../outputs/ImageOutput.js").then((m) => ({
+    default: m.ImageOutput,
+  }))
 );
 const SvgOutput = React.lazy(() =>
-  import("../outputs/SvgOutput.js").then((m) => ({ default: m.SvgOutput }))
+  import("../../outputs/SvgOutput.js").then((m) => ({ default: m.SvgOutput }))
 );
 const PlainTextOutput = React.lazy(() =>
-  import("../outputs/PlainTextOutput.js").then((m) => ({
+  import("../../outputs/PlainTextOutput.js").then((m) => ({
     default: m.PlainTextOutput,
   }))
 );

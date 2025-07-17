@@ -3,11 +3,11 @@ import { useStore } from "@livestore/react";
 import { OutputData, tables, MediaContainer } from "@runt/schema";
 import { queryDb } from "@livestore/livestore";
 import { groupConsecutiveStreamOutputs } from "../util/output-grouping.js";
-import { RichOutput } from "../components/notebook/RichOutput.js";
+import { RichOutput } from "../components/notebook/cell/RichOutput.js";
 import {
   AnsiErrorOutput,
   AnsiStreamOutput,
-} from "../components/notebook/AnsiOutput.js";
+} from "../components/notebook/cell/AnsiOutput.js";
 
 interface UseCellOutputsOptions {
   cellId: string;

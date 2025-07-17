@@ -2,22 +2,23 @@ import React, { useCallback } from "react";
 import { useStore } from "@livestore/react";
 import { events, tables } from "@runt/schema";
 import { queryDb } from "@livestore/livestore";
-import { useCellKeyboardNavigation } from "../../hooks/useCellKeyboardNavigation.js";
-import { useCellContent } from "../../hooks/useCellContent.js";
-import { useCellOutputs } from "../../hooks/useCellOutputs.js";
-import { SqlToolbar } from "./toolbars/SqlToolbar.js";
-import { CodeMirrorEditor } from "./codemirror/CodeMirrorEditor.js";
-import { CellContainer } from "./shared/CellContainer.js";
-import { CellControls } from "./shared/CellControls.js";
-import { PlayButton } from "./shared/PlayButton.js";
-import { CellTypeSelector } from "./shared/CellTypeSelector.js";
+import { useCellKeyboardNavigation } from "../../../hooks/useCellKeyboardNavigation.js";
+import { useCellContent } from "../../../hooks/useCellContent.js";
+import { useCellOutputs } from "../../../hooks/useCellOutputs.js";
+import { useAvailableAiModels } from "../../../util/ai-models.js";
+import { AiToolbar } from "../toolbars/AiToolbar.js";
+import { CodeMirrorEditor } from "../codemirror/CodeMirrorEditor.js";
+import { CellContainer } from "../shared/CellContainer.js";
+import { CellControls } from "../shared/CellControls.js";
+import { PlayButton } from "../shared/PlayButton.js";
+import { AiCellTypeSelector } from "../shared/AiCellTypeSelector.js";
 import { Button } from "@/components/ui/button";
 import { ChevronUp, ChevronDown } from "lucide-react";
 import { ErrorBoundary } from "react-error-boundary";
-import { OutputsErrorBoundary } from "./shared/OutputsErrorBoundary.js";
-import { useCurrentUserId } from "../../hooks/useCurrentUser.js";
+import { OutputsErrorBoundary } from "../shared/OutputsErrorBoundary.js";
+import { useCurrentUserId } from "../../../hooks/useCurrentUser.js";
 
-interface SqlCellProps {
+interface AiCellProps {
   cell: typeof tables.cells.Type;
   onAddCell: () => void;
   onDeleteCell: () => void;
@@ -30,7 +31,7 @@ interface SqlCellProps {
   contextSelectionMode?: boolean;
 }
 
-export const SqlCell: React.FC<SqlCellProps> = ({
+export const AiCell: React.FC<AiCellProps> = ({
   cell,
   onAddCell,
   onDeleteCell,
@@ -45,44 +46,27 @@ export const SqlCell: React.FC<SqlCellProps> = ({
   const { store } = useStore();
   const currentUserId = useCurrentUserId();
 
+  // Get AI model settings
+  const provider = cell.aiProvider || "openai";
+  const model = cell.aiModel || "gpt-4o-mini";
+
+  // Get available AI models from runtime capabilities
+  const { models: _ } = useAvailableAiModels();
+
   // Use shared content management hook
-  const {
-    localSource: localQuery,
-    updateSource: updateQuery,
-    handleSourceChange,
-  } = useCellContent({
+  const { localSource, updateSource, handleSourceChange } = useCellContent({
     cellId: cell.id,
     initialSource: cell.source,
   });
 
-  // Use shared outputs hook with SQL-specific configuration
+  // Use shared outputs hook with AI-specific configuration
   const { outputs, hasOutputs, MaybeOutputs } = useCellOutputs({
     cellId: cell.id,
-    groupConsecutiveStreams: true,
+    groupConsecutiveStreams: false,
     enableErrorOutput: true,
     enableTerminalOutput: true,
-    mobileStyle: "default",
+    mobileStyle: "chat-bubble",
   });
-
-  const executeQuery = useCallback(() => {
-    if (!localQuery.trim()) {
-      return;
-    }
-
-    // Generate unique queue ID
-    const queueId = `exec-${Date.now()}-${Math.random().toString(36).slice(2)}`;
-    const executionCount = (cell.executionCount || 0) + 1;
-
-    // Submit execution request like other cell types
-    store.commit(
-      events.executionRequested({
-        queueId,
-        cellId: cell.id,
-        executionCount,
-        requestedBy: "current-user",
-      })
-    );
-  }, [localQuery, cell.id, cell.executionCount, store]);
 
   const clearCellOutputs = useCallback(async () => {
     if (hasOutputs) {
@@ -96,7 +80,71 @@ export const SqlCell: React.FC<SqlCellProps> = ({
     }
   }, [cell.id, store, hasOutputs, currentUserId]);
 
-  const interruptQuery = useCallback(() => {
+  const executeAiPrompt = useCallback(async () => {
+    // Use localSource instead of cell.source to get the current typed content
+    const sourceToExecute = localSource || cell.source;
+    if (!sourceToExecute?.trim()) {
+      return;
+    }
+
+    try {
+      // Clear previous outputs first
+      store.commit(
+        events.cellOutputsCleared({
+          cellId: cell.id,
+          wait: false,
+          clearedBy: currentUserId,
+        })
+      );
+
+      // Generate unique queue ID
+      const queueId = `exec-${Date.now()}-${Math.random()
+        .toString(36)
+        .slice(2)}`;
+      const executionCount = (cell.executionCount || 0) + 1;
+
+      // Add to execution queue - runtimes will pick this up
+      store.commit(
+        events.executionRequested({
+          queueId,
+          cellId: cell.id,
+          executionCount,
+          requestedBy: currentUserId,
+        })
+      );
+    } catch (error) {
+      console.error("❌ LiveStore AI execution error:", error);
+
+      // Store error information directly
+      store.commit(
+        events.errorOutputAdded({
+          id: `error-${Date.now()}-${Math.random().toString(36).slice(2)}`,
+          cellId: cell.id,
+          position: 0,
+          content: {
+            type: "inline",
+            data: {
+              ename: "AIExecutionError",
+              evalue:
+                error instanceof Error
+                  ? error.message
+                  : "Failed to queue AI execution request",
+              traceback: ["Error occurred while emitting LiveStore event"],
+            },
+          },
+        })
+      );
+    }
+  }, [
+    cell.id,
+    localSource,
+    cell.source,
+    cell.executionCount,
+    store,
+    currentUserId,
+  ]);
+
+  const interruptAiCell = useCallback(async () => {
     // Find the current execution in the queue for this cell
     const executionQueue = store.query(
       queryDb(tables.executionQueue.select().where({ cellId: cell.id }))
@@ -115,7 +163,7 @@ export const SqlCell: React.FC<SqlCellProps> = ({
           queueId: currentExecution.id,
           cellId: cell.id,
           cancelledBy: currentUserId,
-          reason: "User interrupted SQL execution",
+          reason: "User interrupted AI execution",
         })
       );
     }
@@ -126,8 +174,8 @@ export const SqlCell: React.FC<SqlCellProps> = ({
     onFocusNext,
     onFocusPrevious,
     onDeleteCell,
-    onExecute: executeQuery,
-    onUpdateSource: updateQuery,
+    onExecute: executeAiPrompt,
+    onUpdateSource: updateSource,
   });
 
   const handleFocus = useCallback(() => {
@@ -135,6 +183,23 @@ export const SqlCell: React.FC<SqlCellProps> = ({
       onFocus();
     }
   }, [onFocus]);
+
+  const changeProvider = useCallback(
+    (newProvider: string, newModel: string) => {
+      store.commit(
+        events.aiSettingsChanged({
+          cellId: cell.id,
+          provider: newProvider,
+          model: newModel,
+          settings: {
+            temperature: 0.7,
+            maxTokens: 1000,
+          },
+        })
+      );
+    },
+    [cell.id, store]
+  );
 
   const changeCellType = useCallback(
     (newType: "code" | "markdown" | "sql" | "ai") => {
@@ -157,15 +222,6 @@ export const SqlCell: React.FC<SqlCellProps> = ({
     );
   }, [cell.id, cell.sourceVisible, store]);
 
-  const toggleOutputVisibility = useCallback(() => {
-    store.commit(
-      events.cellOutputVisibilityToggled({
-        id: cell.id,
-        outputVisible: !cell.outputVisible,
-      })
-    );
-  }, [cell.id, cell.outputVisible, store]);
-
   const toggleAiContextVisibility = useCallback(() => {
     store.commit(
       events.cellAiContextVisibilityToggled({
@@ -175,18 +231,14 @@ export const SqlCell: React.FC<SqlCellProps> = ({
     );
   }, [cell.id, cell.aiContextVisible, store]);
 
-  const changeDataConnection = useCallback(
-    (connection: string) => {
-      store.commit(
-        events.sqlConnectionChanged({
-          cellId: cell.id,
-          connectionId: connection,
-          changedBy: currentUserId,
-        })
-      );
-    },
-    [cell.id, store, currentUserId]
-  );
+  const toggleOutputVisibility = useCallback(() => {
+    store.commit(
+      events.cellOutputVisibilityToggled({
+        id: cell.id,
+        outputVisible: !cell.outputVisible,
+      })
+    );
+  }, [cell.id, cell.outputVisible, store]);
 
   return (
     <CellContainer
@@ -194,16 +246,17 @@ export const SqlCell: React.FC<SqlCellProps> = ({
       autoFocus={autoFocus}
       contextSelectionMode={contextSelectionMode}
       onFocus={handleFocus}
-      focusColor="bg-blue-500/60"
-      focusBgColor="bg-blue-50/30"
+      focusColor="bg-purple-500/60"
+      focusBgColor="bg-purple-50/30"
     >
       {/* Cell Header */}
       <div className="cell-header mb-2 flex items-center justify-between pr-1 pl-6 sm:pr-4">
         <div className="flex items-center gap-2 sm:gap-3">
-          <CellTypeSelector cell={cell} onCellTypeChange={changeCellType} />
-          <SqlToolbar
-            dataConnection={cell.sqlConnectionId || "default"}
-            onDataConnectionChange={changeDataConnection}
+          <AiCellTypeSelector onCellTypeChange={changeCellType} />
+          <AiToolbar
+            provider={provider}
+            model={model}
+            onProviderChange={changeProvider}
           />
         </div>
 
@@ -222,10 +275,10 @@ export const SqlCell: React.FC<SqlCellProps> = ({
             <PlayButton
               cell={cell}
               autoFocus={autoFocus}
-              onExecute={executeQuery}
-              onInterrupt={interruptQuery}
+              onExecute={executeAiPrompt}
+              onInterrupt={interruptAiCell}
               className="mobile-play-btn block sm:hidden"
-              primaryColor="text-blue-600"
+              primaryColor="text-purple-600"
             />
           }
         />
@@ -237,17 +290,17 @@ export const SqlCell: React.FC<SqlCellProps> = ({
         <div
           className="desktop-play-btn absolute -left-3 z-10 hidden sm:block"
           style={{
-            top: cell.sourceVisible ? "0.35rem" : "-1.5rem",
+            top: cell.sourceVisible ? "0.3rem" : "-1.5rem",
           }}
         >
           <PlayButton
             cell={cell}
             autoFocus={autoFocus}
-            onExecute={executeQuery}
-            onInterrupt={interruptQuery}
+            onExecute={executeAiPrompt}
+            onInterrupt={interruptAiCell}
             size="default"
             className="h-6 w-6 rounded-sm border-0 bg-white p-0 transition-colors hover:bg-white"
-            primaryColor="text-blue-600"
+            primaryColor="text-purple-600"
           />
         </div>
 
@@ -257,15 +310,15 @@ export const SqlCell: React.FC<SqlCellProps> = ({
             <div className="relative min-h-[1.5rem]">
               <CodeMirrorEditor
                 className="text-base sm:text-sm"
-                language="sql"
-                placeholder="Enter your SQL query here..."
-                value={localQuery}
+                language="markdown"
+                placeholder="Ask me anything about your notebook, data, or analysis..."
+                value={localSource}
                 onValueChange={handleSourceChange}
                 autoFocus={autoFocus}
                 onFocus={handleFocus}
                 keyMap={keyMap}
-                onBlur={updateQuery}
-                enableLineWrapping={false}
+                onBlur={updateSource}
+                enableLineWrapping={true}
               />
             </div>
           </div>
@@ -280,17 +333,17 @@ export const SqlCell: React.FC<SqlCellProps> = ({
           <div className="text-muted-foreground flex items-center justify-between pb-1 text-xs">
             <span>
               {cell.executionState === "running"
-                ? "Executing SQL query..."
+                ? "Generating AI response..."
                 : cell.executionState === "queued"
-                  ? "Queued for execution"
+                  ? "Queued for AI processing"
                   : cell.executionCount
                     ? cell.lastExecutionDurationMs
-                      ? `Executed in ${
+                      ? `Generated in ${
                           cell.lastExecutionDurationMs < 1000
                             ? `${cell.lastExecutionDurationMs}ms`
                             : `${(cell.lastExecutionDurationMs / 1000).toFixed(1)}s`
                         }`
-                      : "Executed"
+                      : "Generated"
                     : null}
             </span>
             {(outputs.length > 0 || cell.executionState === "running") && (
@@ -298,8 +351,8 @@ export const SqlCell: React.FC<SqlCellProps> = ({
                 {!cell.outputVisible && hasOutputs && (
                   <span className="text-muted-foreground text-xs">
                     {outputs.length === 1
-                      ? "1 result hidden"
-                      : `${outputs.length} results hidden`}
+                      ? "1 response hidden"
+                      : `${outputs.length} responses hidden`}
                   </span>
                 )}
                 <Button
@@ -311,7 +364,7 @@ export const SqlCell: React.FC<SqlCellProps> = ({
                       ? "opacity-100"
                       : "opacity-100 sm:opacity-0 sm:group-hover:opacity-100"
                   } ${cell.outputVisible ? "" : "text-muted-foreground/60"}`}
-                  title={cell.outputVisible ? "Hide results" : "Show results"}
+                  title={cell.outputVisible ? "Hide response" : "Show response"}
                 >
                   {cell.outputVisible ? (
                     <ChevronUp className="h-4 w-4 sm:h-3 sm:w-3" />
