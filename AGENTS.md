@@ -103,7 +103,7 @@ multiple runtimes during transitions.
 ```bash
 # Setup
 pnpm install  # Install dependencies
-cp .env.example .env  # Copy environment configuration  
+cp .env.example .env  # Copy environment configuration
 cp .dev.vars.example .dev.vars
 
 # Start development (single server with integrated backend)

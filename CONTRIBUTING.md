@@ -41,7 +41,7 @@ pnpm install
 You need to copy the environment configuration files manually:
 
 ```bash
-# Copy environment configuration files  
+# Copy environment configuration files
 cp .env.example .env
 cp .dev.vars.example .dev.vars
 ```
@@ -115,7 +115,7 @@ Use this when developing locally with both Anode and Runt repositories side-by-s
 
 We use a unified Cloudflare Worker architecture that serves both the web client and backend API. Deploy with:
 
-- **Production**: `pnpm deploy:production` 
+- **Production**: `pnpm deploy:production`
 - **Preview**: `pnpm deploy:preview`
 
 The deployment process builds the web client and deploys the all-in-one worker to Cloudflare.

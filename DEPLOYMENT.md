@@ -249,12 +249,12 @@ echo "your-google-client-secret" | pnpm wrangler secret put GOOGLE_CLIENT_SECRET
 
 ### Deployment Issues
 
-| Problem               | Solution                                        |
-| --------------------- | ----------------------------------------------- |
-| Missing database ID   | Create D1 database and update `wrangler.toml`   |
-| Missing R2 bucket     | Create R2 bucket and update `wrangler.toml`     |
-| Authentication errors | Set required secrets with `wrangler secret put` |
-| Build failures        | Run `pnpm build:production` locally to check for errors |
+| Problem                   | Solution                                                         |
+| ------------------------- | ---------------------------------------------------------------- |
+| Missing database ID       | Create D1 database and update `wrangler.toml`                    |
+| Missing R2 bucket         | Create R2 bucket and update `wrangler.toml`                      |
+| Authentication errors     | Set required secrets with `wrangler secret put`                  |
+| Build failures            | Run `pnpm build:production` locally to check for errors          |
 | Environment config errors | Use `pnpm deploy:production` instead of direct wrangler commands |
 
 ### Artifact Storage Issues

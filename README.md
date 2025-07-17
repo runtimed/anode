@@ -72,6 +72,7 @@ pnpm dev
 ```
 
 The example files contain sensible defaults that work for local development out of the box:
+
 - `.env.example` → `.env` - Frontend environment variables (Vite)
 - `.dev.vars.example` → `.dev.vars` - Backend environment variables (Worker)
 
@@ -207,7 +208,7 @@ Python runtime and AI features are handled by the separate [@runt packages](http
 | Schema version mismatches | Ensure all services (web, runtime, sync) are restarted after schema changes |
 | Type errors               | TypeScript catches invalid queries at compile time - check column names     |
 | Execution not working     | Check @runt runtime setup - see https://github.com/runtimed/runt            |
-| Dev server crashes        | Restart with `pnpm dev` - .env file changes are ignored to prevent crashes |
+| Dev server crashes        | Restart with `pnpm dev` - .env file changes are ignored to prevent crashes  |
 | Stale state               | Run `pnpm reset-storage`                                                    |
 | Build errors              | Run `pnpm build` to check for TypeScript issues                             |
 

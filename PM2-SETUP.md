@@ -90,12 +90,14 @@ ANODE_DEV_SERVER_PORT=5174 pnpm dev:pm2
 ## PM2 vs Integrated Server
 
 ### Integrated Server (`pnpm dev`)
+
 - **Simplified workflow**: Single command to start everything
 - **Hot reload stability**: Environment file changes are ignored to prevent crashes
 - **Better error handling**: Unified error reporting and recovery
 - **Faster startup**: No PM2 overhead or process coordination
 
 ### PM2 Advantages
+
 - **Automatic browser launching**: Opens incognito windows for testing
 - **Schema development**: Automatic restarts when schema changes
 - **Process isolation**: Better debugging with separate process logs
@@ -169,11 +171,13 @@ pnpm exec pm2 restart all
 ## Switching Between PM2 and Integrated Server
 
 ### From PM2 to Integrated Server
+
 1. **Stop PM2 processes**: `pnpm exec pm2 stop all && pnpm exec pm2 delete all`
 2. **Start integrated server**: `pnpm dev`
 3. **Start runtime manually**: Get command from notebook UI, then run `NOTEBOOK_ID=your-id pnpm dev:runtime`
 
 ### From Integrated Server to PM2
+
 1. **Stop integrated server**: `Ctrl+C` in the terminal
 2. **Start PM2**: `pnpm dev:pm2`
 3. **Runtime starts automatically**: PM2 handles runtime startup and browser launching
