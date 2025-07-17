@@ -1,19 +1,24 @@
+import { CellData } from "@runt/schema";
 import React, {
   useCallback,
+  useEffect,
+  useLayoutEffect,
   useMemo,
   useRef,
-  useEffect,
   useState,
-  useLayoutEffect,
 } from "react";
-import { CellData } from "@runt/schema";
-import { Cell } from "./cell/Cell.js";
 import { ErrorBoundary } from "react-error-boundary";
+import { Cell } from "./cell/Cell.js";
+import { CellBetweener } from "./cell/CellBetweener.js";
 
 interface VirtualizedCellListProps {
   cells: CellData[];
   focusedCellId: string | null;
-  onAddCell: (afterCellId?: string, cellType?: string) => void;
+  onAddCell: (
+    cellId?: string,
+    cellType?: string,
+    position?: "before" | "after"
+  ) => void;
   onDeleteCell: (cellId: string) => void;
   onMoveUp: (cellId: string) => void;
   onMoveDown: (cellId: string) => void;
@@ -263,7 +268,7 @@ export const VirtualizedCellList: React.FC<VirtualizedCellListProps> = ({
 
   const cellElements = useMemo(
     () =>
-      visibleCells.map((cell) => (
+      visibleCells.map((cell, index) => (
         <div
           key={cell.id}
           ref={(el) => measureCellHeight(cell.id, el)}
@@ -271,6 +276,7 @@ export const VirtualizedCellList: React.FC<VirtualizedCellListProps> = ({
             marginBottom: "1rem", // Add spacing between cells
           }}
         >
+          <CellBetweener cell={cell} onAddCell={onAddCell} />
           <ErrorBoundary fallback={<div>Error rendering cell</div>}>
             <MemoizedCell
               cell={cell}
@@ -312,11 +318,7 @@ export const VirtualizedCellList: React.FC<VirtualizedCellListProps> = ({
   // If we have fewer cells than threshold, render normally
   if (!shouldVirtualize) {
     return (
-      <div
-        ref={containerRef}
-        className="space-y-4"
-        style={{ paddingLeft: "1rem" }}
-      >
+      <div ref={containerRef} style={{ paddingLeft: "1rem" }}>
         {cellElements}
       </div>
     );
@@ -325,7 +327,6 @@ export const VirtualizedCellList: React.FC<VirtualizedCellListProps> = ({
   return (
     <div
       ref={containerRef}
-      className="space-y-4"
       style={{
         paddingLeft: "1rem",
       }}

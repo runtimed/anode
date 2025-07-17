@@ -149,19 +149,24 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
 
   const addCell = useCallback(
     (
-      afterCellId?: string,
-      cellType: "code" | "markdown" | "sql" | "ai" = "code"
+      cellId?: string,
+      cellType: "code" | "markdown" | "sql" | "ai" = "code",
+      position: "before" | "after" = "after"
     ) => {
-      const cellId = `cell-${Date.now()}-${Math.random()
+      const newCellId = `cell-${Date.now()}-${Math.random()
         .toString(36)
         .slice(2)}`;
 
       let newPosition: number;
-      if (afterCellId) {
+      if (cellId) {
         // Find the current cell and insert after it
-        const currentCell = cells.find((c: CellData) => c.id === afterCellId);
+        const currentCell = cells.find((c: CellData) => c.id === cellId);
         if (currentCell) {
-          newPosition = currentCell.position + 1;
+          if (position === "before") {
+            newPosition = currentCell.position;
+          } else {
+            newPosition = currentCell.position + 1;
+          }
           // Shift all subsequent cells down by 1
           const cellsToShift = cells.filter(
             (c: CellData) => c.position >= newPosition
@@ -187,7 +192,7 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
 
       store.commit(
         events.cellCreated({
-          id: cellId,
+          id: newCellId,
           position: newPosition,
           cellType,
           createdBy: currentUserId,
@@ -198,7 +203,7 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
       prefetchOutputsAdaptive();
 
       // Focus the new cell after creation
-      setTimeout(() => setFocusedCellId(cellId), 0);
+      setTimeout(() => setFocusedCellId(newCellId), 0);
     },
     [cells, store, currentUserId]
   );
@@ -738,10 +743,11 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
                   <VirtualizedCellList
                     cells={cells}
                     focusedCellId={focusedCellId}
-                    onAddCell={(afterCellId, cellType) =>
+                    onAddCell={(afterCellId, cellType, position) =>
                       addCell(
                         afterCellId,
-                        cellType as "code" | "markdown" | "sql" | "ai"
+                        cellType as "code" | "markdown" | "sql" | "ai",
+                        position
                       )
                     }
                     onDeleteCell={deleteCell}
