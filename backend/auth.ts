@@ -11,7 +11,7 @@ export function validateProductionEnvironment(env: any): void {
         "⚠️ GOOGLE_CLIENT_SECRET not set in production - Google OAuth validation may be limited"
       );
     }
-    console.log("✅ Production environment validation passed");
+    // Production environment validation passed
   }
 }
 
@@ -98,13 +98,7 @@ export async function validateAuthPayload(
   payload: AuthPayload,
   env: any
 ): Promise<ValidatedUser> {
-  console.log("🔐 Starting auth validation:", {
-    hasPayload: !!payload,
-    hasAuthToken: !!payload?.authToken,
-    isRuntime: payload?.runtime === true,
-    hasGoogleClientId: !!env.GOOGLE_CLIENT_ID,
-    hasEnvAuthToken: !!env.AUTH_TOKEN,
-  });
+  // Starting auth validation
 
   if (!payload?.authToken) {
     console.error("❌ Missing auth token in payload");
@@ -114,11 +108,6 @@ export async function validateAuthPayload(
   }
 
   const token = payload.authToken;
-  console.log("🎫 Token info:", {
-    tokenLength: token.length,
-    tokenStart: token.substring(0, 10) + "...",
-    isJWT: token.startsWith("eyJ"),
-  });
 
   // For runtime agents, always allow service token authentication
   if (payload.runtime === true) {
@@ -158,12 +147,12 @@ export async function validateAuthPayload(
         isAnonymous: false,
       };
     }
-    console.log("⚠️ Google OAuth validation failed, trying fallback");
+    // Google OAuth validation failed, trying fallback
   }
 
   // Fallback to simple token validation (for local development)
   if (env.AUTH_TOKEN && token === env.AUTH_TOKEN) {
-    console.log("✅ Authenticated with fallback token");
+    // Authenticated with fallback token
     return {
       id: "local-dev-user",
       email: "local@example.com",

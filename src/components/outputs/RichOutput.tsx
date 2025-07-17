@@ -126,15 +126,33 @@ export const RichOutput: React.FC<RichOutputProps> = ({
       (value: any) => isInlineContainer(value) || isArtifactContainer(value)
     );
 
+    // After the hasContainers check, before the else block
     if (hasContainers) {
-      // Convert from media containers to rendering format
-      for (const [mimeType, container] of Object.entries(potentialContainers)) {
-        if (isInlineContainer(container)) {
-          outputData[mimeType] = container.data;
-        } else if (isArtifactContainer(container)) {
-          // For artifacts, we'll need to handle them differently
-          // For now, just mark as artifact reference
-          outputData[mimeType] = `[Artifact: ${container.artifactId}]`;
+      // Check if we have numbered indices (character-by-character response)
+      const keys = Object.keys(potentialContainers);
+      const hasNumberedIndices = keys.every(key => /^\d+$/.test(key));
+
+      if (hasNumberedIndices) {
+        // Concatenate all character data into a single text/markdown output
+        const sortedKeys = keys.sort((a, b) => parseInt(a) - parseInt(b));
+        let concatenatedText = '';
+
+        for (const key of sortedKeys) {
+          const container = potentialContainers[key];
+          if (isInlineContainer(container)) {
+            concatenatedText += container.data;
+          }
+        }
+
+        outputData = { "text/markdown": concatenatedText };
+      } else {
+        // Original media container processing
+        for (const [mimeType, container] of Object.entries(potentialContainers)) {
+          if (isInlineContainer(container)) {
+            outputData[mimeType] = container.data;
+          } else if (isArtifactContainer(container)) {
+            outputData[mimeType] = `[Artifact: ${container.artifactId}]`;
+          }
         }
       }
     } else {
@@ -300,24 +318,4 @@ export const RichOutput: React.FC<RichOutputProps> = ({
       <div className="max-w-full overflow-hidden">{renderContent()}</div>
     </div>
   );
-};
-
-// Helper function to create rich output data
-export const createRichOutput = (
-  content: string,
-  mediaType: string = "text/plain"
-) => {
-  return {
-    [mediaType]: content,
-  };
-};
-
-// Helper function to create markdown output
-export const createMarkdownOutput = (markdown: string) => {
-  return createRichOutput(markdown, "text/markdown");
-};
-
-// Helper function to create SVG output
-export const createSvgOutput = (svg: string) => {
-  return createRichOutput(svg, "image/svg+xml");
 };

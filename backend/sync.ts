@@ -6,10 +6,10 @@ import { validateAuthPayload, validateProductionEnvironment } from "./auth";
 
 export class WebSocketServer extends makeDurableObject({
   onPush: async (message) => {
-    console.log("onPush", message.batch);
+    // Handle push message
   },
   onPull: async (message) => {
-    console.log("onPull", message);
+    // Handle pull message
   },
 }) {}
 
@@ -96,11 +96,7 @@ export default {
       url.pathname.startsWith("/api/") ||
       request.headers.get("upgrade") === "websocket"
     ) {
-      console.log("🚀 Routing to LiveStore worker:", {
-        isWebSocket: request.headers.get("upgrade") === "websocket",
-        pathname: url.pathname,
-        searchParams: url.searchParams.toString(),
-      });
+      // Routing to LiveStore worker
 
       const worker = makeWorker({
         validatePayload: async (payload: any) => {
@@ -178,11 +174,7 @@ export default {
 
       try {
         const response = await worker.fetch(request, env, ctx);
-        console.log("📤 LiveStore worker response:", {
-          status: response.status,
-          statusText: response.statusText,
-          headers: Object.fromEntries(response.headers.entries()),
-        });
+        // LiveStore worker response received
 
         // Don't modify headers for WebSocket upgrade responses (status 101)
         // The headers are immutable after protocol switch
@@ -205,7 +197,7 @@ export default {
 
     // Handle debug endpoints
     if (url.pathname === "/debug/auth" && request.method === "POST") {
-      console.log("🔧 Debug auth endpoint called");
+      // Debug auth endpoint called
       try {
         const body = (await request.json()) as { authToken?: string };
         const authToken = body.authToken;
@@ -298,7 +290,7 @@ export default {
       }
     }
 
-    console.log("❌ Request not handled, returning 404:", url.pathname);
+    // Request not handled, returning 404
     // Return 404 for non-API routes (web client now served by Pages)
     return new Response("Not Found", {
       status: 404,

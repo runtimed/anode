@@ -197,6 +197,54 @@ The `@runt/schema` package provides shared types and events between Anode and Ru
 
 **Important**: Ensure both repositories use compatible schema versions. Type errors usually indicate schema mismatches.
 
+## 🚀 Groq AI Integration
+
+Anode supports **Groq** as a first-class AI provider alongside OpenAI and Ollama, offering high-speed inference with advanced models.
+
+### Available Groq Models
+- **moonshotai/kimi-k2-instruct** (Primary) - Advanced reasoning and tool calling
+- **llama3-8b-8192** - Fast general-purpose model  
+- **llama3-70b-8192** - High-performance large model
+- **mixtral-8x7b-32768** - Mixture of experts model
+- **gemma2-9b-it** - Efficient instruction-following model
+
+### Quick Setup
+
+1. **Get Groq API Key**: Sign up at [console.groq.com](https://console.groq.com) and create an API key
+
+2. **Configure Environment**: Add to `/runt/.env`:
+   ```bash
+   GROQ_API_KEY=your_groq_api_key_here
+   LIVESTORE_SYNC_URL=ws://localhost:8787/livestore
+   ```
+
+3. **Start Services**:
+   ```bash
+   # Terminal 1: Sync service
+   cd anode && pnpm run dev:sync
+   
+   # Terminal 2: Web client  
+   pnpm run dev:web
+   
+   # Terminal 3: Runtime with Groq support
+   cd ../runt
+   nohup bash -c "source .env && NOTEBOOK_ID=notebook-groq-$(date +%s) deno run --allow-all --env-file=.env packages/pyodide-runtime-agent/src/mod.ts" > runtime.log 2>&1 &
+   ```
+
+4. **Access**: Visit `http://localhost:5173/?notebook=notebook-groq-[timestamp]`
+
+### Features
+- ✅ **All 5 Groq models** available in AI cell dropdown
+- ✅ **High-speed inference** - Typical response times 1-3 seconds
+- ✅ **Tool calling support** - AI can create and modify code cells
+- ✅ **Model persistence** - Notebooks remember your last selected model
+- ✅ **Orange provider badges** - Clear visual distinction in UI
+
+### Critical Notes
+⚠️ **Process Management**: Always run `pkill -f "pyodide-runtime-agent"` before starting new runtimes to prevent session conflicts.
+
+⚠️ **Use nohup**: For persistent runtime processes that survive across terminal commands, use `nohup` instead of screen sessions.
+
 ### Configuration
 
 Python runtime and AI features are handled by the separate [@runt packages](https://github.com/runtimed/runt). The integrated development server runs both frontend and backend in a single process for convenience.
