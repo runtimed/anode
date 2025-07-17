@@ -14,7 +14,7 @@ import {
   getNotebookAiModels,
   getProviderBadgeColor,
   getModelSizeDisplay,
-} from "../../../util/ai-models.js";
+} from "@/util/ai-models.js";
 
 interface AiToolbarProps {
   provider: string;

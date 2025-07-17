@@ -4,8 +4,8 @@ import * as Dialog from "@radix-ui/react-dialog";
 import { tables } from "@runt/schema";
 import { Maximize2, Minimize2 } from "lucide-react";
 import { useState } from "react";
-import { Button } from "../ui/button";
-import { CodeMirrorEditor } from "./codemirror/CodeMirrorEditor";
+import { Button } from "../../../ui/button";
+import { CodeMirrorEditor } from "../../codemirror/CodeMirrorEditor";
 import { ErrorBoundary } from "react-error-boundary";
 
 const ErrorFallback = () => {

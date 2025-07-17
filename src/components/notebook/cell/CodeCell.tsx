@@ -2,21 +2,21 @@ import React, { useCallback } from "react";
 import { useStore } from "@livestore/react";
 import { events, tables } from "@runt/schema";
 import { queryDb } from "@livestore/livestore";
-import { useCellKeyboardNavigation } from "../../../hooks/useCellKeyboardNavigation.js";
-import { useCellContent } from "../../../hooks/useCellContent.js";
-import { useCellOutputs } from "../../../hooks/useCellOutputs.js";
-import { CodeToolbar } from "../toolbars/CodeToolbar.js";
-import { Editor } from "../Editor.js";
-import { CellContainer } from "../shared/CellContainer.js";
-import { CellControls } from "../shared/CellControls.js";
-import { PlayButton } from "../shared/PlayButton.js";
-import { CellTypeSelector } from "../shared/CellTypeSelector.js";
+import { useCellKeyboardNavigation } from "@/hooks/useCellKeyboardNavigation.js";
+import { useCellContent } from "@/hooks/useCellContent.js";
+import { useCellOutputs } from "@/hooks/useCellOutputs.js";
+import { CodeToolbar } from "./toolbars/CodeToolbar.js";
+import { Editor } from "./shared/Editor.js";
+import { CellContainer } from "./shared/CellContainer.js";
+import { CellControls } from "./shared/CellControls.js";
+import { PlayButton } from "./shared/PlayButton.js";
+import { CellTypeSelector } from "./shared/CellTypeSelector.js";
 import { Button } from "@/components/ui/button";
 import { ChevronUp, ChevronDown } from "lucide-react";
 import { ErrorBoundary } from "react-error-boundary";
-import { OutputsErrorBoundary } from "../shared/OutputsErrorBoundary.js";
-import { useCurrentUserId } from "../../../hooks/useCurrentUser.js";
-import { ExecutionStatus } from "./ExecutionStatus.js";
+import { OutputsErrorBoundary } from "./shared/OutputsErrorBoundary.js";
+import { useCurrentUserId } from "@/hooks/useCurrentUser.js";
+import { Badge } from "@/components/ui/badge";
 
 interface CodeCellProps {
   cell: typeof tables.cells.Type;
@@ -372,4 +372,44 @@ export const CodeCell: React.FC<CodeCellProps> = ({
         )}
     </CellContainer>
   );
+};
+
+interface ExecutionStatusProps {
+  executionState: string;
+}
+
+export const ExecutionStatus: React.FC<ExecutionStatusProps> = ({
+  executionState,
+}) => {
+  switch (executionState) {
+    case "idle":
+      return null;
+    case "queued":
+      return (
+        <Badge variant="secondary" className="h-5 text-xs">
+          Queued
+        </Badge>
+      );
+    case "running":
+      return (
+        <Badge
+          variant="outline"
+          className="h-5 border-blue-200 bg-blue-50 text-xs text-blue-700"
+        >
+          <div className="mr-1 h-2 w-2 animate-spin rounded-full border border-blue-600 border-t-transparent"></div>
+          Running
+        </Badge>
+      );
+    case "error":
+      return (
+        <Badge
+          variant="outline"
+          className="h-5 border-red-200 bg-red-50 text-xs text-red-700"
+        >
+          Error
+        </Badge>
+      );
+    default:
+      return null;
+  }
 };

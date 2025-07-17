@@ -1,5 +1,5 @@
 // Re-export AnsiOutput from the notebook folder for convenience
-export { AnsiStreamOutput } from "../notebook/cell/AnsiOutput.js";
+export { AnsiStreamOutput } from "./AnsiOutput.js";
 
 // Note: Heavy output components are now dynamically imported in RichOutput.tsx
 // to reduce bundle size. They are no longer exported from this index file.
