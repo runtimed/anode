@@ -192,7 +192,7 @@ const LiveStoreApp: React.FC = () => {
       )}
       batchUpdates={batchUpdates}
       storeId={storeId}
-      syncPayload={{ authToken: currentAuthToken }}
+      syncPayload={{ authToken: currentAuthToken, clientId }}
     >
       <NotebookApp />
     </LiveStoreProvider>

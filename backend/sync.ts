@@ -22,12 +22,7 @@ export class WebSocketServer extends makeDurableObject({
   },
   onPull: async (message) => {
     console.log("onPull", message);
-
-    // Log clientId for attribution tracking (if available)
-    const clientId = (message as any).clientId;
-    if (clientId) {
-      console.log("📥 Pull request from clientId:", clientId);
-    }
+    // Note: Pull message structure may vary - clientId tracking happens during auth
   },
 }) {}
 
@@ -126,21 +121,47 @@ export default {
             hasAuthToken: !!payload?.authToken,
             authTokenLength: payload?.authToken?.length || 0,
             isRuntime: payload?.runtime === true,
+            hasClientId: !!payload?.clientId,
+            clientId: payload?.clientId,
           });
           try {
             const validatedUser = await validateAuthPayload(payload, env);
+
+            // Validate clientId matches authenticated user
+            const clientId = payload?.clientId;
+            if (clientId && validatedUser.id !== "runtime-agent") {
+              // For regular users, ensure clientId matches their authenticated ID
+              if (clientId !== validatedUser.id) {
+                // Allow some flexibility for anonymous users
+                if (
+                  validatedUser.isAnonymous &&
+                  (clientId === "anonymous-user" ||
+                    clientId.startsWith("session-") ||
+                    clientId.startsWith("client-"))
+                ) {
+                  console.log(
+                    "✅ Anonymous user clientId acceptable:",
+                    clientId
+                  );
+                } else {
+                  console.error("🚫 ClientId attribution mismatch:", {
+                    clientId,
+                    authenticatedUserId: validatedUser.id,
+                    userEmail: validatedUser.email,
+                  });
+                  throw new Error(
+                    `CLIENT_ID_MISMATCH: Client ID '${clientId}' does not match authenticated user '${validatedUser.id}'`
+                  );
+                }
+              }
+            }
+
             console.log("✅ Payload validation successful for user:", {
               userId: validatedUser.id,
               isAnonymous: validatedUser.isAnonymous,
               email: validatedUser.email,
+              clientId,
             });
-
-            // Store validated user for potential clientId correlation
-            // Note: clientId is not available in validatePayload, but we can track
-            // the authentication here and correlate with clientId in onPush/onPull handlers
-            console.log(
-              "🔗 User authenticated, clientId will be validated in handlers"
-            );
           } catch (error: any) {
             console.error("🚫 Authentication failed:", error.message);
             throw error;
