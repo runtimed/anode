@@ -12,6 +12,12 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), "");
 
+  // Extract domain/port from WebSocket URL and build HTTP URL
+  const livestoreUrl = env.LIVESTORE_SYNC_URL || "ws://localhost:8787";
+  const urlParts = new URL(livestoreUrl);
+  const isSecure = urlParts.protocol === "wss:";
+  const syncUrl = `${isSecure ? "https" : "http"}://${urlParts.host}`;
+
   return {
     build: {
       sourcemap: true,
@@ -23,6 +29,30 @@ export default defineConfig(({ mode }) => {
       watch: {
         ignored: ["!**/node_modules/@runt/schema/mod.ts"],
         followSymlinks: true,
+      },
+      // Proxy API requests to the backend using LIVESTORE_SYNC_URL
+      proxy: {
+        "/api": {
+          target: syncUrl,
+          changeOrigin: true,
+          secure: false,
+        },
+        "/livestore": {
+          target: syncUrl,
+          changeOrigin: true,
+          secure: false,
+          ws: true, // Enable WebSocket proxying
+        },
+        "/health": {
+          target: syncUrl,
+          changeOrigin: true,
+          secure: false,
+        },
+        "/debug": {
+          target: syncUrl,
+          changeOrigin: true,
+          secure: false,
+        },
       },
     },
     worker: { format: "es" },

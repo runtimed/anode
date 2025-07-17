@@ -17,6 +17,7 @@ describe("Artifact Service", () => {
 
     mockEnv = {
       AUTH_TOKEN: "test-token",
+      GOOGLE_CLIENT_ID: "test-client-id",
       ARTIFACT_BUCKET: mockR2Bucket as any,
     } as Env;
   });
@@ -54,7 +55,12 @@ describe("Artifact Service", () => {
     mockR2Bucket.get.mockResolvedValue(mockArtifact);
 
     const request = new Request(
-      "http://localhost/api/artifacts/test-notebook/uuid-123"
+      "http://localhost/api/artifacts/test-notebook/uuid-123",
+      {
+        headers: {
+          cookie: "auth_token=test-token",
+        },
+      }
     );
 
     const response = await artifactWorker.fetch(request, mockEnv, {} as any);

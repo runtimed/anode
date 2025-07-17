@@ -3,3 +3,21 @@
 # This file SHOULD NOT contain real production secrets.
 
 AUTH_TOKEN="insecure-token-change-me"
+
+# Google OAuth Configuration
+GOOGLE_CLIENT_ID=""
+GOOGLE_CLIENT_SECRET=""
+
+# Development Configuration
+DEPLOYMENT_ENV="development"
+ANODE_DEV_SERVER_PORT="5173"
+ANODE_SYNC_WORKER_PORT="8787"
+
+# Auth Configuration
+# Set to "true" to use secure backend cookies in development
+# (requires Vite proxy configuration)
+# Set to "false" to use client-side cookies for development
+VITE_USE_COOKIE_AUTH="false"
+VITE_GOOGLE_AUTH_ENABLED="true"
+VITE_GOOGLE_CLIENT_ID=""
+VITE_AUTH_TOKEN="insecure-token-change-me"

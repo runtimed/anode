@@ -98,17 +98,19 @@ class GoogleAuthManager {
           expires: 30, // 30 days for better UX
         });
 
-        // Also send to backend for secure HttpOnly storage (async, don't wait)
-        fetch("/api/auth/signin", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          credentials: "include",
-          body: JSON.stringify({
-            authToken: response.credential,
-          }),
-        }).catch(console.error);
+        // Send to backend for secure HttpOnly storage only if configured
+        if (shouldUseBackendCookies()) {
+          fetch("/api/auth/signin", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            credentials: "include",
+            body: JSON.stringify({
+              authToken: response.credential,
+            }),
+          }).catch(console.error);
+        }
 
         // Store user info in client-accessible cookie for UI
         Cookies.set("google_auth_user", JSON.stringify(this.currentUser), {
@@ -296,11 +298,13 @@ class GoogleAuthManager {
       Cookies.remove("google_auth_token");
       Cookies.remove("google_auth_user");
 
-      // Also clear backend cookies (async, don't wait)
-      fetch("/api/auth/signout", {
-        method: "POST",
-        credentials: "include",
-      }).catch(console.error);
+      // Clear backend cookies only if configured
+      if (shouldUseBackendCookies()) {
+        fetch("/api/auth/signout", {
+          method: "POST",
+          credentials: "include",
+        }).catch(console.error);
+      }
 
       // Notify listeners that token was cleared
       this.notifyTokenChange(null);
@@ -433,11 +437,13 @@ class GoogleAuthManager {
     Cookies.remove("google_auth_token");
     Cookies.remove("google_auth_user");
 
-    // Clear backend cookies too (async, don't wait)
-    fetch("/api/auth/signout", {
-      method: "POST",
-      credentials: "include",
-    }).catch(console.error);
+    // Clear backend cookies only if configured
+    if (shouldUseBackendCookies()) {
+      fetch("/api/auth/signout", {
+        method: "POST",
+        credentials: "include",
+      }).catch(console.error);
+    }
 
     if (this.refreshTimeout) {
       clearTimeout(this.refreshTimeout);
@@ -483,6 +489,15 @@ const getAuthConfig = (): GoogleAuthConfig => {
     clientId: clientId || "",
     enabled: enabled && !!clientId,
   };
+};
+
+// Check if we should use backend cookie auth (production) or client-side (development)
+const shouldUseBackendCookies = (): boolean => {
+  const useCookieAuth = import.meta.env.VITE_USE_COOKIE_AUTH === "true";
+  const isProduction = import.meta.env.PROD;
+
+  // Use backend cookies in production or if explicitly enabled
+  return isProduction || useCookieAuth;
 };
 
 // Create singleton instance
