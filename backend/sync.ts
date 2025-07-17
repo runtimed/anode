@@ -5,10 +5,10 @@ import { Env } from "./types";
 import { validateAuthPayload, validateProductionEnvironment } from "./auth";
 
 export class WebSocketServer extends makeDurableObject({
-  onPush: async (message) => {
+  onPush: async (_message) => {
     // Handle push message
   },
-  onPull: async (message) => {
+  onPull: async (_message) => {
     // Handle pull message
   },
 }) {}
