@@ -1,24 +1,24 @@
-import React, { useCallback } from "react";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { useCellContent } from "@/hooks/useCellContent.js";
+import { useCellKeyboardNavigation } from "@/hooks/useCellKeyboardNavigation.js";
+import { useCellOutputs } from "@/hooks/useCellOutputs.js";
+import { useCurrentUserId } from "@/hooks/useCurrentUser.js";
+import { queryDb } from "@livestore/livestore";
 import { useStore } from "@livestore/react";
 import { events, tables } from "@runt/schema";
-import { queryDb } from "@livestore/livestore";
-import { useCellKeyboardNavigation } from "../../hooks/useCellKeyboardNavigation.js";
-import { useCellContent } from "../../hooks/useCellContent.js";
-import { useCellOutputs } from "../../hooks/useCellOutputs.js";
-import { useAvailableAiModels } from "../../util/ai-models.js";
-import { AiToolbar } from "./toolbars/AiToolbar.js";
-import { CodeMirrorEditor } from "./codemirror/CodeMirrorEditor.js";
+import { ChevronDown, ChevronUp } from "lucide-react";
+import React, { useCallback } from "react";
+import { ErrorBoundary } from "react-error-boundary";
 import { CellContainer } from "./shared/CellContainer.js";
 import { CellControls } from "./shared/CellControls.js";
-import { PlayButton } from "./shared/PlayButton.js";
-import { AiCellTypeSelector } from "./shared/AiCellTypeSelector.js";
-import { Button } from "@/components/ui/button";
-import { ChevronUp, ChevronDown } from "lucide-react";
-import { ErrorBoundary } from "react-error-boundary";
+import { CellTypeSelector } from "./shared/CellTypeSelector.js";
+import { Editor } from "./shared/Editor.js";
 import { OutputsErrorBoundary } from "./shared/OutputsErrorBoundary.js";
-import { useCurrentUserId } from "../../hooks/useCurrentUser.js";
+import { PlayButton } from "./shared/PlayButton.js";
+import { CodeToolbar } from "./toolbars/CodeToolbar.js";
 
-interface AiCellProps {
+interface CodeCellProps {
   cell: typeof tables.cells.Type;
   onAddCell: () => void;
   onDeleteCell: () => void;
@@ -31,7 +31,7 @@ interface AiCellProps {
   contextSelectionMode?: boolean;
 }
 
-export const AiCell: React.FC<AiCellProps> = ({
+export const CodeCell: React.FC<CodeCellProps> = ({
   cell,
   onAddCell,
   onDeleteCell,
@@ -46,27 +46,59 @@ export const AiCell: React.FC<AiCellProps> = ({
   const { store } = useStore();
   const currentUserId = useCurrentUserId();
 
-  // Get AI model settings
-  const provider = cell.aiProvider || "openai";
-  const model = cell.aiModel || "gpt-4o-mini";
-
-  // Get available AI models from runtime capabilities
-  const { models: _ } = useAvailableAiModels();
-
   // Use shared content management hook
   const { localSource, updateSource, handleSourceChange } = useCellContent({
     cellId: cell.id,
     initialSource: cell.source,
   });
 
-  // Use shared outputs hook with AI-specific configuration
+  // Use shared outputs hook with code-specific configuration
   const { outputs, hasOutputs, MaybeOutputs } = useCellOutputs({
     cellId: cell.id,
-    groupConsecutiveStreams: false,
+    groupConsecutiveStreams: true,
     enableErrorOutput: true,
     enableTerminalOutput: true,
-    mobileStyle: "chat-bubble",
+    mobileStyle: "default",
   });
+
+  const changeCellType = useCallback(
+    (newType: "code" | "markdown" | "sql" | "ai") => {
+      store.commit(
+        events.cellTypeChanged({
+          id: cell.id,
+          cellType: newType,
+        })
+      );
+    },
+    [cell.id, store]
+  );
+
+  const toggleSourceVisibility = useCallback(() => {
+    store.commit(
+      events.cellSourceVisibilityToggled({
+        id: cell.id,
+        sourceVisible: !cell.sourceVisible,
+      })
+    );
+  }, [cell.id, cell.sourceVisible, store]);
+
+  const toggleOutputVisibility = useCallback(() => {
+    store.commit(
+      events.cellOutputVisibilityToggled({
+        id: cell.id,
+        outputVisible: !cell.outputVisible,
+      })
+    );
+  }, [cell.id, cell.outputVisible, store]);
+
+  const toggleAiContextVisibility = useCallback(() => {
+    store.commit(
+      events.cellAiContextVisibilityToggled({
+        id: cell.id,
+        aiContextVisible: !cell.aiContextVisible,
+      })
+    );
+  }, [cell.id, cell.aiContextVisible, store]);
 
   const clearCellOutputs = useCallback(async () => {
     if (hasOutputs) {
@@ -80,7 +112,7 @@ export const AiCell: React.FC<AiCellProps> = ({
     }
   }, [cell.id, store, hasOutputs, currentUserId]);
 
-  const executeAiPrompt = useCallback(async () => {
+  const executeCell = useCallback(async () => {
     // Use localSource instead of cell.source to get the current typed content
     const sourceToExecute = localSource || cell.source;
     if (!sourceToExecute?.trim()) {
@@ -112,8 +144,15 @@ export const AiCell: React.FC<AiCellProps> = ({
           requestedBy: currentUserId,
         })
       );
+
+      // The runtime service will now:
+      // 1. See the pending execution in the queue
+      // 2. Assign itself to the execution
+      // 3. Execute the code
+      // 4. Emit execution events and cell outputs
+      // 5. All clients will see the results in real-time!
     } catch (error) {
-      console.error("❌ LiveStore AI execution error:", error);
+      console.error("❌ LiveStore execution error:", error);
 
       // Store error information directly
       store.commit(
@@ -124,11 +163,11 @@ export const AiCell: React.FC<AiCellProps> = ({
           content: {
             type: "inline",
             data: {
-              ename: "AIExecutionError",
+              ename: "LiveStoreError",
               evalue:
                 error instanceof Error
                   ? error.message
-                  : "Failed to queue AI execution request",
+                  : "Failed to queue execution request",
               traceback: ["Error occurred while emitting LiveStore event"],
             },
           },
@@ -144,7 +183,7 @@ export const AiCell: React.FC<AiCellProps> = ({
     currentUserId,
   ]);
 
-  const interruptAiCell = useCallback(async () => {
+  const interruptCell = useCallback(async () => {
     // Find the current execution in the queue for this cell
     const executionQueue = store.query(
       queryDb(tables.executionQueue.select().where({ cellId: cell.id }))
@@ -163,7 +202,7 @@ export const AiCell: React.FC<AiCellProps> = ({
           queueId: currentExecution.id,
           cellId: cell.id,
           cancelledBy: currentUserId,
-          reason: "User interrupted AI execution",
+          reason: "User interrupted execution",
         })
       );
     }
@@ -174,90 +213,29 @@ export const AiCell: React.FC<AiCellProps> = ({
     onFocusNext,
     onFocusPrevious,
     onDeleteCell,
-    onExecute: executeAiPrompt,
+    onExecute: executeCell,
     onUpdateSource: updateSource,
   });
 
   const handleFocus = useCallback(() => {
-    if (onFocus) {
-      onFocus();
-    }
+    onFocus?.();
   }, [onFocus]);
-
-  const changeProvider = useCallback(
-    (newProvider: string, newModel: string) => {
-      store.commit(
-        events.aiSettingsChanged({
-          cellId: cell.id,
-          provider: newProvider,
-          model: newModel,
-          settings: {
-            temperature: 0.7,
-            maxTokens: 1000,
-          },
-        })
-      );
-    },
-    [cell.id, store]
-  );
-
-  const changeCellType = useCallback(
-    (newType: "code" | "markdown" | "sql" | "ai") => {
-      store.commit(
-        events.cellTypeChanged({
-          id: cell.id,
-          cellType: newType,
-        })
-      );
-    },
-    [cell.id, store]
-  );
-
-  const toggleSourceVisibility = useCallback(() => {
-    store.commit(
-      events.cellSourceVisibilityToggled({
-        id: cell.id,
-        sourceVisible: !cell.sourceVisible,
-      })
-    );
-  }, [cell.id, cell.sourceVisible, store]);
-
-  const toggleAiContextVisibility = useCallback(() => {
-    store.commit(
-      events.cellAiContextVisibilityToggled({
-        id: cell.id,
-        aiContextVisible: !cell.aiContextVisible,
-      })
-    );
-  }, [cell.id, cell.aiContextVisible, store]);
-
-  const toggleOutputVisibility = useCallback(() => {
-    store.commit(
-      events.cellOutputVisibilityToggled({
-        id: cell.id,
-        outputVisible: !cell.outputVisible,
-      })
-    );
-  }, [cell.id, cell.outputVisible, store]);
 
   return (
     <CellContainer
       cell={cell}
       autoFocus={autoFocus}
       contextSelectionMode={contextSelectionMode}
-      onFocus={handleFocus}
-      focusColor="bg-purple-500/60"
-      focusBgColor="bg-purple-50/30"
+      onFocus={onFocus}
+      focusColor="bg-primary/60"
+      focusBgColor="bg-primary/5"
     >
       {/* Cell Header */}
       <div className="cell-header mb-2 flex items-center justify-between pr-1 pl-6 sm:pr-4">
-        <div className="flex items-center gap-2 sm:gap-3">
-          <AiCellTypeSelector onCellTypeChange={changeCellType} />
-          <AiToolbar
-            provider={provider}
-            model={model}
-            onProviderChange={changeProvider}
-          />
+        <div className="flex items-center gap-3">
+          <CellTypeSelector cell={cell} onCellTypeChange={changeCellType} />
+          <CodeToolbar />
+          <ExecutionStatus executionState={cell.executionState} />
         </div>
 
         <CellControls
@@ -275,52 +253,49 @@ export const AiCell: React.FC<AiCellProps> = ({
             <PlayButton
               cell={cell}
               autoFocus={autoFocus}
-              onExecute={executeAiPrompt}
-              onInterrupt={interruptAiCell}
+              onExecute={executeCell}
+              onInterrupt={interruptCell}
               className="mobile-play-btn block sm:hidden"
-              primaryColor="text-purple-600"
+              primaryColor="text-foreground"
             />
           }
         />
       </div>
 
-      {/* Cell Content with Desktop Play Button */}
+      {/* Cell Content with Left Gutter Play Button - Desktop Only */}
       <div className="relative">
-        {/* Desktop Play Button Breaking Through Left Border */}
+        {/* Play Button Breaking Through Left Border - Desktop Only */}
         <div
           className="desktop-play-btn absolute -left-3 z-10 hidden sm:block"
           style={{
-            top: cell.sourceVisible ? "0.3rem" : "-1.5rem",
+            top: cell.sourceVisible ? "0.35rem" : "-1.5rem",
           }}
         >
           <PlayButton
             cell={cell}
             autoFocus={autoFocus}
-            onExecute={executeAiPrompt}
-            onInterrupt={interruptAiCell}
+            onExecute={executeCell}
+            onInterrupt={interruptCell}
             size="default"
             className="h-6 w-6 rounded-sm border-0 bg-white p-0 transition-colors hover:bg-white"
-            primaryColor="text-purple-600"
+            primaryColor="text-foreground"
           />
         </div>
 
         {/* Editor Content Area */}
         {cell.sourceVisible && (
           <div className="cell-content bg-white py-1 pl-4 transition-colors">
-            <div className="relative min-h-[1.5rem]">
-              <CodeMirrorEditor
-                className="text-base sm:text-sm"
-                language="markdown"
-                placeholder="Ask me anything about your notebook, data, or analysis..."
-                value={localSource}
-                onValueChange={handleSourceChange}
+            <ErrorBoundary fallback={<div>Error rendering editor</div>}>
+              <Editor
+                localSource={localSource}
+                handleSourceChange={handleSourceChange}
+                updateSource={updateSource}
+                handleFocus={handleFocus}
+                cell={cell}
                 autoFocus={autoFocus}
-                onFocus={handleFocus}
                 keyMap={keyMap}
-                onBlur={updateSource}
-                enableLineWrapping={true}
               />
-            </div>
+            </ErrorBoundary>
           </div>
         )}
       </div>
@@ -333,17 +308,17 @@ export const AiCell: React.FC<AiCellProps> = ({
           <div className="text-muted-foreground flex items-center justify-between pb-1 text-xs">
             <span>
               {cell.executionState === "running"
-                ? "Generating AI response..."
+                ? "Executing code..."
                 : cell.executionState === "queued"
-                  ? "Queued for AI processing"
+                  ? "Queued for execution"
                   : cell.executionCount
                     ? cell.lastExecutionDurationMs
-                      ? `Generated in ${
+                      ? `Executed in ${
                           cell.lastExecutionDurationMs < 1000
                             ? `${cell.lastExecutionDurationMs}ms`
                             : `${(cell.lastExecutionDurationMs / 1000).toFixed(1)}s`
                         }`
-                      : "Generated"
+                      : "Executed"
                     : null}
             </span>
             {(outputs.length > 0 || cell.executionState === "running") && (
@@ -351,8 +326,8 @@ export const AiCell: React.FC<AiCellProps> = ({
                 {!cell.outputVisible && hasOutputs && (
                   <span className="text-muted-foreground text-xs">
                     {outputs.length === 1
-                      ? "1 response hidden"
-                      : `${outputs.length} responses hidden`}
+                      ? "1 result hidden"
+                      : `${outputs.length} results hidden`}
                   </span>
                 )}
                 <Button
@@ -364,7 +339,7 @@ export const AiCell: React.FC<AiCellProps> = ({
                       ? "opacity-100"
                       : "opacity-100 sm:opacity-0 sm:group-hover:opacity-100"
                   } ${cell.outputVisible ? "" : "text-muted-foreground/60"}`}
-                  title={cell.outputVisible ? "Hide response" : "Show response"}
+                  title={cell.outputVisible ? "Hide results" : "Show results"}
                 >
                   {cell.outputVisible ? (
                     <ChevronUp className="h-4 w-4 sm:h-3 sm:w-3" />
@@ -378,10 +353,63 @@ export const AiCell: React.FC<AiCellProps> = ({
         </div>
       )}
 
-      {/* Outputs Section */}
-      <ErrorBoundary FallbackComponent={OutputsErrorBoundary}>
-        {cell.outputVisible && <MaybeOutputs />}
-      </ErrorBoundary>
+      {/* Output Area for Code Cells */}
+      {cell.outputVisible &&
+        (hasOutputs || cell.executionState === "running") && (
+          <div className="cell-content bg-background mt-1 max-w-full overflow-hidden px-4 sm:px-4">
+            {cell.executionState === "running" && !hasOutputs && (
+              <div className="border-l-2 border-blue-200 py-3 pl-1">
+                <div className="flex items-center gap-2">
+                  <div className="h-4 w-4 animate-spin rounded-full border-2 border-blue-600 border-t-transparent"></div>
+                  <span className="text-sm text-blue-700">Executing...</span>
+                </div>
+              </div>
+            )}
+            <ErrorBoundary FallbackComponent={OutputsErrorBoundary}>
+              {hasOutputs && <MaybeOutputs />}
+            </ErrorBoundary>
+          </div>
+        )}
     </CellContainer>
   );
+};
+
+interface ExecutionStatusProps {
+  executionState: string;
+}
+
+export const ExecutionStatus: React.FC<ExecutionStatusProps> = ({
+  executionState,
+}) => {
+  switch (executionState) {
+    case "idle":
+      return null;
+    case "queued":
+      return (
+        <Badge variant="secondary" className="h-5 text-xs">
+          Queued
+        </Badge>
+      );
+    case "running":
+      return (
+        <Badge
+          variant="outline"
+          className="h-5 border-blue-200 bg-blue-50 text-xs text-blue-700"
+        >
+          <div className="mr-1 h-2 w-2 animate-spin rounded-full border border-blue-600 border-t-transparent"></div>
+          Running
+        </Badge>
+      );
+    case "error":
+      return (
+        <Badge
+          variant="outline"
+          className="h-5 border-red-200 bg-red-50 text-xs text-red-700"
+        >
+          Error
+        </Badge>
+      );
+    default:
+      return null;
+  }
 };

@@ -1,7 +1,6 @@
 import React from "react";
 import { Button } from "@/components/ui/button";
 import { Square, Play } from "lucide-react";
-// import { TerminalPlay } from "../../ui/TerminalPlay.js";
 import { tables } from "@runt/schema";
 
 interface PlayButtonProps {

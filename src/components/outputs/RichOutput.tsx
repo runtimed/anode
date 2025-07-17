@@ -13,40 +13,48 @@ import {
   IMAGE_MIME_TYPES,
   JUPYTER_MIME_TYPES,
 } from "@runt/schema";
-import { AnsiStreamOutput } from "../outputs/index.js";
-import { AnsiErrorOutput } from "./AnsiOutput.js";
-import "../outputs/outputs.css";
+import { AnsiStreamOutput } from "@/components/outputs";
+import { AnsiErrorOutput } from "@/components/outputs/AnsiOutput.js";
+import "@/components/outputs/outputs.css";
 
 // Dynamic imports for heavy components
 const MarkdownRenderer = React.lazy(() =>
-  import("../outputs/MarkdownRenderer.js").then((m) => ({
+  import("@/components/outputs/MarkdownRenderer").then((m) => ({
     default: m.MarkdownRenderer,
   }))
 );
 const JsonOutput = React.lazy(() =>
-  import("../outputs/JsonOutput.js").then((m) => ({ default: m.JsonOutput }))
+  import("@/components/outputs/JsonOutput").then((m) => ({
+    default: m.JsonOutput,
+  }))
 );
 const AiToolCallOutput = React.lazy(() =>
-  import("../outputs/AiToolCallOutput.js").then((m) => ({
+  import("@/components/outputs/AiToolCallOutput").then((m) => ({
     default: m.AiToolCallOutput,
   }))
 );
 const AiToolResultOutput = React.lazy(() =>
-  import("../outputs/AiToolResultOutput.js").then((m) => ({
+  import("@/components/outputs/AiToolResultOutput").then((m) => ({
     default: m.AiToolResultOutput,
   }))
 );
 const HtmlOutput = React.lazy(() =>
-  import("../outputs/HtmlOutput.js").then((m) => ({ default: m.HtmlOutput }))
+  import("@/components/outputs/HtmlOutput").then((m) => ({
+    default: m.HtmlOutput,
+  }))
 );
 const ImageOutput = React.lazy(() =>
-  import("../outputs/ImageOutput.js").then((m) => ({ default: m.ImageOutput }))
+  import("@/components/outputs/ImageOutput").then((m) => ({
+    default: m.ImageOutput,
+  }))
 );
 const SvgOutput = React.lazy(() =>
-  import("../outputs/SvgOutput.js").then((m) => ({ default: m.SvgOutput }))
+  import("@/components/outputs/SvgOutput").then((m) => ({
+    default: m.SvgOutput,
+  }))
 );
 const PlainTextOutput = React.lazy(() =>
-  import("../outputs/PlainTextOutput.js").then((m) => ({
+  import("@/components/outputs/PlainTextOutput").then((m) => ({
     default: m.PlainTextOutput,
   }))
 );

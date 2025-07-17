@@ -7,7 +7,7 @@ import React, {
   useLayoutEffect,
 } from "react";
 import { CellData } from "@runt/schema";
-import { Cell } from "./Cell.js";
+import { Cell } from "./cell/Cell.js";
 import { ErrorBoundary } from "react-error-boundary";
 
 interface VirtualizedCellListProps {
