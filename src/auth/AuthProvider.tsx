@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, useCallback, ReactNode } from "react";
-import OpenidManager, { Whoami } from "./openid-manager";
+import { Whoami, getOpenIdManager } from "./openid-manager";
 
 // Placeholder types for auth state and actions
 interface AuthUser {
@@ -21,11 +21,12 @@ interface AuthContextType extends AuthState {
   signOut: () => Promise<void>;
   refreshToken: () => Promise<void>;
   register: () => Promise<void>;
+  handleRedirect: (url: URL) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-const openidManager = new OpenidManager();
+const openidManager = getOpenIdManager();
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [state, setState] = useState<AuthState>({
@@ -133,7 +134,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   }, []);
 
-  const value: AuthContextType & { handleRedirect: (url: URL) => Promise<void> } = {
+  const value: AuthContextType = {
     ...state,
     signIn,
     signOut,
