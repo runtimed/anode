@@ -19,6 +19,7 @@ interface AuthContextType extends AuthState {
   signIn: () => Promise<void>;
   signOut: () => Promise<void>;
   refreshToken: () => Promise<void>;
+  register: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -53,6 +54,18 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }));
   }, []);
 
+  const register = useCallback(async () => {
+    // TODO: Implement registration with openid-client
+    setState((prev) => ({
+      ...prev,
+      isAuthenticated: true,
+      user: { id: "demo", email: "demo@example.com", name: "Demo User" },
+      token: "demo-token",
+      isLoading: false,
+      error: null,
+    }));
+  }, []);
+
   const signOut = useCallback(async () => {
     // TODO: Implement sign-out with openid-client
     setState({
@@ -74,6 +87,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     signIn,
     signOut,
     refreshToken,
+    register,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
