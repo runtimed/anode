@@ -1,5 +1,6 @@
 import * as client from 'openid-client';
 import PromiseQueue from '../util/promise-queue';
+import { LocalStorageSync } from '../util/localstorage-proxy';
 
 interface RequestState {
   verifier: string;
@@ -10,8 +11,6 @@ interface RequestState {
 export type Whoami = Record<string, any>;
 
 const OPENID_SCOPES = 'openid email profile offline_access';
-const REQUEST_STATE_KEY = "openid_request_state";
-const TOKEN_STORAGE_KEY = "openid_tokens";
 let openidManagerSingleton: OpenidManager | undefined;
 
 export function getOpenIdManager(): OpenidManager {
@@ -22,46 +21,24 @@ export function getOpenIdManager(): OpenidManager {
 }
 
 class OpenidManager {
-  private requestState: RequestState | null = null;
+  private sync: {
+    openid_tokens: {
+      access_token: string;
+      refresh_token?: string;
+      id_token?: string;
+      expires_at: number;
+    } | null;
+    openid_request_state: RequestState | null;
+  };
   private config: client.Configuration | null = null;
-  private tokens: {
-    access_token: string;
-    refresh_token?: string;
-    id_token?: string;
-    expires_at: number;
-  } | null = null;
   private queue: PromiseQueue = new PromiseQueue();
   private oldCodes: Set<string> = new Set();
 
   constructor() {
-    const raw = localStorage.getItem(REQUEST_STATE_KEY);
-    if (raw) {
-      try {
-        this.requestState = JSON.parse(raw);
-      } catch {
-        this.requestState = null;
-        localStorage.removeItem(REQUEST_STATE_KEY);
-      }
-    }
-    // Only read tokens from localStorage once, here
-    const tokenRaw = localStorage.getItem(TOKEN_STORAGE_KEY);
-    if (tokenRaw) {
-      try {
-        this.tokens = JSON.parse(tokenRaw);
-      } catch {
-        this.tokens = null;
-        localStorage.removeItem(TOKEN_STORAGE_KEY);
-      }
-    }
-  }
-
-  private setTokens(tokens: typeof this.tokens) {
-    this.tokens = tokens;
-    if (tokens) {
-      localStorage.setItem(TOKEN_STORAGE_KEY, JSON.stringify(tokens));
-    } else {
-      localStorage.removeItem(TOKEN_STORAGE_KEY);
-    }
+    this.sync = LocalStorageSync({
+      openid_tokens: null,
+      openid_request_state: null,
+    });
   }
 
   public async getAuthorizationUrl(prompt: 'login' | 'registration'): Promise<URL> {
@@ -84,7 +61,8 @@ class OpenidManager {
   public async handleRedirectResponse(url: URL): Promise<void> {
     return this.queue.add(async () => {
       const config = await this.#getConfig();
-      if (!this.requestState) {
+      const requestState = this.sync.openid_request_state;
+      if (!requestState) {
         throw new Error('No request state found');
       }
       const code = url.searchParams.get('code');
@@ -97,22 +75,20 @@ class OpenidManager {
       }
       try {
         const tokenResp = await client.authorizationCodeGrant(config, url, {
-          pkceCodeVerifier: this.requestState.verifier,
-          expectedState: this.requestState.state,
+          pkceCodeVerifier: requestState.verifier,
+          expectedState: requestState.state,
         });
         const expires_at = this.computeExpiresAt(tokenResp.expires_in);
-        this.setTokens({
+        this.sync.openid_tokens = {
           access_token: tokenResp.access_token,
           refresh_token: tokenResp.refresh_token,
           id_token: tokenResp.id_token,
           expires_at,
-        });
+        };
       } finally {
         this.oldCodes.add(code);
       }
-      // Clean up requestState from localStorage
-      localStorage.removeItem(REQUEST_STATE_KEY);
-      this.requestState = null;
+      this.sync.openid_request_state = null;
     }).promise;
   }
 
@@ -165,8 +141,7 @@ class OpenidManager {
       challenge,
       state,
     };
-    this.requestState = requestState;
-    localStorage.setItem(REQUEST_STATE_KEY, JSON.stringify(requestState));
+    this.sync.openid_request_state = requestState;
     return requestState;
   }
 
@@ -176,13 +151,14 @@ class OpenidManager {
   }
 
   async #getAccessToken(): Promise<string | null> {
-    if (!this.tokens) {
+    const tokens = this.sync.openid_tokens;
+    if (!tokens) {
       return null;
     }
     const now = Math.floor(Date.now() / 1000);
     // Refresh if token will expire within the next hour
-    if (now + 3600 > this.tokens.expires_at) {
-      const refreshToken = this.tokens.refresh_token;
+    if (now + 3600 > tokens.expires_at) {
+      const refreshToken = tokens.refresh_token;
       if (!refreshToken) {
         await this.logout();
         return null;
@@ -190,23 +166,21 @@ class OpenidManager {
       const config = await this.#getConfig();
       const refreshed = await client.refreshTokenGrant(config, refreshToken, { scopes: OPENID_SCOPES });
       const expires_at = this.computeExpiresAt(refreshed.expires_in);
-      this.setTokens({
+      this.sync.openid_tokens = {
         access_token: refreshed.access_token,
         refresh_token: refreshed.refresh_token,
         id_token: refreshed.id_token,
         expires_at,
-      });
+      };
       return refreshed.access_token;
     }
-    return this.tokens.access_token;
+    return tokens.access_token;
   }
 
   #logout() {
     this.config = null;
-    this.requestState = null;
-    this.setTokens(null);
-    // Clean up requestState from localStorage
-    localStorage.removeItem(REQUEST_STATE_KEY);
+    this.sync.openid_request_state = null;
+    this.sync.openid_tokens = null;
   }
 }
 
