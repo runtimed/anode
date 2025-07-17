@@ -6,7 +6,6 @@ import { useCellContent } from "../../hooks/useCellContent.js";
 import { useCellKeyboardNavigation } from "../../hooks/useCellKeyboardNavigation.js";
 import { useCellOutputs } from "../../hooks/useCellOutputs.js";
 
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 
 import { AiCell } from "./AiCell.js";
@@ -24,6 +23,7 @@ import { CodeToolbar } from "./toolbars/CodeToolbar.js";
 import { MarkdownToolbar } from "./toolbars/MarkdownToolbar.js";
 import { ErrorBoundary } from "react-error-boundary";
 import { OutputsErrorBoundary } from "./shared/OutputsErrorBoundary.js";
+import { ExecutionStatus } from "./cell/ExecutionStatus.js";
 
 type CellType = typeof tables.cells.Type;
 
@@ -270,40 +270,6 @@ export const Cell: React.FC<CellProps> = ({
     );
   }
 
-  const getExecutionStatus = () => {
-    switch (cell.executionState) {
-      case "idle":
-        return null;
-      case "queued":
-        return (
-          <Badge variant="secondary" className="h-5 text-xs">
-            Queued
-          </Badge>
-        );
-      case "running":
-        return (
-          <Badge
-            variant="outline"
-            className="h-5 border-blue-200 bg-blue-50 text-xs text-blue-700"
-          >
-            <div className="mr-1 h-2 w-2 animate-spin rounded-full border border-blue-600 border-t-transparent"></div>
-            Running
-          </Badge>
-        );
-      case "error":
-        return (
-          <Badge
-            variant="outline"
-            className="h-5 border-red-200 bg-red-50 text-xs text-red-700"
-          >
-            Error
-          </Badge>
-        );
-      default:
-        return null;
-    }
-  };
-
   const focusColor =
     cell.cellType === "code"
       ? "bg-primary/60"
@@ -338,7 +304,7 @@ export const Cell: React.FC<CellProps> = ({
           <CellTypeSelector cell={cell} onCellTypeChange={changeCellType} />
           {cell.cellType === "code" && <CodeToolbar />}
           {cell.cellType === "markdown" && <MarkdownToolbar />}
-          {getExecutionStatus()}
+          <ExecutionStatus executionState={cell.executionState} />
         </div>
 
         <CellControls
