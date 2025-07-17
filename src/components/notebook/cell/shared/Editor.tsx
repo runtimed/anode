@@ -93,7 +93,7 @@ export function Editor({
             <Dialog.Title className="sr-only">Editor</Dialog.Title>
             <ErrorBoundary FallbackComponent={ErrorFallback}>
               <CodeMirrorEditor
-                className="relative text-base sm:text-sm"
+                className="bg-background relative text-base sm:text-sm"
                 maxHeight="100svh"
                 language={languageFromCellType(cell.cellType)}
                 placeholder={placeholderFromCellType(cell.cellType)}
