@@ -268,16 +268,13 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
         }
       }
     },
-    [cells, store]
+    [cells, store, currentUserId]
   );
 
-  const focusCell = useCallback(
-    (cellId: string) => {
-      setFocusedCellId(cellId);
-      hasEverFocusedRef.current = true;
-    },
-    [currentUserId]
-  );
+  const focusCell = useCallback((cellId: string) => {
+    setFocusedCellId(cellId);
+    hasEverFocusedRef.current = true;
+  }, []);
 
   const focusNextCell = useCallback(
     (currentCellId: string) => {

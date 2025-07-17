@@ -127,9 +127,11 @@ export async function validateAuthPayload(
       console.log("✅ Authenticated runtime agent with service token");
       return {
         id: "runtime-agent",
+        name: "Runtime Agent",
         isAnonymous: false,
       };
     }
+    // If runtime auth fails, we don't proceed to other methods for this payload type.
     console.error("❌ Invalid service token for runtime agent");
     throw new Error(
       "INVALID_SERVICE_TOKEN: Runtime agent authentication failed. Check AUTH_TOKEN configuration."
