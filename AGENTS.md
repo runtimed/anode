@@ -5,27 +5,24 @@ project.
 
 Current work state and next steps. What works, what doesn't. Last updated: July 2025.
 
-**Development Workflow**: The user will typically be running the wrangler server
-and web client in separate tabs. If you need to check work, run a build and/or
-lints, tests, typechecks. If the user isn't running the dev environment, tell
-them how to start it at the base of the repo with pnpm.
+**Development Workflow**: The user will typically be running the integrated development server with `pnpm dev` in one tab. If you need to check work, run a build and/or lints, tests, typechecks. If the user isn't running the dev environment, tell them how to start it at the base of the repo with `pnpm dev`.
 
 ## Project Overview
 
 Anode is a real-time collaborative notebook system built on LiveStore, an
 event-sourcing based local-first data synchronization library.
 
-**Current Status**: A robust, real-time collaborative notebook system. It features Python execution with rich outputs and integrated AI capabilities, all built on a unified, event-sourced output system. The system is stable and deployed, with ongoing enhancements focused on advanced AI interaction and runtime management.
+**Current Status**: A robust, real-time collaborative notebook system deployed at https://app.runt.run. It features Python execution with rich outputs and integrated AI capabilities, all built on a unified, event-sourced output system. The system is stable and in production, with ongoing enhancements focused on advanced AI interaction and runtime management.
 
 ## Architecture
 
 - **Schema** (`jsr:@runt/schema`): LiveStore schema definitions (events, state,
   materializers) - Published JSR package imported by all packages with full type
   inference. Comes via https://github.com/runtimed/runt's deno monorepo
-- **Web Client** (`@anode/web-client`): React-based web interface
-- **Document Worker** (`@anode/docworker`): Cloudflare Worker for sync backend with artifact storage
-- **Pyodide Runtime Agent** (`@anode/pyodide-runtime-agent`): Python execution
-  client
+- **All-in-one Worker**: Unified Cloudflare Worker serving both web client and backend API
+- **Web Client**: React-based web interface (served from the worker)
+- **Document Worker**: Cloudflare Worker for sync backend with artifact storage
+- **Pyodide Runtime Agent**: Python execution client using @runt packages
 
 ## Key Dependencies
 
@@ -53,8 +50,8 @@ event-sourcing based local-first data synchronization library.
   function calling
 - ✅ **Context inclusion controls** - Users can exclude cells from AI context
   with visibility toggles
-- ✅ **Production deployment** - Web client and sync backend deployed to
-  Cloudflare (Pages + Workers)
+- ✅ **Production deployment** - All-in-one worker deployed to Cloudflare at
+  https://app.runt.run
 - ✅ **Authentication** - Google OAuth and fallback token system working in
   production
 - ✅ **Mobile support** - Responsive design with mobile keyboard optimizations
@@ -67,8 +64,9 @@ event-sourcing based local-first data synchronization library.
 - ✅ **Clear output functionality** - `clear_output(wait=True/False)` working properly
 - ✅ **Terminal output grouping** - Consecutive terminal outputs merge naturally
 - ✅ **Error output rendering** - Proper traceback display with JSON error parsing
-- ✅ **All tests passing** - 58/58 tests covering output system
-- 🚧 **Artifact service** - First version deployed with basic upload/download endpoints (has known security limitations)
+- ✅ **All tests passing** - 60/60 tests covering output system
+- ✅ **Artifact service** - Deployed with upload/download endpoints and R2 storage
+- ✅ **Development stability** - Integrated dev server with hot reload stability
 
 ### Core Architecture Constraints
 
@@ -104,15 +102,22 @@ multiple runtimes during transitions.
 
 ```bash
 # Setup
-pnpm install  # Automatically creates package .env files with defaults
+pnpm install  # Install dependencies
+cp .env.example .env  # Copy environment configuration
+cp .dev.vars.example .dev.vars
 
 # Start development (single server with integrated backend)
-pnpm dev
+pnpm dev      # All-in-one server at http://localhost:5173
 
 # Start runtime (get command from notebook UI)
 # Runtime command is now dynamic via VITE_RUNTIME_COMMAND environment variable
 # Get runtime command from notebook UI, then:
 NOTEBOOK_ID=notebook-id-from-ui pnpm dev:runtime
+
+# Check work
+pnpm check    # Type check, lint, and format check
+pnpm test     # Run 60+ tests
+pnpm build    # Build for production
 ```
 
 ## Schema Linking for Development
@@ -359,23 +364,27 @@ anode/
 ```bash
 pnpm build           # Build all packages
 pnpm lint            # Check code style
-pnpm test            # Run test suite (58/58 passing)
+pnpm test            # Run test suite (60/60 passing)
 pnpm type-check      # TypeScript validation
+pnpm check           # Run all checks at once
 ```
 
 **If Dev Environment Not Running**: To start the development environment:
 
 ```bash
 # Setup environment
-pnpm install         # Install dependencies (includes linked @runt/schema)
-cp .env.example .env # Copy environment template
+pnpm install         # Install dependencies
+cp .env.example .env # Copy environment configuration
+cp .dev.vars.example .dev.vars
 
 # Start development (single server with integrated backend)
-pnpm dev             # Web client + backend
+pnpm dev             # Web client + backend at http://localhost:5173
 
 # For Python runtime (get NOTEBOOK_ID from UI, then run):
 NOTEBOOK_ID=your-notebook-id pnpm dev:runtime
 ```
+
+**Development Stability**: The integrated development server is stable with hot reload for most changes. Environment file changes are ignored to prevent crashes. If the server crashes, restart with `pnpm dev`.
 
 **For detailed development priorities, see [ROADMAP.md](./ROADMAP.md)**
 

@@ -63,24 +63,18 @@ correct version)
 ```bash
 pnpm install  # Install dependencies
 
-# Copy environment configuration
+# Copy environment configuration files
 cp .env.example .env
-# Edit .env if needed (defaults work for local development)
-
-# Copy development variables
 cp .dev.vars.example .dev.vars
-
-# Start web client
-pnpm dev
 
 # Start development (single server with integrated backend)
 pnpm dev
 ```
 
-Environment configuration:
+The example files contain sensible defaults that work for local development out of the box:
 
-- `.env.example` - Template with all required variables
-- `.env` - Your local configuration (copy from .env.example)
+- `.env.example` → `.env` - Frontend environment variables (Vite)
+- `.dev.vars.example` → `.dev.vars` - Backend environment variables (Worker)
 
 ### 2. Create Your First Notebook
 
@@ -102,56 +96,20 @@ Environment configuration:
 - Press **Ctrl+Enter** or click **Run**
 - See results appear instantly
 
-### 5. Try Python Execution (Optional)
+The Python runtime uses [@runt packages](https://github.com/runtimed/runt) for Python execution and AI features, providing a robust execution environment with rich output support.
 
-```bash
-# Get the notebook ID from the UI, then start runtime:
-NOTEBOOK_ID=your-notebook-id pnpm dev:runtime
-```
+## Production Deployment
 
-- Uses @runt packages for Python execution and AI features
-- See https://github.com/runtimed/runt for more configuration options
+Anode is deployed and accessible at **https://app.runt.run** using a unified Cloudflare Worker architecture that serves both the web client and backend API from a single worker.
 
-## Using Deployed Cloudflare Workers (Optional)
+### Architecture
 
-Instead of running everything locally, you can use a deployed Cloudflare Worker
-for sync while keeping the web client and runtime local. This enables testing
-real-time collaboration across devices.
+- **All-in-one Worker**: Single worker serving both frontend assets and backend API
+- **D1 Database**: Persistent storage for LiveStore events
+- **R2 Bucket**: Artifact storage for large outputs (images, files, data)
+- **Durable Objects**: WebSocket server for real-time sync
 
-### Quick Setup for Deployed Worker
-
-1. **Deploy the sync backend** - Only the docworker needs deployment for
-   collaboration
-
-**Get deployment details** from your team (worker URL and auth token)
-
-2. **Update application config** in `.env`:
-
-   ```env
-   VITE_LIVESTORE_SYNC_URL=https://your-worker.workers.dev
-   VITE_AUTH_TOKEN=your-secure-token
-   AUTH_TOKEN=your-secure-token
-   ```
-
-3. **Start services**:
-
-   ```bash
-   pnpm dev:web  # Web client connects to deployed worker
-   NOTEBOOK_ID=test-notebook pnpm dev:runtime
-   ```
-
-4. **Test collaboration** by opening the web client on multiple devices/browsers
-
-### Benefits
-
-- Real-time sync through Cloudflare's global network
-- Test collaboration across devices on your network
-- No need to run local sync backend
-
-**Note**: When using deployed workers, authentication happens via Cloudflare
-secrets configured in the dashboard.
-
-<!-- This section is for development/testing with deployed workers, not public access -->
+This unified architecture simplifies deployment while providing robust real-time collaboration and artifact storage capabilities.
 
 ## What You Can Do Today
 
@@ -198,10 +156,12 @@ Want to run Anode locally or contribute? Here's the essentials:
 
 ```bash
 # One-time setup
-pnpm install             # Installs dependencies and creates .env files
+pnpm install             # Install dependencies
+cp .env.example .env     # Copy environment configuration
+cp .dev.vars.example .dev.vars
 
 # Start development (single server with integrated backend)
-pnpm dev           # Web interface + backend at http://localhost:5173
+pnpm dev                 # Web interface + backend at http://localhost:5173
 
 # For Python execution, get the command from the notebook UI
 # Then run: NOTEBOOK_ID=your-notebook-id pnpm dev:runtime
@@ -239,8 +199,7 @@ The `@runt/schema` package provides shared types and events between Anode and Ru
 
 ### Configuration
 
-Python runtime and AI features are now handled by the separate @runt packages.
-See https://github.com/runtimed/runt for setup.
+Python runtime and AI features are handled by the separate [@runt packages](https://github.com/runtimed/runt). The integrated development server runs both frontend and backend in a single process for convenience.
 
 ## Troubleshooting
 
@@ -249,6 +208,7 @@ See https://github.com/runtimed/runt for setup.
 | Schema version mismatches | Ensure all services (web, runtime, sync) are restarted after schema changes |
 | Type errors               | TypeScript catches invalid queries at compile time - check column names     |
 | Execution not working     | Check @runt runtime setup - see https://github.com/runtimed/runt            |
+| Dev server crashes        | Restart with `pnpm dev` - .env file changes are ignored to prevent crashes  |
 | Stale state               | Run `pnpm reset-storage`                                                    |
 | Build errors              | Run `pnpm build` to check for TypeScript issues                             |
 

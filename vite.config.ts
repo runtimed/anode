@@ -13,6 +13,27 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), "");
 
+  const plugins = [
+    react(),
+    tailwindcss(),
+    livestoreDevtoolsPlugin({ schemaPath: "./schema.ts" }),
+    visualizer({
+      filename: "dist/bundle-analysis.html",
+      open: false,
+      gzipSize: true,
+      brotliSize: true,
+    }),
+  ];
+
+  // Only include Cloudflare plugin in development mode
+  if (mode === "development") {
+    plugins.push(
+      cloudflare({
+        configPath: "./wrangler.toml",
+      })
+    );
+  }
+
   return {
     build: {
       sourcemap: true,
@@ -32,19 +53,6 @@ export default defineConfig(({ mode }) => {
         "@": path.resolve(__dirname, "./src"),
       },
     },
-    plugins: [
-      react(),
-      tailwindcss(),
-      cloudflare({
-        configPath: "./wrangler.toml",
-      }),
-      livestoreDevtoolsPlugin({ schemaPath: "./schema.ts" }),
-      visualizer({
-        filename: "dist/bundle-analysis.html",
-        open: false,
-        gzipSize: true,
-        brotliSize: true,
-      }),
-    ],
+    plugins,
   };
 });
