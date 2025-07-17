@@ -22,7 +22,7 @@ export default defineConfig(({ mode }) => {
         ? parseInt(env.ANODE_DEV_SERVER_PORT)
         : 5173,
       watch: {
-        ignored: ["!**/node_modules/@runt/schema/mod.ts"],
+        ignored: ["!**/node_modules/@runt/schema/mod.ts", "**/.env*"],
         followSymlinks: true,
       },
     },
@@ -35,7 +35,9 @@ export default defineConfig(({ mode }) => {
     plugins: [
       react(),
       tailwindcss(),
-      cloudflare(),
+      cloudflare({
+        configPath: "./wrangler.toml",
+      }),
       livestoreDevtoolsPlugin({ schemaPath: "./schema.ts" }),
       visualizer({
         filename: "dist/bundle-analysis.html",
