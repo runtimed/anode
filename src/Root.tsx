@@ -19,6 +19,7 @@ import LiveStoreWorker from "./livestore.worker?worker";
 import { schema } from "./schema.js";
 import { getCurrentNotebookId, getStoreId } from "./util/store-id.js";
 import { getCurrentAuthToken, isAuthStateValid } from "./auth/google-auth.js";
+import { useGoogleAuth } from "./auth/useGoogleAuth.js";
 import { ErrorBoundary } from "react-error-boundary";
 
 const NotebookApp: React.FC = () => {
@@ -156,11 +157,18 @@ const LiveStoreApp: React.FC = () => {
     }
   }, [resetPersistence]);
 
+  // Get authenticated user info to set clientId
+  const { user } = useGoogleAuth();
+
+  // Use the authenticated user's ID as clientId for proper attribution
+  const clientId = user?.id || "anonymous-user";
+
   const adapter = makePersistedAdapter({
     storage: { type: "opfs" },
     worker: LiveStoreWorker,
     sharedWorker: LiveStoreSharedWorker,
     resetPersistence,
+    clientId, // This ties the LiveStore client to the authenticated user
   });
 
   // Get current auth token (this is called after auth is validated)

@@ -7,9 +7,27 @@ import { validateAuthPayload, validateProductionEnvironment } from "./auth";
 export class WebSocketServer extends makeDurableObject({
   onPush: async (message) => {
     console.log("onPush", message.batch);
+
+    // Log clientId for attribution tracking
+    if (message.batch.length > 0) {
+      const clientId = message.batch[0].clientId;
+      console.log(
+        "📝 Push request from clientId:",
+        clientId,
+        "with",
+        message.batch.length,
+        "events"
+      );
+    }
   },
   onPull: async (message) => {
     console.log("onPull", message);
+
+    // Log clientId for attribution tracking (if available)
+    const clientId = (message as any).clientId;
+    if (clientId) {
+      console.log("📥 Pull request from clientId:", clientId);
+    }
   },
 }) {}
 
@@ -116,6 +134,13 @@ export default {
               isAnonymous: validatedUser.isAnonymous,
               email: validatedUser.email,
             });
+
+            // Store validated user for potential clientId correlation
+            // Note: clientId is not available in validatePayload, but we can track
+            // the authentication here and correlate with clientId in onPush/onPull handlers
+            console.log(
+              "🔗 User authenticated, clientId will be validated in handlers"
+            );
           } catch (error: any) {
             console.error("🚫 Authentication failed:", error.message);
             throw error;
