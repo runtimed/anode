@@ -1,13 +1,16 @@
-import React, { useCallback, Suspense } from "react";
+import { queryDb } from "@livestore/livestore";
 import { useStore } from "@livestore/react";
 import { CellData, events, RuntimeSessionData, tables } from "@runt/schema";
-import { queryDb } from "@livestore/livestore";
+import React, { Suspense, useCallback } from "react";
 import { ErrorBoundary } from "react-error-boundary";
 
-import { VirtualizedCellList } from "./VirtualizedCellList.js";
 import { NotebookTitle } from "./NotebookTitle.js";
+import { VirtualizedCellList } from "./VirtualizedCellList.js";
 
 import { Button } from "@/components/ui/button";
+import { useCurrentUserId } from "@/hooks/useCurrentUser.js";
+import { getRuntimeCommand } from "@/util/runtime-command.js";
+import { getCurrentNotebookId } from "@/util/store-id.js";
 import {
   Bot,
   Bug,
@@ -18,15 +21,11 @@ import {
   Database,
   FileText,
   Filter,
-  Plus,
   Square,
   Terminal,
   X,
 } from "lucide-react";
-import { getCurrentNotebookId } from "@/util/store-id.js";
-import { getRuntimeCommand } from "@/util/runtime-command.js";
 import { UserProfile } from "../auth/UserProfile.js";
-import { useCurrentUserId } from "@/hooks/useCurrentUser.js";
 
 // Lazy import DebugPanel only in development
 const LazyDebugPanel = React.lazy(() =>
@@ -38,6 +37,7 @@ const LazyDebugPanel = React.lazy(() =>
 // Import prefetch utilities
 import { prefetchOutputsAdaptive } from "@/util/prefetch.js";
 import { MobileOmnibar } from "./MobileOmnibar.js";
+import { CellAdder } from "./cell/CellAdder.js";
 
 interface NotebookViewerProps {
   notebookId: string;
@@ -767,48 +767,7 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
             {cells.length > 0 && (
               <div className="border-border/30 mt-6 border-t px-4 pt-4 sm:mt-8 sm:px-0 sm:pt-6">
                 <div className="space-y-3 text-center">
-                  <div className="flex flex-wrap justify-center gap-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => addCell()}
-                      className="flex items-center gap-1.5"
-                    >
-                      <Plus className="h-3 w-3" />
-                      <Code className="h-3 w-3" />
-                      Code
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => addCell(undefined, "markdown")}
-                      className="flex items-center gap-1.5"
-                    >
-                      <Plus className="h-3 w-3" />
-                      <FileText className="h-3 w-3" />
-                      Markdown
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => addCell(undefined, "sql")}
-                      className="flex items-center gap-1.5"
-                    >
-                      <Plus className="h-3 w-3" />
-                      <Database className="h-3 w-3" />
-                      SQL
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => addCell(undefined, "ai")}
-                      className="flex items-center gap-1.5"
-                    >
-                      <Plus className="h-3 w-3" />
-                      <Bot className="h-3 w-3" />
-                      AI
-                    </Button>
-                  </div>
+                  <CellAdder onAddCell={addCell} position="after" />
                   <div className="text-muted-foreground mt-2 hidden text-xs sm:block">
                     Add a new cell
                   </div>

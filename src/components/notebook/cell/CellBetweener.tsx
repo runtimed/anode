@@ -1,6 +1,5 @@
-import { Button } from "@/components/ui/button";
 import { CellData } from "@runt/schema";
-import { Plus } from "lucide-react";
+import { CellAdder } from "./CellAdder";
 
 export function CellBetweener({
   cell,
@@ -9,25 +8,21 @@ export function CellBetweener({
   cell: CellData;
   onAddCell: (
     cellId?: string,
-    cellType?: string,
+    cellType?: "code" | "markdown" | "sql" | "ai",
     position?: "before" | "after"
   ) => void;
 }) {
   return (
-    <div className="flex h-4 w-full items-center justify-center bg-red-500">
-      <Button
-        variant="outline"
-        size="icon"
-        onClick={() =>
-          onAddCell(
-            cell.id,
-            cell.cellType === "raw" ? "code" : cell.cellType,
-            "before"
-          )
-        }
-      >
-        <Plus />
-      </Button>
+    <div className="group relative flex h-4 w-full items-center justify-center">
+      <div className="absolute left-0 hidden h-px w-full bg-gray-200 group-hover:block"></div>
+      <div className="bg-background border-border z-10 hidden rounded-lg border p-3 shadow-lg group-hover:flex">
+        <CellAdder
+          onAddCell={(_cellId, cellType, position) =>
+            onAddCell(cell.id, cellType, position)
+          }
+          position="before"
+        />
+      </div>
     </div>
   );
 }
