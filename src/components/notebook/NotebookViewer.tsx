@@ -23,10 +23,10 @@ import {
   Terminal,
   X,
 } from "lucide-react";
-import { getCurrentNotebookId } from "../../util/store-id.js";
-import { getRuntimeCommand } from "../../util/runtime-command.js";
+import { getCurrentNotebookId } from "@/util/store-id.js";
+import { getRuntimeCommand } from "@/util/runtime-command.js";
 import { UserProfile } from "../auth/UserProfile.js";
-import { useCurrentUserId } from "../../hooks/useCurrentUser.js";
+import { useCurrentUserId } from "@/hooks/useCurrentUser.js";
 
 // Lazy import DebugPanel only in development
 const LazyDebugPanel = React.lazy(() =>
@@ -36,7 +36,7 @@ const LazyDebugPanel = React.lazy(() =>
 );
 
 // Import prefetch utilities
-import { prefetchOutputsAdaptive } from "../../util/prefetch.js";
+import { prefetchOutputsAdaptive } from "@/util/prefetch.js";
 import { MobileOmnibar } from "./MobileOmnibar.js";
 
 interface NotebookViewerProps {

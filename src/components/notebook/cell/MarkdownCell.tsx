@@ -1,16 +1,16 @@
-import { useStore } from "@livestore/react";
-import { events, tables } from "@runt/schema";
-import React, { useCallback } from "react";
 import { useCellContent } from "@/hooks/useCellContent.js";
 import { useCellKeyboardNavigation } from "@/hooks/useCellKeyboardNavigation.js";
 import { useCellOutputs } from "@/hooks/useCellOutputs.js";
+import { useStore } from "@livestore/react";
+import { events, tables } from "@runt/schema";
+import React, { useCallback } from "react";
 
-import { ErrorBoundary } from "react-error-boundary";
 import { useCurrentUserId } from "@/hooks/useCurrentUser.js";
-import { Editor } from "./shared/Editor.js";
+import { ErrorBoundary } from "react-error-boundary";
 import { CellContainer } from "./shared/CellContainer.js";
 import { CellControls } from "./shared/CellControls.js";
 import { CellTypeSelector } from "./shared/CellTypeSelector.js";
+import { Editor } from "./shared/Editor.js";
 import { MarkdownToolbar } from "./toolbars/MarkdownToolbar.js";
 
 type CellType = typeof tables.cells.Type;

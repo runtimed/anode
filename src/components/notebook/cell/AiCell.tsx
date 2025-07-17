@@ -1,22 +1,22 @@
-import React, { useCallback } from "react";
+import { Button } from "@/components/ui/button";
+import { useCellContent } from "@/hooks/useCellContent.js";
+import { useCellKeyboardNavigation } from "@/hooks/useCellKeyboardNavigation.js";
+import { useCellOutputs } from "@/hooks/useCellOutputs.js";
+import { useCurrentUserId } from "@/hooks/useCurrentUser.js";
+import { useAvailableAiModels } from "@/util/ai-models.js";
+import { queryDb } from "@livestore/livestore";
 import { useStore } from "@livestore/react";
 import { events, tables } from "@runt/schema";
-import { queryDb } from "@livestore/livestore";
-import { useCellKeyboardNavigation } from "@/hooks/useCellKeyboardNavigation.js";
-import { useCellContent } from "@/hooks/useCellContent.js";
-import { useCellOutputs } from "@/hooks/useCellOutputs.js";
-import { useAvailableAiModels } from "../../../util/ai-models.js";
-import { AiToolbar } from "./toolbars/AiToolbar.js";
+import { ChevronDown, ChevronUp } from "lucide-react";
+import React, { useCallback } from "react";
+import { ErrorBoundary } from "react-error-boundary";
 import { CodeMirrorEditor } from "../codemirror/CodeMirrorEditor.js";
+import { AiCellTypeSelector } from "./shared/AiCellTypeSelector.js";
 import { CellContainer } from "./shared/CellContainer.js";
 import { CellControls } from "./shared/CellControls.js";
-import { PlayButton } from "./shared/PlayButton.js";
-import { AiCellTypeSelector } from "./shared/AiCellTypeSelector.js";
-import { Button } from "@/components/ui/button";
-import { ChevronUp, ChevronDown } from "lucide-react";
-import { ErrorBoundary } from "react-error-boundary";
 import { OutputsErrorBoundary } from "./shared/OutputsErrorBoundary.js";
-import { useCurrentUserId } from "@/hooks/useCurrentUser.js";
+import { PlayButton } from "./shared/PlayButton.js";
+import { AiToolbar } from "./toolbars/AiToolbar.js";
 
 interface AiCellProps {
   cell: typeof tables.cells.Type;
