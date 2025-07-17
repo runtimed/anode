@@ -142,10 +142,11 @@ export const SqlCell: React.FC<SqlCellProps> = ({
         events.cellTypeChanged({
           id: cell.id,
           cellType: newType,
+          actorId: currentUserId,
         })
       );
     },
-    [cell.id, store]
+    [cell.id, store, currentUserId]
   );
 
   const toggleSourceVisibility = useCallback(() => {
@@ -153,18 +154,20 @@ export const SqlCell: React.FC<SqlCellProps> = ({
       events.cellSourceVisibilityToggled({
         id: cell.id,
         sourceVisible: !cell.sourceVisible,
+        actorId: currentUserId,
       })
     );
-  }, [cell.id, cell.sourceVisible, store]);
+  }, [cell.id, cell.sourceVisible, store, currentUserId]);
 
   const toggleOutputVisibility = useCallback(() => {
     store.commit(
       events.cellOutputVisibilityToggled({
         id: cell.id,
         outputVisible: !cell.outputVisible,
+        actorId: currentUserId,
       })
     );
-  }, [cell.id, cell.outputVisible, store]);
+  }, [cell.id, cell.outputVisible, store, currentUserId]);
 
   const toggleAiContextVisibility = useCallback(() => {
     store.commit(

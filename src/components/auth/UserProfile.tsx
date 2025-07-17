@@ -1,8 +1,8 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import { useGoogleAuth } from "../../auth/useGoogleAuth.js";
 import { useCurrentUser } from "../../hooks/useCurrentUser.js";
 import { useUserRegistry } from "../../hooks/useUserRegistry.js";
-import { events, tables } from "@runt/schema";
+import { tables } from "@runt/schema";
 import { queryDb } from "@livestore/livestore";
 import { useQuery, useStore } from "@livestore/react";
 import { AvatarWithDetails } from "../ui/AvatarWithDetails.js";
@@ -118,7 +118,6 @@ export const UserProfile: React.FC<UserProfileProps> = ({ className = "" }) => {
 };
 
 function PresenceIndicator({ userId }: { userId: string }) {
-  const { store } = useStore();
   const { getDisplayName, getUserInitials } = useUserRegistry();
 
   // Get all other users in the presence table
@@ -130,10 +129,6 @@ function PresenceIndicator({ userId }: { userId: string }) {
         .orderBy("userId", "asc")
     )
   );
-
-  useEffect(() => {
-    store.commit(events.presenceSet({ userId }));
-  }, [store, userId]);
 
   // Only show presence indicator if there are other users
   if (presence.length === 0) {

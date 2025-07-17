@@ -43,6 +43,7 @@ export const MobileOmnibar: React.FC<MobileOmnibarProps> = ({
           position: newPosition,
           cellType: "ai",
           createdBy: currentUserId,
+          actorId: currentUserId,
         })
       );
 

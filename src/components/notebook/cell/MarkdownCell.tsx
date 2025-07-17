@@ -65,10 +65,11 @@ export const MarkdownCell: React.FC<MarkdownCellProps> = ({
         events.cellTypeChanged({
           id: cell.id,
           cellType: newType,
+          actorId: currentUserId,
         })
       );
     },
-    [cell.id, store]
+    [cell.id, store, currentUserId]
   );
 
   const toggleSourceVisibility = useCallback(() => {
@@ -76,18 +77,20 @@ export const MarkdownCell: React.FC<MarkdownCellProps> = ({
       events.cellSourceVisibilityToggled({
         id: cell.id,
         sourceVisible: !cell.sourceVisible,
+        actorId: currentUserId,
       })
     );
-  }, [cell.id, cell.sourceVisible, store]);
+  }, [cell.id, cell.sourceVisible, store, currentUserId]);
 
   const toggleAiContextVisibility = useCallback(() => {
     store.commit(
       events.cellAiContextVisibilityToggled({
         id: cell.id,
         aiContextVisible: !cell.aiContextVisible,
+        actorId: currentUserId,
       })
     );
-  }, [cell.id, cell.aiContextVisible, store]);
+  }, [cell.id, cell.aiContextVisible, store, currentUserId]);
 
   const clearCellOutputs = useCallback(async () => {
     if (hasOutputs) {
