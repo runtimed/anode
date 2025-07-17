@@ -27,6 +27,7 @@ import { getCurrentNotebookId } from "../../util/store-id.js";
 import { getRuntimeCommand } from "../../util/runtime-command.js";
 import { UserProfile } from "../auth/UserProfile.js";
 import { useCurrentUserId } from "../../hooks/useCurrentUser.js";
+import { useAvailableAiModels } from "../../util/ai-models.js";
 
 // Lazy import DebugPanel only in development
 const LazyDebugPanel = React.lazy(() =>
@@ -51,6 +52,7 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
 }) => {
   const { store } = useStore();
   const currentUserId = useCurrentUserId();
+  const { models } = useAvailableAiModels();
 
   const cells = store.useQuery(
     queryDb(tables.cells.select().orderBy("position", "asc"))
@@ -185,6 +187,42 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
           Math.max(...cells.map((c: CellData) => c.position), -1) + 1;
       }
 
+      // Get default AI model if creating an AI cell
+      let aiProvider, aiModel;
+      if (cellType === "ai") {
+        // Try to get the last used AI model from notebook metadata
+        const lastUsedModelKey = metadata.find(
+          (meta: any) => meta.key === "lastUsedAiModel"
+        );
+        const lastUsedProviderKey = metadata.find(
+          (meta: any) => meta.key === "lastUsedAiProvider"
+        );
+
+        if (lastUsedModelKey && lastUsedProviderKey) {
+          aiModel = lastUsedModelKey.value;
+          aiProvider = lastUsedProviderKey.value;
+        } else {
+          // Fallback to getting default from available models
+          const groqModels = models.filter((m) => m.provider === "groq");
+          if (groqModels.length > 0) {
+            // Prefer Groq Kimi K2 Instruct as default
+            const defaultGroq =
+              groqModels.find(
+                (m) => m.name === "moonshotai/kimi-k2-instruct"
+              ) || groqModels[0];
+            aiProvider = defaultGroq.provider;
+            aiModel = defaultGroq.name;
+          } else {
+            // Fallback to first available model
+            const firstModel = models[0];
+            if (firstModel) {
+              aiProvider = firstModel.provider;
+              aiModel = firstModel.name;
+            }
+          }
+        }
+      }
+
       store.commit(
         events.cellCreated({
           id: cellId,
@@ -194,13 +232,28 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
         })
       );
 
+      // Set default AI model for AI cells based on last used model
+      if (cellType === "ai" && aiProvider && aiModel) {
+        store.commit(
+          events.aiSettingsChanged({
+            cellId: cellId,
+            provider: aiProvider,
+            model: aiModel,
+            settings: {
+              temperature: 0.7,
+              maxTokens: 1000,
+            },
+          })
+        );
+      }
+
       // Prefetch output components when user creates cells
       prefetchOutputsAdaptive();
 
       // Focus the new cell after creation
       setTimeout(() => setFocusedCellId(cellId), 0);
     },
-    [cells, store, currentUserId]
+    [cells, store, currentUserId, models, metadata]
   );
 
   const deleteCell = useCallback(
