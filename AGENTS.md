@@ -106,11 +106,8 @@ multiple runtimes during transitions.
 # Setup
 pnpm install  # Automatically creates package .env files with defaults
 
-# In separate tabs run
-## Tab 1:
+# Start development (single server with integrated backend)
 pnpm dev
-## Tab 2:
-pnpm dev:sync
 
 # Start runtime (get command from notebook UI)
 # Runtime command is now dynamic via VITE_RUNTIME_COMMAND environment variable
@@ -150,7 +147,7 @@ Use this when developing locally with both Anode and Runt repositories side-by-s
 
 1. **Update `package.json`** with the appropriate schema reference
 2. **Run `pnpm install`** to update dependencies
-3. **Restart your development servers** (both `pnpm dev` and `pnpm dev:sync`)
+3. **Restart your development server** (`pnpm dev`)
 
 **Important**: Always ensure both repositories are using compatible schema versions. Type errors usually indicate schema mismatches.
 
@@ -353,8 +350,7 @@ anode/
 ## Development Workflow Notes
 
 - **User Environment**: The user will typically have:
-  - Web client running in one tab (`pnpm dev`)
-  - Wrangler server running in another tab (`pnpm dev:sync`)
+  - Integrated server running in one tab (`pnpm dev`) - includes both frontend and backend
   - Python runtime available via `pnpm dev:runtime` (uses @runt JSR packages,
     command customizable via VITE_RUNTIME_COMMAND)
 
@@ -374,11 +370,8 @@ pnpm type-check      # TypeScript validation
 pnpm install         # Install dependencies (includes linked @runt/schema)
 cp .env.example .env # Copy environment template
 
-# In separate terminals, run:
-## Terminal 1:
-pnpm dev             # Web client
-## Terminal 2:
-pnpm dev:sync        # Sync worker
+# Start development (single server with integrated backend)
+pnpm dev             # Web client + backend
 
 # For Python runtime (get NOTEBOOK_ID from UI, then run):
 NOTEBOOK_ID=your-notebook-id pnpm dev:runtime

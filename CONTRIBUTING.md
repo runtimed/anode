@@ -110,7 +110,7 @@ Use this when developing locally with both Anode and Runt repositories side-by-s
 
 1. **Update `package.json`** with the appropriate schema reference
 2. **Run `pnpm install`** to update dependencies
-3. **Restart your development servers** (both `pnpm dev` and `pnpm dev:sync`)
+3. **Restart your development server** (`pnpm dev`)
 
 **Important**: Always ensure both repositories are using compatible schema versions. Type errors usually indicate schema mismatches.
 

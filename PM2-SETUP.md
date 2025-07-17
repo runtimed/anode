@@ -6,41 +6,42 @@ This setup uses PM2 to manage your development processes and automatically watch
 
 ```bash
 # Start all processes
-pnpm dev
+pnpm dev:pm2
 
 # Or manually start with PM2
-pm2 start ecosystem.config.json
+pnpm exec pm2 start ecosystem.config.json
+
+# Use different port if needed
+ANODE_DEV_SERVER_PORT=5174 pnpm dev:pm2
 ```
 
 ## PM2 Commands
 
 ```bash
 # View status of all processes
-pm2 status
+pnpm exec pm2 status
 
 # View logs
-pm2 logs
+pnpm exec pm2 logs
 
 # View logs for specific process
-pm2 logs web
-pm2 logs sync
-pm2 logs nb
-pm2 logs watcher
+pnpm exec pm2 logs web
+pnpm exec pm2 logs nb
+pnpm exec pm2 logs watcher
 
 # Restart all processes
-pm2 restart all
+pnpm exec pm2 restart all
 
 # Stop all processes
-pm2 stop all
+pnpm exec pm2 stop all
 
 # Delete all processes
-pm2 delete all
+pnpm exec pm2 delete all
 ```
 
 ## Process Names
 
-- `web`: Runs `pnpm run dev:web` (Vite development server on port 5173)
-- `sync`: Runs `pnpm run dev:sync` (Wrangler development server)
+- `web`: Runs `pnpm run dev` (Vite development server with integrated Cloudflare Workers on port 5173)
 - `nb`: Runs `./scripts/start-runtime.sh` (Deno runtime agent with unique notebook ID)
 - `watcher`: Monitors the schema file and triggers updates
 
@@ -53,13 +54,32 @@ The `nb` process runs `scripts/start-runtime.sh` which:
 - Opens a browser tab to `http://localhost:5173/?notebook=$NOTEBOOK_ID`
 - Starts the Deno runtime agent with debug logging
 
+## Single-Server Architecture
+
+The `web` process now runs an integrated server that includes:
+
+- Frontend assets (React app)
+- Backend API (Cloudflare Workers runtime)
+- WebSocket sync (`/livestore`)
+- Artifact storage endpoints
+
+No separate sync server is needed thanks to the Cloudflare Vite plugin integration.
+
+## Port Configuration
+
+By default, the integrated server runs on port 5173. To use a different port:
+
+```bash
+ANODE_DEV_SERVER_PORT=5174 pnpm dev:pm2
+```
+
 ## Troubleshooting
 
 If the file watcher isn't working:
 
 1. Check if the file path exists: `ls -la ../runt/packages/schema/mod.ts`
-2. Check PM2 logs: `pm2 logs watcher`
-3. Restart the file watcher: `pm2 restart watcher`
+2. Check PM2 logs: `pnpm exec pm2 logs watcher`
+3. Restart the file watcher: `pnpm exec pm2 restart watcher`
 
 ## Manual Testing
 
@@ -82,7 +102,7 @@ This should trigger the update process and restart the development servers.
 
 ### `"cannot create file"` error in web browser console
 
-Fix: `pm2 restart all`
+Fix: `pnpm exec pm2 restart all`
 
 Not sure why this happens, but restarting
 
@@ -98,7 +118,7 @@ Something went wrong - this should never happen:
 Close the incognito tabs and run:
 
 ```bash
-pm2 stop all && pm2 delete all && pnpm dev
+pnpm exec pm2 stop all && pnpm exec pm2 delete all && pnpm dev:pm2
 ```
 
 ### Types not updating in VSCode
@@ -114,5 +134,5 @@ Make sure you only have an incognito window (or Chrome profile) with no other an
 Clicking the "+ Notebook" button the browser won't work well in development. You won't get a new notebook backend and running it manually means you won't get any benefits from PM2 orhestration. To create a new notebook, it's often easier to do this:
 
 ```bash
-pm2 restart all
+pnpm exec pm2 restart all
 ```

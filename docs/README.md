@@ -85,9 +85,8 @@ docs/
 **Development Commands:**
 
 ```bash
-# Start development
-pnpm dev          # Web client at http://localhost:5173
-pnpm dev:sync     # Sync worker at ws://localhost:8787
+# Start development (single server with integrated backend)
+pnpm dev          # Web client + backend at http://localhost:5173
 
 # Testing & Validation
 pnpm test         # Run test suite (36 tests)

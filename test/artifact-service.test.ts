@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach, vi, Mock } from "vitest";
-import artifactWorker from "../src/backend/artifact";
-import { Env } from "../src/backend/types";
+import artifactWorker from "../backend/artifact";
+import { Env } from "../backend/types";
 
 describe("Artifact Service", () => {
   let mockEnv: Env;

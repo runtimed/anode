@@ -7,12 +7,13 @@
     "node": ">=23.0.0"
   },
   "scripts": {
-    "dev": "./scripts/start-dev.sh && pm2 logs",
+    "dev:pm2": "./scripts/start-dev.sh && pnpm exec pm2 logs",
+    "dev": "vite",
     "dev:web": "vite",
     "dev:scan": "pnpm run dev & npx react-scan@latest localhost:5173",
     "dev:prod": "vite --mode production",
     "dev:sync": "wrangler dev",
-    "dev:runtime": "deno run --allow-all --env-file=.env \"jsr:@runt/pyodide-runtime-agent@^0.6.4\"",
+    "dev:runtime": "./scripts/dev-runtime.sh",
     "build": "vite build --mode development",
     "build:preview": "vite build --mode preview",
     "build:production": "vite build --mode production",
@@ -36,7 +37,7 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "check": "pnpm type-check && pnpm lint && pnpm format:check",
-    "start": "echo 'Use `pnpm dev` to run the frontend and backend together. The `dev:sync` script is still available for the legacy worker.'"
+    "start": "echo 'Use `pnpm dev` to run the integrated server (frontend + backend). Legacy `dev:sync` script removed - now using Cloudflare Vite plugin.'"
   },
   "dependencies": {
     "@codemirror/autocomplete": "^6.18.6",
@@ -83,6 +84,7 @@
     "tw-animate-css": "^1.3.4"
   },
   "devDependencies": {
+    "@cloudflare/vite-plugin": "^1.9.6",
     "@cloudflare/workers-types": "^4.20250106.0",
     "@effect/vitest": "0.23.7",
     "@eslint/js": "^9.30.1",
@@ -116,7 +118,7 @@
     "vite": "^6.3.5",
     "vitest": "^3.0.0",
     "webpack-bundle-analyzer": "^4.10.2",
-    "wrangler": "4.19.2"
+    "wrangler": "4.25.0"
   },
   "pnpm": {
     "overrides": {
