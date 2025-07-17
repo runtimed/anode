@@ -4,6 +4,9 @@ import { LiveStoreProvider } from "@livestore/react";
 
 import React, { useEffect, useState, Suspense } from "react";
 
+import { AuthProvider } from "./auth/AuthProvider";
+
+
 // Dynamic import for FPSMeter - development tool only
 const FPSMeter = React.lazy(() =>
   import("@overengineering/fps-meter").then((m) => ({
@@ -242,8 +245,10 @@ if (typeof Worker !== "undefined") {
 
 export const App: React.FC = () => {
   return (
-    <AuthGuard>
-      <LiveStoreApp />
-    </AuthGuard>
+    <AuthProvider>
+      <AuthGuard>
+        <LiveStoreApp />
+      </AuthGuard>
+    </AuthProvider>
   );
 };
