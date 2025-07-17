@@ -27,6 +27,12 @@ const customStyles = EditorView.theme({
   "&.cm-focused": {
     outline: "none",
   },
+  // Only apply padding at smaller sizes (max-width: 640px, i.e., Tailwind's sm breakpoint)
+  "@media (max-width: 640px)": {
+    ".cm-content": {
+      padding: "0.75rem 0.5rem",
+    },
+  },
   // Reset cursor animation on focus for better visibility
   "&.cm-focused .cm-cursor": {
     animation: "steps(1) cm-blink 1.2s infinite",
