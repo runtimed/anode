@@ -7,9 +7,9 @@ import {
   RuntimeSessionData,
   NotebookMetadataData,
   tables,
-  schema,
   events,
 } from "@runt/schema";
+import { schema } from "../../schema.js";
 import { Bug, Database } from "lucide-react";
 import { Button } from "@/components/ui/button";
 

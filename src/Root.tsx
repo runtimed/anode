@@ -16,7 +16,7 @@ import { NotebookViewer } from "./components/notebook/NotebookViewer.js";
 import { AuthGuard } from "./components/auth/AuthGuard.js";
 
 import LiveStoreWorker from "./livestore.worker?worker";
-import { schema } from "@runt/schema";
+import { schema } from "./schema.js";
 import { getCurrentNotebookId, getStoreId } from "./util/store-id.js";
 import { getCurrentAuthToken, isAuthStateValid } from "./auth/google-auth.js";
 import { ErrorBoundary } from "react-error-boundary";

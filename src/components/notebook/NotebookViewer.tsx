@@ -196,6 +196,7 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
           position: newPosition,
           cellType,
           createdBy: currentUserId,
+          actorId: currentUserId,
         })
       );
 
@@ -213,10 +214,11 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
       store.commit(
         events.cellDeleted({
           id: cellId,
+          actorId: currentUserId,
         })
       );
     },
-    [store]
+    [store, currentUserId]
   );
 
   const moveCell = useCallback(
@@ -234,12 +236,14 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
             events.cellMoved({
               id: cellId,
               newPosition: targetCell.position,
+              actorId: currentUserId,
             })
           );
           store.commit(
             events.cellMoved({
               id: targetCell.id,
               newPosition: currentCell.position,
+              actorId: currentUserId,
             })
           );
         }
@@ -251,12 +255,14 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
             events.cellMoved({
               id: cellId,
               newPosition: targetCell.position,
+              actorId: currentUserId,
             })
           );
           store.commit(
             events.cellMoved({
               id: targetCell.id,
               newPosition: currentCell.position,
+              actorId: currentUserId,
             })
           );
         }
@@ -265,10 +271,13 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
     [cells, store]
   );
 
-  const focusCell = useCallback((cellId: string) => {
-    setFocusedCellId(cellId);
-    hasEverFocusedRef.current = true;
-  }, []);
+  const focusCell = useCallback(
+    (cellId: string) => {
+      setFocusedCellId(cellId);
+      hasEverFocusedRef.current = true;
+    },
+    [currentUserId]
+  );
 
   const focusNextCell = useCallback(
     (currentCellId: string) => {
