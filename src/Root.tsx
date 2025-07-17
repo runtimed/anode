@@ -24,6 +24,8 @@ import { getCurrentNotebookId, getStoreId } from "./util/store-id.js";
 import { getCurrentAuthToken, isAuthStateValid } from "./auth/google-auth.js";
 import { useGoogleAuth } from "./auth/useGoogleAuth.js";
 import { ErrorBoundary } from "react-error-boundary";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
+import AuthRedirect from "./components/auth/AuthRedirect.js";
 
 const NotebookApp: React.FC = () => {
   // In the simplified architecture, we always show the current notebook
@@ -245,10 +247,23 @@ if (typeof Worker !== "undefined") {
 
 export const App: React.FC = () => {
   return (
-    <AuthProvider>
-      <AuthGuard>
-        <LiveStoreApp />
-      </AuthGuard>
-    </AuthProvider>
+    <BrowserRouter>
+      <AuthProvider>
+        <Routes>
+          <Route
+            path="/oidc"
+            element={<AuthRedirect />}
+          />
+          <Route
+            path="/*"
+            element={
+                <AuthGuard>
+                  <LiveStoreApp />
+                </AuthGuard>
+            }
+          />
+        </Routes>
+        </AuthProvider>
+    </BrowserRouter>
   );
 };
