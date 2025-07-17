@@ -38,14 +38,20 @@ pnpm install
 
 ### 3. Configure Your Local Environment
 
-The `pnpm install` command automatically creates the necessary environment files with sensible defaults for local development. If you need to customize your environment, you can modify:
+You need to copy the environment configuration files manually:
 
-- **`.dev.vars`** - Local secrets and variables for the Worker (auto-created from `.dev.vars.example`)
-- **`.env`** - Environment variables for the Vite build process (auto-created from `.env.example`)
+```bash
+# Copy environment configuration files  
+cp .env.example .env
+cp .dev.vars.example .dev.vars
+```
+
+- **`.dev.vars`** - Local secrets and variables for the Worker
+- **`.env`** - Environment variables for the Vite build process
 
 These files are already in `.gitignore` and should **never** be committed to the repository.
 
-**Note**: Most developers won't need to modify these files. The defaults work out of the box for local development.
+**Note**: The example files contain sensible defaults that work for local development out of the box.
 
 ### 4. Run the Development Server
 

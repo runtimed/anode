@@ -61,13 +61,19 @@ correct version)
 ### 1. Install and Configure
 
 ```bash
-pnpm install  # Install dependencies and creates .env files automatically
+pnpm install  # Install dependencies
+
+# Copy environment configuration files
+cp .env.example .env
+cp .dev.vars.example .dev.vars
 
 # Start development (single server with integrated backend)
 pnpm dev
 ```
 
-Environment configuration is handled automatically by `pnpm install`, which creates the necessary `.env` files with sensible defaults for local development.
+The example files contain sensible defaults that work for local development out of the box:
+- `.env.example` → `.env` - Frontend environment variables (Vite)
+- `.dev.vars.example` → `.dev.vars` - Backend environment variables (Worker)
 
 ### 2. Create Your First Notebook
 
@@ -149,7 +155,9 @@ Want to run Anode locally or contribute? Here's the essentials:
 
 ```bash
 # One-time setup
-pnpm install             # Installs dependencies and creates .env files
+pnpm install             # Install dependencies
+cp .env.example .env     # Copy environment configuration
+cp .dev.vars.example .dev.vars
 
 # Start development (single server with integrated backend)
 pnpm dev                 # Web interface + backend at http://localhost:5173

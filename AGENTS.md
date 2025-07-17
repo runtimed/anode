@@ -102,7 +102,9 @@ multiple runtimes during transitions.
 
 ```bash
 # Setup
-pnpm install  # Automatically creates package .env files with defaults
+pnpm install  # Install dependencies
+cp .env.example .env  # Copy environment configuration  
+cp .dev.vars.example .dev.vars
 
 # Start development (single server with integrated backend)
 pnpm dev      # All-in-one server at http://localhost:5173
@@ -371,7 +373,9 @@ pnpm check           # Run all checks at once
 
 ```bash
 # Setup environment
-pnpm install         # Install dependencies and creates .env files automatically
+pnpm install         # Install dependencies
+cp .env.example .env # Copy environment configuration
+cp .dev.vars.example .dev.vars
 
 # Start development (single server with integrated backend)
 pnpm dev             # Web client + backend at http://localhost:5173
