@@ -130,12 +130,12 @@ export const RichOutput: React.FC<RichOutputProps> = ({
     if (hasContainers) {
       // Check if we have numbered indices (character-by-character response)
       const keys = Object.keys(potentialContainers);
-      const hasNumberedIndices = keys.every(key => /^\d+$/.test(key));
+      const hasNumberedIndices = keys.every((key) => /^\d+$/.test(key));
 
       if (hasNumberedIndices) {
         // Concatenate all character data into a single text/markdown output
         const sortedKeys = keys.sort((a, b) => parseInt(a) - parseInt(b));
-        let concatenatedText = '';
+        let concatenatedText = "";
 
         for (const key of sortedKeys) {
           const container = potentialContainers[key];
@@ -147,7 +147,9 @@ export const RichOutput: React.FC<RichOutputProps> = ({
         outputData = { "text/markdown": concatenatedText };
       } else {
         // Original media container processing
-        for (const [mimeType, container] of Object.entries(potentialContainers)) {
+        for (const [mimeType, container] of Object.entries(
+          potentialContainers
+        )) {
           if (isInlineContainer(container)) {
             outputData[mimeType] = container.data;
           } else if (isArtifactContainer(container)) {

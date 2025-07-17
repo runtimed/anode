@@ -14,7 +14,7 @@ export function generateRuntimeCommand(
     'deno run --allow-all --env-file=.env "jsr:@runt/pyodide-runtime-agent@^0.7.3"';
 
   // If the command starts with 'cd', place NOTEBOOK_ID after the cd command
-  if (baseRuntimeCommand.startsWith('cd ')) {
+  if (baseRuntimeCommand.startsWith("cd ")) {
     // Find the position after 'cd ... &&'
     const cdMatch = baseRuntimeCommand.match(/^cd\s+[^&]*&&\s*/);
     if (cdMatch) {

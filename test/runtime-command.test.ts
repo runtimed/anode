@@ -75,7 +75,8 @@ describe("Runtime Command Generation", () => {
   });
 
   it("should place NOTEBOOK_ID after cd command when command starts with cd", () => {
-    const customCommand = "cd ../runt && GROQ_API_KEY=test deno run --allow-all mod.ts";
+    const customCommand =
+      "cd ../runt && GROQ_API_KEY=test deno run --allow-all mod.ts";
     const notebookId = "cd-test-notebook";
     const runtimeCommand = generateRuntimeCommand(notebookId, customCommand);
 
@@ -104,7 +105,8 @@ describe("Runtime Command Generation", () => {
   });
 
   it("should handle complex cd command with environment variables", () => {
-    const customCommand = "cd ../runt && GROQ_API_KEY=gsk_123 OTHER_VAR=value deno run --allow-all --env-file=.env packages/pyodide-runtime-agent/src/mod.ts";
+    const customCommand =
+      "cd ../runt && GROQ_API_KEY=gsk_123 OTHER_VAR=value deno run --allow-all --env-file=.env packages/pyodide-runtime-agent/src/mod.ts";
     const notebookId = "complex-cd-test";
     const runtimeCommand = generateRuntimeCommand(notebookId, customCommand);
 
