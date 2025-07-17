@@ -76,6 +76,7 @@
     "effect": "3.15.5",
     "js-cookie": "^3.0.5",
     "lucide-react": "^0.514.0",
+    "openid-client": "^6.6.2",
     "react": "19.0.0",
     "react-dom": "19.0.0",
     "react-error-boundary": "^6.0.0",
@@ -85,7 +86,8 @@
     "remark-gfm": "^4.0.1",
     "strip-ansi": "^7.1.0",
     "tailwind-merge": "^3.3.1",
-    "tw-animate-css": "^1.3.4"
+    "tw-animate-css": "^1.3.4",
+    "uuid": "^11.1.0"
   },
   "devDependencies": {
     "@cloudflare/vite-plugin": "^1.9.6",

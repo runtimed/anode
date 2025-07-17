@@ -121,6 +121,9 @@ importers:
       lucide-react:
         specifier: ^0.514.0
         version: 0.514.0(react@19.0.0)
+      openid-client:
+        specifier: ^6.6.2
+        version: 6.6.2
       react:
         specifier: 19.0.0
         version: 19.0.0
@@ -151,6 +154,9 @@ importers:
       tw-animate-css:
         specifier: ^1.3.4
         version: 1.3.5
+      uuid:
+        specifier: ^11.1.0
+        version: 11.1.0
     devDependencies:
       '@cloudflare/vite-plugin':
         specifier: ^1.9.6
@@ -492,9 +498,6 @@ packages:
 
   '@codemirror/view@6.38.0':
     resolution: {integrity: sha512-yvSchUwHOdupXkd7xJ0ob36jdsSR/I+/C+VbY0ffBiL5NiSTEBDfB1ZGWbbIlDd5xgdUkody+lukAdOxYrOBeg==}
-
-  '@codemirror/view@6.38.1':
-    resolution: {integrity: sha512-RmTOkE7hRU3OVREqFVITWHz6ocgBjv08GoePscAakgVQfciA3SGCEk7mb9IzwW61cKKmlTpHXG6DUE5Ubx+MGQ==}
 
   '@cspotcode/source-map-support@0.8.1':
     resolution: {integrity: sha512-IchNf6dN4tHoMFIn/7OE8LWZ19Y6q/67Bmf6vnGREv8RSbBVb9LPJxEcnwrcwX6ixSvaiGoomAUvu4YSxXrVgw==}
@@ -3109,6 +3112,9 @@ packages:
     resolution: {integrity: sha512-rg9zJN+G4n2nfJl5MW3BMygZX56zKPNVEYYqq7adpmMh4Jn2QNEwhvQlFy6jPVdcod7txZtKHWnyZiA3a0zP7A==}
     hasBin: true
 
+  jose@6.0.12:
+    resolution: {integrity: sha512-T8xypXs8CpmiIi78k0E+Lk7T2zlK4zDyg+o1CZ4AkOHgDg98ogdP2BeZ61lTFKFyoEwJ9RgAgN+SdM3iPgNonQ==}
+
   js-cookie@2.2.1:
     resolution: {integrity: sha512-HvdH2LzI/EAZcUwA8+0nKNtWHqS+ZmijLA30RwZA0bo7ToCckjK5MkGhjED9KoRcXO6BaGI3I9UIzSA1FKFPOQ==}
 
@@ -3486,11 +3492,11 @@ packages:
   msgpackr@1.11.2:
     resolution: {integrity: sha512-F9UngXRlPyWCDEASDpTf6c9uNhGPTqnTeLVt7bN+bU1eajoR/8V9ys2BRaV5C/e5ihE6sJ9uPIKaYt6bFuO32g==}
 
-  msgpackr@1.11.5:
-    resolution: {integrity: sha512-UjkUHN0yqp9RWKy0Lplhh+wlpdt9oQBYgULZOiFhV3VclSF1JnSQWZ5r9gORQlNYaUKQoR8itv7g7z1xDDuACA==}
+  msgpackr@1.11.4:
+    resolution: {integrity: sha512-uaff7RG9VIC4jacFW9xzL3jc0iM32DNHe4jYVycBcjUePT/Klnfj7pqtWJt9khvDFizmjN2TlYniYmSS2LIaZg==}
 
-  multipasta@0.2.7:
-    resolution: {integrity: sha512-KPA58d68KgGil15oDqXjkUBEBYc00XvbPj5/X+dyzeo/lWm9Nc25pQRlf1D+gv4OpK7NM0J1odrbu9JNNGvynA==}
+  multipasta@0.2.5:
+    resolution: {integrity: sha512-c8eMDb1WwZcE02WVjHoOmUVk7fnKU/RmUcosHACglrWAuPQsEJv+E8430sXj6jNc1jHw0zrS16aCjQh4BcEb4A==}
 
   mute-stream@0.0.8:
     resolution: {integrity: sha512-nnbWWOkoWyUsTjKrhgD0dcz22mdkSnpYqbEjIm2nhwhuxlSkpywJmBo8h0ZqJdkp73mb90SssHkN4rsRaBAfAA==}
@@ -3541,6 +3547,9 @@ packages:
     resolution: {integrity: sha512-bdok/XvKII3nUpklnV6P2hxtMNrCboOjAcyBuQnWEhO665FwrSNRxU+AqpsyvO6LgGYPspN+lu5CLtw4jPRKNA==}
     engines: {node: '>=0.10.0'}
 
+  oauth4webapi@3.6.0:
+    resolution: {integrity: sha512-OwXPTXjKPOldTpAa19oksrX9TYHA0rt+VcUFTkJ7QKwgmevPpNm9Cn5vFZUtIo96FiU6AfPuUUGzoXqgOzibWg==}
+
   obliterator@2.0.5:
     resolution: {integrity: sha512-42CPE9AhahZRsMNslczq0ctAEtqk8Eka26QofnqC346BZdHDySk3LWka23LI7ULIw11NmltpiLagIq8gBozxTw==}
 
@@ -3554,6 +3563,9 @@ packages:
   opener@1.5.2:
     resolution: {integrity: sha512-ur5UIdyw5Y7yEj9wLzhqXiy6GZ3Mwx0yGI+5sMn2r0N0v3cKJvUmFH5yPP+WXh9e0xfyzyJX95D8l088DNFj7A==}
     hasBin: true
+
+  openid-client@6.6.2:
+    resolution: {integrity: sha512-Xya5TNMnnZuTM6DbHdB4q0S3ig2NTAELnii/ASie1xDEr8iiB8zZbO871OWBdrw++sd3hW6bqWjgcmSy1RTWHA==}
 
   optionator@0.9.4:
     resolution: {integrity: sha512-6IpQ7mKUxRcZNLIObR0hz7lxsapSSIYNZJwXPGeF0mTVqGKFIXj1DQcMoT22S3ROcLyY/rz0PWaWZ9ayWmad9g==}
@@ -4889,7 +4901,7 @@ snapshots:
   '@codemirror/search@6.5.11':
     dependencies:
       '@codemirror/state': 6.5.2
-      '@codemirror/view': 6.38.1
+      '@codemirror/view': 6.38.0
       crelt: 1.0.6
 
   '@codemirror/state@6.5.2':
@@ -4900,17 +4912,10 @@ snapshots:
     dependencies:
       '@codemirror/language': 6.11.2
       '@codemirror/state': 6.5.2
-      '@codemirror/view': 6.38.1
+      '@codemirror/view': 6.38.0
       '@lezer/highlight': 1.2.1
 
   '@codemirror/view@6.38.0':
-    dependencies:
-      '@codemirror/state': 6.5.2
-      crelt: 1.0.6
-      style-mod: 4.1.2
-      w3c-keyname: 2.2.8
-
-  '@codemirror/view@6.38.1':
     dependencies:
       '@codemirror/state': 6.5.2
       crelt: 1.0.6
@@ -4959,7 +4964,7 @@ snapshots:
     dependencies:
       '@effect/platform': 0.82.4(effect@3.15.5)
       effect: 3.15.5
-      multipasta: 0.2.7
+      multipasta: 0.2.5
 
   '@effect/platform-bun@0.65.5(@effect/cluster@0.34.2(@effect/platform@0.82.4(effect@3.15.5))(@effect/rpc@0.59.9(@effect/platform@0.82.4(effect@3.15.5))(effect@3.15.5))(@effect/sql@0.35.8(@effect/experimental@0.46.8(@effect/platform@0.82.4(effect@3.15.5))(effect@3.15.5))(@effect/platform@0.82.4(effect@3.15.5))(effect@3.15.5))(effect@3.15.5))(@effect/platform@0.82.4(effect@3.15.5))(@effect/rpc@0.59.9(@effect/platform@0.82.4(effect@3.15.5))(effect@3.15.5))(@effect/sql@0.35.8(@effect/experimental@0.46.8(@effect/platform@0.82.4(effect@3.15.5))(effect@3.15.5))(@effect/platform@0.82.4(effect@3.15.5))(effect@3.15.5))(effect@3.15.5)':
     dependencies:
@@ -4969,7 +4974,7 @@ snapshots:
       '@effect/rpc': 0.59.9(@effect/platform@0.82.4(effect@3.15.5))(effect@3.15.5)
       '@effect/sql': 0.35.8(@effect/experimental@0.46.8(@effect/platform@0.82.4(effect@3.15.5))(effect@3.15.5))(@effect/platform@0.82.4(effect@3.15.5))(effect@3.15.5)
       effect: 3.15.5
-      multipasta: 0.2.7
+      multipasta: 0.2.5
     transitivePeerDependencies:
       - bufferutil
       - utf-8-validate
@@ -4982,7 +4987,7 @@ snapshots:
       '@effect/sql': 0.35.8(@effect/experimental@0.46.8(@effect/platform@0.82.4(effect@3.15.5))(effect@3.15.5))(@effect/platform@0.82.4(effect@3.15.5))(effect@3.15.5)
       '@parcel/watcher': 2.5.1
       effect: 3.15.5
-      multipasta: 0.2.7
+      multipasta: 0.2.5
       ws: 8.18.3
     transitivePeerDependencies:
       - bufferutil
@@ -5007,8 +5012,8 @@ snapshots:
     dependencies:
       effect: 3.15.5
       find-my-way-ts: 0.1.6
-      msgpackr: 1.11.5
-      multipasta: 0.2.7
+      msgpackr: 1.11.4
+      multipasta: 0.2.5
 
   '@effect/printer-ansi@0.43.5(@effect/typeclass@0.34.2(effect@3.15.5))(effect@3.15.5)':
     dependencies:
@@ -6934,7 +6939,7 @@ snapshots:
       '@codemirror/lint': 6.8.5
       '@codemirror/search': 6.5.11
       '@codemirror/state': 6.5.2
-      '@codemirror/view': 6.38.1
+      '@codemirror/view': 6.38.0
 
   color-convert@1.9.3:
     dependencies:
@@ -7579,6 +7584,8 @@ snapshots:
 
   jiti@2.4.2: {}
 
+  jose@6.0.12: {}
+
   js-cookie@2.2.1: {}
 
   js-cookie@3.0.5: {}
@@ -8135,11 +8142,11 @@ snapshots:
     optionalDependencies:
       msgpackr-extract: 3.0.3
 
-  msgpackr@1.11.5:
+  msgpackr@1.11.4:
     optionalDependencies:
       msgpackr-extract: 3.0.3
 
-  multipasta@0.2.7: {}
+  multipasta@0.2.5: {}
 
   mute-stream@0.0.8: {}
 
@@ -8185,6 +8192,8 @@ snapshots:
 
   normalize-range@0.1.2: {}
 
+  oauth4webapi@3.6.0: {}
+
   obliterator@2.0.5: {}
 
   ohash@2.0.11: {}
@@ -8196,6 +8205,11 @@ snapshots:
       is-wsl: 2.2.0
 
   opener@1.5.2: {}
+
+  openid-client@6.6.2:
+    dependencies:
+      jose: 6.0.12
+      oauth4webapi: 3.6.0
 
   optionator@0.9.4:
     dependencies:
