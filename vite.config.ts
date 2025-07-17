@@ -33,7 +33,26 @@ export default defineConfig(({ mode }) => {
       },
     },
     plugins: [
-      react(),
+      react({
+        babel: {
+          plugins: [
+            [
+              "babel-plugin-react-compiler",
+              {
+                // Enable React Compiler
+                enable: true,
+                // Optional: Configure which files to compile
+                include: ["src/**/*.{js,jsx,ts,tsx}"],
+                // Optional: Exclude certain files
+                exclude: [
+                  "src/**/*.test.{js,jsx,ts,tsx}",
+                  "src/**/*.spec.{js,jsx,ts,tsx}",
+                ],
+              },
+            ],
+          ],
+        },
+      }),
       tailwindcss(),
       cloudflare(),
       livestoreDevtoolsPlugin({ schemaPath: "./schema.ts" }),
