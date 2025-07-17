@@ -149,6 +149,9 @@ export const useUserRegistry = () => {
   const getUserInitials = useCallback(
     (userId: string): string => {
       const userInfo = getUserInfo(userId);
+      if (userInfo.isAnonymous) {
+        return generateInitials(userId);
+      }
       return generateInitials(userInfo.name);
     },
     [getUserInfo]
