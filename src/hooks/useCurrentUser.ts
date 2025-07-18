@@ -1,7 +1,8 @@
-import { useMemo } from "react";
+import { useMemo, useEffect } from "react";
 import { useStore } from "@livestore/react";
 import { useGoogleAuth } from "../auth/useGoogleAuth.js";
 import { googleAuthManager } from "../auth/google-auth.js";
+import { events } from "@runt/schema";
 
 export interface CurrentUser {
   id: string;
@@ -15,7 +16,7 @@ export const useCurrentUser = (): CurrentUser => {
   const { user, isAuthenticated } = useGoogleAuth();
   const { store } = useStore();
 
-  return useMemo((): CurrentUser => {
+  const currentUser = useMemo((): CurrentUser => {
     // If Google Auth is enabled and we have an authenticated user
     if (googleAuthManager.isEnabled() && isAuthenticated && user) {
       return {
@@ -37,6 +38,34 @@ export const useCurrentUser = (): CurrentUser => {
       isAnonymous: true,
     };
   }, [user, isAuthenticated, store.sessionId]);
+
+  // Emit actor profile set event when user is authenticated
+  useEffect(() => {
+    if (currentUser && !currentUser.isAnonymous) {
+      store.commit(
+        events.actorProfileSet({
+          id: currentUser.id,
+          type: "human",
+          displayName: currentUser.name,
+          avatar: currentUser.picture,
+        })
+      );
+    }
+  }, [currentUser, store]);
+
+  // Emit presence event when user is authenticated
+  useEffect(() => {
+    if (currentUser && !currentUser.isAnonymous) {
+      store.commit(
+        events.presenceUpdated({
+          userId: currentUser.id,
+          cellId: null,
+        })
+      );
+    }
+  }, [currentUser, store]);
+
+  return currentUser;
 };
 
 // Helper hook to get just the user ID for event attribution

@@ -1,7 +1,7 @@
-import { useCallback, useEffect, useMemo } from "react";
+import { useCallback, useMemo } from "react";
 import { useStore, useQuery } from "@livestore/react";
 import { queryDb } from "@livestore/livestore";
-import { events, tables } from "@runt/schema";
+import { tables } from "@runt/schema";
 
 import { useCurrentUser } from "./useCurrentUser.js";
 import { generateInitials } from "../util/avatar.js";
@@ -27,19 +27,7 @@ export const useUserRegistry = () => {
   const actors = useQuery(actorsQuery);
   const presence = useQuery(presenceQuery);
 
-  // Commit the current user's profile to the actors table when they are authenticated
-  useEffect(() => {
-    if (currentUser && currentUser.id && !currentUser.isAnonymous) {
-      store.commit(
-        events.actorProfileSet({
-          id: currentUser.id,
-          type: "human",
-          displayName: currentUser.name || "Anonymous",
-          avatar: currentUser.picture,
-        })
-      );
-    }
-  }, [currentUser, store]);
+  // Actor profile emission is now handled in useCurrentUser hook
 
   // Create a reactive map of user info from actors and presence data
   const userRegistry = useMemo(() => {
