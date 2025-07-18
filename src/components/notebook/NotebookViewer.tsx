@@ -14,7 +14,6 @@ import { useCurrentUserId } from "@/hooks/useCurrentUser.js";
 import { useUserRegistry } from "@/hooks/useUserRegistry.js";
 import { getRuntimeCommand } from "@/util/runtime-command.js";
 import { getCurrentNotebookId } from "@/util/store-id.js";
-import { generateColor } from "@/util/avatar.js";
 import {
   Bot,
   Bug,
@@ -55,7 +54,7 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
 }) => {
   const { store } = useStore();
   const currentUserId = useCurrentUserId();
-  const { presentUsers, getUserInfo } = useUserRegistry();
+  const { presentUsers, getUserInfo, getUserColor } = useUserRegistry();
 
   const cells = store.useQuery(
     queryDb(tables.cells.select().orderBy("position", "asc"))
@@ -361,7 +360,12 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
                   return (
                     <div
                       key={user.id}
-                      className="shrink-0 overflow-hidden rounded-full border-2 border-white"
+                      className="shrink-0 overflow-hidden rounded-full border-2"
+                      style={{
+                        borderColor: isRuntimeAgent
+                          ? "#22c55e"
+                          : getUserColor(user.id),
+                      }}
                       title={
                         isRuntimeAgent
                           ? "Python Runtime"
@@ -383,7 +387,7 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
                           initials={
                             userInfo?.name?.charAt(0).toUpperCase() ?? "?"
                           }
-                          backgroundColor={generateColor(user.id)}
+                          backgroundColor={getUserColor(user.id)}
                         />
                       )}
                     </div>

@@ -1,5 +1,7 @@
 import React, { ReactNode } from "react";
 import { tables } from "@runt/schema";
+import { useUserRegistry } from "@/hooks/useUserRegistry.js";
+import { useCurrentUserId } from "@/hooks/useCurrentUser.js";
 
 interface CellContainerProps {
   cell: typeof tables.cells.Type;
@@ -20,6 +22,13 @@ export const CellContainer: React.FC<CellContainerProps> = ({
   focusColor = "bg-primary/60",
   focusBgColor = "bg-primary/5",
 }) => {
+  const { getUsersOnCell, getUserColor } = useUserRegistry();
+  const currentUserId = useCurrentUserId();
+
+  // Get users present on this cell (excluding current user)
+  const usersOnCell = getUsersOnCell(cell.id).filter(
+    (user) => user.id !== currentUserId
+  );
   return (
     <div
       className={`cell-container group relative mb-2 pt-2 transition-all duration-200 sm:mb-3 ${
@@ -45,6 +54,29 @@ export const CellContainer: React.FC<CellContainerProps> = ({
           height: "100%", // Will be controlled by content
         }}
       />
+
+      {/* Presence indicators - colored dots for users on this cell */}
+      {usersOnCell.length > 0 && (
+        <div className="absolute top-1 right-2 flex -space-x-1">
+          {usersOnCell.slice(0, 3).map((user) => (
+            <div
+              key={user.id}
+              className="h-2 w-2 rounded-full border border-white"
+              style={{
+                backgroundColor: getUserColor(user.id),
+              }}
+              title={user.name}
+            />
+          ))}
+          {usersOnCell.length > 3 && (
+            <div
+              className="h-2 w-2 rounded-full border border-white bg-gray-500"
+              title={`+${usersOnCell.length - 3} more`}
+            />
+          )}
+        </div>
+      )}
+
       {children}
     </div>
   );
