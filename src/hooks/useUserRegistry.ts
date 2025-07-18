@@ -3,7 +3,7 @@ import { useQuery } from "@livestore/react";
 import { queryDb } from "@livestore/livestore";
 import { tables } from "@runt/schema";
 
-import { generateInitials } from "../util/avatar.js";
+import { generateInitials, generateColor } from "../util/avatar.js";
 
 export interface UserInfo {
   id: string;
@@ -109,10 +109,27 @@ export const useUserRegistry = () => {
     [getUserInfo]
   );
 
+  // Get consistent color for user (memoized)
+  const getUserColor = useCallback((userId: string): string => {
+    return generateColor(userId);
+  }, []);
+
+  // Get users present on a specific cell (excluding current user)
+  const getUsersOnCell = useCallback(
+    (cellId: string) => {
+      return presence
+        .filter((p) => p.cellId === cellId)
+        .map((p) => getUserInfo(p.userId));
+    },
+    [presence, getUserInfo]
+  );
+
   return {
     getUserInfo,
     getDisplayName,
     getUserInitials,
+    getUserColor,
+    getUsersOnCell,
     // Provide the list of users currently present
     presentUsers: presence.map((p) => getUserInfo(p.userId)),
     // Provide the full registry for other UI uses

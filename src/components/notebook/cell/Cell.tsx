@@ -12,7 +12,6 @@ type CellType = typeof tables.cells.Type;
 
 interface CellProps {
   cell: CellType;
-  onAddCell: () => void;
   onDeleteCell: () => void;
   onMoveUp: () => void;
   onMoveDown: () => void;
@@ -25,7 +24,6 @@ interface CellProps {
 
 export const Cell: React.FC<CellProps> = ({
   cell,
-  onAddCell,
   onDeleteCell,
   onMoveUp,
   onMoveDown,
@@ -41,7 +39,6 @@ export const Cell: React.FC<CellProps> = ({
       <ErrorBoundary fallback={<div>Error rendering code cell</div>}>
         <CodeCell
           cell={cell}
-          onAddCell={onAddCell}
           onDeleteCell={onDeleteCell}
           onMoveUp={onMoveUp}
           onMoveDown={onMoveDown}
@@ -60,7 +57,6 @@ export const Cell: React.FC<CellProps> = ({
       <ErrorBoundary fallback={<div>Error rendering SQL cell</div>}>
         <SqlCell
           cell={cell}
-          onAddCell={onAddCell}
           onDeleteCell={onDeleteCell}
           onMoveUp={onMoveUp}
           onMoveDown={onMoveDown}
@@ -79,7 +75,6 @@ export const Cell: React.FC<CellProps> = ({
       <ErrorBoundary fallback={<div>Error rendering AI cell</div>}>
         <AiCell
           cell={cell}
-          onAddCell={onAddCell}
           onDeleteCell={onDeleteCell}
           onMoveUp={onMoveUp}
           onMoveDown={onMoveDown}
@@ -98,7 +93,6 @@ export const Cell: React.FC<CellProps> = ({
       <ErrorBoundary fallback={<div>Error rendering markdown cell</div>}>
         <MarkdownCell
           cell={cell}
-          onAddCell={onAddCell}
           onDeleteCell={onDeleteCell}
           onMoveUp={onMoveUp}
           onMoveDown={onMoveDown}

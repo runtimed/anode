@@ -4,6 +4,7 @@ import { useCellContent } from "@/hooks/useCellContent.js";
 import { useCellKeyboardNavigation } from "@/hooks/useCellKeyboardNavigation.js";
 import { useCellOutputs } from "@/hooks/useCellOutputs.js";
 import { useCurrentUserId } from "@/hooks/useCurrentUser.js";
+import { useUserRegistry } from "@/hooks/useUserRegistry.js";
 import { queryDb } from "@livestore/livestore";
 import { useStore } from "@livestore/react";
 import { events, tables } from "@runt/schema";
@@ -16,11 +17,11 @@ import { CellTypeSelector } from "./shared/CellTypeSelector.js";
 import { Editor } from "./shared/Editor.js";
 import { OutputsErrorBoundary } from "./shared/OutputsErrorBoundary.js";
 import { PlayButton } from "./shared/PlayButton.js";
+import { PresenceBookmarks } from "./shared/PresenceBookmarks.js";
 import { CodeToolbar } from "./toolbars/CodeToolbar.js";
 
 interface CodeCellProps {
   cell: typeof tables.cells.Type;
-  onAddCell: () => void;
   onDeleteCell: () => void;
   onMoveUp: () => void;
   onMoveDown: () => void;
@@ -33,7 +34,6 @@ interface CodeCellProps {
 
 export const CodeCell: React.FC<CodeCellProps> = ({
   cell,
-  onAddCell,
   onDeleteCell,
   onMoveUp,
   onMoveDown,
@@ -45,6 +45,12 @@ export const CodeCell: React.FC<CodeCellProps> = ({
 }) => {
   const { store } = useStore();
   const currentUserId = useCurrentUserId();
+  const { getUsersOnCell, getUserColor } = useUserRegistry();
+
+  // Get users present on this cell (excluding current user)
+  const usersOnCell = getUsersOnCell(cell.id).filter(
+    (user) => user.id !== currentUserId
+  );
 
   // Use shared content management hook
   const { localSource, updateSource, handleSourceChange } = useCellContent({
@@ -240,12 +246,15 @@ export const CodeCell: React.FC<CodeCellProps> = ({
           <CellTypeSelector cell={cell} onCellTypeChange={changeCellType} />
           <CodeToolbar />
           <ExecutionStatus executionState={cell.executionState} />
+          <PresenceBookmarks
+            usersOnCell={usersOnCell}
+            getUserColor={getUserColor}
+          />
         </div>
 
         <CellControls
           cell={cell}
           contextSelectionMode={contextSelectionMode}
-          onAddCell={onAddCell}
           onMoveUp={onMoveUp}
           onMoveDown={onMoveDown}
           onDeleteCell={onDeleteCell}

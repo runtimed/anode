@@ -1,5 +1,6 @@
 import React, { ReactNode } from "react";
 import { tables } from "@runt/schema";
+import "./PresenceIndicators.css";
 
 interface CellContainerProps {
   cell: typeof tables.cells.Type;
@@ -45,6 +46,7 @@ export const CellContainer: React.FC<CellContainerProps> = ({
           height: "100%", // Will be controlled by content
         }}
       />
+
       {children}
     </div>
   );
