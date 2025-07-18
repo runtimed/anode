@@ -82,7 +82,7 @@ export const SqlCell: React.FC<SqlCellProps> = ({
         requestedBy: currentUserId,
       })
     );
-  }, [localQuery, cell.id, cell.executionCount, store]);
+  }, [localQuery, cell.id, cell.executionCount, store, currentUserId]);
 
   const clearCellOutputs = useCallback(async () => {
     if (hasOutputs) {

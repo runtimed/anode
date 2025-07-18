@@ -149,7 +149,7 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
         })
       );
     }
-  }, [executionQueue, store]);
+  }, [executionQueue, store, currentUserId]);
 
   // Prefetch output components adaptively based on connection speed
   React.useEffect(() => {

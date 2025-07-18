@@ -1,8 +1,9 @@
 import { useMemo, useEffect } from "react";
-import { useStore } from "@livestore/react";
+import { useStore, useQuery } from "@livestore/react";
 import { useGoogleAuth } from "../auth/useGoogleAuth.js";
 import { googleAuthManager } from "../auth/google-auth.js";
-import { events } from "@runt/schema";
+import { events, tables } from "@runt/schema";
+import { queryDb } from "@livestore/livestore";
 
 export interface CurrentUser {
   id: string;
@@ -39,9 +40,16 @@ export const useCurrentUser = (): CurrentUser => {
     };
   }, [user, isAuthenticated, store.sessionId]);
 
-  // Emit actor profile set event when user is authenticated
+  // Query for specific actor to check if user profile already exists
+  const existingActor = useQuery(
+    currentUser && !currentUser.isAnonymous
+      ? queryDb(tables.actors.select().where({ id: currentUser.id }))
+      : queryDb(tables.actors.select().where({ id: "never-match" }))
+  );
+
+  // Emit actor profile set event when user is authenticated and not already in actors table
   useEffect(() => {
-    if (currentUser && !currentUser.isAnonymous) {
+    if (currentUser && !currentUser.isAnonymous && existingActor.length === 0) {
       store.commit(
         events.actorProfileSet({
           id: currentUser.id,
@@ -51,7 +59,7 @@ export const useCurrentUser = (): CurrentUser => {
         })
       );
     }
-  }, [currentUser, store]);
+  }, [currentUser, existingActor, store]);
 
   // Emit presence event when user is authenticated
   useEffect(() => {

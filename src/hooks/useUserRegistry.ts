@@ -40,17 +40,11 @@ export const useUserRegistry = () => {
       });
     });
 
-    // Update lastSeen and cellId from the presence table
-    presence.forEach((p) => {
-      const existing = registry.get(p.userId);
-      if (existing) {
-        // Here you could update a timestamp if your schema had one
-        // For now, their existence in the presence table means they are "here"
-      }
-    });
+    // TODO: Add lastSeen timestamp to presence table schema for better user activity tracking
+    // For now, user existence in presence table indicates they are currently active
 
     return registry;
-  }, [actors, presence]);
+  }, [actors]);
 
   // Get user info by ID with fallback display logic
   const getUserInfo = useCallback(
