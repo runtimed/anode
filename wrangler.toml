@@ -100,7 +100,6 @@ VITE_GOOGLE_CLIENT_ID = "94663405566-1go7jlpd2ar9u9urbfirmtjv1bm0tcis.apps.googl
 VITE_GOOGLE_AUTH_ENABLED = "true"
 VITE_RUNTIME_COMMAND = "pnpm run dev:runtime"
 
-
 # Preview Environment (all-in-one worker)
 [env.preview]
 name = "anode-docworker-preview"
