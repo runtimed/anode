@@ -4,6 +4,9 @@ import { LiveStoreProvider } from "@livestore/react";
 
 import React, { useEffect, useState, Suspense } from "react";
 
+import { AuthProvider } from "./auth/AuthProvider";
+
+
 // Dynamic import for FPSMeter - development tool only
 const FPSMeter = React.lazy(() =>
   import("@overengineering/fps-meter").then((m) => ({
@@ -20,6 +23,8 @@ import { schema } from "./schema.js";
 import { getCurrentNotebookId, getStoreId } from "./util/store-id.js";
 import { getCurrentAuthToken, isAuthStateValid } from "./auth/google-auth.js";
 import { ErrorBoundary } from "react-error-boundary";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
+import AuthRedirect from "./components/auth/AuthRedirect.js";
 
 const NotebookApp: React.FC = () => {
   // In the simplified architecture, we always show the current notebook
@@ -234,8 +239,23 @@ if (typeof Worker !== "undefined") {
 
 export const App: React.FC = () => {
   return (
-    <AuthGuard>
-      <LiveStoreApp />
-    </AuthGuard>
+    <BrowserRouter>
+      <AuthProvider>
+        <Routes>
+          <Route
+            path="/oidc"
+            element={<AuthRedirect />}
+          />
+          <Route
+            path="/*"
+            element={
+                <AuthGuard>
+                  <LiveStoreApp />
+                </AuthGuard>
+            }
+          />
+        </Routes>
+        </AuthProvider>
+    </BrowserRouter>
   );
 };

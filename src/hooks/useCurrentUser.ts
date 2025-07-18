@@ -1,7 +1,6 @@
 import { useMemo } from "react";
 import { useStore } from "@livestore/react";
-import { useGoogleAuth } from "../auth/useGoogleAuth.js";
-import { googleAuthManager } from "../auth/google-auth.js";
+import { useAuth } from "../auth/AuthProvider";
 
 export interface CurrentUser {
   id: string;
@@ -12,17 +11,17 @@ export interface CurrentUser {
 }
 
 export const useCurrentUser = (): CurrentUser => {
-  const { user, isAuthenticated } = useGoogleAuth();
+  const { user, isAuthenticated } = useAuth();
   const { store } = useStore();
 
   return useMemo((): CurrentUser => {
-    // If Google Auth is enabled and we have an authenticated user
-    if (googleAuthManager.isEnabled() && isAuthenticated && user) {
+    // If authenticated and user exists
+    if (isAuthenticated && user) {
       return {
         id: user.id,
-        name: user.name,
+        name: user.name || "User",
         email: user.email,
-        picture: user.picture,
+        picture: (user as any).picture, // picture is optional, may not exist
         isAnonymous: false,
       };
     }
