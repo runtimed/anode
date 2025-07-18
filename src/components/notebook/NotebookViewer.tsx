@@ -7,8 +7,16 @@ import { ErrorBoundary } from "react-error-boundary";
 import { NotebookTitle } from "./NotebookTitle.js";
 import { VirtualizedCellList } from "./VirtualizedCellList.js";
 
+import { Avatar } from "@/components/ui/Avatar.js";
 import { Button } from "@/components/ui/button";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip.js";
 import { useCurrentUserId } from "@/hooks/useCurrentUser.js";
+import { useUserRegistry } from "@/hooks/useUserRegistry.js";
 import { getRuntimeCommand } from "@/util/runtime-command.js";
 import { getCurrentNotebookId } from "@/util/store-id.js";
 import {
@@ -51,6 +59,7 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
 }) => {
   const { store } = useStore();
   const currentUserId = useCurrentUserId();
+  const { presentUsers, getUserInfo } = useUserRegistry();
 
   const cells = store.useQuery(
     queryDb(tables.cells.select().orderBy("position", "asc"))
@@ -345,6 +354,26 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
           </div>
 
           <div className="flex items-center gap-2">
+            <TooltipProvider>
+              <div className="flex -space-x-2">
+                {presentUsers
+                  .filter((user) => user.id !== currentUserId)
+                  .map((user) => (
+                    <Tooltip key={user.id}>
+                      <TooltipTrigger>
+                        <Avatar
+                          userId={user.id}
+                          className="border-background h-8 w-8 border-2"
+                        />
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p>{getUserInfo(user.id).name}</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  ))}
+              </div>
+            </TooltipProvider>
+
             {import.meta.env.DEV && onDebugToggle && (
               <Button
                 variant="ghost"
