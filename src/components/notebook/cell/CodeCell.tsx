@@ -302,7 +302,7 @@ export const CodeCell: React.FC<CodeCellProps> = ({
               <Editor
                 localSource={localSource}
                 handleSourceChange={handleSourceChange}
-                updateSource={updateSource}
+                onBlur={updateSource}
                 handleFocus={handleFocus}
                 cell={cell}
                 autoFocus={autoFocus}

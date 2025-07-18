@@ -1,11 +1,7 @@
 import React from "react";
 // import { Badge } from "@/components/ui/badge";
 
-interface MarkdownToolbarProps {}
-
-export const MarkdownToolbar: React.FC<MarkdownToolbarProps> = (
-  _props: MarkdownToolbarProps
-) => {
+export const MarkdownToolbar: React.FC = () => {
   return (
     <div className="flex items-center gap-2">
       {/* <Badge
