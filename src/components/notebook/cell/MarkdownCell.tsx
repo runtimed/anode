@@ -148,7 +148,6 @@ export const MarkdownCell: React.FC<MarkdownCellProps> = ({
       {
         key: "Escape",
         run: () => {
-          console.log(cell.source, localSource);
           // TODO: undo changes
           setLocalSource(cell.source);
           setTimeout(() => {
