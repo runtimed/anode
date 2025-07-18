@@ -9,12 +9,7 @@ import { VirtualizedCellList } from "./VirtualizedCellList.js";
 
 import { Avatar } from "@/components/ui/Avatar.js";
 import { Button } from "@/components/ui/button";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip.js";
+
 import { useCurrentUserId } from "@/hooks/useCurrentUser.js";
 import { useUserRegistry } from "@/hooks/useUserRegistry.js";
 import { getRuntimeCommand } from "@/util/runtime-command.js";
@@ -355,42 +350,40 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
           </div>
 
           <div className="flex items-center gap-2">
-            <TooltipProvider>
-              <div className="flex -space-x-2">
-                {presentUsers
-                  .filter((user) => user.id !== currentUserId)
-                  .map((user) => {
-                    const userInfo = getUserInfo(user.id);
-                    const isRuntimeAgent =
-                      user.id.includes("runtime") || user.id.includes("python");
+            <div className="flex -space-x-2">
+              {presentUsers
+                .filter((user) => user.id !== currentUserId)
+                .map((user) => {
+                  const userInfo = getUserInfo(user.id);
+                  const isRuntimeAgent =
+                    user.id.includes("runtime") || user.id.includes("python");
 
-                    return (
-                      <div
-                        key={user.id}
-                        className="shrink-0 overflow-hidden rounded-full border-2 border-white"
-                        title={
-                          isRuntimeAgent
-                            ? "Python Runtime"
-                            : (userInfo?.name ?? "Unknown User")
-                        }
-                      >
-                        {isRuntimeAgent ? (
-                          <div className="flex size-8 items-center justify-center rounded-full bg-green-100">
-                            <Bot className="size-4 text-green-700" />
-                          </div>
-                        ) : (
-                          <Avatar
-                            initials={
-                              userInfo?.name?.charAt(0).toUpperCase() ?? "?"
-                            }
-                            backgroundColor={generateColor(user.id)}
-                          />
-                        )}
-                      </div>
-                    );
-                  })}
-              </div>
-            </TooltipProvider>
+                  return (
+                    <div
+                      key={user.id}
+                      className="shrink-0 overflow-hidden rounded-full border-2 border-white"
+                      title={
+                        isRuntimeAgent
+                          ? "Python Runtime"
+                          : (userInfo?.name ?? "Unknown User")
+                      }
+                    >
+                      {isRuntimeAgent ? (
+                        <div className="flex size-8 items-center justify-center rounded-full bg-green-100">
+                          <Bot className="size-4 text-green-700" />
+                        </div>
+                      ) : (
+                        <Avatar
+                          initials={
+                            userInfo?.name?.charAt(0).toUpperCase() ?? "?"
+                          }
+                          backgroundColor={generateColor(user.id)}
+                        />
+                      )}
+                    </div>
+                  );
+                })}
+            </div>
 
             {import.meta.env.DEV && onDebugToggle && (
               <Button
