@@ -57,9 +57,9 @@ export const useCurrentUser = (): CurrentUser => {
   useEffect(() => {
     if (currentUser && !currentUser.isAnonymous) {
       store.commit(
-        events.presenceUpdated({
+        events.presenceSet({
           userId: currentUser.id,
-          cellId: null,
+          cellId: undefined,
         })
       );
     }

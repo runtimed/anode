@@ -2,11 +2,7 @@ import React, { useState } from "react";
 import { useGoogleAuth } from "../../auth/useGoogleAuth.js";
 import { useCurrentUser } from "../../hooks/useCurrentUser.js";
 import { useUserRegistry } from "../../hooks/useUserRegistry.js";
-import { tables } from "@runt/schema";
-import { queryDb } from "@livestore/livestore";
-import { useQuery } from "@livestore/react";
 import { AvatarWithDetails } from "../ui/AvatarWithDetails.js";
-import { Avatar } from "../ui/Avatar.js";
 import { generateColor } from "@/util/avatar.js";
 
 interface UserProfileProps {

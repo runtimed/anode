@@ -1,9 +1,8 @@
 import { useCallback, useMemo } from "react";
-import { useStore, useQuery } from "@livestore/react";
+import { useQuery } from "@livestore/react";
 import { queryDb } from "@livestore/livestore";
 import { tables } from "@runt/schema";
 
-import { useCurrentUser } from "./useCurrentUser.js";
 import { generateInitials } from "../util/avatar.js";
 
 export interface UserInfo {
@@ -20,9 +19,6 @@ const actorsQuery = queryDb(tables.actors);
 const presenceQuery = queryDb(tables.presence);
 
 export const useUserRegistry = () => {
-  const { store } = useStore();
-  const currentUser = useCurrentUser();
-
   // Fetch all actor profiles and presence data from LiveStore
   const actors = useQuery(actorsQuery);
   const presence = useQuery(presenceQuery);
