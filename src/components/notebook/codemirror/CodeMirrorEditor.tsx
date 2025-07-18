@@ -27,7 +27,6 @@ type CodeMirrorEditorProps = {
   maxHeight?: string;
   enableLineWrapping?: boolean;
   disableAutocompletion?: boolean;
-  onClickOutside?: () => void;
 };
 
 function languageExtension(language: SupportedLanguage) {
@@ -54,10 +53,7 @@ export const CodeMirrorEditor: React.FC<CodeMirrorEditorProps> = ({
   maxHeight,
   enableLineWrapping = false,
   disableAutocompletion = false,
-  onClickOutside,
 }) => {
-  // TODO: implement onClickOutside
-
   const editorRef = useRef<HTMLDivElement | null>(null);
 
   const langExtension = useMemo(() => languageExtension(language), [language]);
@@ -98,7 +94,7 @@ export const CodeMirrorEditor: React.FC<CodeMirrorEditorProps> = ({
   );
 
   const handleFocus = useCallback(() => {
-    // editorRef.current?.scrollIntoView({ block: "nearest" });
+    editorRef.current?.scrollIntoView({ block: "nearest" });
     onFocus?.();
   }, [onFocus]);
 
