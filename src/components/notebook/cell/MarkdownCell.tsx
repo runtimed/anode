@@ -6,18 +6,19 @@ import { events, tables } from "@runt/schema";
 import React, { useCallback } from "react";
 
 import { useCurrentUserId } from "@/hooks/useCurrentUser.js";
+import { useUserRegistry } from "@/hooks/useUserRegistry.js";
 import { ErrorBoundary } from "react-error-boundary";
 import { CellContainer } from "./shared/CellContainer.js";
 import { CellControls } from "./shared/CellControls.js";
 import { CellTypeSelector } from "./shared/CellTypeSelector.js";
 import { Editor } from "./shared/Editor.js";
+import { PresenceBookmarks } from "./shared/PresenceBookmarks.js";
 import { MarkdownToolbar } from "./toolbars/MarkdownToolbar.js";
 
 type CellType = typeof tables.cells.Type;
 
 interface MarkdownCellProps {
   cell: CellType;
-  onAddCell: () => void;
   onDeleteCell: () => void;
   onMoveUp: () => void;
   onMoveDown: () => void;
@@ -30,7 +31,6 @@ interface MarkdownCellProps {
 
 export const MarkdownCell: React.FC<MarkdownCellProps> = ({
   cell,
-  onAddCell,
   onDeleteCell,
   onMoveUp,
   onMoveDown,
@@ -43,6 +43,12 @@ export const MarkdownCell: React.FC<MarkdownCellProps> = ({
   // All hooks must be called at the top level before any conditional returns
   const { store } = useStore();
   const currentUserId = useCurrentUserId();
+  const { getUsersOnCell, getUserColor } = useUserRegistry();
+
+  // Get users present on this cell (excluding current user)
+  const usersOnCell = getUsersOnCell(cell.id).filter(
+    (user) => user.id !== currentUserId
+  );
 
   // Use shared content management hook
   const { localSource, updateSource, handleSourceChange } = useCellContent({
@@ -133,12 +139,15 @@ export const MarkdownCell: React.FC<MarkdownCellProps> = ({
         <div className="flex items-center gap-3">
           <CellTypeSelector cell={cell} onCellTypeChange={changeCellType} />
           <MarkdownToolbar />
+          <PresenceBookmarks
+            usersOnCell={usersOnCell}
+            getUserColor={getUserColor}
+          />
         </div>
 
         <CellControls
           cell={cell}
           contextSelectionMode={contextSelectionMode}
-          onAddCell={onAddCell}
           onMoveUp={onMoveUp}
           onMoveDown={onMoveDown}
           onDeleteCell={onDeleteCell}
@@ -146,7 +155,6 @@ export const MarkdownCell: React.FC<MarkdownCellProps> = ({
           hasOutputs={hasOutputs}
           toggleSourceVisibility={toggleSourceVisibility}
           toggleAiContextVisibility={toggleAiContextVisibility}
-          playButton={undefined}
         />
       </div>
 

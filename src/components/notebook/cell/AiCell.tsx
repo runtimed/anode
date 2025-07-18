@@ -3,6 +3,7 @@ import { useCellContent } from "@/hooks/useCellContent.js";
 import { useCellKeyboardNavigation } from "@/hooks/useCellKeyboardNavigation.js";
 import { useCellOutputs } from "@/hooks/useCellOutputs.js";
 import { useCurrentUserId } from "@/hooks/useCurrentUser.js";
+import { useUserRegistry } from "@/hooks/useUserRegistry.js";
 import { useAvailableAiModels } from "@/util/ai-models.js";
 import { queryDb } from "@livestore/livestore";
 import { useStore } from "@livestore/react";
@@ -16,11 +17,11 @@ import { CellContainer } from "./shared/CellContainer.js";
 import { CellControls } from "./shared/CellControls.js";
 import { OutputsErrorBoundary } from "./shared/OutputsErrorBoundary.js";
 import { PlayButton } from "./shared/PlayButton.js";
+import { PresenceBookmarks } from "./shared/PresenceBookmarks.js";
 import { AiToolbar } from "./toolbars/AiToolbar.js";
 
 interface AiCellProps {
   cell: typeof tables.cells.Type;
-  onAddCell: () => void;
   onDeleteCell: () => void;
   onMoveUp: () => void;
   onMoveDown: () => void;
@@ -33,7 +34,6 @@ interface AiCellProps {
 
 export const AiCell: React.FC<AiCellProps> = ({
   cell,
-  onAddCell,
   onDeleteCell,
   onMoveUp,
   onMoveDown,
@@ -45,6 +45,12 @@ export const AiCell: React.FC<AiCellProps> = ({
 }) => {
   const { store } = useStore();
   const currentUserId = useCurrentUserId();
+  const { getUsersOnCell, getUserColor } = useUserRegistry();
+
+  // Get users present on this cell (excluding current user)
+  const usersOnCell = getUsersOnCell(cell.id).filter(
+    (user) => user.id !== currentUserId
+  );
 
   // Get AI model settings
   const provider = cell.aiProvider || "openai";
@@ -262,12 +268,15 @@ export const AiCell: React.FC<AiCellProps> = ({
             model={model}
             onProviderChange={changeProvider}
           />
+          <PresenceBookmarks
+            usersOnCell={usersOnCell}
+            getUserColor={getUserColor}
+          />
         </div>
 
         <CellControls
           cell={cell}
           contextSelectionMode={contextSelectionMode}
-          onAddCell={onAddCell}
           onMoveUp={onMoveUp}
           onMoveDown={onMoveDown}
           onDeleteCell={onDeleteCell}
@@ -282,7 +291,7 @@ export const AiCell: React.FC<AiCellProps> = ({
               onExecute={executeAiPrompt}
               onInterrupt={interruptAiCell}
               className="mobile-play-btn block sm:hidden"
-              primaryColor="text-purple-600"
+              primaryColor="text-foreground"
             />
           }
         />
