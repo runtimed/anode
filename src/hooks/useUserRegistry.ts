@@ -3,7 +3,7 @@ import { useQuery } from "@livestore/react";
 import { queryDb } from "@livestore/livestore";
 import { tables } from "@runt/schema";
 
-import { generateInitials } from "../util/avatar.js";
+import { generateInitials, generateColor } from "../util/avatar.js";
 
 export interface UserInfo {
   id: string;
