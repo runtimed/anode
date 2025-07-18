@@ -25,8 +25,8 @@ export default defineConfig(({ mode }) => {
     }),
   ];
 
-  // Only include Cloudflare plugin in development mode
-  if (mode === "development") {
+  // Include Cloudflare plugin in development and auth modes
+  if (mode === "development" || mode === "auth") {
     plugins.push(
       cloudflare({
         configPath: "./wrangler.toml",

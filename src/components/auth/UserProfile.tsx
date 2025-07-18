@@ -2,11 +2,7 @@ import React, { useState } from "react";
 import { useGoogleAuth } from "../../auth/useGoogleAuth.js";
 import { useCurrentUser } from "../../hooks/useCurrentUser.js";
 import { useUserRegistry } from "../../hooks/useUserRegistry.js";
-import { tables } from "@runt/schema";
-import { queryDb } from "@livestore/livestore";
-import { useQuery } from "@livestore/react";
 import { AvatarWithDetails } from "../ui/AvatarWithDetails.js";
-import { Avatar } from "../ui/Avatar.js";
 import { generateColor } from "@/util/avatar.js";
 
 interface UserProfileProps {
@@ -33,7 +29,6 @@ export const UserProfile: React.FC<UserProfileProps> = ({ className = "" }) => {
     return (
       <div className={`${className}`}>
         <div className="flex items-center gap-1">
-          <PresenceIndicator userId={currentUser.id} />
           <AvatarWithDetails
             initials={getUserInitials(currentUser.id)}
             title="Anonymous"
@@ -48,7 +43,6 @@ export const UserProfile: React.FC<UserProfileProps> = ({ className = "" }) => {
   return (
     <div className={`relative ${className}`}>
       <div className="flex items-center gap-1">
-        <PresenceIndicator userId={currentUser.id} />
         <button
           onClick={() => setIsDropdownOpen(!isDropdownOpen)}
           className="flex items-center space-x-2 rounded-md p-1 hover:bg-gray-100 focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:outline-none"
@@ -116,39 +110,3 @@ export const UserProfile: React.FC<UserProfileProps> = ({ className = "" }) => {
     </div>
   );
 };
-
-function PresenceIndicator({ userId }: { userId: string }) {
-  const { getDisplayName, getUserInitials } = useUserRegistry();
-
-  // Get all other users in the presence table
-  const presence = useQuery(
-    queryDb(
-      tables.presence
-        .select()
-        .where({ userId: { op: "!=", value: userId } })
-        .orderBy("userId", "asc")
-    )
-  );
-
-  // Only show presence indicator if there are other users
-  if (presence.length === 0) {
-    return null;
-  }
-
-  return (
-    <div className="flex items-center gap-0.5 rounded-md border border-gray-200 bg-gray-100 px-2 py-1">
-      <div className="text-xs text-gray-500">Contributors:</div>
-      {presence.map((p) => (
-        <div key={p.userId} title={getDisplayName(p.userId)}>
-          <div className="flex items-center">
-            <Avatar
-              size="sm"
-              initials={getUserInitials(p.userId)}
-              backgroundColor={generateColor(p.userId)}
-            />
-          </div>
-        </div>
-      ))}
-    </div>
-  );
-}

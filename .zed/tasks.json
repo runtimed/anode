@@ -8,8 +8,8 @@
     "reveal": "always"
   },
   {
-    "label": "Development Server (Production Mode)",
-    "command": "pnpm run dev:prod",
+    "label": "Development Server (Auth Mode)",
+    "command": "pnpm run dev:auth",
     "use_new_terminal": true,
     "allow_concurrent_runs": false,
     "reveal": "always"

@@ -1,5 +1,8 @@
-import { useCallback, useEffect, useState } from "react";
-import { useCurrentUser } from "./useCurrentUser.js";
+import { useCallback, useMemo } from "react";
+import { useQuery } from "@livestore/react";
+import { queryDb } from "@livestore/livestore";
+import { tables } from "@runt/schema";
+
 import { generateInitials } from "../util/avatar.js";
 
 export interface UserInfo {
@@ -11,93 +14,44 @@ export interface UserInfo {
   lastSeen: number;
 }
 
-// Local storage key for user registry
-const USER_REGISTRY_KEY = "anode_user_registry";
-
-// In-memory cache for this session
-let userRegistryCache: Map<string, UserInfo> = new Map();
-let isInitialized = false;
-
-// Load registry from localStorage
-const loadUserRegistry = (): Map<string, UserInfo> => {
-  if (isInitialized) {
-    return userRegistryCache;
-  }
-
-  try {
-    const stored = localStorage.getItem(USER_REGISTRY_KEY);
-    if (stored) {
-      const parsed = JSON.parse(stored);
-      userRegistryCache = new Map(Object.entries(parsed));
-    }
-  } catch (error) {
-    console.warn("Failed to load user registry from localStorage:", error);
-    userRegistryCache = new Map();
-  }
-
-  isInitialized = true;
-  return userRegistryCache;
-};
-
-// Save registry to localStorage
-const saveUserRegistry = (registry: Map<string, UserInfo>): void => {
-  try {
-    const serializable = Object.fromEntries(registry);
-    localStorage.setItem(USER_REGISTRY_KEY, JSON.stringify(serializable));
-  } catch (error) {
-    console.warn("Failed to save user registry to localStorage:", error);
-  }
-};
-
-// Clean up old entries (older than 7 days)
-const cleanupOldEntries = (registry: Map<string, UserInfo>): void => {
-  const sevenDaysAgo = Date.now() - 7 * 24 * 60 * 60 * 1000;
-  let hasChanges = false;
-
-  for (const [userId, userInfo] of registry.entries()) {
-    if (userInfo.lastSeen < sevenDaysAgo) {
-      registry.delete(userId);
-      hasChanges = true;
-    }
-  }
-
-  if (hasChanges) {
-    saveUserRegistry(registry);
-  }
-};
+// Queries for user presence and profile information from LiveStore
+const actorsQuery = queryDb(tables.actors);
+const presenceQuery = queryDb(tables.presence);
 
 export const useUserRegistry = () => {
-  const currentUser = useCurrentUser();
-  const [registry, setRegistry] = useState<Map<string, UserInfo>>(() =>
-    loadUserRegistry()
-  );
+  // Fetch all actor profiles and presence data from LiveStore
+  const actors = useQuery(actorsQuery);
+  const presence = useQuery(presenceQuery);
 
-  // Update current user info in registry
-  useEffect(() => {
-    setRegistry((prevRegistry) => {
-      const updatedRegistry = new Map(prevRegistry);
-      const now = Date.now();
+  // Actor profile emission is now handled in useCurrentUser hook
 
-      // Always update current user info
-      updatedRegistry.set(currentUser.id, {
-        ...currentUser,
-        lastSeen: now,
+  // Create a reactive map of user info from actors and presence data
+  const userRegistry = useMemo(() => {
+    const registry = new Map<string, UserInfo>();
+
+    // Populate registry with profile information from the actors table
+    actors.forEach((actor) => {
+      registry.set(actor.id, {
+        id: actor.id,
+        name: actor.displayName,
+        picture: actor.avatar || undefined,
+        isAnonymous: actor.type !== "human",
+        lastSeen: 0, // We'll update this with presence data
       });
-
-      // Clean up old entries periodically
-      cleanupOldEntries(updatedRegistry);
-
-      saveUserRegistry(updatedRegistry);
-      return updatedRegistry;
     });
-  }, [currentUser]);
+
+    // TODO: Add lastSeen timestamp to presence table schema for better user activity tracking
+    // For now, user existence in presence table indicates they are currently active
+
+    return registry;
+  }, [actors]);
 
   // Get user info by ID with fallback display logic
   const getUserInfo = useCallback(
     (userId: string): UserInfo => {
-      const cached = registry.get(userId);
-      if (cached) {
-        return cached;
+      const userInfo = userRegistry.get(userId);
+      if (userInfo) {
+        return userInfo;
       }
 
       // Generate fallback display info for unknown users
@@ -130,11 +84,9 @@ export const useUserRegistry = () => {
         isAnonymous,
         lastSeen: Date.now(),
       };
-
-      // Don't cache fallback info to avoid polluting registry
       return fallbackInfo;
     },
-    [registry]
+    [userRegistry]
   );
 
   // Get display name for a user ID
@@ -157,35 +109,13 @@ export const useUserRegistry = () => {
     [getUserInfo]
   );
 
-  // Register a new user (when we learn about them from presence or events)
-  const registerUser = useCallback(
-    (userInfo: Partial<UserInfo> & { id: string }): void => {
-      const updatedRegistry = new Map(registry);
-      const existing = updatedRegistry.get(userInfo.id);
-
-      const newUserInfo: UserInfo = {
-        name: userInfo.name || getDisplayName(userInfo.id),
-        email: userInfo.email,
-        picture: userInfo.picture,
-        isAnonymous: userInfo.isAnonymous ?? true,
-        lastSeen: Date.now(),
-        ...existing, // Keep existing data
-        ...userInfo, // Override with new data
-        id: userInfo.id, // Ensure ID is always set
-      };
-
-      updatedRegistry.set(userInfo.id, newUserInfo);
-      setRegistry(updatedRegistry);
-      saveUserRegistry(updatedRegistry);
-    },
-    [registry, getDisplayName]
-  );
-
   return {
     getUserInfo,
     getDisplayName,
     getUserInitials,
-    registerUser,
-    registry: Array.from(registry.values()),
+    // Provide the list of users currently present
+    presentUsers: presence.map((p) => getUserInfo(p.userId)),
+    // Provide the full registry for other UI uses
+    registry: userRegistry,
   };
 };
