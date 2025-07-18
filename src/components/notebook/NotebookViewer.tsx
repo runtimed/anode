@@ -365,31 +365,28 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
                       user.id.includes("runtime") || user.id.includes("python");
 
                     return (
-                      <Tooltip key={user.id}>
-                        <TooltipTrigger>
-                          <div className="border-background overflow-hidden rounded-full border-2">
-                            {isRuntimeAgent ? (
-                              <div className="flex size-8 items-center justify-center rounded-full bg-green-100">
-                                <Bot className="size-4 text-green-700" />
-                              </div>
-                            ) : (
-                              <Avatar
-                                initials={
-                                  userInfo?.name?.charAt(0).toUpperCase() ?? "?"
-                                }
-                                backgroundColor={generateColor(user.id)}
-                              />
-                            )}
+                      <div
+                        key={user.id}
+                        className="shrink-0 overflow-hidden rounded-full border-2 border-white"
+                        title={
+                          isRuntimeAgent
+                            ? "Python Runtime"
+                            : (userInfo?.name ?? "Unknown User")
+                        }
+                      >
+                        {isRuntimeAgent ? (
+                          <div className="flex size-8 items-center justify-center rounded-full bg-green-100">
+                            <Bot className="size-4 text-green-700" />
                           </div>
-                        </TooltipTrigger>
-                        <TooltipContent>
-                          <p>
-                            {isRuntimeAgent
-                              ? "Python Runtime"
-                              : (userInfo?.name ?? "Unknown User")}
-                          </p>
-                        </TooltipContent>
-                      </Tooltip>
+                        ) : (
+                          <Avatar
+                            initials={
+                              userInfo?.name?.charAt(0).toUpperCase() ?? "?"
+                            }
+                            backgroundColor={generateColor(user.id)}
+                          />
+                        )}
+                      </div>
                     );
                   })}
               </div>
