@@ -11,7 +11,7 @@
     "dev": "vite",
     "dev:web": "vite",
     "dev:scan": "pnpm run dev & npx react-scan@latest localhost:5173",
-    "dev:prod": "vite --mode production",
+    "dev:auth": "vite --mode auth",
     "dev:sync": "wrangler dev",
     "dev:runtime": "./scripts/dev-runtime.sh",
     "build": "vite build --mode development",
