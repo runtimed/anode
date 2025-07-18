@@ -31,7 +31,7 @@ export function CellAdder({
         variant="outline"
         size="sm"
         onClick={() => onAddCell(undefined, "markdown", position)}
-        className="flex items-center gap-1.5"
+        color="yellow"
       >
         <Plus className="h-3 w-3" />
         <FileText className="h-3 w-3" />
@@ -41,7 +41,7 @@ export function CellAdder({
         variant="outline"
         size="sm"
         onClick={() => onAddCell(undefined, "sql", position)}
-        className="flex items-center gap-1.5"
+        color="blue"
       >
         <Plus className="h-3 w-3" />
         <Database className="h-3 w-3" />
@@ -51,7 +51,7 @@ export function CellAdder({
         variant="outline"
         size="sm"
         onClick={() => onAddCell(undefined, "ai", position)}
-        className="flex items-center gap-1.5"
+        color="purple"
       >
         <Plus className="h-3 w-3" />
         <Bot className="h-3 w-3" />

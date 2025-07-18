@@ -757,15 +757,18 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
                   </div>
                   <div className="mb-4 flex flex-wrap justify-center gap-2">
                     <Button
+                      size="lg"
                       autoFocus
                       onClick={() => addCell()}
-                      className="flex items-center gap-2"
+                      className="flex animate-pulse items-center gap-2"
                     >
                       <Code className="h-4 w-4" />
                       Code Cell
                     </Button>
                     <Button
+                      size="lg"
                       variant="outline"
+                      color="yellow"
                       onClick={() => addCell(undefined, "markdown")}
                       className="flex items-center gap-2"
                     >
@@ -773,7 +776,9 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
                       Markdown
                     </Button>
                     <Button
+                      size="lg"
                       variant="outline"
+                      color="blue"
                       onClick={() => addCell(undefined, "sql")}
                       className="flex items-center gap-2"
                     >
@@ -781,7 +786,9 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
                       SQL Query
                     </Button>
                     <Button
+                      size="lg"
                       variant="outline"
+                      color="purple"
                       onClick={() => addCell(undefined, "ai")}
                       className="flex items-center gap-2"
                     >

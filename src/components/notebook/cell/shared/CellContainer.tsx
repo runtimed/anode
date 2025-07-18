@@ -28,7 +28,7 @@ export const CellContainer = forwardRef<HTMLDivElement, CellContainerProps>(
     return (
       <div
         ref={ref}
-        className={`cell-container group relative mb-2 pt-2 transition-all duration-200 sm:mb-3 ${
+        className={`cell-container group relative pt-2 transition-all duration-200 ${
           autoFocus && !contextSelectionMode
             ? focusBgColor
             : "hover:bg-muted/10"
