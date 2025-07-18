@@ -372,6 +372,12 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
                         <div className="flex size-8 items-center justify-center rounded-full bg-green-100">
                           <Bot className="size-4 text-green-700" />
                         </div>
+                      ) : userInfo?.picture ? (
+                        <img
+                          src={userInfo.picture}
+                          alt={userInfo.name ?? "User"}
+                          className="h-8 w-8 rounded-full bg-gray-300"
+                        />
                       ) : (
                         <Avatar
                           initials={
