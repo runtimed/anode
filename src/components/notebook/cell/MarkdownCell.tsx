@@ -172,17 +172,27 @@ export const MarkdownCell: React.FC<MarkdownCellProps> = ({
               <Editor
                 localSource={localSource}
                 handleSourceChange={handleSourceChange}
-                updateSource={updateSource}
                 handleFocus={handleFocus}
                 cell={cell}
                 autoFocus={autoFocus}
                 keyMap={keyMap}
+                onBlur={() => {
+                  setIsEditing(false);
+                  updateSource();
+                }}
+                onClickOutside={() => {
+                  setIsEditing(false);
+                  updateSource();
+                }}
               />
             </ErrorBoundary>
           </div>
         )}
         {cell.sourceVisible && !isEditing && (
-          <div className="cell-content bg-white py-1 pl-4 transition-colors">
+          <div
+            className="cell-content bg-white py-1 pl-4 transition-colors"
+            onDoubleClick={() => setIsEditing(true)}
+          >
             <MarkdownRenderer content={localSource} />
           </div>
         )}

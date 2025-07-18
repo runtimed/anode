@@ -15,19 +15,21 @@ const ErrorFallback = () => {
 export function Editor({
   localSource,
   handleSourceChange,
-  updateSource,
   handleFocus,
+  onBlur,
   cell,
   autoFocus,
   keyMap,
+  onClickOutside,
 }: {
   localSource: string;
   handleSourceChange: (source: string) => void;
-  updateSource: () => void;
+  onBlur: () => void;
   handleFocus: () => void;
   cell: typeof tables.cells.Type;
   autoFocus: boolean;
   keyMap: KeyBinding[];
+  onClickOutside?: () => void;
 }) {
   const [isMaximized, setIsMaximized] = useState(false);
 
@@ -44,8 +46,9 @@ export function Editor({
             autoFocus={autoFocus}
             onFocus={handleFocus}
             keyMap={keyMap}
-            onBlur={updateSource}
+            onBlur={onBlur}
             enableLineWrapping={cell.cellType === "markdown"}
+            onClickOutside={onClickOutside}
           />
         </ErrorBoundary>
         <MaxMinButton
@@ -101,7 +104,7 @@ export function Editor({
                 onValueChange={handleSourceChange}
                 autoFocus={true}
                 onFocus={handleFocus}
-                onBlur={updateSource}
+                onBlur={onBlur}
                 enableLineWrapping={cell.cellType === "markdown"}
               />
             </ErrorBoundary>
