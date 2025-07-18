@@ -1,11 +1,17 @@
+import { Button } from "@/components/ui/button";
+import { Edit3, Eye } from "lucide-react";
 import React from "react";
 // import { Badge } from "@/components/ui/badge";
 
-interface MarkdownToolbarProps {}
+interface MarkdownToolbarProps {
+  onEdit: () => void;
+  onPreview: () => void;
+}
 
-export const MarkdownToolbar: React.FC<MarkdownToolbarProps> = (
-  _props: MarkdownToolbarProps
-) => {
+export const MarkdownToolbar: React.FC<MarkdownToolbarProps> = ({
+  onEdit,
+  onPreview,
+}: MarkdownToolbarProps) => {
   return (
     <div className="flex items-center gap-2">
       {/* <Badge
@@ -15,6 +21,12 @@ export const MarkdownToolbar: React.FC<MarkdownToolbarProps> = (
       >
         markdown
       </Badge> */}
+      <Button variant="outline" size="xs" onClick={onEdit}>
+        <Edit3 className="size-3" />
+      </Button>
+      <Button variant="outline" size="xs" title="Preview" onClick={onPreview}>
+        <Eye className="size-3" />
+      </Button>
     </div>
   );
 };

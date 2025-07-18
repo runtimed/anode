@@ -3,7 +3,7 @@ import { useCellKeyboardNavigation } from "@/hooks/useCellKeyboardNavigation.js"
 import { useCellOutputs } from "@/hooks/useCellOutputs.js";
 import { useStore } from "@livestore/react";
 import { events, tables } from "@runt/schema";
-import React, { useCallback } from "react";
+import React, { useCallback, useState } from "react";
 
 import { useCurrentUserId } from "@/hooks/useCurrentUser.js";
 import { useUserRegistry } from "@/hooks/useUserRegistry.js";
@@ -14,6 +14,7 @@ import { CellTypeSelector } from "./shared/CellTypeSelector.js";
 import { Editor } from "./shared/Editor.js";
 import { PresenceBookmarks } from "./shared/PresenceBookmarks.js";
 import { MarkdownToolbar } from "./toolbars/MarkdownToolbar.js";
+import { MarkdownRenderer } from "@/components/outputs/MarkdownRenderer.js";
 
 type CellType = typeof tables.cells.Type;
 
@@ -44,6 +45,7 @@ export const MarkdownCell: React.FC<MarkdownCellProps> = ({
   const { store } = useStore();
   const currentUserId = useCurrentUserId();
   const { getUsersOnCell, getUserColor } = useUserRegistry();
+  const [isEditing, setIsEditing] = useState(false);
 
   // Get users present on this cell (excluding current user)
   const usersOnCell = getUsersOnCell(cell.id).filter(
@@ -138,7 +140,10 @@ export const MarkdownCell: React.FC<MarkdownCellProps> = ({
       <div className="cell-header mb-2 flex items-center justify-between pr-1 pl-6 sm:pr-4">
         <div className="flex items-center gap-3">
           <CellTypeSelector cell={cell} onCellTypeChange={changeCellType} />
-          <MarkdownToolbar />
+          <MarkdownToolbar
+            onEdit={() => setIsEditing(true)}
+            onPreview={() => setIsEditing(false)}
+          />
           <PresenceBookmarks
             usersOnCell={usersOnCell}
             getUserColor={getUserColor}
@@ -161,7 +166,7 @@ export const MarkdownCell: React.FC<MarkdownCellProps> = ({
       {/* Cell Content */}
       <div className="relative">
         {/* Editor Content Area */}
-        {cell.sourceVisible && (
+        {cell.sourceVisible && isEditing && (
           <div className="cell-content bg-white py-1 pl-4 transition-colors">
             <ErrorBoundary fallback={<div>Error rendering editor</div>}>
               <Editor
@@ -174,6 +179,11 @@ export const MarkdownCell: React.FC<MarkdownCellProps> = ({
                 keyMap={keyMap}
               />
             </ErrorBoundary>
+          </div>
+        )}
+        {cell.sourceVisible && !isEditing && (
+          <div className="cell-content bg-white py-1 pl-4 transition-colors">
+            <MarkdownRenderer content={localSource} />
           </div>
         )}
       </div>
