@@ -760,7 +760,7 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
                       size="lg"
                       autoFocus
                       onClick={() => addCell()}
-                      className="flex animate-pulse items-center gap-2"
+                      className="flex items-center gap-2"
                     >
                       <Code className="h-4 w-4" />
                       Code Cell
