@@ -19,6 +19,7 @@ import { useCurrentUserId } from "@/hooks/useCurrentUser.js";
 import { useUserRegistry } from "@/hooks/useUserRegistry.js";
 import { getRuntimeCommand } from "@/util/runtime-command.js";
 import { getCurrentNotebookId } from "@/util/store-id.js";
+import { generateColor } from "@/util/avatar.js";
 import {
   Bot,
   Bug,
@@ -360,19 +361,33 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
                   .filter((user) => user.id !== currentUserId)
                   .map((user) => {
                     const userInfo = getUserInfo(user.id);
+                    const isRuntimeAgent =
+                      user.id.includes("runtime") || user.id.includes("python");
+
                     return (
                       <Tooltip key={user.id}>
                         <TooltipTrigger>
                           <div className="border-background overflow-hidden rounded-full border-2">
-                            <Avatar
-                              initials={
-                                userInfo?.name?.charAt(0).toUpperCase() ?? "?"
-                              }
-                            />
+                            {isRuntimeAgent ? (
+                              <div className="flex size-8 items-center justify-center rounded-full bg-green-100">
+                                <Bot className="size-4 text-green-700" />
+                              </div>
+                            ) : (
+                              <Avatar
+                                initials={
+                                  userInfo?.name?.charAt(0).toUpperCase() ?? "?"
+                                }
+                                backgroundColor={generateColor(user.id)}
+                              />
+                            )}
                           </div>
                         </TooltipTrigger>
                         <TooltipContent>
-                          <p>{userInfo?.name ?? "Unknown User"}</p>
+                          <p>
+                            {isRuntimeAgent
+                              ? "Python Runtime"
+                              : (userInfo?.name ?? "Unknown User")}
+                          </p>
                         </TooltipContent>
                       </Tooltip>
                     );
