@@ -31,7 +31,7 @@ export const useUserRegistry = () => {
   useEffect(() => {
     if (currentUser && currentUser.id && !currentUser.isAnonymous) {
       store.commit(
-        events.actorProfileSet.make({
+        events.actorProfileSet({
           id: currentUser.id,
           type: "human",
           displayName: currentUser.name || "Anonymous",

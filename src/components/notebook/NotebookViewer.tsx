@@ -358,19 +358,25 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
               <div className="flex -space-x-2">
                 {presentUsers
                   .filter((user) => user.id !== currentUserId)
-                  .map((user) => (
-                    <Tooltip key={user.id}>
-                      <TooltipTrigger>
-                        <Avatar
-                          userId={user.id}
-                          className="border-background h-8 w-8 border-2"
-                        />
-                      </TooltipTrigger>
-                      <TooltipContent>
-                        <p>{getUserInfo(user.id).name}</p>
-                      </TooltipContent>
-                    </Tooltip>
-                  ))}
+                  .map((user) => {
+                    const userInfo = getUserInfo(user.id);
+                    return (
+                      <Tooltip key={user.id}>
+                        <TooltipTrigger>
+                          <div className="border-background overflow-hidden rounded-full border-2">
+                            <Avatar
+                              initials={
+                                userInfo?.name?.charAt(0).toUpperCase() ?? "?"
+                              }
+                            />
+                          </div>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p>{userInfo?.name ?? "Unknown User"}</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    );
+                  })}
               </div>
             </TooltipProvider>
 
