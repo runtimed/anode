@@ -144,7 +144,7 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
         events.executionCancelled({
           queueId: execution.id,
           cellId: execution.cellId,
-          cancelledBy: "current-user",
+          cancelledBy: currentUserId,
           reason: "User interrupted all executions from runtime UI",
         })
       );

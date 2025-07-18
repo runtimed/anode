@@ -79,7 +79,7 @@ export const SqlCell: React.FC<SqlCellProps> = ({
         queueId,
         cellId: cell.id,
         executionCount,
-        requestedBy: "current-user",
+        requestedBy: currentUserId,
       })
     );
   }, [localQuery, cell.id, cell.executionCount, store]);
