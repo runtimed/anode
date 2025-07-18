@@ -269,13 +269,7 @@ export const VirtualizedCellList: React.FC<VirtualizedCellListProps> = ({
   const cellElements = useMemo(
     () =>
       visibleCells.map((cell, index) => (
-        <div
-          key={cell.id}
-          ref={(el) => measureCellHeight(cell.id, el)}
-          style={{
-            marginBottom: "1rem", // Add spacing between cells
-          }}
-        >
+        <div key={cell.id} ref={(el) => measureCellHeight(cell.id, el)}>
           <ErrorBoundary fallback={<div>Error rendering cell</div>}>
             {index === 0 && (
               <CellBetweener

@@ -23,7 +23,7 @@ export const CellContainer: React.FC<CellContainerProps> = ({
 }) => {
   return (
     <div
-      className={`cell-container group relative mb-2 pt-2 transition-all duration-200 sm:mb-3 ${
+      className={`cell-container group relative pt-2 transition-all duration-200 ${
         autoFocus && !contextSelectionMode ? focusBgColor : "hover:bg-muted/10"
       } ${contextSelectionMode && !cell.aiContextVisible ? "opacity-60" : ""} ${
         contextSelectionMode
