@@ -255,10 +255,6 @@ export const MarkdownCell: React.FC<MarkdownCellProps> = ({
                 autoFocus={autoFocus}
                 keyMap={extendedKeyMap}
                 onBlur={updateSource}
-                onClickOutside={() => {
-                  setIsEditing(false);
-                  updateSource();
-                }}
               />
             </ErrorBoundary>
           </div>

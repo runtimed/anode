@@ -20,7 +20,6 @@ export function Editor({
   cell,
   autoFocus,
   keyMap,
-  onClickOutside,
 }: {
   localSource: string;
   handleSourceChange: (source: string) => void;
@@ -29,7 +28,6 @@ export function Editor({
   cell: typeof tables.cells.Type;
   autoFocus: boolean;
   keyMap: KeyBinding[];
-  onClickOutside?: () => void;
 }) {
   const [isMaximized, setIsMaximized] = useState(false);
 
@@ -48,7 +46,6 @@ export function Editor({
             keyMap={keyMap}
             onBlur={onBlur}
             enableLineWrapping={cell.cellType === "markdown"}
-            onClickOutside={onClickOutside}
           />
         </ErrorBoundary>
         <MaxMinButton
