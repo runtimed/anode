@@ -261,7 +261,7 @@ export const MarkdownCell: React.FC<MarkdownCellProps> = ({
         )}
         {cell.sourceVisible && !isEditing && (
           <div
-            className="cell-content bg-white py-1 pl-4 transition-colors"
+            className="cell-content bg-white py-1 pr-4 pl-4 transition-colors"
             onDoubleClick={() => setIsEditing(true)}
           >
             <MarkdownRenderer content={localSource} />
