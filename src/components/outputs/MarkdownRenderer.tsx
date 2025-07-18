@@ -222,6 +222,11 @@ export const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({
               </h6>
             );
           },
+          hr({ ...props }) {
+            return (
+              <hr className="!my-4 !border-t !border-gray-300" {...props} />
+            );
+          },
         }}
       >
         {content}
