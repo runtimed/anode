@@ -58,15 +58,15 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
 
   const cells = store.useQuery(
     queryDb(tables.cells.select().orderBy("position", "asc"))
-  ) as CellData[];
+  );
   const metadata = store.useQuery(queryDb(tables.notebookMetadata.select()));
   const runtimeSessions = store.useQuery(
     queryDb(tables.runtimeSessions.select().where({ isActive: true }))
-  ) as RuntimeSessionData[];
+  );
   // Get all runtime sessions for debug panel
   const allRuntimeSessions = store.useQuery(
     queryDb(tables.runtimeSessions.select())
-  ) as RuntimeSessionData[];
+  );
   // Get execution queue for debug panel
   const executionQueue = store.useQuery(
     queryDb(tables.executionQueue.select().orderBy("id", "desc"))
@@ -806,13 +806,7 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
                   <VirtualizedCellList
                     cells={cells}
                     focusedCellId={focusedCellId}
-                    onAddCell={(afterCellId, cellType, position) =>
-                      addCell(
-                        afterCellId,
-                        cellType as "code" | "markdown" | "sql" | "ai",
-                        position
-                      )
-                    }
+                    onAddCell={addCell}
                     onDeleteCell={deleteCell}
                     onMoveUp={(cellId) => moveCell(cellId, "up")}
                     onMoveDown={(cellId) => moveCell(cellId, "down")}

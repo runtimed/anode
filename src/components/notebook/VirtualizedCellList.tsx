@@ -12,11 +12,11 @@ import { Cell } from "./cell/Cell.js";
 import { CellBetweener } from "./cell/CellBetweener.js";
 
 interface VirtualizedCellListProps {
-  cells: CellData[];
+  cells: readonly CellData[];
   focusedCellId: string | null;
   onAddCell: (
     cellId?: string,
-    cellType?: string,
+    cellType?: "code" | "markdown" | "sql" | "ai",
     position?: "before" | "after"
   ) => void;
   onDeleteCell: (cellId: string) => void;
