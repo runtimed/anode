@@ -14,6 +14,7 @@ import { unstable_batchedUpdates as batchUpdates } from "react-dom";
 
 import { NotebookViewer } from "./components/notebook/NotebookViewer.js";
 import { AuthGuard } from "./components/auth/AuthGuard.js";
+import { ToolApprovalManager } from "./components/auth/ToolApprovalManager.js";
 
 import LiveStoreWorker from "./livestore.worker?worker";
 import { schema } from "./schema.js";
@@ -132,6 +133,9 @@ const NotebookApp: React.FC = () => {
           onDebugToggle={setDebugMode}
         />
       </ErrorBoundary>
+      
+      {/* Tool Approval Manager - renders approval dialogs when needed */}
+      <ToolApprovalManager />
     </div>
   );
 };
