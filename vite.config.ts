@@ -5,7 +5,6 @@ import { livestoreDevtoolsPlugin } from "@livestore/devtools-vite";
 import react from "@vitejs/plugin-react";
 import tailwindcss from "@tailwindcss/vite";
 import { defineConfig, loadEnv } from "vite";
-import { visualizer } from "rollup-plugin-visualizer";
 import { cloudflare } from "@cloudflare/vite-plugin";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -17,12 +16,6 @@ export default defineConfig(({ mode }) => {
     react(),
     tailwindcss(),
     livestoreDevtoolsPlugin({ schemaPath: "./schema.ts" }),
-    visualizer({
-      filename: "dist/bundle-analysis.html",
-      open: false,
-      gzipSize: true,
-      brotliSize: true,
-    }),
   ];
 
   // Include Cloudflare plugin in development and auth modes
@@ -37,68 +30,6 @@ export default defineConfig(({ mode }) => {
   return {
     build: {
       sourcemap: true,
-      // Optimize chunks for better caching
-      rollupOptions: {
-        output: {
-          // Manual chunking for better cache invalidation
-          manualChunks: {
-            // Core React libraries
-            "react-vendor": ["react", "react-dom"],
-            // CodeMirror editor
-            codemirror: [
-              "@codemirror/autocomplete",
-              "@codemirror/commands",
-              "@codemirror/lang-markdown",
-              "@codemirror/lang-python",
-              "@codemirror/lang-sql",
-              "@codemirror/language",
-              "@codemirror/lint",
-              "@codemirror/state",
-              "@codemirror/view",
-              "@uiw/codemirror-theme-github",
-              "@uiw/react-codemirror",
-            ],
-            // LiveStore system
-            livestore: [
-              "@livestore/adapter-web",
-              "@livestore/livestore",
-              "@livestore/react",
-              "@livestore/sync-cf",
-              "@livestore/wa-sqlite",
-              "@livestore/webmesh",
-            ],
-            // UI components
-            "ui-vendor": [
-              "@radix-ui/react-dialog",
-              "@radix-ui/react-dropdown-menu",
-              "@radix-ui/react-separator",
-              "@radix-ui/react-slot",
-              "@radix-ui/react-tooltip",
-              "lucide-react",
-            ],
-            // Large utility libraries
-            utils: [
-              "effect",
-              "date-fns",
-              "clsx",
-              "class-variance-authority",
-              "tailwind-merge",
-            ],
-          },
-          // Better asset naming for cache busting
-          chunkFileNames: "assets/[name]-[hash].js",
-          entryFileNames: "assets/[name]-[hash].js",
-          assetFileNames: "assets/[name]-[hash].[ext]",
-        },
-      },
-      // Increase chunk size warning limit since we're optimizing chunks
-      chunkSizeWarningLimit: 1000,
-      // Enable CSS code splitting for better caching
-      cssCodeSplit: true,
-      // Optimize dependencies
-      commonjsOptions: {
-        include: [/node_modules/],
-      },
     },
     server: {
       port: env.ANODE_DEV_SERVER_PORT
@@ -115,19 +46,18 @@ export default defineConfig(({ mode }) => {
         "@": path.resolve(__dirname, "./src"),
       },
     },
-    // Optimize dependencies for better caching
     optimizeDeps: {
+      exclude: ["@livestore/wa-sqlite"],
       include: [
         "react",
         "react-dom",
         "effect",
         "@livestore/livestore",
         "@livestore/react",
-        "@codemirror/state",
-        "@codemirror/view",
       ],
-      // Pre-bundle these dependencies
-      force: mode === "production",
+      esbuildOptions: {
+        target: "esnext",
+      },
     },
     plugins,
   };
