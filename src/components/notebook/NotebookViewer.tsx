@@ -24,6 +24,7 @@ import {
   Database,
   FileText,
   Filter,
+  Play,
   Square,
   Terminal,
   X,
@@ -356,6 +357,8 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
                   const userInfo = getUserInfo(user.id);
                   const isRuntimeAgent =
                     user.id.includes("runtime") || user.id.includes("python");
+                  const isTuiClient = user.id === "tui-client";
+                  const isAutomationClient = user.id === "automation-client";
 
                   return (
                     <div
@@ -364,17 +367,33 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
                       style={{
                         borderColor: isRuntimeAgent
                           ? "#22c55e"
-                          : getUserColor(user.id),
+                          : isTuiClient
+                            ? "#6366f1"
+                            : isAutomationClient
+                              ? "#ea580c"
+                              : getUserColor(user.id),
                       }}
                       title={
                         isRuntimeAgent
                           ? "Python Runtime"
-                          : (userInfo?.name ?? "Unknown User")
+                          : isTuiClient
+                            ? "Terminal UI Client"
+                            : isAutomationClient
+                              ? "Notebook Runner"
+                              : (userInfo?.name ?? "Unknown User")
                       }
                     >
                       {isRuntimeAgent ? (
                         <div className="flex size-8 items-center justify-center rounded-full bg-green-100">
                           <Bot className="size-4 text-green-700" />
+                        </div>
+                      ) : isTuiClient ? (
+                        <div className="flex size-8 items-center justify-center rounded-full bg-indigo-100">
+                          <Terminal className="size-4 text-indigo-700" />
+                        </div>
+                      ) : isAutomationClient ? (
+                        <div className="flex size-8 items-center justify-center rounded-full bg-orange-100">
+                          <Play className="size-4 text-orange-700" />
                         </div>
                       ) : userInfo?.picture ? (
                         <img
