@@ -221,20 +221,20 @@ Anode supports **Groq** as a first-class AI provider alongside OpenAI and Ollama
    ```
 
 3. **Start Services**:
-3. **Start Development**:
+4. **Start Development**:
 
    ```bash
    # Start integrated development server
    pnpm dev
    ```
 
-4. **Start Runtime**: Get the runtime command from the notebook UI, then:
+5. **Start Runtime**: Get the runtime command from the notebook UI, then:
 
    ```bash
    NOTEBOOK_ID=notebook-groq-$(date +%s) pnpm dev:runtime
    ```
 
-5. **Access**: Visit `http://localhost:5173` and create/open a notebook
+6. **Access**: Visit `http://localhost:5173` and create/open a notebook
 
 ### Features
 
