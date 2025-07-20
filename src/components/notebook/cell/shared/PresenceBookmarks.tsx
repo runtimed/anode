@@ -1,8 +1,5 @@
 import React from "react";
-import {
-  getClientTypeInfo,
-  getClientColor,
-} from "../../../services/userTypes.js";
+import { getClientTypeInfo, getClientColor } from "@/services/userTypes.js";
 import "./PresenceIndicators.css";
 
 interface PresenceBookmarksProps {

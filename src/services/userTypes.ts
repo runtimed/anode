@@ -1,9 +1,9 @@
-import { Bot, NotebookPen, Terminal } from "lucide-react";
+import { Bot, NotebookPen, Terminal, LucideIcon } from "lucide-react";
 
 export interface ClientTypeInfo {
   type: "runtime" | "tui" | "automation" | "user";
   name: string;
-  icon: typeof Bot | typeof Terminal | typeof NotebookPen | null;
+  icon: LucideIcon | null;
   color: string | null; // null for users who get dynamic colors
   backgroundColor: string;
   textColor: string;

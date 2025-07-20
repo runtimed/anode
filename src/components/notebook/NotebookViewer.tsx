@@ -25,7 +25,6 @@ import {
   Database,
   FileText,
   Filter,
-  NotebookPen,
   Square,
   Terminal,
   X,
@@ -372,7 +371,7 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
                           : clientInfo.name
                       }
                     >
-                      {clientInfo.icon ? (
+                      {IconComponent ? (
                         <div
                           className={`flex size-8 items-center justify-center rounded-full ${clientInfo.backgroundColor}`}
                         >
