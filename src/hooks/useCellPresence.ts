@@ -35,21 +35,23 @@ export const useMultiCellPresence = () => {
   const currentUserId = useCurrentUserId();
   const { getUserInfo } = useUserRegistry();
 
+  // Query all presence data excluding current user
+  const allPresence = useQuery(
+    queryDb(
+      tables.presence.select().where({
+        userId: { op: "!=", value: currentUserId },
+      })
+    )
+  );
+
   // Helper function to get users on a specific cell
   const getUsersOnCell = useCallback(
     (cellId: string) => {
-      // Use SQL filtering instead of JavaScript filtering for better performance
-      const cellPresence = useQuery(
-        queryDb(
-          tables.presence.select().where({
-            cellId: cellId,
-            userId: { op: "!=", value: currentUserId },
-          })
-        )
-      );
-      return cellPresence.map((p) => getUserInfo(p.userId));
+      return allPresence
+        .filter((p) => p.cellId === cellId)
+        .map((p) => getUserInfo(p.userId));
     },
-    [currentUserId, getUserInfo]
+    [allPresence, getUserInfo]
   );
 
   return { getUsersOnCell };
