@@ -30,7 +30,7 @@ import {
   X,
 } from "lucide-react";
 import { UserProfile } from "../auth/UserProfile.js";
-import { useAvailableAiModels } from "@/util/ai-models.js";
+import { useAvailableAiModels, getDefaultAiModel } from "@/util/ai-models.js";
 
 // Lazy import DebugPanel only in development
 const LazyDebugPanel = React.lazy(() =>
@@ -80,6 +80,7 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
           .limit(1)
       )
     )[0] || null;
+  const metadata = store.useQuery(queryDb(tables.notebookMetadata.select()));
   const runtimeSessions = store.useQuery(
     queryDb(tables.runtimeSessions.select().where({ isActive: true }))
   );
@@ -217,28 +218,14 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
       // Get default AI model if creating an AI cell
       let aiProvider, aiModel;
       if (cellType === "ai") {
-        if (lastUsedAiModel && lastUsedAiProvider) {
-          aiModel = lastUsedAiModel.value;
-          aiProvider = lastUsedAiProvider.value;
-        } else {
-          // Fallback to getting default from available models
-          const groqModels = models.filter((m) => m.provider === "groq");
-          if (groqModels.length > 0) {
-            // Prefer Groq Kimi K2 Instruct as default
-            const defaultGroq =
-              groqModels.find(
-                (m) => m.name === "moonshotai/kimi-k2-instruct"
-              ) || groqModels[0];
-            aiProvider = defaultGroq.provider;
-            aiModel = defaultGroq.name;
-          } else {
-            // Fallback to first available model
-            const firstModel = models[0];
-            if (firstModel) {
-              aiProvider = firstModel.provider;
-              aiModel = firstModel.name;
-            }
-          }
+        const defaultModel = getDefaultAiModel(
+          models,
+          lastUsedAiProvider?.value,
+          lastUsedAiModel?.value
+        );
+        if (defaultModel) {
+          aiProvider = defaultModel.provider;
+          aiModel = defaultModel.model;
         }
       }
 
@@ -256,7 +243,7 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
       if (cellType === "ai" && aiProvider && aiModel) {
         store.commit(
           events.aiSettingsChanged({
-            cellId: cellId,
+            cellId: newCellId,
             provider: aiProvider,
             model: aiModel,
             settings: {
