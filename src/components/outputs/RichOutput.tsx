@@ -301,23 +301,3 @@ export const RichOutput: React.FC<RichOutputProps> = ({
     </div>
   );
 };
-
-// Helper function to create rich output data
-export const createRichOutput = (
-  content: string,
-  mediaType: string = "text/plain"
-) => {
-  return {
-    [mediaType]: content,
-  };
-};
-
-// Helper function to create markdown output
-export const createMarkdownOutput = (markdown: string) => {
-  return createRichOutput(markdown, "text/markdown");
-};
-
-// Helper function to create SVG output
-export const createSvgOutput = (svg: string) => {
-  return createRichOutput(svg, "image/svg+xml");
-};

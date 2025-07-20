@@ -30,6 +30,7 @@ import {
   X,
 } from "lucide-react";
 import { UserProfile } from "../auth/UserProfile.js";
+import { useAvailableAiModels, getDefaultAiModel } from "@/util/ai-models.js";
 
 // Lazy import DebugPanel only in development
 const LazyDebugPanel = React.lazy(() =>
@@ -56,10 +57,29 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
   const { store } = useStore();
   const currentUserId = useCurrentUserId();
   const { presentUsers, getUserInfo, getUserColor } = useUserRegistry();
+  const { models } = useAvailableAiModels();
 
   const cells = store.useQuery(
     queryDb(tables.cells.select().orderBy("position", "asc"))
   );
+  const lastUsedAiModel =
+    store.useQuery(
+      queryDb(
+        tables.notebookMetadata
+          .select()
+          .where({ key: "lastUsedAiModel" })
+          .limit(1)
+      )
+    )[0] || null;
+  const lastUsedAiProvider =
+    store.useQuery(
+      queryDb(
+        tables.notebookMetadata
+          .select()
+          .where({ key: "lastUsedAiProvider" })
+          .limit(1)
+      )
+    )[0] || null;
   const metadata = store.useQuery(queryDb(tables.notebookMetadata.select()));
   const runtimeSessions = store.useQuery(
     queryDb(tables.runtimeSessions.select().where({ isActive: true }))
@@ -195,6 +215,20 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
           Math.max(...cells.map((c: CellData) => c.position), -1) + 1;
       }
 
+      // Get default AI model if creating an AI cell
+      let aiProvider, aiModel;
+      if (cellType === "ai") {
+        const defaultModel = getDefaultAiModel(
+          models,
+          lastUsedAiProvider?.value,
+          lastUsedAiModel?.value
+        );
+        if (defaultModel) {
+          aiProvider = defaultModel.provider;
+          aiModel = defaultModel.model;
+        }
+      }
+
       store.commit(
         events.cellCreated({
           id: newCellId,
@@ -205,13 +239,28 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
         })
       );
 
+      // Set default AI model for AI cells based on last used model
+      if (cellType === "ai" && aiProvider && aiModel) {
+        store.commit(
+          events.aiSettingsChanged({
+            cellId: newCellId,
+            provider: aiProvider,
+            model: aiModel,
+            settings: {
+              temperature: 0.7,
+              maxTokens: 1000,
+            },
+          })
+        );
+      }
+
       // Prefetch output components when user creates cells
       prefetchOutputsAdaptive();
 
       // Focus the new cell after creation
       setTimeout(() => setFocusedCellId(newCellId), 0);
     },
-    [cells, store, currentUserId]
+    [cells, store, currentUserId, models, lastUsedAiModel, lastUsedAiProvider]
   );
 
   const deleteCell = useCallback(
