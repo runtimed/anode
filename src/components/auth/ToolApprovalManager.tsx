@@ -3,7 +3,7 @@ import { useToolApprovals } from "../../hooks/useToolApprovals";
 import { ToolApprovalDialog } from "./ToolApprovalDialog";
 
 export const ToolApprovalManager: React.FC = () => {
-  const { pendingApprovals, respondToApproval } = useToolApprovals();
+  const { pendingApprovals, respondToApproval } = useToolApprovals(); // No cellId filter for global manager
 
   // Show the first pending approval if any exist
   const currentRequest = pendingApprovals[0];

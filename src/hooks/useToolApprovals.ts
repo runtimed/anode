@@ -12,15 +12,27 @@ export interface ToolApprovalRequest {
   requestedAt: Date;
 }
 
-export const useToolApprovals = () => {
+interface UseToolApprovalsOptions {
+  cellId?: string; // Optional filter for specific cell
+}
+
+export const useToolApprovals = (options: UseToolApprovalsOptions = {}) => {
   const { store } = useStore();
   const currentUser = useCurrentUser();
   const [pendingApprovals, setPendingApprovals] = useState<ToolApprovalRequest[]>([]);
 
+  // Create query with optional cellId filter
+  const query = options.cellId
+    ? queryDb(tables.toolApprovals.select().where({ 
+        status: "pending" as const, 
+        cellId: options.cellId 
+      }))
+    : queryDb(tables.toolApprovals.select().where({ 
+        status: "pending" as const 
+      }));
+
   // Query for pending tool approvals
-  const approvals = useQuery(
-    queryDb(tables.toolApprovals.select().where({ status: "pending" }))
-  );
+  const approvals = useQuery(query);
 
   // Update pending approvals when query results change
   useEffect(() => {
@@ -51,5 +63,9 @@ export const useToolApprovals = () => {
   return {
     pendingApprovals,
     respondToApproval,
+    // Helper to get the first pending approval for this cell
+    currentApprovalRequest: pendingApprovals[0] || null,
+    // Helper to check if there are pending approvals
+    hasPendingApprovals: pendingApprovals.length > 0,
   };
 }; 

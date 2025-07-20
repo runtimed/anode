@@ -4,6 +4,7 @@ import { useCellKeyboardNavigation } from "@/hooks/useCellKeyboardNavigation.js"
 import { useCellOutputs } from "@/hooks/useCellOutputs.js";
 import { useCurrentUserId } from "@/hooks/useCurrentUser.js";
 import { useUserRegistry } from "@/hooks/useUserRegistry.js";
+import { useToolApprovals } from "@/hooks/useToolApprovals.js";
 import { useAvailableAiModels } from "@/util/ai-models.js";
 import { queryDb } from "@livestore/livestore";
 import { useStore } from "@livestore/react";
@@ -12,6 +13,7 @@ import { ChevronDown, ChevronUp } from "lucide-react";
 import React, { useCallback } from "react";
 import { ErrorBoundary } from "react-error-boundary";
 import { CodeMirrorEditor } from "../codemirror/CodeMirrorEditor.js";
+import { AiToolApprovalOutput } from "../../outputs/AiToolApprovalOutput.js";
 import { AiCellTypeSelector } from "./shared/AiCellTypeSelector.js";
 import { CellContainer } from "./shared/CellContainer.js";
 import { CellControls } from "./shared/CellControls.js";
@@ -31,6 +33,33 @@ interface AiCellProps {
   onFocus?: () => void;
   contextSelectionMode?: boolean;
 }
+
+// Inline Tool Approval Component
+interface InlineToolApprovalProps {
+  cellId: string;
+}
+
+const InlineToolApproval: React.FC<InlineToolApprovalProps> = ({ cellId }) => {
+  const { currentApprovalRequest, respondToApproval } = useToolApprovals({ cellId });
+
+  if (!currentApprovalRequest) {
+    return null;
+  }
+
+  const handleApproval = (status: "approved_once" | "approved_always" | "denied") => {
+    respondToApproval(currentApprovalRequest.toolCallId, status);
+  };
+
+  return (
+    <div className="cell-content pr-1 pl-6 sm:pr-4">
+      <AiToolApprovalOutput
+        toolCallId={currentApprovalRequest.toolCallId}
+        toolName={currentApprovalRequest.toolName}
+        onApprove={handleApproval}
+      />
+    </div>
+  );
+};
 
 export const AiCell: React.FC<AiCellProps> = ({
   cell,
@@ -393,7 +422,14 @@ export const AiCell: React.FC<AiCellProps> = ({
 
       {/* Outputs Section */}
       <ErrorBoundary FallbackComponent={OutputsErrorBoundary}>
-        {cell.outputVisible && <MaybeOutputs />}
+        {cell.outputVisible && (
+          <>
+            {/* Inline Tool Approval Dialog */}
+            <InlineToolApproval cellId={cell.id} />
+            {/* Regular Outputs */}
+            <MaybeOutputs />
+          </>
+        )}
       </ErrorBoundary>
     </CellContainer>
   );
