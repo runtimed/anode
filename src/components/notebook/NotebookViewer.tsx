@@ -14,6 +14,7 @@ import { useCurrentUserId } from "@/hooks/useCurrentUser.js";
 import { useUserRegistry } from "@/hooks/useUserRegistry.js";
 import { getRuntimeCommand } from "@/util/runtime-command.js";
 import { getCurrentNotebookId } from "@/util/store-id.js";
+import { getClientTypeInfo, getClientColor } from "@/services/userTypes.js";
 import {
   Bot,
   Bug,
@@ -24,7 +25,6 @@ import {
   Database,
   FileText,
   Filter,
-  NotebookPen,
   Square,
   Terminal,
   X,
@@ -355,45 +355,29 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
                 .filter((user) => user.id !== currentUserId)
                 .map((user) => {
                   const userInfo = getUserInfo(user.id);
-                  const isRuntimeAgent =
-                    user.id.includes("runtime") || user.id.includes("python");
-                  const isTuiClient = user.id === "tui-client";
-                  const isAutomationClient = user.id === "automation-client";
+                  const clientInfo = getClientTypeInfo(user.id);
+                  const IconComponent = clientInfo.icon;
 
                   return (
                     <div
                       key={user.id}
                       className="shrink-0 overflow-hidden rounded-full border-2"
                       style={{
-                        borderColor: isRuntimeAgent
-                          ? "#22c55e"
-                          : isTuiClient
-                            ? "#6366f1"
-                            : isAutomationClient
-                              ? "#ec4899"
-                              : getUserColor(user.id),
+                        borderColor: getClientColor(user.id, getUserColor),
                       }}
                       title={
-                        isRuntimeAgent
-                          ? "Python Runtime"
-                          : isTuiClient
-                            ? "Terminal UI Client"
-                            : isAutomationClient
-                              ? "Notebook Runner"
-                              : (userInfo?.name ?? "Unknown User")
+                        clientInfo.type === "user"
+                          ? (userInfo?.name ?? "Unknown User")
+                          : clientInfo.name
                       }
                     >
-                      {isRuntimeAgent ? (
-                        <div className="flex size-8 items-center justify-center rounded-full bg-green-100">
-                          <Bot className="size-4 text-green-700" />
-                        </div>
-                      ) : isTuiClient ? (
-                        <div className="flex size-8 items-center justify-center rounded-full bg-indigo-100">
-                          <Terminal className="size-4 text-indigo-700" />
-                        </div>
-                      ) : isAutomationClient ? (
-                        <div className="flex size-8 items-center justify-center rounded-full bg-pink-100">
-                          <NotebookPen className="size-4 text-pink-700" />
+                      {IconComponent ? (
+                        <div
+                          className={`flex size-8 items-center justify-center rounded-full ${clientInfo.backgroundColor}`}
+                        >
+                          <IconComponent
+                            className={`size-4 ${clientInfo.textColor}`}
+                          />
                         </div>
                       ) : userInfo?.picture ? (
                         <img
