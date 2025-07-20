@@ -126,35 +126,15 @@ export const RichOutput: React.FC<RichOutputProps> = ({
       (value: any) => isInlineContainer(value) || isArtifactContainer(value)
     );
 
-    // After the hasContainers check, before the else block
     if (hasContainers) {
-      // Check if we have numbered indices (character-by-character response)
-      const keys = Object.keys(potentialContainers);
-      const hasNumberedIndices = keys.every((key) => /^\d+$/.test(key));
-
-      if (hasNumberedIndices) {
-        // Concatenate all character data into a single text/markdown output
-        const sortedKeys = keys.sort((a, b) => parseInt(a) - parseInt(b));
-        let concatenatedText = "";
-
-        for (const key of sortedKeys) {
-          const container = potentialContainers[key];
-          if (isInlineContainer(container)) {
-            concatenatedText += container.data;
-          }
-        }
-
-        outputData = { "text/markdown": concatenatedText };
-      } else {
-        // Original media container processing
-        for (const [mimeType, container] of Object.entries(
-          potentialContainers
-        )) {
-          if (isInlineContainer(container)) {
-            outputData[mimeType] = container.data;
-          } else if (isArtifactContainer(container)) {
-            outputData[mimeType] = `[Artifact: ${container.artifactId}]`;
-          }
+      // Convert from media containers to rendering format
+      for (const [mimeType, container] of Object.entries(potentialContainers)) {
+        if (isInlineContainer(container)) {
+          outputData[mimeType] = container.data;
+        } else if (isArtifactContainer(container)) {
+          // For artifacts, we'll need to handle them differently
+          // For now, just mark as artifact reference
+          outputData[mimeType] = `[Artifact: ${container.artifactId}]`;
         }
       }
     } else {

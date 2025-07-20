@@ -221,20 +221,20 @@ Anode supports **Groq** as a first-class AI provider alongside OpenAI and Ollama
    ```
 
 3. **Start Services**:
+3. **Start Development**:
 
    ```bash
-   # Terminal 1: Sync service
-   cd anode && pnpm run dev:sync
-
-   # Terminal 2: Web client
-   pnpm run dev:web
-
-   # Terminal 3: Runtime with Groq support
-   cd ../runt
-   nohup bash -c "source .env && NOTEBOOK_ID=notebook-groq-$(date +%s) deno run --allow-all --env-file=.env packages/pyodide-runtime-agent/src/mod.ts" > runtime.log 2>&1 &
+   # Start integrated development server
+   pnpm dev
    ```
 
-4. **Access**: Visit `http://localhost:5173/?notebook=notebook-groq-[timestamp]`
+4. **Start Runtime**: Get the runtime command from the notebook UI, then:
+
+   ```bash
+   NOTEBOOK_ID=notebook-groq-$(date +%s) pnpm dev:runtime
+   ```
+
+5. **Access**: Visit `http://localhost:5173` and create/open a notebook
 
 ### Features
 
