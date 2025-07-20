@@ -1,20 +1,13 @@
-import { queryDb } from "@livestore/livestore";
+import React, { useCallback, Suspense } from "react";
 import { useStore } from "@livestore/react";
 import { CellData, events, RuntimeSessionData, tables } from "@runt/schema";
-import React, { Suspense, useCallback } from "react";
+import { queryDb } from "@livestore/livestore";
 import { ErrorBoundary } from "react-error-boundary";
 
-import { NotebookTitle } from "./NotebookTitle.js";
 import { VirtualizedCellList } from "./VirtualizedCellList.js";
+import { NotebookTitle } from "./NotebookTitle.js";
 
-import { Avatar } from "@/components/ui/Avatar.js";
 import { Button } from "@/components/ui/button";
-
-import { useCurrentUserId } from "@/hooks/useCurrentUser.js";
-import { useUserRegistry } from "@/hooks/useUserRegistry.js";
-import { getRuntimeCommand } from "@/util/runtime-command.js";
-import { getCurrentNotebookId } from "@/util/store-id.js";
-import { getClientTypeInfo, getClientColor } from "@/services/userTypes.js";
 import {
   Bot,
   Bug,
@@ -25,11 +18,16 @@ import {
   Database,
   FileText,
   Filter,
+  Plus,
   Square,
   Terminal,
   X,
 } from "lucide-react";
+import { getCurrentNotebookId } from "../../util/store-id.js";
+import { getRuntimeCommand } from "../../util/runtime-command.js";
 import { UserProfile } from "../auth/UserProfile.js";
+import { useCurrentUserId } from "../../hooks/useCurrentUser.js";
+import { useAvailableAiModels } from "../../util/ai-models.js";
 
 // Lazy import DebugPanel only in development
 const LazyDebugPanel = React.lazy(() =>
@@ -39,9 +37,8 @@ const LazyDebugPanel = React.lazy(() =>
 );
 
 // Import prefetch utilities
-import { prefetchOutputsAdaptive } from "@/util/prefetch.js";
+import { prefetchOutputsAdaptive } from "../../util/prefetch.js";
 import { MobileOmnibar } from "./MobileOmnibar.js";
-import { CellAdder } from "./cell/CellAdder.js";
 
 interface NotebookViewerProps {
   notebookId: string;
@@ -55,19 +52,38 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
 }) => {
   const { store } = useStore();
   const currentUserId = useCurrentUserId();
-  const { presentUsers, getUserInfo, getUserColor } = useUserRegistry();
+  const { models } = useAvailableAiModels();
 
   const cells = store.useQuery(
     queryDb(tables.cells.select().orderBy("position", "asc"))
-  );
+  ) as CellData[];
   const metadata = store.useQuery(queryDb(tables.notebookMetadata.select()));
+
+  // Query for specific AI model metadata with proper LiveStore queries
+  const lastUsedAiModel = store.useQuery(
+    queryDb(
+      tables.notebookMetadata
+        .select()
+        .where({ key: "lastUsedAiModel" })
+        .limit(1)
+    )
+  )[0];
+  const lastUsedAiProvider = store.useQuery(
+    queryDb(
+      tables.notebookMetadata
+        .select()
+        .where({ key: "lastUsedAiProvider" })
+        .limit(1)
+    )
+  )[0];
+
   const runtimeSessions = store.useQuery(
     queryDb(tables.runtimeSessions.select().where({ isActive: true }))
-  );
+  ) as RuntimeSessionData[];
   // Get all runtime sessions for debug panel
   const allRuntimeSessions = store.useQuery(
     queryDb(tables.runtimeSessions.select())
-  );
+  ) as RuntimeSessionData[];
   // Get execution queue for debug panel
   const executionQueue = store.useQuery(
     queryDb(tables.executionQueue.select().orderBy("id", "desc"))
@@ -140,12 +156,12 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
         events.executionCancelled({
           queueId: execution.id,
           cellId: execution.cellId,
-          cancelledBy: currentUserId,
+          cancelledBy: "current-user",
           reason: "User interrupted all executions from runtime UI",
         })
       );
     }
-  }, [executionQueue, store, currentUserId]);
+  }, [executionQueue, store]);
 
   // Prefetch output components adaptively based on connection speed
   React.useEffect(() => {
@@ -154,24 +170,19 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
 
   const addCell = useCallback(
     (
-      cellId?: string,
-      cellType: "code" | "markdown" | "sql" | "ai" = "code",
-      position: "before" | "after" = "after"
+      afterCellId?: string,
+      cellType: "code" | "markdown" | "sql" | "ai" = "code"
     ) => {
-      const newCellId = `cell-${Date.now()}-${Math.random()
+      const cellId = `cell-${Date.now()}-${Math.random()
         .toString(36)
         .slice(2)}`;
 
       let newPosition: number;
-      if (cellId) {
+      if (afterCellId) {
         // Find the current cell and insert after it
-        const currentCell = cells.find((c: CellData) => c.id === cellId);
+        const currentCell = cells.find((c: CellData) => c.id === afterCellId);
         if (currentCell) {
-          if (position === "before") {
-            newPosition = currentCell.position;
-          } else {
-            newPosition = currentCell.position + 1;
-          }
+          newPosition = currentCell.position + 1;
           // Shift all subsequent cells down by 1
           const cellsToShift = cells.filter(
             (c: CellData) => c.position >= newPosition
@@ -195,23 +206,73 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
           Math.max(...cells.map((c: CellData) => c.position), -1) + 1;
       }
 
+      // Get default AI model if creating an AI cell
+      let aiProvider, aiModel;
+      if (cellType === "ai") {
+        // Try to get the last used AI model from notebook metadata (using LiveStore queries)
+        if (lastUsedAiModel && lastUsedAiProvider) {
+          aiModel = lastUsedAiModel.value;
+          aiProvider = lastUsedAiProvider.value;
+        } else {
+          // Fallback hierarchy: Groq -> OpenAI -> others
+          const groqModels = models.filter((m) => m.provider === "groq");
+          const openaiModels = models.filter((m) => m.provider === "openai");
+
+          if (groqModels.length > 0) {
+            // Prefer Groq Kimi K2 Instruct as primary default
+            const defaultGroq =
+              groqModels.find(
+                (m) => m.name === "moonshotai/kimi-k2-instruct"
+              ) || groqModels[0];
+            aiProvider = defaultGroq.provider;
+            aiModel = defaultGroq.name;
+          } else if (openaiModels.length > 0) {
+            // OpenAI as secondary default
+            const defaultOpenAI = openaiModels[0];
+            aiProvider = defaultOpenAI.provider;
+            aiModel = defaultOpenAI.name;
+          } else {
+            // Fallback to any available model
+            const firstModel = models[0];
+            if (firstModel) {
+              aiProvider = firstModel.provider;
+              aiModel = firstModel.name;
+            }
+          }
+        }
+      }
+
       store.commit(
         events.cellCreated({
-          id: newCellId,
+          id: cellId,
           position: newPosition,
           cellType,
           createdBy: currentUserId,
-          actorId: currentUserId,
         })
       );
+
+      // Set default AI model for AI cells based on last used model
+      if (cellType === "ai" && aiProvider && aiModel) {
+        store.commit(
+          events.aiSettingsChanged({
+            cellId: cellId,
+            provider: aiProvider,
+            model: aiModel,
+            settings: {
+              temperature: 0.7,
+              maxTokens: 1000,
+            },
+          })
+        );
+      }
 
       // Prefetch output components when user creates cells
       prefetchOutputsAdaptive();
 
       // Focus the new cell after creation
-      setTimeout(() => setFocusedCellId(newCellId), 0);
+      setTimeout(() => setFocusedCellId(cellId), 0);
     },
-    [cells, store, currentUserId]
+    [cells, store, currentUserId, models, lastUsedAiModel, lastUsedAiProvider]
   );
 
   const deleteCell = useCallback(
@@ -219,11 +280,10 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
       store.commit(
         events.cellDeleted({
           id: cellId,
-          actorId: currentUserId,
         })
       );
     },
-    [store, currentUserId]
+    [store]
   );
 
   const moveCell = useCallback(
@@ -241,14 +301,12 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
             events.cellMoved({
               id: cellId,
               newPosition: targetCell.position,
-              actorId: currentUserId,
             })
           );
           store.commit(
             events.cellMoved({
               id: targetCell.id,
               newPosition: currentCell.position,
-              actorId: currentUserId,
             })
           );
         }
@@ -260,20 +318,18 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
             events.cellMoved({
               id: cellId,
               newPosition: targetCell.position,
-              actorId: currentUserId,
             })
           );
           store.commit(
             events.cellMoved({
               id: targetCell.id,
               newPosition: currentCell.position,
-              actorId: currentUserId,
             })
           );
         }
       }
     },
-    [cells, store, currentUserId]
+    [cells, store]
   );
 
   const focusCell = useCallback((cellId: string) => {
@@ -350,54 +406,6 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
           </div>
 
           <div className="flex items-center gap-2">
-            <div className="flex -space-x-2">
-              {presentUsers
-                .filter((user) => user.id !== currentUserId)
-                .map((user) => {
-                  const userInfo = getUserInfo(user.id);
-                  const clientInfo = getClientTypeInfo(user.id);
-                  const IconComponent = clientInfo.icon;
-
-                  return (
-                    <div
-                      key={user.id}
-                      className="shrink-0 overflow-hidden rounded-full border-2"
-                      style={{
-                        borderColor: getClientColor(user.id, getUserColor),
-                      }}
-                      title={
-                        clientInfo.type === "user"
-                          ? (userInfo?.name ?? "Unknown User")
-                          : clientInfo.name
-                      }
-                    >
-                      {IconComponent ? (
-                        <div
-                          className={`flex size-8 items-center justify-center rounded-full ${clientInfo.backgroundColor}`}
-                        >
-                          <IconComponent
-                            className={`size-4 ${clientInfo.textColor}`}
-                          />
-                        </div>
-                      ) : userInfo?.picture ? (
-                        <img
-                          src={userInfo.picture}
-                          alt={userInfo.name ?? "User"}
-                          className="h-8 w-8 rounded-full bg-gray-300"
-                        />
-                      ) : (
-                        <Avatar
-                          initials={
-                            userInfo?.name?.charAt(0).toUpperCase() ?? "?"
-                          }
-                          backgroundColor={getUserColor(user.id)}
-                        />
-                      )}
-                    </div>
-                  );
-                })}
-            </div>
-
             {import.meta.env.DEV && onDebugToggle && (
               <Button
                 variant="ghost"
@@ -760,7 +768,6 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
                   </div>
                   <div className="mb-4 flex flex-wrap justify-center gap-2">
                     <Button
-                      size="lg"
                       autoFocus
                       onClick={() => addCell()}
                       className="flex items-center gap-2"
@@ -769,9 +776,7 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
                       Code Cell
                     </Button>
                     <Button
-                      size="lg"
                       variant="outline"
-                      color="yellow"
                       onClick={() => addCell(undefined, "markdown")}
                       className="flex items-center gap-2"
                     >
@@ -779,9 +784,7 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
                       Markdown
                     </Button>
                     <Button
-                      size="lg"
                       variant="outline"
-                      color="blue"
                       onClick={() => addCell(undefined, "sql")}
                       className="flex items-center gap-2"
                     >
@@ -789,9 +792,7 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
                       SQL Query
                     </Button>
                     <Button
-                      size="lg"
                       variant="outline"
-                      color="purple"
                       onClick={() => addCell(undefined, "ai")}
                       className="flex items-center gap-2"
                     >
@@ -809,7 +810,12 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
                   <VirtualizedCellList
                     cells={cells}
                     focusedCellId={focusedCellId}
-                    onAddCell={addCell}
+                    onAddCell={(afterCellId, cellType) =>
+                      addCell(
+                        afterCellId,
+                        cellType as "code" | "markdown" | "sql" | "ai"
+                      )
+                    }
                     onDeleteCell={deleteCell}
                     onMoveUp={(cellId) => moveCell(cellId, "up")}
                     onMoveDown={(cellId) => moveCell(cellId, "down")}
@@ -827,7 +833,48 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
             {cells.length > 0 && (
               <div className="border-border/30 mt-6 border-t px-4 pt-4 sm:mt-8 sm:px-0 sm:pt-6">
                 <div className="space-y-3 text-center">
-                  <CellAdder onAddCell={addCell} position="after" />
+                  <div className="flex flex-wrap justify-center gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => addCell()}
+                      className="flex items-center gap-1.5"
+                    >
+                      <Plus className="h-3 w-3" />
+                      <Code className="h-3 w-3" />
+                      Code
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => addCell(undefined, "markdown")}
+                      className="flex items-center gap-1.5"
+                    >
+                      <Plus className="h-3 w-3" />
+                      <FileText className="h-3 w-3" />
+                      Markdown
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => addCell(undefined, "sql")}
+                      className="flex items-center gap-1.5"
+                    >
+                      <Plus className="h-3 w-3" />
+                      <Database className="h-3 w-3" />
+                      SQL
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => addCell(undefined, "ai")}
+                      className="flex items-center gap-1.5"
+                    >
+                      <Plus className="h-3 w-3" />
+                      <Bot className="h-3 w-3" />
+                      AI
+                    </Button>
+                  </div>
                   <div className="text-muted-foreground mt-2 hidden text-xs sm:block">
                     Add a new cell
                   </div>
