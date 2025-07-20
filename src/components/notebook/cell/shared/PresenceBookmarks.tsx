@@ -31,9 +31,10 @@ export const PresenceBookmarks: React.FC<PresenceBookmarksProps> = ({
         return (
           <div
             key={user.id}
-            className="presence-avatar-compact flex h-6 w-6 items-center justify-center rounded-full border-2 border-white shadow-sm transition-all duration-300 hover:scale-110 hover:shadow-md sm:h-5 sm:w-5"
+            className="presence-avatar-compact flex h-6 w-6 items-center justify-center rounded-full border-2 shadow-sm transition-all duration-300 hover:scale-110 hover:shadow-md sm:h-5 sm:w-5"
             style={{
               backgroundColor,
+              borderColor: backgroundColor,
               animationDelay: `${index * 100}ms`,
               zIndex: 10 - index,
             }}
