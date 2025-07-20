@@ -1,5 +1,5 @@
 import React from "react";
-import { Bot, NotebookPen, Terminal } from "lucide-react";
+import { getClientTypeInfo } from "../../../services/userTypes.js";
 import "./PresenceIndicators.css";
 
 interface PresenceBookmarksProps {
@@ -23,18 +23,11 @@ export const PresenceBookmarks: React.FC<PresenceBookmarksProps> = ({
     >
       {/* Primary users - compact avatars */}
       {usersOnCell.slice(0, 3).map((user, index) => {
-        const isRuntimeAgent =
-          user.id.includes("runtime") || user.id.includes("python");
-        const isTuiClient = user.id === "tui-client";
-        const isAutomationClient = user.id === "automation-client";
+        const clientInfo = getClientTypeInfo(user.id);
+        const IconComponent = clientInfo.icon;
 
-        const backgroundColor = isRuntimeAgent
-          ? "#22c55e"
-          : isTuiClient
-            ? "#6366f1"
-            : isAutomationClient
-              ? "#ec4899"
-              : getUserColor(user.id);
+        const backgroundColor =
+          clientInfo.type === "user" ? getUserColor(user.id) : clientInfo.color;
 
         return (
           <div
@@ -56,12 +49,8 @@ export const PresenceBookmarks: React.FC<PresenceBookmarksProps> = ({
                 alt={user.name}
                 className="h-full w-full rounded-full object-cover"
               />
-            ) : isRuntimeAgent ? (
-              <Bot className="h-3 w-3 text-white" />
-            ) : isTuiClient ? (
-              <Terminal className="h-3 w-3 text-white" />
-            ) : isAutomationClient ? (
-              <NotebookPen className="h-3 w-3 text-white" />
+            ) : IconComponent ? (
+              <IconComponent className="h-3 w-3 text-white" />
             ) : (
               <span className="text-xs font-semibold text-white">
                 {user.name.charAt(0).toUpperCase()}
