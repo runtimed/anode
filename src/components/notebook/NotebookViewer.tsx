@@ -62,7 +62,24 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
   const cells = store.useQuery(
     queryDb(tables.cells.select().orderBy("position", "asc"))
   );
-  const metadata = store.useQuery(queryDb(tables.notebookMetadata.select()));
+  const lastUsedAiModel =
+    store.useQuery(
+      queryDb(
+        tables.notebookMetadata
+          .select()
+          .where({ key: "lastUsedAiModel" })
+          .limit(1)
+      )
+    )[0] || null;
+  const lastUsedAiProvider =
+    store.useQuery(
+      queryDb(
+        tables.notebookMetadata
+          .select()
+          .where({ key: "lastUsedAiProvider" })
+          .limit(1)
+      )
+    )[0] || null;
   const runtimeSessions = store.useQuery(
     queryDb(tables.runtimeSessions.select().where({ isActive: true }))
   );
@@ -200,17 +217,9 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
       // Get default AI model if creating an AI cell
       let aiProvider, aiModel;
       if (cellType === "ai") {
-        // Try to get the last used AI model from notebook metadata
-        const lastUsedModelKey = metadata.find(
-          (meta: any) => meta.key === "lastUsedAiModel"
-        );
-        const lastUsedProviderKey = metadata.find(
-          (meta: any) => meta.key === "lastUsedAiProvider"
-        );
-
-        if (lastUsedModelKey && lastUsedProviderKey) {
-          aiModel = lastUsedModelKey.value;
-          aiProvider = lastUsedProviderKey.value;
+        if (lastUsedAiModel && lastUsedAiProvider) {
+          aiModel = lastUsedAiModel.value;
+          aiProvider = lastUsedAiProvider.value;
         } else {
           // Fallback to getting default from available models
           const groqModels = models.filter((m) => m.provider === "groq");
@@ -264,7 +273,7 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
       // Focus the new cell after creation
       setTimeout(() => setFocusedCellId(newCellId), 0);
     },
-    [cells, store, currentUserId, models, metadata]
+    [cells, store, currentUserId, models, lastUsedAiModel, lastUsedAiProvider]
   );
 
   const deleteCell = useCallback(
