@@ -1,4 +1,5 @@
 import React from "react";
+import { Bot, NotebookPen, Terminal } from "lucide-react";
 import "./PresenceIndicators.css";
 
 interface PresenceBookmarksProps {
@@ -21,33 +22,54 @@ export const PresenceBookmarks: React.FC<PresenceBookmarksProps> = ({
       aria-label="Users present on this cell"
     >
       {/* Primary users - compact avatars */}
-      {usersOnCell.slice(0, 3).map((user, index) => (
-        <div
-          key={user.id}
-          className="presence-avatar-compact flex h-6 w-6 items-center justify-center rounded-full border-2 border-white shadow-sm transition-all duration-300 hover:scale-110 hover:shadow-md sm:h-5 sm:w-5"
-          style={{
-            backgroundColor: getUserColor(user.id),
-            animationDelay: `${index * 100}ms`,
-            zIndex: 10 - index,
-          }}
-          title={user.name}
-          role="button"
-          tabIndex={0}
-          aria-label={`${user.name} is present on this cell`}
-        >
-          {user.picture ? (
-            <img
-              src={user.picture}
-              alt={user.name}
-              className="h-full w-full rounded-full object-cover"
-            />
-          ) : (
-            <span className="text-xs font-semibold text-white">
-              {user.name.charAt(0).toUpperCase()}
-            </span>
-          )}
-        </div>
-      ))}
+      {usersOnCell.slice(0, 3).map((user, index) => {
+        const isRuntimeAgent =
+          user.id.includes("runtime") || user.id.includes("python");
+        const isTuiClient = user.id === "tui-client";
+        const isAutomationClient = user.id === "automation-client";
+
+        const backgroundColor = isRuntimeAgent
+          ? "#22c55e"
+          : isTuiClient
+            ? "#6366f1"
+            : isAutomationClient
+              ? "#ec4899"
+              : getUserColor(user.id);
+
+        return (
+          <div
+            key={user.id}
+            className="presence-avatar-compact flex h-6 w-6 items-center justify-center rounded-full border-2 border-white shadow-sm transition-all duration-300 hover:scale-110 hover:shadow-md sm:h-5 sm:w-5"
+            style={{
+              backgroundColor,
+              animationDelay: `${index * 100}ms`,
+              zIndex: 10 - index,
+            }}
+            title={user.name}
+            role="button"
+            tabIndex={0}
+            aria-label={`${user.name} is present on this cell`}
+          >
+            {user.picture ? (
+              <img
+                src={user.picture}
+                alt={user.name}
+                className="h-full w-full rounded-full object-cover"
+              />
+            ) : isRuntimeAgent ? (
+              <Bot className="h-3 w-3 text-white" />
+            ) : isTuiClient ? (
+              <Terminal className="h-3 w-3 text-white" />
+            ) : isAutomationClient ? (
+              <NotebookPen className="h-3 w-3 text-white" />
+            ) : (
+              <span className="text-xs font-semibold text-white">
+                {user.name.charAt(0).toUpperCase()}
+              </span>
+            )}
+          </div>
+        );
+      })}
 
       {/* Overflow indicator for many users */}
       {usersOnCell.length > 3 && (
