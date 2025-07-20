@@ -92,6 +92,18 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
   const executionQueue = store.useQuery(
     queryDb(tables.executionQueue.select().orderBy("id", "desc"))
   ) as any[];
+  
+  // Get running executions with SQL filtering for better performance
+  const runningExecutions = store.useQuery(
+    queryDb(
+      tables.executionQueue
+        .select()
+        .where({
+          status: { op: "in", value: ["executing", "pending", "assigned"] }
+        })
+        .orderBy("id", "desc")
+    )
+  ) as any[];
   const [showRuntimeHelper, setShowRuntimeHelper] = React.useState(false);
   const [focusedCellId, setFocusedCellId] = React.useState<string | null>(null);
   const [contextSelectionMode, setContextSelectionMode] = React.useState(false);
@@ -146,15 +158,7 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
   }, [runtimeCommand]);
 
   const interruptAllExecutions = useCallback(async () => {
-    // Find all running or queued executions
-    const runningExecutions = executionQueue.filter(
-      (exec: any) =>
-        exec.status === "executing" ||
-        exec.status === "pending" ||
-        exec.status === "assigned"
-    );
-
-    // Cancel each execution
+    // Cancel each running execution (already filtered by SQL query)
     for (const execution of runningExecutions) {
       store.commit(
         events.executionCancelled({
@@ -165,7 +169,7 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
         })
       );
     }
-  }, [executionQueue, store, currentUserId]);
+  }, [runningExecutions, store, currentUserId]);
 
   // Prefetch output components adaptively based on connection speed
   React.useEffect(() => {
@@ -699,15 +703,7 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
                         <div className="mt-4 border-t pt-4">
                           <div className="flex items-center justify-between">
                             <span className="text-muted-foreground text-sm">
-                              Running Executions:{" "}
-                              {
-                                executionQueue.filter(
-                                  (exec: any) =>
-                                    exec.status === "executing" ||
-                                    exec.status === "pending" ||
-                                    exec.status === "assigned"
-                                ).length
-                              }
+                              Running Executions: {runningExecutions.length}
                             </span>
                             <Button
                               variant="destructive"

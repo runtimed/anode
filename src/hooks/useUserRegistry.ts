@@ -102,11 +102,13 @@ export const useUserRegistry = () => {
   // Get users present on a specific cell (excluding current user)
   const getUsersOnCell = useCallback(
     (cellId: string) => {
-      return presence
-        .filter((p) => p.cellId === cellId)
-        .map((p) => getUserInfo(p.userId));
+      // Use SQL filtering instead of JavaScript filtering for better performance
+      const cellPresence = useQuery(
+        queryDb(tables.presence.select().where({ cellId }))
+      );
+      return cellPresence.map((p) => getUserInfo(p.userId));
     },
-    [presence, getUserInfo]
+    [getUserInfo]
   );
 
   return {

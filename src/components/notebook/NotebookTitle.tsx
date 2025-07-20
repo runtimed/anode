@@ -11,10 +11,11 @@ interface NotebookTitleProps {
 export const NotebookTitle: React.FC<NotebookTitleProps> = ({ className }) => {
   const { store } = useStore();
 
-  // Get notebook title from metadata, default to "Untitled"
-  const metadata = store.useQuery(queryDb(tables.notebookMetadata.select()));
-  const notebookTitle =
-    metadata.find((m) => m.key === "title")?.value ?? "Untitled";
+  // Get notebook title from metadata using SQL filtering for better performance
+  const titleMetadata = store.useQuery(
+    queryDb(tables.notebookMetadata.select().where({ key: "title" }).limit(1))
+  );
+  const notebookTitle = titleMetadata[0]?.value ?? "Untitled";
 
   const [isEditingTitle, setIsEditingTitle] = useState(false);
   const [localTitle, setLocalTitle] = useState(notebookTitle);
