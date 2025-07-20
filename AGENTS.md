@@ -10,8 +10,6 @@ and web client in separate tabs. If you need to check work, run a build and/or
 lints, tests, typechecks. If the user isn't running the dev environment, tell
 them how to start it at the base of the repo with pnpm.
 
-
-
 ## Project Overview
 
 Anode is a real-time collaborative notebook system built on LiveStore, an
