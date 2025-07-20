@@ -63,18 +63,24 @@ correct version)
 ```bash
 pnpm install  # Install dependencies
 
-# Copy environment configuration files
+# Copy environment configuration
 cp .env.example .env
+# Edit .env if needed (defaults work for local development)
+
+# Copy development variables
 cp .dev.vars.example .dev.vars
 
-# Start development (single server with integrated backend)
+# Start web client
 pnpm dev
+
+# Start sync worker (in separate terminal)
+pnpm dev:sync
 ```
 
-The example files contain sensible defaults that work for local development out of the box:
+Environment configuration:
 
-- `.env.example` → `.env` - Frontend environment variables (Vite)
-- `.dev.vars.example` → `.dev.vars` - Backend environment variables (Worker)
+- `.env.example` - Template with all required variables
+- `.env` - Your local configuration (copy from .env.example)
 
 ### 2. Create Your First Notebook
 
@@ -96,20 +102,56 @@ The example files contain sensible defaults that work for local development out 
 - Press **Ctrl+Enter** or click **Run**
 - See results appear instantly
 
-The Python runtime uses [@runt packages](https://github.com/runtimed/runt) for Python execution and AI features, providing a robust execution environment with rich output support.
+### 5. Try Python Execution (Optional)
 
-## Production Deployment
+```bash
+# Get the notebook ID from the UI, then start runtime:
+NOTEBOOK_ID=your-notebook-id pnpm dev:runtime
+```
 
-Anode is deployed and accessible at **https://app.runt.run** using a unified Cloudflare Worker architecture that serves both the web client and backend API from a single worker.
+- Uses @runt packages for Python execution and AI features
+- See https://github.com/runtimed/runt for more configuration options
 
-### Architecture
+## Using Deployed Cloudflare Workers (Optional)
 
-- **All-in-one Worker**: Single worker serving both frontend assets and backend API
-- **D1 Database**: Persistent storage for LiveStore events
-- **R2 Bucket**: Artifact storage for large outputs (images, files, data)
-- **Durable Objects**: WebSocket server for real-time sync
+Instead of running everything locally, you can use a deployed Cloudflare Worker
+for sync while keeping the web client and runtime local. This enables testing
+real-time collaboration across devices.
 
-This unified architecture simplifies deployment while providing robust real-time collaboration and artifact storage capabilities.
+### Quick Setup for Deployed Worker
+
+1. **Deploy the sync backend** - Only the docworker needs deployment for
+   collaboration
+
+**Get deployment details** from your team (worker URL and auth token)
+
+2. **Update application config** in `.env`:
+
+   ```env
+   VITE_LIVESTORE_SYNC_URL=https://your-worker.workers.dev
+   VITE_AUTH_TOKEN=your-secure-token
+   AUTH_TOKEN=your-secure-token
+   ```
+
+3. **Start services**:
+
+   ```bash
+   pnpm dev:web  # Web client connects to deployed worker
+   NOTEBOOK_ID=test-notebook pnpm dev:runtime
+   ```
+
+4. **Test collaboration** by opening the web client on multiple devices/browsers
+
+### Benefits
+
+- Real-time sync through Cloudflare's global network
+- Test collaboration across devices on your network
+- No need to run local sync backend
+
+**Note**: When using deployed workers, authentication happens via Cloudflare
+secrets configured in the dashboard.
+
+<!-- This section is for development/testing with deployed workers, not public access -->
 
 ## What You Can Do Today
 
@@ -156,12 +198,11 @@ Want to run Anode locally or contribute? Here's the essentials:
 
 ```bash
 # One-time setup
-pnpm install             # Install dependencies
-cp .env.example .env     # Copy environment configuration
-cp .dev.vars.example .dev.vars
+pnpm install             # Installs dependencies and creates .env files
 
-# Start development (single server with integrated backend)
-pnpm dev                 # Web interface + backend at http://localhost:5173
+# Start the development servers (in separate terminals)
+pnpm dev:web       # Web interface at http://localhost:5173
+pnpm dev:sync      # Sync backend
 
 # For Python execution, get the command from the notebook UI
 # Then run: NOTEBOOK_ID=your-notebook-id pnpm dev:runtime
@@ -193,13 +234,67 @@ The `@runt/schema` package provides shared types and events between Anode and Ru
 
 1. Update `package.json` with the appropriate schema reference
 2. Run `pnpm install` to update dependencies
-3. Restart development server (`pnpm dev`)
+3. Restart development servers (`pnpm dev` and `pnpm dev:sync`)
 
 **Important**: Ensure both repositories use compatible schema versions. Type errors usually indicate schema mismatches.
 
+## 🚀 Groq AI Integration
+
+Anode supports **Groq** as a first-class AI provider alongside OpenAI and Ollama, offering high-speed inference with advanced models.
+
+### Available Groq Models
+
+- **moonshotai/kimi-k2-instruct** (Primary) - Advanced reasoning and tool calling
+- **llama3-8b-8192** - Fast general-purpose model
+- **llama3-70b-8192** - High-performance large model
+- **mixtral-8x7b-32768** - Mixture of experts model
+- **gemma2-9b-it** - Efficient instruction-following model
+
+### Quick Setup
+
+1. **Get Groq API Key**: Sign up at [console.groq.com](https://console.groq.com) and create an API key
+
+2. **Configure Environment**: Add to `/runt/.env`:
+
+   ```bash
+   GROQ_API_KEY=your_groq_api_key_here
+   LIVESTORE_SYNC_URL=ws://localhost:8787/livestore
+   ```
+
+3. **Start Services**:
+
+   ```bash
+   # Terminal 1: Sync service
+   cd anode && pnpm run dev:sync
+
+   # Terminal 2: Web client
+   pnpm run dev:web
+
+   # Terminal 3: Runtime with Groq support
+   cd ../runt
+   nohup bash -c "source .env && NOTEBOOK_ID=notebook-groq-$(date +%s) deno run --allow-all --env-file=.env packages/pyodide-runtime-agent/src/mod.ts" > runtime.log 2>&1 &
+   ```
+
+4. **Access**: Visit `http://localhost:5173/?notebook=notebook-groq-[timestamp]`
+
+### Features
+
+- ✅ **All 5 Groq models** available in AI cell dropdown
+- ✅ **High-speed inference** - Typical response times 1-3 seconds
+- ✅ **Tool calling support** - AI can create and modify code cells
+- ✅ **Model persistence** - Notebooks remember your last selected model
+- ✅ **Orange provider badges** - Clear visual distinction in UI
+
+### Critical Notes
+
+⚠️ **Process Management**: Always run `pkill -f "pyodide-runtime-agent"` before starting new runtimes to prevent session conflicts.
+
+⚠️ **Use nohup**: For persistent runtime processes that survive across terminal commands, use `nohup` instead of screen sessions.
+
 ### Configuration
 
-Python runtime and AI features are handled by the separate [@runt packages](https://github.com/runtimed/runt). The integrated development server runs both frontend and backend in a single process for convenience.
+Python runtime and AI features are now handled by the separate @runt packages.
+See https://github.com/runtimed/runt for setup.
 
 ## Troubleshooting
 
@@ -208,7 +303,6 @@ Python runtime and AI features are handled by the separate [@runt packages](http
 | Schema version mismatches | Ensure all services (web, runtime, sync) are restarted after schema changes |
 | Type errors               | TypeScript catches invalid queries at compile time - check column names     |
 | Execution not working     | Check @runt runtime setup - see https://github.com/runtimed/runt            |
-| Dev server crashes        | Restart with `pnpm dev` - .env file changes are ignored to prevent crashes  |
 | Stale state               | Run `pnpm reset-storage`                                                    |
 | Build errors              | Run `pnpm build` to check for TypeScript issues                             |
 
