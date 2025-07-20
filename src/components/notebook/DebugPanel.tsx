@@ -4,6 +4,7 @@ import { queryDb, sql, Schema } from "@livestore/livestore";
 
 import {
   CellData,
+  ExecutionQueueData,
   RuntimeSessionData,
   NotebookMetadataData,
   tables,
@@ -15,9 +16,9 @@ import { Button } from "@/components/ui/button";
 
 interface DebugPanelProps {
   metadata: readonly NotebookMetadataData[];
-  cells: CellData[];
-  allRuntimeSessions: RuntimeSessionData[];
-  executionQueue: any[];
+  cells: readonly CellData[];
+  allRuntimeSessions: readonly RuntimeSessionData[];
+  executionQueue: readonly ExecutionQueueData[];
   currentNotebookId: string;
   runtimeHealth: string;
 }
