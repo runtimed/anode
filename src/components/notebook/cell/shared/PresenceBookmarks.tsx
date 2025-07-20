@@ -1,5 +1,8 @@
 import React from "react";
-import { getClientTypeInfo } from "../../../services/userTypes.js";
+import {
+  getClientTypeInfo,
+  getClientColor,
+} from "../../../services/userTypes.js";
 import "./PresenceIndicators.css";
 
 interface PresenceBookmarksProps {
@@ -26,8 +29,7 @@ export const PresenceBookmarks: React.FC<PresenceBookmarksProps> = ({
         const clientInfo = getClientTypeInfo(user.id);
         const IconComponent = clientInfo.icon;
 
-        const backgroundColor =
-          clientInfo.type === "user" ? getUserColor(user.id) : clientInfo.color;
+        const backgroundColor = getClientColor(user.id, getUserColor);
 
         return (
           <div

@@ -14,7 +14,7 @@ import { useCurrentUserId } from "@/hooks/useCurrentUser.js";
 import { useUserRegistry } from "@/hooks/useUserRegistry.js";
 import { getRuntimeCommand } from "@/util/runtime-command.js";
 import { getCurrentNotebookId } from "@/util/store-id.js";
-import { getClientTypeInfo } from "@/services/userTypes.js";
+import { getClientTypeInfo, getClientColor } from "@/services/userTypes.js";
 import {
   Bot,
   Bug,
@@ -364,10 +364,7 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
                       key={user.id}
                       className="shrink-0 overflow-hidden rounded-full border-2"
                       style={{
-                        borderColor:
-                          clientInfo.type === "user"
-                            ? getUserColor(user.id)
-                            : clientInfo.color,
+                        borderColor: getClientColor(user.id, getUserColor),
                       }}
                       title={
                         clientInfo.type === "user"

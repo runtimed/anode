@@ -4,7 +4,7 @@ export interface ClientTypeInfo {
   type: "runtime" | "tui" | "automation" | "user";
   name: string;
   icon: typeof Bot | typeof Terminal | typeof NotebookPen | null;
-  color: string;
+  color: string | null; // null for users who get dynamic colors
   backgroundColor: string;
   textColor: string;
 }
@@ -38,7 +38,7 @@ export const CLIENT_TYPE_CONFIGS: Record<string, ClientTypeInfo> = {
     type: "user",
     name: "User",
     icon: null,
-    color: "#6b7280",
+    color: null, // Users get dynamic colors via getUserColor(userId)
     backgroundColor: "bg-gray-100",
     textColor: "text-gray-700",
   },
@@ -66,6 +66,18 @@ export function getClientType(userId: string): ClientTypeInfo["type"] {
 export function getClientTypeInfo(userId: string): ClientTypeInfo {
   const type = getClientType(userId);
   return CLIENT_TYPE_CONFIGS[type];
+}
+
+/**
+ * Get the appropriate color for a user/client
+ * Service clients get fixed colors, users get dynamic colors
+ */
+export function getClientColor(
+  userId: string,
+  getUserColor: (userId: string) => string
+): string {
+  const clientInfo = getClientTypeInfo(userId);
+  return clientInfo.color || getUserColor(userId);
 }
 
 /**
