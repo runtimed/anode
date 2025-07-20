@@ -24,7 +24,7 @@ import {
   Database,
   FileText,
   Filter,
-  Play,
+  NotebookPen,
   Square,
   Terminal,
   X,
@@ -370,7 +370,7 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
                           : isTuiClient
                             ? "#6366f1"
                             : isAutomationClient
-                              ? "#ea580c"
+                              ? "#ec4899"
                               : getUserColor(user.id),
                       }}
                       title={
@@ -392,8 +392,8 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
                           <Terminal className="size-4 text-indigo-700" />
                         </div>
                       ) : isAutomationClient ? (
-                        <div className="flex size-8 items-center justify-center rounded-full bg-orange-100">
-                          <Play className="size-4 text-orange-700" />
+                        <div className="flex size-8 items-center justify-center rounded-full bg-pink-100">
+                          <NotebookPen className="size-4 text-pink-700" />
                         </div>
                       ) : userInfo?.picture ? (
                         <img
