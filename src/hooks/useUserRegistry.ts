@@ -71,6 +71,12 @@ export const useUserRegistry = () => {
       } else if (userId === "runtime-agent") {
         name = "Runtime Agent";
         isAnonymous = false;
+      } else if (userId === "tui-client") {
+        name = "Terminal UI";
+        isAnonymous = false;
+      } else if (userId === "automation-client") {
+        name = "Notebook Runner";
+        isAnonymous = false;
       } else if (userId === "local-dev-user") {
         name = "Local Dev";
       } else {
