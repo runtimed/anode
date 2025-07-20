@@ -99,7 +99,7 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
       tables.executionQueue
         .select()
         .where({
-          status: { op: "in", value: ["executing", "pending", "assigned"] },
+          status: { op: "IN", value: ["executing", "pending", "assigned"] },
         })
         .orderBy("id", "desc")
     )
