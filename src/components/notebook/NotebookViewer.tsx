@@ -92,14 +92,14 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
   const executionQueue = store.useQuery(
     queryDb(tables.executionQueue.select().orderBy("id", "desc"))
   ) as any[];
-  
+
   // Get running executions with SQL filtering for better performance
   const runningExecutions = store.useQuery(
     queryDb(
       tables.executionQueue
         .select()
         .where({
-          status: { op: "in", value: ["executing", "pending", "assigned"] }
+          status: { op: "in", value: ["executing", "pending", "assigned"] },
         })
         .orderBy("id", "desc")
     )
