@@ -52,8 +52,17 @@ export const MarkdownCell: React.FC<MarkdownCellProps> = ({
   const editButtonRef = useRef<HTMLButtonElement>(null);
   const cellContainerRef = useRef<HTMLDivElement>(null);
 
+  // Use shared content management hook
+  const { localSource, setLocalSource, updateSource, handleSourceChange } =
+    useCellContent({
+      cellId: cell.id,
+      initialSource: cell.source,
+    });
+
   useClickAway(cellContainerRef, () => {
-    setIsEditing(false);
+    if (localSource.length > 0) {
+      setIsEditing(false);
+    }
     updateSource();
   });
 
@@ -72,13 +81,6 @@ export const MarkdownCell: React.FC<MarkdownCellProps> = ({
   const usersOnCell = getUsersOnCell(cell.id).filter(
     (user) => user.id !== currentUserId
   );
-
-  // Use shared content management hook
-  const { localSource, setLocalSource, updateSource, handleSourceChange } =
-    useCellContent({
-      cellId: cell.id,
-      initialSource: cell.source,
-    });
 
   // Use shared outputs hook with markdown-specific configuration
   const { hasOutputs } = useCellOutputs({
@@ -148,12 +150,13 @@ export const MarkdownCell: React.FC<MarkdownCellProps> = ({
       {
         key: "Escape",
         run: () => {
-          // TODO: undo changes
           setLocalSource(cell.source);
-          setTimeout(() => {
-            setIsEditing(false);
-            editButtonRef.current?.focus();
-          }, 0);
+          if (cell.source.length > 0) {
+            setTimeout(() => {
+              setIsEditing(false);
+              editButtonRef.current?.focus();
+            }, 0);
+          }
           return true;
         },
       },
