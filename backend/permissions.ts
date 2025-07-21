@@ -17,10 +17,18 @@ export interface NotebookPermission {
 
 export type PermissionRole = 'owner' | 'editor' | 'none';
 
+// Track initialization state to avoid redundant calls
+let isInitialized = false;
+
 /**
  * Initialize the permissions table in D1 database
+ * Uses singleton pattern to avoid redundant initialization
  */
 export async function initializePermissionsTable(db: D1Database): Promise<void> {
+  if (isInitialized) {
+    return;
+  }
+
   const createTableSQL = `
     CREATE TABLE IF NOT EXISTS notebook_permissions (
       notebook_id TEXT NOT NULL,
@@ -39,6 +47,7 @@ export async function initializePermissionsTable(db: D1Database): Promise<void> 
   `;
 
   await db.exec(createTableSQL);
+  isInitialized = true;
 }
 
 /**

@@ -27,7 +27,7 @@ export default {
     }
 
     try {
-      // Initialize permissions table
+      // Initialize permissions table (singleton pattern prevents redundant calls)
       await initializePermissionsTable(env.DB);
 
       // Parse request body for authenticated requests
