@@ -125,16 +125,16 @@ export default {
             // Step 3: Initialize permissions table if not exists
             await initializePermissionsTable(env.DB);
 
-            // Step 4: Check notebook permissions (skip for runtime agents)
-            if (validatedUser.id !== "runtime-agent") {
+            // Step 4: Check notebook permissions (skip for runtime agents and anonymous users)
+            if (validatedUser.id !== "runtime-agent" && !validatedUser.isAnonymous) {
               const userPermission = await checkNotebookPermission(env.DB, notebookId, validatedUser.id);
               
               if (userPermission === 'none') {
-                // Check if this is a new notebook being created
-                // New notebooks start with 'notebook-' and are generated in store-id.ts
-                const isNewNotebook = notebookId.startsWith('notebook-') && notebookId.includes('-');
+                // Check if this is likely a new notebook being created
+                // New notebooks are generated with specific pattern in store-id.ts: 'notebook-{timestamp}-{random}'
+                const isLikelyNewNotebook = /^notebook-\d{13}-[a-z0-9]+$/.test(notebookId);
                 
-                if (isNewNotebook) {
+                if (isLikelyNewNotebook) {
                   // For new notebooks, auto-grant ownership to authenticated users
                   console.log("🆕 Creating new notebook with ownership:", { notebookId, userId: validatedUser.id });
                   const granted = await createNotebookWithOwnership(env.DB, notebookId, validatedUser.id);
@@ -147,7 +147,7 @@ export default {
                   // No permission to access existing notebook
                   console.error("🚫 Access denied to notebook:", { notebookId, userId: validatedUser.id });
                   throw new Error(
-                    `PERMISSION_DENIED: User '${validatedUser.id}' does not have access to notebook '${notebookId}'.`
+                    `PERMISSION_DENIED: You don't have access to this notebook. Ask the owner to share it with you.`
                   );
                 }
               } else {
@@ -157,6 +157,8 @@ export default {
                   permission: userPermission 
                 });
               }
+            } else if (validatedUser.isAnonymous) {
+              console.log("👤 Anonymous user - allowing access without permission check:", notebookId);
             } else {
               console.log("🤖 Runtime agent - skipping permission check for notebook:", notebookId);
             }
