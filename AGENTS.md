@@ -226,6 +226,27 @@ data access is fine.
 non-deterministic operations, but using `ctx.query()` for deterministic data
 lookups is acceptable.
 
+### Use top-level `useQuery` rather than `store.useQuery`
+
+```typescript
+// ❌ WRONG - This causes a react compiler ESLint error
+import { useStore } from "@livestore/react";
+// ...
+const { store } = useStore();
+const titleMetadata = store.useQuery(
+  queryDb(tables.notebookMetadata.select().where({ key: "title" }).limit(1))
+);
+```
+
+```typescript
+// ✅ CORRECT - `useQuery` comes from an import
+import { useQuery } from "@livestore/react";
+// ...
+const titleMetadata = useQuery(
+  queryDb(tables.notebookMetadata.select().where({ key: "title" }).limit(1))
+);
+```
+
 ### Local-First Architecture
 
 - All data operations happen locally first

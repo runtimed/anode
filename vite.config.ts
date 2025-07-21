@@ -13,7 +13,26 @@ export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), "");
 
   const plugins = [
-    react(),
+    react({
+      babel: {
+        plugins: [
+          [
+            "babel-plugin-react-compiler",
+            {
+              // Enable React Compiler
+              enable: true,
+              // Optional: Configure which files to compile
+              include: ["src/**/*.{js,jsx,ts,tsx}"],
+              // Optional: Exclude certain files
+              exclude: [
+                "src/**/*.test.{js,jsx,ts,tsx}",
+                "src/**/*.spec.{js,jsx,ts,tsx}",
+              ],
+            },
+          ],
+        ],
+      },
+    }),
     tailwindcss(),
     livestoreDevtoolsPlugin({ schemaPath: "./schema.ts" }),
   ];
