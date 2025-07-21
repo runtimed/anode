@@ -15,9 +15,7 @@ export default [
     },
     rules: {
       ...reactHooks.configs.recommended.rules,
-      // Temporarily disable React Compiler ESLint rule to focus on getting the compiler working
-      // The React Compiler itself can handle these cases at runtime
-      "react-compiler/react-compiler": "off",
+      "react-compiler/react-compiler": "error",
       // Reduce noise from globals - TypeScript handles these
       "no-undef": "off",
       "no-unused-vars": "off",

@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { useStore } from "@livestore/react";
 import { events, CellData, tables } from "@runt/schema";
 import { queryDb } from "@livestore/livestore";
+import { useLiveStoreQuery } from "@/hooks/useLiveStoreQuery.js";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Send } from "lucide-react";
@@ -20,7 +21,7 @@ export const MobileOmnibar: React.FC<MobileOmnibarProps> = ({
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Get current cells to calculate position
-  const cells = store.useQuery(queryDb(tables.cells.select())) as CellData[];
+  const cells = useLiveStoreQuery(queryDb(tables.cells.select())) as CellData[];
 
   const handleSubmit = async () => {
     if (!input.trim() || isSubmitting) return;
