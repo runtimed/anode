@@ -11,24 +11,14 @@ import { Avatar } from "@/components/ui/Avatar.js";
 import { Button } from "@/components/ui/button";
 
 import { useCurrentUserId } from "@/hooks/useCurrentUser.js";
-import { useUserRegistry } from "@/hooks/useUserRegistry.js";
 import { useRuntimeHealth } from "@/hooks/useRuntimeHealth.js";
+import { useUserRegistry } from "@/hooks/useUserRegistry.js";
 
+import { getClientColor, getClientTypeInfo } from "@/services/userTypes.js";
+import { getDefaultAiModel, useAvailableAiModels } from "@/util/ai-models.js";
 import { getCurrentNotebookId } from "@/util/store-id.js";
-import { getClientTypeInfo, getClientColor } from "@/services/userTypes.js";
-import {
-  Bot,
-  Bug,
-  BugOff,
-  Code,
-  Database,
-  FileText,
-  Filter,
-  Terminal,
-  X,
-} from "lucide-react";
+import { Bug, BugOff, Filter, Terminal, X } from "lucide-react";
 import { UserProfile } from "../auth/UserProfile.js";
-import { useAvailableAiModels, getDefaultAiModel } from "@/util/ai-models.js";
 import { RuntimeHealthIndicator } from "./RuntimeHealthIndicator.js";
 import { RuntimeHelper } from "./RuntimeHelper.js";
 
@@ -41,9 +31,9 @@ const LazyDebugPanel = React.lazy(() =>
 
 // Import prefetch utilities
 import { prefetchOutputsAdaptive } from "@/util/prefetch.js";
-import { MobileOmnibar } from "./MobileOmnibar.js";
 import { CellAdder } from "./cell/CellAdder.js";
 import { EmptyStateCellAdder } from "./EmptyStateCellAdder.js";
+import { MobileOmnibar } from "./MobileOmnibar.js";
 
 interface NotebookViewerProps {
   notebookId: string;
