@@ -170,7 +170,6 @@ export const MarkdownCell: React.FC<MarkdownCellProps> = ({
     ];
   }, [
     cell.source,
-    localSource,
     keyMap,
     setLocalSource,
     updateSource,
