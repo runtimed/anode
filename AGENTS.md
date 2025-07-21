@@ -127,7 +127,7 @@ The `@runt/schema` package provides the shared types and events between Anode an
 ### Production (JSR Package)
 
 ```json
-"@runt/schema": "jsr:^0.6.4"
+"@runt/schema": "jsr:^0.8.0"
 ```
 
 Use this for stable releases and production deployments.
