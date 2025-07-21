@@ -132,9 +132,8 @@ export const RichOutput: React.FC<RichOutputProps> = ({
         if (isInlineContainer(container)) {
           outputData[mimeType] = container.data;
         } else if (isArtifactContainer(container)) {
-          // For artifacts, we'll need to handle them differently
-          // For now, just mark as artifact reference
-          outputData[mimeType] = `[Artifact: ${container.artifactId}]`;
+          // Generate proper artifact URL for loading
+          outputData[mimeType] = `/api/artifacts/${container.artifactId}`;
         }
       }
     } else {
