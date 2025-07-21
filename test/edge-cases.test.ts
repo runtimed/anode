@@ -6,12 +6,12 @@ import {
 } from "./setup.js";
 import { makeAdapter } from "@livestore/adapter-node";
 import { createStorePromise } from "@livestore/livestore";
-import { events, schema, Store, tables, isInlineContainer } from "@runt/schema";
+import { events, tables, schema } from "../src/schema.js";
 
 console.log("🧪 Starting Anode edge case test suite...");
 
 describe("Edge Cases and Stress Tests", () => {
-  let store: Store;
+  let store: any; // Changed to any as Store type is removed
   let storeId: string;
   let sessionId: string;
 
@@ -258,7 +258,7 @@ describe("Edge Cases and Stress Tests", () => {
       const representation = outputs[0].representations!["application/json"];
       expect(representation).toBeDefined();
 
-      if (isInlineContainer(representation)) {
+      if (representation.type === "inline") {
         const data = representation.data as {
           text: string;
           metadata: { size: number; type: string };

@@ -7,7 +7,6 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import {
-  Plus,
   ChevronUp,
   ChevronDown,
   Eye,
@@ -23,7 +22,6 @@ import { tables } from "@runt/schema";
 interface CellControlsProps {
   cell: typeof tables.cells.Type;
   contextSelectionMode?: boolean;
-  onAddCell: () => void;
   onMoveUp: () => void;
   onMoveDown: () => void;
   onDeleteCell: () => void;
@@ -37,7 +35,6 @@ interface CellControlsProps {
 export const CellControls: React.FC<CellControlsProps> = ({
   cell,
   contextSelectionMode = false,
-  onAddCell,
   onMoveUp,
   onMoveDown,
   onDeleteCell,
@@ -51,17 +48,6 @@ export const CellControls: React.FC<CellControlsProps> = ({
     <div className="cell-controls flex items-center gap-0.5 opacity-100 transition-opacity sm:opacity-0 sm:group-hover:opacity-100">
       {/* Mobile Play Button */}
       {playButton}
-
-      {/* Add Cell Button */}
-      <Button
-        variant="ghost"
-        size="sm"
-        onClick={onAddCell}
-        className="hover:bg-muted/80 h-8 w-8 p-0 sm:h-7 sm:w-7"
-        title="Add cell below"
-      >
-        <Plus className="h-4 w-4 sm:h-3 sm:w-3" />
-      </Button>
 
       {/* Source Visibility Toggle */}
       <Button

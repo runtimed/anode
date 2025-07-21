@@ -14,7 +14,7 @@ export interface CellData {
 
 interface UseCellFocusOptions {
   cells: CellData[];
-  onAddCell: (afterCellId?: string, cellType?: string) => void;
+  onAddCell: (cellId?: string, cellType?: string) => void;
 }
 
 export const useCellFocus = ({ cells, onAddCell }: UseCellFocusOptions) => {

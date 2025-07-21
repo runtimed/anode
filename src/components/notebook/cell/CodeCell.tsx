@@ -4,6 +4,7 @@ import { useCellContent } from "@/hooks/useCellContent.js";
 import { useCellKeyboardNavigation } from "@/hooks/useCellKeyboardNavigation.js";
 import { useCellOutputs } from "@/hooks/useCellOutputs.js";
 import { useCurrentUserId } from "@/hooks/useCurrentUser.js";
+import { useUserRegistry } from "@/hooks/useUserRegistry.js";
 import { queryDb } from "@livestore/livestore";
 import { useStore } from "@livestore/react";
 import { events, tables } from "@runt/schema";
@@ -16,11 +17,11 @@ import { CellTypeSelector } from "./shared/CellTypeSelector.js";
 import { Editor } from "./shared/Editor.js";
 import { OutputsErrorBoundary } from "./shared/OutputsErrorBoundary.js";
 import { PlayButton } from "./shared/PlayButton.js";
+import { PresenceBookmarks } from "./shared/PresenceBookmarks.js";
 import { CodeToolbar } from "./toolbars/CodeToolbar.js";
 
 interface CodeCellProps {
   cell: typeof tables.cells.Type;
-  onAddCell: () => void;
   onDeleteCell: () => void;
   onMoveUp: () => void;
   onMoveDown: () => void;
@@ -33,7 +34,6 @@ interface CodeCellProps {
 
 export const CodeCell: React.FC<CodeCellProps> = ({
   cell,
-  onAddCell,
   onDeleteCell,
   onMoveUp,
   onMoveDown,
@@ -45,6 +45,12 @@ export const CodeCell: React.FC<CodeCellProps> = ({
 }) => {
   const { store } = useStore();
   const currentUserId = useCurrentUserId();
+  const { getUsersOnCell, getUserColor } = useUserRegistry();
+
+  // Get users present on this cell (excluding current user)
+  const usersOnCell = getUsersOnCell(cell.id).filter(
+    (user) => user.id !== currentUserId
+  );
 
   // Use shared content management hook
   const { localSource, updateSource, handleSourceChange } = useCellContent({
@@ -67,10 +73,11 @@ export const CodeCell: React.FC<CodeCellProps> = ({
         events.cellTypeChanged({
           id: cell.id,
           cellType: newType,
+          actorId: currentUserId,
         })
       );
     },
-    [cell.id, store]
+    [cell.id, store, currentUserId]
   );
 
   const toggleSourceVisibility = useCallback(() => {
@@ -78,27 +85,30 @@ export const CodeCell: React.FC<CodeCellProps> = ({
       events.cellSourceVisibilityToggled({
         id: cell.id,
         sourceVisible: !cell.sourceVisible,
+        actorId: currentUserId,
       })
     );
-  }, [cell.id, cell.sourceVisible, store]);
+  }, [cell.id, cell.sourceVisible, store, currentUserId]);
 
   const toggleOutputVisibility = useCallback(() => {
     store.commit(
       events.cellOutputVisibilityToggled({
         id: cell.id,
         outputVisible: !cell.outputVisible,
+        actorId: currentUserId,
       })
     );
-  }, [cell.id, cell.outputVisible, store]);
+  }, [cell.id, cell.outputVisible, store, currentUserId]);
 
   const toggleAiContextVisibility = useCallback(() => {
     store.commit(
       events.cellAiContextVisibilityToggled({
         id: cell.id,
         aiContextVisible: !cell.aiContextVisible,
+        actorId: currentUserId,
       })
     );
-  }, [cell.id, cell.aiContextVisible, store]);
+  }, [cell.id, cell.aiContextVisible, store, currentUserId]);
 
   const clearCellOutputs = useCallback(async () => {
     if (hasOutputs) {
@@ -236,12 +246,15 @@ export const CodeCell: React.FC<CodeCellProps> = ({
           <CellTypeSelector cell={cell} onCellTypeChange={changeCellType} />
           <CodeToolbar />
           <ExecutionStatus executionState={cell.executionState} />
+          <PresenceBookmarks
+            usersOnCell={usersOnCell}
+            getUserColor={getUserColor}
+          />
         </div>
 
         <CellControls
           cell={cell}
           contextSelectionMode={contextSelectionMode}
-          onAddCell={onAddCell}
           onMoveUp={onMoveUp}
           onMoveDown={onMoveDown}
           onDeleteCell={onDeleteCell}
@@ -289,7 +302,7 @@ export const CodeCell: React.FC<CodeCellProps> = ({
               <Editor
                 localSource={localSource}
                 handleSourceChange={handleSourceChange}
-                updateSource={updateSource}
+                onBlur={updateSource}
                 handleFocus={handleFocus}
                 cell={cell}
                 autoFocus={autoFocus}

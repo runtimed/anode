@@ -106,22 +106,73 @@ export default {
         validatePayload: async (payload: any) => {
           console.log("🔐 Validating payload:", {
             hasAuthToken: !!payload?.authToken,
-            authTokenLength: payload?.authToken?.length || 0,
             isRuntime: payload?.runtime === true,
+            clientId: payload?.clientId,
           });
+
           try {
+            // Step 1: Authenticate the user token
             const validatedUser = await validateAuthPayload(payload, env);
-            console.log("✅ Payload validation successful for user:", {
+
+            // Step 2: Validate the client ID against the authenticated user
+            const clientId = payload?.clientId;
+            if (!clientId) {
+              throw new Error(
+                "CLIENT_ID_MISSING: No clientId provided in syncPayload."
+              );
+            }
+
+            // For runtime agents, prevent user impersonation
+            if (validatedUser.id === "runtime-agent") {
+              // A runtime agent's clientId should NOT look like a real user's ID.
+              // Google user IDs are numeric strings.
+              if (/^\d+$/.test(clientId)) {
+                console.error(
+                  "🚫 Runtime agent attempting to use a user-like clientId:",
+                  { clientId }
+                );
+                throw new Error(
+                  `RUNTIME_IMPERSONATION_ATTEMPT: Runtime agent cannot use a numeric clientId ('${clientId}') that could be a user ID.`
+                );
+              }
+            } else {
+              // For regular users, the clientId must match their user ID
+              if (clientId !== validatedUser.id) {
+                // For anonymous/local-dev users, we allow a generic clientId
+                if (
+                  validatedUser.isAnonymous &&
+                  clientId === "anonymous-user"
+                ) {
+                  // This is an acceptable state for anonymous users
+                } else {
+                  console.error("🚫 ClientId attribution mismatch:", {
+                    payloadClientId: clientId,
+                    authenticatedUserId: validatedUser.id,
+                  });
+                  throw new Error(
+                    `CLIENT_ID_MISMATCH: Provided clientId '${clientId}' does not match authenticated user '${validatedUser.id}'.`
+                  );
+                }
+              }
+            }
+
+            // SECURITY NOTE: This validation only occurs at connection time.
+            // The current version of `@livestore/sync-cf` does not provide a mechanism
+            // to verify that the `clientId` on incoming events matches the `clientId`
+            // that was validated with this initial connection payload. A malicious
+            // client could pass this check and then send events with a different clientId.
+
+            console.log("✅ Payload validation successful:", {
               userId: validatedUser.id,
+              clientId: clientId,
               isAnonymous: validatedUser.isAnonymous,
               email: validatedUser.email,
             });
           } catch (error: any) {
             console.error("🚫 Authentication failed:", error.message);
-            throw error;
+            throw error; // Reject the WebSocket connection
           }
         },
-
         enableCORS: true,
       });
 

@@ -42,7 +42,7 @@ export const useGoogleAuth = (): AuthState & {
           setAuthState({
             isAuthenticated: true,
             user: {
-              id: "local-user",
+              id: "local-dev-user",
               email: "local@example.com",
               name: "Local User",
             },

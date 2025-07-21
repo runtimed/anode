@@ -3,6 +3,7 @@ import { useCellContent } from "@/hooks/useCellContent.js";
 import { useCellKeyboardNavigation } from "@/hooks/useCellKeyboardNavigation.js";
 import { useCellOutputs } from "@/hooks/useCellOutputs.js";
 import { useCurrentUserId } from "@/hooks/useCurrentUser.js";
+import { useUserRegistry } from "@/hooks/useUserRegistry.js";
 import { queryDb } from "@livestore/livestore";
 import { useStore } from "@livestore/react";
 import { events, tables } from "@runt/schema";
@@ -13,13 +14,14 @@ import { CodeMirrorEditor } from "../codemirror/CodeMirrorEditor.js";
 import { CellContainer } from "./shared/CellContainer.js";
 import { CellControls } from "./shared/CellControls.js";
 import { CellTypeSelector } from "./shared/CellTypeSelector.js";
+
 import { OutputsErrorBoundary } from "./shared/OutputsErrorBoundary.js";
 import { PlayButton } from "./shared/PlayButton.js";
+import { PresenceBookmarks } from "./shared/PresenceBookmarks.js";
 import { SqlToolbar } from "./toolbars/SqlToolbar.js";
 
 interface SqlCellProps {
   cell: typeof tables.cells.Type;
-  onAddCell: () => void;
   onDeleteCell: () => void;
   onMoveUp: () => void;
   onMoveDown: () => void;
@@ -32,7 +34,6 @@ interface SqlCellProps {
 
 export const SqlCell: React.FC<SqlCellProps> = ({
   cell,
-  onAddCell,
   onDeleteCell,
   onMoveUp,
   onMoveDown,
@@ -44,6 +45,12 @@ export const SqlCell: React.FC<SqlCellProps> = ({
 }) => {
   const { store } = useStore();
   const currentUserId = useCurrentUserId();
+  const { getUsersOnCell, getUserColor } = useUserRegistry();
+
+  // Get users present on this cell (excluding current user)
+  const usersOnCell = getUsersOnCell(cell.id).filter(
+    (user) => user.id !== currentUserId
+  );
 
   // Use shared content management hook
   const {
@@ -79,10 +86,10 @@ export const SqlCell: React.FC<SqlCellProps> = ({
         queueId,
         cellId: cell.id,
         executionCount,
-        requestedBy: "current-user",
+        requestedBy: currentUserId,
       })
     );
-  }, [localQuery, cell.id, cell.executionCount, store]);
+  }, [localQuery, cell.id, cell.executionCount, store, currentUserId]);
 
   const clearCellOutputs = useCallback(async () => {
     if (hasOutputs) {
@@ -142,10 +149,11 @@ export const SqlCell: React.FC<SqlCellProps> = ({
         events.cellTypeChanged({
           id: cell.id,
           cellType: newType,
+          actorId: currentUserId,
         })
       );
     },
-    [cell.id, store]
+    [cell.id, store, currentUserId]
   );
 
   const toggleSourceVisibility = useCallback(() => {
@@ -153,18 +161,20 @@ export const SqlCell: React.FC<SqlCellProps> = ({
       events.cellSourceVisibilityToggled({
         id: cell.id,
         sourceVisible: !cell.sourceVisible,
+        actorId: currentUserId,
       })
     );
-  }, [cell.id, cell.sourceVisible, store]);
+  }, [cell.id, cell.sourceVisible, store, currentUserId]);
 
   const toggleOutputVisibility = useCallback(() => {
     store.commit(
       events.cellOutputVisibilityToggled({
         id: cell.id,
         outputVisible: !cell.outputVisible,
+        actorId: currentUserId,
       })
     );
-  }, [cell.id, cell.outputVisible, store]);
+  }, [cell.id, cell.outputVisible, store, currentUserId]);
 
   const toggleAiContextVisibility = useCallback(() => {
     store.commit(
@@ -205,12 +215,15 @@ export const SqlCell: React.FC<SqlCellProps> = ({
             dataConnection={cell.sqlConnectionId || "default"}
             onDataConnectionChange={changeDataConnection}
           />
+          <PresenceBookmarks
+            usersOnCell={usersOnCell}
+            getUserColor={getUserColor}
+          />
         </div>
 
         <CellControls
           cell={cell}
           contextSelectionMode={contextSelectionMode}
-          onAddCell={onAddCell}
           onMoveUp={onMoveUp}
           onMoveDown={onMoveDown}
           onDeleteCell={onDeleteCell}
@@ -225,7 +238,7 @@ export const SqlCell: React.FC<SqlCellProps> = ({
               onExecute={executeQuery}
               onInterrupt={interruptQuery}
               className="mobile-play-btn block sm:hidden"
-              primaryColor="text-blue-600"
+              primaryColor="text-foreground"
             />
           }
         />

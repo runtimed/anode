@@ -1,19 +1,24 @@
+import { CellData } from "@runt/schema";
 import React, {
   useCallback,
+  useEffect,
+  useLayoutEffect,
   useMemo,
   useRef,
-  useEffect,
   useState,
-  useLayoutEffect,
 } from "react";
-import { CellData } from "@runt/schema";
-import { Cell } from "./cell/Cell.js";
 import { ErrorBoundary } from "react-error-boundary";
+import { Cell } from "./cell/Cell.js";
+import { CellBetweener } from "./cell/CellBetweener.js";
 
 interface VirtualizedCellListProps {
-  cells: CellData[];
+  cells: readonly CellData[];
   focusedCellId: string | null;
-  onAddCell: (afterCellId?: string, cellType?: string) => void;
+  onAddCell: (
+    cellId?: string,
+    cellType?: "code" | "markdown" | "sql" | "ai",
+    position?: "before" | "after"
+  ) => void;
   onDeleteCell: (cellId: string) => void;
   onMoveUp: (cellId: string) => void;
   onMoveDown: (cellId: string) => void;
@@ -263,23 +268,18 @@ export const VirtualizedCellList: React.FC<VirtualizedCellListProps> = ({
 
   const cellElements = useMemo(
     () =>
-      visibleCells.map((cell) => (
-        <div
-          key={cell.id}
-          ref={(el) => measureCellHeight(cell.id, el)}
-          style={{
-            marginBottom: "1rem", // Add spacing between cells
-          }}
-        >
+      visibleCells.map((cell, index) => (
+        <div key={cell.id} ref={(el) => measureCellHeight(cell.id, el)}>
           <ErrorBoundary fallback={<div>Error rendering cell</div>}>
+            {index === 0 && (
+              <CellBetweener
+                cell={cell}
+                onAddCell={onAddCell}
+                position="before"
+              />
+            )}
             <MemoizedCell
               cell={cell}
-              onAddCell={() =>
-                onAddCell(
-                  cell.id,
-                  cell.cellType === "raw" ? "code" : cell.cellType
-                )
-              }
               onDeleteCell={() => onDeleteCell(cell.id)}
               onMoveUp={() => onMoveUp(cell.id)}
               onMoveDown={() => onMoveDown(cell.id)}
@@ -289,6 +289,7 @@ export const VirtualizedCellList: React.FC<VirtualizedCellListProps> = ({
               autoFocus={cell.id === focusedCellId}
               contextSelectionMode={contextSelectionMode}
             />
+            <CellBetweener cell={cell} onAddCell={onAddCell} position="after" />
           </ErrorBoundary>
         </div>
       )),
@@ -310,11 +311,7 @@ export const VirtualizedCellList: React.FC<VirtualizedCellListProps> = ({
   // If we have fewer cells than threshold, render normally
   if (!shouldVirtualize) {
     return (
-      <div
-        ref={containerRef}
-        className="space-y-4"
-        style={{ paddingLeft: "1rem" }}
-      >
+      <div ref={containerRef} style={{ paddingLeft: "1rem" }}>
         {cellElements}
       </div>
     );
@@ -323,7 +320,6 @@ export const VirtualizedCellList: React.FC<VirtualizedCellListProps> = ({
   return (
     <div
       ref={containerRef}
-      className="space-y-4"
       style={{
         paddingLeft: "1rem",
       }}

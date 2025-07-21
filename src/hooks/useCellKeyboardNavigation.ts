@@ -90,9 +90,16 @@ export const useCellKeyboardNavigation = ({
   }, [onExecute, onFocusNext, onFocusPrevious, onDeleteCell, onUpdateSource]);
 
   const handleKeyDown = useCallback(
-    (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-      const textarea = e.currentTarget;
-      const { selectionStart, selectionEnd, value } = textarea;
+    (e: React.KeyboardEvent<HTMLElement>) => {
+      const isTextarea = e.currentTarget instanceof HTMLTextAreaElement;
+
+      const textarea = isTextarea
+        ? (e.currentTarget as HTMLTextAreaElement)
+        : null;
+
+      const { selectionStart, selectionEnd, value } = isTextarea
+        ? (e.currentTarget as HTMLTextAreaElement)
+        : { selectionStart: 0, selectionEnd: 0, value: "" };
 
       if (
         e.key === "Backspace" &&
@@ -136,7 +143,7 @@ export const useCellKeyboardNavigation = ({
           } else {
             // Not at beginning of first line - move to beginning
             e.preventDefault();
-            textarea.setSelectionRange(0, 0);
+            textarea?.setSelectionRange(0, 0);
             return;
           }
         }
@@ -165,7 +172,7 @@ export const useCellKeyboardNavigation = ({
           } else {
             // Not at end of last line - move to end
             e.preventDefault();
-            textarea.setSelectionRange(value.length, value.length);
+            textarea?.setSelectionRange(value.length, value.length);
             return;
           }
         }
