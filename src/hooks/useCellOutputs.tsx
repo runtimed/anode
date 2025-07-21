@@ -1,7 +1,7 @@
 import React, { useMemo, useCallback } from "react";
 import { OutputData, tables, MediaContainer } from "@runt/schema";
 import { queryDb } from "@livestore/livestore";
-import { useLiveStoreQuery } from "@/hooks/useLiveStoreQuery.js";
+import { useQuery } from "@livestore/react";
 import { groupConsecutiveStreamOutputs } from "../util/output-grouping.js";
 import { RichOutput } from "../components/outputs/RichOutput.js";
 import {
@@ -37,7 +37,7 @@ export const useCellOutputs = ({
     () => queryDb(tables.outputs.select().where({ cellId })),
     [cellId]
   );
-  const outputs = useLiveStoreQuery(outputsQuery) as OutputData[];
+  const outputs = useQuery(outputsQuery) as OutputData[];
 
   const hasOutputs = useMemo(() => outputs.length > 0, [outputs.length]);
 

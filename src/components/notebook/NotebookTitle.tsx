@@ -1,9 +1,8 @@
 import React, { useCallback, useEffect, useState } from "react";
-import { useStore } from "@livestore/react";
+import { useStore, useQuery } from "@livestore/react";
 import { events, tables } from "@runt/schema";
 import { queryDb } from "@livestore/livestore";
 import { Input } from "@/components/ui/input";
-import { useLiveStoreQuery } from "@/hooks/useLiveStoreQuery";
 
 interface NotebookTitleProps {
   className?: string;
@@ -13,7 +12,7 @@ export const NotebookTitle: React.FC<NotebookTitleProps> = ({ className }) => {
   const { store } = useStore();
 
   // Get notebook title from metadata using SQL filtering for better performance
-  const titleMetadata = useLiveStoreQuery(
+  const titleMetadata = useQuery(
     queryDb(tables.notebookMetadata.select().where({ key: "title" }).limit(1))
   );
   const notebookTitle = titleMetadata[0]?.value ?? "Untitled";

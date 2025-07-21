@@ -1,4 +1,4 @@
-import { useLiveStoreQuery } from "@/hooks/useLiveStoreQuery";
+import { useQuery } from "@livestore/react";
 import { queryDb } from "@livestore/livestore";
 import { tables } from "@runt/schema";
 import { useMemo } from "react";
@@ -32,7 +32,7 @@ export function useAvailableAiModels(): {
   hasVisionCapableModels: boolean;
 } {
   // Get active runtime sessions
-  const runtimeSessions = useLiveStoreQuery(
+  const runtimeSessions = useQuery(
     queryDb(tables.runtimeSessions.select().where({ isActive: true }))
   ) as any[];
 

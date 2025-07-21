@@ -1,5 +1,5 @@
 import { queryDb } from "@livestore/livestore";
-import { useStore } from "@livestore/react";
+import { useStore, useQuery } from "@livestore/react";
 import { CellData, events, RuntimeSessionData, tables } from "@runt/schema";
 import React, { Suspense, useCallback } from "react";
 import { ErrorBoundary } from "react-error-boundary";
@@ -31,7 +31,6 @@ import {
 } from "lucide-react";
 import { UserProfile } from "../auth/UserProfile.js";
 import { useAvailableAiModels, getDefaultAiModel } from "@/util/ai-models.js";
-import { useLiveStoreQuery } from "@/hooks/useLiveStoreQuery.js";
 
 // Lazy import DebugPanel only in development
 const LazyDebugPanel = React.lazy(() =>
@@ -60,11 +59,11 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
   const { presentUsers, getUserInfo, getUserColor } = useUserRegistry();
   const { models } = useAvailableAiModels();
 
-  const cells = useLiveStoreQuery(
+  const cells = useQuery(
     queryDb(tables.cells.select().orderBy("position", "asc"))
   );
   const lastUsedAiModel =
-    useLiveStoreQuery(
+    useQuery(
       queryDb(
         tables.notebookMetadata
           .select()
@@ -73,7 +72,7 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
       )
     )[0] || null;
   const lastUsedAiProvider =
-    useLiveStoreQuery(
+    useQuery(
       queryDb(
         tables.notebookMetadata
           .select()
@@ -81,21 +80,19 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
           .limit(1)
       )
     )[0] || null;
-  const metadata = useLiveStoreQuery(queryDb(tables.notebookMetadata.select()));
-  const runtimeSessions = useLiveStoreQuery(
+  const metadata = useQuery(queryDb(tables.notebookMetadata.select()));
+  const runtimeSessions = useQuery(
     queryDb(tables.runtimeSessions.select().where({ isActive: true }))
   );
   // Get all runtime sessions for debug panel
-  const allRuntimeSessions = useLiveStoreQuery(
-    queryDb(tables.runtimeSessions.select())
-  );
+  const allRuntimeSessions = useQuery(queryDb(tables.runtimeSessions.select()));
   // Get execution queue for debug panel
-  const executionQueue = useLiveStoreQuery(
+  const executionQueue = useQuery(
     queryDb(tables.executionQueue.select().orderBy("id", "desc"))
   ) as any[];
 
   // Get running executions with SQL filtering for better performance
-  const runningExecutions = useLiveStoreQuery(
+  const runningExecutions = useQuery(
     queryDb(
       tables.executionQueue
         .select()
