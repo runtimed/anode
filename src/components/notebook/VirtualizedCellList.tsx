@@ -7,32 +7,19 @@ import React, {
   useRef,
   useState,
 } from "react";
-import { ErrorBoundary } from "react-error-boundary";
 import { Cell } from "./cell/Cell.js";
-import { CellBetweener } from "./cell/CellBetweener.js";
 
 interface VirtualizedCellListProps {
   cells: readonly CellData[];
   focusedCellId: string | null;
-  onAddCell: (
-    cellId?: string,
-    cellType?: "code" | "markdown" | "sql" | "ai",
-    position?: "before" | "after"
-  ) => void;
-  onDeleteCell: (cellId: string) => void;
-  onMoveUp: (cellId: string) => void;
-  onMoveDown: (cellId: string) => void;
-  onFocusNext: (cellId: string) => void;
-  onFocusPrevious: (cellId: string) => void;
-  onFocus: (cellId: string) => void;
-  contextSelectionMode?: boolean;
   // Virtualization config
   itemHeight?: number;
   overscan?: number;
   threshold?: number; // Number of cells before virtualization kicks in
+  children: (cell: CellData, index: number) => React.ReactNode;
 }
 
-const MemoizedCell = React.memo(Cell, (prevProps, nextProps) => {
+export const MemoizedCell = React.memo(Cell, (prevProps, nextProps) => {
   // Only re-render if cell data, autoFocus, or contextSelectionMode changes
   return (
     prevProps.cell.id === nextProps.cell.id &&
@@ -53,17 +40,10 @@ const MemoizedCell = React.memo(Cell, (prevProps, nextProps) => {
 export const VirtualizedCellList: React.FC<VirtualizedCellListProps> = ({
   cells,
   focusedCellId,
-  onAddCell,
-  onDeleteCell,
-  onMoveUp,
-  onMoveDown,
-  onFocusNext,
-  onFocusPrevious,
-  onFocus,
-  contextSelectionMode = false,
   itemHeight = 200, // Estimated height per cell
   overscan = 5, // Extra items to render outside viewport
   threshold = 100, // Enable virtualization when cells > threshold
+  children,
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const [containerHeight, setContainerHeight] = useState(0);
@@ -270,42 +250,10 @@ export const VirtualizedCellList: React.FC<VirtualizedCellListProps> = ({
     () =>
       visibleCells.map((cell, index) => (
         <div key={cell.id} ref={(el) => measureCellHeight(cell.id, el)}>
-          <ErrorBoundary fallback={<div>Error rendering cell</div>}>
-            {index === 0 && (
-              <CellBetweener
-                cell={cell}
-                onAddCell={onAddCell}
-                position="before"
-              />
-            )}
-            <MemoizedCell
-              cell={cell}
-              onDeleteCell={() => onDeleteCell(cell.id)}
-              onMoveUp={() => onMoveUp(cell.id)}
-              onMoveDown={() => onMoveDown(cell.id)}
-              onFocusNext={() => onFocusNext(cell.id)}
-              onFocusPrevious={() => onFocusPrevious(cell.id)}
-              onFocus={() => onFocus(cell.id)}
-              autoFocus={cell.id === focusedCellId}
-              contextSelectionMode={contextSelectionMode}
-            />
-            <CellBetweener cell={cell} onAddCell={onAddCell} position="after" />
-          </ErrorBoundary>
+          {children(cell, index)}
         </div>
       )),
-    [
-      visibleCells,
-      measureCellHeight,
-      focusedCellId,
-      contextSelectionMode,
-      onAddCell,
-      onDeleteCell,
-      onMoveUp,
-      onMoveDown,
-      onFocusNext,
-      onFocusPrevious,
-      onFocus,
-    ]
+    [visibleCells, measureCellHeight, children]
   );
 
   // If we have fewer cells than threshold, render normally
@@ -329,7 +277,6 @@ export const VirtualizedCellList: React.FC<VirtualizedCellListProps> = ({
       {offsetY > 0 && <div style={{ height: offsetY }} />}
 
       {/* Visible cells */}
-      {cellElements}
 
       {/* Spacer for remaining content */}
       {totalHeight -
