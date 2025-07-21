@@ -1,6 +1,7 @@
 import syncWorker, { WebSocketServer } from "./sync.ts";
 
 import artifactWorker from "./artifact.ts";
+import permissionWorker from "./permission-api.ts";
 
 // The preview worker needs to re-export the Durable Object class
 // so the Workers runtime can find and instantiate it.
@@ -48,6 +49,11 @@ export default {
       if (url.pathname.startsWith("/api/artifacts")) {
         console.log("📦 Routing to artifact worker");
         return artifactWorker.fetch(request, env, ctx);
+      }
+
+      if (url.pathname.startsWith("/api/permissions")) {
+        console.log("🔐 Routing to permission worker");
+        return permissionWorker.fetch(request, env, ctx);
       }
 
       // If it's an API request, delegate it to the imported sync worker's logic.

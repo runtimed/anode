@@ -3,6 +3,11 @@ import { makeDurableObject, makeWorker } from "@livestore/sync-cf/cf-worker";
 import { Env } from "./types";
 
 import { validateAuthPayload, validateProductionEnvironment } from "./auth";
+import { 
+  initializePermissionsTable, 
+  checkNotebookPermission, 
+  createNotebookWithOwnership 
+} from "./permissions";
 
 export class WebSocketServer extends makeDurableObject({
   onPush: async (message) => {
@@ -114,7 +119,49 @@ export default {
             // Step 1: Authenticate the user token
             const validatedUser = await validateAuthPayload(payload, env);
 
-            // Step 2: Validate the client ID against the authenticated user
+            // Step 2: Extract notebook ID from request URL
+            const notebookId = url.searchParams.get("notebook") || url.searchParams.get("storeId") || "default-notebook";
+            
+            // Step 3: Initialize permissions table if not exists
+            await initializePermissionsTable(env.DB);
+
+            // Step 4: Check notebook permissions (skip for runtime agents)
+            if (validatedUser.id !== "runtime-agent") {
+              const userPermission = await checkNotebookPermission(env.DB, notebookId, validatedUser.id);
+              
+              if (userPermission === 'none') {
+                // Check if this is a new notebook being created
+                // New notebooks start with 'notebook-' and are generated in store-id.ts
+                const isNewNotebook = notebookId.startsWith('notebook-') && notebookId.includes('-');
+                
+                if (isNewNotebook) {
+                  // For new notebooks, auto-grant ownership to authenticated users
+                  console.log("🆕 Creating new notebook with ownership:", { notebookId, userId: validatedUser.id });
+                  const granted = await createNotebookWithOwnership(env.DB, notebookId, validatedUser.id);
+                  if (!granted) {
+                    throw new Error(
+                      `PERMISSION_DENIED: Failed to create ownership for new notebook '${notebookId}'.`
+                    );
+                  }
+                } else {
+                  // No permission to access existing notebook
+                  console.error("🚫 Access denied to notebook:", { notebookId, userId: validatedUser.id });
+                  throw new Error(
+                    `PERMISSION_DENIED: User '${validatedUser.id}' does not have access to notebook '${notebookId}'.`
+                  );
+                }
+              } else {
+                console.log("✅ Notebook access granted:", { 
+                  notebookId, 
+                  userId: validatedUser.id, 
+                  permission: userPermission 
+                });
+              }
+            } else {
+              console.log("🤖 Runtime agent - skipping permission check for notebook:", notebookId);
+            }
+
+            // Step 5: Validate the client ID against the authenticated user
             const clientId = payload?.clientId;
             if (!clientId) {
               throw new Error(

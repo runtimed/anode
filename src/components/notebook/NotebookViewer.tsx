@@ -17,10 +17,11 @@ import { useUserRegistry } from "@/hooks/useUserRegistry.js";
 import { getClientColor, getClientTypeInfo } from "@/services/userTypes.js";
 import { getDefaultAiModel, useAvailableAiModels } from "@/util/ai-models.js";
 import { getCurrentNotebookId } from "@/util/store-id.js";
-import { Bug, BugOff, Filter, Terminal, X } from "lucide-react";
+import { Bug, BugOff, Filter, Terminal, X, Share2 } from "lucide-react";
 import { UserProfile } from "../auth/UserProfile.js";
 import { RuntimeHealthIndicator } from "./RuntimeHealthIndicator.js";
 import { RuntimeHelper } from "./RuntimeHelper.js";
+import { PermissionManager } from "./PermissionManager.js";
 
 // Lazy import DebugPanel only in development
 const LazyDebugPanel = React.lazy(() =>
@@ -84,6 +85,7 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
   ) as any[];
 
   const [showRuntimeHelper, setShowRuntimeHelper] = React.useState(false);
+  const [showPermissionManager, setShowPermissionManager] = React.useState(false);
   const [focusedCellId, setFocusedCellId] = React.useState<string | null>(null);
   const [contextSelectionMode, setContextSelectionMode] = React.useState(false);
   const hasEverFocusedRef = React.useRef(false);
@@ -368,6 +370,16 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
                 })}
             </div>
 
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setShowPermissionManager(true)}
+              className="h-8 w-8 p-0"
+              title="Manage notebook permissions"
+            >
+              <Share2 className="h-4 w-4" />
+            </Button>
+
             {import.meta.env.DEV && onDebugToggle && (
               <Button
                 variant="ghost"
@@ -538,6 +550,15 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
         {/* Mobile Omnibar - sticky at bottom on mobile */}
         <MobileOmnibar />
       </div>
+
+      {/* Permission Manager Modal */}
+      {showPermissionManager && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+          <div className="max-h-[90vh] overflow-y-auto">
+            <PermissionManager onClose={() => setShowPermissionManager(false)} />
+          </div>
+        </div>
+      )}
     </div>
   );
 };
