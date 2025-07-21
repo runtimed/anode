@@ -1,5 +1,5 @@
 import { queryDb } from "@livestore/livestore";
-import { useStore } from "@livestore/react";
+import { useQuery, useStore } from "@livestore/react";
 import { CellData, events, tables } from "@runt/schema";
 import React, { Suspense, useCallback } from "react";
 import { ErrorBoundary } from "react-error-boundary";
@@ -51,11 +51,11 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
   const { models } = useAvailableAiModels();
   const { runtimeHealth } = useRuntimeHealth();
 
-  const cells = store.useQuery(
+  const cells = useQuery(
     queryDb(tables.cells.select().orderBy("position", "asc"))
   );
   const lastUsedAiModel =
-    store.useQuery(
+    useQuery(
       queryDb(
         tables.notebookMetadata
           .select()
@@ -64,7 +64,7 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
       )
     )[0] || null;
   const lastUsedAiProvider =
-    store.useQuery(
+    useQuery(
       queryDb(
         tables.notebookMetadata
           .select()
@@ -72,16 +72,14 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
           .limit(1)
       )
     )[0] || null;
-  const metadata = store.useQuery(queryDb(tables.notebookMetadata.select()));
-  const runtimeSessions = store.useQuery(
+  const metadata = useQuery(queryDb(tables.notebookMetadata.select()));
+  const runtimeSessions = useQuery(
     queryDb(tables.runtimeSessions.select().where({ isActive: true }))
   );
   // Get all runtime sessions for debug panel
-  const allRuntimeSessions = store.useQuery(
-    queryDb(tables.runtimeSessions.select())
-  );
+  const allRuntimeSessions = useQuery(queryDb(tables.runtimeSessions.select()));
   // Get execution queue for debug panel
-  const executionQueue = store.useQuery(
+  const executionQueue = useQuery(
     queryDb(tables.executionQueue.select().orderBy("id", "desc"))
   ) as any[];
 

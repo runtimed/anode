@@ -1,7 +1,7 @@
 import React, { useMemo, useCallback } from "react";
-import { useStore } from "@livestore/react";
 import { OutputData, tables, MediaContainer } from "@runt/schema";
 import { queryDb } from "@livestore/livestore";
+import { useQuery } from "@livestore/react";
 import { groupConsecutiveStreamOutputs } from "../util/output-grouping.js";
 import { RichOutput } from "../components/outputs/RichOutput.js";
 import {
@@ -32,14 +32,12 @@ export const useCellOutputs = ({
   enableTerminalOutput = true,
   mobileStyle = "default",
 }: UseCellOutputsOptions): CellOutputsResult => {
-  const { store } = useStore();
-
   // Create stable query using useMemo to prevent React Hook issues
   const outputsQuery = useMemo(
     () => queryDb(tables.outputs.select().where({ cellId })),
     [cellId]
   );
-  const outputs = store.useQuery(outputsQuery) as OutputData[];
+  const outputs = useQuery(outputsQuery) as OutputData[];
 
   const hasOutputs = useMemo(() => outputs.length > 0, [outputs.length]);
 
