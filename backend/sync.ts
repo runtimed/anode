@@ -3,6 +3,11 @@ import { makeDurableObject, makeWorker } from "@livestore/sync-cf/cf-worker";
 import { Env } from "./types";
 
 import { validateAuthPayload, validateProductionEnvironment } from "./auth";
+import { 
+  initializeSpiceDB, 
+  checkNotebookPermission, 
+  createNotebookWithOwnership 
+} from "./permissions";
 
 export class WebSocketServer extends makeDurableObject({
   onPush: async (message) => {
@@ -114,7 +119,61 @@ export default {
             // Step 1: Authenticate the user token
             const validatedUser = await validateAuthPayload(payload, env);
 
-            // Step 2: Validate the client ID against the authenticated user
+            // Step 2: Extract notebook ID from request URL
+            const notebookId = url.searchParams.get("notebook") || url.searchParams.get("storeId") || "default-notebook";
+            
+            // Step 3: Initialize SpiceDB if not exists
+            await initializeSpiceDB(env.SPICEDB_ENDPOINT || 'localhost:50051', env.SPICEDB_TOKEN || 'somerandomkeyhere');
+
+            // Step 4: Check notebook permissions (skip for runtime agents and anonymous users)
+            if (validatedUser.id !== "runtime-agent" && !validatedUser.isAnonymous) {
+              const userPermission = await checkNotebookPermission(
+                env.SPICEDB_ENDPOINT || 'localhost:50051',
+                env.SPICEDB_TOKEN || 'somerandomkeyhere',
+                notebookId,
+                validatedUser.id
+              );
+              
+              if (userPermission === 'none') {
+                // Check if this is likely a new notebook being created
+                // New notebooks are generated with specific pattern in store-id.ts: 'notebook-{timestamp}-{random}'
+                const isLikelyNewNotebook = /^notebook-\d{13}-[a-z0-9]+$/.test(notebookId);
+                
+                if (isLikelyNewNotebook) {
+                  // For new notebooks, auto-grant ownership to authenticated users
+                  console.log("🆕 Creating new notebook with ownership:", { notebookId, userId: validatedUser.id });
+                  const granted = await createNotebookWithOwnership(
+                    env.SPICEDB_ENDPOINT || 'localhost:50051',
+                    env.SPICEDB_TOKEN || 'somerandomkeyhere',
+                    notebookId,
+                    validatedUser.id
+                  );
+                  if (!granted) {
+                    throw new Error(
+                      `PERMISSION_DENIED: Failed to create ownership for new notebook '${notebookId}'.`
+                    );
+                  }
+                } else {
+                  // No permission to access existing notebook
+                  console.error("🚫 Access denied to notebook:", { notebookId, userId: validatedUser.id });
+                  throw new Error(
+                    `PERMISSION_DENIED: You don't have access to this notebook. Ask the owner to share it with you.`
+                  );
+                }
+              } else {
+                console.log("✅ Notebook access granted:", { 
+                  notebookId, 
+                  userId: validatedUser.id, 
+                  permission: userPermission 
+                });
+              }
+            } else if (validatedUser.isAnonymous) {
+              console.log("👤 Anonymous user - allowing access without permission check:", notebookId);
+            } else {
+              console.log("🤖 Runtime agent - skipping permission check for notebook:", notebookId);
+            }
+
+            // Step 5: Validate the client ID against the authenticated user
             const clientId = payload?.clientId;
             if (!clientId) {
               throw new Error(

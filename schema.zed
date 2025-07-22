@@ -1,0 +1,23 @@
+/**
+ * SpiceDB Schema for Anode RBAC
+ * 
+ * This schema defines the authorization model for Anode notebooks.
+ * It maps the simple owner/editor roles to SpiceDB relationships.
+ */
+
+definition user {}
+
+definition notebook {
+    /**
+     * Relations define who can have what relationship with a notebook
+     */
+    relation owner: user
+    relation editor: user
+    
+    /**
+     * Permissions define what actions can be performed
+     */
+    permission read = owner + editor
+    permission write = owner + editor  
+    permission manage = owner
+}

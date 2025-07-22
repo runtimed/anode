@@ -43,6 +43,9 @@ VITE_LIVESTORE_SYNC_URL = "/livestore"
 VITE_GOOGLE_CLIENT_ID = "94663405566-1go7jlpd2ar9u9urbfirmtjv1bm0tcis.apps.googleusercontent.com"
 VITE_GOOGLE_AUTH_ENABLED = "false"
 VITE_RUNTIME_COMMAND = "pnpm run dev:runtime"
+# SpiceDB configuration for local development
+SPICEDB_ENDPOINT = "localhost:50051"
+SPICEDB_TOKEN = "somerandomkeyhere"
 
 # ---
 # Deployed Environments
@@ -94,6 +97,8 @@ DEPLOYMENT_ENV = "production"
 GOOGLE_CLIENT_ID = "94663405566-1go7jlpd2ar9u9urbfirmtjv1bm0tcis.apps.googleusercontent.com"
 ARTIFACT_STORAGE = "r2"
 ARTIFACT_THRESHOLD = "16384"
+# SpiceDB configuration - will use hosted service
+SPICEDB_ENDPOINT = "grpc.authzed.com:443"
 # Vite build-time variables
 VITE_LIVESTORE_SYNC_URL = "/livestore"
 VITE_GOOGLE_CLIENT_ID = "94663405566-1go7jlpd2ar9u9urbfirmtjv1bm0tcis.apps.googleusercontent.com"
@@ -127,6 +132,8 @@ DEPLOYMENT_ENV = "preview"
 GOOGLE_CLIENT_ID = "94663405566-1go7jlpd2ar9u9urbfirmtjv1bm0tcis.apps.googleusercontent.com"
 ARTIFACT_STORAGE = "r2"
 ARTIFACT_THRESHOLD = "16384"
+# SpiceDB configuration - will use hosted service
+SPICEDB_ENDPOINT = "grpc.authzed.com:443"
 # Vite build-time variables
 VITE_LIVESTORE_SYNC_URL = "/livestore"
 VITE_GOOGLE_CLIENT_ID = "94663405566-1go7jlpd2ar9u9urbfirmtjv1bm0tcis.apps.googleusercontent.com"
