@@ -1,7 +1,9 @@
 // LocalStorageSync: A function that creates an object that syncs top-level properties to localStorage
-export function LocalStorageSync<T extends Record<string, unknown>>(initial: T): T {
+export function LocalStorageSync<T extends Record<string, unknown>>(
+  initial: T
+): T {
   // Initialize from localStorage or use initial values
-  const stored = localStorage.getItem('localStorageSync');
+  const stored = localStorage.getItem("localStorageSync");
   let target: T;
   if (stored) {
     try {
@@ -31,6 +33,6 @@ export function LocalStorageSync<T extends Record<string, unknown>>(initial: T):
         obj[key as keyof T] = value;
       }
       return true;
-    }
+    },
   }) as T;
-} 
+}

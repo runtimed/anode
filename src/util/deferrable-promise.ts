@@ -1,4 +1,4 @@
-export type SignalState = 'abort' | undefined;
+export type SignalState = "abort" | undefined;
 export default class DeferrablePromise<T> {
   #promise: Promise<T>;
 
@@ -44,6 +44,6 @@ export default class DeferrablePromise<T> {
   }
 
   abort(): void {
-    this.#signalResolve!('abort');
+    this.#signalResolve!("abort");
   }
 }

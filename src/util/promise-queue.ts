@@ -1,5 +1,5 @@
-import { v4 as uuid } from 'uuid';
-import DeferrablePromise, { SignalState } from './deferrable-promise';
+import { v4 as uuid } from "uuid";
+import DeferrablePromise, { SignalState } from "./deferrable-promise";
 
 type Item<T> = {
   id: string;
@@ -25,7 +25,7 @@ export default class PromiseQueue {
 
   add<T>(
     handler: () => Promise<T>,
-    metadata?: Record<string, any>,
+    metadata?: Record<string, any>
   ): QueueItem<T> {
     const item: Item<T> = {
       id: uuid(),
@@ -76,7 +76,7 @@ export default class PromiseQueue {
           this.#tail = previous;
         }
         this.#length -= 1;
-        cursor.promise.reject(new Error('Item was canceled'));
+        cursor.promise.reject(new Error("Item was canceled"));
         return true;
       }
       previous = cursor;
@@ -92,11 +92,11 @@ export default class PromiseQueue {
           id: string;
           metadata: Record<string, any>;
           index: number;
-        }) => boolean),
+        }) => boolean)
   ): QueueItem<T> | undefined {
     let cursor = this.#head;
     const predicateWrapper =
-      typeof predicate === 'string'
+      typeof predicate === "string"
         ? (item: { id: string }) => item.id === predicate
         : predicate;
     let i = 0;

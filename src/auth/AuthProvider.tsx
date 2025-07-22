@@ -1,4 +1,11 @@
-import { createContext, useContext, useState, useEffect, useCallback, ReactNode } from "react";
+import {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  useCallback,
+  ReactNode,
+} from "react";
 import { getOpenIdManager } from "./openid-manager";
 
 // Placeholder types for auth state and actions
@@ -65,10 +72,17 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           if (!cancelled) setState((prev) => ({ ...prev, isLoading: false }));
         }
       } catch (error: any) {
-        if (!cancelled) setState((prev) => ({ ...prev, isLoading: false, error: error.message || String(error) }));
+        if (!cancelled)
+          setState((prev) => ({
+            ...prev,
+            isLoading: false,
+            error: error.message || String(error),
+          }));
       }
     })();
-    return () => { cancelled = true; };
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   const signIn = useCallback(async () => {
@@ -132,7 +146,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         error: null,
       });
     } catch (error: any) {
-      setState((prev) => ({ ...prev, isLoading: false, error: error.message || String(error) }));
+      setState((prev) => ({
+        ...prev,
+        isLoading: false,
+        error: error.message || String(error),
+      }));
     }
   }, []);
 
@@ -152,4 +170,4 @@ export const useAuth = () => {
   const ctx = useContext(AuthContext);
   if (!ctx) throw new Error("useAuth must be used within an AuthProvider");
   return ctx;
-}; 
+};

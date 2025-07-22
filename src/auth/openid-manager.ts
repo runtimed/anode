@@ -1,6 +1,6 @@
-import * as client from 'openid-client';
-import PromiseQueue from '../util/promise-queue';
-import { LocalStorageSync } from '../util/localstorage-proxy';
+import * as client from "openid-client";
+import PromiseQueue from "../util/promise-queue";
+import { LocalStorageSync } from "../util/localstorage-proxy";
 
 interface RequestState {
   verifier: string;
@@ -10,7 +10,7 @@ interface RequestState {
 
 export type Whoami = Record<string, any>;
 
-const OPENID_SCOPES = 'openid email profile offline_access';
+const OPENID_SCOPES = "openid email profile offline_access";
 let openidManagerSingleton: OpenidManager | undefined;
 
 export function getOpenIdManager(): OpenidManager {
@@ -41,7 +41,9 @@ class OpenidManager {
     });
   }
 
-  public async getAuthorizationUrl(prompt: 'login' | 'registration'): Promise<URL> {
+  public async getAuthorizationUrl(
+    prompt: "login" | "registration"
+  ): Promise<URL> {
     return this.queue.add(async (): Promise<URL> => {
       await this.#logout();
       const state = await this.#generateRequestState();
@@ -50,9 +52,9 @@ class OpenidManager {
         scope: OPENID_SCOPES,
         prompt,
         code_challenge: state.challenge,
-        code_challenge_method: 'S256',
+        code_challenge_method: "S256",
         state: state.state,
-      }
+      };
       const config = await this.#getConfig();
       return client.buildAuthorizationUrl(config, parameters);
     }).promise;
@@ -63,14 +65,14 @@ class OpenidManager {
       const config = await this.#getConfig();
       const requestState = this.sync.openid_request_state;
       if (!requestState) {
-        throw new Error('No request state found');
+        throw new Error("No request state found");
       }
-      const code = url.searchParams.get('code');
+      const code = url.searchParams.get("code");
       if (!code) {
-        throw new Error('No code found');
+        throw new Error("No code found");
       }
       if (this.oldCodes.has(code)) {
-        console.log('Already processed this code, skipping');
+        console.log("Already processed this code, skipping");
         return;
       }
       try {
@@ -87,7 +89,7 @@ class OpenidManager {
         };
       } catch (e) {
         console.log(`Error handling redirect response: ${e}`);
-        throw(e);
+        throw e;
       } finally {
         this.oldCodes.add(code);
       }
@@ -111,17 +113,17 @@ class OpenidManager {
     return this.queue.add(async () => {
       const accessToken = await this.#getAccessToken();
       if (!accessToken) {
-        throw new Error('No access token found');
+        throw new Error("No access token found");
       }
       const config = await this.#getConfig();
-      const {userinfo_endpoint} = config.serverMetadata();
+      const { userinfo_endpoint } = config.serverMetadata();
       if (!userinfo_endpoint) {
-        throw new Error('No userinfo endpoint found');
+        throw new Error("No userinfo endpoint found");
       }
       const response = await fetch(userinfo_endpoint, {
         headers: {
-          Authorization: `Bearer ${accessToken}`
-        }
+          Authorization: `Bearer ${accessToken}`,
+        },
       });
       return response.json() as Whoami;
     }).promise;
@@ -131,7 +133,10 @@ class OpenidManager {
     if (this.config) {
       return this.config;
     }
-    this.config = await client.discovery(new URL(import.meta.env.VITE_AUTH_URI), import.meta.env.VITE_AUTH_CLIENT_ID);
+    this.config = await client.discovery(
+      new URL(import.meta.env.VITE_AUTH_URI),
+      import.meta.env.VITE_AUTH_CLIENT_ID
+    );
     return this.config;
   }
 
@@ -168,7 +173,9 @@ class OpenidManager {
       }
       const config = await this.#getConfig();
       try {
-        const refreshed = await client.refreshTokenGrant(config, refreshToken, { scopes: OPENID_SCOPES });
+        const refreshed = await client.refreshTokenGrant(config, refreshToken, {
+          scopes: OPENID_SCOPES,
+        });
         const expires_at = this.computeExpiresAt(refreshed.expires_in);
         this.sync.openid_tokens = {
           access_token: refreshed.access_token,
@@ -176,7 +183,7 @@ class OpenidManager {
           id_token: refreshed.id_token,
           expires_at,
         };
-      return refreshed.access_token;
+        return refreshed.access_token;
       } catch (e) {
         console.log(`Error refreshing access token: ${e}`);
         await this.#logout();

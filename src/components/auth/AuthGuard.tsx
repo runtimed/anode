@@ -73,10 +73,12 @@ export const AuthGuard: React.FC<AuthGuardProps> = ({ children, fallback }) => {
 
   // Show sign-in form if not authenticated
   if (!isAuthenticated) {
-    return fallback || (
-      <div className="bg-background flex min-h-screen items-center justify-center">
-        <LoginPrompt signIn={signIn} register={register} />
-      </div>
+    return (
+      fallback || (
+        <div className="bg-background flex min-h-screen items-center justify-center">
+          <LoginPrompt signIn={signIn} register={register} />
+        </div>
+      )
     );
   }
 

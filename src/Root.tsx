@@ -6,7 +6,6 @@ import React, { useEffect, useState, Suspense } from "react";
 
 import { AuthProvider } from "./auth/AuthProvider";
 
-
 // Dynamic import for FPSMeter - development tool only
 const FPSMeter = React.lazy(() =>
   import("@overengineering/fps-meter").then((m) => ({
@@ -250,20 +249,17 @@ export const App: React.FC = () => {
     <BrowserRouter>
       <AuthProvider>
         <Routes>
-          <Route
-            path="/oidc"
-            element={<AuthRedirect />}
-          />
+          <Route path="/oidc" element={<AuthRedirect />} />
           <Route
             path="/*"
             element={
-                <AuthGuard>
-                  <LiveStoreApp />
-                </AuthGuard>
+              <AuthGuard>
+                <LiveStoreApp />
+              </AuthGuard>
             }
           />
         </Routes>
-        </AuthProvider>
+      </AuthProvider>
     </BrowserRouter>
   );
 };

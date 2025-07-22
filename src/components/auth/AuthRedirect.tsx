@@ -28,4 +28,4 @@ const AuthRedirect: React.FC = () => {
   return <div>Logging in...</div>;
 };
 
-export default AuthRedirect; 
+export default AuthRedirect;
