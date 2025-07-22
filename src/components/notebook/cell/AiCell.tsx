@@ -232,6 +232,20 @@ export const AiCell: React.FC<AiCellProps> = ({
           },
         })
       );
+
+      // Save the last used AI model to notebook metadata for future AI cells
+      store.commit(
+        events.notebookMetadataSet({
+          key: "lastUsedAiProvider",
+          value: newProvider,
+        })
+      );
+      store.commit(
+        events.notebookMetadataSet({
+          key: "lastUsedAiModel",
+          value: newModel,
+        })
+      );
     },
     [cell.id, store]
   );

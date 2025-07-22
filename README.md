@@ -174,7 +174,7 @@ The `@runt/schema` package provides shared types and events between Anode and Ru
 **Production (JSR Package)**:
 
 ```json
-"@runt/schema": "jsr:^0.6.4"
+"@runt/schema": "jsr:^0.8.0"
 ```
 
 **Testing PR Changes (GitHub Reference)**:
@@ -196,6 +196,59 @@ The `@runt/schema` package provides shared types and events between Anode and Ru
 3. Restart development server (`pnpm dev`)
 
 **Important**: Ensure both repositories use compatible schema versions. Type errors usually indicate schema mismatches.
+
+## 🚀 Groq AI Integration
+
+Anode supports **Groq** as a first-class AI provider alongside OpenAI and Ollama, offering high-speed inference with advanced models.
+
+### Available Groq Models
+
+- **moonshotai/kimi-k2-instruct** (Primary) - Advanced reasoning and tool calling
+- **llama3-8b-8192** - Fast general-purpose model
+- **llama3-70b-8192** - High-performance large model
+- **mixtral-8x7b-32768** - Mixture of experts model
+- **gemma2-9b-it** - Efficient instruction-following model
+
+### Quick Setup
+
+1. **Get Groq API Key**: Sign up at [console.groq.com](https://console.groq.com) and create an API key
+
+2. **Configure Environment**: Add to `/runt/.env`:
+
+   ```bash
+   GROQ_API_KEY=your_groq_api_key_here
+   LIVESTORE_SYNC_URL=ws://localhost:8787/livestore
+   ```
+
+3. **Start Services**:
+4. **Start Development**:
+
+   ```bash
+   # Start integrated development server
+   pnpm dev
+   ```
+
+5. **Start Runtime**: Get the runtime command from the notebook UI, then:
+
+   ```bash
+   NOTEBOOK_ID=notebook-groq-$(date +%s) pnpm dev:runtime
+   ```
+
+6. **Access**: Visit `http://localhost:5173` and create/open a notebook
+
+### Features
+
+- ✅ **All 5 Groq models** available in AI cell dropdown
+- ✅ **High-speed inference** - Typical response times 1-3 seconds
+- ✅ **Tool calling support** - AI can create and modify code cells
+- ✅ **Model persistence** - Notebooks remember your last selected model
+- ✅ **Orange provider badges** - Clear visual distinction in UI
+
+### Critical Notes
+
+⚠️ **Process Management**: Always run `pkill -f "pyodide-runtime-agent"` before starting new runtimes to prevent session conflicts.
+
+⚠️ **Use nohup**: For persistent runtime processes that survive across terminal commands, use `nohup` instead of screen sessions.
 
 ### Configuration
 

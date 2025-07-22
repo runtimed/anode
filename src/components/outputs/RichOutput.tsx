@@ -132,9 +132,8 @@ export const RichOutput: React.FC<RichOutputProps> = ({
         if (isInlineContainer(container)) {
           outputData[mimeType] = container.data;
         } else if (isArtifactContainer(container)) {
-          // For artifacts, we'll need to handle them differently
-          // For now, just mark as artifact reference
-          outputData[mimeType] = `[Artifact: ${container.artifactId}]`;
+          // Generate proper artifact URL for loading
+          outputData[mimeType] = `/api/artifacts/${container.artifactId}`;
         }
       }
     } else {
@@ -300,24 +299,4 @@ export const RichOutput: React.FC<RichOutputProps> = ({
       <div className="max-w-full overflow-hidden">{renderContent()}</div>
     </div>
   );
-};
-
-// Helper function to create rich output data
-export const createRichOutput = (
-  content: string,
-  mediaType: string = "text/plain"
-) => {
-  return {
-    [mediaType]: content,
-  };
-};
-
-// Helper function to create markdown output
-export const createMarkdownOutput = (markdown: string) => {
-  return createRichOutput(markdown, "text/markdown");
-};
-
-// Helper function to create SVG output
-export const createSvgOutput = (svg: string) => {
-  return createRichOutput(svg, "image/svg+xml");
 };

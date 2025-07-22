@@ -23,4 +23,4 @@ export LIVESTORE_SYNC_URL="ws://localhost:$DEV_PORT/livestore"
 echo "🔗 Connecting to LiveStore at: $LIVESTORE_SYNC_URL"
 
 # Run the runtime agent
-deno run --allow-all --env-file=.env "jsr:@runt/pyodide-runtime-agent@^0.6.4" "$@"
+deno run --allow-all --env-file=.env "jsr:@runt/pyodide-runtime-agent@^0.8.0" "$@"

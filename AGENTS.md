@@ -127,7 +127,7 @@ The `@runt/schema` package provides the shared types and events between Anode an
 ### Production (JSR Package)
 
 ```json
-"@runt/schema": "jsr:^0.6.4"
+"@runt/schema": "jsr:^0.8.0"
 ```
 
 Use this for stable releases and production deployments.
@@ -225,6 +225,27 @@ data access is fine.
 **Rule**: Materializers must be deterministic and reproducible. Avoid
 non-deterministic operations, but using `ctx.query()` for deterministic data
 lookups is acceptable.
+
+### Use top-level `useQuery` rather than `store.useQuery`
+
+```typescript
+// ❌ WRONG - This causes a react compiler ESLint error
+import { useStore } from "@livestore/react";
+// ...
+const { store } = useStore();
+const titleMetadata = store.useQuery(
+  queryDb(tables.notebookMetadata.select().where({ key: "title" }).limit(1))
+);
+```
+
+```typescript
+// ✅ CORRECT - `useQuery` comes from an import
+import { useQuery } from "@livestore/react";
+// ...
+const titleMetadata = useQuery(
+  queryDb(tables.notebookMetadata.select().where({ key: "title" }).limit(1))
+);
+```
 
 ### Local-First Architecture
 

@@ -1,4 +1,4 @@
-import { useStore } from "@livestore/react";
+import { useQuery } from "@livestore/react";
 import { queryDb } from "@livestore/livestore";
 import { tables } from "@runt/schema";
 import { useMemo } from "react";
@@ -31,10 +31,8 @@ export function useAvailableAiModels(): {
   hasToolCapableModels: boolean;
   hasVisionCapableModels: boolean;
 } {
-  const { store } = useStore();
-
   // Get active runtime sessions
-  const runtimeSessions = store.useQuery(
+  const runtimeSessions = useQuery(
     queryDb(tables.runtimeSessions.select().where({ isActive: true }))
   ) as any[];
 
@@ -143,6 +141,15 @@ export function getDefaultModelForProvider(
     return undefined;
   }
 
+  // For Groq, prefer Kimi K2 Instruct
+  if (provider === "groq") {
+    return (
+      providerModels.find(
+        (model) => model.name === "moonshotai/kimi-k2-instruct"
+      ) || providerModels[0]
+    );
+  }
+
   // For OpenAI, prefer gpt-4o-mini
   if (provider === "openai") {
     return (
@@ -161,6 +168,44 @@ export function getDefaultModelForProvider(
 
   // For other providers, return the first model
   return providerModels[0];
+}
+
+/**
+ * Get default AI model using fallback hierarchy: Groq -> OpenAI -> others
+ * If lastUsed is provided and valid, use that instead
+ */
+export function getDefaultAiModel(
+  models: AiModel[],
+  lastUsedProvider?: string | null,
+  lastUsedModel?: string | null
+): { provider: string; model: string } | null {
+  // If we have valid last used settings, use those
+  if (lastUsedProvider && lastUsedModel) {
+    const isValid = models.some(
+      (m) => m.provider === lastUsedProvider && m.name === lastUsedModel
+    );
+    if (isValid) {
+      return { provider: lastUsedProvider, model: lastUsedModel };
+    }
+  }
+
+  // Fallback hierarchy: Groq -> OpenAI -> others
+  const fallbackProviders = ["groq", "openai"];
+
+  for (const provider of fallbackProviders) {
+    const defaultModel = getDefaultModelForProvider(models, provider);
+    if (defaultModel) {
+      return { provider: defaultModel.provider, model: defaultModel.name };
+    }
+  }
+
+  // If no preferred providers available, use first available model
+  const firstModel = models[0];
+  if (firstModel) {
+    return { provider: firstModel.provider, model: firstModel.name };
+  }
+
+  return null;
 }
 
 /**
@@ -194,6 +239,7 @@ const PROVIDER_COLORS = {
   openai: "text-green-700 bg-green-50 border-green-200",
   ollama: "text-blue-700 bg-blue-50 border-blue-200",
   anthropic: "text-orange-700 bg-orange-50 border-orange-200",
+  groq: "text-orange-700 bg-orange-50 border-orange-200",
   local: "text-purple-700 bg-purple-50 border-purple-200",
 } as const;
 

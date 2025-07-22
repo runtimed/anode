@@ -4,6 +4,10 @@ import { queryDb } from "@livestore/livestore";
 import { tables } from "@runt/schema";
 
 import { generateInitials, generateColor } from "../util/avatar.js";
+import {
+  getClientTypeInfo,
+  getClientDisplayName,
+} from "../services/userTypes.js";
 
 export interface UserInfo {
   id: string;
@@ -54,29 +58,10 @@ export const useUserRegistry = () => {
         return userInfo;
       }
 
-      // Generate fallback display info for unknown users
-      let name: string;
-      let isAnonymous = true;
-
-      if (/^\d{15,}$/.test(userId)) {
-        // Google OAuth user ID (long number)
-        name = `User ${userId.slice(-4)}`;
-        isAnonymous = false;
-      } else if (
-        userId.startsWith("session-") ||
-        userId.startsWith("client-")
-      ) {
-        // Session/client ID
-        name = `Guest ${userId.slice(-4)}`;
-      } else if (userId === "runtime-agent") {
-        name = "Runtime Agent";
-        isAnonymous = false;
-      } else if (userId === "local-dev-user") {
-        name = "Local Dev";
-      } else {
-        // Other unknown IDs
-        name = userId.length > 8 ? `${userId.slice(0, 8)}...` : userId;
-      }
+      // Use centralized client type service for fallback display
+      const clientInfo = getClientTypeInfo(userId);
+      const name = getClientDisplayName(userId);
+      const isAnonymous = clientInfo.type !== "user";
 
       const fallbackInfo: UserInfo = {
         id: userId,
