@@ -19,24 +19,30 @@ interface UseToolApprovalsOptions {
 export const useToolApprovals = (options: UseToolApprovalsOptions = {}) => {
   const { store } = useStore();
   const currentUser = useCurrentUser();
-  const [pendingApprovals, setPendingApprovals] = useState<ToolApprovalRequest[]>([]);
+  const [pendingApprovals, setPendingApprovals] = useState<
+    ToolApprovalRequest[]
+  >([]);
 
   // Create query with optional cellId filter
   const query = options.cellId
-    ? queryDb(tables.toolApprovals.select().where({ 
-        status: "pending" as const, 
-        cellId: options.cellId 
-      }))
-    : queryDb(tables.toolApprovals.select().where({ 
-        status: "pending" as const 
-      }));
+    ? queryDb(
+        tables.toolApprovals.select().where({
+          status: "pending" as const,
+          cellId: options.cellId,
+        })
+      )
+    : queryDb(
+        tables.toolApprovals.select().where({
+          status: "pending" as const,
+        })
+      );
 
   // Query for pending tool approvals
   const approvals = useQuery(query);
 
   // Update pending approvals when query results change
   useEffect(() => {
-    const pending = approvals.map(approval => ({
+    const pending = approvals.map((approval) => ({
       toolCallId: approval.toolCallId,
       cellId: approval.cellId,
       toolName: approval.toolName,
@@ -68,4 +74,4 @@ export const useToolApprovals = (options: UseToolApprovalsOptions = {}) => {
     // Helper to check if there are pending approvals
     hasPendingApprovals: pendingApprovals.length > 0,
   };
-}; 
+};

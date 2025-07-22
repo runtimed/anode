@@ -40,13 +40,17 @@ interface InlineToolApprovalProps {
 }
 
 const InlineToolApproval: React.FC<InlineToolApprovalProps> = ({ cellId }) => {
-  const { currentApprovalRequest, respondToApproval } = useToolApprovals({ cellId });
+  const { currentApprovalRequest, respondToApproval } = useToolApprovals({
+    cellId,
+  });
 
   if (!currentApprovalRequest) {
     return null;
   }
 
-  const handleApproval = (status: "approved_once" | "approved_always" | "denied") => {
+  const handleApproval = (
+    status: "approved_once" | "approved_always" | "denied"
+  ) => {
     respondToApproval(currentApprovalRequest.toolCallId, status);
   };
 

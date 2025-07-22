@@ -15,6 +15,7 @@ The tool approval system is implemented in the runt backend:
 #### Schema Changes
 
 **New Table: `toolApprovals`**
+
 - `toolCallId`: Unique identifier for the tool call
 - `cellId`: The cell where the tool call was initiated
 - `toolName`: Name of the tool being called
@@ -24,6 +25,7 @@ The tool approval system is implemented in the runt backend:
 - `respondedAt`: When user responded (nullable)
 
 **New Events:**
+
 - `toolApprovalRequested`: Emitted when a tool needs approval
 - `toolApprovalResponded`: Emitted when user responds to approval request
 
@@ -44,16 +46,19 @@ The frontend provides the user interface for approvals:
 #### Components
 
 **`useToolApprovals` hook** (`src/hooks/useToolApprovals.ts`)
+
 - Monitors pending approval requests
 - Provides function to respond to approvals
 
 **`ToolApprovalDialog` component** (`src/components/auth/ToolApprovalDialog.tsx`)
+
 - Shows approval dialog with three buttons:
   - **Approve Once**: Allow this specific tool call
   - **Always Allow This Tool**: Allow all future calls to this tool
   - **Deny**: Reject this tool call
 
 **`ToolApprovalManager` component** (`src/components/auth/ToolApprovalManager.tsx`)
+
 - Manages the queue of approval requests
 - Shows one dialog at a time
 
@@ -62,6 +67,7 @@ The frontend provides the user interface for approvals:
 ### For Users
 
 When an AI agent attempts to use a tool, a dialog will appear with:
+
 - The name of the tool being requested
 - A description of what the tool does
 - Three response options
@@ -98,4 +104,4 @@ Use the test utilities in `test/tool-approval.test.ts` to verify approval workfl
 - **Approval policies**: Organization-level policies for tool usage
 - **Audit logging**: Enhanced logging of tool usage and approvals
 - **Tool arguments display**: Show tool arguments in approval dialog
-- **Batch approvals**: Handle multiple tool calls at once 
+- **Batch approvals**: Handle multiple tool calls at once

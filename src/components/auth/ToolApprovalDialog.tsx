@@ -15,15 +15,18 @@ const formatToolName = (toolName: string): string => {
     if (parts.length >= 3) {
       const serverName = parts[1];
       const toolNamePart = parts.slice(2).join("_");
-      return `${toolNamePart.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')} (${serverName})`;
+      return `${toolNamePart
+        .split("_")
+        .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+        .join(" ")} (${serverName})`;
     }
   }
-  
+
   // Convert snake_case to title case for regular tools
   return toolName
-    .split('_')
-    .map(word => word.charAt(0).toUpperCase() + word.slice(1))
-    .join(' ');
+    .split("_")
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(" ");
 };
 
 const getToolDescription = (toolName: string): string => {
@@ -31,7 +34,7 @@ const getToolDescription = (toolName: string): string => {
   if (toolName.startsWith("mcp__")) {
     return `Use an external tool via MCP server`;
   }
-  
+
   // Handle built-in tools
   switch (toolName) {
     case "create_cell":
@@ -50,17 +53,18 @@ export const ToolApprovalDialog: React.FC<ToolApprovalDialogProps> = ({
   onApprove,
 }) => {
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-      <Card className="w-full max-w-md p-6 bg-white shadow-lg">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+      <Card className="w-full max-w-md bg-white p-6 shadow-lg">
         <div className="space-y-4">
           <div className="text-center">
             <h3 className="text-lg font-semibold text-gray-900">
               Tool Approval Required
             </h3>
-            <p className="text-sm text-gray-600 mt-2">
-              AI wants to use: <strong>{formatToolName(request.toolName)}</strong>
+            <p className="mt-2 text-sm text-gray-600">
+              AI wants to use:{" "}
+              <strong>{formatToolName(request.toolName)}</strong>
             </p>
-            <p className="text-xs text-gray-500 mt-1">
+            <p className="mt-1 text-xs text-gray-500">
               {getToolDescription(request.toolName)}
             </p>
           </div>
@@ -68,18 +72,18 @@ export const ToolApprovalDialog: React.FC<ToolApprovalDialogProps> = ({
           <div className="flex flex-col space-y-2">
             <Button
               onClick={() => onApprove("approved_once")}
-              className="w-full bg-blue-600 hover:bg-blue-700 text-white"
+              className="w-full bg-blue-600 text-white hover:bg-blue-700"
             >
               Approve Once
             </Button>
-            
+
             <Button
               onClick={() => onApprove("approved_always")}
-              className="w-full bg-green-600 hover:bg-green-700 text-white"
+              className="w-full bg-green-600 text-white hover:bg-green-700"
             >
               Always Allow This Tool
             </Button>
-            
+
             <Button
               onClick={() => onApprove("denied")}
               variant="outline"
@@ -89,11 +93,11 @@ export const ToolApprovalDialog: React.FC<ToolApprovalDialogProps> = ({
             </Button>
           </div>
 
-          <div className="text-xs text-gray-400 text-center">
+          <div className="text-center text-xs text-gray-400">
             Tool Call ID: {request.toolCallId.slice(0, 8)}...
           </div>
         </div>
       </Card>
     </div>
   );
-}; 
+};

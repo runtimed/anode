@@ -12,14 +12,13 @@ export const ToolApprovalManager: React.FC = () => {
     return null;
   }
 
-  const handleApproval = (status: "approved_once" | "approved_always" | "denied") => {
+  const handleApproval = (
+    status: "approved_once" | "approved_always" | "denied"
+  ) => {
     respondToApproval(currentRequest.toolCallId, status);
   };
 
   return (
-    <ToolApprovalDialog
-      request={currentRequest}
-      onApprove={handleApproval}
-    />
+    <ToolApprovalDialog request={currentRequest} onApprove={handleApproval} />
   );
-}; 
+};

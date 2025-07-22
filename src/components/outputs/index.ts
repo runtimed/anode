@@ -8,7 +8,7 @@ export { ImageOutput } from "./ImageOutput.js";
 export { JsonOutput } from "./JsonOutput.js";
 export { MarkdownRenderer } from "./MarkdownRenderer.js";
 export { PlainTextOutput } from "./PlainTextOutput.js";
-export { RichOutput, createRichOutput, createMarkdownOutput, createSvgOutput } from "./RichOutput.js";
+export { RichOutput } from "./RichOutput.js";
 export { SvgOutput } from "./SvgOutput.js";
 
 // Note: Heavy output components are now dynamically imported in RichOutput.tsx
