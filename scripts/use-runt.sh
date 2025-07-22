@@ -28,8 +28,16 @@ fi
 if [ "$1" = "prod" ]; then
   VERSION=$(curl -s https://api.jsr.io/scopes/runt/packages/schema/versions | jq -r '.[0].version')
   echo "Using @runt/schema from production JSR package: $VERSION"
-  jq --arg version "$VERSION" '.dependencies["@runt/schema"] = "jsr:^\($version)"' package.json > package.json.tmp && mv package.json.tmp package.json
-  echo "Updated package.json to use @runt/schema version jsr:^$VERSION"
-  # Update lockfile
-  pnpm install
+  # jq --arg version "$VERSION" '.dependencies["@runt/schema"] = "jsr:^\($version)"' package.json > package.json.tmp && mv package.json.tmp package.json
+  # echo "Updated package.json to use @runt/schema version jsr:^$VERSION"
+  # # Update lockfile
+  # pnpm install
+  # echo "pnpm i jsr:@runt/schema"
+  pnpm add "@runt/schema@jsr:@runt/schema@^$VERSION"
+fi
+
+if [ "$1" != "main" ] && [ "$1" != "local" ] && [ "$1" != "prod" ]; then
+  echo "Unsupported mode: $1"
+  echo "Supported modes are: main, local, prod"
+  exit 1
 fi
