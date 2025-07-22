@@ -1,3 +1,7 @@
+# IMPORTANT: This is a pre-commit hook that runs before every commit.
+# It's best to make sure everything here runs quickly to avoid slowing down development.
+# Do no put any long-running commands or tests here.
+
 # Pre-commit hook to prevent @runt/schema dependency from using file: protocol
 
 # Get the list of files that are staged for commit
