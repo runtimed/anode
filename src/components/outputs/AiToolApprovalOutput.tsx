@@ -56,7 +56,7 @@ export const AiToolApprovalOutput: React.FC<AiToolApprovalOutputProps> = ({
 }) => {
   return (
     <div className="py-2">
-      <Card className="border-l-4 border-amber-200 border-l-amber-400 bg-amber-50/50 p-4 shadow-sm">
+      <Card className="border-amber-200 bg-amber-50/50 p-4 shadow-sm">
         <div className="space-y-3">
           <div className="flex items-start gap-3">
             <AlertCircle className="mt-0.5 h-5 w-5 flex-shrink-0 text-amber-600" />
