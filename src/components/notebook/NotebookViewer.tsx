@@ -5,7 +5,7 @@ import React, { Suspense, useCallback } from "react";
 import { ErrorBoundary } from "react-error-boundary";
 
 import { NotebookTitle } from "./NotebookTitle.js";
-import { VirtualizedCellList } from "./VirtualizedCellList.js";
+import { MemoizedCell, VirtualizedCellList } from "./VirtualizedCellList.js";
 
 import { Avatar } from "@/components/ui/Avatar.js";
 import { Button } from "@/components/ui/button";
@@ -34,6 +34,7 @@ import { prefetchOutputsAdaptive } from "@/util/prefetch.js";
 import { CellAdder } from "./cell/CellAdder.js";
 import { EmptyStateCellAdder } from "./EmptyStateCellAdder.js";
 import { MobileOmnibar } from "./MobileOmnibar.js";
+import { CellBetweener } from "./cell/CellBetweener.js";
 
 interface NotebookViewerProps {
   notebookId: string;
@@ -488,16 +489,42 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
                   <VirtualizedCellList
                     cells={cells}
                     focusedCellId={focusedCellId}
-                    onAddCell={addCell}
-                    onDeleteCell={deleteCell}
-                    onMoveUp={(cellId) => moveCell(cellId, "up")}
-                    onMoveDown={(cellId) => moveCell(cellId, "down")}
-                    onFocusNext={focusNextCell}
-                    onFocusPrevious={focusPreviousCell}
-                    onFocus={focusCell}
-                    contextSelectionMode={contextSelectionMode}
                     threshold={50}
-                  />
+                  >
+                    {(cell, index) => (
+                      <>
+                        {index}
+                        {index === 0 && (
+                          <CellBetweener
+                            cell={cell}
+                            onAddCell={addCell}
+                            position="before"
+                          />
+                        )}
+                        <ErrorBoundary
+                          fallback={<div>Error rendering cell</div>}
+                        >
+                          <MemoizedCell
+                            key={cell.id}
+                            cell={cell}
+                            onDeleteCell={() => deleteCell(cell.id)}
+                            onMoveUp={() => moveCell(cell.id, "up")}
+                            onMoveDown={() => moveCell(cell.id, "down")}
+                            onFocusNext={() => focusNextCell(cell.id)}
+                            onFocusPrevious={() => focusPreviousCell(cell.id)}
+                            onFocus={() => focusCell(cell.id)}
+                            autoFocus={cell.id === focusedCellId}
+                            contextSelectionMode={contextSelectionMode}
+                          />
+                        </ErrorBoundary>
+                        <CellBetweener
+                          cell={cell}
+                          onAddCell={addCell}
+                          position="after"
+                        />
+                      </>
+                    )}
+                  </VirtualizedCellList>
                 </ErrorBoundary>
                 {/* Add Cell Buttons */}
                 <div className="border-border/30 mt-6 border-t px-4 pt-4 sm:mt-8 sm:px-0 sm:pt-6">
