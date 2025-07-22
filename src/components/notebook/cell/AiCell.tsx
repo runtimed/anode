@@ -34,12 +34,9 @@ interface AiCellProps {
   contextSelectionMode?: boolean;
 }
 
-// Inline Tool Approval Component
-interface InlineToolApprovalProps {
+const MaybeInlineToolApproval: React.FC<{
   cellId: string;
-}
-
-const InlineToolApproval: React.FC<InlineToolApprovalProps> = ({ cellId }) => {
+}> = ({ cellId }) => {
   const { currentApprovalRequest, respondToApproval } = useToolApprovals({
     cellId,
   });
@@ -443,7 +440,7 @@ export const AiCell: React.FC<AiCellProps> = ({
         {cell.outputVisible && (
           <>
             {/* Inline Tool Approval Dialog */}
-            <InlineToolApproval cellId={cell.id} />
+            <MaybeInlineToolApproval cellId={cell.id} />
             {/* Regular Outputs */}
             <MaybeOutputs />
           </>
