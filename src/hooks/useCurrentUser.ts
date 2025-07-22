@@ -23,7 +23,7 @@ export const useCurrentUser = (): CurrentUser => {
         id: user.id,
         name: user.name || "User",
         email: user.email,
-        picture: (user as any).picture, // picture is optional, may not exist
+        picture: user.picture,
         isAnonymous: false,
       };
     }

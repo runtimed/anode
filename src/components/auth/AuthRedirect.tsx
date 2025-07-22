@@ -23,7 +23,7 @@ const AuthRedirect: React.FC = () => {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [handleRedirect, navigate]);
 
   return <div>Logging in...</div>;
 };

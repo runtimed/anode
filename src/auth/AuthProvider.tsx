@@ -1,11 +1,12 @@
-import React, { createContext, useContext, useState, useEffect, useCallback, ReactNode } from "react";
-import { Whoami, getOpenIdManager } from "./openid-manager";
+import { createContext, useContext, useState, useEffect, useCallback, ReactNode } from "react";
+import { getOpenIdManager } from "./openid-manager";
 
 // Placeholder types for auth state and actions
 interface AuthUser {
   id: string;
   email: string;
   name?: string;
+  picture?: string;
 }
 
 interface AuthState {
@@ -53,6 +54,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
                 id: userInfo.sub || userInfo.id || "unknown",
                 email: userInfo.email || "",
                 name: userInfo.name,
+                picture: userInfo.picture,
               },
               token,
               isLoading: false,
@@ -111,7 +113,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   }, []);
 
-  // Optionally: handle OpenID redirect response (should be called after redirect)
   const handleRedirect = useCallback(async (url: URL) => {
     setState((prev) => ({ ...prev, isLoading: true }));
     try {
@@ -124,6 +125,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           id: userInfo.sub || userInfo.id || "unknown",
           email: userInfo.email || "",
           name: userInfo.name,
+          picture: userInfo.picture,
         },
         token,
         isLoading: false,
