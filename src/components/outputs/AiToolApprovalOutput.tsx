@@ -75,6 +75,7 @@ export const AiToolApprovalOutput: React.FC<AiToolApprovalOutputProps> = ({
 
           <div className="flex flex-col gap-2 sm:flex-row sm:gap-3">
             <Button
+              autoFocus
               onClick={() => onApprove("approved_once")}
               size="sm"
               className="flex-1 bg-blue-600 text-white hover:bg-blue-700"
