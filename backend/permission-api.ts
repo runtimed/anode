@@ -5,7 +5,7 @@ import {
   grantNotebookPermission,
   revokeNotebookPermission,
   checkNotebookPermission,
-  initializePermissionsTable
+  initializeSpiceDB
 } from "./permissions";
 import { Env } from "./types";
 
@@ -13,7 +13,7 @@ import { Env } from "./types";
  * Handle permission management API endpoints
  */
 export default {
-  async fetch(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
+  async fetch(request: Request, env: Env): Promise<Response> {
     const url = new URL(request.url);
     const corsHeaders = {
       "Access-Control-Allow-Origin": "*",
@@ -27,8 +27,8 @@ export default {
     }
 
     try {
-      // Initialize permissions table (singleton pattern prevents redundant calls)
-      await initializePermissionsTable(env.DB);
+      // Initialize SpiceDB client (singleton pattern prevents redundant calls)
+      await initializeSpiceDB(env.SPICEDB_ENDPOINT || 'localhost:50051', env.SPICEDB_TOKEN || 'somerandomkeyhere');
 
       // Parse request body for authenticated requests
       let body: any = {};
@@ -106,7 +106,12 @@ async function handleListPermissions(
   }
 
   // Check if user can manage permissions (must be owner)
-  const canManage = await canManagePermissions(env.DB, notebookId, validatedUser.id);
+  const canManage = await canManagePermissions(
+    env.SPICEDB_ENDPOINT || 'localhost:50051', 
+    env.SPICEDB_TOKEN || 'somerandomkeyhere',
+    notebookId, 
+    validatedUser.id
+  );
   if (!canManage) {
     return new Response(
       JSON.stringify({ error: "Permission denied: Only notebook owners can view permissions" }),
@@ -114,7 +119,11 @@ async function handleListPermissions(
     );
   }
 
-  const permissions = await getNotebookPermissions(env.DB, notebookId);
+  const permissions = await getNotebookPermissions(
+    env.SPICEDB_ENDPOINT || 'localhost:50051',
+    env.SPICEDB_TOKEN || 'somerandomkeyhere', 
+    notebookId
+  );
   
   return new Response(
     JSON.stringify({ permissions }),
@@ -123,7 +132,7 @@ async function handleListPermissions(
 }
 
 async function handleGrantPermission(
-  request: Request,
+  _request: Request,
   env: Env,
   validatedUser: any,
   body: any,
@@ -146,7 +155,12 @@ async function handleGrantPermission(
   }
 
   // Check if user can manage permissions (must be owner)
-  const canManage = await canManagePermissions(env.DB, notebookId, validatedUser.id);
+  const canManage = await canManagePermissions(
+    env.SPICEDB_ENDPOINT || 'localhost:50051',
+    env.SPICEDB_TOKEN || 'somerandomkeyhere',
+    notebookId,
+    validatedUser.id
+  );
   if (!canManage) {
     return new Response(
       JSON.stringify({ error: "Permission denied: Only notebook owners can grant permissions" }),
@@ -154,7 +168,14 @@ async function handleGrantPermission(
     );
   }
 
-  const success = await grantNotebookPermission(env.DB, notebookId, userId, role, validatedUser.id);
+  const success = await grantNotebookPermission(
+    env.SPICEDB_ENDPOINT || 'localhost:50051',
+    env.SPICEDB_TOKEN || 'somerandomkeyhere', 
+    notebookId, 
+    userId, 
+    role, 
+    validatedUser.id
+  );
   
   if (success) {
     return new Response(
@@ -170,7 +191,7 @@ async function handleGrantPermission(
 }
 
 async function handleRevokePermission(
-  request: Request,
+  _request: Request,
   env: Env,
   validatedUser: any,
   body: any,
@@ -186,7 +207,12 @@ async function handleRevokePermission(
   }
 
   // Check if user can manage permissions (must be owner)
-  const canManage = await canManagePermissions(env.DB, notebookId, validatedUser.id);
+  const canManage = await canManagePermissions(
+    env.SPICEDB_ENDPOINT || 'localhost:50051',
+    env.SPICEDB_TOKEN || 'somerandomkeyhere',
+    notebookId,
+    validatedUser.id
+  );
   if (!canManage) {
     return new Response(
       JSON.stringify({ error: "Permission denied: Only notebook owners can revoke permissions" }),
@@ -195,7 +221,12 @@ async function handleRevokePermission(
   }
 
   // Prevent owner from revoking their own access
-  const targetPermission = await checkNotebookPermission(env.DB, notebookId, userId);
+  const targetPermission = await checkNotebookPermission(
+    env.SPICEDB_ENDPOINT || 'localhost:50051',
+    env.SPICEDB_TOKEN || 'somerandomkeyhere',
+    notebookId,
+    userId
+  );
   if (targetPermission === 'owner' && userId === validatedUser.id) {
     return new Response(
       JSON.stringify({ error: "Cannot revoke your own owner permissions" }),
@@ -203,7 +234,12 @@ async function handleRevokePermission(
     );
   }
 
-  const success = await revokeNotebookPermission(env.DB, notebookId, userId);
+  const success = await revokeNotebookPermission(
+    env.SPICEDB_ENDPOINT || 'localhost:50051',
+    env.SPICEDB_TOKEN || 'somerandomkeyhere',
+    notebookId,
+    userId
+  );
   
   if (success) {
     return new Response(
@@ -234,7 +270,12 @@ async function handleCheckPermission(
     );
   }
 
-  const permission = await checkNotebookPermission(env.DB, notebookId, validatedUser.id);
+  const permission = await checkNotebookPermission(
+    env.SPICEDB_ENDPOINT || 'localhost:50051',
+    env.SPICEDB_TOKEN || 'somerandomkeyhere',
+    notebookId,
+    validatedUser.id
+  );
   
   return new Response(
     JSON.stringify({ 

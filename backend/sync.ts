@@ -4,7 +4,7 @@ import { Env } from "./types";
 
 import { validateAuthPayload, validateProductionEnvironment } from "./auth";
 import { 
-  initializePermissionsTable, 
+  initializeSpiceDB, 
   checkNotebookPermission, 
   createNotebookWithOwnership 
 } from "./permissions";
@@ -122,12 +122,17 @@ export default {
             // Step 2: Extract notebook ID from request URL
             const notebookId = url.searchParams.get("notebook") || url.searchParams.get("storeId") || "default-notebook";
             
-            // Step 3: Initialize permissions table if not exists
-            await initializePermissionsTable(env.DB);
+            // Step 3: Initialize SpiceDB if not exists
+            await initializeSpiceDB(env.SPICEDB_ENDPOINT || 'localhost:50051', env.SPICEDB_TOKEN || 'somerandomkeyhere');
 
             // Step 4: Check notebook permissions (skip for runtime agents and anonymous users)
             if (validatedUser.id !== "runtime-agent" && !validatedUser.isAnonymous) {
-              const userPermission = await checkNotebookPermission(env.DB, notebookId, validatedUser.id);
+              const userPermission = await checkNotebookPermission(
+                env.SPICEDB_ENDPOINT || 'localhost:50051',
+                env.SPICEDB_TOKEN || 'somerandomkeyhere',
+                notebookId,
+                validatedUser.id
+              );
               
               if (userPermission === 'none') {
                 // Check if this is likely a new notebook being created
@@ -137,7 +142,12 @@ export default {
                 if (isLikelyNewNotebook) {
                   // For new notebooks, auto-grant ownership to authenticated users
                   console.log("🆕 Creating new notebook with ownership:", { notebookId, userId: validatedUser.id });
-                  const granted = await createNotebookWithOwnership(env.DB, notebookId, validatedUser.id);
+                  const granted = await createNotebookWithOwnership(
+                    env.SPICEDB_ENDPOINT || 'localhost:50051',
+                    env.SPICEDB_TOKEN || 'somerandomkeyhere',
+                    notebookId,
+                    validatedUser.id
+                  );
                   if (!granted) {
                     throw new Error(
                       `PERMISSION_DENIED: Failed to create ownership for new notebook '${notebookId}'.`

@@ -14,6 +14,10 @@ export interface Env {
   GOOGLE_CLIENT_ID?: string;
   GOOGLE_CLIENT_SECRET?: string;
 
+  // SpiceDB configuration for RBAC
+  SPICEDB_ENDPOINT?: string;
+  SPICEDB_TOKEN?: string;
+
   // New binding for the preview worker to serve the frontend application
   ASSETS: Fetcher;
 

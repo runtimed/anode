@@ -53,7 +53,7 @@ export default {
 
       if (url.pathname.startsWith("/api/permissions")) {
         console.log("🔐 Routing to permission worker");
-        return permissionWorker.fetch(request, env, ctx);
+        return permissionWorker.fetch(request, env);
       }
 
       // If it's an API request, delegate it to the imported sync worker's logic.

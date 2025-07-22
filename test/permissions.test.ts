@@ -1,6 +1,6 @@
-import { describe, expect, it, beforeEach } from "vitest";
+import { describe, expect, it, beforeEach, vi } from "vitest";
 import {
-  initializePermissionsTable,
+  initializeSpiceDB,
   checkNotebookPermission,
   grantNotebookPermission,
   revokeNotebookPermission,
@@ -10,242 +10,388 @@ import {
   canManagePermissions,
 } from "../backend/permissions";
 
-// Mock D1 Database for testing
-class MockD1Database {
-  private tables: Map<string, any[]> = new Map();
+// Mock SpiceDB client for testing
+const mockSpiceDBClient = {
+  writeSchema: vi.fn(),
+  checkPermission: vi.fn(),
+  writeRelationships: vi.fn(),
+  lookupSubjects: vi.fn(),
+  lookupResources: vi.fn(),
+  close: vi.fn(),
+  promises: {}
+};
 
-  async exec(sql: string): Promise<any> {
-    // Simple mock - just acknowledge table creation
-    return Promise.resolve({ success: true });
+// Mock the SpiceDB module
+vi.mock('@authzed/authzed-node', () => ({
+  v1: {
+    NewClient: vi.fn(() => mockSpiceDBClient),
+    ClientSecurity: {
+      SECURE: 'secure',
+      INSECURE_LOCALHOST_ALLOWED: 'insecure'
+    },
+    WriteSchemaRequest: {
+      create: vi.fn((req) => req)
+    },
+    CheckPermissionRequest: {
+      create: vi.fn((req) => req)
+    },
+    CheckPermissionResponse_Permissionship: {
+      HAS_PERMISSION: 'HAS_PERMISSION',
+      NO_PERMISSION: 'NO_PERMISSION'
+    },
+    WriteRelationshipsRequest: {
+      create: vi.fn((req) => req)
+    },
+    RelationshipUpdate: {
+      create: vi.fn((req) => req)
+    },
+    RelationshipUpdate_Operation: {
+      CREATE: 'CREATE',
+      DELETE: 'DELETE'
+    },
+    Relationship: {
+      create: vi.fn((req) => req)
+    },
+    ObjectReference: {
+      create: vi.fn((req) => req)
+    },
+    SubjectReference: {
+      create: vi.fn((req) => req)
+    },
+    Consistency: {
+      create: vi.fn((req) => req)
+    },
+    LookupSubjectsRequest: {
+      create: vi.fn((req) => req)
+    },
+    LookupResourcesRequest: {
+      create: vi.fn((req) => req)
+    }
   }
+}));
 
-  prepare(sql: string) {
-    return {
-      bind: (...params: any[]) => ({
-        first: async <T>(): Promise<T | null> => {
-          // Mock permission checking
-          if (sql.includes("SELECT role FROM notebook_permissions")) {
-            const [notebookId, userId] = params;
-            const permissions = this.tables.get("notebook_permissions") || [];
-            const permission = permissions.find(
-              (p) => p.notebook_id === notebookId && p.user_id === userId
-            );
-            return permission ? { role: permission.role } as T : null;
-          }
-          return null;
-        },
-        run: async (): Promise<any> => {
-          // Mock INSERT/DELETE operations
-          if (sql.includes("INSERT OR REPLACE INTO notebook_permissions")) {
-            const [notebookId, userId, role, grantedBy] = params;
-            const permissions = this.tables.get("notebook_permissions") || [];
-            const existingIndex = permissions.findIndex(
-              (p) => p.notebook_id === notebookId && p.user_id === userId
-            );
-            
-            const permission = {
-              notebook_id: notebookId,
-              user_id: userId,
-              role,
-              granted_by: grantedBy,
-              granted_at: new Date().toISOString(),
-            };
+// Test data store to simulate SpiceDB state
+interface TestRelation {
+  resource: { objectType: string; objectId: string };
+  relation: string;
+  subject: { objectType: string; objectId: string };
+}
 
-            if (existingIndex >= 0) {
-              permissions[existingIndex] = permission;
-            } else {
-              permissions.push(permission);
-            }
-            
-            this.tables.set("notebook_permissions", permissions);
-            return { success: true };
-          }
-          
-          if (sql.includes("DELETE FROM notebook_permissions")) {
-            const [notebookId, userId] = params;
-            const permissions = this.tables.get("notebook_permissions") || [];
-            const filtered = permissions.filter(
-              (p) => !(p.notebook_id === notebookId && p.user_id === userId)
-            );
-            this.tables.set("notebook_permissions", filtered);
-            return { success: true };
-          }
-          
-          return { success: true };
-        },
-        all: async <T>(): Promise<{ results: T[] }> => {
-          // Mock SELECT operations
-          if (sql.includes("SELECT notebook_id as notebookId")) {
-            const [notebookId] = params;
-            const permissions = this.tables.get("notebook_permissions") || [];
-            const results = permissions
-              .filter((p) => p.notebook_id === notebookId)
-              .map((p) => ({
-                notebookId: p.notebook_id,
-                userId: p.user_id,
-                role: p.role,
-                grantedBy: p.granted_by,
-                grantedAt: p.granted_at,
-              }));
-            return { results: results as T[] };
-          }
-          return { results: [] };
-        },
-      }),
-    };
-  }
+class TestSpiceDBStore {
+  private relations: TestRelation[] = [];
 
   reset() {
-    this.tables.clear();
+    this.relations = [];
+  }
+
+  addRelation(resource: any, relation: string, subject: any) {
+    this.relations.push({ resource, relation, subject });
+  }
+
+  removeRelation(resource: any, relation: string, subject: any) {
+    this.relations = this.relations.filter(
+      r => !(
+        r.resource.objectType === resource.objectType &&
+        r.resource.objectId === resource.objectId &&
+        r.relation === relation &&
+        r.subject.objectType === subject.objectType &&
+        r.subject.objectId === subject.objectId
+      )
+    );
+  }
+
+  hasPermission(resource: any, permission: string, subject: any): boolean {
+    // Simple permission logic for testing
+    const directRelation = this.relations.find(
+      r => 
+        r.resource.objectType === resource.objectType &&
+        r.resource.objectId === resource.objectId &&
+        r.subject.objectType === subject.objectType &&
+        r.subject.objectId === subject.objectId
+    );
+
+    if (!directRelation) return false;
+
+    // Permission logic based on our schema
+    if (permission === 'manage') {
+      return directRelation.relation === 'owner';
+    }
+    if (permission === 'write' || permission === 'read') {
+      return directRelation.relation === 'owner' || directRelation.relation === 'editor';
+    }
+
+    return false;
+  }
+
+  getSubjectsForPermission(resource: any, permission: string): any[] {
+    const subjects: any[] = [];
+    
+    for (const relation of this.relations) {
+      if (
+        relation.resource.objectType === resource.objectType &&
+        relation.resource.objectId === resource.objectId
+      ) {
+        // Check if this relation grants the permission
+        if (permission === 'manage' && relation.relation === 'owner') {
+          subjects.push({
+            subjectObjectId: relation.subject.objectId,
+            permissionship: 'HAS_PERMISSION'
+          });
+        } else if ((permission === 'write' || permission === 'read') && 
+                   (relation.relation === 'owner' || relation.relation === 'editor')) {
+          subjects.push({
+            subjectObjectId: relation.subject.objectId,
+            permissionship: 'HAS_PERMISSION'
+          });
+        }
+      }
+    }
+    
+    return subjects;
+  }
+
+  getResourcesForSubject(subject: any, permission: string): string[] {
+    const resourceIds: string[] = [];
+    
+    for (const relation of this.relations) {
+      if (
+        relation.subject.objectType === subject.objectType &&
+        relation.subject.objectId === subject.objectId
+      ) {
+        // Check if this relation grants the permission
+        if (permission === 'manage' && relation.relation === 'owner') {
+          resourceIds.push(relation.resource.objectId);
+        } else if ((permission === 'write' || permission === 'read') && 
+                   (relation.relation === 'owner' || relation.relation === 'editor')) {
+          resourceIds.push(relation.resource.objectId);
+        }
+      }
+    }
+    
+    return resourceIds;
   }
 }
 
-describe("RBAC Permissions System", () => {
-  let mockDb: MockD1Database;
+const testStore = new TestSpiceDBStore();
+
+describe("SpiceDB RBAC Permissions", () => {
+  const testEndpoint = "localhost:50051";
+  const testToken = "test-token";
+  const testNotebookId = "notebook-123";
+  const testUserId = "user-456";
+  const testOwnerId = "owner-789";
 
   beforeEach(() => {
-    mockDb = new MockD1Database();
+    vi.clearAllMocks();
+    testStore.reset();
+
+    // Setup mock behaviors
+    mockSpiceDBClient.writeSchema.mockImplementation((req, callback) => {
+      callback(null, { success: true });
+    });
+
+    mockSpiceDBClient.checkPermission.mockImplementation((req, callback) => {
+      const hasPermission = testStore.hasPermission(
+        req.resource,
+        req.permission,
+        req.subject.object
+      );
+      
+      callback(null, {
+        permissionship: hasPermission ? 'HAS_PERMISSION' : 'NO_PERMISSION'
+      });
+    });
+
+    mockSpiceDBClient.writeRelationships.mockImplementation((req, callback) => {
+      for (const update of req.updates) {
+        if (update.operation === 'CREATE') {
+          testStore.addRelation(
+            update.relationship.resource,
+            update.relationship.relation,
+            update.relationship.subject.object
+          );
+        } else if (update.operation === 'DELETE') {
+          testStore.removeRelation(
+            update.relationship.resource,
+            update.relationship.relation,
+            update.relationship.subject.object
+          );
+        }
+      }
+      callback(null, { success: true });
+    });
+
+    mockSpiceDBClient.lookupSubjects.mockImplementation((req) => {
+      const subjects = testStore.getSubjectsForPermission(req.resource, req.permission);
+      
+      return {
+        on: (event: string, handler: Function) => {
+          if (event === 'data') {
+            subjects.forEach(subject => {
+              // The response should have the shape LookupSubjectsResponse
+              handler({ subject: subject });
+            });
+          } else if (event === 'end') {
+            setTimeout(() => handler(), 0); // Use setTimeout to ensure async behavior
+          }
+        }
+      };
+    });
+
+    mockSpiceDBClient.lookupResources.mockImplementation((req) => {
+      const resourceIds = testStore.getResourcesForSubject(req.subject.object, req.permission);
+      
+      return {
+        on: (event: string, handler: Function) => {
+          if (event === 'data') {
+            resourceIds.forEach(resourceId => handler({ resourceObjectId: resourceId }));
+          } else if (event === 'end') {
+            setTimeout(() => handler(), 0); // Use setTimeout to ensure async behavior
+          }
+        }
+      };
+    });
   });
 
-  describe("Permission Management", () => {
-    it("should initialize permissions table", async () => {
-      await expect(initializePermissionsTable(mockDb as any)).resolves.not.toThrow();
+  describe("initializeSpiceDB", () => {
+    it("should initialize SpiceDB client and write schema", async () => {
+      await initializeSpiceDB(testEndpoint, testToken);
+      
+      expect(mockSpiceDBClient.writeSchema).toHaveBeenCalled();
+    });
+  });
+
+  describe("checkNotebookPermission", () => {
+    it("should return 'none' for user with no permissions", async () => {
+      const result = await checkNotebookPermission(testEndpoint, testToken, testNotebookId, testUserId);
+      expect(result).toBe("none");
     });
 
-    it("should return 'none' for users with no permissions", async () => {
-      const permission = await checkNotebookPermission(mockDb as any, "notebook-1", "user-1");
-      expect(permission).toBe("none");
+    it("should return 'owner' for notebook owner", async () => {
+      // First grant ownership
+      await grantNotebookPermission(testEndpoint, testToken, testNotebookId, testUserId, "owner", testOwnerId);
+      
+      const result = await checkNotebookPermission(testEndpoint, testToken, testNotebookId, testUserId);
+      expect(result).toBe("owner");
     });
 
-    it("should grant and check owner permissions", async () => {
-      const success = await grantNotebookPermission(
-        mockDb as any,
-        "notebook-1",
-        "user-1",
-        "owner",
-        "user-1"
-      );
-      expect(success).toBe(true);
+    it("should return 'editor' for notebook editor", async () => {
+      // First grant editor permission
+      await grantNotebookPermission(testEndpoint, testToken, testNotebookId, testUserId, "editor", testOwnerId);
+      
+      const result = await checkNotebookPermission(testEndpoint, testToken, testNotebookId, testUserId);
+      expect(result).toBe("editor");
+    });
+  });
 
-      const permission = await checkNotebookPermission(mockDb as any, "notebook-1", "user-1");
+  describe("grantNotebookPermission", () => {
+    it("should successfully grant owner permission", async () => {
+      const result = await grantNotebookPermission(testEndpoint, testToken, testNotebookId, testUserId, "owner", testOwnerId);
+      expect(result).toBe(true);
+      
+      // Verify permission was granted
+      const permission = await checkNotebookPermission(testEndpoint, testToken, testNotebookId, testUserId);
       expect(permission).toBe("owner");
     });
 
-    it("should grant and check editor permissions", async () => {
-      // First create an owner
-      await grantNotebookPermission(mockDb as any, "notebook-1", "owner-1", "owner", "owner-1");
+    it("should successfully grant editor permission", async () => {
+      const result = await grantNotebookPermission(testEndpoint, testToken, testNotebookId, testUserId, "editor", testOwnerId);
+      expect(result).toBe(true);
       
-      // Then grant editor permission
-      const success = await grantNotebookPermission(
-        mockDb as any,
-        "notebook-1",
-        "user-2",
-        "editor",
-        "owner-1"
-      );
-      expect(success).toBe(true);
-
-      const permission = await checkNotebookPermission(mockDb as any, "notebook-1", "user-2");
+      // Verify permission was granted
+      const permission = await checkNotebookPermission(testEndpoint, testToken, testNotebookId, testUserId);
       expect(permission).toBe("editor");
     });
+  });
 
-    it("should revoke permissions", async () => {
-      // Grant permission first
-      await grantNotebookPermission(mockDb as any, "notebook-1", "user-1", "editor", "owner-1");
+  describe("revokeNotebookPermission", () => {
+    it("should successfully revoke permissions", async () => {
+      // First grant permission
+      await grantNotebookPermission(testEndpoint, testToken, testNotebookId, testUserId, "editor", testOwnerId);
       
-      // Verify it was granted
-      let permission = await checkNotebookPermission(mockDb as any, "notebook-1", "user-1");
+      // Verify permission exists
+      let permission = await checkNotebookPermission(testEndpoint, testToken, testNotebookId, testUserId);
       expect(permission).toBe("editor");
-
+      
       // Revoke permission
-      const success = await revokeNotebookPermission(mockDb as any, "notebook-1", "user-1");
-      expect(success).toBe(true);
-
-      // Verify it was revoked
-      permission = await checkNotebookPermission(mockDb as any, "notebook-1", "user-1");
+      const result = await revokeNotebookPermission(testEndpoint, testToken, testNotebookId, testUserId);
+      expect(result).toBe(true);
+      
+      // Verify permission was revoked
+      permission = await checkNotebookPermission(testEndpoint, testToken, testNotebookId, testUserId);
       expect(permission).toBe("none");
-    });
-
-    it("should list notebook permissions", async () => {
-      // Add multiple permissions
-      await grantNotebookPermission(mockDb as any, "notebook-1", "owner-1", "owner", "owner-1");
-      await grantNotebookPermission(mockDb as any, "notebook-1", "editor-1", "editor", "owner-1");
-      await grantNotebookPermission(mockDb as any, "notebook-1", "editor-2", "editor", "owner-1");
-
-      const permissions = await getNotebookPermissions(mockDb as any, "notebook-1");
-      expect(permissions).toHaveLength(3);
-      expect(permissions.find(p => p.userId === "owner-1")?.role).toBe("owner");
-      expect(permissions.find(p => p.userId === "editor-1")?.role).toBe("editor");
-      expect(permissions.find(p => p.userId === "editor-2")?.role).toBe("editor");
     });
   });
 
-  describe("Notebook Ownership", () => {
-    it("should create notebook with ownership", async () => {
-      const success = await createNotebookWithOwnership(mockDb as any, "notebook-1", "user-1");
-      expect(success).toBe(true);
-
-      const isOwner = await isNotebookOwner(mockDb as any, "notebook-1", "user-1");
-      expect(isOwner).toBe(true);
+  describe("getNotebookPermissions", () => {
+    it("should return all permissions for a notebook", async () => {
+      // Grant permissions to multiple users
+      await grantNotebookPermission(testEndpoint, testToken, testNotebookId, "user1", "owner", "system");
+      await grantNotebookPermission(testEndpoint, testToken, testNotebookId, "user2", "editor", "user1");
+      
+      const permissions = await getNotebookPermissions(testEndpoint, testToken, testNotebookId);
+      
+      expect(permissions).toHaveLength(2);
+      expect(permissions.find(p => p.userId === "user1")?.role).toBe("owner");
+      expect(permissions.find(p => p.userId === "user2")?.role).toBe("editor");
     });
 
-    it("should verify ownership correctly", async () => {
-      await grantNotebookPermission(mockDb as any, "notebook-1", "owner-1", "owner", "owner-1");
-      await grantNotebookPermission(mockDb as any, "notebook-1", "editor-1", "editor", "owner-1");
-
-      const ownerCheck = await isNotebookOwner(mockDb as any, "notebook-1", "owner-1");
-      const editorCheck = await isNotebookOwner(mockDb as any, "notebook-1", "editor-1");
-      const noAccessCheck = await isNotebookOwner(mockDb as any, "notebook-1", "random-user");
-
-      expect(ownerCheck).toBe(true);
-      expect(editorCheck).toBe(false);
-      expect(noAccessCheck).toBe(false);
-    });
-
-    it("should verify permission management rights", async () => {
-      await grantNotebookPermission(mockDb as any, "notebook-1", "owner-1", "owner", "owner-1");
-      await grantNotebookPermission(mockDb as any, "notebook-1", "editor-1", "editor", "owner-1");
-
-      const ownerCanManage = await canManagePermissions(mockDb as any, "notebook-1", "owner-1");
-      const editorCanManage = await canManagePermissions(mockDb as any, "notebook-1", "editor-1");
-      const noAccessCanManage = await canManagePermissions(mockDb as any, "notebook-1", "random-user");
-
-      expect(ownerCanManage).toBe(true);
-      expect(editorCanManage).toBe(false);
-      expect(noAccessCanManage).toBe(false);
+    it("should return empty array for notebook with no permissions", async () => {
+      const permissions = await getNotebookPermissions(testEndpoint, testToken, "nonexistent-notebook");
+      expect(permissions).toEqual([]);
     });
   });
 
-  describe("Edge Cases", () => {
-    it("should handle database errors gracefully", async () => {
-      // Create a mock database that throws errors
-      const errorDb = {
-        prepare: () => ({
-          bind: () => ({
-            first: async () => { throw new Error("Database error"); },
-            run: async () => { throw new Error("Database error"); },
-            all: async () => { throw new Error("Database error"); },
-          }),
-        }),
-      };
+  describe("createNotebookWithOwnership", () => {
+    it("should create notebook and grant ownership", async () => {
+      const result = await createNotebookWithOwnership(testEndpoint, testToken, testNotebookId, testUserId);
+      expect(result).toBe(true);
+      
+      // Verify ownership was granted
+      const permission = await checkNotebookPermission(testEndpoint, testToken, testNotebookId, testUserId);
+      expect(permission).toBe("owner");
+    });
+  });
 
-      // Should return 'none' on error, not throw
-      const permission = await checkNotebookPermission(errorDb as any, "notebook-1", "user-1");
-      expect(permission).toBe("none");
-
-      // Should return false on error, not throw
-      const grantSuccess = await grantNotebookPermission(errorDb as any, "notebook-1", "user-1", "owner", "user-1");
-      expect(grantSuccess).toBe(false);
+  describe("isNotebookOwner", () => {
+    it("should return true for notebook owner", async () => {
+      await grantNotebookPermission(testEndpoint, testToken, testNotebookId, testUserId, "owner", "system");
+      
+      const result = await isNotebookOwner(testEndpoint, testToken, testNotebookId, testUserId);
+      expect(result).toBe(true);
     });
 
-    it("should handle empty notebook IDs", async () => {
-      const permission = await checkNotebookPermission(mockDb as any, "", "user-1");
-      expect(permission).toBe("none");
+    it("should return false for non-owner", async () => {
+      await grantNotebookPermission(testEndpoint, testToken, testNotebookId, testUserId, "editor", "owner");
+      
+      const result = await isNotebookOwner(testEndpoint, testToken, testNotebookId, testUserId);
+      expect(result).toBe(false);
     });
 
-    it("should handle empty user IDs", async () => {
-      const permission = await checkNotebookPermission(mockDb as any, "notebook-1", "");
-      expect(permission).toBe("none");
+    it("should return false for user with no permissions", async () => {
+      const result = await isNotebookOwner(testEndpoint, testToken, testNotebookId, testUserId);
+      expect(result).toBe(false);
+    });
+  });
+
+  describe("canManagePermissions", () => {
+    it("should return true for notebook owner", async () => {
+      await grantNotebookPermission(testEndpoint, testToken, testNotebookId, testUserId, "owner", "system");
+      
+      const result = await canManagePermissions(testEndpoint, testToken, testNotebookId, testUserId);
+      expect(result).toBe(true);
+    });
+
+    it("should return false for editor", async () => {
+      await grantNotebookPermission(testEndpoint, testToken, testNotebookId, testUserId, "editor", "owner");
+      
+      const result = await canManagePermissions(testEndpoint, testToken, testNotebookId, testUserId);
+      expect(result).toBe(false);
+    });
+
+    it("should return false for user with no permissions", async () => {
+      const result = await canManagePermissions(testEndpoint, testToken, testNotebookId, testUserId);
+      expect(result).toBe(false);
     });
   });
 });

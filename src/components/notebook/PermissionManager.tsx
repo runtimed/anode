@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { usePermissions, NotebookPermission } from '@/hooks/usePermissions.js';
+import { usePermissions } from '@/hooks/usePermissions.js';
 import { useCurrentUser } from '@/hooks/useCurrentUser.js';
 import { getCurrentNotebookId } from '@/util/store-id.js';
 import { Users, Plus, Trash2, UserCheck, Crown, Edit, AlertCircle } from 'lucide-react';

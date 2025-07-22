@@ -43,7 +43,7 @@ export const usePermissions = (): UsePermissionsResult => {
     });
 
     if (!response.ok) {
-      const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
+      const errorData = await response.json().catch(() => ({ error: 'Unknown error' })) as { error?: string };
       throw new Error(errorData.error || `HTTP ${response.status}`);
     }
 
@@ -53,8 +53,8 @@ export const usePermissions = (): UsePermissionsResult => {
   const checkPermission = useCallback(async (notebookId: string): Promise<PermissionRole> => {
     try {
       setError(null);
-      const data = await makeApiCall(`/api/permissions/check?notebookId=${encodeURIComponent(notebookId)}`);
-      return data.permission || 'none';
+      const data = await makeApiCall(`/api/permissions/check?notebookId=${encodeURIComponent(notebookId)}`) as { permission?: string };
+      return (data.permission as PermissionRole) || 'none';
     } catch (err: any) {
       console.error('Error checking permission:', err);
       setError(err.message);
@@ -66,7 +66,7 @@ export const usePermissions = (): UsePermissionsResult => {
     try {
       setLoading(true);
       setError(null);
-      const data = await makeApiCall(`/api/permissions/list?notebookId=${encodeURIComponent(notebookId)}`);
+      const data = await makeApiCall(`/api/permissions/list?notebookId=${encodeURIComponent(notebookId)}`) as { permissions?: NotebookPermission[] };
       setPermissions(data.permissions || []);
     } catch (err: any) {
       console.error('Error listing permissions:', err);
