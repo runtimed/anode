@@ -58,6 +58,7 @@ export default defineConfig(({ mode }) => {
         ignored: ["!**/node_modules/@runt/schema/mod.ts", "**/.env*"],
         followSymlinks: true,
       },
+      strictPort: true,
     },
     worker: { format: "es" },
     resolve: {
