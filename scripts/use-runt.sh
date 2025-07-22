@@ -26,6 +26,14 @@ if [ "$1" = "local" ]; then
 fi
 
 if [ "$1" = "prod" ]; then
+  PNPM_VERSION=$(pnpm --version)
+  PNPM_MAJOR=$(echo "$PNPM_VERSION" | cut -d. -f1)
+  PNPM_MINOR=$(echo "$PNPM_VERSION" | cut -d. -f2)
+  if [ "$PNPM_MAJOR" -lt 10 ] || { [ "$PNPM_MAJOR" -eq 10 ] && [ "$PNPM_MINOR" -lt 9 ]; }; then
+    echo "Error: pnpm v10.9.0 or higher is required. Detected version: $PNPM_VERSION"
+    exit 1
+  fi
+
   pnpm add jsr:@runt/schema
 fi
 
