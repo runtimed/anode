@@ -23,7 +23,15 @@ const AuthRedirect: React.FC = () => {
     return () => {
       cancelled = true;
     };
-  }, [handleRedirect, navigate]);
+    // NOTE: Do not add dependencies to this useEffect
+    // It's only meant to be called once, during initial load
+    // The double-reload mode in dev mode already causes enough headaches
+    // without adding even more mount/unmonut cycles
+    // If this continues to be a problem, we should move the login handling code
+    // completely outside of the react lifecycle, and into some global store
+    // eslint-disable-next-line react-compiler/react-compiler
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return <div>Logging in...</div>;
 };
