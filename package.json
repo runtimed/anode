@@ -4,7 +4,8 @@
   "type": "module",
   "description": "Anode - real-time collaborative notebook system with rich outputs",
   "engines": {
-    "node": ">=23.0.0"
+    "node": ">=23.0.0",
+    "pnpm": ">=10.9.0"
   },
   "scripts": {
     "dev:pm2": "./scripts/start-dev.sh && pnpm exec pm2 logs",
