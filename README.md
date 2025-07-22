@@ -215,6 +215,8 @@ Should update packages.json to use the local version of `runt`:
 
 **Important**: Ensure both repositories use compatible schema versions. Type errors usually indicate schema mismatches.
 
+**Git Hook Protection**: A Husky pre-commit hook prevents accidentally committing `package.json` with `@runt/schema` using the `file:` protocol. This ensures the repository remains deployable. See [CONTRIBUTING.md](./CONTRIBUTING.md#git-hook-protection) for details.
+
 ## 🚀 Groq AI Integration
 
 Anode supports **Groq** as a first-class AI provider alongside OpenAI and Ollama, offering high-speed inference with advanced models.

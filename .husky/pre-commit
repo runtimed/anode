@@ -1,0 +1,47 @@
+# Pre-commit hook to prevent @runt/schema dependency from using file: protocol
+
+# Get the list of files that are staged for commit
+staged_files=$(git diff --cached --name-only)
+
+# Check if package.json is in the staged files
+if echo "$staged_files" | grep -q "package.json"; then
+    echo "🔍 Checking package.json for @runt/schema dependency..."
+    
+    # Get the staged version of package.json
+    staged_package_json=$(git show :package.json 2>/dev/null)
+    
+    if [ $? -ne 0 ]; then
+        echo "⚠️  Warning: Could not read staged package.json, skipping validation"
+        exit 0
+    fi
+    
+    # Extract the @runt/schema dependency line
+    runt_schema_line=$(echo "$staged_package_json" | grep -E '"@runt/schema"\s*:')
+    
+    if [ -n "$runt_schema_line" ]; then
+        echo "📦 Found @runt/schema dependency: $runt_schema_line"
+        
+        # Check if it uses file: protocol
+        if echo "$runt_schema_line" | grep -q '"file:'; then
+            echo ""
+            echo "❌ Error: @runt/schema dependency cannot use 'file:' protocol in package.json"
+            echo "   This prevents proper deployment and distribution."
+            echo "   Please use a proper version or GitHub URL instead."
+            echo ""
+            echo "   Current dependency:"
+            echo "   $runt_schema_line"
+            echo ""
+            echo "   Allowed formats:"
+            echo "   - \"@runt/schema\": \"^1.0.0\""
+            echo "   - \"@runt/schema\": \"github:runtimed/runt#commit&path:/packages/schema\""
+            echo "   - \"@runt/schema\": \"npm:@runt/schema@1.0.0\""
+            echo ""
+            echo "   To fix this, update the dependency in package.json and try committing again."
+            exit 1
+        else
+            echo "✅ @runt/schema dependency is properly configured (no file: protocol)"
+        fi
+    else
+        echo "ℹ️  No @runt/schema dependency found in package.json"
+    fi
+fi
