@@ -26,14 +26,7 @@ if [ "$1" = "local" ]; then
 fi
 
 if [ "$1" = "prod" ]; then
-  VERSION=$(curl -s https://api.jsr.io/scopes/runt/packages/schema/versions | jq -r '.[0].version')
-  echo "Using @runt/schema from production JSR package: $VERSION"
-  jq --arg version "$VERSION" '.dependencies["@runt/schema"] = "jsr:^\($version)"' package.json > package.json.tmp && mv package.json.tmp package.json
-  echo "Updated package.json to use @runt/schema version jsr:^$VERSION"
-  # Update lockfile
-  pnpm i
-  # echo "pnpm i jsr:@runt/schema"
-  # pnpm add "@runt/schema@jsr:@runt/schema@^$VERSION"
+  pnpm add jsr:@runt/schema
 fi
 
 if [ "$1" != "main" ] && [ "$1" != "local" ] && [ "$1" != "prod" ]; then
