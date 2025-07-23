@@ -173,17 +173,35 @@ The `@runt/schema` package provides shared types and events between Anode and Ru
 
 **Production (JSR Package)**:
 
+```bash
+pnpm use-runt prod
+```
+
+Should update package.json to:
+
 ```json
 "@runt/schema": "jsr:^0.8.0"
 ```
 
 **Testing PR Changes (GitHub Reference)**:
 
+```bash
+pnpm use-runt main
+```
+
+Should update package.json to use the hash of whatever is on `main` in the `runt` package:
+
 ```json
 "@runt/schema": "github:runtimed/runt#1d52f9e51b9f28e81e366a7053d1e5fa6164c390&path:/packages/schema"
 ```
 
 **Local Development (File Link)**:
+
+```bash
+pnpm use-runt local
+```
+
+Should update packages.json to use the local version of `runt`:
 
 ```json
 "@runt/schema": "file:../runt/packages/schema"
@@ -196,6 +214,8 @@ The `@runt/schema` package provides shared types and events between Anode and Ru
 3. Restart development server (`pnpm dev`)
 
 **Important**: Ensure both repositories use compatible schema versions. Type errors usually indicate schema mismatches.
+
+**Git Hook Protection**: A Husky pre-commit hook prevents accidentally committing `package.json` with `@runt/schema` using the `file:` protocol. This ensures the repository remains deployable. See [CONTRIBUTING.md](./CONTRIBUTING.md#git-hook-protection) for details.
 
 ## 🚀 Groq AI Integration
 
