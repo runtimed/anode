@@ -37,7 +37,8 @@ export default {
       url.pathname.startsWith("/api/") ||
       url.pathname.startsWith("/livestore") ||
       url.pathname === "/health" ||
-      url.pathname.startsWith("/debug/");
+      url.pathname.startsWith("/debug/") ||
+      url.pathname === "/websocket";
 
     console.log("🎯 Route decision:", {
       isApiRequest,

@@ -15,6 +15,7 @@ import {
 } from "@runt/schema";
 import { AnsiStreamOutput } from "@/components/outputs";
 import { AnsiErrorOutput } from "@/components/outputs/AnsiOutput.js";
+import { useOutputDeltas } from "@/hooks/useOutputDeltas";
 import "@/components/outputs/outputs.css";
 
 // Dynamic imports for heavy components
@@ -68,6 +69,7 @@ interface RichOutputProps {
     | "terminal"
     | "markdown"
     | "error";
+  outputId?: string;
 }
 
 const LoadingSpinner = () => (
@@ -78,8 +80,8 @@ const LoadingSpinner = () => (
 
 export const RichOutput: React.FC<RichOutputProps> = ({
   data,
-
   outputType = "multimedia_display",
+  outputId,
 }) => {
   // Handle terminal outputs specially
   if (outputType === "terminal") {
@@ -90,9 +92,18 @@ export const RichOutput: React.FC<RichOutputProps> = ({
   // Handle markdown outputs specially
   if (outputType === "markdown") {
     const markdownData = typeof data === "string" ? data : String(data || "");
+
+    // Apply deltas if we have an outputId
+    const { content: finalMarkdownContent } = outputId
+      ? useOutputDeltas({ outputId, originalContent: markdownData })
+      : { content: markdownData };
+
     return (
       <Suspense fallback={<LoadingSpinner />}>
-        <MarkdownRenderer content={markdownData} enableCopyCode={true} />
+        <MarkdownRenderer
+          content={finalMarkdownContent}
+          enableCopyCode={true}
+        />
       </Suspense>
     );
   }
@@ -213,15 +224,22 @@ export const RichOutput: React.FC<RichOutputProps> = ({
         return <div className="text-red-500">Invalid tool result data</div>;
       }
 
-      case TEXT_MIME_TYPES[2]: // text/markdown
+      case TEXT_MIME_TYPES[2]: { // text/markdown
+        const markdownContent = String(outputData[mediaType] || "");
+        // Apply deltas if we have an outputId
+        const { content: finalMarkdownContent } = outputId
+          ? useOutputDeltas({ outputId, originalContent: markdownContent })
+          : { content: markdownContent };
+
         return (
           <Suspense fallback={<LoadingSpinner />}>
             <MarkdownRenderer
-              content={String(outputData[mediaType] || "")}
+              content={finalMarkdownContent}
               enableCopyCode={true}
             />
           </Suspense>
         );
+      }
 
       case TEXT_MIME_TYPES[1]: // text/html
         return (
