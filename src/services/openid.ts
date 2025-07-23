@@ -19,8 +19,8 @@ interface RequestState {
 }
 
 export interface RedirectUrls {
-  loginUrl: URL | null;
-  registrationUrl: URL | null;
+  loginUrl: URL;
+  registrationUrl: URL;
 }
 
 enum LocalStorageKey {

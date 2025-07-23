@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useGoogleAuth } from "../../auth/useGoogleAuth.js";
-import { GoogleSignIn } from "./GoogleSignIn.js";
 import { googleAuthManager } from "../../auth/google-auth.js";
+import LoginPrompt from "./LoginPrompt.js";
 
 interface AuthGuardProps {
   children: React.ReactNode;
@@ -11,6 +11,7 @@ interface AuthGuardProps {
 export const AuthGuard: React.FC<AuthGuardProps> = ({ children, fallback }) => {
   const { isAuthenticated, isLoading, error } = useGoogleAuth();
   const [authExpiredError, setAuthExpiredError] = useState<string | null>(null);
+  const [loginError, setLoginError] = useState<string | null>(null);
 
   // Listen for authentication errors from LiveStore
   useEffect(() => {
@@ -60,7 +61,7 @@ export const AuthGuard: React.FC<AuthGuardProps> = ({ children, fallback }) => {
               Your session has expired. Please sign in again to continue.
             </div>
           )}
-          <GoogleSignIn className="mt-4" />
+          <LoginPrompt error={loginError} setError={setLoginError} />
           {authExpiredError && (
             <button
               onClick={() => {
@@ -89,7 +90,7 @@ export const AuthGuard: React.FC<AuthGuardProps> = ({ children, fallback }) => {
             <div className="text-muted-foreground mb-8 text-sm">
               Sign in to access your collaborative notebooks
             </div>
-            <GoogleSignIn />
+            <LoginPrompt error={loginError} setError={setLoginError} />
             <div className="text-muted-foreground mt-8 text-xs">
               <p>
                 Anode is a real-time collaborative notebook system.

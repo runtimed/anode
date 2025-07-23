@@ -266,7 +266,7 @@ class GoogleAuthManager {
   }
 
   isEnabled(): boolean {
-    return this.config.enabled;
+    return true; // TEMPORARY force on while ripping out google auth
   }
 
   renderSignInButton(element: HTMLElement): void {

@@ -37,19 +37,20 @@ export const useGoogleAuth = (): AuthState & {
             error: null,
           });
         } else {
+          // TEMPORARY force on while ripping out google auth
           // Local development mode - use fallback token
-          const fallbackToken = getCurrentAuthToken();
-          setAuthState({
-            isAuthenticated: true,
-            user: {
-              id: "local-dev-user",
-              email: "local@example.com",
-              name: "Local User",
-            },
-            token: fallbackToken,
-            isLoading: false,
-            error: null,
-          });
+          // const fallbackToken = getCurrentAuthToken();
+          // setAuthState({
+          //   isAuthenticated: true,
+          //   user: {
+          //     id: "local-dev-user",
+          //     email: "local@example.com",
+          //     name: "Local User",
+          //   },
+          //   token: fallbackToken,
+          //   isLoading: false,
+          //   error: null,
+          // });
         }
       } catch (error) {
         console.error("Auth initialization failed:", error);
