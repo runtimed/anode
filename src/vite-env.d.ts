@@ -3,6 +3,7 @@
 
 interface ImportMetaEnv {
   VITE_AUTH_URI: string;
+  VITE_API_KEY_URI?: string;
   VITE_AUTH_CLIENT_ID?: string;
   VITE_AUTH_REDIRECT_URI: string;
   VITE_LIVESTORE_URL?: string;

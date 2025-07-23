@@ -60,6 +60,12 @@ interface Tokens {
   expiresAt: number;
 }
 
+interface ApiKeyData {
+  id: string;
+  apiKey: string;
+  expiresAt: string;
+}
+
 export interface RedirectUrls {
   loginUrl: URL;
   registrationUrl: URL;
@@ -68,6 +74,7 @@ export interface RedirectUrls {
 enum LocalStorageKey {
   RequestState = "openid_request_state",
   Tokens = "openid_tokens",
+  ApiKey = "anaconda_api_key",
 }
 
 const OPENID_SCOPES = "openid email profile offline_access";
@@ -183,6 +190,35 @@ export class OpenIdService {
     );
   }
 
+  public getApiKey(): Observable<string | null> {
+    if (!import.meta.env.VITE_API_KEY_URI) {
+      return of(null);
+    }
+
+    return this.tokenChangeSubject$.pipe(
+      startWith(LocalStorageKey.ApiKey), // Trigger initial load
+      filter(key => key === LocalStorageKey.ApiKey),
+      switchMap(() => {
+        const existingApiKeyData = this.getFromLocalStorage<ApiKeyData>(LocalStorageKey.ApiKey);
+        if (existingApiKeyData?.apiKey) {
+          return of(existingApiKeyData.apiKey);
+        }
+
+        // If no API key exists, try to fetch one using the access token
+        return this.getAccessToken().pipe(
+          filter(accessToken => accessToken !== null),
+          take(1),
+          switchMap(accessToken => {
+            return this.fetchApiKey(accessToken!).pipe(
+              catchError(() => of(null))
+            );
+          })
+        );
+      }),
+      shareReplay(1)
+    );
+  }
+
   public handleRedirect(url: URL): Observable<void> {
     return this.convertCodeToToken(url).pipe(
       map(() => { }),
@@ -196,6 +232,8 @@ export class OpenIdService {
     this.refreshedToken$ = null;
     this.syncToLocalStorage(LocalStorageKey.RequestState, null);
     this.syncToLocalStorage(LocalStorageKey.Tokens, null);
+    // N.B. Do this last, so we re-fetch an API key with a new token
+    this.syncToLocalStorage(LocalStorageKey.ApiKey, null);
     this.resetSubject$.next();
   }
 
@@ -310,4 +348,42 @@ export class OpenIdService {
     }
     return this.config$;
   }
+
+  private fetchApiKey(accessToken: string): Observable<string> {
+    const payload = {
+      scopes: ["cloud:write"],
+      user_created: false,
+      name: "runt api key",
+      tags: ["runt"],
+    };
+
+    return from(
+      fetch(import.meta.env.VITE_API_KEY_URI!, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${accessToken}`
+        },
+        body: JSON.stringify(payload)
+      })
+    ).pipe(
+      switchMap(response => {
+        if (!response.ok) {
+          throw new Error(`Failed to fetch API key: ${response.status}`);
+        }
+        return from(response.json());
+      }),
+      map((data: any) => {
+        const apiKeyData: ApiKeyData = {
+          id: data.id,
+          apiKey: data.api_key,
+          expiresAt: data.expires_at
+        };
+
+        this.syncToLocalStorage(LocalStorageKey.ApiKey, apiKeyData);
+        return apiKeyData.apiKey;
+      })
+    );
+  }
+
 }

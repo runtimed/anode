@@ -12,8 +12,13 @@ type AccessTokenState =
   | { valid: true; token: string; user: AuthUser }
   | { valid: false; loading: boolean; error?: Error };
 
+type ApiKeyState =
+  | { valid: true; key: string; user: AuthUser }
+  | { valid: false; loading: boolean; error?: Error };
+
 interface AuthContextType {
   accessToken: AccessTokenState;
+  apiKey: ApiKeyState;
   signOut: () => void;
 }
 
@@ -33,6 +38,11 @@ interface AuthProviderProps {
 
 export function AuthProvider({ children }: AuthProviderProps) {
   const [accessTokenState, setAccessTokenState] = useState<AccessTokenState>({
+    valid: false,
+    loading: true
+  });
+
+  const [apiKeyState, setApiKeyState] = useState<ApiKeyState>({
     valid: false,
     loading: true
   });
@@ -83,6 +93,38 @@ export function AuthProvider({ children }: AuthProviderProps) {
     return () => subscription.unsubscribe();
   }, []);
 
+  useEffect(() => {
+    const isLocalMode = !import.meta.env.VITE_AUTH_CLIENT_ID;
+    if (isLocalMode) {
+      setApiKeyState({ valid: false, loading: false });
+      return;
+    }
+
+    const openIdService = getOpenIdService();
+    const subscription = openIdService.getApiKey().subscribe({
+      next: (key) => {
+        // TODO: Replace with actual user data from OpenID service
+        const dummyUser: AuthUser = {
+          id: "local-dev-user",
+          email: "local@example.com",
+          name: "Local Development User",
+          picture: undefined,
+        };
+        if (key) {
+          setApiKeyState({ valid: true, key, user: dummyUser });
+        } else {
+          setApiKeyState({ valid: false, loading: false });
+        }
+      },
+      error: (error) => {
+        console.error('Error getting API key:', error);
+        setApiKeyState({ valid: false, loading: false, error });
+      }
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
+
   const signOut = () => {
     const openIdService = getOpenIdService();
     openIdService.reset();
@@ -90,6 +132,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
   const value: AuthContextType = {
     accessToken: accessTokenState,
+    apiKey: apiKeyState,
     signOut,
   };
 

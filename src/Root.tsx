@@ -87,8 +87,8 @@ const LiveStoreApp: React.FC = () => {
   }, [resetPersistence]);
 
   // Get authenticated user info to set clientId
-  const { accessToken } = useAuth();
-  const user = accessToken.valid ? accessToken.user : null;
+  const { apiKey } = useAuth();
+  const user = apiKey.valid ? apiKey.user : null;
 
   // Use the authenticated user's ID as clientId for proper attribution
   const clientId = user?.id || "anonymous-user";
@@ -102,7 +102,7 @@ const LiveStoreApp: React.FC = () => {
   });
 
   // Get current auth token from AuthProvider
-  const currentAuthToken = accessToken.valid ? accessToken.token : "insecure-token-change-me";
+  const currentAuthToken = apiKey.valid ? apiKey.key : "insecure-token-change-me";
 
   return (
     <LiveStoreProvider
