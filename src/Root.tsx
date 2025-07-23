@@ -16,12 +16,13 @@ import { unstable_batchedUpdates as batchUpdates } from "react-dom";
 import { NotebookViewer } from "./components/notebook/NotebookViewer.js";
 import { AuthGuard } from "./components/auth/AuthGuard.js";
 import AuthRedirect from "./components/auth/AuthRedirect.js";
+import { AuthProvider } from "./components/auth/AuthProvider.js";
 
 import LiveStoreWorker from "./livestore.worker?worker";
 import { schema } from "./schema.js";
 import { getCurrentNotebookId, getStoreId } from "./util/store-id.js";
 import { getCurrentAuthToken, isAuthStateValid } from "./auth/google-auth.js";
-import { useGoogleAuth } from "./auth/useGoogleAuth.js";
+import { useAuth } from "./components/auth/AuthProvider.js";
 import { ErrorBoundary } from "react-error-boundary";
 
 const NotebookApp: React.FC = () => {
@@ -160,7 +161,8 @@ const LiveStoreApp: React.FC = () => {
   }, [resetPersistence]);
 
   // Get authenticated user info to set clientId
-  const { user } = useGoogleAuth();
+  const { accessToken } = useAuth();
+  const user = accessToken.valid ? accessToken.user : null;
 
   // Use the authenticated user's ID as clientId for proper attribution
   const clientId = user?.id || "anonymous-user";
@@ -244,13 +246,15 @@ if (typeof Worker !== "undefined") {
 
 export const App: React.FC = () => {
   return (
-    <Routes>
-      <Route path="/oidc" element={<AuthRedirect />} />
-      <Route path="/*" element={
-        <AuthGuard>
-          <LiveStoreApp />
-        </AuthGuard>
-      } />
-    </Routes>
+    <AuthProvider>
+      <Routes>
+        <Route path="/oidc" element={<AuthRedirect />} />
+        <Route path="/*" element={
+          <AuthGuard>
+            <LiveStoreApp />
+          </AuthGuard>
+        } />
+      </Routes>
+    </AuthProvider>
   );
 };

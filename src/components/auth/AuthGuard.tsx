@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { useGoogleAuth } from "../../auth/useGoogleAuth.js";
+import { useAuth } from "./AuthProvider.js";
 import { googleAuthManager } from "../../auth/google-auth.js";
 import LoginPrompt from "./LoginPrompt.js";
 
@@ -9,7 +9,10 @@ interface AuthGuardProps {
 }
 
 export const AuthGuard: React.FC<AuthGuardProps> = ({ children, fallback }) => {
-  const { isAuthenticated, isLoading, error } = useGoogleAuth();
+  const { accessToken } = useAuth();
+  const isAuthenticated = accessToken.valid;
+  const isLoading = !accessToken.valid && accessToken.loading;
+  const error = !accessToken.valid && accessToken.error ? accessToken.error.message : undefined;
   const [authExpiredError, setAuthExpiredError] = useState<string | null>(null);
   const [loginError, setLoginError] = useState<string | null>(null);
 

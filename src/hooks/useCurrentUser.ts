@@ -1,6 +1,6 @@
 import { useMemo, useEffect } from "react";
 import { useStore, useQuery } from "@livestore/react";
-import { useGoogleAuth } from "../auth/useGoogleAuth.js";
+import { useAuth } from "../components/auth/AuthProvider.js";
 import { googleAuthManager } from "../auth/google-auth.js";
 import { events, tables } from "@runt/schema";
 import { queryDb } from "@livestore/livestore";
@@ -14,8 +14,11 @@ export interface CurrentUser {
 }
 
 export const useCurrentUser = (): CurrentUser => {
-  const { user, isAuthenticated } = useGoogleAuth();
+  const { accessToken } = useAuth();
   const { store } = useStore();
+
+  const user = accessToken.valid ? accessToken.user : null;
+  const isAuthenticated = accessToken.valid;
 
   const currentUser = useMemo((): CurrentUser => {
     // If Google Auth is enabled and we have an authenticated user

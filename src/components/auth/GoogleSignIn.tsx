@@ -1,5 +1,5 @@
 import React, { useEffect, useRef } from "react";
-import { useGoogleAuth } from "../../auth/useGoogleAuth.js";
+import { useAuth } from "./AuthProvider.js";
 import { googleAuthManager } from "../../auth/google-auth.js";
 
 interface GoogleSignInProps {
@@ -10,7 +10,9 @@ interface GoogleSignInProps {
 export const GoogleSignIn: React.FC<GoogleSignInProps> = ({
   className = "",
 }) => {
-  const { isLoading, error } = useGoogleAuth();
+  const { accessToken } = useAuth();
+  const isLoading = !accessToken.valid && accessToken.loading;
+  const error = !accessToken.valid && accessToken.error ? accessToken.error.message : undefined;
   const buttonRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {

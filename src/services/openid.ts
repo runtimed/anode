@@ -17,6 +17,7 @@ import {
   Subject,
   startWith,
   take,
+  filter,
 } from "rxjs";
 
 export interface OpenIdClient {
@@ -65,18 +66,7 @@ enum LocalStorageKey {
   Tokens = "openid_tokens",
 }
 
-function syncToLocalStorage(key: LocalStorageKey, value: any): void {
-  if (value === null || value === undefined) {
-    localStorage.removeItem(key);
-  } else {
-    localStorage.setItem(key, JSON.stringify(value));
-  }
-}
 
-function getFromLocalStorage<T>(key: LocalStorageKey): T | null {
-  const value = localStorage.getItem(key);
-  return value ? JSON.parse(value) : null;
-}
 
 function computeExpiresAt(expires_in: number | undefined): number {
   const now = Math.floor(Date.now() / 1000);
@@ -96,7 +86,22 @@ export class OpenIdService {
   private config$: Observable<Configuration> | null = null;
   private authorizationSecrets$: Observable<RequestState> | null = null;
   private resetSubject$ = new Subject<void>();
+  private tokenChangeSubject$ = new Subject<LocalStorageKey>();
   private client: OpenIdClient = openidClient;
+
+  private syncToLocalStorage(key: LocalStorageKey, value: any): void {
+    if (value === null || value === undefined) {
+      localStorage.removeItem(key);
+    } else {
+      localStorage.setItem(key, JSON.stringify(value));
+    }
+    this.tokenChangeSubject$.next(key);
+  }
+
+  private getFromLocalStorage<T>(key: LocalStorageKey): T | null {
+    const value = localStorage.getItem(key);
+    return value ? JSON.parse(value) : null;
+  }
 
   public setClient(client: OpenIdClient): void {
     // Used for unit testing to override the client
@@ -145,6 +150,18 @@ export class OpenIdService {
     );
   }
 
+  public getAccessToken(): Observable<string | null> {
+    return this.tokenChangeSubject$.pipe(
+      startWith(LocalStorageKey.Tokens), // Trigger initial load
+      filter(key => key === LocalStorageKey.Tokens),
+      map(() => {
+        const tokens = this.getFromLocalStorage<Tokens>(LocalStorageKey.Tokens);
+        return tokens?.accessToken || null;
+      }),
+      shareReplay(1)
+    );
+  }
+
   public handleRedirect(url: URL): Observable<void> {
     return this.convertCodeToToken(url).pipe(
       map(() => { }),
@@ -155,8 +172,8 @@ export class OpenIdService {
   public reset(): void {
     this.config$ = null;
     this.authorizationSecrets$ = null;
-    syncToLocalStorage(LocalStorageKey.RequestState, null);
-    syncToLocalStorage(LocalStorageKey.Tokens, null);
+    this.syncToLocalStorage(LocalStorageKey.RequestState, null);
+    this.syncToLocalStorage(LocalStorageKey.Tokens, null);
     this.resetSubject$.next();
   }
 
@@ -177,7 +194,7 @@ export class OpenIdService {
                 state,
               };
 
-              syncToLocalStorage(LocalStorageKey.RequestState, requestState);
+              this.syncToLocalStorage(LocalStorageKey.RequestState, requestState);
               return requestState;
             })
           );
@@ -191,7 +208,7 @@ export class OpenIdService {
   private convertCodeToToken(url: URL): Observable<Tokens> {
     return this.getConfig().pipe(
       switchMap((config) => {
-        const requestState = getFromLocalStorage<RequestState>(
+        const requestState = this.getFromLocalStorage<RequestState>(
           LocalStorageKey.RequestState
         );
         if (!requestState) {
@@ -216,7 +233,7 @@ export class OpenIdService {
           expiresAt,
         };
 
-        syncToLocalStorage(LocalStorageKey.Tokens, tokens);
+        this.syncToLocalStorage(LocalStorageKey.Tokens, tokens);
         return tokens;
       })
     );
