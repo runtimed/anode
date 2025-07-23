@@ -15,7 +15,8 @@ import {
 } from "@runt/schema";
 import { AnsiStreamOutput } from "@/components/outputs";
 import { AnsiErrorOutput } from "@/components/outputs/AnsiOutput.js";
-import { useOutputDeltas } from "@/hooks/useOutputDeltas";
+import { outputDeltasQuery, getFinalContent } from "@/queries/outputDeltas";
+import { useQuery } from "@livestore/react";
 import "@/components/outputs/outputs.css";
 
 // Dynamic imports for heavy components
@@ -83,27 +84,27 @@ export const RichOutput: React.FC<RichOutputProps> = ({
   outputType = "multimedia_display",
   outputId,
 }) => {
+  // Always query deltas (even if not used)
+  const deltas = useQuery(outputDeltasQuery(outputId || ""));
+
   // Handle terminal outputs specially
   if (outputType === "terminal") {
     const textData = typeof data === "string" ? data : String(data || "");
     return <AnsiStreamOutput text={textData} streamName="stdout" />;
   }
 
-  // Handle markdown outputs specially
+  // Handle markdown outputs specially with delta support
   if (outputType === "markdown") {
     const markdownData = typeof data === "string" ? data : String(data || "");
 
     // Apply deltas if we have an outputId
-    const { content: finalMarkdownContent } = outputId
-      ? useOutputDeltas({ outputId, originalContent: markdownData })
+    const { content: finalContent } = outputId
+      ? getFinalContent(markdownData, deltas)
       : { content: markdownData };
 
     return (
       <Suspense fallback={<LoadingSpinner />}>
-        <MarkdownRenderer
-          content={finalMarkdownContent}
-          enableCopyCode={true}
-        />
+        <MarkdownRenderer content={finalContent} enableCopyCode={true} />
       </Suspense>
     );
   }
@@ -224,22 +225,15 @@ export const RichOutput: React.FC<RichOutputProps> = ({
         return <div className="text-red-500">Invalid tool result data</div>;
       }
 
-      case TEXT_MIME_TYPES[2]: { // text/markdown
-        const markdownContent = String(outputData[mediaType] || "");
-        // Apply deltas if we have an outputId
-        const { content: finalMarkdownContent } = outputId
-          ? useOutputDeltas({ outputId, originalContent: markdownContent })
-          : { content: markdownContent };
-
+      case TEXT_MIME_TYPES[2]: // text/markdown
         return (
           <Suspense fallback={<LoadingSpinner />}>
             <MarkdownRenderer
-              content={finalMarkdownContent}
+              content={String(outputData[mediaType] || "")}
               enableCopyCode={true}
             />
           </Suspense>
         );
-      }
 
       case TEXT_MIME_TYPES[1]: // text/html
         return (
