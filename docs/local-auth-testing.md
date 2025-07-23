@@ -18,9 +18,6 @@ First, set up a `.env.production` file with the following variables:
 ```
 VITE_LIVESTORE_SYNC_URL=wss://anode-docworker.rgbkrk.workers.dev/api
 
-# Google OAuth configuration
-VITE_GOOGLE_AUTH_ENABLED=true
-VITE_GOOGLE_CLIENT_ID=94663405566-1go7jlpd2ar9u9urbfirmtjv1bm0tcis.apps.googleusercontent.com
 
 # Disable auth token (not used in production with Google OAuth)
 VITE_AUTH_TOKEN=

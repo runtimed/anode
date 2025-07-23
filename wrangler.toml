@@ -40,8 +40,6 @@ bucket_name = "anode-artifacts-dev"
 # will pick up variables from the `.env` file. Ensure they match.
 DEPLOYMENT_ENV = "development"
 VITE_LIVESTORE_SYNC_URL = "/livestore"
-VITE_GOOGLE_CLIENT_ID = "94663405566-1go7jlpd2ar9u9urbfirmtjv1bm0tcis.apps.googleusercontent.com"
-VITE_GOOGLE_AUTH_ENABLED = "false"
 VITE_RUNTIME_COMMAND = "pnpm run dev:runtime"
 
 # ---
@@ -65,7 +63,6 @@ database_id = "5339094f-f406-4236-97c3-ada460373f18"
 
 [env.legacy.vars]
 DEPLOYMENT_ENV = "production"
-GOOGLE_CLIENT_ID = "94663405566-1go7jlpd2ar9u9urbfirmtjv1bm0tcis.apps.googleusercontent.com"
 
 
 # New Production Environment (all-in-one worker)
@@ -91,12 +88,10 @@ bucket_name = "anode-artifacts-prod"
 [env.production.vars]
 # Worker runtime variables
 DEPLOYMENT_ENV = "production"
-GOOGLE_CLIENT_ID = "94663405566-1go7jlpd2ar9u9urbfirmtjv1bm0tcis.apps.googleusercontent.com"
 ARTIFACT_STORAGE = "r2"
 ARTIFACT_THRESHOLD = "16384"
 # Vite build-time variables
 VITE_LIVESTORE_SYNC_URL = "/livestore"
-VITE_GOOGLE_CLIENT_ID = "94663405566-1go7jlpd2ar9u9urbfirmtjv1bm0tcis.apps.googleusercontent.com"
 VITE_GOOGLE_AUTH_ENABLED = "true"
 VITE_RUNTIME_COMMAND = "pnpm run dev:runtime"
 
@@ -124,13 +119,10 @@ preview_bucket_name = "anode-artifacts-preview"
 [env.preview.vars]
 # Worker runtime variables
 DEPLOYMENT_ENV = "preview"
-GOOGLE_CLIENT_ID = "94663405566-1go7jlpd2ar9u9urbfirmtjv1bm0tcis.apps.googleusercontent.com"
 ARTIFACT_STORAGE = "r2"
 ARTIFACT_THRESHOLD = "16384"
 # Vite build-time variables
 VITE_LIVESTORE_SYNC_URL = "/livestore"
-VITE_GOOGLE_CLIENT_ID = "94663405566-1go7jlpd2ar9u9urbfirmtjv1bm0tcis.apps.googleusercontent.com"
-VITE_GOOGLE_AUTH_ENABLED = "true"
 VITE_RUNTIME_COMMAND = "pnpm run dev:runtime"
 
 
