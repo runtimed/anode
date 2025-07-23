@@ -3,6 +3,7 @@ import LiveStoreSharedWorker from "@livestore/adapter-web/shared-worker?sharedwo
 import { LiveStoreProvider } from "@livestore/react";
 
 import React, { useEffect, useState, Suspense } from "react";
+import { Routes, Route } from "react-router-dom";
 
 // Dynamic import for FPSMeter - development tool only
 const FPSMeter = React.lazy(() =>
@@ -14,6 +15,7 @@ import { unstable_batchedUpdates as batchUpdates } from "react-dom";
 
 import { NotebookViewer } from "./components/notebook/NotebookViewer.js";
 import { AuthGuard } from "./components/auth/AuthGuard.js";
+import AuthRedirect from "./components/auth/AuthRedirect.js";
 
 import LiveStoreWorker from "./livestore.worker?worker";
 import { schema } from "./schema.js";
@@ -242,8 +244,13 @@ if (typeof Worker !== "undefined") {
 
 export const App: React.FC = () => {
   return (
-    <AuthGuard>
-      <LiveStoreApp />
-    </AuthGuard>
+    <Routes>
+      <Route path="/oidc" element={<AuthRedirect />} />
+      <Route path="/*" element={
+        <AuthGuard>
+          <LiveStoreApp />
+        </AuthGuard>
+      } />
+    </Routes>
   );
 };

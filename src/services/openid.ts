@@ -1,15 +1,46 @@
-import type { discovery, Configuration, DPoPOptions, TokenEndpointResponseHelpers } from "openid-client";
+import type {
+  discovery,
+  Configuration,
+  DPoPOptions,
+  TokenEndpointResponseHelpers,
+  TokenEndpointResponse,
+  AuthorizationCodeGrantChecks,
+  AuthorizationCodeGrantOptions,
+} from "openid-client";
 import * as openidClient from "openid-client";
-import { Observable, from, shareReplay, switchMap, map, Subject, startWith } from "rxjs";
+import {
+  Observable,
+  from,
+  shareReplay,
+  switchMap,
+  map,
+  Subject,
+  startWith,
+  take,
+} from "rxjs";
 
 export interface OpenIdClient {
   discovery: typeof discovery;
   randomPKCECodeVerifier: () => string;
   calculatePKCECodeChallenge: (verifier: string) => Promise<string>;
   randomState: () => string;
-  buildAuthorizationUrl: (config: Configuration, parameters: URLSearchParams | Record<string, string>) => URL;
-  refreshTokenGrant: (config: Configuration, refreshToken: string, parameters?: URLSearchParams | Record<string, string>, options?: DPoPOptions) =>
-    Promise<TokenEndpointResponseHelpers>;
+  buildAuthorizationUrl: (
+    config: Configuration,
+    parameters: URLSearchParams | Record<string, string>
+  ) => URL;
+  refreshTokenGrant: (
+    config: Configuration,
+    refreshToken: string,
+    parameters?: URLSearchParams | Record<string, string>,
+    options?: DPoPOptions
+  ) => Promise<TokenEndpointResponseHelpers>;
+  authorizationCodeGrant: (
+    config: Configuration,
+    currentUrl: URL | Request,
+    checks?: AuthorizationCodeGrantChecks,
+    tokenEndpointParameters?: URLSearchParams | Record<string, string>,
+    options?: AuthorizationCodeGrantOptions
+  ) => Promise<TokenEndpointResponse & TokenEndpointResponseHelpers>;
 }
 
 interface RequestState {
@@ -18,13 +49,20 @@ interface RequestState {
   state: string;
 }
 
+interface Tokens {
+  accessToken: string;
+  refreshToken: string;
+  expiresAt: number;
+}
+
 export interface RedirectUrls {
   loginUrl: URL;
   registrationUrl: URL;
 }
 
 enum LocalStorageKey {
-  RequestState = "openid_request_state"
+  RequestState = "openid_request_state",
+  Tokens = "openid_tokens",
 }
 
 function syncToLocalStorage(key: LocalStorageKey, value: any): void {
@@ -38,6 +76,11 @@ function syncToLocalStorage(key: LocalStorageKey, value: any): void {
 function getFromLocalStorage<T>(key: LocalStorageKey): T | null {
   const value = localStorage.getItem(key);
   return value ? JSON.parse(value) : null;
+}
+
+function computeExpiresAt(expires_in: number | undefined): number {
+  const now = Math.floor(Date.now() / 1000);
+  return expires_in ? now + expires_in : now + 3600;
 }
 
 let singleton: OpenIdService | null = null;
@@ -55,8 +98,6 @@ export class OpenIdService {
   private resetSubject$ = new Subject<void>();
   private client: OpenIdClient = openidClient;
 
-  constructor() { }
-
   public setClient(client: OpenIdClient): void {
     // Used for unit testing to override the client
     this.client = client;
@@ -67,9 +108,9 @@ export class OpenIdService {
       startWith(null), // Trigger initial load
       switchMap(() => {
         return this.getAuthorizationSecrets().pipe(
-          switchMap(secrets => {
+          switchMap((secrets) => {
             return this.getConfig().pipe(
-              map(config => {
+              map((config) => {
                 const parameters: Record<string, string> = {
                   redirect_uri: import.meta.env.VITE_AUTH_REDIRECT_URI,
                   scope: "openid email profile offline_access",
@@ -80,17 +121,20 @@ export class OpenIdService {
 
                 const loginUrl = this.client.buildAuthorizationUrl(config, {
                   ...parameters,
-                  prompt: "login"
+                  prompt: "login",
                 });
 
-                const registrationUrl = this.client.buildAuthorizationUrl(config, {
-                  ...parameters,
-                  prompt: "registration"
-                });
+                const registrationUrl = this.client.buildAuthorizationUrl(
+                  config,
+                  {
+                    ...parameters,
+                    prompt: "registration",
+                  }
+                );
 
                 return {
                   loginUrl,
-                  registrationUrl
+                  registrationUrl,
                 };
               })
             );
@@ -101,10 +145,18 @@ export class OpenIdService {
     );
   }
 
+  public handleRedirect(url: URL): Observable<void> {
+    return this.convertCodeToToken(url).pipe(
+      map(() => { }),
+      take(1)
+    );
+  }
+
   public reset(): void {
     this.config$ = null;
     this.authorizationSecrets$ = null;
     syncToLocalStorage(LocalStorageKey.RequestState, null);
+    syncToLocalStorage(LocalStorageKey.Tokens, null);
     this.resetSubject$.next();
   }
 
@@ -113,15 +165,16 @@ export class OpenIdService {
       this.authorizationSecrets$ = this.getConfig().pipe(
         switchMap(() => {
           const verifier = this.client.randomPKCECodeVerifier();
-          const challengePromise = this.client.calculatePKCECodeChallenge(verifier);
+          const challengePromise =
+            this.client.calculatePKCECodeChallenge(verifier);
           const state = this.client.randomState();
 
           return from(challengePromise).pipe(
-            map(challenge => {
+            map((challenge) => {
               const requestState: RequestState = {
                 verifier,
                 challenge,
-                state
+                state,
               };
 
               syncToLocalStorage(LocalStorageKey.RequestState, requestState);
@@ -135,12 +188,48 @@ export class OpenIdService {
     return this.authorizationSecrets$;
   }
 
+  private convertCodeToToken(url: URL): Observable<Tokens> {
+    return this.getConfig().pipe(
+      switchMap((config) => {
+        const requestState = getFromLocalStorage<RequestState>(
+          LocalStorageKey.RequestState
+        );
+        if (!requestState) {
+          throw new Error("Missing pre-login secrets. Is localstorage enabled?");
+        }
+        return from(
+          this.client.authorizationCodeGrant(config, url, {
+            pkceCodeVerifier: requestState.verifier,
+            expectedState: requestState.state,
+          })
+        );
+      }),
+      map((tokenResp): Tokens => {
+        if (!tokenResp.refresh_token) {
+          throw new Error("No refresh token returned from server");
+        }
+        const expiresAt = computeExpiresAt(tokenResp.expires_in);
+
+        const tokens = {
+          accessToken: tokenResp.access_token,
+          refreshToken: tokenResp.refresh_token,
+          expiresAt,
+        };
+
+        syncToLocalStorage(LocalStorageKey.Tokens, tokens);
+        return tokens;
+      })
+    );
+  }
+
   private getConfig(): Observable<Configuration> {
     if (!this.config$) {
-      this.config$ = from(this.client.discovery(
-        new URL(import.meta.env.VITE_AUTH_URI),
-        import.meta.env.VITE_AUTH_CLIENT_ID,
-      )).pipe(shareReplay(1));
+      this.config$ = from(
+        this.client.discovery(
+          new URL(import.meta.env.VITE_AUTH_URI),
+          import.meta.env.VITE_AUTH_CLIENT_ID
+        )
+      ).pipe(shareReplay(1));
     }
     return this.config$;
   }
