@@ -1,7 +1,6 @@
 import { useMemo, useEffect } from "react";
 import { useStore, useQuery } from "@livestore/react";
 import { useAuth } from "../components/auth/AuthProvider.js";
-import { googleAuthManager } from "../auth/google-auth.js";
 import { events, tables } from "@runt/schema";
 import { queryDb } from "@livestore/livestore";
 
@@ -21,8 +20,11 @@ export const useCurrentUser = (): CurrentUser => {
   const isAuthenticated = accessToken.valid;
 
   const currentUser = useMemo((): CurrentUser => {
-    // If Google Auth is enabled and we have an authenticated user
-    if (googleAuthManager.isEnabled() && isAuthenticated && user) {
+    // Check if we're in local mode (no auth client ID)
+    const isLocalMode = !import.meta.env.VITE_AUTH_CLIENT_ID;
+
+    // If we have an authenticated user (either OpenID or local mode)
+    if (isAuthenticated && user) {
       return {
         id: user.id,
         name: user.name,
@@ -32,14 +34,25 @@ export const useCurrentUser = (): CurrentUser => {
       };
     }
 
-    // Fallback to anonymous user with session ID
-    const sessionId = store.sessionId;
+    // Fallback to anonymous user with session ID (when not in local mode and not authenticated)
+    if (!isLocalMode) {
+      const sessionId = store.sessionId;
+      return {
+        id: sessionId,
+        name: `Anonymous User`,
+        email: undefined,
+        picture: undefined,
+        isAnonymous: true,
+      };
+    }
+
+    // In local mode, we should always have a user from AuthProvider
     return {
-      id: sessionId,
-      name: `Anonymous User`,
-      email: undefined,
+      id: "local-dev-user",
+      name: "Local Development User",
+      email: "local@example.com",
       picture: undefined,
-      isAnonymous: true,
+      isAnonymous: false,
     };
   }, [user, isAuthenticated, store.sessionId]);
 

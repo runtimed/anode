@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from "react";
 import { useAuth } from "./AuthProvider.js";
-import { googleAuthManager } from "../../auth/google-auth.js";
 import LoginPrompt from "./LoginPrompt.js";
 
 interface AuthGuardProps {
@@ -28,8 +27,11 @@ export const AuthGuard: React.FC<AuthGuardProps> = ({ children, fallback }) => {
     return () => window.removeEventListener("message", handleMessage);
   }, []);
 
-  // If Google Auth is not enabled, always allow access (local dev mode)
-  if (!googleAuthManager.isEnabled()) {
+  // Check if we're in local mode (no auth client ID)
+  const isLocalMode = !import.meta.env.VITE_AUTH_CLIENT_ID;
+
+  // If in local mode, always allow access
+  if (isLocalMode) {
     return <>{children}</>;
   }
 

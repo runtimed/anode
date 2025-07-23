@@ -38,6 +38,26 @@ export function AuthProvider({ children }: AuthProviderProps) {
   });
 
   useEffect(() => {
+    // Check if we're in local mode (no auth client ID)
+    const isLocalMode = !import.meta.env.VITE_AUTH_CLIENT_ID;
+
+    if (isLocalMode) {
+      // Local development mode - use fallback token
+      const dummyUser: AuthUser = {
+        id: "local-dev-user",
+        email: "local@example.com",
+        name: "Local Development User",
+        picture: undefined,
+      };
+      setAccessTokenState({
+        valid: true,
+        token: "insecure-token-change-me",
+        user: dummyUser
+      });
+      return;
+    }
+
+    // OpenID mode - use the service
     const openIdService = getOpenIdService();
     const subscription = openIdService.getAccessToken().subscribe({
       next: (token) => {
