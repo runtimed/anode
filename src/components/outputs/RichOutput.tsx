@@ -70,7 +70,7 @@ interface RichOutputProps {
     | "terminal"
     | "markdown"
     | "error";
-  outputId?: string;
+  outputId: string;
 }
 
 const LoadingSpinner = () => (
@@ -85,7 +85,7 @@ export const RichOutput: React.FC<RichOutputProps> = ({
   outputId,
 }) => {
   // Always query deltas (even if not used)
-  const deltas = useQuery(outputDeltasQuery(outputId || ""));
+  const deltas = useQuery(outputDeltasQuery(outputId));
 
   // Handle terminal outputs specially
   if (outputType === "terminal") {

@@ -25,7 +25,7 @@ export const outputDeltasQuery = (outputId: string) =>
  */
 export const applyDeltas = (
   originalContent: string,
-  deltas: OutputDelta[]
+  deltas: readonly OutputDelta[]
 ): string => {
   if (deltas.length === 0) {
     return originalContent;
@@ -41,7 +41,7 @@ export const applyDeltas = (
  */
 export const getFinalContent = (
   originalContent: string,
-  deltas: OutputDelta[]
+  deltas: readonly OutputDelta[]
 ): { content: string; hasDeltas: boolean; deltaCount: number } => {
   const hasDeltas = deltas.length > 0;
   const content = applyDeltas(originalContent, deltas);
