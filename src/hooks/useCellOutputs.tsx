@@ -85,8 +85,7 @@ export const useCellOutputs = ({
       const outputContent = (
         <RichOutput
           data={
-            (output.outputType as string) === "markdown" ||
-            (output.outputType as string) === "terminal"
+            output.outputType === "markdown" || output.outputType === "terminal"
               ? output.data || ""
               : (output.representations as Record<string, MediaContainer>) || {
                   "text/plain": output.data || "",
@@ -94,6 +93,7 @@ export const useCellOutputs = ({
           }
           metadata={output.metadata as Record<string, unknown> | undefined}
           outputType={output.outputType}
+          outputId={output.id}
         />
       );
 
