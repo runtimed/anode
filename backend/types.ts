@@ -11,6 +11,10 @@ export interface Env {
 
   // Secrets
   AUTH_TOKEN: string;
+  AUTH_URI: string;
+  AUTH_CLIENT_ID?: string;
+
+  // Legacy Google OAuth properties (being replaced with OIDC)
   GOOGLE_CLIENT_ID?: string;
   GOOGLE_CLIENT_SECRET?: string;
 
