@@ -18,6 +18,10 @@ import {
   startWith,
   take,
   filter,
+  of,
+  catchError,
+  tap,
+  mergeMap,
 } from "rxjs";
 
 export interface OpenIdClient {
@@ -34,7 +38,7 @@ export interface OpenIdClient {
     refreshToken: string,
     parameters?: URLSearchParams | Record<string, string>,
     options?: DPoPOptions
-  ) => Promise<TokenEndpointResponseHelpers>;
+  ) => Promise<TokenEndpointResponse & TokenEndpointResponseHelpers>;
   authorizationCodeGrant: (
     config: Configuration,
     currentUrl: URL | Request,
@@ -66,7 +70,7 @@ enum LocalStorageKey {
   Tokens = "openid_tokens",
 }
 
-
+const OPENID_SCOPES = "openid email profile offline_access";
 
 function computeExpiresAt(expires_in: number | undefined): number {
   const now = Math.floor(Date.now() / 1000);
@@ -88,6 +92,7 @@ export class OpenIdService {
   private resetSubject$ = new Subject<void>();
   private tokenChangeSubject$ = new Subject<LocalStorageKey>();
   private client: OpenIdClient = openidClient;
+  private refreshedToken$: Observable<Tokens | null> | null = null;
 
   private syncToLocalStorage(key: LocalStorageKey, value: any): void {
     if (value === null || value === undefined) {
@@ -118,7 +123,7 @@ export class OpenIdService {
               map((config) => {
                 const parameters: Record<string, string> = {
                   redirect_uri: import.meta.env.VITE_AUTH_REDIRECT_URI,
-                  scope: "openid email profile offline_access",
+                  scope: OPENID_SCOPES,
                   code_challenge: secrets.challenge,
                   code_challenge_method: "S256",
                   state: secrets.state,
@@ -154,9 +159,25 @@ export class OpenIdService {
     return this.tokenChangeSubject$.pipe(
       startWith(LocalStorageKey.Tokens), // Trigger initial load
       filter(key => key === LocalStorageKey.Tokens),
-      map(() => {
+      mergeMap(() => {
         const tokens = this.getFromLocalStorage<Tokens>(LocalStorageKey.Tokens);
-        return tokens?.accessToken || null;
+        if (!tokens) {
+          return of(null);
+        }
+
+        const now = Math.floor(Date.now() / 1000);
+        const timeUntilExpiry = tokens.expiresAt - now;
+        const shouldRefresh = timeUntilExpiry <= 60; // 1 minute threshold
+
+        if (shouldRefresh) {
+          // If expired or about to expire, trigger refresh
+          return this.refreshTokens(tokens.refreshToken).pipe(
+            map(refreshedTokens => refreshedTokens?.accessToken || null),
+            catchError(() => of(null))
+          );
+        }
+
+        return of(tokens.accessToken);
       }),
       shareReplay(1)
     );
@@ -172,9 +193,48 @@ export class OpenIdService {
   public reset(): void {
     this.config$ = null;
     this.authorizationSecrets$ = null;
+    this.refreshedToken$ = null;
     this.syncToLocalStorage(LocalStorageKey.RequestState, null);
     this.syncToLocalStorage(LocalStorageKey.Tokens, null);
     this.resetSubject$.next();
+  }
+
+  private refreshTokens(refreshToken: string): Observable<Tokens | null> {
+    if (!this.refreshedToken$) {
+      this.refreshedToken$ = this.getConfig().pipe(
+        switchMap(config =>
+          from(this.client.refreshTokenGrant(config, refreshToken, {
+            scopes: OPENID_SCOPES,
+          }))
+        ),
+        map((response): Tokens => {
+          if (!response.refresh_token) {
+            throw new Error("No refresh token returned from server");
+          }
+          const expiresAt = computeExpiresAt(response.expires_in);
+
+          const refreshedTokens = {
+            accessToken: response.access_token,
+            refreshToken: response.refresh_token,
+            expiresAt,
+          };
+
+          this.syncToLocalStorage(LocalStorageKey.Tokens, refreshedTokens);
+          return refreshedTokens;
+        }),
+        catchError(error => {
+          // Clear tokens on refresh failure
+          this.syncToLocalStorage(LocalStorageKey.Tokens, null);
+          throw error;
+        }),
+        tap(() => {
+          // Reset the refresh observable after completion
+          this.refreshedToken$ = null;
+        }),
+        shareReplay(1)
+      );
+    }
+    return this.refreshedToken$;
   }
 
   private getAuthorizationSecrets(): Observable<RequestState> {
@@ -243,8 +303,8 @@ export class OpenIdService {
     if (!this.config$) {
       this.config$ = from(
         this.client.discovery(
-          new URL(import.meta.env.VITE_AUTH_URI),
-          import.meta.env.VITE_AUTH_CLIENT_ID
+          new URL(import.meta.env.VITE_AUTH_URI || ''),
+          import.meta.env.VITE_AUTH_CLIENT_ID || ''
         )
       ).pipe(shareReplay(1));
     }

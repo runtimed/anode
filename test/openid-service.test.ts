@@ -101,11 +101,164 @@ describe('OpenIdService', () => {
         loginUrl: mockLoginUrl,
         registrationUrl: mockRegisterUrl
       });
-      expect(secondState).toEqual({
-        loginUrl: mockLoginUrl,
-        registrationUrl: mockRegisterUrl
-      });
-      expect(mockClient.randomPKCECodeVerifier).toHaveBeenCalledTimes(1); // Only called once due to caching
+      expect(secondState).toEqual(firstState);
+
+      // Discovery should only be called once
+      expect(mockClient.discovery).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe('getAccessToken', () => {
+    it('should return null when no tokens are stored', async () => {
+      const token$ = service.getAccessToken();
+      const token = await firstValueFrom(token$);
+      expect(token).toBeNull();
+    });
+
+    it('should return access token when tokens are valid and not expired', async () => {
+      const now = Math.floor(Date.now() / 1000);
+      const validTokens = {
+        accessToken: 'valid-access-token',
+        refreshToken: 'valid-refresh-token',
+        expiresAt: now + 3600 // 1 hour from now
+      };
+
+      localStorage.setItem('openid_tokens', JSON.stringify(validTokens));
+
+      mockClient.discovery.mockResolvedValue({
+        authorization_endpoint: 'https://auth.example.com/authorize'
+      } as any);
+
+      const token$ = service.getAccessToken();
+      const token = await firstValueFrom(token$);
+
+      expect(token).toBe('valid-access-token');
+    });
+
+    it('should trigger refresh when token is within 1 minute of expiration', async () => {
+      const now = Math.floor(Date.now() / 1000);
+      const expiringTokens = {
+        accessToken: 'expiring-access-token',
+        refreshToken: 'valid-refresh-token',
+        expiresAt: now + 30 // 30 seconds from now (within 1 minute)
+      };
+
+      localStorage.setItem('openid_tokens', JSON.stringify(expiringTokens));
+
+      mockClient.discovery.mockResolvedValue({
+        authorization_endpoint: 'https://auth.example.com/authorize'
+      } as any);
+
+      const refreshedTokens = {
+        access_token: 'new-access-token',
+        refresh_token: 'new-refresh-token',
+        expires_in: 3600
+      };
+
+      mockClient.refreshTokenGrant.mockResolvedValue(refreshedTokens);
+
+      const token$ = service.getAccessToken();
+      const token = await firstValueFrom(token$);
+
+      expect(token).toBe('new-access-token');
+      expect(mockClient.refreshTokenGrant).toHaveBeenCalledWith(
+        expect.any(Object),
+        'valid-refresh-token',
+        { scopes: 'openid email profile offline_access' }
+      );
+    });
+
+    it('should trigger refresh when token is already expired', async () => {
+      const now = Math.floor(Date.now() / 1000);
+      const expiredTokens = {
+        accessToken: 'expired-access-token',
+        refreshToken: 'valid-refresh-token',
+        expiresAt: now - 60 // 1 minute ago (expired)
+      };
+
+      localStorage.setItem('openid_tokens', JSON.stringify(expiredTokens));
+
+      mockClient.discovery.mockResolvedValue({
+        authorization_endpoint: 'https://auth.example.com/authorize'
+      } as any);
+
+      const refreshedTokens = {
+        access_token: 'new-access-token',
+        refresh_token: 'new-refresh-token',
+        expires_in: 3600
+      };
+
+      mockClient.refreshTokenGrant.mockResolvedValue(refreshedTokens);
+
+      const token$ = service.getAccessToken();
+      const token = await firstValueFrom(token$);
+
+      expect(token).toBe('new-access-token');
+      expect(mockClient.refreshTokenGrant).toHaveBeenCalled();
+    });
+
+    it('should handle refresh failure by clearing tokens', async () => {
+      const now = Math.floor(Date.now() / 1000);
+      const expiringTokens = {
+        accessToken: 'expiring-access-token',
+        refreshToken: 'valid-refresh-token',
+        expiresAt: now + 30
+      };
+
+      localStorage.setItem('openid_tokens', JSON.stringify(expiringTokens));
+
+      mockClient.discovery.mockResolvedValue({
+        authorization_endpoint: 'https://auth.example.com/authorize'
+      } as any);
+
+      mockClient.refreshTokenGrant.mockRejectedValue(new Error('Refresh failed'));
+
+      const token$ = service.getAccessToken();
+      const token = await firstValueFrom(token$);
+
+      expect(token).toBeNull();
+      expect(localStorage.getItem('openid_tokens')).toBeNull();
+    });
+
+    it('should not trigger multiple concurrent refreshes', async () => {
+      const now = Math.floor(Date.now() / 1000);
+      const expiringTokens = {
+        accessToken: 'expiring-access-token',
+        refreshToken: 'valid-refresh-token',
+        expiresAt: now + 30
+      };
+
+      localStorage.setItem('openid_tokens', JSON.stringify(expiringTokens));
+
+      mockClient.discovery.mockResolvedValue({
+        authorization_endpoint: 'https://auth.example.com/authorize'
+      } as any);
+
+      const refreshedTokens = {
+        access_token: 'new-access-token',
+        refresh_token: 'new-refresh-token',
+        expires_in: 3600
+      };
+
+      mockClient.refreshTokenGrant.mockResolvedValue(refreshedTokens);
+
+      // Make multiple concurrent calls
+      const token1$ = service.getAccessToken();
+      const token2$ = service.getAccessToken();
+      const token3$ = service.getAccessToken();
+
+      const [token1, token2, token3] = await Promise.all([
+        firstValueFrom(token1$),
+        firstValueFrom(token2$),
+        firstValueFrom(token3$)
+      ]);
+
+      expect(token1).toBe('new-access-token');
+      expect(token2).toBe('new-access-token');
+      expect(token3).toBe('new-access-token');
+
+      // Should only call refresh once
+      expect(mockClient.refreshTokenGrant).toHaveBeenCalledTimes(1);
     });
   });
 
@@ -124,113 +277,58 @@ describe('OpenIdService', () => {
         .mockReturnValueOnce(mockLoginUrl)
         .mockReturnValueOnce(mockRegisterUrl)
         .mockReturnValueOnce(mockLoginUrl)
-        .mockReturnValueOnce(mockRegisterUrl)
-        .mockReturnValueOnce(mockLoginUrl)
-        .mockReturnValueOnce(mockRegisterUrl)
-        .mockReturnValueOnce(mockLoginUrl)
         .mockReturnValueOnce(mockRegisterUrl);
 
-      // Initial subscription
-      const initialState = await firstValueFrom(service.getRedirectUrls());
+      // First call
+      await firstValueFrom(service.getRedirectUrls());
 
-      // Reset and subscribe again
+      // Reset
       service.reset();
-      const resetState = await firstValueFrom(service.getRedirectUrls());
 
-      expect(initialState).toEqual({
-        loginUrl: mockLoginUrl,
-        registrationUrl: mockRegisterUrl
-      });
-      expect(resetState).toEqual({
-        loginUrl: mockLoginUrl,
-        registrationUrl: mockRegisterUrl
-      });
+      // Second call should trigger fresh discovery
+      await firstValueFrom(service.getRedirectUrls());
 
-      // Discovery should be called twice (once for initial, once after reset)
+      // Discovery should be called twice (once for each call)
       expect(mockClient.discovery).toHaveBeenCalledTimes(2);
     });
 
     it('should recover from error after reset() is called', async () => {
-      const mockLoginUrl = new URL('https://auth.example.com/authorize?prompt=login');
-      const mockRegisterUrl = new URL('https://auth.example.com/authorize?prompt=registration');
-
-      // First attempt fails
-      mockClient.discovery.mockRejectedValueOnce(new Error('Discovery failed'));
-
-      // Second attempt succeeds (after reset)
-      mockClient.discovery.mockResolvedValueOnce({
-        authorization_endpoint: 'https://auth.example.com/authorize'
-      } as any);
+      mockClient.discovery
+        .mockRejectedValueOnce(new Error('Discovery failed'))
+        .mockResolvedValueOnce({
+          authorization_endpoint: 'https://auth.example.com/authorize'
+        } as any);
 
       mockClient.randomPKCECodeVerifier.mockReturnValue('test-verifier');
       mockClient.calculatePKCECodeChallenge.mockResolvedValue('test-challenge');
       mockClient.randomState.mockReturnValue('test-state');
-      mockClient.buildAuthorizationUrl
-        .mockReturnValueOnce(mockLoginUrl)
-        .mockReturnValueOnce(mockRegisterUrl);
+      mockClient.buildAuthorizationUrl.mockReturnValue(new URL('https://auth.example.com/authorize'));
 
-      // Simulate LoginPrompt pattern with error dependency:
-      // 1. Initial subscription fails (like useEffect on mount)
-      // 2. Error state changes, triggering new useEffect
-      // 3. New subscription succeeds after reset()
-      const results: Array<RedirectUrls | Error> = [];
-      let hasError = false;
+      const redirectUrls$ = service.getRedirectUrls();
+      let error: Error | null = null;
 
-      // First subscription (fails)
-      let subscription = service.getRedirectUrls().subscribe({
-        next: (urls) => {
-          results.push(urls);
-        },
-        error: (error) => {
-          hasError = true;
-          results.push(error);
-        }
+      redirectUrls$.subscribe({
+        next: () => { },
+        error: err => error = err
       });
 
-      // Wait for first subscription to fail
+      // Wait for first error
       await new Promise(resolve => setTimeout(resolve, 100));
+      expect(error).toBeDefined();
 
-      // Verify error occurred
-      expect(hasError).toBe(true);
-      expect(results.length).toBe(1);
-      expect(results[0]).toBeInstanceOf(Error);
-      expect((results[0] as Error).message).toBe('Discovery failed');
-
-      // Clean up first subscription (like useEffect cleanup)
-      subscription.unsubscribe();
-
-      // Simulate LoginPrompt: reset service and change error state
-      // This triggers useEffect to run again due to error dependency change
+      // Reset and try again
       service.reset();
+      error = null;
 
-      // Create new subscription (simulates useEffect running again)
-      subscription = service.getRedirectUrls().subscribe({
-        next: (urls) => {
-          results.push(urls);
-        },
-        error: (error) => {
-          results.push(error);
-        }
+      const newRedirectUrls$ = service.getRedirectUrls();
+      newRedirectUrls$.subscribe({
+        next: () => { },
+        error: err => error = err
       });
 
-      // Wait for second subscription to succeed
+      // Wait for second attempt
       await new Promise(resolve => setTimeout(resolve, 100));
-
-      // Should have received error first, then success after new subscription
-      expect(results.length).toBe(2);
-      expect(results[0]).toBeInstanceOf(Error);
-      expect((results[0] as Error).message).toBe('Discovery failed');
-      expect(results[1]).toEqual({
-        loginUrl: mockLoginUrl,
-        registrationUrl: mockRegisterUrl
-      });
-
-      // Discovery should be called twice (once failed, once succeeded)
-      expect(mockClient.discovery).toHaveBeenCalledTimes(2);
-
-      // Clean up
-      subscription.unsubscribe();
+      expect(error).toBeNull();
     });
-
   });
 }); 

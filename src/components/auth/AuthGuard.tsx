@@ -100,7 +100,7 @@ export const AuthGuard: React.FC<AuthGuardProps> = ({ children, fallback }) => {
               <p>
                 Anode is a real-time collaborative notebook system.
                 <br />
-                Sign in with Google to sync your work across devices.
+                Sign in with Anaconda to sync your work across devices.
               </p>
             </div>
           </div>
