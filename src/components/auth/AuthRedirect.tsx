@@ -2,7 +2,13 @@ import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { getOpenIdService } from "../../services/openid";
 import { Button } from "../ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "../ui/card";
 
 // Ignore all problems with the react lifecycle
 // by treating the redirect as a global flag, outside of react
@@ -21,15 +27,15 @@ const AuthRedirect: React.FC = () => {
           navigate("/", { replace: true });
         },
         error: (error) => {
-          setError(error)
-        }
+          setError(error);
+        },
       });
     }
   });
 
   if (error) {
     return (
-      <div className="min-h-screen flex items-center justify-center p-4">
+      <div className="flex min-h-screen items-center justify-center p-4">
         <Card className="w-full max-w-md">
           <CardHeader>
             <CardTitle className="text-destructive">Login Error</CardTitle>
@@ -38,7 +44,7 @@ const AuthRedirect: React.FC = () => {
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="text-sm text-muted-foreground bg-muted/50 p-3 rounded-md">
+            <div className="text-muted-foreground bg-muted/50 rounded-md p-3 text-sm">
               {error.message || `Unknown error: ${error}`}
             </div>
             <Button
@@ -54,9 +60,9 @@ const AuthRedirect: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center">
-      <div className="text-center space-y-4">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
+    <div className="flex min-h-screen items-center justify-center">
+      <div className="space-y-4 text-center">
+        <div className="border-primary mx-auto h-8 w-8 animate-spin rounded-full border-b-2"></div>
         <p className="text-muted-foreground">Logging in...</p>
       </div>
     </div>

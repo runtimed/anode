@@ -21,7 +21,7 @@ const getDisplayName = (user: UserInfo): string => {
     }
     if (user.family_name) {
       if (name) {
-        name += ' ';
+        name += " ";
       }
       name += user.family_name;
     }
@@ -29,8 +29,8 @@ const getDisplayName = (user: UserInfo): string => {
   if (!name) {
     name = user.email;
   }
-  return name
-}
+  return name;
+};
 
 export const useCurrentUser = (): CurrentUser => {
   const { accessToken } = useAuth();

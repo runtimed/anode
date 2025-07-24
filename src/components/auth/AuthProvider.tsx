@@ -1,7 +1,6 @@
-import React, { createContext, useContext, useEffect, useState } from 'react';
-import { getOpenIdService, UserInfo } from '../../services/openid';
-export type { UserInfo } from '../../services/openid';
-
+import React, { createContext, useContext, useEffect, useState } from "react";
+import { getOpenIdService, UserInfo } from "../../services/openid";
+export type { UserInfo } from "../../services/openid";
 
 type AccessTokenState =
   | { valid: true; token: string; user: UserInfo }
@@ -17,7 +16,7 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export function useAuth() {
   const context = useContext(AuthContext);
   if (context === undefined) {
-    throw new Error('useAuth must be used within an AuthProvider');
+    throw new Error("useAuth must be used within an AuthProvider");
   }
   return context;
 }
@@ -29,7 +28,7 @@ interface AuthProviderProps {
 export function AuthProvider({ children }: AuthProviderProps) {
   const [accessTokenState, setAccessTokenState] = useState<AccessTokenState>({
     valid: false,
-    loading: true
+    loading: true,
   });
 
   useEffect(() => {
@@ -48,7 +47,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
       setAccessTokenState({
         valid: true,
         token: "insecure-token-change-me",
-        user: dummyUser
+        user: dummyUser,
       });
       return;
     }
@@ -58,15 +57,19 @@ export function AuthProvider({ children }: AuthProviderProps) {
     const subscription = openIdService.getUser().subscribe({
       next: (user) => {
         if (user) {
-          setAccessTokenState({ valid: true, token: user.accessToken, user: user.claims });
+          setAccessTokenState({
+            valid: true,
+            token: user.accessToken,
+            user: user.claims,
+          });
         } else {
           setAccessTokenState({ valid: false, loading: false });
         }
       },
       error: (error) => {
-        console.error('Error getting access token:', error);
+        console.error("Error getting access token:", error);
         setAccessTokenState({ valid: false, loading: false, error });
-      }
+      },
     });
 
     return () => subscription.unsubscribe();
@@ -82,9 +85,5 @@ export function AuthProvider({ children }: AuthProviderProps) {
     signOut,
   };
 
-  return (
-    <AuthContext.Provider value={value}>
-      {children}
-    </AuthContext.Provider>
-  );
-} 
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+}

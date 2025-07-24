@@ -11,7 +11,7 @@ export class WebSocketServer extends makeDurableObject({
   onPull: async (message) => {
     console.log("onPull", message);
   },
-}) { }
+}) {}
 
 export default {
   fetch: async (request: Request, env: Env, ctx: ExecutionContext) => {

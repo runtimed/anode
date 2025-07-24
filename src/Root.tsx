@@ -33,8 +33,6 @@ const NotebookApp: React.FC = () => {
   // rather than dynamic sync payload updates, as LiveStore doesn't support
   // runtime sync payload changes
 
-
-
   return (
     <div className="bg-background min-h-screen">
       {/* Debug FPS Meter - fixed position in corner */}
@@ -102,7 +100,9 @@ const LiveStoreApp: React.FC = () => {
   });
 
   // Get current auth token from AuthProvider
-  const currentAuthToken = accessToken.valid ? accessToken.token : "insecure-token-change-me";
+  const currentAuthToken = accessToken.valid
+    ? accessToken.token
+    : "insecure-token-change-me";
 
   return (
     <LiveStoreProvider
@@ -174,11 +174,14 @@ export const App: React.FC = () => {
     <AuthProvider>
       <Routes>
         <Route path="/oidc" element={<AuthRedirect />} />
-        <Route path="/*" element={
-          <AuthGuard>
-            <LiveStoreApp />
-          </AuthGuard>
-        } />
+        <Route
+          path="/*"
+          element={
+            <AuthGuard>
+              <LiveStoreApp />
+            </AuthGuard>
+          }
+        />
       </Routes>
     </AuthProvider>
   );

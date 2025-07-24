@@ -93,7 +93,9 @@ function computeExpiresAt(expires_in: number | undefined): number {
   return expires_in ? now + expires_in : now + 3600;
 }
 
-function convertToUserInfo(response: TokenEndpointResponse & TokenEndpointResponseHelpers): UserInfo {
+function convertToUserInfo(
+  response: TokenEndpointResponse & TokenEndpointResponseHelpers
+): UserInfo {
   const claims = response.claims();
   if (!claims) {
     throw new Error("No claims available from the token");
@@ -102,19 +104,19 @@ function convertToUserInfo(response: TokenEndpointResponse & TokenEndpointRespon
     sub: claims.sub,
     email: claims.email as string,
     email_verified: (claims.email_verified as boolean | undefined) ?? false,
-  }
+  };
   // Be careful to not pass through null values,
   // as the LiveStore spec requires optional fields to be undefined
-  if ((typeof claims.family_name) === 'string') {
+  if (typeof claims.family_name === "string") {
     userInfo.family_name = claims.family_name;
   }
-  if ((typeof claims.given_name) === 'string') {
+  if (typeof claims.given_name === "string") {
     userInfo.given_name = claims.given_name;
   }
-  if ((typeof claims.name) === 'string') {
+  if (typeof claims.name === "string") {
     userInfo.name = claims.name;
   }
-  if ((typeof claims.picture) === 'string') {
+  if (typeof claims.picture === "string") {
     userInfo.picture = claims.picture;
   }
   return userInfo;
@@ -201,7 +203,7 @@ export class OpenIdService {
   private getTokens(): Observable<Tokens | null> {
     return this.tokenChangeSubject$.pipe(
       startWith(LocalStorageKey.Tokens), // Trigger initial load
-      filter(key => key === LocalStorageKey.Tokens),
+      filter((key) => key === LocalStorageKey.Tokens),
       mergeMap(() => {
         const tokens = this.getFromLocalStorage<Tokens>(LocalStorageKey.Tokens);
         if (!tokens) {
@@ -215,7 +217,7 @@ export class OpenIdService {
         if (shouldRefresh) {
           // If expired or about to expire, trigger refresh
           return this.refreshTokens(tokens.refreshToken).pipe(
-            map(refreshedTokens => refreshedTokens || null),
+            map((refreshedTokens) => refreshedTokens || null),
             catchError(() => of(null))
           );
         }
@@ -228,13 +230,17 @@ export class OpenIdService {
 
   public getUser(): Observable<User | null> {
     return this.getTokens().pipe(
-      map(tokens => tokens ? { accessToken: tokens.accessToken, claims: tokens.claims } : null)
+      map((tokens) =>
+        tokens
+          ? { accessToken: tokens.accessToken, claims: tokens.claims }
+          : null
+      )
     );
   }
 
   public handleRedirect(url: URL): Observable<void> {
     return this.convertCodeToToken(url).pipe(
-      map(() => { }),
+      map(() => {}),
       take(1)
     );
   }
@@ -251,10 +257,12 @@ export class OpenIdService {
   private refreshTokens(refreshToken: string): Observable<Tokens | null> {
     if (!this.refreshedToken$) {
       this.refreshedToken$ = this.getConfig().pipe(
-        switchMap(config =>
-          from(this.client.refreshTokenGrant(config, refreshToken, {
-            scopes: OPENID_SCOPES,
-          }))
+        switchMap((config) =>
+          from(
+            this.client.refreshTokenGrant(config, refreshToken, {
+              scopes: OPENID_SCOPES,
+            })
+          )
         ),
         map((response): Tokens => {
           if (!response.refresh_token) {
@@ -273,7 +281,7 @@ export class OpenIdService {
           this.syncToLocalStorage(LocalStorageKey.Tokens, refreshedTokens);
           return refreshedTokens;
         }),
-        catchError(error => {
+        catchError((error) => {
           // Clear tokens on refresh failure
           this.syncToLocalStorage(LocalStorageKey.Tokens, null);
           throw error;
@@ -305,7 +313,10 @@ export class OpenIdService {
                 state,
               };
 
-              this.syncToLocalStorage(LocalStorageKey.RequestState, requestState);
+              this.syncToLocalStorage(
+                LocalStorageKey.RequestState,
+                requestState
+              );
               return requestState;
             })
           );
@@ -323,7 +334,9 @@ export class OpenIdService {
           LocalStorageKey.RequestState
         );
         if (!requestState) {
-          throw new Error("Missing pre-login secrets. Is localstorage enabled?");
+          throw new Error(
+            "Missing pre-login secrets. Is localstorage enabled?"
+          );
         }
         return from(
           this.client.authorizationCodeGrant(config, url, {
@@ -356,8 +369,8 @@ export class OpenIdService {
     if (!this.config$) {
       this.config$ = from(
         this.client.discovery(
-          new URL(import.meta.env.VITE_AUTH_URI || ''),
-          import.meta.env.VITE_AUTH_CLIENT_ID || ''
+          new URL(import.meta.env.VITE_AUTH_URI || ""),
+          import.meta.env.VITE_AUTH_CLIENT_ID || ""
         )
       ).pipe(shareReplay(1));
     }

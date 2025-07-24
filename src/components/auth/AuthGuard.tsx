@@ -11,7 +11,10 @@ export const AuthGuard: React.FC<AuthGuardProps> = ({ children, fallback }) => {
   const { accessToken } = useAuth();
   const isAuthenticated = accessToken.valid;
   const isLoading = !accessToken.valid && accessToken.loading;
-  const error = !accessToken.valid && accessToken.error ? accessToken.error.message : undefined;
+  const error =
+    !accessToken.valid && accessToken.error
+      ? accessToken.error.message
+      : undefined;
   const [authExpiredError, setAuthExpiredError] = useState<string | null>(null);
   const [loginError, setLoginError] = useState<string | null>(null);
 
