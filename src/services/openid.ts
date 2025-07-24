@@ -18,6 +18,8 @@ import {
   catchError,
   combineLatest,
   finalize,
+  interval,
+  tap,
 } from "rxjs";
 
 export type UserInfo = {
@@ -109,8 +111,10 @@ export class OpenIdService {
   private resetSubject$ = new Subject<void>();
   private tokenChangeSubject$ = new Subject<LocalStorageKey>();
   private client = openidClient;
+  private tokens$: Observable<Tokens | null> | null = null;
   private refreshedToken$: Observable<Tokens | null> | null = null;
   private convertedCodes$: Observable<Tokens> | null = null;
+  private freshness$: Observable<void> | null = null;
 
   public setClient(client: typeof openidClient): void {
     // Used for unit testing to override the client
@@ -171,6 +175,26 @@ export class OpenIdService {
     return this.convertedCodes$;
   }
 
+  public keepFresh(): Observable<void> {
+    // We want to keep the access token valid, so we don't hit any auth issues
+    // This is a simple solution to accomplish this, just by triggering the tokenChangeSubject
+    // every minute. As a side effect, this re-triggers getTokens()
+    // (Note if we just mapped/called getTokens, it wouldn't do anything since
+    // the source stream is $this.tokenChangeSubject
+    // Consider this observable for refactorin in the future, but this is a
+    // simple, easily verifiable solution.
+    if (!this.freshness$) {
+      this.freshness$ = interval(60 * 1000).pipe(
+        map(() => {}),
+        tap(() => {
+          this.tokenChangeSubject$.next(LocalStorageKey.Tokens);
+        }),
+        shareReplay(1)
+      );
+    }
+    return this.freshness$;
+  }
+
   public reset(): void {
     this.config$ = null;
     this.authorizationSecrets$ = null;
@@ -179,31 +203,38 @@ export class OpenIdService {
     this.syncToLocalStorage(LocalStorageKey.RequestState, null);
     this.syncToLocalStorage(LocalStorageKey.Tokens, null);
     this.resetSubject$.next();
+    // Note: Do NOT clear the tokens$ observable, because we want people to continue subscribing to it
+    // $tokens will emit `null` due to the localStorage side-effect
   }
 
   private getTokens(): Observable<Tokens | null> {
-    return this.tokenChangeSubject$.pipe(
-      startWith(LocalStorageKey.Tokens), // Trigger initial load
-      filter((key) => key === LocalStorageKey.Tokens),
-      switchMap(() => {
-        const tokens = this.getFromLocalStorage<Tokens>(LocalStorageKey.Tokens);
-        if (!tokens) {
-          return of(null);
-        }
+    if (!this.tokens$) {
+      this.tokens$ = this.tokenChangeSubject$.pipe(
+        startWith(LocalStorageKey.Tokens), // Trigger initial load
+        filter((key) => key === LocalStorageKey.Tokens),
+        switchMap(() => {
+          const tokens = this.getFromLocalStorage<Tokens>(
+            LocalStorageKey.Tokens
+          );
+          if (!tokens) {
+            return of(null);
+          }
 
-        const now = Math.floor(Date.now() / 1000);
-        const timeUntilExpiry = tokens.expiresAt - now;
-        const shouldRefresh = timeUntilExpiry <= 60; // 1 minute threshold
+          const now = Math.floor(Date.now() / 1000);
+          const timeUntilExpiry = tokens.expiresAt - now;
+          const shouldRefresh = timeUntilExpiry <= 60; // 1 minute threshold
 
-        if (shouldRefresh) {
-          // If expired or about to expire, trigger refresh
-          return this.refreshTokens(tokens.refreshToken);
-        }
+          if (shouldRefresh) {
+            // If expired or about to expire, trigger refresh
+            return this.refreshTokens(tokens.refreshToken);
+          }
 
-        return of(tokens);
-      }),
-      shareReplay(1)
-    );
+          return of(tokens);
+        }),
+        shareReplay(1)
+      );
+    }
+    return this.tokens$;
   }
 
   private refreshTokens(refreshToken: string): Observable<Tokens | null> {

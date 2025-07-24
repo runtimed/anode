@@ -86,6 +86,16 @@ export function AuthProvider({ children }: AuthProviderProps) {
     return () => subscription.unsubscribe();
   }, [isLocalMode]);
 
+  useEffect(() => {
+    const openIdService = getOpenIdService();
+    const subscription = openIdService.keepFresh().subscribe({
+      error: (error) => {
+        console.error("Error keeping access token fresh:", error);
+      },
+    });
+    return () => subscription.unsubscribe();
+  }, []);
+
   const getUser = (): UserInfo => {
     if (!authState.valid) {
       throw new Error("User is not authenticated");
