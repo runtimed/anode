@@ -48,6 +48,21 @@ export interface OpenIdClient {
   ) => Promise<TokenEndpointResponse & TokenEndpointResponseHelpers>;
 }
 
+export interface UserInfo {
+  sub: string;
+  email: string;
+  email_verified: boolean;
+  family_name?: string;
+  given_name?: string;
+  name?: string;
+  picture?: string;
+}
+
+export interface User {
+  accessToken: string;
+  claims: UserInfo;
+}
+
 interface RequestState {
   verifier: string;
   challenge: string;
@@ -58,6 +73,7 @@ interface Tokens {
   accessToken: string;
   refreshToken: string;
   expiresAt: number;
+  claims: UserInfo;
 }
 
 export interface RedirectUrls {
@@ -75,6 +91,33 @@ const OPENID_SCOPES = "openid email profile offline_access";
 function computeExpiresAt(expires_in: number | undefined): number {
   const now = Math.floor(Date.now() / 1000);
   return expires_in ? now + expires_in : now + 3600;
+}
+
+function convertToUserInfo(response: TokenEndpointResponse & TokenEndpointResponseHelpers): UserInfo {
+  const claims = response.claims();
+  if (!claims) {
+    throw new Error("No claims available from the token");
+  }
+  const userInfo: UserInfo = {
+    sub: claims.sub,
+    email: claims.email as string,
+    email_verified: (claims.email_verified as boolean | undefined) ?? false,
+  }
+  // Be careful to not pass through null values,
+  // as the LiveStore spec requires optional fields to be undefined
+  if ((typeof claims.family_name) === 'string') {
+    userInfo.family_name = claims.family_name;
+  }
+  if ((typeof claims.given_name) === 'string') {
+    userInfo.given_name = claims.given_name;
+  }
+  if ((typeof claims.name) === 'string') {
+    userInfo.name = claims.name;
+  }
+  if ((typeof claims.picture) === 'string') {
+    userInfo.picture = claims.picture;
+  }
+  return userInfo;
 }
 
 let singleton: OpenIdService | null = null;
@@ -155,7 +198,7 @@ export class OpenIdService {
     );
   }
 
-  public getAccessToken(): Observable<string | null> {
+  private getTokens(): Observable<Tokens | null> {
     return this.tokenChangeSubject$.pipe(
       startWith(LocalStorageKey.Tokens), // Trigger initial load
       filter(key => key === LocalStorageKey.Tokens),
@@ -172,14 +215,20 @@ export class OpenIdService {
         if (shouldRefresh) {
           // If expired or about to expire, trigger refresh
           return this.refreshTokens(tokens.refreshToken).pipe(
-            map(refreshedTokens => refreshedTokens?.accessToken || null),
+            map(refreshedTokens => refreshedTokens || null),
             catchError(() => of(null))
           );
         }
 
-        return of(tokens.accessToken);
+        return of(tokens);
       }),
       shareReplay(1)
+    );
+  }
+
+  public getUser(): Observable<User | null> {
+    return this.getTokens().pipe(
+      map(tokens => tokens ? { accessToken: tokens.accessToken, claims: tokens.claims } : null)
     );
   }
 
@@ -211,12 +260,14 @@ export class OpenIdService {
           if (!response.refresh_token) {
             throw new Error("No refresh token returned from server");
           }
+          const claims = convertToUserInfo(response);
           const expiresAt = computeExpiresAt(response.expires_in);
 
-          const refreshedTokens = {
+          const refreshedTokens: Tokens = {
             accessToken: response.access_token,
             refreshToken: response.refresh_token,
             expiresAt,
+            claims,
           };
 
           this.syncToLocalStorage(LocalStorageKey.Tokens, refreshedTokens);
@@ -285,12 +336,14 @@ export class OpenIdService {
         if (!tokenResp.refresh_token) {
           throw new Error("No refresh token returned from server");
         }
+        const claims = convertToUserInfo(tokenResp);
         const expiresAt = computeExpiresAt(tokenResp.expires_in);
 
-        const tokens = {
+        const tokens: Tokens = {
           accessToken: tokenResp.access_token,
           refreshToken: tokenResp.refresh_token,
           expiresAt,
+          claims,
         };
 
         this.syncToLocalStorage(LocalStorageKey.Tokens, tokens);

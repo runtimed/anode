@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { firstValueFrom } from 'rxjs';
-import { OpenIdService, OpenIdClient, RedirectUrls } from '../src/services/openid';
+import { OpenIdService, OpenIdClient, RedirectUrls, User } from '../src/services/openid';
 
 // Mock environment variables
 vi.mock('import.meta.env', () => ({
@@ -108,19 +108,30 @@ describe('OpenIdService', () => {
     });
   });
 
-  describe('getAccessToken', () => {
+  describe('getUser', () => {
     it('should return null when no tokens are stored', async () => {
-      const token$ = service.getAccessToken();
-      const token = await firstValueFrom(token$);
-      expect(token).toBeNull();
+      const user$ = service.getUser();
+      const user = await firstValueFrom(user$);
+      expect(user).toBeNull();
     });
 
-    it('should return access token when tokens are valid and not expired', async () => {
+    it('should return user when tokens are valid and not expired', async () => {
       const now = Math.floor(Date.now() / 1000);
+      const mockClaims = {
+        sub: 'test-user-id',
+        email: 'test@example.com',
+        email_verified: true,
+        family_name: 'Test',
+        given_name: 'User',
+        name: 'Test User',
+        picture: 'https://example.com/avatar.jpg'
+      };
+
       const validTokens = {
         accessToken: 'valid-access-token',
         refreshToken: 'valid-refresh-token',
-        expiresAt: now + 3600 // 1 hour from now
+        expiresAt: now + 3600, // 1 hour from now
+        claims: mockClaims
       };
 
       localStorage.setItem('openid_tokens', JSON.stringify(validTokens));
@@ -129,10 +140,13 @@ describe('OpenIdService', () => {
         authorization_endpoint: 'https://auth.example.com/authorize'
       } as any);
 
-      const token$ = service.getAccessToken();
-      const token = await firstValueFrom(token$);
+      const user$ = service.getUser();
+      const user = await firstValueFrom(user$);
 
-      expect(token).toBe('valid-access-token');
+      expect(user).toEqual({
+        accessToken: 'valid-access-token',
+        claims: mockClaims
+      });
     });
 
     it('should trigger refresh when token is within 1 minute of expiration', async () => {
@@ -140,7 +154,16 @@ describe('OpenIdService', () => {
       const expiringTokens = {
         accessToken: 'expiring-access-token',
         refreshToken: 'valid-refresh-token',
-        expiresAt: now + 30 // 30 seconds from now (within 1 minute)
+        expiresAt: now + 30, // 30 seconds from now (within 1 minute)
+        claims: {
+          sub: 'old-user-id',
+          email: 'old@example.com',
+          email_verified: true,
+          family_name: 'Old',
+          given_name: 'User',
+          name: 'Old User',
+          picture: 'https://example.com/old-avatar.jpg'
+        }
       };
 
       localStorage.setItem('openid_tokens', JSON.stringify(expiringTokens));
@@ -149,18 +172,32 @@ describe('OpenIdService', () => {
         authorization_endpoint: 'https://auth.example.com/authorize'
       } as any);
 
+      const newClaims = {
+        sub: 'new-user-id',
+        email: 'new@example.com',
+        email_verified: true,
+        family_name: 'New',
+        given_name: 'User',
+        name: 'New User',
+        picture: 'https://example.com/new-avatar.jpg'
+      };
+
       const refreshedTokens = {
         access_token: 'new-access-token',
         refresh_token: 'new-refresh-token',
-        expires_in: 3600
+        expires_in: 3600,
+        claims: () => newClaims
       };
 
       mockClient.refreshTokenGrant.mockResolvedValue(refreshedTokens);
 
-      const token$ = service.getAccessToken();
-      const token = await firstValueFrom(token$);
+      const user$ = service.getUser();
+      const user = await firstValueFrom(user$);
 
-      expect(token).toBe('new-access-token');
+      expect(user).toEqual({
+        accessToken: 'new-access-token',
+        claims: newClaims
+      });
       expect(mockClient.refreshTokenGrant).toHaveBeenCalledWith(
         expect.any(Object),
         'valid-refresh-token',
@@ -173,7 +210,16 @@ describe('OpenIdService', () => {
       const expiredTokens = {
         accessToken: 'expired-access-token',
         refreshToken: 'valid-refresh-token',
-        expiresAt: now - 60 // 1 minute ago (expired)
+        expiresAt: now - 60, // 1 minute ago (expired)
+        claims: {
+          sub: 'old-user-id',
+          email: 'old@example.com',
+          email_verified: true,
+          family_name: 'Old',
+          given_name: 'User',
+          name: 'Old User',
+          picture: 'https://example.com/old-avatar.jpg'
+        }
       };
 
       localStorage.setItem('openid_tokens', JSON.stringify(expiredTokens));
@@ -182,18 +228,32 @@ describe('OpenIdService', () => {
         authorization_endpoint: 'https://auth.example.com/authorize'
       } as any);
 
+      const newClaims = {
+        sub: 'new-user-id',
+        email: 'new@example.com',
+        email_verified: true,
+        family_name: 'New',
+        given_name: 'User',
+        name: 'New User',
+        picture: 'https://example.com/new-avatar.jpg'
+      };
+
       const refreshedTokens = {
         access_token: 'new-access-token',
         refresh_token: 'new-refresh-token',
-        expires_in: 3600
+        expires_in: 3600,
+        claims: () => newClaims
       };
 
       mockClient.refreshTokenGrant.mockResolvedValue(refreshedTokens);
 
-      const token$ = service.getAccessToken();
-      const token = await firstValueFrom(token$);
+      const user$ = service.getUser();
+      const user = await firstValueFrom(user$);
 
-      expect(token).toBe('new-access-token');
+      expect(user).toEqual({
+        accessToken: 'new-access-token',
+        claims: newClaims
+      });
       expect(mockClient.refreshTokenGrant).toHaveBeenCalled();
     });
 
@@ -202,7 +262,16 @@ describe('OpenIdService', () => {
       const expiringTokens = {
         accessToken: 'expiring-access-token',
         refreshToken: 'valid-refresh-token',
-        expiresAt: now + 30
+        expiresAt: now + 30,
+        claims: {
+          sub: 'test-user-id',
+          email: 'test@example.com',
+          email_verified: true,
+          family_name: 'Test',
+          given_name: 'User',
+          name: 'Test User',
+          picture: 'https://example.com/avatar.jpg'
+        }
       };
 
       localStorage.setItem('openid_tokens', JSON.stringify(expiringTokens));
@@ -213,10 +282,10 @@ describe('OpenIdService', () => {
 
       mockClient.refreshTokenGrant.mockRejectedValue(new Error('Refresh failed'));
 
-      const token$ = service.getAccessToken();
-      const token = await firstValueFrom(token$);
+      const user$ = service.getUser();
+      const user = await firstValueFrom(user$);
 
-      expect(token).toBeNull();
+      expect(user).toBeNull();
       expect(localStorage.getItem('openid_tokens')).toBeNull();
     });
 
@@ -225,7 +294,16 @@ describe('OpenIdService', () => {
       const expiringTokens = {
         accessToken: 'expiring-access-token',
         refreshToken: 'valid-refresh-token',
-        expiresAt: now + 30
+        expiresAt: now + 30,
+        claims: {
+          sub: 'test-user-id',
+          email: 'test@example.com',
+          email_verified: true,
+          family_name: 'Test',
+          given_name: 'User',
+          name: 'Test User',
+          picture: 'https://example.com/avatar.jpg'
+        }
       };
 
       localStorage.setItem('openid_tokens', JSON.stringify(expiringTokens));
@@ -234,31 +312,85 @@ describe('OpenIdService', () => {
         authorization_endpoint: 'https://auth.example.com/authorize'
       } as any);
 
+      const newClaims = {
+        sub: 'new-user-id',
+        email: 'new@example.com',
+        email_verified: true,
+        family_name: 'New',
+        given_name: 'User',
+        name: 'New User',
+        picture: 'https://example.com/new-avatar.jpg'
+      };
+
       const refreshedTokens = {
         access_token: 'new-access-token',
         refresh_token: 'new-refresh-token',
-        expires_in: 3600
+        expires_in: 3600,
+        claims: () => newClaims
       };
 
       mockClient.refreshTokenGrant.mockResolvedValue(refreshedTokens);
 
       // Make multiple concurrent calls
-      const token1$ = service.getAccessToken();
-      const token2$ = service.getAccessToken();
-      const token3$ = service.getAccessToken();
+      const user1$ = service.getUser();
+      const user2$ = service.getUser();
+      const user3$ = service.getUser();
 
-      const [token1, token2, token3] = await Promise.all([
-        firstValueFrom(token1$),
-        firstValueFrom(token2$),
-        firstValueFrom(token3$)
+      const [user1, user2, user3] = await Promise.all([
+        firstValueFrom(user1$),
+        firstValueFrom(user2$),
+        firstValueFrom(user3$)
       ]);
 
-      expect(token1).toBe('new-access-token');
-      expect(token2).toBe('new-access-token');
-      expect(token3).toBe('new-access-token');
+      const expectedUser = {
+        accessToken: 'new-access-token',
+        claims: newClaims
+      };
+
+      expect(user1).toEqual(expectedUser);
+      expect(user2).toEqual(expectedUser);
+      expect(user3).toEqual(expectedUser);
 
       // Should only call refresh once
       expect(mockClient.refreshTokenGrant).toHaveBeenCalledTimes(1);
+    });
+
+    it('should return null when user logs out (reset is called)', async () => {
+      const mockClaims = {
+        sub: 'test-user-id',
+        email: 'test@example.com',
+        email_verified: true,
+        family_name: 'Test',
+        given_name: 'User',
+        name: 'Test User',
+        picture: 'https://example.com/avatar.jpg'
+      };
+
+      const now = Math.floor(Date.now() / 1000);
+      const tokens = {
+        accessToken: 'valid-access-token',
+        refreshToken: 'valid-refresh-token',
+        expiresAt: now + 3600,
+        claims: mockClaims
+      };
+
+      localStorage.setItem('openid_tokens', JSON.stringify(tokens));
+
+      // First, verify user is available
+      const initialUser$ = service.getUser();
+      const initialUser = await firstValueFrom(initialUser$);
+      expect(initialUser).toEqual({
+        accessToken: 'valid-access-token',
+        claims: mockClaims
+      });
+
+      // Reset (simulate logout)
+      service.reset();
+
+      // Check that user is now null
+      const userAfterReset$ = service.getUser();
+      const userAfterReset = await firstValueFrom(userAfterReset$);
+      expect(userAfterReset).toBeNull();
     });
   });
 

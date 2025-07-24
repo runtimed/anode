@@ -3,6 +3,7 @@ import { useStore, useQuery } from "@livestore/react";
 import { useAuth } from "../components/auth/AuthProvider.js";
 import { events, tables } from "@runt/schema";
 import { queryDb } from "@livestore/livestore";
+import type { UserInfo } from "../services/openid";
 
 export interface CurrentUser {
   id: string;
@@ -10,6 +11,25 @@ export interface CurrentUser {
   email?: string;
   picture?: string;
   isAnonymous: boolean;
+}
+
+const getDisplayName = (user: UserInfo): string => {
+  let name = user.name;
+  if (!name) {
+    if (user.given_name) {
+      name = user.given_name;
+    }
+    if (user.family_name) {
+      if (name) {
+        name += ' ';
+      }
+      name += user.family_name;
+    }
+  }
+  if (!name) {
+    name = user.email;
+  }
+  return name
 }
 
 export const useCurrentUser = (): CurrentUser => {
@@ -26,8 +46,8 @@ export const useCurrentUser = (): CurrentUser => {
     // If we have an authenticated user (either OpenID or local mode)
     if (isAuthenticated && user) {
       return {
-        id: user.id,
-        name: user.name,
+        id: user.sub,
+        name: getDisplayName(user),
         email: user.email,
         picture: user.picture,
         isAnonymous: false,
@@ -71,7 +91,7 @@ export const useCurrentUser = (): CurrentUser => {
           id: currentUser.id,
           type: "human",
           displayName: currentUser.name,
-          avatar: currentUser.picture,
+          avatar: currentUser.picture || undefined,
         })
       );
     }

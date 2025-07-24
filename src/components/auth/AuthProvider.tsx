@@ -1,15 +1,10 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
-import { getOpenIdService } from '../../services/openid';
+import { getOpenIdService, UserInfo } from '../../services/openid';
+export type { UserInfo } from '../../services/openid';
 
-interface AuthUser {
-  id: string;
-  email: string;
-  name: string;
-  picture?: string;
-}
 
 type AccessTokenState =
-  | { valid: true; token: string; user: AuthUser }
+  | { valid: true; token: string; user: UserInfo }
   | { valid: false; loading: boolean; error?: Error };
 
 interface AuthContextType {
@@ -43,9 +38,10 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
     if (isLocalMode) {
       // Local development mode - use fallback token
-      const dummyUser: AuthUser = {
-        id: "local-dev-user",
+      const dummyUser: UserInfo = {
+        sub: "local-dev-user",
         email: "local@example.com",
+        email_verified: true,
         name: "Local Development User",
         picture: undefined,
       };
@@ -59,17 +55,10 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
     // OpenID mode - use the service
     const openIdService = getOpenIdService();
-    const subscription = openIdService.getAccessToken().subscribe({
-      next: (token) => {
-        if (token) {
-          // TODO: Replace with actual user data from OpenID service
-          const dummyUser: AuthUser = {
-            id: "local-dev-user",
-            email: "local@example.com",
-            name: "Local Development User",
-            picture: undefined,
-          };
-          setAccessTokenState({ valid: true, token, user: dummyUser });
+    const subscription = openIdService.getUser().subscribe({
+      next: (user) => {
+        if (user) {
+          setAccessTokenState({ valid: true, token: user.accessToken, user: user.claims });
         } else {
           setAccessTokenState({ valid: false, loading: false });
         }

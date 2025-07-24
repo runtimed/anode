@@ -91,7 +91,7 @@ const LiveStoreApp: React.FC = () => {
   const user = accessToken.valid ? accessToken.user : null;
 
   // Use the authenticated user's ID as clientId for proper attribution
-  const clientId = user?.id || "anonymous-user";
+  const clientId = user?.sub || "anonymous-user";
 
   const adapter = makePersistedAdapter({
     storage: { type: "opfs" },
