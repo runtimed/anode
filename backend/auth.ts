@@ -1,5 +1,5 @@
 import { SignJWT, jwtVerify, createRemoteJWKSet } from "jose";
-import type { JWTPayload } from "jose";
+import { JWTPayload, decodeJwt } from "jose";
 import { Env } from "./types";
 
 export interface ValidatedUser {
@@ -35,46 +35,31 @@ export function validateProductionEnvironment(env: Env): void {
   }
 }
 
+export function determineAuthType(
+  payload: AuthPayload,
+  env: Env
+): "access_token" | "auth_token" {
+  try {
+    decodeJwt(payload.authToken);
+    return "access_token";
+  } catch {}
+  const allowAuthToken =
+    env.AUTH_TOKEN && (payload.runtime || env.DEPLOYMENT_ENV !== "production");
+  if (!allowAuthToken) {
+    throw new Error("INVALID_AUTH_TOKEN: Unknown authorization method");
+  }
+  return "auth_token";
+}
+
 export async function validateAuthPayload(
   payload: AuthPayload,
   env: Env
 ): Promise<ValidatedUser> {
-  if (env.DEPLOYMENT_ENV !== "production" && env.AUTH_TOKEN) {
-    return validateHardcodedAuthToken(payload, env);
+  const authType = determineAuthType(payload, env);
+  if (authType === "access_token") {
+    return await validateOAuthToken(payload, env);
   }
-  const JWKS = createRemoteJWKSet(
-    new URL(`${env.AUTH_ISSUER}/.well-known/jwks.json`)
-  );
-
-  let jwt: JWTPayload;
-  try {
-    const resp = await jwtVerify(payload.authToken, JWKS, {
-      algorithms: ["RS256"],
-      issuer: env.AUTH_ISSUER,
-    });
-    jwt = resp.payload;
-  } catch (error) {
-    const errorMessage =
-      error instanceof Error ? error.message : "Unknown error";
-    throw new Error(`VALIDATE_JWT_ERROR: ${errorMessage}`);
-  }
-
-  const { sub } = jwt;
-  if (!(typeof sub === "string")) {
-    throw new Error("INVALID_JWT_TOKEN: JWT missing sub claim");
-  }
-
-  const email = typeof jwt.email === "string" ? jwt.email : undefined;
-  const name = getDisplayName(jwt);
-
-  const user: ValidatedUser = {
-    id: sub,
-    email,
-    name,
-    isAnonymous: false,
-  };
-  console.log("🔑 Validated user", user);
-  return user;
+  return validateHardcodedAuthToken(payload, env);
 }
 
 async function validateHardcodedAuthToken(
@@ -120,6 +105,45 @@ async function validateHardcodedAuthToken(
     name: "Local Development User",
     isAnonymous: true,
   };
+}
+
+async function validateOAuthToken(
+  payload: AuthPayload,
+  env: Env
+): Promise<ValidatedUser> {
+  const JWKS = createRemoteJWKSet(
+    new URL(`${env.AUTH_ISSUER}/.well-known/jwks.json`)
+  );
+
+  let jwt: JWTPayload;
+  try {
+    const resp = await jwtVerify(payload.authToken, JWKS, {
+      algorithms: ["RS256"],
+      issuer: env.AUTH_ISSUER,
+    });
+    jwt = resp.payload;
+  } catch (error) {
+    const errorMessage =
+      error instanceof Error ? error.message : "Unknown error";
+    throw new Error(`VALIDATE_JWT_ERROR: ${errorMessage}`);
+  }
+
+  const { sub } = jwt;
+  if (!(typeof sub === "string")) {
+    throw new Error("INVALID_JWT_TOKEN: JWT missing sub claim");
+  }
+
+  const email = typeof jwt.email === "string" ? jwt.email : undefined;
+  const name = getDisplayName(jwt);
+
+  const user: ValidatedUser = {
+    id: sub,
+    email,
+    name,
+    isAnonymous: false,
+  };
+  console.log("🔑 Validated user", user);
+  return user;
 }
 
 const getDisplayName = (jwt: JWTPayload): string => {

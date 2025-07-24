@@ -1,7 +1,9 @@
 import { describe, expect, it, beforeEach, afterEach, vi } from "vitest";
+import { SignJWT } from "jose";
 import {
   validateAuthPayload,
   validateProductionEnvironment,
+  determineAuthType,
   type ValidatedUser,
 } from "../backend/auth";
 import type { Env } from "../backend/types";
@@ -70,6 +72,110 @@ describe("validateProductionEnvironment", () => {
     expect(() => validateProductionEnvironment(env)).toThrow(
       "STARTUP_ERROR: AUTH_ISSUER or AUTH_TOKEN must be set when DEPLOYMENT_ENV is development"
     );
+  });
+});
+
+describe("determineAuthType", () => {
+  it("should return access_token for valid JWT", async () => {
+    const jwt = await new SignJWT({ sub: "test-user" })
+      .setProtectedHeader({ alg: "HS256" })
+      .sign(new TextEncoder().encode("test-secret"));
+
+    const payload = { authToken: jwt };
+    const env: Env = {
+      DEPLOYMENT_ENV: "development",
+      AUTH_ISSUER: "",
+      AUTH_TOKEN: "test-token",
+    } as Env;
+
+    const result = determineAuthType(payload, env);
+    expect(result).toBe("access_token");
+  });
+
+  it("should return access_token for JWT with wrong signature", async () => {
+    const jwt = await new SignJWT({ sub: "test-user" })
+      .setProtectedHeader({ alg: "HS256" })
+      .sign(new TextEncoder().encode("test-secret"));
+
+    // Create a JWT with wrong signature by modifying the last part
+    const parts = jwt.split(".");
+    const headerAndPayload = parts.slice(0, 2).join(".");
+    const wrongSignature = "wrong-signature";
+    const invalidJwt = `${headerAndPayload}.${wrongSignature}`;
+
+    const payload = { authToken: invalidJwt };
+    const env: Env = {
+      DEPLOYMENT_ENV: "development",
+      AUTH_ISSUER: "",
+      AUTH_TOKEN: "test-token",
+    } as Env;
+
+    const result = determineAuthType(payload, env);
+    expect(result).toBe("access_token");
+  });
+
+  it("should return auth_token when payload.runtime is true", () => {
+    const payload = {
+      authToken: "not-a-jwt-token",
+      runtime: true,
+    };
+    const env: Env = {
+      DEPLOYMENT_ENV: "production",
+      AUTH_ISSUER: "https://auth.example.com",
+      AUTH_TOKEN: "test-token",
+    } as Env;
+
+    const result = determineAuthType(payload, env);
+    expect(result).toBe("auth_token");
+  });
+
+  it("should return auth_token when env.AUTH_TOKEN is set in development", () => {
+    const payload = { authToken: "not-a-jwt-token" };
+    const env: Env = {
+      DEPLOYMENT_ENV: "development",
+      AUTH_ISSUER: "",
+      AUTH_TOKEN: "test-token",
+    } as Env;
+
+    const result = determineAuthType(payload, env);
+    expect(result).toBe("auth_token");
+  });
+
+  it("should return auth_token when env.AUTH_TOKEN is set in non-production", () => {
+    const payload = { authToken: "not-a-jwt-token" };
+    const env: Env = {
+      DEPLOYMENT_ENV: "staging",
+      AUTH_ISSUER: "",
+      AUTH_TOKEN: "test-token",
+    } as Env;
+
+    const result = determineAuthType(payload, env);
+    expect(result).toBe("auth_token");
+  });
+
+  it("should throw error for unsupported auth method in production", () => {
+    const payload = { authToken: "not-a-jwt-token" };
+    const env: Env = {
+      DEPLOYMENT_ENV: "production",
+      AUTH_ISSUER: "https://auth.example.com",
+      AUTH_TOKEN: "",
+    } as Env;
+
+    expect(() => determineAuthType(payload, env)).toThrow(
+      "INVALID_AUTH_TOKEN: Unknown authorization method"
+    );
+  });
+
+  it("should handle empty auth token", () => {
+    const payload = { authToken: "" };
+    const env: Env = {
+      DEPLOYMENT_ENV: "development",
+      AUTH_ISSUER: "",
+      AUTH_TOKEN: "test-token",
+    } as Env;
+
+    const result = determineAuthType(payload, env);
+    expect(result).toBe("auth_token");
   });
 });
 
