@@ -3,3 +3,6 @@
 # This file SHOULD NOT contain real production secrets.
 
 AUTH_TOKEN="insecure-token-change-me"
+
+# Set the AUTH_ISSUER to connect to a real auth flow
+# AUTH_ISSUER="https://example.com/oauth_provider
