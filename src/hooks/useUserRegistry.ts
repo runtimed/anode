@@ -27,8 +27,6 @@ export const useUserRegistry = () => {
   const actors = useQuery(actorsQuery);
   const presence = useQuery(presenceQuery);
 
-  // Actor profile emission is now handled in useCurrentUser hook
-
   // Create a reactive map of user info from actors and presence data
   const userRegistry = useMemo(() => {
     const registry = new Map<string, UserInfo>();

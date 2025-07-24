@@ -7,6 +7,7 @@ type AuthState =
   | { valid: false; loading: boolean; error?: Error };
 
 interface AuthContextType {
+  isLocalMode: boolean;
   authState: AuthState;
   getUser: () => UserInfo;
   getAccessToken: () => string;
@@ -32,13 +33,10 @@ export function AuthProvider({ children }: AuthProviderProps) {
     valid: false,
     loading: true,
   });
+  const isLocalMode = !import.meta.env.VITE_AUTH_CLIENT_ID;
 
   useEffect(() => {
-    // Check if we're in local mode (no auth client ID)
-    const isLocalMode = !import.meta.env.VITE_AUTH_CLIENT_ID;
-
     if (isLocalMode) {
-      // Local development mode - use VITE variable for token
       const localToken = import.meta.env.VITE_AUTH_TOKEN;
       if (!localToken) {
         console.error("VITE_AUTH_TOKEN is required for local development mode");
@@ -86,7 +84,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
     });
 
     return () => subscription.unsubscribe();
-  }, []);
+  }, [isLocalMode]);
 
   const getUser = (): UserInfo => {
     if (!authState.valid) {
@@ -108,6 +106,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
   };
 
   const value: AuthContextType = {
+    isLocalMode,
     authState,
     getUser,
     getAccessToken,
