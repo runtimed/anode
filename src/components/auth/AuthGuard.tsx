@@ -30,14 +30,6 @@ export const AuthGuard: React.FC<AuthGuardProps> = ({ children, fallback }) => {
     return () => window.removeEventListener("message", handleMessage);
   }, []);
 
-  // Check if we're in local mode (no auth client ID)
-  const isLocalMode = !import.meta.env.VITE_AUTH_CLIENT_ID;
-
-  // If in local mode, always allow access
-  if (isLocalMode) {
-    return <>{children}</>;
-  }
-
   // Show loading state while checking authentication
   if (isLoading) {
     return (

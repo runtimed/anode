@@ -36,7 +36,18 @@ export function AuthProvider({ children }: AuthProviderProps) {
     const isLocalMode = !import.meta.env.VITE_AUTH_CLIENT_ID;
 
     if (isLocalMode) {
-      // Local development mode - use fallback token
+      // Local development mode - use VITE variable for token
+      const localToken = import.meta.env.VITE_AUTH_TOKEN;
+      if (!localToken) {
+        console.error("VITE_AUTH_TOKEN is required for local development mode");
+        setAccessTokenState({
+          valid: false,
+          loading: false,
+          error: new Error("Missing VITE_AUTH_TOKEN"),
+        });
+        return;
+      }
+
       const dummyUser: UserInfo = {
         sub: "local-dev-user",
         email: "local@example.com",
@@ -46,7 +57,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
       };
       setAccessTokenState({
         valid: true,
-        token: "insecure-token-change-me",
+        token: localToken,
         user: dummyUser,
       });
       return;

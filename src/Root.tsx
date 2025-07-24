@@ -86,10 +86,15 @@ const LiveStoreApp: React.FC = () => {
 
   // Get authenticated user info to set clientId
   const { accessToken } = useAuth();
-  const user = accessToken.valid ? accessToken.user : null;
 
-  // Use the authenticated user's ID as clientId for proper attribution
-  const clientId = user?.sub || "anonymous-user";
+  if (!accessToken.valid) {
+    throw new Error(
+      "LiveStoreApp should not be rendered without valid access token"
+    );
+  }
+
+  const user = accessToken.user;
+  const clientId = user.sub;
 
   const adapter = makePersistedAdapter({
     storage: { type: "opfs" },
@@ -98,11 +103,6 @@ const LiveStoreApp: React.FC = () => {
     resetPersistence,
     clientId, // This ties the LiveStore client to the authenticated user
   });
-
-  // Get current auth token from AuthProvider
-  const currentAuthToken = accessToken.valid
-    ? accessToken.token
-    : "insecure-token-change-me";
 
   return (
     <LiveStoreProvider
@@ -122,7 +122,7 @@ const LiveStoreApp: React.FC = () => {
       )}
       batchUpdates={batchUpdates}
       storeId={storeId}
-      syncPayload={{ authToken: currentAuthToken, clientId }}
+      syncPayload={{ authToken: accessToken.token, clientId }}
     >
       <NotebookApp />
     </LiveStoreProvider>
