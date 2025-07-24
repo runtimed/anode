@@ -1,11 +1,7 @@
 import type {
-  discovery,
   Configuration,
-  DPoPOptions,
-  TokenEndpointResponseHelpers,
   TokenEndpointResponse,
-  AuthorizationCodeGrantChecks,
-  AuthorizationCodeGrantOptions,
+  TokenEndpointResponseHelpers,
 } from "openid-client";
 import * as openidClient from "openid-client";
 import {
@@ -22,30 +18,6 @@ import {
   combineLatest,
   finalize,
 } from "rxjs";
-
-export interface OpenIdClient {
-  discovery: typeof discovery;
-  randomPKCECodeVerifier: () => string;
-  calculatePKCECodeChallenge: (verifier: string) => Promise<string>;
-  randomState: () => string;
-  buildAuthorizationUrl: (
-    config: Configuration,
-    parameters: URLSearchParams | Record<string, string>
-  ) => URL;
-  refreshTokenGrant: (
-    config: Configuration,
-    refreshToken: string,
-    parameters?: URLSearchParams | Record<string, string>,
-    options?: DPoPOptions
-  ) => Promise<TokenEndpointResponse & TokenEndpointResponseHelpers>;
-  authorizationCodeGrant: (
-    config: Configuration,
-    currentUrl: URL | Request,
-    checks?: AuthorizationCodeGrantChecks,
-    tokenEndpointParameters?: URLSearchParams | Record<string, string>,
-    options?: AuthorizationCodeGrantOptions
-  ) => Promise<TokenEndpointResponse & TokenEndpointResponseHelpers>;
-}
 
 export interface UserInfo {
   sub: string;
@@ -135,11 +107,11 @@ export class OpenIdService {
   private authorizationSecrets$: Observable<RequestState> | null = null;
   private resetSubject$ = new Subject<void>();
   private tokenChangeSubject$ = new Subject<LocalStorageKey>();
-  private client: OpenIdClient = openidClient;
+  private client = openidClient;
   private refreshedToken$: Observable<Tokens | null> | null = null;
   private convertedCodes$: Observable<Tokens> | null = null;
 
-  public setClient(client: OpenIdClient): void {
+  public setClient(client: typeof openidClient): void {
     // Used for unit testing to override the client
     this.client = client;
   }

@@ -1,25 +1,57 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { firstValueFrom } from "rxjs";
-import {
-  OpenIdService,
-  OpenIdClient,
-  RedirectUrls,
-  User,
-} from "../src/services/openid";
+import { OpenIdService } from "../src/services/openid";
 
 describe("OpenIdService", () => {
   let mockClient: any;
   let service: OpenIdService;
 
+  const createMockClaims = (overrides = {}) => ({
+    sub: "test-user-id",
+    email: "test@example.com",
+    email_verified: true,
+    family_name: "Test",
+    given_name: "User",
+    name: "Test User",
+    picture: "https://example.com/avatar.jpg",
+    ...overrides,
+  });
+
+  const createMockTokens = (overrides = {}) => ({
+    accessToken: "valid-access-token",
+    refreshToken: "valid-refresh-token",
+    expiresAt: Math.floor(Date.now() / 1000) + 3600, // 1 hour from now
+    claims: createMockClaims(),
+    ...overrides,
+  });
+
+  const createExpiringTokens = (secondsFromNow = 30, claimsOverrides = {}) => ({
+    accessToken: "expiring-access-token",
+    refreshToken: "valid-refresh-token",
+    expiresAt: Math.floor(Date.now() / 1000) + secondsFromNow,
+    claims: createMockClaims(claimsOverrides),
+  });
+
+  const createExpiredTokens = (secondsAgo = 60, claimsOverrides = {}) => ({
+    accessToken: "expired-access-token",
+    refreshToken: "valid-refresh-token",
+    expiresAt: Math.floor(Date.now() / 1000) - secondsAgo,
+    claims: createMockClaims(claimsOverrides),
+  });
+
   beforeEach(() => {
     localStorage.clear();
 
     mockClient = {
-      discovery: vi.fn(),
-      randomPKCECodeVerifier: vi.fn(),
-      calculatePKCECodeChallenge: vi.fn(),
-      randomState: vi.fn(),
-      buildAuthorizationUrl: vi.fn(),
+      discovery: vi.fn().mockResolvedValue({
+        authorization_endpoint: "https://auth.example.com/authorize",
+      } as any),
+      randomPKCECodeVerifier: vi.fn().mockReturnValue("test-verifier"),
+      calculatePKCECodeChallenge: vi.fn().mockResolvedValue("test-challenge"),
+      randomState: vi.fn().mockReturnValue("test-state"),
+      buildAuthorizationUrl: vi
+        .fn()
+        .mockReturnValue(new URL("https://auth.example.com/authorize")),
       refreshTokenGrant: vi.fn(),
     };
 
@@ -40,12 +72,6 @@ describe("OpenIdService", () => {
         "https://auth.example.com/authorize?prompt=registration"
       );
 
-      mockClient.discovery.mockResolvedValue({
-        authorization_endpoint: "https://auth.example.com/authorize",
-      } as any);
-      mockClient.randomPKCECodeVerifier.mockReturnValue("test-verifier");
-      mockClient.calculatePKCECodeChallenge.mockResolvedValue("test-challenge");
-      mockClient.randomState.mockReturnValue("test-state");
       mockClient.buildAuthorizationUrl
         .mockReturnValueOnce(mockLoginUrl)
         .mockReturnValueOnce(mockRegisterUrl);
@@ -66,7 +92,7 @@ describe("OpenIdService", () => {
       let error: Error | null = null;
 
       redirectUrls$.subscribe({
-        next: () => { },
+        next: () => {},
         error: (err) => (error = err),
       });
 
@@ -85,12 +111,6 @@ describe("OpenIdService", () => {
         "https://auth.example.com/authorize?prompt=registration"
       );
 
-      mockClient.discovery.mockResolvedValue({
-        authorization_endpoint: "https://auth.example.com/authorize",
-      } as any);
-      mockClient.randomPKCECodeVerifier.mockReturnValue("test-verifier");
-      mockClient.calculatePKCECodeChallenge.mockResolvedValue("test-challenge");
-      mockClient.randomState.mockReturnValue("test-state");
       mockClient.buildAuthorizationUrl
         .mockReturnValueOnce(mockLoginUrl)
         .mockReturnValueOnce(mockRegisterUrl)
@@ -122,71 +142,37 @@ describe("OpenIdService", () => {
     });
 
     it("should return user when tokens are valid and not expired", async () => {
-      const now = Math.floor(Date.now() / 1000);
-      const mockClaims = {
-        sub: "test-user-id",
-        email: "test@example.com",
-        email_verified: true,
-        family_name: "Test",
-        given_name: "User",
-        name: "Test User",
-        picture: "https://example.com/avatar.jpg",
-      };
-
-      const validTokens = {
-        accessToken: "valid-access-token",
-        refreshToken: "valid-refresh-token",
-        expiresAt: now + 3600, // 1 hour from now
-        claims: mockClaims,
-      };
+      const validTokens = createMockTokens();
 
       localStorage.setItem("openid_tokens", JSON.stringify(validTokens));
-
-      mockClient.discovery.mockResolvedValue({
-        authorization_endpoint: "https://auth.example.com/authorize",
-      } as any);
 
       const user$ = service.getUser();
       const user = await firstValueFrom(user$);
 
       expect(user).toEqual({
         accessToken: "valid-access-token",
-        claims: mockClaims,
+        claims: validTokens.claims,
       });
     });
 
     it("should trigger refresh when token is within 1 minute of expiration", async () => {
-      const now = Math.floor(Date.now() / 1000);
-      const expiringTokens = {
-        accessToken: "expiring-access-token",
-        refreshToken: "valid-refresh-token",
-        expiresAt: now + 30, // 30 seconds from now (within 1 minute)
-        claims: {
-          sub: "old-user-id",
-          email: "old@example.com",
-          email_verified: true,
-          family_name: "Old",
-          given_name: "User",
-          name: "Old User",
-          picture: "https://example.com/old-avatar.jpg",
-        },
-      };
+      const expiringTokens = createExpiringTokens(30, {
+        sub: "old-user-id",
+        email: "old@example.com",
+        family_name: "Old",
+        name: "Old User",
+        picture: "https://example.com/old-avatar.jpg",
+      });
 
       localStorage.setItem("openid_tokens", JSON.stringify(expiringTokens));
 
-      mockClient.discovery.mockResolvedValue({
-        authorization_endpoint: "https://auth.example.com/authorize",
-      } as any);
-
-      const newClaims = {
+      const newClaims = createMockClaims({
         sub: "new-user-id",
         email: "new@example.com",
-        email_verified: true,
         family_name: "New",
-        given_name: "User",
         name: "New User",
         picture: "https://example.com/new-avatar.jpg",
-      };
+      });
 
       const refreshedTokens = {
         access_token: "new-access-token",
@@ -212,37 +198,23 @@ describe("OpenIdService", () => {
     });
 
     it("should trigger refresh when token is already expired", async () => {
-      const now = Math.floor(Date.now() / 1000);
-      const expiredTokens = {
-        accessToken: "expired-access-token",
-        refreshToken: "valid-refresh-token",
-        expiresAt: now - 60, // 1 minute ago (expired)
-        claims: {
-          sub: "old-user-id",
-          email: "old@example.com",
-          email_verified: true,
-          family_name: "Old",
-          given_name: "User",
-          name: "Old User",
-          picture: "https://example.com/old-avatar.jpg",
-        },
-      };
+      const expiredTokens = createExpiredTokens(60, {
+        sub: "old-user-id",
+        email: "old@example.com",
+        family_name: "Old",
+        name: "Old User",
+        picture: "https://example.com/old-avatar.jpg",
+      });
 
       localStorage.setItem("openid_tokens", JSON.stringify(expiredTokens));
 
-      mockClient.discovery.mockResolvedValue({
-        authorization_endpoint: "https://auth.example.com/authorize",
-      } as any);
-
-      const newClaims = {
+      const newClaims = createMockClaims({
         sub: "new-user-id",
         email: "new@example.com",
-        email_verified: true,
         family_name: "New",
-        given_name: "User",
         name: "New User",
         picture: "https://example.com/new-avatar.jpg",
-      };
+      });
 
       const refreshedTokens = {
         access_token: "new-access-token",
@@ -264,27 +236,9 @@ describe("OpenIdService", () => {
     });
 
     it("should handle refresh failure by clearing tokens", async () => {
-      const now = Math.floor(Date.now() / 1000);
-      const expiringTokens = {
-        accessToken: "expiring-access-token",
-        refreshToken: "valid-refresh-token",
-        expiresAt: now + 30,
-        claims: {
-          sub: "test-user-id",
-          email: "test@example.com",
-          email_verified: true,
-          family_name: "Test",
-          given_name: "User",
-          name: "Test User",
-          picture: "https://example.com/avatar.jpg",
-        },
-      };
+      const expiringTokens = createExpiringTokens();
 
       localStorage.setItem("openid_tokens", JSON.stringify(expiringTokens));
-
-      mockClient.discovery.mockResolvedValue({
-        authorization_endpoint: "https://auth.example.com/authorize",
-      } as any);
 
       mockClient.refreshTokenGrant.mockRejectedValue(
         new Error("Refresh failed")
@@ -298,37 +252,17 @@ describe("OpenIdService", () => {
     });
 
     it("should not trigger multiple concurrent refreshes", async () => {
-      const now = Math.floor(Date.now() / 1000);
-      const expiringTokens = {
-        accessToken: "expiring-access-token",
-        refreshToken: "valid-refresh-token",
-        expiresAt: now + 30,
-        claims: {
-          sub: "test-user-id",
-          email: "test@example.com",
-          email_verified: true,
-          family_name: "Test",
-          given_name: "User",
-          name: "Test User",
-          picture: "https://example.com/avatar.jpg",
-        },
-      };
+      const expiringTokens = createExpiringTokens();
 
       localStorage.setItem("openid_tokens", JSON.stringify(expiringTokens));
 
-      mockClient.discovery.mockResolvedValue({
-        authorization_endpoint: "https://auth.example.com/authorize",
-      } as any);
-
-      const newClaims = {
+      const newClaims = createMockClaims({
         sub: "new-user-id",
         email: "new@example.com",
-        email_verified: true,
         family_name: "New",
-        given_name: "User",
         name: "New User",
         picture: "https://example.com/new-avatar.jpg",
-      };
+      });
 
       const refreshedTokens = {
         access_token: "new-access-token",
@@ -364,23 +298,7 @@ describe("OpenIdService", () => {
     });
 
     it("should return null when user logs out (reset is called)", async () => {
-      const mockClaims = {
-        sub: "test-user-id",
-        email: "test@example.com",
-        email_verified: true,
-        family_name: "Test",
-        given_name: "User",
-        name: "Test User",
-        picture: "https://example.com/avatar.jpg",
-      };
-
-      const now = Math.floor(Date.now() / 1000);
-      const tokens = {
-        accessToken: "valid-access-token",
-        refreshToken: "valid-refresh-token",
-        expiresAt: now + 3600,
-        claims: mockClaims,
-      };
+      const tokens = createMockTokens();
 
       localStorage.setItem("openid_tokens", JSON.stringify(tokens));
 
@@ -389,7 +307,7 @@ describe("OpenIdService", () => {
       const initialUser = await firstValueFrom(initialUser$);
       expect(initialUser).toEqual({
         accessToken: "valid-access-token",
-        claims: mockClaims,
+        claims: tokens.claims,
       });
 
       // Reset (simulate logout)
@@ -411,12 +329,6 @@ describe("OpenIdService", () => {
         "https://auth.example.com/authorize?prompt=registration"
       );
 
-      mockClient.discovery.mockResolvedValue({
-        authorization_endpoint: "https://auth.example.com/authorize",
-      } as any);
-      mockClient.randomPKCECodeVerifier.mockReturnValue("test-verifier");
-      mockClient.calculatePKCECodeChallenge.mockResolvedValue("test-challenge");
-      mockClient.randomState.mockReturnValue("test-state");
       mockClient.buildAuthorizationUrl
         .mockReturnValueOnce(mockLoginUrl)
         .mockReturnValueOnce(mockRegisterUrl)
@@ -443,9 +355,6 @@ describe("OpenIdService", () => {
           authorization_endpoint: "https://auth.example.com/authorize",
         } as any);
 
-      mockClient.randomPKCECodeVerifier.mockReturnValue("test-verifier");
-      mockClient.calculatePKCECodeChallenge.mockResolvedValue("test-challenge");
-      mockClient.randomState.mockReturnValue("test-state");
       mockClient.buildAuthorizationUrl.mockReturnValue(
         new URL("https://auth.example.com/authorize")
       );
@@ -454,7 +363,7 @@ describe("OpenIdService", () => {
       let error: Error | null = null;
 
       redirectUrls$.subscribe({
-        next: () => { },
+        next: () => {},
         error: (err) => (error = err),
       });
 
@@ -468,7 +377,7 @@ describe("OpenIdService", () => {
 
       const newRedirectUrls$ = service.getRedirectUrls();
       newRedirectUrls$.subscribe({
-        next: () => { },
+        next: () => {},
         error: (err) => (error = err),
       });
 
@@ -480,25 +389,12 @@ describe("OpenIdService", () => {
 
   describe("handleRedirect", () => {
     it("should convert authorization code to tokens and share result between subscribers", async () => {
-      // Mock the discovery endpoint
-      mockClient.discovery.mockResolvedValue({
-        authorization_endpoint: "https://auth.example.com/authorize",
-      } as any);
-
       // Mock the authorization code grant
       const mockTokenResponse = {
         access_token: "test-access-token",
         refresh_token: "test-refresh-token",
         expires_in: 3600,
-        claims: () => ({
-          sub: "test-user-id",
-          email: "test@example.com",
-          email_verified: true,
-          family_name: "Test",
-          given_name: "User",
-          name: "Test User",
-          picture: "https://example.com/avatar.jpg",
-        }),
+        claims: () => createMockClaims(),
       };
 
       mockClient.authorizationCodeGrant = vi
@@ -525,15 +421,7 @@ describe("OpenIdService", () => {
         accessToken: "test-access-token",
         refreshToken: "test-refresh-token",
         expiresAt: expect.any(Number),
-        claims: {
-          sub: "test-user-id",
-          email: "test@example.com",
-          email_verified: true,
-          family_name: "Test",
-          given_name: "User",
-          name: "Test User",
-          picture: "https://example.com/avatar.jpg",
-        },
+        claims: createMockClaims(),
       });
 
       // Verify tokens were stored in localStorage
@@ -544,15 +432,7 @@ describe("OpenIdService", () => {
         accessToken: "test-access-token",
         refreshToken: "test-refresh-token",
         expiresAt: expect.any(Number),
-        claims: {
-          sub: "test-user-id",
-          email: "test@example.com",
-          email_verified: true,
-          family_name: "Test",
-          given_name: "User",
-          name: "Test User",
-          picture: "https://example.com/avatar.jpg",
-        },
+        claims: createMockClaims(),
       });
 
       // Second subscription should get the same result
@@ -566,10 +446,6 @@ describe("OpenIdService", () => {
     });
 
     it("should throw error when localStorage request state is missing", async () => {
-      mockClient.discovery.mockResolvedValue({
-        authorization_endpoint: "https://auth.example.com/authorize",
-      } as any);
-
       const tokens$ = service.handleRedirect();
       const promise = firstValueFrom(tokens$);
       expect(promise).rejects.toThrow(
