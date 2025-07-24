@@ -1,7 +1,6 @@
-import { jwtVerify, createRemoteJWKSet } from "jose";
+import { SignJWT, jwtVerify, createRemoteJWKSet } from "jose";
 import type { JWTPayload } from "jose";
 import { Env } from "./types";
-
 
 export interface ValidatedUser {
   id: string;
@@ -26,7 +25,7 @@ export function validateProductionEnvironment(env: Env): void {
   } else {
     if (env.AUTH_ISSUER) {
       console.log("✅ Development environment passed using JWT validation");
-    } else if (env.AUTH_TOKEN) {
+    } else if (env.AUTH_TOKEN && env.AUTH_TOKEN.length > 0) {
       console.log("✅ Development environment passed using AUTH_TOKEN");
     } else {
       throw new Error(
@@ -43,17 +42,20 @@ export async function validateAuthPayload(
   if (env.DEPLOYMENT_ENV !== "production" && env.AUTH_TOKEN) {
     return validateHardcodedAuthToken(payload, env);
   }
-  const JWKS = createRemoteJWKSet(new URL(`${env.AUTH_ISSUER}/.well-known/jwks.json`));
+  const JWKS = createRemoteJWKSet(
+    new URL(`${env.AUTH_ISSUER}/.well-known/jwks.json`)
+  );
 
   let jwt: JWTPayload;
   try {
     const resp = await jwtVerify(payload.authToken, JWKS, {
-      algorithms: ['RS256'],
+      algorithms: ["RS256"],
       issuer: env.AUTH_ISSUER,
     });
     jwt = resp.payload;
   } catch (error) {
-    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    const errorMessage =
+      error instanceof Error ? error.message : "Unknown error";
     throw new Error(`VALIDATE_JWT_ERROR: ${errorMessage}`);
   }
 
@@ -75,23 +77,49 @@ export async function validateAuthPayload(
   return user;
 }
 
-function validateHardcodedAuthToken(
+async function validateHardcodedAuthToken(
   payload: AuthPayload,
   env: Env
-): ValidatedUser {
-  const encoder = new TextEncoder();
-  const expected = encoder.encode(env.AUTH_TOKEN);
-  const actual = encoder.encode(payload.authToken);
-  // @ts-ignore - timingSafeEqual exists in runtime but not in types
-  if (crypto.subtle.timingSafeEqual(expected, actual)) {
-    return {
-      id: "local-dev-user",
-      email: "local@example.com",
-      name: "Local Development User",
-      isAnonymous: true,
-    };
+): Promise<ValidatedUser> {
+  // We don't have crypto.subtle.timingSafeEqual available everywere (such as tests)
+  // and we need some way of doing constant-time evaluation of secrets
+  // Since we are already using jwts elsewhere, we can re-use the crypto algorithms here
+  // to do the same thing
+  // The algorithm is straightforward: Generate two jwts signed with the two secrets.
+  // If we can verify the jwt with both secrets, then the secrets must be the same
+  // Or if not the same, then computationally impractical to find a hash collision
+  // TL;DR: This function is a very roundabout way of checking if env.AUTH_TOKEN === payload.authToken
+  const jwtBuilder = new SignJWT({ sub: "example-user" }).setProtectedHeader({
+    alg: "HS256",
+  });
+  const expectedSecret = new TextEncoder().encode(env.AUTH_TOKEN);
+  const actualSecret = new TextEncoder().encode(payload.authToken);
+  const jwt = await jwtBuilder.sign(expectedSecret);
+
+  try {
+    await jwtVerify(jwt, expectedSecret, {
+      algorithms: ["HS256"],
+    });
+  } catch (error) {
+    // This should work because we're just verifying the JWT we just created, with the same secret
+    throw new Error(
+      "INVALID_AUTH_TOKEN: Unexpected error validating the AUTH_TOKEN"
+    );
   }
-  throw new Error("INVALID_AUTH_TOKEN: Authentication failed");
+
+  try {
+    await jwtVerify(jwt, actualSecret, {
+      algorithms: ["HS256"],
+    });
+  } catch (error) {
+    throw new Error("INVALID_AUTH_TOKEN: Authentication failed");
+  }
+  return {
+    id: "local-dev-user",
+    email: "local@example.com",
+    name: "Local Development User",
+    isAnonymous: true,
+  };
 }
 
 const getDisplayName = (jwt: JWTPayload): string => {
@@ -116,7 +144,7 @@ const getDisplayName = (jwt: JWTPayload): string => {
   }
 
   if (!name) {
-    name = "Unnamed User"
+    name = "Unnamed User";
   }
 
   return name;
