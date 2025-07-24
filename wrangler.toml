@@ -92,7 +92,7 @@ ARTIFACT_STORAGE = "r2"
 ARTIFACT_THRESHOLD = "16384"
 # Vite build-time variables
 VITE_LIVESTORE_SYNC_URL = "/livestore"
-VITE_GOOGLE_AUTH_ENABLED = "true"
+
 VITE_RUNTIME_COMMAND = "pnpm run dev:runtime"
 
 # Preview Environment (all-in-one worker)
@@ -132,7 +132,7 @@ VITE_RUNTIME_COMMAND = "pnpm run dev:runtime"
 # Secrets must be set per environment via: `pnpm wrangler secret put <NAME> --env <ENV>`
 #
 # Example for production:
-# pnpm wrangler secret put GOOGLE_CLIENT_SECRET --env production
+# pnpm wrangler secret put AUTH_TOKEN --env production
 #
 # Example for preview:
 # pnpm wrangler secret put AUTH_TOKEN --env preview

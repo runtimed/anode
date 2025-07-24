@@ -2,7 +2,18 @@
 # Copy this file to .dev.vars and fill in the values.
 # This file SHOULD NOT contain real production secrets.
 
+# Development mode: Use a hardcoded token for local development
 AUTH_TOKEN="insecure-token-change-me"
 
-# Set the AUTH_ISSUER to connect to a real auth flow
-# AUTH_ISSUER="https://example.com/oauth_provider
+# Production mode: Set the AUTH_ISSUER to connect to a real OIDC provider
+# AUTH_ISSUER="https://your-oauth-provider.com"
+
+# Note: The auth system supports two modes:
+# 1. Development mode: Uses AUTH_TOKEN (hardcoded secret string)
+# 2. Production mode: Uses AUTH_ISSUER (OIDC provider URL)
+# 
+# In production mode, the frontend should be configured with:
+# - VITE_AUTH_ISSUER: The OIDC issuer URL
+# - VITE_CLIENT_ID: Your OAuth client ID
+#
+# The backend expects RS256 JWT tokens from the OIDC provider.

@@ -13,9 +13,7 @@ export interface Env {
   AUTH_TOKEN: string;
   AUTH_ISSUER: string;
 
-  // Legacy Google OAuth properties (being replaced with OIDC)
-  GOOGLE_CLIENT_ID?: string;
-  GOOGLE_CLIENT_SECRET?: string;
+
 
   // New binding for the preview worker to serve the frontend application
   ASSETS: Fetcher;

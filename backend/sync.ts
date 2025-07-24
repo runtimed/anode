@@ -11,7 +11,7 @@ export class WebSocketServer extends makeDurableObject({
   onPull: async (message) => {
     console.log("onPull", message);
   },
-}) {}
+}) { }
 
 export default {
   fetch: async (request: Request, env: Env, ctx: ExecutionContext) => {
@@ -57,12 +57,9 @@ export default {
           deployment_env: env.DEPLOYMENT_ENV || "development",
           timestamp: new Date().toISOString(),
           config: {
-            has_google_client_id: !!env.GOOGLE_CLIENT_ID,
-            has_google_client_secret: !!env.GOOGLE_CLIENT_SECRET,
             has_auth_token: !!env.AUTH_TOKEN,
-            google_client_id_partial: env.GOOGLE_CLIENT_ID
-              ? env.GOOGLE_CLIENT_ID.substring(0, 20) + "..."
-              : null,
+            has_auth_issuer: !!env.AUTH_ISSUER,
+            deployment_env: env.DEPLOYMENT_ENV,
           },
         }),
         {
@@ -125,7 +122,7 @@ export default {
             // For runtime agents, prevent user impersonation
             if (validatedUser.id === "runtime-agent") {
               // A runtime agent's clientId should NOT look like a real user's ID.
-              // Google user IDs are numeric strings.
+              // OIDC user IDs are typically numeric strings.
               if (/^\d+$/.test(clientId)) {
                 console.error(
                   "🚫 Runtime agent attempting to use a user-like clientId:",
@@ -238,7 +235,7 @@ export default {
               success: true,
               message: "Authentication successful",
               tokenType: authToken.startsWith("eyJ")
-                ? "Google JWT"
+                ? "OIDC JWT"
                 : "Service Token",
               timestamp: new Date().toISOString(),
             }),
@@ -259,12 +256,11 @@ export default {
               error: "AUTHENTICATION_FAILED",
               message: authError.message,
               tokenType: authToken.startsWith("eyJ")
-                ? "Google JWT"
+                ? "OIDC JWT"
                 : "Service Token",
               timestamp: new Date().toISOString(),
-              hasGoogleClientId: !!env.GOOGLE_CLIENT_ID,
-              hasGoogleClientSecret: !!env.GOOGLE_CLIENT_SECRET,
               hasAuthToken: !!env.AUTH_TOKEN,
+              hasAuthIssuer: !!env.AUTH_ISSUER,
             }),
             {
               status: 401,

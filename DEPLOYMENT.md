@@ -93,11 +93,9 @@ pnpm wrangler deploy --env preview
 ```bash
 # Production secrets
 echo "your-secure-token" | pnpm wrangler secret put AUTH_TOKEN --env production
-echo "your-google-client-secret" | pnpm wrangler secret put GOOGLE_CLIENT_SECRET --env production
 
 # Preview secrets
 echo "your-preview-token" | pnpm wrangler secret put AUTH_TOKEN --env preview
-echo "your-google-client-secret" | pnpm wrangler secret put GOOGLE_CLIENT_SECRET --env preview
 ```
 
 ## Environment Variables
@@ -107,11 +105,10 @@ echo "your-google-client-secret" | pnpm wrangler secret put GOOGLE_CLIENT_SECRET
 Set in `wrangler.toml`:
 
 - `DEPLOYMENT_ENV`: `"production"`
-- `GOOGLE_CLIENT_ID`: Your Google OAuth client ID
+- `AUTH_ISSUER`: Your OIDC issuer URL (e.g., `https://your-auth-provider.com`)
 - `ARTIFACT_STORAGE`: `"r2"`
 - `ARTIFACT_THRESHOLD`: `"16384"` (16KB threshold for artifact storage)
 - `AUTH_TOKEN`: Set via secrets (see above)
-- `GOOGLE_CLIENT_SECRET`: Set via secrets (see above)
 
 ### Web Client Build Variables
 
@@ -238,11 +235,9 @@ pnpm wrangler r2 bucket create anode-artifacts-preview
 ```bash
 # Production secrets
 echo "your-secure-token" | pnpm wrangler secret put AUTH_TOKEN --env production
-echo "your-google-client-secret" | pnpm wrangler secret put GOOGLE_CLIENT_SECRET --env production
 
 # Preview secrets
 echo "your-preview-token" | pnpm wrangler secret put AUTH_TOKEN --env preview
-echo "your-google-client-secret" | pnpm wrangler secret put GOOGLE_CLIENT_SECRET --env preview
 ```
 
 ## Troubleshooting
