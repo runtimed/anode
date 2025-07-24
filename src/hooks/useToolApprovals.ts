@@ -4,13 +4,13 @@ import { queryDb } from "@livestore/livestore";
 import { events, tables } from "@runt/schema";
 import { useAuth } from "@/components/auth/AuthProvider.js";
 
-export interface ToolApprovalRequest {
+export type ToolApprovalRequest = {
   toolCallId: string;
   cellId: string;
   toolName: string;
   arguments: Record<string, unknown>;
   requestedAt: Date;
-}
+};
 
 interface UseToolApprovalsOptions {
   cellId?: string; // Optional filter for specific cell

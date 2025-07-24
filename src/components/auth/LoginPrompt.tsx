@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { LogIn, ExternalLink } from "lucide-react";
 import { getOpenIdService, RedirectUrls } from "../../services/openid";
 
 const logoUrl = "/logo.svg";
@@ -21,6 +22,7 @@ const LoginPrompt: React.FC<LoginPromptProps> = ({ error, setError }) => {
     // to force the useEffect dependencies to change
     const subscription = openIdService.getRedirectUrls().subscribe({
       next: (urls: RedirectUrls) => {
+        setError(null);
         setRedirectUrls(urls);
       },
       error: (error) => {
@@ -54,6 +56,12 @@ const LoginPrompt: React.FC<LoginPromptProps> = ({ error, setError }) => {
     setAction(action);
     setLoading(true);
     if (error) {
+      // There was a previous error, but now the user has clicked the button again
+      // Telling the openIdService to reset will cause getRedirectUrls to clear its state
+      // and be open to trying again.
+      // However, we _also_ need to kick that off by re-subscribing.
+      // So, it's important that we both setError(null) (which will re-trigger the useEffect subscription)
+      // and also reset() which will cause the openidService to re-set.
       setError(null);
       openIdService.reset();
     }
@@ -75,18 +83,7 @@ const LoginPrompt: React.FC<LoginPromptProps> = ({ error, setError }) => {
           disabled={loading}
         >
           <span className="mr-2">Sign In</span>
-          <svg
-            className="h-5 w-5"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          >
-            <path d="M14 3h7v7" />
-            <path d="M5 19l16-16" />
-          </svg>
+          <LogIn className="h-5 w-5" />
         </button>
       </div>
       {error && (
@@ -110,18 +107,7 @@ const LoginPrompt: React.FC<LoginPromptProps> = ({ error, setError }) => {
           disabled={loading}
         >
           Get Started
-          <svg
-            className="relative -bottom-[2px] ml-[2px] h-4 w-4 scale-90"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          >
-            <path d="M14 3h7v7" />
-            <path d="M5 19l16-16" />
-          </svg>
+          <ExternalLink className="relative -bottom-[2px] ml-[2px] h-4 w-4 scale-90" />
         </button>
       </div>
     </div>

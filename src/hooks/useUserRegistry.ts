@@ -9,14 +9,14 @@ import {
   getClientDisplayName,
 } from "../services/userTypes.js";
 
-export interface UserInfo {
+export type UserInfo = {
   id: string;
   name: string;
   email?: string;
   picture?: string;
   isAnonymous: boolean;
   lastSeen: number;
-}
+};
 
 // Queries for user presence and profile information from LiveStore
 const actorsQuery = queryDb(tables.actors);

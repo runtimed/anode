@@ -32,7 +32,7 @@ const getDisplayName = (user: UserInfo): string => {
   return name;
 };
 
-const useSyncUserToLivestore = () => {
+const useSyncUserToLiveStore = () => {
   const { store } = useStore();
   const { isLocalMode, getUser } = useAuth();
   const user = getUser();
@@ -61,7 +61,7 @@ const useSyncUserToLivestore = () => {
 
 export const UserProfile: React.FC<UserProfileProps> = ({ className = "" }) => {
   const { signOut, getUser } = useAuth();
-  useSyncUserToLivestore();
+  useSyncUserToLiveStore();
   const { getUserInitials } = useUserRegistry();
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 

@@ -10,28 +10,26 @@ import {
   CardTitle,
 } from "../ui/card";
 
-// Ignore all problems with the react lifecycle
-// by treating the redirect as a global flag, outside of react
-let didRedirect = false;
-
 const AuthRedirect: React.FC = () => {
   const openIdService = getOpenIdService();
   const [error, setError] = useState<Error | null>(null);
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (!didRedirect) {
-      didRedirect = true;
-      openIdService.handleRedirect().subscribe({
-        complete: () => {
-          navigate("/", { replace: true });
-        },
-        error: (error) => {
-          setError(error);
-        },
-      });
-    }
-  });
+    const subscription = openIdService.handleRedirect().subscribe({
+      complete: () => {
+        navigate("/", { replace: true });
+      },
+      error: (error) => {
+        setError(error);
+      },
+    });
+    return () => {
+      if (subscription) {
+        subscription.unsubscribe();
+      }
+    };
+  }, [openIdService, navigate]);
 
   if (error) {
     return (

@@ -4,6 +4,7 @@ import type {
   TokenEndpointResponseHelpers,
 } from "openid-client";
 import * as openidClient from "openid-client";
+import { decodeJwt } from "jose";
 import {
   Observable,
   from,
@@ -19,7 +20,7 @@ import {
   finalize,
 } from "rxjs";
 
-export interface UserInfo {
+export type UserInfo = {
   sub: string;
   email: string;
   email_verified: boolean;
@@ -27,12 +28,12 @@ export interface UserInfo {
   given_name?: string;
   name?: string;
   picture?: string;
-}
+};
 
-export interface User {
+export type User = {
   accessToken: string;
   claims: UserInfo;
-}
+};
 
 interface RequestState {
   verifier: string;
@@ -47,10 +48,10 @@ interface Tokens {
   claims: UserInfo;
 }
 
-export interface RedirectUrls {
+export type RedirectUrls = {
   loginUrl: URL;
   registrationUrl: URL;
-}
+};
 
 enum LocalStorageKey {
   RequestState = "openid_request_state",
@@ -207,6 +208,9 @@ export class OpenIdService {
 
   private refreshTokens(refreshToken: string): Observable<Tokens | null> {
     if (!this.refreshedToken$) {
+      const oldTokens = this.getFromLocalStorage<Tokens>(
+        LocalStorageKey.Tokens
+      );
       this.refreshedToken$ = this.getConfig().pipe(
         switchMap((config) =>
           from(
@@ -219,7 +223,34 @@ export class OpenIdService {
           if (!response.refresh_token) {
             throw new Error("No refresh token returned from server");
           }
-          const claims = convertToUserInfo(response);
+          let claims: UserInfo;
+          if (response.claims()) {
+            claims = convertToUserInfo(response);
+          } else {
+            // According to the spec, the /token endpoint does not have to return an id_token
+            // when using the grant_type=refresh_token
+            // https://openid.net/specs/openid-connect-core-1_0.html#RefreshTokenResponse
+            // This means the claims() are undefined, since those are part of the id_token per-spec
+
+            // So, what we'll do instead is re-use the existing claims. First, we need to double-check
+            // that the sub is the same. If the oldTokens are missing, or the sub is different
+            // we'll throw an error and the user will have to log in again
+
+            // Technically, per spec, the access_token doesn't need to be a JWT but in practice the providers
+            // we care about send a JWT for the access token as well.
+            // If this becomes a problem later, we can make sure we have the oldTokens in sync and skip the decoding
+            const jwt = decodeJwt(response.access_token);
+            if (
+              typeof jwt.sub !== "string" ||
+              !jwt.sub ||
+              jwt.sub !== oldTokens?.claims.sub
+            ) {
+              throw new Error(
+                "Missing id_token and mismatch with previous claims"
+              );
+            }
+            claims = oldTokens.claims;
+          }
           const expiresAt = computeExpiresAt(response.expires_in);
 
           const refreshedTokens: Tokens = {

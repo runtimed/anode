@@ -2,12 +2,12 @@ import { SignJWT, jwtVerify, createRemoteJWKSet } from "jose";
 import { JWTPayload, decodeJwt } from "jose";
 import { Env } from "./types";
 
-export interface ValidatedUser {
+export type ValidatedUser = {
   id: string;
   email?: string;
   name?: string;
   isAnonymous: boolean;
-}
+};
 
 interface AuthPayload {
   authToken: string;
@@ -98,6 +98,15 @@ async function validateHardcodedAuthToken(
     });
   } catch (error) {
     throw new Error("INVALID_AUTH_TOKEN: Authentication failed");
+  }
+
+  if (payload.runtime) {
+    console.log("✅ Authenticated runtime agent with service token");
+    return {
+      id: "runtime-agent",
+      name: "Runtime Agent",
+      isAnonymous: false,
+    };
   }
   return {
     id: "local-dev-user",
