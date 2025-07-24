@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { useStore } from "@livestore/react";
 import { events } from "@runt/schema";
-import { useCurrentUserId } from "./useCurrentUser.js";
+import { useAuth } from "@/components/auth/AuthProvider.js";
 
 interface CellContentOptions {
   cellId: string;
@@ -15,7 +15,8 @@ export const useCellContent = ({
   onUpdate,
 }: CellContentOptions) => {
   const { store } = useStore();
-  const currentUserId = useCurrentUserId();
+  const { getUser } = useAuth();
+  const currentUserId = getUser().sub;
   const [localSource, setLocalSource] = useState(initialSource);
 
   // Sync local source with cell source

@@ -3,11 +3,12 @@ import { queryDb } from "@livestore/livestore";
 import { tables } from "@runt/schema";
 import { useCallback } from "react";
 
-import { useCurrentUserId } from "./useCurrentUser.js";
+import { useAuth } from "@/components/auth/AuthProvider.js";
 import { useUserRegistry } from "./useUserRegistry.js";
 
 export const useCellPresence = (cellId: string) => {
-  const currentUserId = useCurrentUserId();
+  const { getUser } = useAuth();
+  const currentUserId = getUser().sub;
   const { getUserInfo } = useUserRegistry();
 
   // Query users present on this specific cell, excluding current user
@@ -32,7 +33,8 @@ export const useCellPresence = (cellId: string) => {
 
 // Hook for getting users on any cell (for components that need to check multiple cells)
 export const useMultiCellPresence = () => {
-  const currentUserId = useCurrentUserId();
+  const { getUser } = useAuth();
+  const currentUserId = getUser().sub;
   const { getUserInfo } = useUserRegistry();
 
   // Query all presence data excluding current user

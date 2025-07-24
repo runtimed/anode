@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { useRuntimeHealth } from "@/hooks/useRuntimeHealth.js";
 import { useStore } from "@livestore/react";
 import { events } from "@runt/schema";
-import { useCurrentUserId } from "@/hooks/useCurrentUser.js";
+import { useAuth } from "@/components/auth/AuthProvider.js";
 import { getRuntimeCommand } from "@/util/runtime-command.js";
 import { getCurrentNotebookId } from "@/util/store-id.js";
 import { Copy, Square } from "lucide-react";
@@ -21,7 +21,8 @@ export const RuntimeHelper: React.FC<RuntimeHelperProps> = ({
   runtimeSessions,
 }) => {
   const { store } = useStore();
-  const currentUserId = useCurrentUserId();
+  const { getUser } = useAuth();
+  const currentUserId = getUser().sub;
   const { activeRuntime, hasActiveRuntime, runningExecutions } =
     useRuntimeHealth();
 

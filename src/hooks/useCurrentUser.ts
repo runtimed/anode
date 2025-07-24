@@ -112,8 +112,3 @@ export const useCurrentUser = (): CurrentUser => {
   return currentUser;
 };
 
-// Helper hook to get just the user ID for event attribution
-export const useCurrentUserId = (): string => {
-  const currentUser = useCurrentUser();
-  return currentUser.id;
-};

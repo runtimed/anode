@@ -13,7 +13,7 @@ import React, {
 
 import { MarkdownRenderer } from "@/components/outputs/MarkdownRenderer.js";
 import { Button } from "@/components/ui/button.js";
-import { useCurrentUserId } from "@/hooks/useCurrentUser.js";
+import { useAuth } from "@/components/auth/AuthProvider.js";
 import { useUserRegistry } from "@/hooks/useUserRegistry.js";
 import { Edit3, Eye } from "lucide-react";
 import { ErrorBoundary } from "react-error-boundary";
@@ -68,7 +68,8 @@ export const MarkdownCell: React.FC<MarkdownCellProps> = ({
 
   // All hooks must be called at the top level before any conditional returns
   const { store } = useStore();
-  const currentUserId = useCurrentUserId();
+  const { getUser } = useAuth();
+  const currentUserId = getUser().sub;
   const { getUsersOnCell, getUserColor } = useUserRegistry();
   const [isEditing, setIsEditing] = useState(autoFocus);
 

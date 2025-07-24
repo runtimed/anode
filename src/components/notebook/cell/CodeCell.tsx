@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { useCellContent } from "@/hooks/useCellContent.js";
 import { useCellKeyboardNavigation } from "@/hooks/useCellKeyboardNavigation.js";
 import { useCellOutputs } from "@/hooks/useCellOutputs.js";
-import { useCurrentUserId } from "@/hooks/useCurrentUser.js";
+import { useAuth } from "@/components/auth/AuthProvider.js";
 import { useUserRegistry } from "@/hooks/useUserRegistry.js";
 import { queryDb } from "@livestore/livestore";
 import { useStore } from "@livestore/react";
@@ -44,7 +44,8 @@ export const CodeCell: React.FC<CodeCellProps> = ({
   contextSelectionMode = false,
 }) => {
   const { store } = useStore();
-  const currentUserId = useCurrentUserId();
+  const { getUser } = useAuth();
+  const currentUserId = getUser().sub;
   const { getUsersOnCell, getUserColor } = useUserRegistry();
 
   // Get users present on this cell (excluding current user)

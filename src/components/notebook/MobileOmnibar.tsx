@@ -5,7 +5,7 @@ import { queryDb } from "@livestore/livestore";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Send } from "lucide-react";
-import { useCurrentUserId } from "../../hooks/useCurrentUser.js";
+import { useAuth } from "@/components/auth/AuthProvider.js";
 
 interface MobileOmnibarProps {
   onCellAdded?: () => void;
@@ -15,7 +15,8 @@ export const MobileOmnibar: React.FC<MobileOmnibarProps> = ({
   onCellAdded,
 }) => {
   const { store } = useStore();
-  const currentUserId = useCurrentUserId();
+  const { getUser } = useAuth();
+  const currentUserId = getUser().sub;
   const [input, setInput] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 

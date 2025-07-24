@@ -10,7 +10,7 @@ import { VirtualizedCellList } from "./VirtualizedCellList.js";
 import { Avatar } from "@/components/ui/Avatar.js";
 import { Button } from "@/components/ui/button";
 
-import { useCurrentUserId } from "@/hooks/useCurrentUser.js";
+import { useAuth } from "@/components/auth/AuthProvider.js";
 import { useRuntimeHealth } from "@/hooks/useRuntimeHealth.js";
 import { useUserRegistry } from "@/hooks/useUserRegistry.js";
 
@@ -46,7 +46,8 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
   onDebugToggle,
 }) => {
   const { store } = useStore();
-  const currentUserId = useCurrentUserId();
+  const { getUser } = useAuth();
+  const currentUserId = getUser().sub;
   const { presentUsers, getUserInfo, getUserColor } = useUserRegistry();
   const { models } = useAvailableAiModels();
   const { runtimeHealth } = useRuntimeHealth();
