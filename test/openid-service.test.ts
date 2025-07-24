@@ -7,13 +7,6 @@ import {
   User,
 } from "../src/services/openid";
 
-// Mock environment variables
-vi.mock("import.meta.env", () => ({
-  VITE_AUTH_URI: "https://auth.example.com",
-  VITE_AUTH_CLIENT_ID: "test-client-id",
-  VITE_AUTH_REDIRECT_URI: "http://localhost:3000/callback",
-}));
-
 describe("OpenIdService", () => {
   let mockClient: any;
   let service: OpenIdService;
