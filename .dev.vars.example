@@ -2,11 +2,9 @@
 # Copy this file to .dev.vars and fill in the values.
 # This file SHOULD NOT contain real production secrets.
 
-# Development mode: Use a hardcoded token for local development
 AUTH_TOKEN="insecure-token-change-me"
 
-# Production mode: Set the AUTH_ISSUER to connect to a real OIDC provider
-# AUTH_ISSUER="https://your-oauth-provider.com"
+AUTH_ISSUER="https://auth.stage.anaconda.com/api/auth"
 
 # Note: The auth system supports two modes:
 # 1. Development mode: Uses AUTH_TOKEN (hardcoded secret string)

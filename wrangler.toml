@@ -38,9 +38,13 @@ bucket_name = "anode-artifacts-dev"
 # Environment variables for local development (`wrangler dev`)
 # These are injected into the local worker process. The Vite dev server (`pnpm dev`)
 # will pick up variables from the `.env` file. Ensure they match.
+AUTH_ISSUER="https://auth.stage.anaconda.com/api/auth"
 DEPLOYMENT_ENV = "development"
 VITE_LIVESTORE_SYNC_URL = "/livestore"
 VITE_RUNTIME_COMMAND = "pnpm run dev:runtime"
+VITE_AUTH_URI="https://auth.stage.anaconda.com/api/auth"
+VITE_AUTH_CLIENT_ID="b7296d39-c1eb-49f4-b9a1-f36e6d5b8b6d"
+VITE_AUTH_REDIRECT_URI="http://localhost:5173/oidc"
 
 # ---
 # Deployed Environments
@@ -63,6 +67,7 @@ database_id = "5339094f-f406-4236-97c3-ada460373f18"
 
 [env.legacy.vars]
 DEPLOYMENT_ENV = "production"
+GOOGLE_CLIENT_ID = "94663405566-1go7jlpd2ar9u9urbfirmtjv1bm0tcis.apps.googleusercontent.com"
 
 
 # New Production Environment (all-in-one worker)
@@ -90,8 +95,12 @@ bucket_name = "anode-artifacts-prod"
 DEPLOYMENT_ENV = "production"
 ARTIFACT_STORAGE = "r2"
 ARTIFACT_THRESHOLD = "16384"
+AUTH_ISSUER="https://auth.anaconda.com/api/auth"
 # Vite build-time variables
 VITE_LIVESTORE_SYNC_URL = "/livestore"
+VITE_AUTH_URI="https://auth.anaconda.com/api/auth"
+VITE_AUTH_CLIENT_ID="FIXME_CLIENT_ID_GOES_HERE"
+VITE_AUTH_REDIRECT_URI="https://app.runt.run/oidc"
 
 VITE_RUNTIME_COMMAND = "pnpm run dev:runtime"
 
