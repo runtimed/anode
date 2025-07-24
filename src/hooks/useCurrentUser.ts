@@ -33,11 +33,11 @@ const getDisplayName = (user: UserInfo): string => {
 };
 
 export const useCurrentUser = (): CurrentUser => {
-  const { accessToken } = useAuth();
+  const { authState } = useAuth();
   const { store } = useStore();
 
-  const user = accessToken.valid ? accessToken.user : null;
-  const isAuthenticated = accessToken.valid;
+  const user = authState.valid ? authState.user : null;
+  const isAuthenticated = authState.valid;
 
   const currentUser = useMemo((): CurrentUser => {
     // Check if we're in local mode (no auth client ID)

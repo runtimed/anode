@@ -2,12 +2,14 @@ import React, { createContext, useContext, useEffect, useState } from "react";
 import { getOpenIdService, UserInfo } from "../../services/openid";
 export type { UserInfo } from "../../services/openid";
 
-type AccessTokenState =
+type AuthState =
   | { valid: true; token: string; user: UserInfo }
   | { valid: false; loading: boolean; error?: Error };
 
 interface AuthContextType {
-  accessToken: AccessTokenState;
+  authState: AuthState;
+  getUser: () => UserInfo;
+  getAccessToken: () => string;
   signOut: () => void;
 }
 
@@ -26,7 +28,7 @@ interface AuthProviderProps {
 }
 
 export function AuthProvider({ children }: AuthProviderProps) {
-  const [accessTokenState, setAccessTokenState] = useState<AccessTokenState>({
+  const [authState, setAuthState] = useState<AuthState>({
     valid: false,
     loading: true,
   });
@@ -40,7 +42,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
       const localToken = import.meta.env.VITE_AUTH_TOKEN;
       if (!localToken) {
         console.error("VITE_AUTH_TOKEN is required for local development mode");
-        setAccessTokenState({
+        setAuthState({
           valid: false,
           loading: false,
           error: new Error("Missing VITE_AUTH_TOKEN"),
@@ -55,7 +57,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
         name: "Local Development User",
         picture: undefined,
       };
-      setAccessTokenState({
+      setAuthState({
         valid: true,
         token: localToken,
         user: dummyUser,
@@ -68,23 +70,37 @@ export function AuthProvider({ children }: AuthProviderProps) {
     const subscription = openIdService.getUser().subscribe({
       next: (user) => {
         if (user) {
-          setAccessTokenState({
+          setAuthState({
             valid: true,
             token: user.accessToken,
             user: user.claims,
           });
         } else {
-          setAccessTokenState({ valid: false, loading: false });
+          setAuthState({ valid: false, loading: false });
         }
       },
       error: (error) => {
         console.error("Error getting access token:", error);
-        setAccessTokenState({ valid: false, loading: false, error });
+        setAuthState({ valid: false, loading: false, error });
       },
     });
 
     return () => subscription.unsubscribe();
   }, []);
+
+  const getUser = (): UserInfo => {
+    if (!authState.valid) {
+      throw new Error("User is not authenticated");
+    }
+    return authState.user;
+  };
+
+  const getAccessToken = (): string => {
+    if (!authState.valid) {
+      throw new Error("User is not authenticated");
+    }
+    return authState.token;
+  };
 
   const signOut = () => {
     const openIdService = getOpenIdService();
@@ -92,7 +108,9 @@ export function AuthProvider({ children }: AuthProviderProps) {
   };
 
   const value: AuthContextType = {
-    accessToken: accessTokenState,
+    authState,
+    getUser,
+    getAccessToken,
     signOut,
   };
 

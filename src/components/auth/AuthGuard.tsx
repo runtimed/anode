@@ -8,12 +8,12 @@ interface AuthGuardProps {
 }
 
 export const AuthGuard: React.FC<AuthGuardProps> = ({ children, fallback }) => {
-  const { accessToken } = useAuth();
-  const isAuthenticated = accessToken.valid;
-  const isLoading = !accessToken.valid && accessToken.loading;
+  const { authState } = useAuth();
+  const isAuthenticated = authState.valid;
+  const isLoading = !authState.valid && authState.loading;
   const error =
-    !accessToken.valid && accessToken.error
-      ? accessToken.error.message
+    !authState.valid && authState.error
+      ? authState.error.message
       : undefined;
   const [authExpiredError, setAuthExpiredError] = useState<string | null>(null);
   const [loginError, setLoginError] = useState<string | null>(null);

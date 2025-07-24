@@ -85,15 +85,9 @@ const LiveStoreApp: React.FC = () => {
   }, [resetPersistence]);
 
   // Get authenticated user info to set clientId
-  const { accessToken } = useAuth();
+  const { getUser, getAccessToken } = useAuth();
 
-  if (!accessToken.valid) {
-    throw new Error(
-      "LiveStoreApp should not be rendered without valid access token"
-    );
-  }
-
-  const user = accessToken.user;
+  const user = getUser();
   const clientId = user.sub;
 
   const adapter = makePersistedAdapter({
@@ -122,7 +116,7 @@ const LiveStoreApp: React.FC = () => {
       )}
       batchUpdates={batchUpdates}
       storeId={storeId}
-      syncPayload={{ authToken: accessToken.token, clientId }}
+      syncPayload={{ authToken: getAccessToken(), clientId }}
     >
       <NotebookApp />
     </LiveStoreProvider>

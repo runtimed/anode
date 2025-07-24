@@ -10,8 +10,8 @@ interface UserProfileProps {
 }
 
 export const UserProfile: React.FC<UserProfileProps> = ({ className = "" }) => {
-  const { signOut, accessToken } = useAuth();
-  const isLoading = !accessToken.valid && accessToken.loading;
+  const { signOut, authState } = useAuth();
+  const isLoading = !authState.valid && authState.loading;
   const currentUser = useCurrentUser();
   const { getUserInitials } = useUserRegistry();
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
@@ -57,9 +57,8 @@ export const UserProfile: React.FC<UserProfileProps> = ({ className = "" }) => {
           />
 
           <svg
-            className={`h-4 w-4 text-gray-400 transition-transform ${
-              isDropdownOpen ? "rotate-180" : ""
-            }`}
+            className={`h-4 w-4 text-gray-400 transition-transform ${isDropdownOpen ? "rotate-180" : ""
+              }`}
             fill="none"
             stroke="currentColor"
             viewBox="0 0 24 24"
