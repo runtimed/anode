@@ -16,7 +16,6 @@ import {
   map,
   Subject,
   startWith,
-  take,
   filter,
   of,
   catchError,
@@ -138,6 +137,7 @@ export class OpenIdService {
   private tokenChangeSubject$ = new Subject<LocalStorageKey>();
   private client: OpenIdClient = openidClient;
   private refreshedToken$: Observable<Tokens | null> | null = null;
+  private convertedCodes$: Observable<Tokens> | null = null;
 
   public setClient(client: OpenIdClient): void {
     // Used for unit testing to override the client
@@ -148,10 +148,7 @@ export class OpenIdService {
     return this.resetSubject$.pipe(
       startWith(null), // Trigger initial load
       switchMap(() =>
-        combineLatest([
-          this.getAuthorizationSecrets(),
-          this.getConfig()
-        ]).pipe(
+        combineLatest([this.getAuthorizationSecrets(), this.getConfig()]).pipe(
           map(([secrets, config]) => {
             const parameters: Record<string, string> = {
               redirect_uri: import.meta.env.VITE_AUTH_REDIRECT_URI,
@@ -166,13 +163,10 @@ export class OpenIdService {
               prompt: "login",
             });
 
-            const registrationUrl = this.client.buildAuthorizationUrl(
-              config,
-              {
-                ...parameters,
-                prompt: "registration",
-              }
-            );
+            const registrationUrl = this.client.buildAuthorizationUrl(config, {
+              ...parameters,
+              prompt: "registration",
+            });
 
             return {
               loginUrl,
@@ -195,17 +189,20 @@ export class OpenIdService {
     );
   }
 
-  public handleRedirect(url: URL): Observable<void> {
-    return this.convertCodeToToken(url).pipe(
-      map(() => { }),
-      take(1)
-    );
+  public handleRedirect(): Observable<Tokens> {
+    if (!this.convertedCodes$) {
+      const url = new URL(window.location.href);
+      this.convertedCodes$ = this.convertCodeToToken(url).pipe(shareReplay(1));
+    }
+
+    return this.convertedCodes$;
   }
 
   public reset(): void {
     this.config$ = null;
     this.authorizationSecrets$ = null;
     this.refreshedToken$ = null;
+    this.convertedCodes$ = null;
     this.syncToLocalStorage(LocalStorageKey.RequestState, null);
     this.syncToLocalStorage(LocalStorageKey.Tokens, null);
     this.resetSubject$.next();
@@ -313,7 +310,7 @@ export class OpenIdService {
   private convertCodeToToken(url: URL): Observable<Tokens> {
     return combineLatest([
       this.getConfig(),
-      of(this.getFromLocalStorage<RequestState>(LocalStorageKey.RequestState))
+      of(this.getFromLocalStorage<RequestState>(LocalStorageKey.RequestState)),
     ]).pipe(
       switchMap(([config, requestState]) => {
         if (!requestState) {
@@ -373,5 +370,4 @@ export class OpenIdService {
     const value = localStorage.getItem(key);
     return value ? JSON.parse(value) : null;
   }
-
 }

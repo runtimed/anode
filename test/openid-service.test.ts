@@ -66,7 +66,7 @@ describe("OpenIdService", () => {
       let error: Error | null = null;
 
       redirectUrls$.subscribe({
-        next: () => {},
+        next: () => { },
         error: (err) => (error = err),
       });
 
@@ -454,7 +454,7 @@ describe("OpenIdService", () => {
       let error: Error | null = null;
 
       redirectUrls$.subscribe({
-        next: () => {},
+        next: () => { },
         error: (err) => (error = err),
       });
 
@@ -468,13 +468,129 @@ describe("OpenIdService", () => {
 
       const newRedirectUrls$ = service.getRedirectUrls();
       newRedirectUrls$.subscribe({
-        next: () => {},
+        next: () => { },
         error: (err) => (error = err),
       });
 
       // Wait for second attempt
       await new Promise((resolve) => setTimeout(resolve, 100));
       expect(error).toBeNull();
+    });
+  });
+
+  describe("handleRedirect", () => {
+    it("should convert authorization code to tokens and share result between subscribers", async () => {
+      // Mock the discovery endpoint
+      mockClient.discovery.mockResolvedValue({
+        authorization_endpoint: "https://auth.example.com/authorize",
+      } as any);
+
+      // Mock the authorization code grant
+      const mockTokenResponse = {
+        access_token: "test-access-token",
+        refresh_token: "test-refresh-token",
+        expires_in: 3600,
+        claims: () => ({
+          sub: "test-user-id",
+          email: "test@example.com",
+          email_verified: true,
+          family_name: "Test",
+          given_name: "User",
+          name: "Test User",
+          picture: "https://example.com/avatar.jpg",
+        }),
+      };
+
+      mockClient.authorizationCodeGrant = vi
+        .fn()
+        .mockResolvedValue(mockTokenResponse);
+
+      // Set up localStorage with request state
+      const requestState = {
+        verifier: "test-verifier",
+        challenge: "test-challenge",
+        state: "test-state",
+      };
+      localStorage.setItem(
+        "openid_request_state",
+        JSON.stringify(requestState)
+      );
+
+      // First subscription
+      const firstTokens$ = service.handleRedirect();
+      const firstTokens = await firstValueFrom(firstTokens$);
+
+      // Verify the tokens
+      expect(firstTokens).toEqual({
+        accessToken: "test-access-token",
+        refreshToken: "test-refresh-token",
+        expiresAt: expect.any(Number),
+        claims: {
+          sub: "test-user-id",
+          email: "test@example.com",
+          email_verified: true,
+          family_name: "Test",
+          given_name: "User",
+          name: "Test User",
+          picture: "https://example.com/avatar.jpg",
+        },
+      });
+
+      // Verify tokens were stored in localStorage
+      const storedTokens = JSON.parse(
+        localStorage.getItem("openid_tokens") || "null"
+      );
+      expect(storedTokens).toEqual({
+        accessToken: "test-access-token",
+        refreshToken: "test-refresh-token",
+        expiresAt: expect.any(Number),
+        claims: {
+          sub: "test-user-id",
+          email: "test@example.com",
+          email_verified: true,
+          family_name: "Test",
+          given_name: "User",
+          name: "Test User",
+          picture: "https://example.com/avatar.jpg",
+        },
+      });
+
+      // Second subscription should get the same result
+      const secondTokens$ = service.handleRedirect();
+      const secondTokens = await firstValueFrom(secondTokens$);
+
+      expect(secondTokens).toEqual(firstTokens);
+
+      // authorizationCodeGrant should only be called once
+      expect(mockClient.authorizationCodeGrant).toHaveBeenCalledTimes(1);
+    });
+
+    it("should throw error when localStorage request state is missing", async () => {
+      mockClient.discovery.mockResolvedValue({
+        authorization_endpoint: "https://auth.example.com/authorize",
+      } as any);
+
+      const tokens$ = service.handleRedirect();
+      const promise = firstValueFrom(tokens$);
+      expect(promise).rejects.toThrow(
+        "Missing pre-login secrets. Is localstorage enabled?"
+      );
+
+      // Even if localstorage is added, the observable still returns the existing one
+      const requestState = {
+        verifier: "test-verifier",
+        challenge: "test-challenge",
+        state: "test-state",
+      };
+      localStorage.setItem(
+        "openid_request_state",
+        JSON.stringify(requestState)
+      );
+      const tokens2$ = service.handleRedirect();
+      const promise2 = firstValueFrom(tokens2$);
+      expect(promise2).rejects.toThrow(
+        "Missing pre-login secrets. Is localstorage enabled?"
+      );
     });
   });
 });

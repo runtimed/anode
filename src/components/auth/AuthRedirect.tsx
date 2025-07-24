@@ -22,7 +22,7 @@ const AuthRedirect: React.FC = () => {
   useEffect(() => {
     if (!didRedirect) {
       didRedirect = true;
-      openIdService.handleRedirect(new URL(window.location.href)).subscribe({
+      openIdService.handleRedirect().subscribe({
         complete: () => {
           navigate("/", { replace: true });
         },
