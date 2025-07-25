@@ -40,6 +40,33 @@
 
       // Also send height on resize
       window.addEventListener("resize", sendHeight);
+
+      // ---
+
+      // Handle incoming content updates
+      window.addEventListener("message", (event) => {
+        console.log("iframe got message", event);
+        debugger;
+        if (event.data && event.data.type === "update-content") {
+          const iframeContent = document.querySelector(".iframe-content");
+          iframeContent.innerHTML = event.data.content;
+          // Send height after content update
+          setTimeout(sendHeight, 50);
+        }
+      });
+
+      // ---
+
+      // Send iframe loaded message
+
+      window.addEventListener("load", () => {
+        window.parent.postMessage(
+          {
+            type: "iframe-loaded",
+          },
+          "*"
+        );
+      });
     </script>
   </body>
 </html>

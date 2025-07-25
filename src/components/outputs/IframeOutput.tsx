@@ -15,6 +15,7 @@ export const IframeOutput: React.FC<IframeOutputProps> = ({
   onHeightChange,
   defaultHeight = "0",
 }) => {
+  const [iframeLoaded, setIframeLoaded] = useState(false);
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const [iframeHeight, setIframeHeight] = useState<string>(defaultHeight);
 
@@ -39,6 +40,10 @@ export const IframeOutput: React.FC<IframeOutputProps> = ({
           onHeightChange?.(height);
         }
       }
+
+      if (event.data && event.data.type === "iframe-loaded") {
+        setIframeLoaded(true);
+      }
     };
 
     // Add message listener
@@ -49,40 +54,24 @@ export const IframeOutput: React.FC<IframeOutputProps> = ({
     };
   }, [onHeightChange]);
 
-  // Create enhanced content with height measurement script
-  // const enhancedContent = `
-  //     <div class="iframe-content">
-  //     ${content}
-  //     </div>
-  //     <script>
-  //       document.body.style.margin = "0";
-
-  //       function sendHeight() {
-  //         const height = document.querySelector('.iframe-content').scrollHeight;
-  //         window.parent.postMessage({
-  //           type: 'iframe-height',
-  //           height: height
-  //         }, '*');
-  //       }
-
-  //       // Send height on load
-  //       window.addEventListener('load', sendHeight);
-
-  //       // Send height after a short delay to ensure content is rendered
-  //       setTimeout(sendHeight, 100);
-
-  //       // Send height when content changes (for dynamic content)
-  //       const observer = new MutationObserver(sendHeight);
-  //       observer.observe(document.querySelector('.iframe-content'), {
-  //         childList: true,
-  //         subtree: true,
-  //         attributes: true
-  //       });
-
-  //       // Also send height on resize
-  //       window.addEventListener('resize', sendHeight);
-  //     </script>
-  // `;
+  useEffect(() => {
+    // We cannot send content to iframe before it is loaded
+    if (!iframeLoaded) {
+      return;
+    }
+    console.log("content", content);
+    // Send content to iframe when it changes
+    if (iframeRef.current && iframeRef.current.contentWindow) {
+      console.log("posting message");
+      iframeRef.current.contentWindow.postMessage(
+        {
+          type: "update-content",
+          content: content,
+        },
+        "*"
+      );
+    }
+  }, [content, iframeLoaded]);
 
   return (
     <iframe
