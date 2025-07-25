@@ -6,13 +6,13 @@ type AuthState =
   | { valid: true; token: string; user: UserInfo }
   | { valid: false; loading: boolean; error?: Error };
 
-interface AuthContextType {
+type AuthContextType = {
   isLocalMode: boolean;
   authState: AuthState;
-  getUser: () => UserInfo;
-  getAccessToken: () => string;
+  get user(): UserInfo;
+  get accessToken(): string;
   signOut: () => void;
-}
+};
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
@@ -118,9 +118,13 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const value: AuthContextType = {
     isLocalMode,
     authState,
-    getUser,
-    getAccessToken,
     signOut,
+    get user() {
+      return getUser();
+    },
+    get accessToken() {
+      return getAccessToken();
+    },
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

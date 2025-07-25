@@ -46,8 +46,9 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
   onDebugToggle,
 }) => {
   const { store } = useStore();
-  const { getUser } = useAuth();
-  const currentUserId = getUser().sub;
+  const {
+    user: { sub: userId },
+  } = useAuth();
   const { presentUsers, getUserInfo, getUserColor } = useUserRegistry();
   const { models } = useAvailableAiModels();
   const { runtimeHealth } = useRuntimeHealth();
@@ -156,8 +157,8 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
           id: newCellId,
           position: newPosition,
           cellType,
-          createdBy: currentUserId,
-          actorId: currentUserId,
+          createdBy: userId,
+          actorId: userId,
         })
       );
 
@@ -182,7 +183,7 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
       // Focus the new cell after creation
       setTimeout(() => setFocusedCellId(newCellId), 0);
     },
-    [cells, store, currentUserId, models, lastUsedAiModel, lastUsedAiProvider]
+    [cells, store, userId, models, lastUsedAiModel, lastUsedAiProvider]
   );
 
   const deleteCell = useCallback(
@@ -190,11 +191,11 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
       store.commit(
         events.cellDeleted({
           id: cellId,
-          actorId: currentUserId,
+          actorId: userId,
         })
       );
     },
-    [store, currentUserId]
+    [store, userId]
   );
 
   const moveCell = useCallback(
@@ -212,14 +213,14 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
             events.cellMoved({
               id: cellId,
               newPosition: targetCell.position,
-              actorId: currentUserId,
+              actorId: userId,
             })
           );
           store.commit(
             events.cellMoved({
               id: targetCell.id,
               newPosition: currentCell.position,
-              actorId: currentUserId,
+              actorId: userId,
             })
           );
         }
@@ -231,20 +232,20 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
             events.cellMoved({
               id: cellId,
               newPosition: targetCell.position,
-              actorId: currentUserId,
+              actorId: userId,
             })
           );
           store.commit(
             events.cellMoved({
               id: targetCell.id,
               newPosition: currentCell.position,
-              actorId: currentUserId,
+              actorId: userId,
             })
           );
         }
       }
     },
-    [cells, store, currentUserId]
+    [cells, store, userId]
   );
 
   const focusCell = useCallback((cellId: string) => {
@@ -323,7 +324,7 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
           <div className="flex items-center gap-2">
             <div className="flex -space-x-2">
               {presentUsers
-                .filter((user) => user.id !== currentUserId)
+                .filter((user) => user.id !== userId)
                 .map((user) => {
                   const userInfo = getUserInfo(user.id);
                   const clientInfo = getClientTypeInfo(user.id);

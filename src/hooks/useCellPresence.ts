@@ -7,8 +7,9 @@ import { useAuth } from "@/components/auth/AuthProvider.js";
 import { useUserRegistry } from "./useUserRegistry.js";
 
 export const useCellPresence = (cellId: string) => {
-  const { getUser } = useAuth();
-  const currentUserId = getUser().sub;
+  const {
+    user: { sub: userId },
+  } = useAuth();
   const { getUserInfo } = useUserRegistry();
 
   // Query users present on this specific cell, excluding current user
@@ -16,7 +17,7 @@ export const useCellPresence = (cellId: string) => {
     queryDb(
       tables.presence.select().where({
         cellId: cellId,
-        userId: { op: "!=", value: currentUserId },
+        userId: { op: "!=", value: userId },
       })
     )
   );
@@ -33,15 +34,16 @@ export const useCellPresence = (cellId: string) => {
 
 // Hook for getting users on any cell (for components that need to check multiple cells)
 export const useMultiCellPresence = () => {
-  const { getUser } = useAuth();
-  const currentUserId = getUser().sub;
+  const {
+    user: { sub: userId },
+  } = useAuth();
   const { getUserInfo } = useUserRegistry();
 
   // Query all presence data excluding current user
   const allPresence = useQuery(
     queryDb(
       tables.presence.select().where({
-        userId: { op: "!=", value: currentUserId },
+        userId: { op: "!=", value: userId },
       })
     )
   );

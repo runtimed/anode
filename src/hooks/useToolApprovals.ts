@@ -18,8 +18,8 @@ interface UseToolApprovalsOptions {
 
 export const useToolApprovals = (options: UseToolApprovalsOptions = {}) => {
   const { store } = useStore();
-  const { getUser } = useAuth();
-  const currentUser = getUser();
+  const { user } = useAuth();
+  const currentUser = user;
   const [pendingApprovals, setPendingApprovals] = useState<
     ToolApprovalRequest[]
   >([]);

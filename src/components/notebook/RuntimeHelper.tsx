@@ -21,8 +21,9 @@ export const RuntimeHelper: React.FC<RuntimeHelperProps> = ({
   runtimeSessions,
 }) => {
   const { store } = useStore();
-  const { getUser } = useAuth();
-  const currentUserId = getUser().sub;
+  const {
+    user: { sub: userId },
+  } = useAuth();
   const { activeRuntime, hasActiveRuntime, runningExecutions } =
     useRuntimeHealth();
 
@@ -41,12 +42,12 @@ export const RuntimeHelper: React.FC<RuntimeHelperProps> = ({
         events.executionCancelled({
           queueId: execution.id,
           cellId: execution.cellId,
-          cancelledBy: currentUserId,
+          cancelledBy: userId,
           reason: "User interrupted all executions from runtime UI",
         })
       );
     }
-  }, [runningExecutions, store, currentUserId]);
+  }, [runningExecutions, store, userId]);
 
   if (!showRuntimeHelper) return null;
 

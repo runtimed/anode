@@ -85,10 +85,10 @@ const LiveStoreApp: React.FC = () => {
   }, [resetPersistence]);
 
   // Get authenticated user info to set clientId
-  const { getUser, getAccessToken } = useAuth();
-
-  const user = getUser();
-  const clientId = user.sub;
+  const {
+    user: { sub: clientId },
+    accessToken,
+  } = useAuth();
 
   const adapter = makePersistedAdapter({
     storage: { type: "opfs" },
@@ -116,7 +116,7 @@ const LiveStoreApp: React.FC = () => {
       )}
       batchUpdates={batchUpdates}
       storeId={storeId}
-      syncPayload={{ authToken: getAccessToken(), clientId }}
+      syncPayload={{ authToken: accessToken, clientId }}
     >
       <NotebookApp />
     </LiveStoreProvider>

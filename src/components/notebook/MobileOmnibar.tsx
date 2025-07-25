@@ -15,8 +15,9 @@ export const MobileOmnibar: React.FC<MobileOmnibarProps> = ({
   onCellAdded,
 }) => {
   const { store } = useStore();
-  const { getUser } = useAuth();
-  const currentUserId = getUser().sub;
+  const {
+    user: { sub: userId },
+  } = useAuth();
   const [input, setInput] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -43,8 +44,8 @@ export const MobileOmnibar: React.FC<MobileOmnibarProps> = ({
           id: cellId,
           position: newPosition,
           cellType: "ai",
-          createdBy: currentUserId,
-          actorId: currentUserId,
+          createdBy: userId,
+          actorId: userId,
         })
       );
 
@@ -53,7 +54,7 @@ export const MobileOmnibar: React.FC<MobileOmnibarProps> = ({
         events.cellSourceChanged({
           id: cellId,
           source: input.trim(),
-          modifiedBy: currentUserId,
+          modifiedBy: userId,
         })
       );
 
@@ -67,7 +68,7 @@ export const MobileOmnibar: React.FC<MobileOmnibarProps> = ({
           queueId,
           cellId,
           executionCount: 1,
-          requestedBy: currentUserId,
+          requestedBy: userId,
         })
       );
     } catch (error) {

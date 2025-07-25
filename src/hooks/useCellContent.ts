@@ -15,8 +15,9 @@ export const useCellContent = ({
   onUpdate,
 }: CellContentOptions) => {
   const { store } = useStore();
-  const { getUser } = useAuth();
-  const currentUserId = getUser().sub;
+  const {
+    user: { sub: userId },
+  } = useAuth();
   const [localSource, setLocalSource] = useState(initialSource);
 
   // Sync local source with cell source
@@ -30,12 +31,12 @@ export const useCellContent = ({
         events.cellSourceChanged({
           id: cellId,
           source: localSource,
-          modifiedBy: currentUserId,
+          modifiedBy: userId,
         })
       );
       onUpdate?.(localSource);
     }
-  }, [localSource, initialSource, cellId, store, onUpdate, currentUserId]);
+  }, [localSource, initialSource, cellId, store, onUpdate, userId]);
 
   const handleSourceChange = useCallback((value: string) => {
     setLocalSource(value);

@@ -44,13 +44,14 @@ export const CodeCell: React.FC<CodeCellProps> = ({
   contextSelectionMode = false,
 }) => {
   const { store } = useStore();
-  const { getUser } = useAuth();
-  const currentUserId = getUser().sub;
+  const {
+    user: { sub: userId },
+  } = useAuth();
   const { getUsersOnCell, getUserColor } = useUserRegistry();
 
   // Get users present on this cell (excluding current user)
   const usersOnCell = getUsersOnCell(cell.id).filter(
-    (user) => user.id !== currentUserId
+    (user) => user.id !== userId
   );
 
   // Use shared content management hook
@@ -74,11 +75,11 @@ export const CodeCell: React.FC<CodeCellProps> = ({
         events.cellTypeChanged({
           id: cell.id,
           cellType: newType,
-          actorId: currentUserId,
+          actorId: userId,
         })
       );
     },
-    [cell.id, store, currentUserId]
+    [cell.id, store, userId]
   );
 
   const toggleSourceVisibility = useCallback(() => {
@@ -86,30 +87,30 @@ export const CodeCell: React.FC<CodeCellProps> = ({
       events.cellSourceVisibilityToggled({
         id: cell.id,
         sourceVisible: !cell.sourceVisible,
-        actorId: currentUserId,
+        actorId: userId,
       })
     );
-  }, [cell.id, cell.sourceVisible, store, currentUserId]);
+  }, [cell.id, cell.sourceVisible, store, userId]);
 
   const toggleOutputVisibility = useCallback(() => {
     store.commit(
       events.cellOutputVisibilityToggled({
         id: cell.id,
         outputVisible: !cell.outputVisible,
-        actorId: currentUserId,
+        actorId: userId,
       })
     );
-  }, [cell.id, cell.outputVisible, store, currentUserId]);
+  }, [cell.id, cell.outputVisible, store, userId]);
 
   const toggleAiContextVisibility = useCallback(() => {
     store.commit(
       events.cellAiContextVisibilityToggled({
         id: cell.id,
         aiContextVisible: !cell.aiContextVisible,
-        actorId: currentUserId,
+        actorId: userId,
       })
     );
-  }, [cell.id, cell.aiContextVisible, store, currentUserId]);
+  }, [cell.id, cell.aiContextVisible, store, userId]);
 
   const clearCellOutputs = useCallback(async () => {
     if (hasOutputs) {
@@ -117,11 +118,11 @@ export const CodeCell: React.FC<CodeCellProps> = ({
         events.cellOutputsCleared({
           cellId: cell.id,
           wait: false,
-          clearedBy: currentUserId,
+          clearedBy: userId,
         })
       );
     }
-  }, [cell.id, store, hasOutputs, currentUserId]);
+  }, [cell.id, store, hasOutputs, userId]);
 
   const executeCell = useCallback(async () => {
     // Use localSource instead of cell.source to get the current typed content
@@ -136,7 +137,7 @@ export const CodeCell: React.FC<CodeCellProps> = ({
         events.cellOutputsCleared({
           cellId: cell.id,
           wait: false,
-          clearedBy: currentUserId,
+          clearedBy: userId,
         })
       );
 
@@ -152,7 +153,7 @@ export const CodeCell: React.FC<CodeCellProps> = ({
           queueId,
           cellId: cell.id,
           executionCount,
-          requestedBy: currentUserId,
+          requestedBy: userId,
         })
       );
 
@@ -185,14 +186,7 @@ export const CodeCell: React.FC<CodeCellProps> = ({
         })
       );
     }
-  }, [
-    cell.id,
-    localSource,
-    cell.source,
-    cell.executionCount,
-    store,
-    currentUserId,
-  ]);
+  }, [cell.id, localSource, cell.source, cell.executionCount, store, userId]);
 
   const interruptCell = useCallback(async () => {
     // Find the current execution in the queue for this cell
@@ -212,12 +206,12 @@ export const CodeCell: React.FC<CodeCellProps> = ({
         events.executionCancelled({
           queueId: currentExecution.id,
           cellId: cell.id,
-          cancelledBy: currentUserId,
+          cancelledBy: userId,
           reason: "User interrupted execution",
         })
       );
     }
-  }, [cell.id, store, currentUserId]);
+  }, [cell.id, store, userId]);
 
   // Use shared keyboard navigation hook
   const { keyMap } = useCellKeyboardNavigation({

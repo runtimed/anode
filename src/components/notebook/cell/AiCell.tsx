@@ -74,13 +74,14 @@ export const AiCell: React.FC<AiCellProps> = ({
   contextSelectionMode = false,
 }) => {
   const { store } = useStore();
-  const { getUser } = useAuth();
-  const currentUserId = getUser().sub;
+  const {
+    user: { sub: userId },
+  } = useAuth();
   const { getUsersOnCell, getUserColor } = useUserRegistry();
 
   // Get users present on this cell (excluding current user)
   const usersOnCell = getUsersOnCell(cell.id).filter(
-    (user) => user.id !== currentUserId
+    (user) => user.id !== userId
   );
 
   // Get AI model settings
@@ -111,11 +112,11 @@ export const AiCell: React.FC<AiCellProps> = ({
         events.cellOutputsCleared({
           cellId: cell.id,
           wait: false,
-          clearedBy: currentUserId,
+          clearedBy: userId,
         })
       );
     }
-  }, [cell.id, store, hasOutputs, currentUserId]);
+  }, [cell.id, store, hasOutputs, userId]);
 
   const executeAiPrompt = useCallback(async () => {
     // Use localSource instead of cell.source to get the current typed content
@@ -130,7 +131,7 @@ export const AiCell: React.FC<AiCellProps> = ({
         events.cellOutputsCleared({
           cellId: cell.id,
           wait: false,
-          clearedBy: currentUserId,
+          clearedBy: userId,
         })
       );
 
@@ -146,7 +147,7 @@ export const AiCell: React.FC<AiCellProps> = ({
           queueId,
           cellId: cell.id,
           executionCount,
-          requestedBy: currentUserId,
+          requestedBy: userId,
         })
       );
     } catch (error) {
@@ -172,14 +173,7 @@ export const AiCell: React.FC<AiCellProps> = ({
         })
       );
     }
-  }, [
-    cell.id,
-    localSource,
-    cell.source,
-    cell.executionCount,
-    store,
-    currentUserId,
-  ]);
+  }, [cell.id, localSource, cell.source, cell.executionCount, store, userId]);
 
   const interruptAiCell = useCallback(async () => {
     // Find the current execution in the queue for this cell
@@ -199,12 +193,12 @@ export const AiCell: React.FC<AiCellProps> = ({
         events.executionCancelled({
           queueId: currentExecution.id,
           cellId: cell.id,
-          cancelledBy: currentUserId,
+          cancelledBy: userId,
           reason: "User interrupted AI execution",
         })
       );
     }
-  }, [cell.id, store, currentUserId]);
+  }, [cell.id, store, userId]);
 
   // Use shared keyboard navigation hook
   const { keyMap } = useCellKeyboardNavigation({
@@ -258,11 +252,11 @@ export const AiCell: React.FC<AiCellProps> = ({
         events.cellTypeChanged({
           id: cell.id,
           cellType: newType,
-          actorId: currentUserId,
+          actorId: userId,
         })
       );
     },
-    [cell.id, store, currentUserId]
+    [cell.id, store, userId]
   );
 
   const toggleSourceVisibility = useCallback(() => {
@@ -270,30 +264,30 @@ export const AiCell: React.FC<AiCellProps> = ({
       events.cellSourceVisibilityToggled({
         id: cell.id,
         sourceVisible: !cell.sourceVisible,
-        actorId: currentUserId,
+        actorId: userId,
       })
     );
-  }, [cell.id, cell.sourceVisible, store, currentUserId]);
+  }, [cell.id, cell.sourceVisible, store, userId]);
 
   const toggleAiContextVisibility = useCallback(() => {
     store.commit(
       events.cellAiContextVisibilityToggled({
         id: cell.id,
         aiContextVisible: !cell.aiContextVisible,
-        actorId: currentUserId,
+        actorId: userId,
       })
     );
-  }, [cell.id, cell.aiContextVisible, store, currentUserId]);
+  }, [cell.id, cell.aiContextVisible, store, userId]);
 
   const toggleOutputVisibility = useCallback(() => {
     store.commit(
       events.cellOutputVisibilityToggled({
         id: cell.id,
         outputVisible: !cell.outputVisible,
-        actorId: currentUserId,
+        actorId: userId,
       })
     );
-  }, [cell.id, cell.outputVisible, store, currentUserId]);
+  }, [cell.id, cell.outputVisible, store, userId]);
 
   return (
     <CellContainer

@@ -34,10 +34,9 @@ const getDisplayName = (user: UserInfo): string => {
 
 const useSyncUserToLiveStore = () => {
   const { store } = useStore();
-  const { isLocalMode, getUser } = useAuth();
-  const user = getUser();
-  const { picture } = user;
-  const userId = isLocalMode ? "never-match" : user.sub;
+  const { isLocalMode, user } = useAuth();
+  const { picture, sub } = user;
+  const userId = isLocalMode ? "never-match" : sub;
   const displayName = getDisplayName(user);
   const existingActor = useQuery(
     queryDb(tables.actors.select().where({ id: userId }))
@@ -60,12 +59,11 @@ const useSyncUserToLiveStore = () => {
 };
 
 export const UserProfile: React.FC<UserProfileProps> = ({ className = "" }) => {
-  const { signOut, getUser } = useAuth();
+  const { signOut, user } = useAuth();
   useSyncUserToLiveStore();
   const { getUserInitials } = useUserRegistry();
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
-  const user = getUser();
   const displayName = getDisplayName(user);
 
   const handleSignOut = async () => {
