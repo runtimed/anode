@@ -236,7 +236,8 @@ export const SqlCell: React.FC<SqlCellProps> = ({
           toggleAiContextVisibility={toggleAiContextVisibility}
           playButton={
             <PlayButton
-              cell={cell}
+              executionState={cell.executionState}
+              cellType={cell.cellType}
               autoFocus={autoFocus}
               onExecute={executeQuery}
               onInterrupt={interruptQuery}
@@ -257,7 +258,8 @@ export const SqlCell: React.FC<SqlCellProps> = ({
           }}
         >
           <PlayButton
-            cell={cell}
+            executionState={cell.executionState}
+            cellType={cell.cellType}
             autoFocus={autoFocus}
             onExecute={executeQuery}
             onInterrupt={interruptQuery}
