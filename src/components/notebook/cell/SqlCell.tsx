@@ -2,7 +2,7 @@ import { Button } from "@/components/ui/button";
 import { useCellContent } from "@/hooks/useCellContent.js";
 import { useCellKeyboardNavigation } from "@/hooks/useCellKeyboardNavigation.js";
 import { useCellOutputs } from "@/hooks/useCellOutputs.js";
-import { useCurrentUserId } from "@/hooks/useCurrentUser.js";
+import { useAuth } from "@/components/auth/AuthProvider.js";
 import { useUserRegistry } from "@/hooks/useUserRegistry.js";
 import { queryDb } from "@livestore/livestore";
 import { useStore } from "@livestore/react";
@@ -44,12 +44,14 @@ export const SqlCell: React.FC<SqlCellProps> = ({
   contextSelectionMode = false,
 }) => {
   const { store } = useStore();
-  const currentUserId = useCurrentUserId();
+  const {
+    user: { sub: userId },
+  } = useAuth();
   const { getUsersOnCell, getUserColor } = useUserRegistry();
 
   // Get users present on this cell (excluding current user)
   const usersOnCell = getUsersOnCell(cell.id).filter(
-    (user) => user.id !== currentUserId
+    (user) => user.id !== userId
   );
 
   // Use shared content management hook
@@ -86,10 +88,10 @@ export const SqlCell: React.FC<SqlCellProps> = ({
         queueId,
         cellId: cell.id,
         executionCount,
-        requestedBy: currentUserId,
+        requestedBy: userId,
       })
     );
-  }, [localQuery, cell.id, cell.executionCount, store, currentUserId]);
+  }, [localQuery, cell.id, cell.executionCount, store, userId]);
 
   const clearCellOutputs = useCallback(async () => {
     if (hasOutputs) {
@@ -97,11 +99,11 @@ export const SqlCell: React.FC<SqlCellProps> = ({
         events.cellOutputsCleared({
           cellId: cell.id,
           wait: false,
-          clearedBy: currentUserId,
+          clearedBy: userId,
         })
       );
     }
-  }, [cell.id, store, hasOutputs, currentUserId]);
+  }, [cell.id, store, hasOutputs, userId]);
 
   const interruptQuery = useCallback(() => {
     // Find the current execution in the queue for this cell
@@ -121,12 +123,12 @@ export const SqlCell: React.FC<SqlCellProps> = ({
         events.executionCancelled({
           queueId: currentExecution.id,
           cellId: cell.id,
-          cancelledBy: currentUserId,
+          cancelledBy: userId,
           reason: "User interrupted SQL execution",
         })
       );
     }
-  }, [cell.id, store, currentUserId]);
+  }, [cell.id, store, userId]);
 
   // Use shared keyboard navigation hook
   const { keyMap } = useCellKeyboardNavigation({
@@ -149,11 +151,11 @@ export const SqlCell: React.FC<SqlCellProps> = ({
         events.cellTypeChanged({
           id: cell.id,
           cellType: newType,
-          actorId: currentUserId,
+          actorId: userId,
         })
       );
     },
-    [cell.id, store, currentUserId]
+    [cell.id, store, userId]
   );
 
   const toggleSourceVisibility = useCallback(() => {
@@ -161,20 +163,20 @@ export const SqlCell: React.FC<SqlCellProps> = ({
       events.cellSourceVisibilityToggled({
         id: cell.id,
         sourceVisible: !cell.sourceVisible,
-        actorId: currentUserId,
+        actorId: userId,
       })
     );
-  }, [cell.id, cell.sourceVisible, store, currentUserId]);
+  }, [cell.id, cell.sourceVisible, store, userId]);
 
   const toggleOutputVisibility = useCallback(() => {
     store.commit(
       events.cellOutputVisibilityToggled({
         id: cell.id,
         outputVisible: !cell.outputVisible,
-        actorId: currentUserId,
+        actorId: userId,
       })
     );
-  }, [cell.id, cell.outputVisible, store, currentUserId]);
+  }, [cell.id, cell.outputVisible, store, userId]);
 
   const toggleAiContextVisibility = useCallback(() => {
     store.commit(
@@ -191,11 +193,11 @@ export const SqlCell: React.FC<SqlCellProps> = ({
         events.sqlConnectionChanged({
           cellId: cell.id,
           connectionId: connection,
-          changedBy: currentUserId,
+          changedBy: userId,
         })
       );
     },
-    [cell.id, store, currentUserId]
+    [cell.id, store, userId]
   );
 
   return (

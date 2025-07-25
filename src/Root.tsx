@@ -3,6 +3,7 @@ import LiveStoreSharedWorker from "@livestore/adapter-web/shared-worker?sharedwo
 import { LiveStoreProvider } from "@livestore/react";
 
 import React, { useEffect, useState, Suspense } from "react";
+import { Routes, Route } from "react-router-dom";
 
 // Dynamic import for FPSMeter - development tool only
 const FPSMeter = React.lazy(() =>
@@ -14,12 +15,13 @@ import { unstable_batchedUpdates as batchUpdates } from "react-dom";
 
 import { NotebookViewer } from "./components/notebook/NotebookViewer.js";
 import { AuthGuard } from "./components/auth/AuthGuard.js";
+import AuthRedirect from "./components/auth/AuthRedirect.js";
+import { AuthProvider } from "./components/auth/AuthProvider.js";
 
 import LiveStoreWorker from "./livestore.worker?worker";
 import { schema } from "./schema.js";
 import { getCurrentNotebookId, getStoreId } from "./util/store-id.js";
-import { getCurrentAuthToken, isAuthStateValid } from "./auth/google-auth.js";
-import { useGoogleAuth } from "./auth/useGoogleAuth.js";
+import { useAuth } from "./components/auth/AuthProvider.js";
 import { ErrorBoundary } from "react-error-boundary";
 
 const NotebookApp: React.FC = () => {
@@ -30,81 +32,6 @@ const NotebookApp: React.FC = () => {
   // Note: Auth token updates are handled via error detection and page reload
   // rather than dynamic sync payload updates, as LiveStore doesn't support
   // runtime sync payload changes
-
-  // Periodic auth validation to detect token expiry
-  useEffect(() => {
-    const validateAuth = async () => {
-      const isValid = await isAuthStateValid();
-      if (!isValid) {
-        console.warn("Auth state is invalid, forcing reload with reset");
-        const url = new URL(window.location.href);
-        url.searchParams.set("reset", "auth-invalid");
-        window.location.href = url.toString();
-      }
-    };
-
-    // Check auth state every 30 seconds for faster detection
-    const interval = setInterval(validateAuth, 30 * 1000);
-
-    // Also check immediately
-    validateAuth();
-
-    return () => clearInterval(interval);
-  }, []);
-
-  // Listen for WebSocket connection errors that might indicate auth issues
-  useEffect(() => {
-    let reconnectAttempts = 0;
-    const maxReconnectAttempts = 3;
-
-    const validateAuth = async () => {
-      const isValid = await isAuthStateValid();
-      if (!isValid) {
-        console.warn("Auth state is invalid, forcing reload with reset");
-        const url = new URL(window.location.href);
-        url.searchParams.set("reset", "auth-invalid");
-        window.location.href = url.toString();
-      }
-    };
-
-    const handleVisibilityChange = () => {
-      if (document.visibilityState === "visible") {
-        // When user returns to tab, validate auth state
-        isAuthStateValid().then((isValid) => {
-          if (!isValid) {
-            console.warn("Auth state invalid on tab focus, reloading");
-            const url = new URL(window.location.href);
-            url.searchParams.set("reset", "auth-focus-check");
-            window.location.href = url.toString();
-          }
-        });
-      }
-    };
-
-    // Monitor for repeated WebSocket failures that might indicate auth issues
-    const handleBeforeUnload = () => {
-      reconnectAttempts++;
-      if (reconnectAttempts >= maxReconnectAttempts) {
-        console.warn("Multiple reconnection attempts, checking auth state");
-        // Set a flag to check auth on next load
-        sessionStorage.setItem("checkAuthOnLoad", "true");
-      }
-    };
-
-    document.addEventListener("visibilitychange", handleVisibilityChange);
-    window.addEventListener("beforeunload", handleBeforeUnload);
-
-    // Check if we should validate auth on load
-    if (sessionStorage.getItem("checkAuthOnLoad") === "true") {
-      sessionStorage.removeItem("checkAuthOnLoad");
-      validateAuth();
-    }
-
-    return () => {
-      document.removeEventListener("visibilitychange", handleVisibilityChange);
-      window.removeEventListener("beforeunload", handleBeforeUnload);
-    };
-  }, []);
 
   return (
     <div className="bg-background min-h-screen">
@@ -158,10 +85,10 @@ const LiveStoreApp: React.FC = () => {
   }, [resetPersistence]);
 
   // Get authenticated user info to set clientId
-  const { user } = useGoogleAuth();
-
-  // Use the authenticated user's ID as clientId for proper attribution
-  const clientId = user?.id || "anonymous-user";
+  const {
+    user: { sub: clientId },
+    accessToken,
+  } = useAuth();
 
   const adapter = makePersistedAdapter({
     storage: { type: "opfs" },
@@ -170,9 +97,6 @@ const LiveStoreApp: React.FC = () => {
     resetPersistence,
     clientId, // This ties the LiveStore client to the authenticated user
   });
-
-  // Get current auth token (this is called after auth is validated)
-  const currentAuthToken = getCurrentAuthToken();
 
   return (
     <LiveStoreProvider
@@ -192,7 +116,7 @@ const LiveStoreApp: React.FC = () => {
       )}
       batchUpdates={batchUpdates}
       storeId={storeId}
-      syncPayload={{ authToken: currentAuthToken, clientId }}
+      syncPayload={{ authToken: accessToken, clientId }}
     >
       <NotebookApp />
     </LiveStoreProvider>
@@ -217,9 +141,8 @@ if (typeof Worker !== "undefined") {
 
       // Clear any cached auth state
       try {
-        localStorage.removeItem("google_auth_token");
-        document.cookie =
-          "google_auth_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+        localStorage.removeItem("openid_tokens");
+        localStorage.removeItem("openid_request_state");
       } catch (e) {
         console.warn("Failed to clear auth tokens:", e);
       }
@@ -242,8 +165,18 @@ if (typeof Worker !== "undefined") {
 
 export const App: React.FC = () => {
   return (
-    <AuthGuard>
-      <LiveStoreApp />
-    </AuthGuard>
+    <AuthProvider>
+      <Routes>
+        <Route path="/oidc" element={<AuthRedirect />} />
+        <Route
+          path="/*"
+          element={
+            <AuthGuard>
+              <LiveStoreApp />
+            </AuthGuard>
+          }
+        />
+      </Routes>
+    </AuthProvider>
   );
 };

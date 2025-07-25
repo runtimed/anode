@@ -10,14 +10,14 @@ export type RuntimeHealth =
   | "disconnected"
   | "unknown";
 
-export interface RuntimeHealthState {
+export type RuntimeHealthState = {
   activeRuntime: RuntimeSessionData | undefined;
   hasActiveRuntime: boolean;
   runtimeHealth: RuntimeHealth;
   runtimeStatus: string;
   runningExecutions: any[];
   executionQueue: any[];
-}
+};
 
 export const useRuntimeHealth = (): RuntimeHealthState => {
   const runtimeSessions = useQuery(

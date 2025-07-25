@@ -359,6 +359,13 @@
     -ms-user-select: none;
     user-select: none;
   }
+
+  /* Disabled button styles */
+  button:disabled {
+    cursor: not-allowed;
+    opacity: 0.5;
+    pointer-events: none;
+  }
 }
 
 /* Safe area support for devices with notches */
