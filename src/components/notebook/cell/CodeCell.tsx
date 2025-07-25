@@ -248,7 +248,8 @@ export const CodeCell: React.FC<CodeCellProps> = ({
         </div>
 
         <CellControls
-          cell={cell}
+          sourceVisible={cell.sourceVisible}
+          aiContextVisible={cell.aiContextVisible}
           contextSelectionMode={contextSelectionMode}
           onMoveUp={onMoveUp}
           onMoveDown={onMoveDown}

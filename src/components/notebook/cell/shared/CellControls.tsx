@@ -17,10 +17,10 @@ import {
   MoreVertical,
   Eraser,
 } from "lucide-react";
-import { tables } from "@runt/schema";
 
 interface CellControlsProps {
-  cell: typeof tables.cells.Type;
+  sourceVisible: boolean;
+  aiContextVisible: boolean;
   contextSelectionMode?: boolean;
   onMoveUp: () => void;
   onMoveDown: () => void;
@@ -33,7 +33,8 @@ interface CellControlsProps {
 }
 
 export const CellControls: React.FC<CellControlsProps> = ({
-  cell,
+  sourceVisible,
+  aiContextVisible,
   contextSelectionMode = false,
   onMoveUp,
   onMoveDown,
@@ -55,11 +56,11 @@ export const CellControls: React.FC<CellControlsProps> = ({
         size="sm"
         onClick={toggleSourceVisibility}
         className={`hover:bg-muted/80 h-8 w-8 p-0 sm:h-7 sm:w-7 ${
-          cell.sourceVisible ? "" : "text-muted-foreground/60"
+          sourceVisible ? "" : "text-muted-foreground/60"
         }`}
-        title={cell.sourceVisible ? "Hide source" : "Show source"}
+        title={sourceVisible ? "Hide source" : "Show source"}
       >
-        {cell.sourceVisible ? (
+        {sourceVisible ? (
           <ChevronUp className="h-4 w-4 sm:h-3 sm:w-3" />
         ) : (
           <ChevronDown className="h-4 w-4 sm:h-3 sm:w-3" />
@@ -73,15 +74,13 @@ export const CellControls: React.FC<CellControlsProps> = ({
           size="sm"
           onClick={toggleAiContextVisibility}
           className={`hover:bg-muted/80 h-8 w-8 p-0 sm:h-7 sm:w-7 ${
-            cell.aiContextVisible ? "text-purple-600" : "text-gray-500"
+            aiContextVisible ? "text-purple-600" : "text-gray-500"
           }`}
           title={
-            cell.aiContextVisible
-              ? "Hide from AI context"
-              : "Show in AI context"
+            aiContextVisible ? "Hide from AI context" : "Show in AI context"
           }
         >
-          {cell.aiContextVisible ? (
+          {aiContextVisible ? (
             <Eye className="h-4 w-4 sm:h-3 sm:w-3" />
           ) : (
             <EyeOff className="h-4 w-4 sm:h-3 sm:w-3" />

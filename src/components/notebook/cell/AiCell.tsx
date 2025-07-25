@@ -314,7 +314,8 @@ export const AiCell: React.FC<AiCellProps> = ({
         </div>
 
         <CellControls
-          cell={cell}
+          sourceVisible={cell.sourceVisible}
+          aiContextVisible={cell.aiContextVisible}
           contextSelectionMode={contextSelectionMode}
           onMoveUp={onMoveUp}
           onMoveDown={onMoveDown}
