@@ -13,7 +13,7 @@ export const IframeOutput: React.FC<IframeOutputProps> = ({
   className,
   style,
   onHeightChange,
-  defaultHeight = "0",
+  defaultHeight = "0px",
 }) => {
   const [iframeLoaded, setIframeLoaded] = useState(false);
   const iframeRef = useRef<HTMLIFrameElement>(null);
@@ -35,7 +35,7 @@ export const IframeOutput: React.FC<IframeOutputProps> = ({
       ) {
         const height = event.data.height;
         if (typeof height === "number" && height > 0) {
-          const newHeight = `${height + 2}px`;
+          const newHeight = `${height}px`;
           setIframeHeight(newHeight);
           onHeightChange?.(height);
         }
