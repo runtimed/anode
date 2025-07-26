@@ -11,12 +11,10 @@ import { Avatar } from "@/components/ui/Avatar.js";
 import { Button } from "@/components/ui/button";
 
 import { useAuth } from "@/components/auth/AuthProvider.js";
-import { useRuntimeHealth } from "@/hooks/useRuntimeHealth.js";
 import { useUserRegistry } from "@/hooks/useUserRegistry.js";
 
 import { getClientColor, getClientTypeInfo } from "@/services/userTypes.js";
 import { getDefaultAiModel, useAvailableAiModels } from "@/util/ai-models.js";
-import { getCurrentNotebookId } from "@/util/store-id.js";
 import { Bug, BugOff, Filter, Terminal, X } from "lucide-react";
 import { UserProfile } from "../auth/UserProfile.js";
 import { RuntimeHealthIndicator } from "./RuntimeHealthIndicator.js";
@@ -51,7 +49,6 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
   } = useAuth();
   const { presentUsers, getUserInfo, getUserColor } = useUserRegistry();
   const { models } = useAvailableAiModels();
-  const { runtimeHealth } = useRuntimeHealth();
 
   const cells = useQuery(
     queryDb(tables.cells.select().orderBy("position", "asc"))
@@ -78,12 +75,6 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
   const runtimeSessions = useQuery(
     queryDb(tables.runtimeSessions.select().where({ isActive: true }))
   );
-  // Get all runtime sessions for debug panel
-  const allRuntimeSessions = useQuery(queryDb(tables.runtimeSessions.select()));
-  // Get execution queue for debug panel
-  const executionQueue = useQuery(
-    queryDb(tables.executionQueue.select().orderBy("id", "desc"))
-  ) as any[];
 
   const [showRuntimeHelper, setShowRuntimeHelper] = React.useState(false);
   const [focusedCellId, setFocusedCellId] = React.useState<string | null>(null);
@@ -525,14 +516,7 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
             }
           >
             <ErrorBoundary fallback={<div>Error rendering debug panel</div>}>
-              <LazyDebugPanel
-                metadata={metadata}
-                cells={cells}
-                allRuntimeSessions={allRuntimeSessions}
-                executionQueue={executionQueue}
-                currentNotebookId={getCurrentNotebookId()}
-                runtimeHealth={runtimeHealth}
-              />
+              <LazyDebugPanel />
             </ErrorBoundary>
           </Suspense>
         )}

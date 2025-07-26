@@ -232,7 +232,8 @@ export const MarkdownCell: React.FC<MarkdownCellProps> = ({
         </div>
 
         <CellControls
-          cell={cell}
+          sourceVisible={cell.sourceVisible}
+          aiContextVisible={cell.aiContextVisible}
           contextSelectionMode={contextSelectionMode}
           onMoveUp={onMoveUp}
           onMoveDown={onMoveDown}

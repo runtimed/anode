@@ -314,7 +314,8 @@ export const AiCell: React.FC<AiCellProps> = ({
         </div>
 
         <CellControls
-          cell={cell}
+          sourceVisible={cell.sourceVisible}
+          aiContextVisible={cell.aiContextVisible}
           contextSelectionMode={contextSelectionMode}
           onMoveUp={onMoveUp}
           onMoveDown={onMoveDown}
@@ -325,7 +326,8 @@ export const AiCell: React.FC<AiCellProps> = ({
           toggleAiContextVisibility={toggleAiContextVisibility}
           playButton={
             <PlayButton
-              cell={cell}
+              executionState={cell.executionState}
+              cellType={cell.cellType}
               autoFocus={autoFocus}
               onExecute={executeAiPrompt}
               onInterrupt={interruptAiCell}
@@ -346,7 +348,8 @@ export const AiCell: React.FC<AiCellProps> = ({
           }}
         >
           <PlayButton
-            cell={cell}
+            executionState={cell.executionState}
+            cellType={cell.cellType}
             autoFocus={autoFocus}
             onExecute={executeAiPrompt}
             onInterrupt={interruptAiCell}
