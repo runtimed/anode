@@ -11,8 +11,6 @@ import { Avatar } from "@/components/ui/Avatar.js";
 import { Button } from "@/components/ui/button";
 
 import { useAuth } from "@/components/auth/AuthProvider.js";
-import { useRuntimeHealth } from "@/hooks/useRuntimeHealth.js";
-import { useCurrentUserId } from "@/hooks/useCurrentUser.js";
 import { useUserRegistry } from "@/hooks/useUserRegistry.js";
 
 import { getClientColor, getClientTypeInfo } from "@/services/userTypes.js";
