@@ -99,7 +99,23 @@ export default {
         );
       }
 
-      return env.ASSETS.fetch(request);
+      // Handle SPA routing fallback
+      // For client-side routes (no file extension), serve index.html
+      // For static assets (with extensions), serve them directly
+      const hasFileExtension =
+        url.pathname.includes(".") && !url.pathname.endsWith("/");
+
+      if (hasFileExtension) {
+        // Static asset request - serve directly
+        return env.ASSETS.fetch(request);
+      } else {
+        // Client-side route - serve index.html for SPA routing
+        const indexRequest = new Request(new URL("/", request.url), {
+          method: request.method,
+          headers: request.headers,
+        });
+        return env.ASSETS.fetch(indexRequest);
+      }
     }
   },
 };
