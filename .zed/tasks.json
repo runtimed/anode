@@ -8,6 +8,13 @@
     "reveal": "always"
   },
   {
+    "label": "Sync Server",
+    "command": "pnpm run dev:sync",
+    "use_new_terminal": true,
+    "allow_concurrent_runs": false,
+    "reveal": "always"
+  },
+  {
     "label": "Development Server (Auth Mode)",
     "command": "pnpm run dev:auth",
     "use_new_terminal": true,
