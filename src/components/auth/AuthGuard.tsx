@@ -82,16 +82,17 @@ export const AuthGuard: React.FC<AuthGuardProps> = ({ children, fallback }) => {
       fallback || (
         <div className="bg-background flex min-h-screen items-center justify-center">
           <div className="max-w-md text-center">
-            <div className="text-foreground mb-2 text-2xl font-bold">
-              Anode Notebooks
+            <div className="text-foreground mb-2 text-2xl font-bold">Runt</div>
+            <div className="text-muted-foreground mb-2 text-sm font-medium">
+              The Agent REPL
             </div>
-            <div className="text-muted-foreground mb-8 text-sm">
+            <div className="text-muted-foreground mb-8 text-xs">
               Sign in to access your collaborative notebooks
             </div>
             <LoginPrompt error={loginError} setError={setLoginError} />
             <div className="text-muted-foreground mt-8 text-xs">
               <p>
-                Anode is a real-time collaborative notebook system.
+                Iterate and collaborate with people and runtime agents.
                 <br />
                 Sign in with Anaconda to sync your work across devices.
               </p>

@@ -2,8 +2,6 @@ import React, { useEffect, useState } from "react";
 import { LogIn, ExternalLink } from "lucide-react";
 import { getOpenIdService, RedirectUrls } from "../../services/openid";
 
-const logoUrl = "/logo.svg";
-
 interface LoginPromptProps {
   error: string | null;
   setError: (error: string | null) => void;
@@ -70,10 +68,34 @@ const LoginPrompt: React.FC<LoginPromptProps> = ({ error, setError }) => {
   return (
     <div className="auth-wrapper mx-auto flex max-w-[400px] flex-col items-center">
       <div className="heading mt-8 flex items-center gap-2">
-        <img className="anaconda-logo h-[30px]" src={logoUrl} alt="logo" />
-        <div className="app-name text-primary text-2xl font-medium">
-          Anode Notebooks
+        <div className="anaconda-logo relative h-[40px] w-[40px]">
+          <img
+            src="/hole.png"
+            alt=""
+            className="pixel-logo absolute inset-0 h-full w-full"
+          />
+          <img
+            src="/shadow.png"
+            alt=""
+            className="pixel-logo absolute inset-0 h-full w-full"
+          />
+          <img
+            src="/bunny.png"
+            alt=""
+            className="pixel-logo absolute inset-0 h-full w-full"
+          />
+          <img
+            src="/runes.png"
+            alt=""
+            className="pixel-logo absolute inset-0 h-full w-full"
+          />
+          <img
+            src="/bracket.png"
+            alt="logo"
+            className="pixel-logo absolute inset-0 h-full w-full"
+          />
         </div>
+        <div className="app-name text-primary text-2xl font-medium">Runt</div>
       </div>
       <div className="mt-8 flex w-full justify-center">
         <button
@@ -91,9 +113,9 @@ const LoginPrompt: React.FC<LoginPromptProps> = ({ error, setError }) => {
           <p className="text-sm text-red-500">{error}</p>
         </div>
       )}
-      <div className="text-muted-foreground mt-8 w-full text-center text-xs text-gray-500">
+      <div className="text-muted-foreground mt-8 w-full text-center text-xs">
         <p>
-          Anode is a real-time collaborative notebook system.
+          Iterate and collaborate with people and runtime agents.
           <br />
           Sign in with Anaconda to sync your work across devices.
         </p>
