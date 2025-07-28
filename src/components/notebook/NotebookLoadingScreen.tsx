@@ -4,11 +4,15 @@ import { useSpring, animated } from "@react-spring/web";
 interface NotebookLoadingScreenProps {
   stage?: string;
   onTransitionComplete?: () => void;
+  onPortalAnimationComplete?: () => void;
+  ready?: boolean;
 }
 
 export const NotebookLoadingScreen: React.FC<NotebookLoadingScreenProps> = ({
   stage,
   onTransitionComplete,
+  onPortalAnimationComplete,
+  ready = false,
 }) => {
   const [transitioning, setTransitioning] = useState(false);
   const [flyingOut, setFlyingOut] = useState(false);
@@ -65,25 +69,30 @@ export const NotebookLoadingScreen: React.FC<NotebookLoadingScreenProps> = ({
       });
     }, 100);
 
-    // Start final animation after loading completes
-    const timer = setTimeout(() => {
+    return () => {
       clearInterval(progressTimer);
+    };
+  }, []);
+
+  // Trigger final animation when ready
+  useEffect(() => {
+    if (ready && !startAnimation) {
       setLoadingProgress(3);
       setStartAnimation(true);
       setFlyingOut(true);
+
+      // Portal animation completes first (expansion + shrink to dot)
+      setTimeout(() => {
+        onPortalAnimationComplete?.();
+      }, 1200);
 
       // Complete transition after animation
       setTimeout(() => {
         setTransitioning(true);
         onTransitionComplete?.();
       }, 1500);
-    }, 2000);
-
-    return () => {
-      clearInterval(progressTimer);
-      clearTimeout(timer);
-    };
-  }, [onTransitionComplete]);
+    }
+  }, [ready, startAnimation, onTransitionComplete]);
   if (transitioning) {
     return null; // Let header take over
   }
