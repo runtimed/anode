@@ -1,7 +1,7 @@
 import { queryDb } from "@livestore/livestore";
 import { useQuery, useStore } from "@livestore/react";
 import { CellData, events, tables } from "@runt/schema";
-import React, { Suspense, useCallback } from "react";
+import React, { Suspense, useCallback, useState, useEffect } from "react";
 import { ErrorBoundary } from "react-error-boundary";
 
 import { NotebookTitle } from "./NotebookTitle.js";
@@ -37,11 +37,15 @@ interface NotebookViewerProps {
   notebookId: string;
   debugMode?: boolean;
   onDebugToggle?: (enabled: boolean) => void;
+  showIncomingAnimation?: boolean;
+  onAnimationComplete?: () => void;
 }
 
 export const NotebookViewer: React.FC<NotebookViewerProps> = ({
   debugMode = false,
   onDebugToggle,
+  showIncomingAnimation = false,
+  onAnimationComplete,
 }) => {
   const { store } = useStore();
   const {
@@ -49,6 +53,21 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
   } = useAuth();
   const { presentUsers, getUserInfo, getUserColor } = useUserRegistry();
   const { models } = useAvailableAiModels();
+
+  // Animation state for magical logo transition
+  const [animationComplete, setAnimationComplete] = useState(
+    !showIncomingAnimation
+  );
+
+  useEffect(() => {
+    if (showIncomingAnimation) {
+      const timer = setTimeout(() => {
+        setAnimationComplete(true);
+        onAnimationComplete?.();
+      }, 1200);
+      return () => clearTimeout(timer);
+    }
+  }, [showIncomingAnimation, onAnimationComplete]);
 
   const cells = useQuery(
     queryDb(tables.cells.select().orderBy("position", "asc"))
@@ -303,7 +322,46 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
           className={`flex w-full items-center justify-between ${debugMode ? "sm:mx-auto sm:max-w-none" : "sm:mx-auto sm:max-w-6xl"}`}
         >
           <div className="flex items-center gap-2 sm:gap-4">
-            <img src="/logo.svg" alt="Anode" className="h-6 w-auto sm:h-8" />
+            <div className="relative h-8 w-8 overflow-hidden sm:h-10 sm:w-10">
+              <img
+                src="/hole.png"
+                alt=""
+                className="pixel-logo absolute inset-0 h-full w-full"
+              />
+
+              <img
+                src="/runes.png"
+                alt=""
+                className={`pixel-logo absolute inset-0 h-full w-full ${
+                  !animationComplete
+                    ? `transition-all duration-1200 ease-out ${
+                        showIncomingAnimation
+                          ? "translate-x-0 opacity-100"
+                          : "-translate-x-[220vw] opacity-0"
+                      }`
+                    : ""
+                }`}
+              />
+
+              <img
+                src="/bunny-sit.png"
+                alt=""
+                className={`pixel-logo absolute inset-0 h-full w-full ${
+                  !animationComplete
+                    ? `transition-all duration-1000 ease-out ${
+                        showIncomingAnimation
+                          ? "translate-x-0 opacity-100"
+                          : "-translate-x-[200vw] opacity-0"
+                      }`
+                    : ""
+                }`}
+              />
+              <img
+                src="/bracket.png"
+                alt="Anode"
+                className="pixel-logo absolute inset-0 h-full w-full"
+              />
+            </div>
             <a
               href={window.location.origin}
               className="ring-offset-background focus-visible:ring-ring border-input bg-background hover:bg-accent hover:text-accent-foreground inline-flex h-8 items-center justify-center rounded-md border px-2 text-sm font-medium whitespace-nowrap transition-colors focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none disabled:pointer-events-none disabled:opacity-50 sm:h-9 sm:px-3"

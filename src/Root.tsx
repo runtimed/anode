@@ -14,6 +14,7 @@ const FPSMeter = React.lazy(() =>
 import { unstable_batchedUpdates as batchUpdates } from "react-dom";
 
 import { NotebookViewer } from "./components/notebook/NotebookViewer.js";
+import { NotebookLoadingScreen } from "./components/notebook/NotebookLoadingScreen.js";
 import { AuthGuard } from "./components/auth/AuthGuard.js";
 import AuthRedirect from "./components/auth/AuthRedirect.js";
 import { AuthProvider } from "./components/auth/AuthProvider.js";
@@ -24,7 +25,15 @@ import { getCurrentNotebookId, getStoreId } from "./util/store-id.js";
 import { useAuth } from "./components/auth/AuthProvider.js";
 import { ErrorBoundary } from "react-error-boundary";
 
-const NotebookApp: React.FC = () => {
+interface NotebookAppProps {
+  showIncomingAnimation?: boolean;
+  onAnimationComplete?: () => void;
+}
+
+const NotebookApp: React.FC<NotebookAppProps> = ({
+  showIncomingAnimation = false,
+  onAnimationComplete,
+}) => {
   // In the simplified architecture, we always show the current notebook
   // The notebook ID comes from the URL and is the same as the store ID
   const currentNotebookId = getCurrentNotebookId();
@@ -57,14 +66,53 @@ const NotebookApp: React.FC = () => {
           notebookId={currentNotebookId}
           debugMode={debugMode}
           onDebugToggle={setDebugMode}
+          showIncomingAnimation={showIncomingAnimation}
+          onAnimationComplete={onAnimationComplete}
         />
       </ErrorBoundary>
     </div>
   );
 };
 
+// Animation wrapper that manages transition independently of LiveStore
+const AnimatedLiveStoreApp: React.FC = () => {
+  const [isLoading, setIsLoading] = useState(true);
+  const [showIncomingAnimation, setShowIncomingAnimation] = useState(false);
+  const [animationComplete, setAnimationComplete] = useState(false);
+
+  const handleTransitionStart = () => {
+    setShowIncomingAnimation(true);
+    // Complete loading screen transition, then start incoming animation
+    setTimeout(() => {
+      setIsLoading(false);
+      // Allow time for incoming animation to complete
+      setTimeout(() => setAnimationComplete(true), 1500);
+    }, 800);
+  };
+
+  return (
+    <>
+      {/* Loading screen overlay - fixed position to prevent layout shift */}
+      {isLoading && (
+        <div className="fixed inset-0 z-50 overflow-hidden">
+          <NotebookLoadingScreen onTransitionComplete={handleTransitionStart} />
+        </div>
+      )}
+
+      {/* Main app - always rendered so LiveStore works */}
+      <LiveStoreApp
+        showIncomingAnimation={showIncomingAnimation && !animationComplete}
+        onAnimationComplete={() => setAnimationComplete(true)}
+      />
+    </>
+  );
+};
+
 // LiveStore setup - moved inside AuthGuard to ensure auth happens first
-const LiveStoreApp: React.FC = () => {
+const LiveStoreApp: React.FC<{
+  showIncomingAnimation?: boolean;
+  onAnimationComplete?: () => void;
+}> = ({ showIncomingAnimation = false, onAnimationComplete }) => {
   const storeId = getStoreId();
 
   // Check for reset parameter to handle schema evolution issues
@@ -102,23 +150,19 @@ const LiveStoreApp: React.FC = () => {
     <LiveStoreProvider
       schema={schema}
       adapter={adapter}
-      renderLoading={(_) => (
-        <div className="bg-background flex min-h-screen items-center justify-center">
-          <div className="text-center">
-            <div className="text-foreground mb-2 text-lg font-semibold">
-              Loading Anode
-            </div>
-            <div className="text-muted-foreground text-sm">
-              Stage: {_.stage}
-            </div>
-          </div>
-        </div>
-      )}
+      renderLoading={(_status) => {
+        // Let our overlay handle loading
+        // console.debug(`LiveStore Loading status: ${JSON.stringify(_status)}`);
+        return <></>;
+      }}
       batchUpdates={batchUpdates}
       storeId={storeId}
       syncPayload={{ authToken: accessToken, clientId }}
     >
-      <NotebookApp />
+      <NotebookApp
+        showIncomingAnimation={showIncomingAnimation}
+        onAnimationComplete={onAnimationComplete}
+      />
     </LiveStoreProvider>
   );
 };
@@ -172,7 +216,7 @@ export const App: React.FC = () => {
           path="/*"
           element={
             <AuthGuard>
-              <LiveStoreApp />
+              <AnimatedLiveStoreApp />
             </AuthGuard>
           }
         />

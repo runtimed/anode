@@ -66,6 +66,7 @@
     "@radix-ui/react-separator": "^1.1.7",
     "@radix-ui/react-slot": "^1.2.3",
     "@radix-ui/react-tooltip": "^1.1.6",
+    "@react-spring/web": "^10.0.1",
     "@runt/schema": "github:runtimed/runt#7c72d9d9138f69f0bec1460ad6d0eead6ab707ce&path:/packages/schema",
     "@tanstack/react-virtual": "^3.13.12",
     "@types/react-syntax-highlighter": "^15.5.13",
