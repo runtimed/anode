@@ -196,6 +196,48 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
     [cells, store, userId, models, lastUsedAiModel, lastUsedAiProvider]
   );
 
+  const createAndRunAiCell = useCallback(
+    (prompt: string) => {
+      const cellId = crypto.randomUUID();
+      const queueId = crypto.randomUUID();
+
+      // Calculate position at end
+      const newPosition =
+        Math.max(...cells.map((c: CellData) => c.position), -1) + 1;
+
+      // Create the cell
+      store.commit(
+        events.cellCreated({
+          id: cellId,
+          position: newPosition,
+          cellType: "ai",
+          createdBy: userId,
+          actorId: userId,
+        })
+      );
+
+      // Set the source
+      store.commit(
+        events.cellSourceChanged({
+          id: cellId,
+          source: prompt.trim(),
+          modifiedBy: userId,
+        })
+      );
+
+      // Auto-execute the AI cell
+      store.commit(
+        events.executionRequested({
+          queueId,
+          cellId,
+          executionCount: 1,
+          requestedBy: userId,
+        })
+      );
+    },
+    [cells, store, userId]
+  );
+
   const deleteCell = useCallback(
     (cellId: string) => {
       store.commit(
@@ -532,7 +574,10 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
 
             {/* Cells */}
             {cells.length === 0 ? (
-              <EmptyStateCellAdder onAddCell={addCell} />
+              <EmptyStateCellAdder
+                onAddCell={addCell}
+                onCreateExampleAiCell={createAndRunAiCell}
+              />
             ) : (
               <>
                 <ErrorBoundary fallback={<div>Error rendering cell list</div>}>
@@ -580,7 +625,7 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
         )}
 
         {/* Mobile Omnibar - sticky at bottom on mobile */}
-        <MobileOmnibar />
+        <MobileOmnibar onSubmit={createAndRunAiCell} />
       </div>
     </div>
   );

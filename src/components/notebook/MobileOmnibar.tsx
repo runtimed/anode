@@ -1,28 +1,19 @@
-import React, { useState } from "react";
-import { useStore, useQuery } from "@livestore/react";
-import { events, CellData, tables } from "@runt/schema";
-import { queryDb } from "@livestore/livestore";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Send } from "lucide-react";
-import { useAuth } from "@/components/auth/AuthProvider.js";
+import React, { useState } from "react";
 
 interface MobileOmnibarProps {
+  onSubmit: (prompt: string) => void;
   onCellAdded?: () => void;
 }
 
 export const MobileOmnibar: React.FC<MobileOmnibarProps> = ({
+  onSubmit,
   onCellAdded,
 }) => {
-  const { store } = useStore();
-  const {
-    user: { sub: userId },
-  } = useAuth();
   const [input, setInput] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
-
-  // Get current cells to calculate position
-  const cells = useQuery(queryDb(tables.cells.select())) as CellData[];
 
   const handleSubmit = async () => {
     if (!input.trim() || isSubmitting) return;
@@ -30,47 +21,12 @@ export const MobileOmnibar: React.FC<MobileOmnibarProps> = ({
     setIsSubmitting(true);
 
     try {
-      // Create AI cell at the bottom of the notebook
-      const cellId = crypto.randomUUID();
-      const queueId = crypto.randomUUID();
-
-      // Calculate position at end
-      const newPosition =
-        Math.max(...cells.map((c: CellData) => c.position), -1) + 1;
-
-      // Create the cell
-      store.commit(
-        events.cellCreated({
-          id: cellId,
-          position: newPosition,
-          cellType: "ai",
-          createdBy: userId,
-          actorId: userId,
-        })
-      );
-
-      // Set the source
-      store.commit(
-        events.cellSourceChanged({
-          id: cellId,
-          source: input.trim(),
-          modifiedBy: userId,
-        })
-      );
-
-      // Clear input and notify parent
+      // Clear input
       setInput("");
+      // Create AI cell
+      onSubmit(input);
+      // Notify parent
       onCellAdded?.();
-
-      // Auto-execute the AI cell
-      store.commit(
-        events.executionRequested({
-          queueId,
-          cellId,
-          executionCount: 1,
-          requestedBy: userId,
-        })
-      );
     } catch (error) {
       console.error("Failed to create AI cell:", error);
     } finally {
