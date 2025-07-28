@@ -164,7 +164,7 @@ export const NotebookLoadingScreen: React.FC<NotebookLoadingScreenProps> = ({
           />
           <animated.img
             src="/bracket.png"
-            alt="Anode"
+            alt="Runt"
             className="pixel-logo absolute inset-0 h-full w-full"
             style={bracketSpring}
           />

@@ -1,8 +1,8 @@
 {
-  "name": "anode",
+  "name": "runt-ui",
   "version": "0.2.0",
   "type": "module",
-  "description": "Anode - real-time collaborative notebook system with rich outputs",
+  "description": "The Agent REPL - iterate and collaborate with people and runtime agents",
   "engines": {
     "node": ">=23.0.0",
     "pnpm": ">=10.9.0"
@@ -156,7 +156,7 @@
     ]
   },
   "keywords": [
-    "anode",
+    "runt",
     "collaborative",
     "notebook",
     "real-time",
@@ -170,6 +170,6 @@
     "pandas",
     "svg"
   ],
-  "author": "Anode Team",
+  "author": "Runt Team",
   "license": "MIT"
 }

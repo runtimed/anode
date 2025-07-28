@@ -95,9 +95,7 @@ const LoginPrompt: React.FC<LoginPromptProps> = ({ error, setError }) => {
             className="pixel-logo absolute inset-0 h-full w-full"
           />
         </div>
-        <div className="app-name text-primary text-2xl font-medium">
-          Anode Notebooks
-        </div>
+        <div className="app-name text-primary text-2xl font-medium">Runt</div>
       </div>
       <div className="mt-8 flex w-full justify-center">
         <button
@@ -117,7 +115,7 @@ const LoginPrompt: React.FC<LoginPromptProps> = ({ error, setError }) => {
       )}
       <div className="text-muted-foreground mt-8 w-full text-center text-xs">
         <p>
-          Anode is a real-time collaborative notebook system.
+          Iterate and collaborate with people and runtime agents.
           <br />
           Sign in with Anaconda to sync your work across devices.
         </p>

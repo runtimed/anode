@@ -82,7 +82,7 @@ const DebugPanel: React.FC = () => {
       <div className="bg-card border-b p-4">
         <h3 className="flex items-center gap-2 text-sm font-semibold">
           <Bug className="h-4 w-4" />
-          Anode Debug Panel
+          Runt Debug Panel
         </h3>
       </div>
 
@@ -270,7 +270,7 @@ const DebugPanel: React.FC = () => {
                   (globalThis as any).schema = schema;
                   (globalThis as any).events = events;
 
-                  console.log("✅ Anode Debug Globals Set:");
+                  console.log("✅ Runt Debug Globals Set:");
                   console.log("📦 store  - LiveStore debug instance");
                   console.log("📋 tables - Database table definitions");
                   console.log("🔧 schema - LiveStore schema");

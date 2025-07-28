@@ -358,7 +358,7 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
               />
               <img
                 src="/bracket.png"
-                alt="Anode"
+                alt="Runt"
                 className="pixel-logo absolute inset-0 h-full w-full"
               />
             </div>
