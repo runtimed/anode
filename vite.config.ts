@@ -5,7 +5,7 @@ import { livestoreDevtoolsPlugin } from "@livestore/devtools-vite";
 import react from "@vitejs/plugin-react";
 import tailwindcss from "@tailwindcss/vite";
 import { defineConfig, loadEnv } from "vite";
-import { cloudflare } from "@cloudflare/vite-plugin";
+// import { cloudflare } from "@cloudflare/vite-plugin";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -57,10 +57,6 @@ export default defineConfig(({ mode }) => {
       port: env.ANODE_DEV_SERVER_PORT
         ? parseInt(env.ANODE_DEV_SERVER_PORT)
         : 5173,
-      watch: {
-        ignored: ["!**/node_modules/@runt/schema/mod.ts", "**/.env*"],
-        followSymlinks: true,
-      },
       strictPort: true,
     },
     worker: { format: "es" },

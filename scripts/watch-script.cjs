@@ -17,8 +17,8 @@ async function runUpdateCommands() {
 
   try {
     // Install schema package
-    console.log("📦 Using runt local...");
-    await execCommand("pnpm use-runt local");
+    // console.log("📦 Using runt local...");
+    // await execCommand("pnpm use-runt local");
 
     // Remove vite cache
     console.log("🗑️  Removing vite cache...");
@@ -71,7 +71,7 @@ function execCommand(command) {
 // Watch the file for changes
 let lastModified = 0;
 
-fs.watchFile(ABSOLUTE_WATCH_PATH, { interval: 1000 }, (curr, prev) => {
+fs.watchFile(ABSOLUTE_WATCH_PATH, { interval: 1000 }, (curr) => {
   // Only trigger if the file was actually modified (not just accessed)
   if (curr.mtime > lastModified) {
     lastModified = curr.mtime;

@@ -4,7 +4,6 @@
       "name": "web",
       "script": "pnpm",
       "args": "run dev",
-      "watch": false,
       "env": {
         "NODE_ENV": "development"
       }
@@ -13,22 +12,14 @@
       "name": "sync",
       "script": "pnpm",
       "args": "run dev:sync",
-      "watch": false,
       "env": {
         "NODE_ENV": "development"
       }
     },
     {
-      "name": "nb",
-      "autorestart": false,
-      "script": "./scripts/start-nb.sh",
-      "watch": false
-    },
-    {
       "name": "watcher",
       "script": "node",
       "args": "scripts/watch-script.cjs",
-      "watch": false,
       "env": {
         "NODE_ENV": "development"
       }
