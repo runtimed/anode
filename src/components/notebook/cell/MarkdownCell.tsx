@@ -9,9 +9,9 @@ import React, {
   useMemo,
   useRef,
   useState,
+  Suspense,
 } from "react";
 
-import { MarkdownRenderer } from "@/components/outputs/MarkdownRenderer.js";
 import { Button } from "@/components/ui/button.js";
 import { useAuth } from "@/components/auth/AuthProvider.js";
 import { useUserRegistry } from "@/hooks/useUserRegistry.js";
@@ -37,6 +37,12 @@ interface MarkdownCellProps {
   onFocus?: () => void;
   contextSelectionMode?: boolean;
 }
+
+const MarkdownRenderer = React.lazy(() =>
+  import("@/components/outputs/MarkdownRenderer.js").then((m) => ({
+    default: m.MarkdownRenderer,
+  }))
+);
 
 export const MarkdownCell: React.FC<MarkdownCellProps> = ({
   cell,
@@ -268,7 +274,11 @@ export const MarkdownCell: React.FC<MarkdownCellProps> = ({
             className="cell-content bg-white py-1 pr-4 pl-4 transition-colors"
             onDoubleClick={() => setIsEditing(true)}
           >
-            <MarkdownRenderer content={localSource} />
+            <Suspense
+              fallback={<div className="animate-pulse">Loading...</div>}
+            >
+              <MarkdownRenderer content={localSource} />
+            </Suspense>
           </div>
         )}
       </div>
