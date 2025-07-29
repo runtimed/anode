@@ -1,13 +1,48 @@
 import React from "react";
 import { Button } from "../ui/button";
 import { Card } from "../ui/card";
-import { AlertCircle } from "lucide-react";
+import {
+  Shield,
+  ShieldAlert,
+  ShieldCheck,
+  FilePlus,
+  Edit,
+  Play,
+  Info,
+  CheckCircle2,
+  XCircle,
+} from "lucide-react";
+import { cn } from "@/lib/utils";
 
 interface AiToolApprovalOutputProps {
   toolCallId: string;
   toolName: string;
   onApprove: (status: "approved_once" | "approved_always" | "denied") => void;
 }
+
+interface ToolConfig {
+  icon: React.ElementType;
+  description: string;
+}
+
+const TOOL_CONFIGS: Record<string, ToolConfig> = {
+  create_cell: {
+    icon: FilePlus,
+    description: "Create a new cell in the notebook",
+  },
+  modify_cell: {
+    icon: Edit,
+    description: "Modify the content of an existing cell",
+  },
+  execute_cell: {
+    icon: Play,
+    description: "Execute a code cell",
+  },
+  delete_cell: {
+    icon: XCircle,
+    description: "Delete a cell from the notebook",
+  },
+};
 
 const formatToolName = (toolName: string): string => {
   // Handle MCP tools (mcp__server__toolname format)
@@ -30,23 +65,20 @@ const formatToolName = (toolName: string): string => {
     .join(" ");
 };
 
-const getToolDescription = (toolName: string): string => {
-  // Handle MCP tools
+const getToolConfig = (toolName: string): ToolConfig => {
   if (toolName.startsWith("mcp__")) {
-    return `Use an external tool via MCP server`;
+    return {
+      icon: Shield,
+      description: "Use an external tool via MCP server",
+    };
   }
 
-  // Handle built-in tools
-  switch (toolName) {
-    case "create_cell":
-      return "Create a new cell in the notebook";
-    case "modify_cell":
-      return "Modify the content of an existing cell";
-    case "execute_cell":
-      return "Execute a code cell";
-    default:
-      return `Use the ${formatToolName(toolName)} tool`;
-  }
+  return (
+    TOOL_CONFIGS[toolName] || {
+      icon: Shield,
+      description: `Use the ${formatToolName(toolName)} tool`,
+    }
+  );
 };
 
 export const AiToolApprovalOutput: React.FC<AiToolApprovalOutputProps> = ({
@@ -54,55 +86,61 @@ export const AiToolApprovalOutput: React.FC<AiToolApprovalOutputProps> = ({
   toolName,
   onApprove,
 }) => {
+  const toolConfig = getToolConfig(toolName);
+  const ToolIcon = toolConfig.icon;
+
   return (
     <div className="py-2">
-      <Card className="border-amber-200 bg-amber-50/50 p-4 shadow-sm">
-        <div className="space-y-3">
+      <Card className="border-0 bg-white shadow-md">
+        {/* Header */}
+        <div className="border-b px-4 py-3">
           <div className="flex items-start gap-3">
-            <AlertCircle className="mt-0.5 h-5 w-5 flex-shrink-0 text-amber-600" />
-            <div className="min-w-0 flex-1">
-              <h4 className="text-sm font-medium text-amber-800">
-                Tool Approval Required
+            <div className="rounded-lg border border-gray-200 bg-gray-50 p-2">
+              <ToolIcon className="h-4 w-4 text-gray-600" />
+            </div>
+            <div className="flex-1">
+              <h4 className="flex items-center gap-2 text-sm font-semibold text-gray-900">
+                {formatToolName(toolName)}
               </h4>
-              <p className="mt-1 text-sm text-amber-700">
-                AI wants to use: <strong>{formatToolName(toolName)}</strong>
-              </p>
-              <p className="mt-1 text-xs text-amber-600">
-                {getToolDescription(toolName)}
+              <p className="mt-0.5 text-xs text-gray-600">
+                {toolConfig.description}
               </p>
             </div>
           </div>
+        </div>
 
-          <div className="flex flex-col gap-2 sm:flex-row sm:gap-3">
+        {/* Actions */}
+        <div className="px-4 py-3">
+          <div className="flex gap-2">
             <Button
-              autoFocus
+              onClick={() => onApprove("denied")}
+              size="sm"
+              variant="outline"
+              className="flex-1 border-red-200 text-red-700 hover:border-red-300 hover:bg-red-50"
+            >
+              <XCircle className="mr-1.5 h-3.5 w-3.5" />
+              Deny
+            </Button>
+
+            <Button
               onClick={() => onApprove("approved_once")}
               size="sm"
-              className="flex-1 bg-blue-600 text-white hover:bg-blue-700"
+              className="flex-1 bg-green-600 text-white hover:bg-green-700"
+              autoFocus
             >
+              <CheckCircle2 className="mr-1.5 h-3.5 w-3.5" />
               Approve Once
             </Button>
 
             <Button
               onClick={() => onApprove("approved_always")}
               size="sm"
-              className="flex-1 bg-green-600 text-white hover:bg-green-700"
+              variant="outline"
+              className="flex-1 border-blue-200 text-blue-700 hover:border-blue-300 hover:bg-blue-50"
             >
+              <ShieldCheck className="mr-1.5 h-3.5 w-3.5" />
               Always Allow
             </Button>
-
-            <Button
-              onClick={() => onApprove("denied")}
-              size="sm"
-              variant="outline"
-              className="flex-1 border-red-300 text-red-700 hover:bg-red-50"
-            >
-              Deny
-            </Button>
-          </div>
-
-          <div className="text-center text-xs text-amber-600">
-            Tool Call ID: {toolCallId.slice(0, 8)}...
           </div>
         </div>
       </Card>
