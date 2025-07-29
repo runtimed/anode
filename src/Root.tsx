@@ -84,7 +84,6 @@ const AnimatedLiveStoreApp: React.FC = () => {
   const [showIncomingAnimation, setShowIncomingAnimation] = useState(false);
   const [animationComplete, setAnimationComplete] = useState(false);
   const [liveStoreReady, setLiveStoreReady] = useState(false);
-  const [minimumTimeElapsed, setMinimumTimeElapsed] = useState(false);
   const [portalAnimationComplete, setPortalAnimationComplete] = useState(false);
   const [portalReady, setPortalReady] = useState(false);
 
@@ -95,44 +94,33 @@ const AnimatedLiveStoreApp: React.FC = () => {
     }
   }, [liveStoreReady]);
 
-  // Ensure minimum loading time (so users see the progressive loading)
+  // Trigger animation when LiveStore is ready
   useEffect(() => {
-    const minimumLoadingTimer = setTimeout(() => {
-      setMinimumTimeElapsed(true);
-    }, 2500); // Minimum 2.5 seconds to appreciate the loading
-
-    return () => clearTimeout(minimumLoadingTimer);
-  }, []);
-
-  // Trigger animation when both LiveStore is ready AND minimum time elapsed
-  useEffect(() => {
-    if (liveStoreReady && minimumTimeElapsed && isLoading) {
+    if (liveStoreReady && isLoading) {
       updateLoadingStage("ready");
 
-      // Small delay to let user see the final stage, then remove static screen
+      // Remove static screen and start React animation immediately
+      removeStaticLoadingScreen();
+      setShowIncomingAnimation(true);
+
+      // Give React component a moment to mount, then trigger animation
       setTimeout(() => {
-        removeStaticLoadingScreen();
-        setShowIncomingAnimation(true);
+        setPortalReady(true);
+      }, 50); // Minimal delay for React mounting
 
-        // Give React component a moment to mount, then trigger animation
-        setTimeout(() => {
-          setPortalReady(true);
-        }, 100);
-      }, 300);
-
-      // Wait for portal animation to complete (expansion + shrink to dot)
+      // Wait for actual portal animation duration (from NotebookLoadingScreen)
       setTimeout(() => {
         setPortalAnimationComplete(true);
-      }, 2500); // Time for full portal sequence + removal delay
+      }, 1500); // Actual portal animation time: 1200ms + 300ms buffer
     }
-  }, [liveStoreReady, minimumTimeElapsed, isLoading]);
+  }, [liveStoreReady, isLoading]);
 
   // Complete transition only after portal animation finishes
   useEffect(() => {
     if (portalAnimationComplete && showIncomingAnimation) {
       setIsLoading(false);
       // Allow time for header animation to complete
-      setTimeout(() => setAnimationComplete(true), 1500);
+      setTimeout(() => setAnimationComplete(true), 500); // Reduced from 1500ms
     }
   }, [portalAnimationComplete, showIncomingAnimation]);
 
