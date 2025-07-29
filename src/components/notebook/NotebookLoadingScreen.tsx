@@ -52,13 +52,8 @@ export const NotebookLoadingScreen: React.FC<NotebookLoadingScreenProps> = ({
     delay: startAnimation ? 300 : 0,
   });
 
-  // Prevent scrollbar during animation
-  useEffect(() => {
-    document.body.style.overflow = "hidden";
-    return () => {
-      document.body.style.overflow = "";
-    };
-  }, []);
+  // Note: Removed body overflow:hidden to prevent scroll issues
+  // The fixed positioning of the loading screen already prevents scrolling
 
   // Progressive loading during app initialization
   useEffect(() => {
