@@ -3,7 +3,7 @@ import { queryDb } from "@livestore/livestore";
 import { tables } from "@runt/schema";
 import { useMemo } from "react";
 
-export interface AiModel {
+export type AiModel = {
   name: string;
   displayName: string;
   provider: string;
@@ -14,12 +14,12 @@ export interface AiModel {
     contextLength?: number;
     [key: string]: unknown;
   };
-}
+};
 
-export interface AiProviderGroup {
+export type AiProviderGroup = {
   provider: string;
   models: AiModel[];
-}
+};
 
 /**
  * Hook to get available AI models from runtime capabilities

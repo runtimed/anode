@@ -131,7 +131,7 @@ This unified architecture simplifies deployment while providing robust real-time
 
 - Multiple people editing simultaneously
 - Mobile-responsive design for editing on any device
-- Google OAuth for secure access (when deployed)
+- OIDC OAuth for secure access (when deployed)
 - Share notebooks by copying the URL
 
 ## Coming Soon

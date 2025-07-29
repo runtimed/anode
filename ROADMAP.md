@@ -11,7 +11,7 @@ Python ↔ User interactions through local-first architecture.
 - **Cell management** - Create, edit, move, delete with proper state sync
 - **"Python" execution** - Rich outputs: matplotlib SVG, pandas HTML,
   IPython.display
-- **Pseudo-Production deployment** - Cloudflare Pages + Workers with Google
+- **Pseudo-Production deployment** - Cloudflare Pages + Workers with OIDC
   OAuth authentication
 
 ### What Users Can Do Today
@@ -208,7 +208,7 @@ attach runtimes with their own API tokens
 
 ### Production Readiness
 
-- [x] **Authentication system** - Google OAuth working in production
+- [x] **Authentication system** - OIDC OAuth working in production
 - [x] **Production deployment** - Cloudflare Pages + Workers deployment working
 - [ ] **Multi-tenant deployment** - Isolated environments per organization
 - [ ] **Performance optimization** - Handle large notebooks and datasets

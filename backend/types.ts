@@ -2,7 +2,7 @@
  * The Env interface includes all bindings from the original sync worker,
  * plus the `ASSETS` binding for serving static assets.
  */
-export interface Env {
+export type Env = {
   DEPLOYMENT_ENV: string;
 
   // Bindings from the original sync worker configuration
@@ -11,8 +11,7 @@ export interface Env {
 
   // Secrets
   AUTH_TOKEN: string;
-  GOOGLE_CLIENT_ID?: string;
-  GOOGLE_CLIENT_SECRET?: string;
+  AUTH_ISSUER: string;
 
   // New binding for the preview worker to serve the frontend application
   ASSETS: Fetcher;
@@ -24,4 +23,4 @@ export interface Env {
 
   // Hidden bits from LiveStore (?!)
   ADMIN_SECRET: string;
-}
+};

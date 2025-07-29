@@ -39,11 +39,14 @@ export default defineConfig(({ mode }) => {
 
   // Include Cloudflare plugin in development and auth modes
   if (mode === "development" || mode === "auth") {
-    plugins.push(
-      cloudflare({
-        configPath: "./wrangler.toml",
-      })
-    );
+    // TODO: This isn't working with SPA
+    // Even with the symlink, this 307 redirects /oidc?code to /oidc/code
+    // which breaks the auth flow.
+    // plugins.push(
+    //   cloudflare({
+    //     configPath: "./wrangler.toml",
+    //   })
+    // );
   }
 
   return {
@@ -58,6 +61,7 @@ export default defineConfig(({ mode }) => {
         ignored: ["!**/node_modules/@runt/schema/mod.ts", "**/.env*"],
         followSymlinks: true,
       },
+      strictPort: true,
     },
     worker: { format: "es" },
     resolve: {

@@ -2,15 +2,15 @@ import { useState, useEffect } from "react";
 import { useStore, useQuery } from "@livestore/react";
 import { queryDb } from "@livestore/livestore";
 import { events, tables } from "@runt/schema";
-import { useCurrentUser } from "./useCurrentUser";
+import { useAuth } from "@/components/auth/AuthProvider.js";
 
-export interface ToolApprovalRequest {
+export type ToolApprovalRequest = {
   toolCallId: string;
   cellId: string;
   toolName: string;
   arguments: Record<string, unknown>;
   requestedAt: Date;
-}
+};
 
 interface UseToolApprovalsOptions {
   cellId?: string; // Optional filter for specific cell
@@ -18,7 +18,8 @@ interface UseToolApprovalsOptions {
 
 export const useToolApprovals = (options: UseToolApprovalsOptions = {}) => {
   const { store } = useStore();
-  const currentUser = useCurrentUser();
+  const { user } = useAuth();
+  const currentUser = user;
   const [pendingApprovals, setPendingApprovals] = useState<
     ToolApprovalRequest[]
   >([]);
@@ -60,7 +61,7 @@ export const useToolApprovals = (options: UseToolApprovalsOptions = {}) => {
       events.toolApprovalResponded({
         toolCallId,
         status,
-        approvedBy: currentUser.id,
+        approvedBy: currentUser.sub,
         respondedAt: new Date(),
       })
     );

@@ -1,10 +1,10 @@
 import React from "react";
 import { Button } from "@/components/ui/button";
 import { Square, Play } from "lucide-react";
-import { tables } from "@runt/schema";
 
 interface PlayButtonProps {
-  cell: typeof tables.cells.Type;
+  executionState: "idle" | "queued" | "running" | "completed" | "error";
+  cellType: string;
   autoFocus?: boolean;
   onExecute: () => void;
   onInterrupt: () => void;
@@ -14,7 +14,8 @@ interface PlayButtonProps {
 }
 
 export const PlayButton: React.FC<PlayButtonProps> = ({
-  cell,
+  executionState,
+  cellType,
   autoFocus = false,
   onExecute,
   onInterrupt,
@@ -22,21 +23,20 @@ export const PlayButton: React.FC<PlayButtonProps> = ({
   size = "sm",
   primaryColor = "text-foreground",
 }) => {
-  const isRunning =
-    cell.executionState === "running" || cell.executionState === "queued";
+  const isRunning = executionState === "running" || executionState === "queued";
 
   const getExecuteTitle = () => {
-    if (cell.executionState === "running" || cell.executionState === "queued") {
+    if (executionState === "running" || executionState === "queued") {
       return "Stop execution";
     }
-    return `Execute ${cell.cellType} cell`;
+    return `Execute ${cellType} cell`;
   };
 
   const getPlayButtonContent = () => {
-    if (cell.executionState === "running") {
+    if (executionState === "running") {
       return <Square className="h-3 w-3" />;
     }
-    if (cell.executionState === "queued") {
+    if (executionState === "queued") {
       return <Square className="h-3 w-3" />;
     }
     return <Play className="h-4 w-4" />;
