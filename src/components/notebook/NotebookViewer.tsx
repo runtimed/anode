@@ -346,15 +346,7 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
               <img
                 src="/bunny-sit.png"
                 alt=""
-                className={`pixel-logo absolute inset-0 h-full w-full ${
-                  !animationComplete
-                    ? `transition-all duration-1000 ease-out ${
-                        showIncomingAnimation
-                          ? "translate-x-0 opacity-100"
-                          : "-translate-x-[200vw] opacity-0"
-                      }`
-                    : ""
-                }`}
+                className="pixel-logo absolute inset-0 h-full w-full"
               />
               <img
                 src="/bracket.png"
