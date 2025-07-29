@@ -92,7 +92,7 @@ export const NotebookLoadingScreen: React.FC<NotebookLoadingScreenProps> = ({
         onTransitionComplete?.();
       }, 1500);
     }
-  }, [ready, startAnimation, onTransitionComplete]);
+  }, [ready, startAnimation, onTransitionComplete, onPortalAnimationComplete]);
   if (transitioning) {
     return null; // Let header take over
   }
