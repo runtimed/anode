@@ -14,6 +14,7 @@ import {
   removeStaticLoadingScreen,
 } from "../../util/domUpdates";
 import { Home, AlertCircle } from "lucide-react";
+import { RuntLogo } from "../logo";
 
 const AuthRedirect: React.FC = () => {
   const openIdService = getOpenIdService();
@@ -61,55 +62,7 @@ const AuthRedirect: React.FC = () => {
         <div className="w-full max-w-md text-center">
           {/* Logo section matching login page */}
           <div className="mb-8 flex items-center justify-center">
-            <div className="relative h-24 w-24">
-              <svg
-                width="100%"
-                height="100%"
-                viewBox="0 0 200 200"
-                className="absolute inset-0"
-              >
-                <defs>
-                  <filter id="pixelate">
-                    <feMorphology
-                      operator="erode"
-                      radius="2"
-                      in="SourceGraphic"
-                      result="morphed"
-                    />
-                    <feComponentTransfer in="morphed">
-                      <feFuncA type="discrete" tableValues="0 1" />
-                    </feComponentTransfer>
-                  </filter>
-                </defs>
-                <circle
-                  cx="100"
-                  cy="100"
-                  r="95"
-                  fill="#000000"
-                  filter="url(#pixelate)"
-                />
-              </svg>
-              <img
-                src="/shadow.png"
-                alt=""
-                className="pixel-logo absolute inset-0 h-full w-full"
-              />
-              <img
-                src="/bunny.png"
-                alt=""
-                className="pixel-logo absolute inset-0 h-full w-full"
-              />
-              <img
-                src="/runes.png"
-                alt=""
-                className="pixel-logo rune-throb absolute inset-0 h-full w-full"
-              />
-              <img
-                src="/bracket.png"
-                alt="Runt"
-                className="pixel-logo absolute inset-0 h-full w-full"
-              />
-            </div>
+            <RuntLogo size="h-24 w-24" filterId="pixelate-direct-access" />
           </div>
 
           <Card className="border-muted bg-card">
@@ -156,55 +109,7 @@ const AuthRedirect: React.FC = () => {
           <div className="w-full max-w-md text-center">
             {/* Logo section */}
             <div className="mb-8 flex items-center justify-center">
-              <div className="relative h-24 w-24">
-                <svg
-                  width="100%"
-                  height="100%"
-                  viewBox="0 0 200 200"
-                  className="absolute inset-0"
-                >
-                  <defs>
-                    <filter id="pixelate">
-                      <feMorphology
-                        operator="erode"
-                        radius="2"
-                        in="SourceGraphic"
-                        result="morphed"
-                      />
-                      <feComponentTransfer in="morphed">
-                        <feFuncA type="discrete" tableValues="0 1" />
-                      </feComponentTransfer>
-                    </filter>
-                  </defs>
-                  <circle
-                    cx="100"
-                    cy="100"
-                    r="95"
-                    fill="#000000"
-                    filter="url(#pixelate)"
-                  />
-                </svg>
-                <img
-                  src="/shadow.png"
-                  alt=""
-                  className="pixel-logo absolute inset-0 h-full w-full"
-                />
-                <img
-                  src="/bunny.png"
-                  alt=""
-                  className="pixel-logo absolute inset-0 h-full w-full"
-                />
-                <img
-                  src="/runes.png"
-                  alt=""
-                  className="pixel-logo rune-throb absolute inset-0 h-full w-full"
-                />
-                <img
-                  src="/bracket.png"
-                  alt="Runt"
-                  className="pixel-logo absolute inset-0 h-full w-full"
-                />
-              </div>
+              <RuntLogo size="h-24 w-24" filterId="pixelate-auth-error" />
             </div>
 
             <Card className="border-amber-200 bg-amber-50">
@@ -246,55 +151,7 @@ const AuthRedirect: React.FC = () => {
         <div className="w-full max-w-md text-center">
           {/* Logo section */}
           <div className="mb-8 flex items-center justify-center">
-            <div className="relative h-24 w-24">
-              <svg
-                width="100%"
-                height="100%"
-                viewBox="0 0 200 200"
-                className="absolute inset-0"
-              >
-                <defs>
-                  <filter id="pixelate">
-                    <feMorphology
-                      operator="erode"
-                      radius="2"
-                      in="SourceGraphic"
-                      result="morphed"
-                    />
-                    <feComponentTransfer in="morphed">
-                      <feFuncA type="discrete" tableValues="0 1" />
-                    </feComponentTransfer>
-                  </filter>
-                </defs>
-                <circle
-                  cx="100"
-                  cy="100"
-                  r="95"
-                  fill="#000000"
-                  filter="url(#pixelate)"
-                />
-              </svg>
-              <img
-                src="/shadow.png"
-                alt=""
-                className="pixel-logo absolute inset-0 h-full w-full"
-              />
-              <img
-                src="/bunny.png"
-                alt=""
-                className="pixel-logo absolute inset-0 h-full w-full"
-              />
-              <img
-                src="/runes.png"
-                alt=""
-                className="pixel-logo rune-throb absolute inset-0 h-full w-full"
-              />
-              <img
-                src="/bracket.png"
-                alt="Runt"
-                className="pixel-logo absolute inset-0 h-full w-full"
-              />
-            </div>
+            <RuntLogo size="h-24 w-24" filterId="pixelate-config-error" />
           </div>
 
           <Card className="border-red-200 bg-red-50">
@@ -345,55 +202,11 @@ const AuthRedirect: React.FC = () => {
       <div className="space-y-6 text-center">
         {/* Animated logo */}
         <div className="flex items-center justify-center">
-          <div className="relative h-20 w-20 animate-pulse">
-            <svg
-              width="100%"
-              height="100%"
-              viewBox="0 0 200 200"
-              className="absolute inset-0"
-            >
-              <defs>
-                <filter id="pixelate">
-                  <feMorphology
-                    operator="erode"
-                    radius="2"
-                    in="SourceGraphic"
-                    result="morphed"
-                  />
-                  <feComponentTransfer in="morphed">
-                    <feFuncA type="discrete" tableValues="0 1" />
-                  </feComponentTransfer>
-                </filter>
-              </defs>
-              <circle
-                cx="100"
-                cy="100"
-                r="95"
-                fill="#000000"
-                filter="url(#pixelate)"
-              />
-            </svg>
-            <img
-              src="/shadow.png"
-              alt=""
-              className="pixel-logo absolute inset-0 h-full w-full"
-            />
-            <img
-              src="/bunny.png"
-              alt=""
-              className="pixel-logo absolute inset-0 h-full w-full"
-            />
-            <img
-              src="/runes.png"
-              alt=""
-              className="pixel-logo rune-throb absolute inset-0 h-full w-full"
-            />
-            <img
-              src="/bracket.png"
-              alt="Runt"
-              className="pixel-logo absolute inset-0 h-full w-full"
-            />
-          </div>
+          <RuntLogo
+            size="h-20 w-20"
+            animation="animate-pulse"
+            filterId="pixelate-loading"
+          />
         </div>
         <div>
           <div className="text-foreground mb-2 text-lg font-semibold">

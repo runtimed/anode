@@ -121,7 +121,7 @@ export const NotebookLoadingScreen: React.FC<NotebookLoadingScreenProps> = ({
               }}
             >
               <defs>
-                <filter id="pixelate">
+                <filter id="pixelate-loading-screen">
                   <feMorphology
                     operator="erode"
                     radius="2"
@@ -138,7 +138,7 @@ export const NotebookLoadingScreen: React.FC<NotebookLoadingScreenProps> = ({
                 cy="100"
                 r="95"
                 fill="#000000"
-                filter="url(#pixelate)"
+                filter="url(#pixelate-loading-screen)"
               />
             </animated.svg>
           </div>

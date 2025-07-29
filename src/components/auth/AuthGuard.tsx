@@ -5,6 +5,7 @@ import {
   updateLoadingStage,
   removeStaticLoadingScreen,
 } from "../../util/domUpdates.js";
+import { RuntLogo } from "../logo";
 
 // DEV MODE: Force login screen for design testing
 // Set to true to preview login screen locally
@@ -98,61 +99,13 @@ export const AuthGuard: React.FC<AuthGuardProps> = ({ children, fallback }) => {
             {/* Hero logo section */}
             <div className="mb-16">
               <div className="mb-10 flex items-center justify-center">
-                <div className="relative h-28 w-28 transition-transform hover:scale-105">
-                  <svg
-                    width="100%"
-                    height="100%"
-                    viewBox="0 0 200 200"
-                    className="absolute inset-0"
-                  >
-                    <defs>
-                      <filter id="pixelate">
-                        <feMorphology
-                          operator="erode"
-                          radius="2"
-                          in="SourceGraphic"
-                          result="morphed"
-                        />
-                        <feComponentTransfer in="morphed">
-                          <feFuncA type="discrete" tableValues="0 1" />
-                        </feComponentTransfer>
-                      </filter>
-                    </defs>
-                    <circle
-                      cx="100"
-                      cy="100"
-                      r="95"
-                      fill="#000000"
-                      filter="url(#pixelate)"
-                    />
-                  </svg>
-                  <img
-                    src="/shadow.png"
-                    alt=""
-                    className={`pixel-logo absolute inset-0 h-full w-full transition-transform duration-200 ${
-                      isButtonHovered ? "translate-x-1" : ""
-                    }`}
-                  />
-                  <img
-                    src="/bunny.png"
-                    alt=""
-                    className={`pixel-logo absolute inset-0 h-full w-full transition-transform duration-200 ${
-                      isButtonHovered ? "translate-x-1 -translate-y-0.5" : ""
-                    }`}
-                  />
-                  <img
-                    src="/runes.png"
-                    alt=""
-                    className={`pixel-logo absolute inset-0 h-full w-full ${
-                      isButtonHovered ? "rune-throb-intense" : "rune-throb"
-                    }`}
-                  />
-                  <img
-                    src="/bracket.png"
-                    alt="Runt"
-                    className="pixel-logo absolute inset-0 h-full w-full"
-                  />
-                </div>
+                <RuntLogo
+                  size="h-28 w-28"
+                  animated={true}
+                  energized={isButtonHovered}
+                  className="transition-transform hover:scale-105"
+                  filterId="pixelate-auth"
+                />
               </div>
               <h1 className="text-foreground mb-8 text-4xl leading-tight font-semibold tracking-wide">
                 Chase the White Rabbit
