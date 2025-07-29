@@ -158,7 +158,7 @@ export const AuthGuard: React.FC<AuthGuardProps> = ({ children, fallback }) => {
                 Chase the White Rabbit
               </h1>
               <p className="text-muted-foreground text-base font-normal">
-                Your Agentic Notebook Awaits
+                Early access to the future of interactive computing
               </p>
             </div>
             <LoginPrompt
