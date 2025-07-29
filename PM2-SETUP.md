@@ -40,6 +40,7 @@ pnpm exec pm2 logs
 
 # View logs for specific process
 pnpm exec pm2 logs web
+pnpm exec pm2 logs sync
 pnpm exec pm2 logs nb
 pnpm exec pm2 logs watcher
 
@@ -56,6 +57,7 @@ pnpm exec pm2 delete all
 ### Process Names
 
 - `web`: Runs `pnpm run dev` (Vite development server with integrated Cloudflare Workers on port 5173)
+- `sync`: Runs `pnpm run dev:sync` (Cloudflare Worker backend on port 8787)
 - `nb`: Runs `./scripts/start-runtime.sh` (Deno runtime agent with unique notebook ID)
 - `watcher`: Monitors the schema file and triggers updates
 
@@ -68,7 +70,9 @@ The `nb` process runs `scripts/start-runtime.sh` which:
 - Opens a browser tab to `http://localhost:5173/?notebook=$NOTEBOOK_ID`
 - Starts the Deno runtime agent with debug logging
 
-### Single-Server Architecture
+### Architecture Options
+
+#### Integrated Server (Default)
 
 The `web` process runs an integrated server that includes:
 
@@ -78,6 +82,15 @@ The `web` process runs an integrated server that includes:
 - Artifact storage endpoints
 
 No separate sync server is needed thanks to the Cloudflare Vite plugin integration.
+
+#### Separate Sync Server (PM2)
+
+When using PM2, you can optionally run a separate sync server:
+
+- `web`: Frontend only (Vite dev server on port 5173)
+- `sync`: Backend API (Cloudflare Worker on port 8787)
+
+This separation can be useful for debugging backend issues or when you need to run the backend independently.
 
 ### Port Configuration
 
