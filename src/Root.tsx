@@ -86,7 +86,7 @@ const NotebookApp: React.FC<NotebookAppProps> = ({
       )}
       {/* Main Content */}
       <ErrorBoundary fallback={<div>Error loading notebook</div>}>
-        <Suspense fallback={null}>
+        <Suspense fallback={<div className="min-h-screen bg-white" />}>
           <NotebookViewer
             notebookId={currentNotebookId}
             debugMode={debugMode}
@@ -121,19 +121,24 @@ const AnimatedLiveStoreApp: React.FC = () => {
     if (liveStoreReady && isLoading) {
       updateLoadingStage("ready");
 
-      // Remove static screen and start React animation immediately
-      removeStaticLoadingScreen();
-      setShowIncomingAnimation(true);
+      // Ensure React has painted before removing static screen
+      requestAnimationFrame(() => {
+        // Double RAF to ensure paint has completed
+        requestAnimationFrame(() => {
+          removeStaticLoadingScreen();
+          setShowIncomingAnimation(true);
 
-      // Give React component a moment to mount, then trigger animation
-      setTimeout(() => {
-        setPortalReady(true);
-      }, 50); // Minimal delay for React mounting
+          // Give React component a moment to mount, then trigger animation
+          setTimeout(() => {
+            setPortalReady(true);
+          }, 50); // Minimal delay for React mounting
 
-      // Wait for actual portal animation duration (from NotebookLoadingScreen)
-      setTimeout(() => {
-        setPortalAnimationComplete(true);
-      }, 1500); // Actual portal animation time: 1200ms + 300ms buffer
+          // Wait for actual portal animation duration (from NotebookLoadingScreen)
+          setTimeout(() => {
+            setPortalAnimationComplete(true);
+          }, 1500); // Actual portal animation time: 1200ms + 300ms buffer
+        });
+      });
     }
   }, [liveStoreReady, isLoading]);
 
@@ -151,7 +156,7 @@ const AnimatedLiveStoreApp: React.FC = () => {
       {/* Loading screen overlay - fixed position to prevent layout shift */}
       {isLoading && (
         <div className="fixed inset-0 z-50 overflow-hidden">
-          <Suspense fallback={null}>
+          <Suspense fallback={<div className="min-h-screen bg-white" />}>
             <NotebookLoadingScreen
               ready={portalReady}
               onPortalAnimationComplete={() => setPortalAnimationComplete(true)}
