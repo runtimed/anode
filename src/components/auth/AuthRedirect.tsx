@@ -9,6 +9,10 @@ import {
   CardHeader,
   CardTitle,
 } from "../ui/card";
+import {
+  updateLoadingStage,
+  removeStaticLoadingScreen,
+} from "../../util/domUpdates";
 
 const AuthRedirect: React.FC = () => {
   const openIdService = getOpenIdService();
@@ -16,6 +20,10 @@ const AuthRedirect: React.FC = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
+    // Remove the static loading screen so our component UI is visible
+    updateLoadingStage("checking-auth");
+    removeStaticLoadingScreen();
+
     const subscription = openIdService.handleRedirect().subscribe({
       complete: () => {
         navigate("/", { replace: true });
