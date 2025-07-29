@@ -127,11 +127,7 @@ const AnimatedLiveStoreApp: React.FC = () => {
         requestAnimationFrame(() => {
           removeStaticLoadingScreen();
           setShowIncomingAnimation(true);
-
-          // Give React component a moment to mount, then trigger animation
-          setTimeout(() => {
-            setPortalReady(true);
-          }, 50); // Minimal delay for React mounting
+          setPortalReady(true);
 
           // Wait for actual portal animation duration (from NotebookLoadingScreen)
           setTimeout(() => {
