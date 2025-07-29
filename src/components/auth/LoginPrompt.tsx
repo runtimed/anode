@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { LogIn, ExternalLink } from "lucide-react";
 import { getOpenIdService, RedirectUrls } from "../../services/openid";
+import { redirectHelper } from "./redirect-url-helper";
 
 // DEV MODE: Design testing states
 const DESIGN_TEST_MODE = {
@@ -73,6 +74,8 @@ const LoginPrompt: React.FC<LoginPromptProps> = ({
           : redirectUrls.registrationUrl;
       setAction(null);
       setLoading(false);
+
+      redirectHelper.saveNotebookId();
       window.location.href = url.toString();
     }
   }, [action, redirectUrls]);
