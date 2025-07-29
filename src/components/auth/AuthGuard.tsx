@@ -45,12 +45,8 @@ export const AuthGuard: React.FC<AuthGuardProps> = ({ children, fallback }) => {
     return () => window.removeEventListener("message", handleMessage);
   }, []);
 
-  // Remove static loading screen when auth check completes
-  useEffect(() => {
-    if (!isLoading) {
-      removeStaticLoadingScreen();
-    }
-  }, [isLoading]);
+  // Don't remove static loading screen here - let AnimatedLiveStoreApp handle it
+  // to prevent white flicker between auth and notebook loading
 
   // Show transparent loading state - let static HTML loading screen handle UI
   if (isLoading) {
