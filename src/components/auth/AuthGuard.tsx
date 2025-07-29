@@ -23,7 +23,6 @@ export const AuthGuard: React.FC<AuthGuardProps> = ({ children, fallback }) => {
   // Update loading stage when auth check starts
   useEffect(() => {
     if (isLoading) {
-      console.log("🔐 AuthGuard: Starting auth check");
       updateLoadingStage("checking-auth");
     }
   }, [isLoading]);
@@ -43,7 +42,6 @@ export const AuthGuard: React.FC<AuthGuardProps> = ({ children, fallback }) => {
   // Remove static loading screen when auth check completes
   useEffect(() => {
     if (!isLoading) {
-      console.log("🔐 AuthGuard: Auth check complete, removing static screen");
       removeStaticLoadingScreen();
     }
   }, [isLoading]);
@@ -55,10 +53,6 @@ export const AuthGuard: React.FC<AuthGuardProps> = ({ children, fallback }) => {
 
   // Show error state if authentication failed or auth expired
   if ((error && !isAuthenticated) || authExpiredError) {
-    console.log("🔐 AuthGuard: Showing error state", {
-      error,
-      authExpiredError,
-    });
     return (
       <div className="bg-background flex min-h-screen items-center justify-center">
         <div className="max-w-md text-center">
@@ -92,7 +86,6 @@ export const AuthGuard: React.FC<AuthGuardProps> = ({ children, fallback }) => {
 
   // Show sign-in form if not authenticated
   if (!isAuthenticated) {
-    console.log("🔐 AuthGuard: Showing login form");
     return (
       fallback || (
         <div className="bg-background flex min-h-screen items-center justify-center">
@@ -119,6 +112,5 @@ export const AuthGuard: React.FC<AuthGuardProps> = ({ children, fallback }) => {
   }
 
   // Show authenticated content
-  console.log("🔐 AuthGuard: User authenticated, showing app");
   return <>{children}</>;
 };
