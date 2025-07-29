@@ -88,23 +88,17 @@ export const AuthGuard: React.FC<AuthGuardProps> = ({ children, fallback }) => {
   if (!isAuthenticated) {
     return (
       fallback || (
-        <div className="bg-background flex min-h-screen items-center justify-center">
-          <div className="max-w-md text-center">
-            <div className="text-foreground mb-2 text-2xl font-bold">Runt</div>
-            <div className="text-muted-foreground mb-2 text-sm font-medium">
-              The Agent REPL
-            </div>
-            <div className="text-muted-foreground mb-8 text-xs">
-              Sign in to access your collaborative notebooks
-            </div>
-            <LoginPrompt error={loginError} setError={setLoginError} />
-            <div className="text-muted-foreground mt-8 text-xs">
-              <p>
-                Iterate and collaborate with people and runtime agents.
-                <br />
-                Sign in with Anaconda to sync your work across devices.
+        <div className="bg-background flex min-h-screen items-center justify-center p-4">
+          <div className="w-full max-w-md text-center">
+            <div className="mb-12">
+              <h1 className="text-foreground mb-3 text-3xl font-bold tracking-tight">
+                Welcome to Runt
+              </h1>
+              <p className="text-muted-foreground text-lg leading-relaxed">
+                Your collaborative notebook that thinks with you
               </p>
             </div>
+            <LoginPrompt error={loginError} setError={setLoginError} />
           </div>
         </div>
       )

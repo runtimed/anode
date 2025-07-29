@@ -66,9 +66,10 @@ const LoginPrompt: React.FC<LoginPromptProps> = ({ error, setError }) => {
   };
 
   return (
-    <div className="auth-wrapper mx-auto flex max-w-[400px] flex-col items-center">
-      <div className="heading mt-8 flex items-center gap-2">
-        <div className="anaconda-logo relative h-[40px] w-[40px]">
+    <div className="auth-wrapper mx-auto flex max-w-[400px] flex-col items-center space-y-8">
+      {/* Beautiful logo section */}
+      <div className="flex items-center justify-center">
+        <div className="relative h-16 w-16 transition-transform hover:scale-105">
           <img
             src="/hole.png"
             alt=""
@@ -87,7 +88,7 @@ const LoginPrompt: React.FC<LoginPromptProps> = ({ error, setError }) => {
           <img
             src="/runes.png"
             alt=""
-            className="pixel-logo absolute inset-0 h-full w-full"
+            className="pixel-logo rune-throb absolute inset-0 h-full w-full"
           />
           <img
             src="/bracket.png"
@@ -95,41 +96,55 @@ const LoginPrompt: React.FC<LoginPromptProps> = ({ error, setError }) => {
             className="pixel-logo absolute inset-0 h-full w-full"
           />
         </div>
-        <div className="app-name text-primary text-2xl font-medium">Runt</div>
       </div>
-      <div className="mt-8 flex w-full justify-center">
+
+      {/* Engaging description */}
+      <div className="space-y-3 text-center">
+        <p className="text-muted-foreground text-base leading-relaxed">
+          Code, collaborate, and create with AI agents at your side.
+        </p>
+        <p className="text-muted-foreground text-sm">
+          Sign in with Anaconda to sync your notebooks across devices.
+        </p>
+      </div>
+
+      {/* Primary action button */}
+      <div className="flex w-full justify-center">
         <button
-          className="sign-in-button bg-primary flex h-14 w-[218px] cursor-pointer items-center justify-center gap-3 rounded-md text-lg font-semibold text-white"
+          className="group bg-primary hover:bg-primary/90 active:bg-primary/95 flex h-12 w-full max-w-[280px] cursor-pointer items-center justify-center gap-3 rounded-lg text-base font-semibold text-white transition-all duration-200 disabled:cursor-not-allowed disabled:opacity-50"
           onClick={() => handler("login")}
           data-qa-id="sign-in-button"
           disabled={loading}
         >
-          <span className="mr-2">Sign In</span>
-          <LogIn className="h-5 w-5" />
+          {loading ? (
+            <div className="h-5 w-5 animate-spin rounded-full border-2 border-white/20 border-t-white" />
+          ) : (
+            <>
+              <span>Sign In</span>
+              <LogIn className="h-5 w-5 transition-transform group-hover:translate-x-0.5" />
+            </>
+          )}
         </button>
       </div>
+
+      {/* Error message */}
       {error && (
-        <div className="mt-4 w-full text-center">
-          <p className="text-sm text-red-500">{error}</p>
+        <div className="w-full rounded-md bg-red-50 p-3 text-center">
+          <p className="text-sm text-red-700">{error}</p>
         </div>
       )}
-      <div className="text-muted-foreground mt-8 w-full text-center text-xs">
-        <p>
-          Iterate and collaborate with people and runtime agents.
-          <br />
-          Sign in with Anaconda to sync your work across devices.
-        </p>
-      </div>
-      <div className="cta mt-5 w-full text-center">
-        Don&apos;t have an account?
+
+      {/* Secondary action */}
+      <div className="flex flex-col items-center space-y-2 text-center">
+        <p className="text-muted-foreground text-sm">New to Runt?</p>
         <button
           onClick={() => handler("registration")}
-          className="text-primary ml-2 inline-flex cursor-pointer items-center gap-1 border-none bg-none text-base font-medium underline"
+          className="text-primary hover:text-primary/80 group inline-flex cursor-pointer items-center gap-1.5 border-none bg-none text-base font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-50"
           data-qa-id="registration-button"
           disabled={loading}
         >
-          Get Started
-          <ExternalLink className="relative -bottom-[2px] ml-[2px] h-4 w-4 scale-90" />
+          <span>Create your account</span>
+          <ExternalLink className="h-4 w-4 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
         </button>
       </div>
     </div>
