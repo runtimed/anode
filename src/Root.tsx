@@ -86,7 +86,7 @@ const NotebookApp: React.FC<NotebookAppProps> = ({
       )}
       {/* Main Content */}
       <ErrorBoundary fallback={<div>Error loading notebook</div>}>
-        <Suspense fallback={<InlineLoading message="Loading notebook..." />}>
+        <Suspense fallback={null}>
           <NotebookViewer
             notebookId={currentNotebookId}
             debugMode={debugMode}
@@ -151,7 +151,7 @@ const AnimatedLiveStoreApp: React.FC = () => {
       {/* Loading screen overlay - fixed position to prevent layout shift */}
       {isLoading && (
         <div className="fixed inset-0 z-50 overflow-hidden">
-          <Suspense fallback={<LoadingState variant="fullscreen" animated />}>
+          <Suspense fallback={null}>
             <NotebookLoadingScreen
               ready={portalReady}
               onPortalAnimationComplete={() => setPortalAnimationComplete(true)}
