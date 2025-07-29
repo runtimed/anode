@@ -1,7 +1,10 @@
 import React, { useEffect, useState } from "react";
 import { useAuth } from "./AuthProvider.js";
 import LoginPrompt from "./LoginPrompt.js";
-import { updateLoadingStage } from "../../util/domUpdates.js";
+import {
+  updateLoadingStage,
+  removeStaticLoadingScreen,
+} from "../../util/domUpdates.js";
 
 interface AuthGuardProps {
   children: React.ReactNode;
@@ -20,6 +23,7 @@ export const AuthGuard: React.FC<AuthGuardProps> = ({ children, fallback }) => {
   // Update loading stage when auth check starts
   useEffect(() => {
     if (isLoading) {
+      console.log("🔐 AuthGuard: Starting auth check");
       updateLoadingStage("checking-auth");
     }
   }, [isLoading]);
@@ -36,6 +40,14 @@ export const AuthGuard: React.FC<AuthGuardProps> = ({ children, fallback }) => {
     return () => window.removeEventListener("message", handleMessage);
   }, []);
 
+  // Remove static loading screen when auth check completes
+  useEffect(() => {
+    if (!isLoading) {
+      console.log("🔐 AuthGuard: Auth check complete, removing static screen");
+      removeStaticLoadingScreen();
+    }
+  }, [isLoading]);
+
   // Show transparent loading state - let static HTML loading screen handle UI
   if (isLoading) {
     return null;
@@ -43,6 +55,10 @@ export const AuthGuard: React.FC<AuthGuardProps> = ({ children, fallback }) => {
 
   // Show error state if authentication failed or auth expired
   if ((error && !isAuthenticated) || authExpiredError) {
+    console.log("🔐 AuthGuard: Showing error state", {
+      error,
+      authExpiredError,
+    });
     return (
       <div className="bg-background flex min-h-screen items-center justify-center">
         <div className="max-w-md text-center">
@@ -76,6 +92,7 @@ export const AuthGuard: React.FC<AuthGuardProps> = ({ children, fallback }) => {
 
   // Show sign-in form if not authenticated
   if (!isAuthenticated) {
+    console.log("🔐 AuthGuard: Showing login form");
     return (
       fallback || (
         <div className="bg-background flex min-h-screen items-center justify-center">
@@ -102,5 +119,6 @@ export const AuthGuard: React.FC<AuthGuardProps> = ({ children, fallback }) => {
   }
 
   // Show authenticated content
+  console.log("🔐 AuthGuard: User authenticated, showing app");
   return <>{children}</>;
 };
