@@ -147,6 +147,7 @@ function languageFromCellType(
   cellType: (typeof tables.cells.Type)["cellType"]
 ) {
   if (cellType === "code") {
+    // TODO: Pull from runtime agent session and/or notebook
     return "python";
   } else if (cellType === "markdown") {
     return "markdown";

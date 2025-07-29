@@ -467,7 +467,7 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
                     <Terminal className="h-3 w-3 sm:h-4 sm:w-4" />
                     <span className="hidden text-xs capitalize sm:block sm:text-sm">
                       {metadata.find((m) => m.key === "runtimeType")?.value ??
-                        "python3"}
+                        "unknown"}
                     </span>
                     <RuntimeHealthIndicator />
                   </Button>
