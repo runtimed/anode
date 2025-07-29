@@ -4,6 +4,8 @@ if [ -f ".env" ]; then
   source .env
 fi
 
+# 🚨 IMPORTANT: We're overriding the runtime command here to avoid it breaking by accident
+export VITE_RUNTIME_COMMAND="deno run --allow-all --unstable-broadcast-channel --env-file=../anode/.env ../runt/packages/pyodide-runtime-agent/src/mod.ts"
 export DEV_PORT=${ANODE_DEV_SERVER_PORT:-5173}
 export NOTEBOOK_ID=$(date +%s)-$(openssl rand -hex 4)
 
@@ -43,7 +45,7 @@ if [[ "$OSTYPE" == "darwin"* ]]; then
     /Applications/Google\ Chrome.app/Contents/MacOS/Google\ Chrome --incognito "$URL" >/dev/null 2>&1 &
   else
     echo "Opening in normal mode"
-    open "$URL"
+    open "$URL" &
   fi
 else
   echo "Opening in normal mode"
