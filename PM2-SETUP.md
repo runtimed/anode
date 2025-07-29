@@ -8,6 +8,9 @@
 # Start integrated development server (recommended)
 pnpm dev
 
+# In a different terminal, run the sync engine
+pnpm dev:sync
+
 # Start Python runtime (get command from notebook UI)
 NOTEBOOK_ID=your-notebook-id pnpm dev:runtime
 ```
