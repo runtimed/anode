@@ -1,7 +1,10 @@
 import React, { useEffect, useState } from "react";
 import { useAuth } from "./AuthProvider.js";
 import LoginPrompt from "./LoginPrompt.js";
-import { updateLoadingStage } from "../../util/domUpdates.js";
+import {
+  updateLoadingStage,
+  removeStaticLoadingScreen,
+} from "../../util/domUpdates.js";
 
 interface AuthGuardProps {
   children: React.ReactNode;
@@ -35,6 +38,13 @@ export const AuthGuard: React.FC<AuthGuardProps> = ({ children, fallback }) => {
     window.addEventListener("message", handleMessage);
     return () => window.removeEventListener("message", handleMessage);
   }, []);
+
+  // Remove static loading screen when auth check completes
+  useEffect(() => {
+    if (!isLoading) {
+      removeStaticLoadingScreen();
+    }
+  }, [isLoading]);
 
   // Show transparent loading state - let static HTML loading screen handle UI
   if (isLoading) {
