@@ -4,6 +4,9 @@ export type LoadingStage =
   | "loading-notebook"
   | "ready";
 
+// Track whether the loading screen has been removed
+let loadingScreenRemoved = false;
+
 export function updateLoadingStage(stage: LoadingStage): void {
   const stageElement = document.getElementById("loading-stage-text");
   if (!stageElement) return;
@@ -13,10 +16,23 @@ export function updateLoadingStage(stage: LoadingStage): void {
 }
 
 export function removeStaticLoadingScreen(): void {
+  // Idempotent - only remove once
+  if (loadingScreenRemoved) {
+    return;
+  }
+
   const staticScreen = document.getElementById("static-loading-screen");
   if (staticScreen) {
+    loadingScreenRemoved = true;
     staticScreen.remove();
+    console.debug("Static loading screen removed");
   }
+}
+
+export function isLoadingScreenVisible(): boolean {
+  return (
+    !loadingScreenRemoved && !!document.getElementById("static-loading-screen")
+  );
 }
 
 function getStageText(stage: LoadingStage): string {
