@@ -40,11 +40,12 @@ sleep 3
 if [[ "$OSTYPE" == "darwin"* ]]; then
   if [[ "$ANODE_OPEN_INCOGNITO" == "1" ]]; then
     echo "Opening in incognito mode"
-    /Applications/Google\ Chrome.app/Contents/MacOS/Google\ Chrome --incognito "$URL" &
+    /Applications/Google\ Chrome.app/Contents/MacOS/Google\ Chrome --incognito "$URL"
   else
     echo "Opening in normal mode"
-    open "$URL" &
+    open "$URL"
   fi
 else
-  open "$URL" &
+  echo "Opening in normal mode"
+  open "$URL"
 fi
