@@ -20,6 +20,7 @@ import {
   finalize,
   interval,
   tap,
+  throwError,
 } from "rxjs";
 
 export type UserInfo = {
@@ -381,12 +382,22 @@ export class OpenIdService {
 
   private getConfig(): Observable<Configuration> {
     if (!this.config$) {
-      this.config$ = from(
-        this.client.discovery(
-          new URL(import.meta.env.VITE_AUTH_URI || ""),
-          import.meta.env.VITE_AUTH_CLIENT_ID || ""
-        )
-      ).pipe(shareReplay(1));
+      // Check if auth configuration is present
+      const authUri = import.meta.env.VITE_AUTH_URI;
+      const clientId = import.meta.env.VITE_AUTH_CLIENT_ID;
+
+      if (!authUri || !clientId) {
+        this.config$ = throwError(
+          () =>
+            new Error(
+              "Authentication not configured. Please set VITE_AUTH_URI and VITE_AUTH_CLIENT_ID environment variables."
+            )
+        ).pipe(shareReplay(1));
+      } else {
+        this.config$ = from(
+          this.client.discovery(new URL(authUri), clientId)
+        ).pipe(shareReplay(1));
+      }
     }
     return this.config$;
   }
