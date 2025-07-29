@@ -34,7 +34,7 @@ echo "=============================================="
 echo ""
 
 # Start runtime in background
-pnpm exec pm2 start --name "nb-$NOTEBOOK_ID" "$RUNTIME_CMD"
+pnpm exec pm2 start --name "notebook=$NOTEBOOK_ID" "$RUNTIME_CMD"
 
 sleep 1
 
