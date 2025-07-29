@@ -1,24 +1,39 @@
+function encodeLowerCrockford(bytes: Uint8Array<ArrayBuffer>): string {
+  const BASE32 = "0123456789abcdefghjkmnpqrstvwxyz";
+  let bits = 0,
+    value = 0,
+    output = "";
+  for (let i = 0; i < bytes.length; i++) {
+    value = (value << 8) | bytes[i];
+    bits += 8;
+    while (bits >= 5) {
+      output += BASE32[(value >>> (bits - 5)) & 31];
+      bits -= 5;
+    }
+  }
+  if (bits > 0) {
+    output += BASE32[(value << (5 - bits)) & 31];
+  }
+  return output.padEnd(26, "0"); // pad to 26 chars for 128 bits
+}
+
+export function prettyId() {
+  const bytes = crypto.getRandomValues(new Uint8Array(16));
+  return encodeLowerCrockford(bytes);
+}
+
 export const getStoreId = () => {
-  if (typeof window === "undefined") return "default-notebook";
+  if (typeof window === "undefined") return "ssr-no-window";
 
   const searchParams = new URLSearchParams(window.location.search);
 
-  // Check for notebook parameter (new simplified approach)
   const notebookId = searchParams.get("notebook");
   if (notebookId !== null && notebookId.trim() !== "") {
     return notebookId;
   }
 
-  // Check for legacy storeId parameter (backward compatibility)
-  const storeId = searchParams.get("storeId");
-  if (storeId !== null && storeId.trim() !== "") {
-    return storeId;
-  }
+  const newNotebookId = prettyId();
 
-  // Generate a new notebook ID and update URL
-  const newNotebookId = `notebook-${Date.now()}-${Math.random()
-    .toString(36)
-    .slice(2)}`;
   searchParams.set("notebook", newNotebookId);
 
   // Update URL without page reload
@@ -28,16 +43,11 @@ export const getStoreId = () => {
   return newNotebookId;
 };
 
-// Helper to get the current notebook ID from URL without side effects
 export const getCurrentNotebookId = () => {
   if (typeof window === "undefined") return "default-notebook";
 
   const searchParams = new URLSearchParams(window.location.search);
-  return (
-    searchParams.get("notebook") ||
-    searchParams.get("storeId") ||
-    "default-notebook"
-  );
+  return searchParams.get("notebook") || "default-notebook";
 };
 
 // Helper to navigate to a specific notebook
@@ -46,9 +56,6 @@ export const navigateToNotebook = (notebookId: string) => {
 
   const searchParams = new URLSearchParams(window.location.search);
   searchParams.set("notebook", notebookId);
-
-  // Remove legacy storeId if present
-  searchParams.delete("storeId");
 
   const newUrl = `${window.location.pathname}?${searchParams.toString()}`;
   window.location.href = newUrl;
