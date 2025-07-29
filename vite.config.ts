@@ -54,27 +54,6 @@ export default defineConfig(({ mode }) => {
   return {
     build: {
       sourcemap: true,
-      rollupOptions: {
-        output: {
-          manualChunks: (id) => {
-            // Split markdown-related dependencies into their own chunk
-            if (
-              id.includes("react-markdown") ||
-              id.includes("remark-gfm") ||
-              id.includes("react-syntax-highlighter") ||
-              id.includes("prism") ||
-              id.includes("refractor") ||
-              id.includes("hastscript") ||
-              id.includes("hast-") ||
-              id.includes("mdast-") ||
-              id.includes("micromark") ||
-              id.includes("unist-")
-            ) {
-              return "markdown";
-            }
-          },
-        },
-      },
     },
     server: {
       port: env.ANODE_DEV_SERVER_PORT

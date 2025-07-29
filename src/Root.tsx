@@ -3,6 +3,11 @@ import LiveStoreSharedWorker from "@livestore/adapter-web/shared-worker?sharedwo
 import { LiveStoreProvider } from "@livestore/react";
 
 import React, { useEffect, useState, useRef, Suspense } from "react";
+import {
+  LoadingState,
+  InlineLoading,
+  MinimalLoading,
+} from "./components/loading/LoadingState.js";
 import { Routes, Route } from "react-router-dom";
 import {
   updateLoadingStage,
@@ -18,10 +23,22 @@ const FPSMeter = React.lazy(() =>
 );
 import { unstable_batchedUpdates as batchUpdates } from "react-dom";
 
-import { NotebookViewer } from "./components/notebook/NotebookViewer.js";
-import { NotebookLoadingScreen } from "./components/notebook/NotebookLoadingScreen.js";
+// Lazy load notebook components
+const NotebookViewer = React.lazy(() =>
+  import("./components/notebook/NotebookViewer.js").then((m) => ({
+    default: m.NotebookViewer,
+  }))
+);
+const NotebookLoadingScreen = React.lazy(() =>
+  import("./components/notebook/NotebookLoadingScreen.js").then((m) => ({
+    default: m.NotebookLoadingScreen,
+  }))
+);
 import { AuthGuard } from "./components/auth/AuthGuard.js";
-import AuthRedirect from "./components/auth/AuthRedirect.js";
+// Lazy load route components
+const AuthRedirect = React.lazy(
+  () => import("./components/auth/AuthRedirect.js")
+);
 import { AuthProvider } from "./components/auth/AuthProvider.js";
 
 import LiveStoreWorker from "./livestore.worker?worker";
@@ -60,20 +77,24 @@ const NotebookApp: React.FC<NotebookAppProps> = ({
             zIndex: 50,
           }}
         >
-          <Suspense fallback={<div>Loading FPS meter...</div>}>
+          <Suspense
+            fallback={<MinimalLoading message="Loading FPS meter..." />}
+          >
             <FPSMeter height={40} />
           </Suspense>
         </div>
       )}
       {/* Main Content */}
       <ErrorBoundary fallback={<div>Error loading notebook</div>}>
-        <NotebookViewer
-          notebookId={currentNotebookId}
-          debugMode={debugMode}
-          onDebugToggle={setDebugMode}
-          showIncomingAnimation={showIncomingAnimation}
-          onAnimationComplete={onAnimationComplete}
-        />
+        <Suspense fallback={<InlineLoading message="Loading notebook..." />}>
+          <NotebookViewer
+            notebookId={currentNotebookId}
+            debugMode={debugMode}
+            onDebugToggle={setDebugMode}
+            showIncomingAnimation={showIncomingAnimation}
+            onAnimationComplete={onAnimationComplete}
+          />
+        </Suspense>
       </ErrorBoundary>
     </div>
   );
@@ -130,10 +151,12 @@ const AnimatedLiveStoreApp: React.FC = () => {
       {/* Loading screen overlay - fixed position to prevent layout shift */}
       {isLoading && (
         <div className="fixed inset-0 z-50 overflow-hidden">
-          <NotebookLoadingScreen
-            ready={portalReady}
-            onPortalAnimationComplete={() => setPortalAnimationComplete(true)}
-          />
+          <Suspense fallback={<LoadingState variant="fullscreen" animated />}>
+            <NotebookLoadingScreen
+              ready={portalReady}
+              onPortalAnimationComplete={() => setPortalAnimationComplete(true)}
+            />
+          </Suspense>
         </div>
       )}
 
@@ -306,7 +329,18 @@ export const App: React.FC = () => {
   return (
     <AuthProvider>
       <Routes>
-        <Route path="/oidc" element={<AuthRedirect />} />
+        <Route
+          path="/oidc"
+          element={
+            <Suspense
+              fallback={
+                <LoadingState variant="fullscreen" message="Redirecting..." />
+              }
+            >
+              <AuthRedirect />
+            </Suspense>
+          }
+        />
         <Route
           path="/*"
           element={
