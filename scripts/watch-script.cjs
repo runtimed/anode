@@ -17,8 +17,8 @@ async function runUpdateCommands() {
 
   try {
     // Install schema package
-    console.log("📦 Installing schema package...");
-    await execCommand("pnpm install @runt/schema@file:../runt/packages/schema");
+    console.log("📦 Using runt local...");
+    await execCommand("pnpm use-runt local");
 
     // Remove vite cache
     console.log("🗑️  Removing vite cache...");
