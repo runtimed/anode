@@ -128,11 +128,6 @@ const AnimatedLiveStoreApp: React.FC = () => {
           removeStaticLoadingScreen();
           setShowIncomingAnimation(true);
           setPortalReady(true);
-
-          // Wait for actual portal animation duration (from NotebookLoadingScreen)
-          setTimeout(() => {
-            setPortalAnimationComplete(true);
-          }, 1500); // Actual portal animation time: 1200ms + 300ms buffer
         });
       });
     }

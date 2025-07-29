@@ -44,6 +44,16 @@ export const NotebookLoadingScreen: React.FC<NotebookLoadingScreenProps> = ({
       }
     },
     config: { tension: 200, friction: 20 },
+    onRest: () => {
+      if (startAnimation) {
+        onPortalAnimationComplete?.();
+        // Small delay before final transition
+        setTimeout(() => {
+          setTransitioning(true);
+          onTransitionComplete?.();
+        }, 300);
+      }
+    },
   });
 
   const bracketSpring = useSpring({
@@ -75,19 +85,8 @@ export const NotebookLoadingScreen: React.FC<NotebookLoadingScreenProps> = ({
       setLoadingProgress(3);
       setStartAnimation(true);
       setFlyingOut(true);
-
-      // Portal animation completes first (expansion + shrink to dot)
-      setTimeout(() => {
-        onPortalAnimationComplete?.();
-      }, 1200);
-
-      // Complete transition after animation
-      setTimeout(() => {
-        setTransitioning(true);
-        onTransitionComplete?.();
-      }, 1500);
     }
-  }, [ready, startAnimation, onTransitionComplete, onPortalAnimationComplete]);
+  }, [ready, startAnimation]);
   if (transitioning) {
     return null; // Let header take over
   }
