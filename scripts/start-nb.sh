@@ -34,7 +34,7 @@ echo ""
 # Start runtime in background
 pnpm exec pm2 start --name "nb-$NOTEBOOK_ID" "$RUNTIME_CMD"
 
-sleep 3
+sleep 1
 
 # Open browser
 if [[ "$OSTYPE" == "darwin"* ]]; then
