@@ -20,7 +20,7 @@
     },
     {
       "name": "nb",
-      "script": "./scripts/start-runtime.sh",
+      "script": "./scripts/start-nb.sh",
       "watch": false
     },
     {
