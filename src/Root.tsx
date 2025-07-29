@@ -288,14 +288,14 @@ export const App: React.FC = () => {
       }
     }, 100);
 
-    // Absolute fallback after 3 seconds
+    // Absolute fallback after 5 seconds
     const fallbackTimeout = setTimeout(() => {
       if (isLoadingScreenVisible()) {
         console.warn("Loading screen force-removed after timeout");
         removeStaticLoadingScreen();
       }
       clearInterval(checkInterval);
-    }, 3000);
+    }, 5000);
 
     return () => {
       clearInterval(checkInterval);
