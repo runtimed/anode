@@ -72,66 +72,6 @@ export default defineConfig(({ mode }) => {
             ) {
               return "markdown";
             }
-
-            // Split react-spring into its own chunk for faster loading
-            if (id.includes("@react-spring")) {
-              return "react-spring";
-            }
-
-            // Split UI libraries
-            if (
-              id.includes("@radix-ui") ||
-              id.includes("@floating-ui") ||
-              id.includes("cmdk")
-            ) {
-              return "ui-libs";
-            }
-
-            // Split codemirror into its own chunk
-            if (id.includes("@codemirror") || id.includes("@lezer")) {
-              return "codemirror";
-            }
-
-            // Split Effect and schema libraries
-            if (
-              id.includes("effect") ||
-              id.includes("@runt/schema") ||
-              id.includes("@effect")
-            ) {
-              return "effect-schema";
-            }
-
-            // Split LiveStore and SQLite
-            if (
-              id.includes("@livestore") ||
-              id.includes("wa-sqlite") ||
-              id.includes("sql.js")
-            ) {
-              return "livestore";
-            }
-
-            // Split auth related libraries
-            if (
-              id.includes("oidc-client") ||
-              id.includes("jose") ||
-              id.includes("@auth")
-            ) {
-              return "auth";
-            }
-
-            // Split React ecosystem (but not react/react-dom themselves)
-            if (
-              id.includes("react-router") ||
-              id.includes("react-use") ||
-              id.includes("react-error-boundary")
-            ) {
-              return "react-ecosystem";
-            }
-
-            // Keep node_modules in vendor chunk (except those already handled)
-            if (id.includes("node_modules")) {
-              return "vendor";
-            }
           },
         },
       },
