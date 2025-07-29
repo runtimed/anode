@@ -36,9 +36,7 @@ export const LoadingState: React.FC<LoadingStateProps> = ({
             animation={animated ? "animate-pulse" : ""}
           />
           {message && (
-            <div className="text-lg font-semibold text-gray-700">
-              {message}
-            </div>
+            <div className="text-lg font-semibold text-gray-700">{message}</div>
           )}
         </div>
       </div>
@@ -50,7 +48,7 @@ export const LoadingState: React.FC<LoadingStateProps> = ({
       <div className={`flex items-center justify-center p-4 ${className}`}>
         <RuntLogo size="h-8 w-8" animated={false} className="opacity-50" />
         {message && (
-          <span className="ml-2 text-sm text-muted-foreground">{message}</span>
+          <span className="text-muted-foreground ml-2 text-sm">{message}</span>
         )}
       </div>
     );
@@ -69,7 +67,7 @@ export const LoadingState: React.FC<LoadingStateProps> = ({
         animation={animated ? "animate-pulse" : ""}
       />
       {message && (
-        <div className="text-sm text-muted-foreground animate-pulse">
+        <div className="text-muted-foreground animate-pulse text-sm">
           {message}
         </div>
       )}
@@ -86,6 +84,6 @@ export const InlineLoading: React.FC<{ message?: string }> = ({
   message = "Loading...",
 }) => <LoadingState variant="inline" message={message} />;
 
-export const MinimalLoading: React.FC<{ message?: string }> = ({
-  message,
-}) => <LoadingState variant="minimal" message={message} />;
+export const MinimalLoading: React.FC<{ message?: string }> = ({ message }) => (
+  <LoadingState variant="minimal" message={message} />
+);

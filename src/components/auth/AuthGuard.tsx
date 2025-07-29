@@ -1,10 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useAuth } from "./AuthProvider.js";
 import LoginPrompt from "./LoginPrompt.js";
-import {
-  updateLoadingStage,
-  removeStaticLoadingScreen,
-} from "../../util/domUpdates.js";
+import { updateLoadingStage } from "../../util/domUpdates.js";
 import { RuntLogo } from "../logo";
 
 // DEV MODE: Force login screen for design testing

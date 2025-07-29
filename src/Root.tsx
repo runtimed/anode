@@ -5,7 +5,6 @@ import { LiveStoreProvider } from "@livestore/react";
 import React, { useEffect, useState, useRef, Suspense } from "react";
 import {
   LoadingState,
-  InlineLoading,
   MinimalLoading,
 } from "./components/loading/LoadingState.js";
 import { Routes, Route } from "react-router-dom";
