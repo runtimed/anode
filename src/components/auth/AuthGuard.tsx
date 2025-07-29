@@ -6,6 +6,10 @@ import {
   removeStaticLoadingScreen,
 } from "../../util/domUpdates.js";
 
+// DEV MODE: Force login screen for design testing
+// Set to true to preview login screen locally
+const FORCE_LOGIN_SCREEN = false;
+
 interface AuthGuardProps {
   children: React.ReactNode;
   fallback?: React.ReactNode;
@@ -19,6 +23,7 @@ export const AuthGuard: React.FC<AuthGuardProps> = ({ children, fallback }) => {
     !authState.valid && authState.error ? authState.error.message : undefined;
   const [authExpiredError, setAuthExpiredError] = useState<string | null>(null);
   const [loginError, setLoginError] = useState<string | null>(null);
+  const [isButtonHovered, setIsButtonHovered] = useState(false);
 
   // Update loading stage when auth check starts
   useEffect(() => {
@@ -84,27 +89,83 @@ export const AuthGuard: React.FC<AuthGuardProps> = ({ children, fallback }) => {
     );
   }
 
-  // Show sign-in form if not authenticated
-  if (!isAuthenticated) {
+  // Show sign-in form if not authenticated OR if forced for design testing
+  if (!isAuthenticated || FORCE_LOGIN_SCREEN) {
     return (
       fallback || (
-        <div className="bg-background flex min-h-screen items-center justify-center">
-          <div className="max-w-md text-center">
-            <div className="text-foreground mb-2 text-2xl font-bold">Runt</div>
-            <div className="text-muted-foreground mb-2 text-sm font-medium">
-              The Agent REPL
-            </div>
-            <div className="text-muted-foreground mb-8 text-xs">
-              Sign in to access your collaborative notebooks
-            </div>
-            <LoginPrompt error={loginError} setError={setLoginError} />
-            <div className="text-muted-foreground mt-8 text-xs">
-              <p>
-                Iterate and collaborate with people and runtime agents.
-                <br />
-                Sign in with Anaconda to sync your work across devices.
+        <div className="bg-background flex min-h-screen items-center justify-center p-4">
+          <div className="w-full max-w-md text-center">
+            {/* Hero logo section */}
+            <div className="mb-16">
+              <div className="mb-10 flex items-center justify-center">
+                <div className="relative h-28 w-28 transition-transform hover:scale-105">
+                  <svg
+                    width="100%"
+                    height="100%"
+                    viewBox="0 0 200 200"
+                    className="absolute inset-0"
+                  >
+                    <defs>
+                      <filter id="pixelate">
+                        <feMorphology
+                          operator="erode"
+                          radius="2"
+                          in="SourceGraphic"
+                          result="morphed"
+                        />
+                        <feComponentTransfer in="morphed">
+                          <feFuncA type="discrete" tableValues="0 1" />
+                        </feComponentTransfer>
+                      </filter>
+                    </defs>
+                    <circle
+                      cx="100"
+                      cy="100"
+                      r="95"
+                      fill="#000000"
+                      filter="url(#pixelate)"
+                    />
+                  </svg>
+                  <img
+                    src="/shadow.png"
+                    alt=""
+                    className={`pixel-logo absolute inset-0 h-full w-full transition-transform duration-200 ${
+                      isButtonHovered ? "translate-x-1" : ""
+                    }`}
+                  />
+                  <img
+                    src="/bunny.png"
+                    alt=""
+                    className={`pixel-logo absolute inset-0 h-full w-full transition-transform duration-200 ${
+                      isButtonHovered ? "translate-x-1 -translate-y-0.5" : ""
+                    }`}
+                  />
+                  <img
+                    src="/runes.png"
+                    alt=""
+                    className={`pixel-logo absolute inset-0 h-full w-full ${
+                      isButtonHovered ? "rune-throb-intense" : "rune-throb"
+                    }`}
+                  />
+                  <img
+                    src="/bracket.png"
+                    alt="Runt"
+                    className="pixel-logo absolute inset-0 h-full w-full"
+                  />
+                </div>
+              </div>
+              <h1 className="text-foreground mb-8 text-4xl leading-tight font-semibold tracking-wide">
+                Chase the White Rabbit
+              </h1>
+              <p className="text-muted-foreground text-base font-normal">
+                Your Agentic Notebook Awaits
               </p>
             </div>
+            <LoginPrompt
+              error={loginError}
+              setError={setLoginError}
+              onButtonHover={setIsButtonHovered}
+            />
           </div>
         </div>
       )
