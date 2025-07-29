@@ -3,16 +3,13 @@ import { Button } from "../ui/button";
 import { Card } from "../ui/card";
 import {
   Shield,
-  ShieldAlert,
   ShieldCheck,
   FilePlus,
   Edit,
   Play,
-  Info,
   CheckCircle2,
   XCircle,
 } from "lucide-react";
-import { cn } from "@/lib/utils";
 
 interface AiToolApprovalOutputProps {
   toolCallId: string;
@@ -82,7 +79,7 @@ const getToolConfig = (toolName: string): ToolConfig => {
 };
 
 export const AiToolApprovalOutput: React.FC<AiToolApprovalOutputProps> = ({
-  toolCallId,
+  toolCallId: _toolCallId,
   toolName,
   onApprove,
 }) => {
