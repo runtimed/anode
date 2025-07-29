@@ -47,5 +47,5 @@ if [[ "$OSTYPE" == "darwin"* ]]; then
   fi
 else
   echo "Opening in normal mode"
-  open "$URL"
+  open "$URL" &
 fi
