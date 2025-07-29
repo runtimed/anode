@@ -4,10 +4,10 @@ import { PixelatedCircle } from "./PixelatedCircle";
 interface RuntLogoProps {
   /** Size classes for the logo container (e.g., "h-28 w-28") */
   size?: string;
-  /** Whether to show hover effects (bunny movement, rune intensity) */
-  showHoverEffects?: boolean;
-  /** External hover state (for coordinating with other elements) */
-  isHovered?: boolean;
+  /** Whether the logo is animated (bunny movement, rune intensity) */
+  animated?: boolean;
+  /** Whether the logo is in an energized state (excited bunny, intense runes) */
+  energized?: boolean;
   /** Additional container classes */
   className?: string;
   /** Animation class for the container (e.g., "animate-pulse") */
@@ -26,44 +26,39 @@ interface RuntLogoProps {
  */
 export const RuntLogo: React.FC<RuntLogoProps> = ({
   size = "h-24 w-24",
-  showHoverEffects = false,
-  isHovered = false,
+  animated = false,
+  energized = false,
   className = "",
   animation = "",
   filterId,
 }) => {
-  const [localHover, setLocalHover] = React.useState(false);
-  const hover = showHoverEffects && (isHovered || localHover);
+  const isAnimated = animated && energized;
 
   return (
-    <div
-      className={`relative ${size} ${animation} ${className}`}
-      onMouseEnter={() => showHoverEffects && setLocalHover(true)}
-      onMouseLeave={() => showHoverEffects && setLocalHover(false)}
-    >
+    <div className={`relative ${size} ${animation} ${className}`}>
       <PixelatedCircle className="absolute inset-0" filterId={filterId} />
 
       <img
         src="/shadow.png"
         alt=""
         className={`pixel-logo absolute inset-0 h-full w-full ${
-          showHoverEffects ? "transition-transform duration-200" : ""
-        } ${hover ? "translate-x-1" : ""}`}
+          animated ? "transition-transform duration-200" : ""
+        } ${isAnimated ? "translate-x-1" : ""}`}
       />
 
       <img
         src="/bunny.png"
         alt=""
         className={`pixel-logo absolute inset-0 h-full w-full ${
-          showHoverEffects ? "transition-transform duration-200" : ""
-        } ${hover ? "translate-x-1 -translate-y-0.5" : ""}`}
+          animated ? "transition-transform duration-200" : ""
+        } ${isAnimated ? "translate-x-1 -translate-y-0.5" : ""}`}
       />
 
       <img
         src="/runes.png"
         alt=""
         className={`pixel-logo absolute inset-0 h-full w-full ${
-          hover ? "rune-throb-intense" : "rune-throb"
+          isAnimated ? "rune-throb-intense" : "rune-throb"
         }`}
       />
 

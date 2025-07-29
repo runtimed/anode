@@ -101,8 +101,8 @@ export const AuthGuard: React.FC<AuthGuardProps> = ({ children, fallback }) => {
               <div className="mb-10 flex items-center justify-center">
                 <RuntLogo
                   size="h-28 w-28"
-                  showHoverEffects={true}
-                  isHovered={isButtonHovered}
+                  animated={true}
+                  energized={isButtonHovered}
                   className="transition-transform hover:scale-105"
                   filterId="pixelate-auth"
                 />
