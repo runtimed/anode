@@ -4,6 +4,10 @@ import { LiveStoreProvider } from "@livestore/react";
 
 import React, { useEffect, useState, useRef, Suspense } from "react";
 import { Routes, Route } from "react-router-dom";
+import {
+  updateLoadingStage,
+  removeStaticLoadingScreen,
+} from "./util/domUpdates.js";
 
 // Dynamic import for FPSMeter - development tool only
 const FPSMeter = React.lazy(() =>
@@ -82,6 +86,14 @@ const AnimatedLiveStoreApp: React.FC = () => {
   const [liveStoreReady, setLiveStoreReady] = useState(false);
   const [minimumTimeElapsed, setMinimumTimeElapsed] = useState(false);
   const [portalAnimationComplete, setPortalAnimationComplete] = useState(false);
+  const [portalReady, setPortalReady] = useState(false);
+
+  // Update static loading screen stage when LiveStore is ready
+  useEffect(() => {
+    if (liveStoreReady) {
+      updateLoadingStage("loading-notebook");
+    }
+  }, [liveStoreReady]);
 
   // Ensure minimum loading time (so users see the progressive loading)
   useEffect(() => {
@@ -95,11 +107,23 @@ const AnimatedLiveStoreApp: React.FC = () => {
   // Trigger animation when both LiveStore is ready AND minimum time elapsed
   useEffect(() => {
     if (liveStoreReady && minimumTimeElapsed && isLoading) {
-      setShowIncomingAnimation(true);
+      updateLoadingStage("ready");
+
+      // Small delay to let user see the final stage, then remove static screen
+      setTimeout(() => {
+        removeStaticLoadingScreen();
+        setShowIncomingAnimation(true);
+
+        // Give React component a moment to mount, then trigger animation
+        setTimeout(() => {
+          setPortalReady(true);
+        }, 100);
+      }, 300);
+
       // Wait for portal animation to complete (expansion + shrink to dot)
       setTimeout(() => {
         setPortalAnimationComplete(true);
-      }, 2200); // Time for full portal sequence
+      }, 2500); // Time for full portal sequence + removal delay
     }
   }, [liveStoreReady, minimumTimeElapsed, isLoading]);
 
@@ -118,7 +142,7 @@ const AnimatedLiveStoreApp: React.FC = () => {
       {isLoading && (
         <div className="fixed inset-0 z-50 overflow-hidden">
           <NotebookLoadingScreen
-            ready={liveStoreReady}
+            ready={portalReady}
             onPortalAnimationComplete={() => setPortalAnimationComplete(true)}
           />
         </div>

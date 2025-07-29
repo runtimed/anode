@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useAuth } from "./AuthProvider.js";
 import LoginPrompt from "./LoginPrompt.js";
+import { updateLoadingStage } from "../../util/domUpdates.js";
 
 interface AuthGuardProps {
   children: React.ReactNode;
@@ -16,6 +17,13 @@ export const AuthGuard: React.FC<AuthGuardProps> = ({ children, fallback }) => {
   const [authExpiredError, setAuthExpiredError] = useState<string | null>(null);
   const [loginError, setLoginError] = useState<string | null>(null);
 
+  // Update loading stage when auth check starts
+  useEffect(() => {
+    if (isLoading) {
+      updateLoadingStage("checking-auth");
+    }
+  }, [isLoading]);
+
   // Listen for authentication errors from LiveStore
   useEffect(() => {
     const handleMessage = (event: MessageEvent) => {
@@ -28,19 +36,9 @@ export const AuthGuard: React.FC<AuthGuardProps> = ({ children, fallback }) => {
     return () => window.removeEventListener("message", handleMessage);
   }, []);
 
-  // Show loading state while checking authentication
+  // Show transparent loading state - let static HTML loading screen handle UI
   if (isLoading) {
-    return (
-      <div className="bg-background flex min-h-screen items-center justify-center">
-        <div className="text-center">
-          <div className="mx-auto mb-4 h-8 w-8 animate-spin rounded-full border-4 border-gray-300 border-t-gray-600" />
-          <div className="text-foreground mb-2 text-lg font-semibold">
-            Checking Authentication
-          </div>
-          <div className="text-muted-foreground text-sm">Please wait...</div>
-        </div>
-      </div>
-    );
+    return null;
   }
 
   // Show error state if authentication failed or auth expired
