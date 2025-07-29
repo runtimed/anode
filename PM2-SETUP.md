@@ -21,12 +21,20 @@ This setup uses PM2 to manage your development processes and automatically watch
 
 ### Quick Start
 
+Install pm2 globally. Although it's possible to use `pm2` without installing, it's much more annoying. Running commands like `pm2 logs` or `pm2 delete all` are common workflows. If you don't want to use the global, you can do `pnpm exec pm2 <whatever>`.
+
+```bash
+pnpm add -g pm2
+# or with npm
+npm install -g pm2
+```
+
 ```bash
 # Start all processes
 pnpm dev:pm2
 
 # Or manually start with PM2
-pnpm exec pm2 start ecosystem.config.json
+pm2 start ecosystem.config.json
 
 # Use different port if needed
 ANODE_DEV_SERVER_PORT=5174 pnpm dev:pm2
@@ -36,25 +44,25 @@ ANODE_DEV_SERVER_PORT=5174 pnpm dev:pm2
 
 ```bash
 # View status of all processes
-pnpm exec pm2 status
+pm2 status
 
 # View logs
-pnpm exec pm2 logs
+pm2 logs
 
 # View logs for specific process
-pnpm exec pm2 logs web
-pnpm exec pm2 logs sync
-pnpm exec pm2 logs nb
-pnpm exec pm2 logs watcher
+pm2 logs web
+pm2 logs sync
+pm2 logs nb
+pm2 logs watcher
 
 # Restart all processes
-pnpm exec pm2 restart all
+pm2 restart all
 
 # Stop all processes
-pnpm exec pm2 stop all
+pm2 stop all
 
 # Delete all processes
-pnpm exec pm2 delete all
+pm2 delete all
 ```
 
 ### Process Names
@@ -125,8 +133,8 @@ ANODE_DEV_SERVER_PORT=5174 pnpm dev:pm2
 If the file watcher isn't working:
 
 1. Check if the file path exists: `ls -la ../runt/packages/schema/mod.ts`
-2. Check PM2 logs: `pnpm exec pm2 logs watcher`
-3. Restart the file watcher: `pnpm exec pm2 restart watcher`
+2. Check PM2 logs: `pm2 logs watcher`
+3. Restart the file watcher: `pm2 restart watcher`
 
 ### Manual Testing
 
@@ -149,7 +157,7 @@ This should trigger the update process and restart the development servers.
 
 ### `"cannot create file"` error in web browser console
 
-Fix: `pnpm exec pm2 restart all`
+Fix: `pm2 restart all`
 
 Not sure why this happens, but restarting
 
@@ -165,7 +173,7 @@ Something went wrong - this should never happen:
 Close the incognito tabs and run:
 
 ```bash
-pnpm exec pm2 stop all && pnpm exec pm2 delete all && pnpm dev:pm2
+pm2 stop all && pm2 delete all && pnpm dev:pm2
 ```
 
 ### Types not updating in VSCode
@@ -181,14 +189,14 @@ Make sure you only have an incognito window (or Chrome profile) with no other an
 Clicking the "+ Notebook" button the browser won't work well in development. You won't get a new notebook backend and running it manually means you won't get any benefits from PM2 orchestration. To create a new notebook, it's often easier to do this:
 
 ```bash
-pnpm exec pm2 restart all
+pm2 restart all
 ```
 
 ## Switching Between PM2 and Integrated Server
 
 ### From PM2 to Integrated Server
 
-1. **Stop PM2 processes**: `pnpm exec pm2 stop all && pnpm exec pm2 delete all`
+1. **Stop PM2 processes**: `pm2 stop all && pm2 delete all`
 2. **Start integrated server**: `pnpm dev`
 3. **Start runtime manually**: Get command from notebook UI, then run `NOTEBOOK_ID=your-id pnpm dev:runtime`
 
