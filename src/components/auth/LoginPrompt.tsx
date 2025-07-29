@@ -2,18 +2,45 @@ import React, { useEffect, useState } from "react";
 import { LogIn, ExternalLink } from "lucide-react";
 import { getOpenIdService, RedirectUrls } from "../../services/openid";
 
+// DEV MODE: Design testing states
+const DESIGN_TEST_MODE = {
+  enabled: false,
+  state: "normal" as "normal" | "loading" | "error",
+  errorMessage:
+    "Authentication service temporarily unavailable. Please try again.",
+};
+
 interface LoginPromptProps {
   error: string | null;
   setError: (error: string | null) => void;
+  onButtonHover?: (hovered: boolean) => void;
 }
 
-const LoginPrompt: React.FC<LoginPromptProps> = ({ error, setError }) => {
+const LoginPrompt: React.FC<LoginPromptProps> = ({
+  error,
+  setError,
+  onButtonHover,
+}) => {
   const openIdService = getOpenIdService();
   const [redirectUrls, setRedirectUrls] = useState<RedirectUrls | null>(null);
   const [action, setAction] = useState<"login" | "registration" | null>(null);
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
+    // Skip real auth service in design test mode
+    if (DESIGN_TEST_MODE.enabled) {
+      setRedirectUrls({
+        loginUrl: new URL("http://localhost:3000/login"),
+        registrationUrl: new URL("http://localhost:3000/register"),
+      });
+      if (DESIGN_TEST_MODE.state === "loading") {
+        setLoading(true);
+      } else if (DESIGN_TEST_MODE.state === "error") {
+        setError(DESIGN_TEST_MODE.errorMessage);
+      }
+      return;
+    }
+
     error; // Because the subscription dies on error,
     // we need to listen to when that value changes (e.g. on reset)
     // in order to re-subscribe. TL;DR this variable is needed
@@ -51,6 +78,13 @@ const LoginPrompt: React.FC<LoginPromptProps> = ({ error, setError }) => {
   }, [action, redirectUrls]);
 
   const handler = (action: "login" | "registration") => {
+    // In design test mode, just simulate loading
+    if (DESIGN_TEST_MODE.enabled) {
+      setLoading(true);
+      setTimeout(() => setLoading(false), 2000);
+      return;
+    }
+
     setAction(action);
     setLoading(true);
     if (error) {
@@ -67,52 +101,13 @@ const LoginPrompt: React.FC<LoginPromptProps> = ({ error, setError }) => {
 
   return (
     <div className="auth-wrapper mx-auto flex max-w-[400px] flex-col items-center space-y-8">
-      {/* Beautiful logo section */}
-      <div className="flex items-center justify-center">
-        <div className="relative h-16 w-16 transition-transform hover:scale-105">
-          <img
-            src="/hole.png"
-            alt=""
-            className="pixel-logo absolute inset-0 h-full w-full"
-          />
-          <img
-            src="/shadow.png"
-            alt=""
-            className="pixel-logo absolute inset-0 h-full w-full"
-          />
-          <img
-            src="/bunny.png"
-            alt=""
-            className="pixel-logo absolute inset-0 h-full w-full"
-          />
-          <img
-            src="/runes.png"
-            alt=""
-            className="pixel-logo rune-throb absolute inset-0 h-full w-full"
-          />
-          <img
-            src="/bracket.png"
-            alt="logo"
-            className="pixel-logo absolute inset-0 h-full w-full"
-          />
-        </div>
-      </div>
-
-      {/* Engaging description */}
-      <div className="space-y-3 text-center">
-        <p className="text-muted-foreground text-base leading-relaxed">
-          Code, collaborate, and create with AI agents at your side.
-        </p>
-        <p className="text-muted-foreground text-sm">
-          Sign in with Anaconda to sync your notebooks across devices.
-        </p>
-      </div>
-
       {/* Primary action button */}
       <div className="flex w-full justify-center">
         <button
-          className="group bg-primary hover:bg-primary/90 active:bg-primary/95 flex h-12 w-full max-w-[280px] cursor-pointer items-center justify-center gap-3 rounded-lg text-base font-semibold text-white transition-all duration-200 disabled:cursor-not-allowed disabled:opacity-50"
+          className="group flex h-12 w-full max-w-[280px] cursor-pointer items-center justify-center gap-3 rounded-lg bg-[rgb(8,202,74)] text-base font-semibold text-white transition-all duration-200 hover:bg-[rgb(7,180,66)] active:bg-[rgb(6,160,59)] disabled:cursor-not-allowed disabled:opacity-50"
           onClick={() => handler("login")}
+          onMouseEnter={() => onButtonHover?.(true)}
+          onMouseLeave={() => onButtonHover?.(false)}
           data-qa-id="sign-in-button"
           disabled={loading}
         >
@@ -120,7 +115,7 @@ const LoginPrompt: React.FC<LoginPromptProps> = ({ error, setError }) => {
             <div className="h-5 w-5 animate-spin rounded-full border-2 border-white/20 border-t-white" />
           ) : (
             <>
-              <span>Sign In</span>
+              <span>Sign In with Anaconda</span>
               <LogIn className="h-5 w-5 transition-transform group-hover:translate-x-0.5" />
             </>
           )}
@@ -135,10 +130,11 @@ const LoginPrompt: React.FC<LoginPromptProps> = ({ error, setError }) => {
       )}
 
       {/* Secondary action */}
-      <div className="flex flex-col items-center space-y-2 text-center">
-        <p className="text-muted-foreground text-sm">New to Runt?</p>
+      <div className="text-center">
         <button
           onClick={() => handler("registration")}
+          onMouseEnter={() => onButtonHover?.(true)}
+          onMouseLeave={() => onButtonHover?.(false)}
           className="text-primary hover:text-primary/80 group inline-flex cursor-pointer items-center gap-1.5 border-none bg-none text-base font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-50"
           data-qa-id="registration-button"
           disabled={loading}
