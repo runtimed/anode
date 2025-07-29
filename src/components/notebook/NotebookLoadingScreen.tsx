@@ -47,11 +47,8 @@ export const NotebookLoadingScreen: React.FC<NotebookLoadingScreenProps> = ({
     onRest: () => {
       if (startAnimation) {
         onPortalAnimationComplete?.();
-        // Small delay before final transition
-        setTimeout(() => {
-          setTransitioning(true);
-          onTransitionComplete?.();
-        }, 300);
+        setTransitioning(true);
+        onTransitionComplete?.();
       }
     },
   });
