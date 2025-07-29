@@ -1,10 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useAuth } from "./AuthProvider.js";
 import LoginPrompt from "./LoginPrompt.js";
-import {
-  updateLoadingStage,
-  removeStaticLoadingScreen,
-} from "../../util/domUpdates.js";
+import { updateLoadingStage } from "../../util/domUpdates.js";
 import { RuntLogo } from "../logo";
 
 // DEV MODE: Force login screen for design testing
@@ -45,12 +42,8 @@ export const AuthGuard: React.FC<AuthGuardProps> = ({ children, fallback }) => {
     return () => window.removeEventListener("message", handleMessage);
   }, []);
 
-  // Remove static loading screen when auth check completes
-  useEffect(() => {
-    if (!isLoading) {
-      removeStaticLoadingScreen();
-    }
-  }, [isLoading]);
+  // Don't remove static loading screen here - let AnimatedLiveStoreApp handle it
+  // to prevent white flicker between auth and notebook loading
 
   // Show transparent loading state - let static HTML loading screen handle UI
   if (isLoading) {
