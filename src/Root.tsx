@@ -46,15 +46,9 @@ import { getCurrentNotebookId, getStoreId } from "./util/store-id.js";
 import { useAuth } from "./components/auth/AuthProvider.js";
 import { ErrorBoundary } from "react-error-boundary";
 
-interface NotebookAppProps {
-  showIncomingAnimation?: boolean;
-  onAnimationComplete?: () => void;
-}
+interface NotebookAppProps {}
 
-const NotebookApp: React.FC<NotebookAppProps> = ({
-  showIncomingAnimation = false,
-  onAnimationComplete,
-}) => {
+const NotebookApp: React.FC<NotebookAppProps> = () => {
   // In the simplified architecture, we always show the current notebook
   // The notebook ID comes from the URL and is the same as the store ID
   const currentNotebookId = getCurrentNotebookId();
@@ -90,8 +84,6 @@ const NotebookApp: React.FC<NotebookAppProps> = ({
             notebookId={currentNotebookId}
             debugMode={debugMode}
             onDebugToggle={setDebugMode}
-            showIncomingAnimation={showIncomingAnimation}
-            onAnimationComplete={onAnimationComplete}
           />
         </Suspense>
       </ErrorBoundary>
@@ -102,8 +94,7 @@ const NotebookApp: React.FC<NotebookAppProps> = ({
 // Animation wrapper with minimum loading time and animation completion
 const AnimatedLiveStoreApp: React.FC = () => {
   const [isLoading, setIsLoading] = useState(true);
-  const [showIncomingAnimation, setShowIncomingAnimation] = useState(false);
-  const [animationComplete, setAnimationComplete] = useState(false);
+
   const [liveStoreReady, setLiveStoreReady] = useState(false);
   const [portalAnimationComplete, setPortalAnimationComplete] = useState(false);
   const [portalReady, setPortalReady] = useState(false);
@@ -125,7 +116,6 @@ const AnimatedLiveStoreApp: React.FC = () => {
         // Double RAF to ensure paint has completed
         requestAnimationFrame(() => {
           removeStaticLoadingScreen();
-          setShowIncomingAnimation(true);
           setPortalReady(true);
         });
       });
@@ -134,12 +124,10 @@ const AnimatedLiveStoreApp: React.FC = () => {
 
   // Complete transition only after portal animation finishes
   useEffect(() => {
-    if (portalAnimationComplete && showIncomingAnimation) {
+    if (portalAnimationComplete) {
       setIsLoading(false);
-      // Allow time for header animation to complete
-      setTimeout(() => setAnimationComplete(true), 500); // Reduced from 1500ms
     }
-  }, [portalAnimationComplete, showIncomingAnimation]);
+  }, [portalAnimationComplete]);
 
   return (
     <>
@@ -156,11 +144,7 @@ const AnimatedLiveStoreApp: React.FC = () => {
       )}
 
       {/* Main app with LiveStore integration */}
-      <LiveStoreApp
-        showIncomingAnimation={showIncomingAnimation && !animationComplete}
-        onAnimationComplete={() => setAnimationComplete(true)}
-        onLiveStoreReady={() => setLiveStoreReady(true)}
-      />
+      <LiveStoreApp onLiveStoreReady={() => setLiveStoreReady(true)} />
     </>
   );
 };
@@ -184,14 +168,8 @@ const LiveStoreReadyDetector: React.FC<{ onReady?: () => void }> = ({
 
 // LiveStore setup - moved inside AuthGuard to ensure auth happens first
 const LiveStoreApp: React.FC<{
-  showIncomingAnimation?: boolean;
-  onAnimationComplete?: () => void;
   onLiveStoreReady?: () => void;
-}> = ({
-  showIncomingAnimation = false,
-  onAnimationComplete,
-  onLiveStoreReady,
-}) => {
+}> = ({ onLiveStoreReady }) => {
   const storeId = getStoreId();
 
   // Check for reset parameter to handle schema evolution issues
@@ -239,10 +217,7 @@ const LiveStoreApp: React.FC<{
       syncPayload={{ authToken: accessToken, clientId }}
     >
       <LiveStoreReadyDetector onReady={onLiveStoreReady} />
-      <NotebookApp
-        showIncomingAnimation={showIncomingAnimation}
-        onAnimationComplete={onAnimationComplete}
-      />
+      <NotebookApp />
     </LiveStoreProvider>
   );
 };

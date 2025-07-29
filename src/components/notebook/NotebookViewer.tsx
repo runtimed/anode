@@ -1,7 +1,7 @@
 import { queryDb } from "@livestore/livestore";
 import { useQuery, useStore } from "@livestore/react";
 import { CellData, events, tables } from "@runt/schema";
-import React, { Suspense, useCallback, useState, useEffect } from "react";
+import React, { Suspense, useCallback } from "react";
 import { ErrorBoundary } from "react-error-boundary";
 
 import { NotebookTitle } from "./NotebookTitle.js";
@@ -37,15 +37,11 @@ interface NotebookViewerProps {
   notebookId: string;
   debugMode?: boolean;
   onDebugToggle?: (enabled: boolean) => void;
-  showIncomingAnimation?: boolean;
-  onAnimationComplete?: () => void;
 }
 
 export const NotebookViewer: React.FC<NotebookViewerProps> = ({
   debugMode = false,
   onDebugToggle,
-  showIncomingAnimation = false,
-  onAnimationComplete,
 }) => {
   const { store } = useStore();
   const {
@@ -53,21 +49,6 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
   } = useAuth();
   const { presentUsers, getUserInfo, getUserColor } = useUserRegistry();
   const { models } = useAvailableAiModels();
-
-  // Animation state for magical logo transition
-  const [animationComplete, setAnimationComplete] = useState(
-    !showIncomingAnimation
-  );
-
-  useEffect(() => {
-    if (showIncomingAnimation) {
-      const timer = setTimeout(() => {
-        setAnimationComplete(true);
-        onAnimationComplete?.();
-      }, 1200);
-      return () => clearTimeout(timer);
-    }
-  }, [showIncomingAnimation, onAnimationComplete]);
 
   const cells = useQuery(
     queryDb(tables.cells.select().orderBy("position", "asc"))
@@ -332,15 +313,7 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
               <img
                 src="/runes.png"
                 alt=""
-                className={`pixel-logo absolute inset-0 h-full w-full ${
-                  !animationComplete
-                    ? `transition-all duration-1200 ease-out ${
-                        showIncomingAnimation
-                          ? "translate-x-0 opacity-100"
-                          : "-translate-x-[220vw] opacity-0"
-                      }`
-                    : ""
-                }`}
+                className="pixel-logo absolute inset-0 h-full w-full"
               />
 
               <img
