@@ -62,6 +62,50 @@ export const NotebookLoadingScreen: React.FC<NotebookLoadingScreenProps> = ({
     delay: startAnimation ? 300 : 0,
   });
 
+  // Bunny flight animation
+  const bunnySpring = useSpring({
+    from: {
+      transform: "translateX(0vw) scale(1)",
+      opacity: 1,
+    },
+    to: {
+      transform: flyingOut
+        ? "translateX(200vw) scale(0.5)"
+        : "translateX(0vw) scale(1)",
+      opacity: flyingOut ? 0 : 1,
+    },
+    config: { duration: 800, easing: (t) => t },
+  });
+
+  // Shadow fade animation
+  const shadowSpring = useSpring({
+    from: { opacity: 1 },
+    to: { opacity: flyingOut ? 0 : 1 },
+    config: { duration: 600 },
+  });
+
+  // Runes flight animation
+  const runesSpring = useSpring({
+    from: {
+      transform: "translateX(0vw) scale(1)",
+      opacity: 1,
+    },
+    to: {
+      transform: flyingOut
+        ? "translateX(190vw) scale(0.75)"
+        : "translateX(0vw) scale(1)",
+      opacity: flyingOut ? 0 : 1,
+    },
+    config: { duration: 900, easing: (t) => t, delay: 50 },
+  });
+
+  // Loading text animation
+  const loadingTextSpring = useSpring({
+    from: { opacity: 1 },
+    to: { opacity: flyingOut ? 0 : 1 },
+    config: { duration: 500 },
+  });
+
   // Note: Removed body overflow:hidden to prevent scroll issues
   // The fixed positioning of the loading screen already prevents scrolling
 
@@ -141,20 +185,23 @@ export const NotebookLoadingScreen: React.FC<NotebookLoadingScreenProps> = ({
               />
             </animated.svg>
           </div>
-          <img
+          <animated.img
             src="/shadow.png"
             alt=""
-            className={`pixel-logo absolute inset-0 h-full w-full transition-opacity duration-600 ${flyingOut ? "opacity-0" : ""}`}
+            className="pixel-logo absolute inset-0 h-full w-full"
+            style={shadowSpring}
           />
-          <img
+          <animated.img
             src="/bunny.png"
             alt=""
-            className={`pixel-logo absolute inset-0 h-full w-full transition-all duration-1000 ${flyingOut ? "translate-x-[200vw] scale-50 opacity-0" : ""}`}
+            className="pixel-logo absolute inset-0 h-full w-full"
+            style={bunnySpring}
           />
-          <img
+          <animated.img
             src="/runes.png"
             alt=""
-            className={`pixel-logo rune-throb absolute inset-0 h-full w-full transition-all duration-1200 ${flyingOut ? "translate-x-[220vw] scale-75 opacity-0" : ""}`}
+            className="pixel-logo rune-throb absolute inset-0 h-full w-full"
+            style={runesSpring}
           />
           <animated.img
             src="/bracket.png"
@@ -165,9 +212,10 @@ export const NotebookLoadingScreen: React.FC<NotebookLoadingScreenProps> = ({
         </animated.div>
 
         {/* Loading text */}
-        <div
-          className={`mb-2 text-xl font-black text-white transition-opacity duration-500 sm:text-2xl ${flyingOut ? "opacity-0" : ""}`}
+        <animated.div
+          className="mb-2 text-xl font-black text-white sm:text-2xl"
           style={{
+            ...loadingTextSpring,
             textShadow:
               "2px 2px 0 #000, -2px -2px 0 #000, 2px -2px 0 #000, -2px 2px 0 #000, 0 2px 0 #000, 2px 0 0 #000, 0 -2px 0 #000, -2px 0 0 #000, 1px 1px 0 #000, -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 0 1px 0 #000, 1px 0 0 #000, 0 -1px 0 #000, -1px 0 0 #000",
             position: "relative",
@@ -175,7 +223,7 @@ export const NotebookLoadingScreen: React.FC<NotebookLoadingScreenProps> = ({
           }}
         >
           Loading Notebook
-        </div>
+        </animated.div>
 
         {/* Stage indicator - only show if provided and meaningful */}
         {stage && stage !== "loading" && !flyingOut && (
