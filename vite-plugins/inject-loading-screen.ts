@@ -122,6 +122,10 @@ export function injectLoadingScreen(): Plugin {
               padding: 0;
               overflow: hidden;
             }
+            /* Remove overflow hidden after React app loads */
+            body.app-loaded {
+              overflow: auto !important;
+            }
             /* Import existing pixel-logo and rune-throb styles */
             .pixel-logo {
               image-rendering: pixelated;
@@ -169,6 +173,38 @@ export function injectLoadingScreen(): Plugin {
 
         // Add loading screen immediately after body opens
         modifiedHtml = modifiedHtml.replace("<body>", `<body>${loadingHTML}`);
+
+        // Add script to reset body overflow when app loads
+        const cleanupScript = `
+          <script>
+            // Reset body overflow when React app takes over
+            window.addEventListener('DOMContentLoaded', function() {
+              // Watch for when the loading screen is removed
+              const observer = new MutationObserver(function(mutations) {
+                const loadingScreen = document.getElementById('static-loading-screen');
+                if (!loadingScreen || loadingScreen.style.display === 'none') {
+                  document.body.style.overflow = '';
+                  document.body.classList.add('app-loaded');
+                  observer.disconnect();
+                }
+              });
+
+              observer.observe(document.body, { childList: true, subtree: true });
+
+              // Fallback: ensure overflow is reset after 5 seconds
+              setTimeout(function() {
+                document.body.style.overflow = '';
+                document.body.classList.add('app-loaded');
+              }, 5000);
+            });
+          </script>
+        `;
+
+        // Add cleanup script before closing body tag
+        modifiedHtml = modifiedHtml.replace(
+          "</body>",
+          `${cleanupScript}</body>`
+        );
 
         return modifiedHtml;
       },

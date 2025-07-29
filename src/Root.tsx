@@ -125,6 +125,20 @@ const AnimatedLiveStoreApp: React.FC = () => {
     }
   }, [portalAnimationComplete, showIncomingAnimation]);
 
+  // Ensure body overflow is reset when app loads
+  useEffect(() => {
+    // Reset overflow in case it was left from previous sessions
+    if (!isLoading) {
+      document.body.style.overflow = "";
+      document.body.classList.add("app-loaded");
+    }
+
+    // Always reset on unmount to prevent stuck state
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [isLoading]);
+
   return (
     <>
       {/* Loading screen overlay - fixed position to prevent layout shift */}
