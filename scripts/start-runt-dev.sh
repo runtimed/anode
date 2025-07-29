@@ -4,6 +4,8 @@
 DEV_PORT=${ANODE_DEV_SERVER_PORT:-5173}
 export ANODE_DEV_SERVER_PORT=$DEV_PORT
 
+# export VITE_RUNTIME_COMMAND="deno run --allow-all --unstable-broadcast-channel --env-file=../anode/.env ../runt/packages/pyodide-runtime-agent/src/mod.ts"
+
 # Use runt local
 echo "🔄 Using runt local..."
 pnpm use-runt local
@@ -18,13 +20,15 @@ echo "✅ All processes started!"
 echo ""
 echo "📊 PM2 Status:"
 pnpm exec pm2 status
-echo ""
-echo "🌐 Web server: http://localhost:$DEV_PORT (includes backend + frontend)"
-echo ""
+
+./scripts/start-nb.sh
+
+echo "🚀 Started runtime!"
+
 echo "Make sure to install pm2 globally: pnpm install -g pm2"
 echo "📝 To view logs: pm2 logs"
 echo "🛑 To stop all: pm2 stop all"
 echo "🔄 To restart all: pm2 restart all"
 echo "👀 To monitor: pm2 monit"
 
-./scripts/start-nb.sh
+exit 0
