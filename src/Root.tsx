@@ -3,7 +3,16 @@ import LiveStoreSharedWorker from "@livestore/adapter-web/shared-worker?sharedwo
 import { LiveStoreProvider } from "@livestore/react";
 
 import React, { useEffect, useState, useRef, Suspense } from "react";
+import {
+  LoadingState,
+  MinimalLoading,
+} from "./components/loading/LoadingState.js";
 import { Routes, Route } from "react-router-dom";
+import {
+  updateLoadingStage,
+  removeStaticLoadingScreen,
+  isLoadingScreenVisible,
+} from "./util/domUpdates.js";
 
 // Dynamic import for FPSMeter - development tool only
 const FPSMeter = React.lazy(() =>
@@ -13,10 +22,22 @@ const FPSMeter = React.lazy(() =>
 );
 import { unstable_batchedUpdates as batchUpdates } from "react-dom";
 
-import { NotebookViewer } from "./components/notebook/NotebookViewer.js";
-import { NotebookLoadingScreen } from "./components/notebook/NotebookLoadingScreen.js";
+// Lazy load notebook components
+const NotebookViewer = React.lazy(() =>
+  import("./components/notebook/NotebookViewer.js").then((m) => ({
+    default: m.NotebookViewer,
+  }))
+);
+const NotebookLoadingScreen = React.lazy(() =>
+  import("./components/notebook/NotebookLoadingScreen.js").then((m) => ({
+    default: m.NotebookLoadingScreen,
+  }))
+);
 import { AuthGuard } from "./components/auth/AuthGuard.js";
-import AuthRedirect from "./components/auth/AuthRedirect.js";
+// Lazy load route components
+const AuthRedirect = React.lazy(
+  () => import("./components/auth/AuthRedirect.js")
+);
 import { AuthProvider } from "./components/auth/AuthProvider.js";
 
 import LiveStoreWorker from "./livestore.worker?worker";
@@ -25,15 +46,9 @@ import { getCurrentNotebookId, getStoreId } from "./util/store-id.js";
 import { useAuth } from "./components/auth/AuthProvider.js";
 import { ErrorBoundary } from "react-error-boundary";
 
-interface NotebookAppProps {
-  showIncomingAnimation?: boolean;
-  onAnimationComplete?: () => void;
-}
+interface NotebookAppProps {}
 
-const NotebookApp: React.FC<NotebookAppProps> = ({
-  showIncomingAnimation = false,
-  onAnimationComplete,
-}) => {
+const NotebookApp: React.FC<NotebookAppProps> = () => {
   // In the simplified architecture, we always show the current notebook
   // The notebook ID comes from the URL and is the same as the store ID
   const currentNotebookId = getCurrentNotebookId();
@@ -55,20 +70,22 @@ const NotebookApp: React.FC<NotebookAppProps> = ({
             zIndex: 50,
           }}
         >
-          <Suspense fallback={<div>Loading FPS meter...</div>}>
+          <Suspense
+            fallback={<MinimalLoading message="Loading FPS meter..." />}
+          >
             <FPSMeter height={40} />
           </Suspense>
         </div>
       )}
       {/* Main Content */}
       <ErrorBoundary fallback={<div>Error loading notebook</div>}>
-        <NotebookViewer
-          notebookId={currentNotebookId}
-          debugMode={debugMode}
-          onDebugToggle={setDebugMode}
-          showIncomingAnimation={showIncomingAnimation}
-          onAnimationComplete={onAnimationComplete}
-        />
+        <Suspense fallback={<div className="min-h-screen bg-white" />}>
+          <NotebookViewer
+            notebookId={currentNotebookId}
+            debugMode={debugMode}
+            onDebugToggle={setDebugMode}
+          />
+        </Suspense>
       </ErrorBoundary>
     </div>
   );
@@ -77,59 +94,57 @@ const NotebookApp: React.FC<NotebookAppProps> = ({
 // Animation wrapper with minimum loading time and animation completion
 const AnimatedLiveStoreApp: React.FC = () => {
   const [isLoading, setIsLoading] = useState(true);
-  const [showIncomingAnimation, setShowIncomingAnimation] = useState(false);
-  const [animationComplete, setAnimationComplete] = useState(false);
+
   const [liveStoreReady, setLiveStoreReady] = useState(false);
-  const [minimumTimeElapsed, setMinimumTimeElapsed] = useState(false);
   const [portalAnimationComplete, setPortalAnimationComplete] = useState(false);
+  const [portalReady, setPortalReady] = useState(false);
 
-  // Ensure minimum loading time (so users see the progressive loading)
+  // Update static loading screen stage when LiveStore is ready
   useEffect(() => {
-    const minimumLoadingTimer = setTimeout(() => {
-      setMinimumTimeElapsed(true);
-    }, 2500); // Minimum 2.5 seconds to appreciate the loading
-
-    return () => clearTimeout(minimumLoadingTimer);
-  }, []);
-
-  // Trigger animation when both LiveStore is ready AND minimum time elapsed
-  useEffect(() => {
-    if (liveStoreReady && minimumTimeElapsed && isLoading) {
-      setShowIncomingAnimation(true);
-      // Wait for portal animation to complete (expansion + shrink to dot)
-      setTimeout(() => {
-        setPortalAnimationComplete(true);
-      }, 2200); // Time for full portal sequence
+    if (liveStoreReady) {
+      updateLoadingStage("loading-notebook");
     }
-  }, [liveStoreReady, minimumTimeElapsed, isLoading]);
+  }, [liveStoreReady]);
+
+  // Trigger animation when LiveStore is ready
+  useEffect(() => {
+    if (liveStoreReady && isLoading) {
+      updateLoadingStage("ready");
+
+      // Ensure React has painted before removing static screen
+      requestAnimationFrame(() => {
+        // Double RAF to ensure paint has completed
+        requestAnimationFrame(() => {
+          removeStaticLoadingScreen();
+          setPortalReady(true);
+        });
+      });
+    }
+  }, [liveStoreReady, isLoading]);
 
   // Complete transition only after portal animation finishes
   useEffect(() => {
-    if (portalAnimationComplete && showIncomingAnimation) {
+    if (portalAnimationComplete) {
       setIsLoading(false);
-      // Allow time for header animation to complete
-      setTimeout(() => setAnimationComplete(true), 1500);
     }
-  }, [portalAnimationComplete, showIncomingAnimation]);
+  }, [portalAnimationComplete]);
 
   return (
     <>
       {/* Loading screen overlay - fixed position to prevent layout shift */}
       {isLoading && (
         <div className="fixed inset-0 z-50 overflow-hidden">
-          <NotebookLoadingScreen
-            ready={liveStoreReady}
-            onPortalAnimationComplete={() => setPortalAnimationComplete(true)}
-          />
+          <Suspense fallback={<div className="min-h-screen bg-white" />}>
+            <NotebookLoadingScreen
+              ready={portalReady}
+              onPortalAnimationComplete={() => setPortalAnimationComplete(true)}
+            />
+          </Suspense>
         </div>
       )}
 
       {/* Main app with LiveStore integration */}
-      <LiveStoreApp
-        showIncomingAnimation={showIncomingAnimation && !animationComplete}
-        onAnimationComplete={() => setAnimationComplete(true)}
-        onLiveStoreReady={() => setLiveStoreReady(true)}
-      />
+      <LiveStoreApp onLiveStoreReady={() => setLiveStoreReady(true)} />
     </>
   );
 };
@@ -153,14 +168,8 @@ const LiveStoreReadyDetector: React.FC<{ onReady?: () => void }> = ({
 
 // LiveStore setup - moved inside AuthGuard to ensure auth happens first
 const LiveStoreApp: React.FC<{
-  showIncomingAnimation?: boolean;
-  onAnimationComplete?: () => void;
   onLiveStoreReady?: () => void;
-}> = ({
-  showIncomingAnimation = false,
-  onAnimationComplete,
-  onLiveStoreReady,
-}) => {
+}> = ({ onLiveStoreReady }) => {
   const storeId = getStoreId();
 
   // Check for reset parameter to handle schema evolution issues
@@ -208,10 +217,7 @@ const LiveStoreApp: React.FC<{
       syncPayload={{ authToken: accessToken, clientId }}
     >
       <LiveStoreReadyDetector onReady={onLiveStoreReady} />
-      <NotebookApp
-        showIncomingAnimation={showIncomingAnimation}
-        onAnimationComplete={onAnimationComplete}
-      />
+      <NotebookApp />
     </LiveStoreProvider>
   );
 };
@@ -257,10 +263,54 @@ if (typeof Worker !== "undefined") {
 }
 
 export const App: React.FC = () => {
+  // Safety net: Auto-remove loading screen if no component has handled it
+  useEffect(() => {
+    const checkInterval = setInterval(() => {
+      if (isLoadingScreenVisible()) {
+        // Check if React has rendered content
+        const rootElement = document.getElementById("root");
+        const hasContent = rootElement && rootElement.children.length > 0;
+
+        if (hasContent) {
+          console.warn("Loading screen auto-removed by safety net");
+          removeStaticLoadingScreen();
+          clearInterval(checkInterval);
+        }
+      } else {
+        clearInterval(checkInterval);
+      }
+    }, 100);
+
+    // Absolute fallback after 5 seconds
+    const fallbackTimeout = setTimeout(() => {
+      if (isLoadingScreenVisible()) {
+        console.warn("Loading screen force-removed after timeout");
+        removeStaticLoadingScreen();
+      }
+      clearInterval(checkInterval);
+    }, 5000);
+
+    return () => {
+      clearInterval(checkInterval);
+      clearTimeout(fallbackTimeout);
+    };
+  }, []);
+
   return (
     <AuthProvider>
       <Routes>
-        <Route path="/oidc" element={<AuthRedirect />} />
+        <Route
+          path="/oidc"
+          element={
+            <Suspense
+              fallback={
+                <LoadingState variant="fullscreen" message="Redirecting..." />
+              }
+            >
+              <AuthRedirect />
+            </Suspense>
+          }
+        />
         <Route
           path="/*"
           element={

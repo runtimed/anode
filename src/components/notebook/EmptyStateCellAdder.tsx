@@ -16,7 +16,8 @@ export const EmptyStateCellAdder: React.FC<EmptyStateCellAdderProps> = ({
   return (
     <div className="px-4 pt-6 pb-6 text-center sm:px-0 sm:pt-12">
       <div className="text-muted-foreground mb-6">
-        Welcome to your notebook! Choose a cell type to get started.
+        Real-time collaborative computing. Pick a cell type to start
+        experimenting.
       </div>
       <div className="mb-4 flex flex-wrap justify-center gap-2">
         <Button

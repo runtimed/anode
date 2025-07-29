@@ -2,18 +2,45 @@ import React, { useEffect, useState } from "react";
 import { LogIn, ExternalLink } from "lucide-react";
 import { getOpenIdService, RedirectUrls } from "../../services/openid";
 
+// DEV MODE: Design testing states
+const DESIGN_TEST_MODE = {
+  enabled: false,
+  state: "normal" as "normal" | "loading" | "error",
+  errorMessage:
+    "Authentication service temporarily unavailable. Please try again.",
+};
+
 interface LoginPromptProps {
   error: string | null;
   setError: (error: string | null) => void;
+  onButtonHover?: (hovered: boolean) => void;
 }
 
-const LoginPrompt: React.FC<LoginPromptProps> = ({ error, setError }) => {
+const LoginPrompt: React.FC<LoginPromptProps> = ({
+  error,
+  setError,
+  onButtonHover,
+}) => {
   const openIdService = getOpenIdService();
   const [redirectUrls, setRedirectUrls] = useState<RedirectUrls | null>(null);
   const [action, setAction] = useState<"login" | "registration" | null>(null);
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
+    // Skip real auth service in design test mode
+    if (DESIGN_TEST_MODE.enabled) {
+      setRedirectUrls({
+        loginUrl: new URL("http://localhost:3000/login"),
+        registrationUrl: new URL("http://localhost:3000/register"),
+      });
+      if (DESIGN_TEST_MODE.state === "loading") {
+        setLoading(true);
+      } else if (DESIGN_TEST_MODE.state === "error") {
+        setError(DESIGN_TEST_MODE.errorMessage);
+      }
+      return;
+    }
+
     error; // Because the subscription dies on error,
     // we need to listen to when that value changes (e.g. on reset)
     // in order to re-subscribe. TL;DR this variable is needed
@@ -51,6 +78,13 @@ const LoginPrompt: React.FC<LoginPromptProps> = ({ error, setError }) => {
   }, [action, redirectUrls]);
 
   const handler = (action: "login" | "registration") => {
+    // In design test mode, just simulate loading
+    if (DESIGN_TEST_MODE.enabled) {
+      setLoading(true);
+      setTimeout(() => setLoading(false), 2000);
+      return;
+    }
+
     setAction(action);
     setLoading(true);
     if (error) {
@@ -66,70 +100,47 @@ const LoginPrompt: React.FC<LoginPromptProps> = ({ error, setError }) => {
   };
 
   return (
-    <div className="auth-wrapper mx-auto flex max-w-[400px] flex-col items-center">
-      <div className="heading mt-8 flex items-center gap-2">
-        <div className="anaconda-logo relative h-[40px] w-[40px]">
-          <img
-            src="/hole.png"
-            alt=""
-            className="pixel-logo absolute inset-0 h-full w-full"
-          />
-          <img
-            src="/shadow.png"
-            alt=""
-            className="pixel-logo absolute inset-0 h-full w-full"
-          />
-          <img
-            src="/bunny.png"
-            alt=""
-            className="pixel-logo absolute inset-0 h-full w-full"
-          />
-          <img
-            src="/runes.png"
-            alt=""
-            className="pixel-logo absolute inset-0 h-full w-full"
-          />
-          <img
-            src="/bracket.png"
-            alt="logo"
-            className="pixel-logo absolute inset-0 h-full w-full"
-          />
-        </div>
-        <div className="app-name text-primary text-2xl font-medium">Runt</div>
-      </div>
-      <div className="mt-8 flex w-full justify-center">
+    <div className="auth-wrapper mx-auto flex max-w-[400px] flex-col items-center space-y-8">
+      {/* Primary action button */}
+      <div className="flex w-full justify-center">
         <button
-          className="sign-in-button bg-primary flex h-14 w-[218px] cursor-pointer items-center justify-center gap-3 rounded-md text-lg font-semibold text-white"
+          className="group flex h-12 w-full max-w-[280px] cursor-pointer items-center justify-center gap-3 rounded-lg bg-[rgb(8,202,74)] text-base font-semibold text-white transition-all duration-200 hover:bg-[rgb(7,180,66)] active:bg-[rgb(6,160,59)] disabled:cursor-not-allowed disabled:opacity-50"
           onClick={() => handler("login")}
+          onMouseEnter={() => onButtonHover?.(true)}
+          onMouseLeave={() => onButtonHover?.(false)}
           data-qa-id="sign-in-button"
           disabled={loading}
         >
-          <span className="mr-2">Sign In</span>
-          <LogIn className="h-5 w-5" />
+          {loading ? (
+            <div className="h-5 w-5 animate-spin rounded-full border-2 border-white/20 border-t-white" />
+          ) : (
+            <>
+              <span>Sign In with Anaconda</span>
+              <LogIn className="h-5 w-5 transition-transform group-hover:translate-x-0.5" />
+            </>
+          )}
         </button>
       </div>
+
+      {/* Error message */}
       {error && (
-        <div className="mt-4 w-full text-center">
-          <p className="text-sm text-red-500">{error}</p>
+        <div className="w-full rounded-md bg-red-50 p-3 text-center">
+          <p className="text-sm text-red-700">{error}</p>
         </div>
       )}
-      <div className="text-muted-foreground mt-8 w-full text-center text-xs">
-        <p>
-          Iterate and collaborate with people and runtime agents.
-          <br />
-          Sign in with Anaconda to sync your work across devices.
-        </p>
-      </div>
-      <div className="cta mt-5 w-full text-center">
-        Don&apos;t have an account?
+
+      {/* Secondary action */}
+      <div className="text-center">
         <button
           onClick={() => handler("registration")}
-          className="text-primary ml-2 inline-flex cursor-pointer items-center gap-1 border-none bg-none text-base font-medium underline"
+          onMouseEnter={() => onButtonHover?.(true)}
+          onMouseLeave={() => onButtonHover?.(false)}
+          className="text-primary hover:text-primary/80 group inline-flex cursor-pointer items-center gap-1.5 border-none bg-none text-base font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-50"
           data-qa-id="registration-button"
           disabled={loading}
         >
-          Get Started
-          <ExternalLink className="relative -bottom-[2px] ml-[2px] h-4 w-4 scale-90" />
+          <span>Create your account</span>
+          <ExternalLink className="h-4 w-4 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
         </button>
       </div>
     </div>

@@ -6,7 +6,7 @@ export { AnsiOutput, AnsiStreamOutput } from "./AnsiOutput.js";
 export { HtmlOutput } from "./HtmlOutput.js";
 export { ImageOutput } from "./ImageOutput.js";
 export { JsonOutput } from "./JsonOutput.js";
-export { MarkdownRenderer } from "./MarkdownRenderer.js";
+
 export { PlainTextOutput } from "./PlainTextOutput.js";
 export { RichOutput } from "./RichOutput.js";
 export { SvgOutput } from "./SvgOutput.js";

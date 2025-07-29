@@ -406,6 +406,26 @@
   animation: rune-throb 2s ease-in-out infinite alternate;
 }
 
+/* Intense rune throb for hover states */
+@keyframes rune-throb-intense {
+  0% {
+    opacity: 0.85;
+    filter: brightness(1.05) saturate(1.1);
+  }
+  50% {
+    opacity: 1;
+    filter: brightness(1.2) saturate(1.3) drop-shadow(0 0 5px rgba(147, 51, 234, 0.5));
+  }
+  100% {
+    opacity: 0.92;
+    filter: brightness(1.1) saturate(1.2) drop-shadow(0 0 3px rgba(147, 51, 234, 0.3));
+  }
+}
+
+.rune-throb-intense {
+  animation: rune-throb-intense 1.5s ease-in-out infinite alternate;
+}
+
 /* Magical logo transition animations */
 .logo-transition-container {
   transition-property: transform, opacity, filter;
