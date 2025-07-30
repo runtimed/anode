@@ -295,3 +295,51 @@ If the development server crashes:
 - **Local Development**: http://localhost:5173
 
 The unified architecture serves both frontend and backend from a single URL, simplifying deployment and eliminating CORS issues.
+
+## Iframe Outputs Service
+
+Anode uses a separate domain (`runtusercontent.com`) to securely render user-generated HTML and SVG content in iframes. This provides security isolation from the main application domain.
+
+### Deploy Iframe Outputs
+
+The iframe outputs service is a simple Cloudflare Worker that serves the iframe content handler with appropriate security headers.
+
+**Quick deployment:**
+
+```bash
+# Deploy to production (runtusercontent.com)
+./scripts/deploy-iframe-outputs.sh production
+
+# Deploy to preview (preview.runtusercontent.com)
+./scripts/deploy-iframe-outputs.sh preview
+
+# Deploy to staging (staging.runtusercontent.com)
+./scripts/deploy-iframe-outputs.sh staging
+```
+
+**Manual deployment:**
+
+```bash
+cd iframe-outputs
+pnpm deploy:production  # or deploy:preview, deploy:staging
+```
+
+### Iframe Service URLs
+
+- **Production**: https://runtusercontent.com
+- **Preview**: https://preview.runtusercontent.com
+- **Staging**: https://staging.runtusercontent.com
+- **Local Development**: http://localhost:8000
+
+### Environment Configuration
+
+The main application must have `VITE_IFRAME_OUTPUT_URI` set to the appropriate iframe service URL:
+
+- In `wrangler.toml` for the main worker environments
+- In `.env` files for local development
+
+This is already configured in the provided `wrangler.toml` for production and preview environments.
+
+### DNS Setup
+
+Ensure DNS for `runtusercontent.com` and its subdomains are configured in Cloudflare to point to the deployed workers.

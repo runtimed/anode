@@ -42,7 +42,9 @@ export function determineAuthType(
   try {
     decodeJwt(payload.authToken);
     return "access_token";
-  } catch {}
+  } catch {
+    // Not a valid JWT, try auth token
+  }
   const allowAuthToken =
     env.AUTH_TOKEN && (payload.runtime || env.DEPLOYMENT_ENV !== "production");
   if (!allowAuthToken) {
@@ -85,7 +87,7 @@ async function validateHardcodedAuthToken(
     await jwtVerify(jwt, expectedSecret, {
       algorithms: ["HS256"],
     });
-  } catch (error) {
+  } catch {
     // This should work because we're just verifying the JWT we just created, with the same secret
     throw new Error(
       "INVALID_AUTH_TOKEN: Unexpected error validating the AUTH_TOKEN"
@@ -96,7 +98,7 @@ async function validateHardcodedAuthToken(
     await jwtVerify(jwt, actualSecret, {
       algorithms: ["HS256"],
     });
-  } catch (error) {
+  } catch {
     throw new Error("INVALID_AUTH_TOKEN: Authentication failed");
   }
 

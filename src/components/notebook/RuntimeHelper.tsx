@@ -24,7 +24,7 @@ export const RuntimeHelper: React.FC<RuntimeHelperProps> = ({
   const {
     user: { sub: userId },
   } = useAuth();
-  const { activeRuntime, hasActiveRuntime, runningExecutions } =
+  const { activeRuntime, hasActiveRuntime, runningExecutions, runtimeHealth } =
     useRuntimeHealth();
 
   const currentNotebookId = getCurrentNotebookId();
@@ -49,7 +49,8 @@ export const RuntimeHelper: React.FC<RuntimeHelperProps> = ({
     }
   }, [runningExecutions, store, userId]);
 
-  if (!showRuntimeHelper) return null;
+  // Open panel by default when runtime not healthy
+  if (!showRuntimeHelper && runtimeHealth === "healthy") return null;
 
   return (
     <div className="bg-card border-t">

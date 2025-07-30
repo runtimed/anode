@@ -274,7 +274,7 @@ export default {
             }
           );
         }
-      } catch (parseError) {
+      } catch {
         return new Response(
           JSON.stringify({
             error: "INVALID_REQUEST",
