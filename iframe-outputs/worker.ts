@@ -13,7 +13,7 @@ export default {
   async fetch(
     request: Request,
     env: Env,
-    ctx: ExecutionContext
+    _ctx: ExecutionContext
   ): Promise<Response> {
     if (!env.ASSETS) {
       throw new Error("ASSETS binding not configured");

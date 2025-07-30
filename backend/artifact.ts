@@ -47,7 +47,7 @@ export default {
       }
       try {
         await validateAuthPayload({ authToken }, env);
-      } catch (error) {
+      } catch {
         return new Response(
           JSON.stringify({
             error: "Unauthorized",
