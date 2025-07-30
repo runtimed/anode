@@ -14,10 +14,6 @@ URL="http://localhost:$DEV_PORT/?notebook=$NOTEBOOK_ID"
 echo "ANODE_OPEN_INCOGNITO: $ANODE_OPEN_INCOGNITO"
 
 RUNTIME_CMD="NOTEBOOK_ID=${NOTEBOOK_ID} ${VITE_RUNTIME_COMMAND}"
-echo "Starting runtime in background..."
-echo ""
-echo "$RUNTIME_CMD"
-echo ""
 
 echo ""
 echo "=============================================="
