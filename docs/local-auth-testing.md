@@ -83,9 +83,11 @@ The production OIDC issuer must have `http://localhost:5173` configured in:
 If you cannot configure production OAuth locally:
 
 ```bash
-# In .env.local
+# In .env.local (any string will do)
 VITE_AUTH_TOKEN="local-dev-token"
 ```
+
+Make sure to remove or comment out `VITE_AUTH_URI` and `VITE_AUTH_CLIENT_ID`.
 
 This bypasses OIDC auth entirely but will not allow you to test session management improvements.
 

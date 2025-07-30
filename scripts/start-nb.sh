@@ -7,7 +7,12 @@ fi
 # 🚨 IMPORTANT: We're overriding the runtime command here to avoid it breaking by accident
 export VITE_RUNTIME_COMMAND="deno run --allow-all --unstable-broadcast-channel --env-file=../anode/.env ../runt/packages/pyodide-runtime-agent/src/mod.ts"
 export DEV_PORT=${ANODE_DEV_SERVER_PORT:-5173}
-export NOTEBOOK_ID=$(date +%s)-$(openssl rand -hex 4)
+
+
+# If NOTEBOOK_ID is not set, generate a random one
+if [ -z "$NOTEBOOK_ID" ]; then
+  export NOTEBOOK_ID=$(date +%s)-$(openssl rand -hex 4)
+fi
 
 URL="http://localhost:$DEV_PORT/?notebook=$NOTEBOOK_ID"
 

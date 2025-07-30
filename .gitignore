@@ -18,6 +18,10 @@ node_modules/
 test-results/
 html/
 
+# Playwright
+playwright-report/
+playwright/.cache/
+
 # Production
 /build/
 /dist/
