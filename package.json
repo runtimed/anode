@@ -11,7 +11,6 @@
     "dev:pm2": "./scripts/start-dev.sh && pnpm exec pm2 logs",
     "dev": "pnpm dev:web",
     "dev:web": "vite",
-    "dev:iframe-outputs": "./scripts/start-iframe-output.sh",
     "dev:scan": "pnpm run dev & npx react-scan@latest localhost:5173",
     "dev:auth": "vite --mode auth",
     "dev:sync": "wrangler dev",
