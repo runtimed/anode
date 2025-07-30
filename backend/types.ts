@@ -23,4 +23,9 @@ export type Env = {
 
   // Hidden bits from LiveStore (?!)
   ADMIN_SECRET: string;
+
+  // SpiceDB configuration
+  SPICEDB_ENDPOINT?: string;
+  SPICEDB_TOKEN?: string;
+  SPICEDB_INSECURE?: string;
 };

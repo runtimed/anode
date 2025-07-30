@@ -1,6 +1,7 @@
 import syncWorker, { WebSocketServer } from "./sync.ts";
 
 import artifactWorker from "./artifact.ts";
+import notebooksWorker from "./notebooks.ts";
 
 // The preview worker needs to re-export the Durable Object class
 // so the Workers runtime can find and instantiate it.
@@ -43,9 +44,17 @@ export default {
     console.log("🎯 Route decision:", {
       isApiRequest,
       isArtifactPath: url.pathname.startsWith("/api/artifacts"),
+      isNotebooksPath: url.pathname.startsWith("/api/notebooks"),
     });
 
     if (isApiRequest) {
+      // Route to notebooks API
+      if (url.pathname.startsWith("/api/notebooks")) {
+        console.log("📓 Routing to notebooks worker");
+        return notebooksWorker.fetch(request, env, ctx);
+      }
+
+      // Route to artifacts API
       if (url.pathname.startsWith("/api/artifacts")) {
         console.log("📦 Routing to artifact worker");
         return artifactWorker.fetch(request, env, ctx);
@@ -82,6 +91,9 @@ export default {
   <h2>Available Endpoints:</h2>
   <ul>
     <li><a href="/health">GET /health</a> - Health check</li>
+    <li><span class="code">POST /api/notebooks</span> - Create notebook</li>
+    <li><span class="code">GET /api/notebooks</span> - List notebooks</li>
+    <li><span class="code">GET /api/notebooks/{id}</span> - Get notebook</li>
     <li><span class="code">POST /api/artifacts</span> - Upload artifacts</li>
     <li><span class="code">GET /api/artifacts/{id}</span> - Download artifacts</li>
     <li><span class="code">WS /livestore</span> - LiveStore sync</li>

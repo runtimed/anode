@@ -1,0 +1,12 @@
+version: "3.8"
+
+services:
+  spicedb:
+    image: authzed/spicedb:latest
+    command: serve-devtools --grpc-preshared-key "somerandomkeyhere"
+    ports:
+      - "50051:50051" # gRPC API
+      - "8443:8443" # Dashboard UI
+    environment:
+      - SPICEDB_DATASTORE_ENGINE=memory
+    restart: unless-stopped
