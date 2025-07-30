@@ -1,0 +1,46 @@
+# Iframe Output Worker - Cloudflare Worker Configuration
+#
+# This worker serves isolated iframe content for rendering user-generated HTML/SVG
+# on a separate domain (runtusercontent.com) for security isolation.
+#
+# To deploy:
+# 1. Deploy to production: pnpm wrangler deploy --env production
+# 2. Configure DNS for runtusercontent.com to point to this worker
+
+# Default environment (local development)
+name = "anode-iframe-outputs"
+main = "worker.ts"
+compatibility_date = "2025-01-08"
+
+[dev]
+port = 8000
+
+# Production Environment
+[env.production]
+name = "anode-iframe-outputs-prod"
+routes = [
+    { pattern = "runtusercontent.com", custom_domain = true },
+    { pattern = "*.runtusercontent.com", custom_domain = true },
+]
+
+[env.production.assets]
+directory = "./"
+binding = "ASSETS"
+
+# Preview Environment
+[env.preview]
+name = "anode-iframe-outputs-preview"
+routes = [{ pattern = "preview.runtusercontent.com", custom_domain = true }]
+
+[env.preview.assets]
+directory = "./"
+binding = "ASSETS"
+
+# Staging Environment
+[env.staging]
+name = "anode-iframe-outputs-staging"
+routes = [{ pattern = "staging.runtusercontent.com", custom_domain = true }]
+
+[env.staging.assets]
+directory = "./"
+binding = "ASSETS"
