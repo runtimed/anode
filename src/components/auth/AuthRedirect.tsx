@@ -15,6 +15,7 @@ import {
 } from "../../util/domUpdates";
 import { Home, AlertCircle } from "lucide-react";
 import { RuntLogo } from "../logo";
+import { redirectHelper } from "./redirect-url-helper";
 
 const AuthRedirect: React.FC = () => {
   const openIdService = getOpenIdService();
@@ -41,7 +42,7 @@ const AuthRedirect: React.FC = () => {
     // Legitimate OIDC callback - process it
     const subscription = openIdService.handleRedirect().subscribe({
       complete: () => {
-        navigate("/", { replace: true });
+        redirectHelper.navigateToSavedNotebook();
       },
       error: (error) => {
         setError(error);
