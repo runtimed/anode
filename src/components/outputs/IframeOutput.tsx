@@ -21,7 +21,6 @@ export const IframeOutput: React.FC<IframeOutputProps> = ({
 
   useEffect(() => {
     const handleMessage = (event: MessageEvent) => {
-      console.log("handleMessage", event);
       // Verify the message is from our iframe
       if (event.source !== iframeRef.current?.contentWindow) {
         return;
@@ -59,10 +58,8 @@ export const IframeOutput: React.FC<IframeOutputProps> = ({
     if (!iframeLoaded) {
       return;
     }
-    console.log("content", content);
     // Send content to iframe when it changes
     if (iframeRef.current && iframeRef.current.contentWindow) {
-      console.log("posting message");
       iframeRef.current.contentWindow.postMessage(
         {
           type: "update-content",
