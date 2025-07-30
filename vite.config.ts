@@ -7,6 +7,7 @@ import tailwindcss from "@tailwindcss/vite";
 import { defineConfig, loadEnv } from "vite";
 import { cloudflare } from "@cloudflare/vite-plugin";
 import { injectLoadingScreen } from "./vite-plugins/inject-loading-screen.js";
+import { iframeServerPlugin } from "./vite-plugins/iframe-server.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -15,6 +16,7 @@ export default defineConfig(({ mode }) => {
 
   const plugins = [
     injectLoadingScreen(),
+    iframeServerPlugin(),
     react({
       babel: {
         plugins: [
