@@ -4,6 +4,8 @@ This document describes how to deploy Anode using the unified all-in-one worker
 architecture that serves both the web client and backend API from a single
 Cloudflare Worker.
 
+**Current Status**: Anode is deployed and accessible at **https://app.runt.run** using this unified architecture.
+
 ## Architecture Overview
 
 - **All-in-one Worker**: Single worker serving both frontend assets and backend API
@@ -23,51 +25,51 @@ for large notebook outputs that exceed the event size threshold.
 
 ## Quick Start
 
-Deploy the all-in-one worker with one command:
+Deploy the all-in-one worker to production:
 
 ```bash
-pnpm deploy  # Builds and deploys unified worker
+pnpm deploy:production  # Builds and deploys unified worker to production
+```
+
+Or to preview environment:
+
+```bash
+pnpm deploy:preview  # Builds and deploys unified worker to preview
 ```
 
 This will:
 
-1. Build the web client for production
+1. Build the web client for production using Vite
 2. Deploy the unified worker serving both frontend and backend
 3. Configure D1 database and R2 bucket bindings
+4. Use existing `wrangler.toml` configuration for the specified environment
 
 ## Deployment Steps
 
-### Option 1: Deploy Unified Worker (Recommended)
+### Option 1: Deploy Using Scripts (Recommended)
 
-Deploy the all-in-one worker with a single command:
-
-```bash
-# Deploy unified worker
-pnpm deploy
-```
-
-This builds the web client and deploys the unified worker to Cloudflare.
-
-### Option 2: Deploy to Specific Environment
-
-**Deploy to Production:**
+The easiest way to deploy is using the provided scripts:
 
 ```bash
-wrangler deploy --env production
+# Deploy to production
+pnpm deploy:production
+
+# Deploy to preview
+pnpm deploy:preview
 ```
 
-**Deploy to Preview:**
+These scripts handle the build process and use the correct environment configuration from `wrangler.toml`.
 
-```bash
-wrangler deploy --env preview
-```
-
-### Option 3: Manual Deployment
+### Option 2: Manual Deployment
 
 **1. Build the Web Client**
 
 ```bash
-pnpm build
+# Build for production
+pnpm build:production
+
+# Or build for preview
+pnpm build:preview
 ```
 
 **2. Deploy the Unified Worker**
@@ -76,16 +78,24 @@ The unified worker serves both the web client and backend API, including
 artifact storage endpoints.
 
 ```bash
-wrangler deploy --env production
+# Deploy to production
+pnpm wrangler deploy --env production
+
+# Deploy to preview
+pnpm wrangler deploy --env preview
 ```
 
-This deploys to: `https://app.runt.run` (production) or your configured domain.
+**Production deploys to**: `https://app.runt.run`
+**Preview deploys to**: `https://preview.runt.run`
 
 **Required secrets:**
 
 ```bash
+# Production secrets
 echo "your-secure-token" | pnpm wrangler secret put AUTH_TOKEN --env production
-echo "your-google-client-secret" | pnpm wrangler secret put GOOGLE_CLIENT_SECRET --env production
+
+# Preview secrets
+echo "your-preview-token" | pnpm wrangler secret put AUTH_TOKEN --env preview
 ```
 
 ## Environment Variables
@@ -95,11 +105,10 @@ echo "your-google-client-secret" | pnpm wrangler secret put GOOGLE_CLIENT_SECRET
 Set in `wrangler.toml`:
 
 - `DEPLOYMENT_ENV`: `"production"`
-- `GOOGLE_CLIENT_ID`: Your Google OAuth client ID
+- `AUTH_ISSUER`: Your OIDC issuer URL (e.g., `https://your-auth-provider.com`)
 - `ARTIFACT_STORAGE`: `"r2"`
 - `ARTIFACT_THRESHOLD`: `"16384"` (16KB threshold for artifact storage)
 - `AUTH_TOKEN`: Set via secrets (see above)
-- `GOOGLE_CLIENT_SECRET`: Set via secrets (see above)
 
 ### Web Client Build Variables
 
@@ -116,20 +125,22 @@ Key variables:
 
 ## Local Development
 
-For local development, you can run both services locally:
+For local development, use the integrated development server:
 
-1. **Start the sync backend:**
+```bash
+pnpm dev
+```
 
-   ```bash
-   pnpm dev:sync
-   ```
+This starts the unified development server that serves both the web client and backend API using the Vite Cloudflare plugin. The server runs at `http://localhost:5173` and handles both frontend assets and backend API requests.
 
-2. **Start the web client:**
-   ```bash
-   pnpm dev
-   ```
+For Python execution, start the runtime agent:
 
-The web client will connect to `ws://localhost:8787/api` for local development.
+```bash
+# Get the notebook ID from the UI, then run:
+NOTEBOOK_ID=your-notebook-id pnpm dev:runtime
+```
+
+The development server is stable and handles hot reload for most changes. Environment file changes are ignored to prevent crashes.
 
 ## Automated Deployment
 
@@ -224,23 +235,22 @@ pnpm wrangler r2 bucket create anode-artifacts-preview
 ```bash
 # Production secrets
 echo "your-secure-token" | pnpm wrangler secret put AUTH_TOKEN --env production
-echo "your-google-client-secret" | pnpm wrangler secret put GOOGLE_CLIENT_SECRET --env production
 
 # Preview secrets
 echo "your-preview-token" | pnpm wrangler secret put AUTH_TOKEN --env preview
-echo "your-google-client-secret" | pnpm wrangler secret put GOOGLE_CLIENT_SECRET --env preview
 ```
 
 ## Troubleshooting
 
 ### Deployment Issues
 
-| Problem               | Solution                                        |
-| --------------------- | ----------------------------------------------- |
-| Missing database ID   | Create D1 database and update `wrangler.toml`   |
-| Missing R2 bucket     | Create R2 bucket and update `wrangler.toml`     |
-| Authentication errors | Set required secrets with `wrangler secret put` |
-| Build failures        | Run `pnpm build` locally to check for errors    |
+| Problem                   | Solution                                                         |
+| ------------------------- | ---------------------------------------------------------------- |
+| Missing database ID       | Create D1 database and update `wrangler.toml`                    |
+| Missing R2 bucket         | Create R2 bucket and update `wrangler.toml`                      |
+| Authentication errors     | Set required secrets with `wrangler secret put`                  |
+| Build failures            | Run `pnpm build:production` locally to check for errors          |
+| Environment config errors | Use `pnpm deploy:production` instead of direct wrangler commands |
 
 ### Artifact Storage Issues
 
@@ -252,25 +262,84 @@ echo "your-google-client-secret" | pnpm wrangler secret put GOOGLE_CLIENT_SECRET
 
 ### WebSocket Connection Issues
 
-If you see errors like "URL scheme 'wss' is not supported", ensure:
+If you see WebSocket connection errors:
 
-1. Web client is deployed to Pages (not Workers)
-2. Sync backend is deployed to Workers
-3. `VITE_LIVESTORE_SYNC_URL` points to the Worker URL with `wss://` protocol
+1. Ensure the unified worker is deployed and accessible
+2. Check that `VITE_LIVESTORE_SYNC_URL` points to the correct worker URL
+3. Verify authentication tokens are set correctly
 
 ### CORS Issues
 
-If you encounter CORS errors, check that the Worker is configured to allow
-requests from the Pages domain.
+The unified worker handles CORS automatically since it serves both frontend and backend from the same origin.
 
 ### Authentication Issues
 
-Ensure `AUTH_TOKEN` secret is set on the Worker and matches the client
-configuration.
+Ensure `AUTH_TOKEN` secret is set on the Worker:
+
+```bash
+echo "your-secure-token" | pnpm wrangler secret put AUTH_TOKEN --env production
+```
+
+### Development Server Issues
+
+If the development server crashes:
+
+1. Restart with `pnpm dev`
+2. Environment file changes are ignored to prevent crashes
+3. Check that Node.js version is >=23.0.0
 
 ## URLs
 
-- **Production Web Client**: https://anode.pages.dev
-- **Production Sync Backend**: https://anode-docworker.rgbkrk.workers.dev
-- **Local Web Client**: http://localhost:5173
-- **Local Sync Backend**: http://localhost:8787
+- **Production (All-in-one)**: https://app.runt.run
+- **Preview (All-in-one)**: https://preview.runt.run
+- **Local Development**: http://localhost:5173
+
+The unified architecture serves both frontend and backend from a single URL, simplifying deployment and eliminating CORS issues.
+
+## Iframe Outputs Service
+
+Anode uses a separate domain (`runtusercontent.com`) to securely render user-generated HTML and SVG content in iframes. This provides security isolation from the main application domain.
+
+### Deploy Iframe Outputs
+
+The iframe outputs service is a simple Cloudflare Worker that serves the iframe content handler with appropriate security headers.
+
+**Quick deployment:**
+
+```bash
+# Deploy to production (runtusercontent.com)
+./scripts/deploy-iframe-outputs.sh production
+
+# Deploy to preview (preview.runtusercontent.com)
+./scripts/deploy-iframe-outputs.sh preview
+
+# Deploy to staging (staging.runtusercontent.com)
+./scripts/deploy-iframe-outputs.sh staging
+```
+
+**Manual deployment:**
+
+```bash
+cd iframe-outputs
+pnpm deploy:production  # or deploy:preview, deploy:staging
+```
+
+### Iframe Service URLs
+
+- **Production**: https://runtusercontent.com
+- **Preview**: https://preview.runtusercontent.com
+- **Staging**: https://staging.runtusercontent.com
+- **Local Development**: http://localhost:8000
+
+### Environment Configuration
+
+The main application must have `VITE_IFRAME_OUTPUT_URI` set to the appropriate iframe service URL:
+
+- In `wrangler.toml` for the main worker environments
+- In `.env` files for local development
+
+This is already configured in the provided `wrangler.toml` for production and preview environments.
+
+### DNS Setup
+
+Ensure DNS for `runtusercontent.com` and its subdomains are configured in Cloudflare to point to the deployed workers.

@@ -1,12 +1,12 @@
 # Local Auth Testing with Production Configuration
 
-This guide explains how to test Google OAuth authentication locally using production credentials.
+This guide explains how to test OAuth authentication locally using production credentials.
 
 ## Overview
 
 The Anode auth system supports two modes:
 
-- **Production mode**: Uses Google OAuth with production client ID
+- **Production mode**: Uses OIDC OAuth with production issuer
 - **Development mode**: Uses direct token authentication
 
 For testing auth improvements and session management, you'll want to use production mode _locally_.
@@ -18,15 +18,11 @@ First, set up a `.env.production` file with the following variables:
 ```
 VITE_LIVESTORE_SYNC_URL=wss://anode-docworker.rgbkrk.workers.dev/api
 
-# Google OAuth configuration
-VITE_GOOGLE_AUTH_ENABLED=true
-VITE_GOOGLE_CLIENT_ID=94663405566-1go7jlpd2ar9u9urbfirmtjv1bm0tcis.apps.googleusercontent.com
-
-# Disable auth token (not used in production with Google OAuth)
+# Disable auth token (not used in production with OIDC OAuth)
 VITE_AUTH_TOKEN=
 
 # You can change this to any runtime agent command, so long as it has access to its own auth token
-VITE_RUNTIME_COMMAND="deno run --allow-all --env-file=.env jsr:@runt/pyodide-runtime-agent@^0.6.4"
+VITE_RUNTIME_COMMAND="deno run --allow-all --env-file=.env jsr:@runt/pyodide-runtime-agent@^0.8.0"
 ```
 
 Run the development server with production environment variables (using `.env.production`):
@@ -38,7 +34,7 @@ pnpm dev:prod
 This command:
 
 - Starts the local development server at `http://localhost:5173`.
-- Uses production environment variables (including Google Client ID).
+- Uses production environment variables (including OIDC issuer).
 - Connects to the production sync worker.
 - Enables hot reloading for local development.
 
@@ -48,8 +44,8 @@ This command:
 
 ### Production Auth Locally
 
-- Real Google OAuth sign-in flow.
-- Production Google Client ID configuration.
+- Real OIDC OAuth sign-in flow.
+- Production OIDC issuer configuration.
 - 7-day session cookies.
 
 ### Production Sync Backend
@@ -73,11 +69,11 @@ This command:
 Required for production auth testing:
 
 ```bash
-VITE_GOOGLE_CLIENT_ID="your-production-client-id"
-VITE_GOOGLE_AUTH_ENABLED="true"
+VITE_AUTH_ISSUER="https://your-oauth-provider.com"
+VITE_CLIENT_ID="your-oauth-client-id"
 ```
 
-The production Google Client ID must have `http://localhost:5173` configured in:
+The production OIDC issuer must have `http://localhost:5173` configured in:
 
 - **Authorized JavaScript origins**.
 - **Authorized redirect URIs** (if applicable).
@@ -88,11 +84,10 @@ If you cannot configure production OAuth locally:
 
 ```bash
 # In .env.local
-VITE_GOOGLE_AUTH_ENABLED="false"
 VITE_AUTH_TOKEN="local-dev-token"
 ```
 
-This bypasses Google auth entirely but will not allow you to test session management improvements.
+This bypasses OIDC auth entirely but will not allow you to test session management improvements.
 
 ## Commands Summary
 

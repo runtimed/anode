@@ -1,5 +1,6 @@
 import React from "react";
 import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
 import { oneLight } from "react-syntax-highlighter/dist/esm/styles/prism";
 import { Check, Copy } from "lucide-react";
@@ -85,6 +86,7 @@ export const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({
   return (
     <div className={`${className} [&_pre]:!bg-gray-50`}>
       <ReactMarkdown
+        remarkPlugins={[remarkGfm]}
         components={{
           img({ src, alt, ...props }) {
             // Prevent empty src attribute warnings
@@ -112,6 +114,59 @@ export const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({
               >
                 {children}
               </code>
+            );
+          },
+          table({ children, ...props }) {
+            return (
+              <div className="my-4 overflow-x-auto">
+                <table
+                  className="min-w-full border-collapse border border-gray-300 bg-white text-sm"
+                  {...props}
+                >
+                  {children}
+                </table>
+              </div>
+            );
+          },
+          thead({ children, ...props }) {
+            return (
+              <thead className="bg-gray-50" {...props}>
+                {children}
+              </thead>
+            );
+          },
+          tbody({ children, ...props }) {
+            return (
+              <tbody className="divide-y divide-gray-200" {...props}>
+                {children}
+              </tbody>
+            );
+          },
+          tr({ children, ...props }) {
+            return (
+              <tr className="hover:bg-gray-50" {...props}>
+                {children}
+              </tr>
+            );
+          },
+          th({ children, ...props }) {
+            return (
+              <th
+                className="border border-gray-300 px-3 py-2 text-left font-semibold text-gray-900"
+                {...props}
+              >
+                {children}
+              </th>
+            );
+          },
+          td({ children, ...props }) {
+            return (
+              <td
+                className="border border-gray-300 px-3 py-2 text-gray-700"
+                {...props}
+              >
+                {children}
+              </td>
             );
           },
           h1({ children, ...props }) {
@@ -220,6 +275,11 @@ export const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({
                   #
                 </a>
               </h6>
+            );
+          },
+          hr({ ...props }) {
+            return (
+              <hr className="!my-4 !border-t !border-gray-300" {...props} />
             );
           },
         }}

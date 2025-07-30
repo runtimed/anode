@@ -3,7 +3,7 @@
     {
       "name": "web",
       "script": "pnpm",
-      "args": "run dev:web",
+      "args": "run dev",
       "watch": false,
       "env": {
         "NODE_ENV": "development"

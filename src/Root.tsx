@@ -2,7 +2,17 @@ import { makePersistedAdapter } from "@livestore/adapter-web";
 import LiveStoreSharedWorker from "@livestore/adapter-web/shared-worker?sharedworker";
 import { LiveStoreProvider } from "@livestore/react";
 
-import React, { useEffect, useState, Suspense } from "react";
+import React, { useEffect, useState, useRef, Suspense } from "react";
+import {
+  LoadingState,
+  MinimalLoading,
+} from "./components/loading/LoadingState.js";
+import { Routes, Route } from "react-router-dom";
+import {
+  updateLoadingStage,
+  removeStaticLoadingScreen,
+  isLoadingScreenVisible,
+} from "./util/domUpdates.js";
 
 // Dynamic import for FPSMeter - development tool only
 const FPSMeter = React.lazy(() =>
@@ -12,16 +22,33 @@ const FPSMeter = React.lazy(() =>
 );
 import { unstable_batchedUpdates as batchUpdates } from "react-dom";
 
-import { NotebookViewer } from "./components/notebook/NotebookViewer.js";
+// Lazy load notebook components
+const NotebookViewer = React.lazy(() =>
+  import("./components/notebook/NotebookViewer.js").then((m) => ({
+    default: m.NotebookViewer,
+  }))
+);
+const NotebookLoadingScreen = React.lazy(() =>
+  import("./components/notebook/NotebookLoadingScreen.js").then((m) => ({
+    default: m.NotebookLoadingScreen,
+  }))
+);
 import { AuthGuard } from "./components/auth/AuthGuard.js";
+// Lazy load route components
+const AuthRedirect = React.lazy(
+  () => import("./components/auth/AuthRedirect.js")
+);
+import { AuthProvider } from "./components/auth/AuthProvider.js";
 
 import LiveStoreWorker from "./livestore.worker?worker";
-import { schema } from "@runt/schema";
+import { schema } from "./schema.js";
 import { getCurrentNotebookId, getStoreId } from "./util/store-id.js";
-import { getCurrentAuthToken, isAuthStateValid } from "./auth/google-auth.js";
+import { useAuth } from "./components/auth/AuthProvider.js";
 import { ErrorBoundary } from "react-error-boundary";
 
-const NotebookApp: React.FC = () => {
+interface NotebookAppProps {}
+
+const NotebookApp: React.FC<NotebookAppProps> = () => {
   // In the simplified architecture, we always show the current notebook
   // The notebook ID comes from the URL and is the same as the store ID
   const currentNotebookId = getCurrentNotebookId();
@@ -29,81 +56,6 @@ const NotebookApp: React.FC = () => {
   // Note: Auth token updates are handled via error detection and page reload
   // rather than dynamic sync payload updates, as LiveStore doesn't support
   // runtime sync payload changes
-
-  // Periodic auth validation to detect token expiry
-  useEffect(() => {
-    const validateAuth = async () => {
-      const isValid = await isAuthStateValid();
-      if (!isValid) {
-        console.warn("Auth state is invalid, forcing reload with reset");
-        const url = new URL(window.location.href);
-        url.searchParams.set("reset", "auth-invalid");
-        window.location.href = url.toString();
-      }
-    };
-
-    // Check auth state every 30 seconds for faster detection
-    const interval = setInterval(validateAuth, 30 * 1000);
-
-    // Also check immediately
-    validateAuth();
-
-    return () => clearInterval(interval);
-  }, []);
-
-  // Listen for WebSocket connection errors that might indicate auth issues
-  useEffect(() => {
-    let reconnectAttempts = 0;
-    const maxReconnectAttempts = 3;
-
-    const validateAuth = async () => {
-      const isValid = await isAuthStateValid();
-      if (!isValid) {
-        console.warn("Auth state is invalid, forcing reload with reset");
-        const url = new URL(window.location.href);
-        url.searchParams.set("reset", "auth-invalid");
-        window.location.href = url.toString();
-      }
-    };
-
-    const handleVisibilityChange = () => {
-      if (document.visibilityState === "visible") {
-        // When user returns to tab, validate auth state
-        isAuthStateValid().then((isValid) => {
-          if (!isValid) {
-            console.warn("Auth state invalid on tab focus, reloading");
-            const url = new URL(window.location.href);
-            url.searchParams.set("reset", "auth-focus-check");
-            window.location.href = url.toString();
-          }
-        });
-      }
-    };
-
-    // Monitor for repeated WebSocket failures that might indicate auth issues
-    const handleBeforeUnload = () => {
-      reconnectAttempts++;
-      if (reconnectAttempts >= maxReconnectAttempts) {
-        console.warn("Multiple reconnection attempts, checking auth state");
-        // Set a flag to check auth on next load
-        sessionStorage.setItem("checkAuthOnLoad", "true");
-      }
-    };
-
-    document.addEventListener("visibilitychange", handleVisibilityChange);
-    window.addEventListener("beforeunload", handleBeforeUnload);
-
-    // Check if we should validate auth on load
-    if (sessionStorage.getItem("checkAuthOnLoad") === "true") {
-      sessionStorage.removeItem("checkAuthOnLoad");
-      validateAuth();
-    }
-
-    return () => {
-      document.removeEventListener("visibilitychange", handleVisibilityChange);
-      window.removeEventListener("beforeunload", handleBeforeUnload);
-    };
-  }, []);
 
   return (
     <div className="bg-background min-h-screen">
@@ -118,25 +70,106 @@ const NotebookApp: React.FC = () => {
             zIndex: 50,
           }}
         >
-          <Suspense fallback={<div>Loading FPS meter...</div>}>
+          <Suspense
+            fallback={<MinimalLoading message="Loading FPS meter..." />}
+          >
             <FPSMeter height={40} />
           </Suspense>
         </div>
       )}
       {/* Main Content */}
       <ErrorBoundary fallback={<div>Error loading notebook</div>}>
-        <NotebookViewer
-          notebookId={currentNotebookId}
-          debugMode={debugMode}
-          onDebugToggle={setDebugMode}
-        />
+        <Suspense fallback={<div className="min-h-screen bg-white" />}>
+          <NotebookViewer
+            notebookId={currentNotebookId}
+            debugMode={debugMode}
+            onDebugToggle={setDebugMode}
+          />
+        </Suspense>
       </ErrorBoundary>
     </div>
   );
 };
 
+// Animation wrapper with minimum loading time and animation completion
+const AnimatedLiveStoreApp: React.FC = () => {
+  const [isLoading, setIsLoading] = useState(true);
+
+  const [liveStoreReady, setLiveStoreReady] = useState(false);
+  const [portalAnimationComplete, setPortalAnimationComplete] = useState(false);
+  const [portalReady, setPortalReady] = useState(false);
+
+  // Update static loading screen stage when LiveStore is ready
+  useEffect(() => {
+    if (liveStoreReady) {
+      updateLoadingStage("loading-notebook");
+    }
+  }, [liveStoreReady]);
+
+  // Trigger animation when LiveStore is ready
+  useEffect(() => {
+    if (liveStoreReady && isLoading) {
+      updateLoadingStage("ready");
+
+      // Ensure React has painted before removing static screen
+      requestAnimationFrame(() => {
+        // Double RAF to ensure paint has completed
+        requestAnimationFrame(() => {
+          removeStaticLoadingScreen();
+          setPortalReady(true);
+        });
+      });
+    }
+  }, [liveStoreReady, isLoading]);
+
+  // Complete transition only after portal animation finishes
+  useEffect(() => {
+    if (portalAnimationComplete) {
+      setIsLoading(false);
+    }
+  }, [portalAnimationComplete]);
+
+  return (
+    <>
+      {/* Loading screen overlay - fixed position to prevent layout shift */}
+      {isLoading && (
+        <div className="fixed inset-0 z-50 overflow-hidden">
+          <Suspense fallback={<div className="min-h-screen bg-white" />}>
+            <NotebookLoadingScreen
+              ready={portalReady}
+              onPortalAnimationComplete={() => setPortalAnimationComplete(true)}
+            />
+          </Suspense>
+        </div>
+      )}
+
+      {/* Main app with LiveStore integration */}
+      <LiveStoreApp onLiveStoreReady={() => setLiveStoreReady(true)} />
+    </>
+  );
+};
+
+// Component to detect when LiveStore is ready
+const LiveStoreReadyDetector: React.FC<{ onReady?: () => void }> = ({
+  onReady,
+}) => {
+  const readyRef = useRef(false);
+
+  useEffect(() => {
+    // If this component renders, LiveStore is ready
+    if (!readyRef.current) {
+      readyRef.current = true;
+      onReady?.();
+    }
+  }, [onReady]);
+
+  return null;
+};
+
 // LiveStore setup - moved inside AuthGuard to ensure auth happens first
-const LiveStoreApp: React.FC = () => {
+const LiveStoreApp: React.FC<{
+  onLiveStoreReady?: () => void;
+}> = ({ onLiveStoreReady }) => {
   const storeId = getStoreId();
 
   // Check for reset parameter to handle schema evolution issues
@@ -156,36 +189,34 @@ const LiveStoreApp: React.FC = () => {
     }
   }, [resetPersistence]);
 
+  // Get authenticated user info to set clientId
+  const {
+    user: { sub: clientId },
+    accessToken,
+  } = useAuth();
+
   const adapter = makePersistedAdapter({
     storage: { type: "opfs" },
     worker: LiveStoreWorker,
     sharedWorker: LiveStoreSharedWorker,
     resetPersistence,
+    clientId, // This ties the LiveStore client to the authenticated user
   });
-
-  // Get current auth token (this is called after auth is validated)
-  const currentAuthToken = getCurrentAuthToken();
 
   return (
     <LiveStoreProvider
       schema={schema}
       adapter={adapter}
-      renderLoading={(_) => (
-        <div className="bg-background flex min-h-screen items-center justify-center">
-          <div className="text-center">
-            <div className="text-foreground mb-2 text-lg font-semibold">
-              Loading Anode
-            </div>
-            <div className="text-muted-foreground text-sm">
-              Stage: {_.stage}
-            </div>
-          </div>
-        </div>
-      )}
+      renderLoading={(_status) => {
+        // Let our overlay handle loading
+        // console.debug(`LiveStore Loading status: ${JSON.stringify(_status)}`);
+        return <></>;
+      }}
       batchUpdates={batchUpdates}
       storeId={storeId}
-      syncPayload={{ authToken: currentAuthToken }}
+      syncPayload={{ authToken: accessToken, clientId }}
     >
+      <LiveStoreReadyDetector onReady={onLiveStoreReady} />
       <NotebookApp />
     </LiveStoreProvider>
   );
@@ -209,9 +240,8 @@ if (typeof Worker !== "undefined") {
 
       // Clear any cached auth state
       try {
-        localStorage.removeItem("google_auth_token");
-        document.cookie =
-          "google_auth_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+        localStorage.removeItem("openid_tokens");
+        localStorage.removeItem("openid_request_state");
       } catch (e) {
         console.warn("Failed to clear auth tokens:", e);
       }
@@ -233,9 +263,63 @@ if (typeof Worker !== "undefined") {
 }
 
 export const App: React.FC = () => {
+  // Safety net: Auto-remove loading screen if no component has handled it
+  useEffect(() => {
+    const checkInterval = setInterval(() => {
+      if (isLoadingScreenVisible()) {
+        // Check if React has rendered content
+        const rootElement = document.getElementById("root");
+        const hasContent = rootElement && rootElement.children.length > 0;
+
+        if (hasContent) {
+          console.warn("Loading screen auto-removed by safety net");
+          removeStaticLoadingScreen();
+          clearInterval(checkInterval);
+        }
+      } else {
+        clearInterval(checkInterval);
+      }
+    }, 100);
+
+    // Absolute fallback after 5 seconds
+    const fallbackTimeout = setTimeout(() => {
+      if (isLoadingScreenVisible()) {
+        console.warn("Loading screen force-removed after timeout");
+        removeStaticLoadingScreen();
+      }
+      clearInterval(checkInterval);
+    }, 5000);
+
+    return () => {
+      clearInterval(checkInterval);
+      clearTimeout(fallbackTimeout);
+    };
+  }, []);
+
   return (
-    <AuthGuard>
-      <LiveStoreApp />
-    </AuthGuard>
+    <AuthProvider>
+      <Routes>
+        <Route
+          path="/oidc"
+          element={
+            <Suspense
+              fallback={
+                <LoadingState variant="fullscreen" message="Redirecting..." />
+              }
+            >
+              <AuthRedirect />
+            </Suspense>
+          }
+        />
+        <Route
+          path="/*"
+          element={
+            <AuthGuard>
+              <AnimatedLiveStoreApp />
+            </AuthGuard>
+          }
+        />
+      </Routes>
+    </AuthProvider>
   );
 };

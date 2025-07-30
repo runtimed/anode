@@ -6,17 +6,25 @@
       name="viewport"
       content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
     />
-    <title>Anode - Collaborative Notebooks</title>
+    <title>Runt - Experimental Collaborative Notebooks</title>
     <meta
       name="description"
-      content="Real-time collaborative notebook system for data analysis and AI assistance"
+      content="Early access to the future of interactive computing"
     />
+    <meta name="theme-color" content="#ffffff" />
     <link rel="icon" type="image/x-icon" href="/favicon.ico" />
     <!-- Preconnect to sync backend to speed up initial connection -->
     <link rel="preconnect" href="%VITE_LIVESTORE_SYNC_URL%" />
     <!-- Prevent tap highlighting on mobile -->
     <meta name="format-detection" content="telephone=no" />
     <meta name="msapplication-tap-highlight" content="no" />
+    <!-- PWA and mobile optimization -->
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta
+      name="apple-mobile-web-app-status-bar-style"
+      content="black-translucent"
+    />
   </head>
   <body>
     <div id="react-app"></div>

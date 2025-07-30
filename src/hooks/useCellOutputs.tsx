@@ -1,13 +1,13 @@
 import React, { useMemo, useCallback } from "react";
-import { useStore } from "@livestore/react";
 import { OutputData, tables, MediaContainer } from "@runt/schema";
 import { queryDb } from "@livestore/livestore";
+import { useQuery } from "@livestore/react";
 import { groupConsecutiveStreamOutputs } from "../util/output-grouping.js";
-import { RichOutput } from "../components/notebook/RichOutput.js";
+import { RichOutput } from "../components/outputs/RichOutput.js";
 import {
   AnsiErrorOutput,
   AnsiStreamOutput,
-} from "../components/notebook/AnsiOutput.js";
+} from "../components/outputs/AnsiOutput.js";
 
 interface UseCellOutputsOptions {
   cellId: string;
@@ -32,14 +32,12 @@ export const useCellOutputs = ({
   enableTerminalOutput = true,
   mobileStyle = "default",
 }: UseCellOutputsOptions): CellOutputsResult => {
-  const { store } = useStore();
-
   // Create stable query using useMemo to prevent React Hook issues
   const outputsQuery = useMemo(
     () => queryDb(tables.outputs.select().where({ cellId })),
     [cellId]
   );
-  const outputs = store.useQuery(outputsQuery) as OutputData[];
+  const outputs = useQuery(outputsQuery) as OutputData[];
 
   const hasOutputs = useMemo(() => outputs.length > 0, [outputs.length]);
 
@@ -87,8 +85,7 @@ export const useCellOutputs = ({
       const outputContent = (
         <RichOutput
           data={
-            (output.outputType as string) === "markdown" ||
-            (output.outputType as string) === "terminal"
+            output.outputType === "markdown" || output.outputType === "terminal"
               ? output.data || ""
               : (output.representations as Record<string, MediaContainer>) || {
                   "text/plain": output.data || "",
@@ -96,6 +93,7 @@ export const useCellOutputs = ({
           }
           metadata={output.metadata as Record<string, unknown> | undefined}
           outputType={output.outputType}
+          outputId={output.id}
         />
       );
 

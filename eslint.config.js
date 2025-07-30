@@ -1,5 +1,6 @@
 import js from "@eslint/js";
 import reactHooks from "eslint-plugin-react-hooks";
+import reactCompiler from "eslint-plugin-react-compiler";
 import tseslint from "@typescript-eslint/eslint-plugin";
 import tsparser from "@typescript-eslint/parser";
 
@@ -9,10 +10,12 @@ export default [
     files: ["src/**/*.{js,jsx,ts,tsx}"],
     plugins: {
       "react-hooks": reactHooks,
+      "react-compiler": reactCompiler,
       "@typescript-eslint": tseslint,
     },
     rules: {
       ...reactHooks.configs.recommended.rules,
+      "react-compiler/react-compiler": "error",
       // Reduce noise from globals - TypeScript handles these
       "no-undef": "off",
       "no-unused-vars": "off",
@@ -229,6 +232,54 @@ export default [
       "@typescript-eslint/no-unsafe-call": "off",
       "@typescript-eslint/no-unsafe-return": "off",
       "@typescript-eslint/no-unsafe-argument": "off",
+    },
+  },
+  {
+    files: [
+      "backend/**/*.{js,jsx,ts,tsx}",
+      "iframe-outputs/**/*.{js,jsx,ts,tsx}",
+    ],
+    languageOptions: {
+      parser: tsparser,
+      ecmaVersion: 2022,
+      sourceType: "module",
+      globals: {
+        // Cloudflare Workers globals
+        Request: "readonly",
+        Response: "readonly",
+        Headers: "readonly",
+        URL: "readonly",
+        fetch: "readonly",
+        crypto: "readonly",
+        console: "readonly",
+        TextEncoder: "readonly",
+        TextDecoder: "readonly",
+        addEventListener: "readonly",
+        removeEventListener: "readonly",
+        dispatchEvent: "readonly",
+        // Cloudflare specific
+        ExecutionContext: "readonly",
+        DurableObjectNamespace: "readonly",
+        DurableObject: "readonly",
+        R2Bucket: "readonly",
+        D1Database: "readonly",
+        Fetcher: "readonly",
+      },
+      parserOptions: {
+        project: null, // Don't use project references for Worker files
+      },
+    },
+    plugins: {
+      "@typescript-eslint": tseslint,
+    },
+    rules: {
+      "no-undef": "off", // TypeScript handles this
+      "no-unused-vars": "off", // TypeScript handles this
+      "@typescript-eslint/no-explicit-any": "off", // Allow any in backend code
+      "@typescript-eslint/no-unused-vars": [
+        "error",
+        { argsIgnorePattern: "^_" },
+      ],
     },
   },
   {

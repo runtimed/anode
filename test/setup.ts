@@ -10,6 +10,11 @@ beforeAll(async () => {
   process.env.NODE_ENV = "test";
   process.env.LIVESTORE_SYNC_URL = "ws://localhost:8787";
   process.env.AUTH_TOKEN = "test-token";
+  process.env.VITE_AUTH_URI = "https://auth.example.com";
+  process.env.VITE_AUTH_CLIENT_ID = "test-client-id";
+  process.env.VITE_AUTH_REDIRECT_URI = "http://localhost:3000/callback";
+  process.env.VITE_LIVESTORE_SYNC_URL = "ws://localhost:8787";
+  process.env.VITE_RUNTIME_COMMAND = "";
 
   // Suppress console.log in tests unless explicitly needed
   if (!process.env.DEBUG_TESTS) {

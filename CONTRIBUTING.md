@@ -38,23 +38,20 @@ pnpm install
 
 ### 3. Configure Your Local Environment
 
-Your development environment requires a couple of configuration files for the frontend (Vite) and the backend (Wrangler/Miniflare). You can create these by copying the provided example files.
+You need to copy the environment configuration files manually:
 
-- **For the backend Worker:**
+```bash
+# Copy environment configuration files
+cp .env.example .env
+cp .dev.vars.example .dev.vars
+```
 
-  ```bash
-  cp .dev.vars.example .dev.vars
-  ```
+- **`.dev.vars`** - Local secrets and variables for the Worker
+- **`.env`** - Environment variables for the Vite build process
 
-  This file provides local secrets and variables to your Worker. The default values are suitable for getting started.
+These files are already in `.gitignore` and should **never** be committed to the repository.
 
-- **For the frontend application:**
-  ```bash
-  cp .env.example .env.development
-  ```
-  This file provides environment variables to the Vite build process for local development. The default values point to your local backend services.
-
-These `.dev.vars` and `.env.development` files are already in `.gitignore` and should **never** be committed to the repository.
+**Note**: The example files contain sensible defaults that work for local development out of the box.
 
 ### 4. Run the Development Server
 
@@ -64,7 +61,7 @@ Start the entire Anode application (both the React frontend and the Cloudflare W
 pnpm dev
 ```
 
-This will start the Vite development server. You can now access the Anode application in your browser at **`http://localhost:5173`**. The Vite plugin automatically runs your Worker code, so any API requests from the frontend will be handled by your local Worker.
+This will start the integrated development server using the Vite Cloudflare plugin. You can now access the Anode application in your browser at **`http://localhost:5173`**. The unified server handles both frontend assets and backend API requests, providing a seamless development experience.
 
 ### 5. Enable Python Execution
 
@@ -85,7 +82,7 @@ The `@runt/schema` package provides shared types and events between Anode and Ru
 ### Production (JSR Package)
 
 ```json
-"@runt/schema": "jsr:^0.6.4"
+"@runt/schema": "jsr:^0.8.0"
 ```
 
 Use this for stable releases and production deployments.
@@ -110,22 +107,36 @@ Use this when developing locally with both Anode and Runt repositories side-by-s
 
 1. **Update `package.json`** with the appropriate schema reference
 2. **Run `pnpm install`** to update dependencies
-3. **Restart your development servers** (both `pnpm dev` and `pnpm dev:sync`)
+3. **Restart your development server** (`pnpm dev`)
 
 **Important**: Always ensure both repositories are using compatible schema versions. Type errors usually indicate schema mismatches.
 
+### Git Hook Protection (Husky)
+
+A Husky pre-commit hook is configured to prevent accidentally committing `package.json` with `@runt/schema` using the `file:` protocol. This ensures that:
+
+- Production deployments work correctly
+- Other developers can install dependencies without local file paths
+- The repository remains distributable
+
+**Note**: The hook is managed by Husky and stored in `.husky/pre-commit`. It will be automatically installed for all developers when they run `pnpm install`.
+
 ## Deployment
 
-We have streamlined deployment scripts for our different environments:
+We use a unified Cloudflare Worker architecture that serves both the web client and backend API. Deploy with:
 
-- **Preview**: `pnpm deploy:preview`
 - **Production**: `pnpm deploy:production`
+- **Preview**: `pnpm deploy:preview`
 
-**Note**: Before deploying, you must configure the required secrets (like `AUTH_TOKEN`, `GOOGLE_CLIENT_SECRET`, etc.) for the target environment using the `wrangler secret put` command. For example:
+The deployment process builds the web client and deploys the all-in-one worker to Cloudflare.
+
+**Note**: Before deploying, you must configure the required secrets (like `AUTH_TOKEN`, etc.) for the target environment using the `wrangler secret put` command. For example:
 
 ```bash
-pnpm wrangler secret put AUTH_TOKEN --env preview
+pnpm wrangler secret put AUTH_TOKEN --env production
 ```
+
+See [DEPLOYMENT.md](./DEPLOYMENT.md) for detailed deployment instructions.
 
 ## Code Style and Conventions
 
@@ -134,7 +145,9 @@ We follow a consistent code style to keep the project maintainable.
 - **TypeScript**: We use strict mode across the project.
 - **Formatting**: We use Prettier for code formatting. Please run `pnpm format` before committing.
 - **Linting**: We use ESLint to catch common errors. Run `pnpm lint` to check your code.
+- **Testing**: Run `pnpm test` to execute the test suite (60+ tests covering core functionality).
 - **Architecture**: We prefer functional programming patterns (using the Effect library) and an event-sourced architecture via LiveStore.
+- **Development stability**: The integrated dev server is stable with hot reload for most changes. .env file changes are ignored to prevent crashes.
 
 ## Submitting a Contribution
 

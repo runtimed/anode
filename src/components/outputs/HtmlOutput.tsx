@@ -1,4 +1,5 @@
 import React from "react";
+import IframeOutput from "./IframeOutput";
 
 interface HtmlOutputProps {
   content: string;
@@ -10,9 +11,9 @@ export const HtmlOutput: React.FC<HtmlOutputProps> = ({
   className = "max-w-none dataframe-container",
 }) => {
   return (
-    <div
+    <IframeOutput
       className={className}
-      dangerouslySetInnerHTML={{ __html: content }}
+      content={String(content || "")}
       style={
         {
           // Clean styles for pandas DataFrames
