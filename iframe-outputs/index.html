@@ -41,23 +41,13 @@
         // Handle incoming content updates
         window.addEventListener("message", (event) => {
           if (event.data && event.data.type === "update-content") {
-            document.body.innerHTML = event.data.content;
+            // Clear existing content
+            document.body.innerHTML = "";
 
-            // Execute any scripts in the content
-            const scripts = document.body.querySelectorAll("script");
-            scripts.forEach((script) => {
-              const newScript = document.createElement("script");
-              if (script.src) {
-                newScript.src = script.src;
-              } else {
-                newScript.textContent = script.textContent;
-              }
-              // Copy any attributes
-              Array.from(script.attributes).forEach((attr) => {
-                newScript.setAttribute(attr.name, attr.value);
-              });
-              document.body.appendChild(newScript);
-            });
+            // Use createContextualFragment for efficient HTML/SVG parsing and script execution
+            const range = document.createRange();
+            const fragment = range.createContextualFragment(event.data.content);
+            document.body.appendChild(fragment);
 
             // Send height after content update
             setTimeout(sendHeight, 50);
