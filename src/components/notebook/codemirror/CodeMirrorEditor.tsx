@@ -94,7 +94,6 @@ export const CodeMirrorEditor: React.FC<CodeMirrorEditorProps> = ({
   );
 
   const handleFocus = useCallback(() => {
-    editorRef.current?.scrollIntoView({ block: "nearest" });
     onFocus?.();
   }, [onFocus]);
 
