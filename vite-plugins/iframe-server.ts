@@ -25,13 +25,19 @@ export function iframeServerPlugin(): Plugin {
 
     configureServer(viteServer: ViteDevServer) {
       // Parse port from VITE_IFRAME_OUTPUT_URI
-      const iframeUri = process.env.VITE_IFRAME_OUTPUT_URI || "http://localhost:8000";
+      const iframeUri =
+        process.env.VITE_IFRAME_OUTPUT_URI || "http://localhost:8000";
       const portMatch = iframeUri.match(/:(\d+)/);
       const port = portMatch ? parseInt(portMatch[1], 10) : 8000;
 
       // Only start if it's a localhost URI
-      if (!iframeUri.startsWith("http://localhost") && !iframeUri.startsWith("https://localhost")) {
-        viteServer.config.logger.info(`🌐 iframe output available at: ${iframeUri}`);
+      if (
+        !iframeUri.startsWith("http://localhost") &&
+        !iframeUri.startsWith("https://localhost")
+      ) {
+        viteServer.config.logger.info(
+          `🌐 iframe output available at: ${iframeUri}`
+        );
         return;
       }
 
@@ -71,8 +77,8 @@ export function iframeServerPlugin(): Plugin {
           res.writeHead(200, {
             "Content-Type": mimeType,
             "Cache-Control": "no-cache, no-store, must-revalidate",
-            "Pragma": "no-cache",
-            "Expires": "0",
+            Pragma: "no-cache",
+            Expires: "0",
             "Access-Control-Allow-Origin": "*", // Allow CORS for iframe usage
           });
 
@@ -86,7 +92,9 @@ export function iframeServerPlugin(): Plugin {
 
       // Start the server
       server.listen(port, () => {
-        viteServer.config.logger.info(`  ➜  Iframe server: http://localhost:${port}`);
+        viteServer.config.logger.info(
+          `  ➜  Iframe server: http://localhost:${port}`
+        );
       });
 
       // Handle graceful shutdown
