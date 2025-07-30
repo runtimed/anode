@@ -18,14 +18,12 @@ port = 8000
 # Production Environment
 [env.production]
 name = "anode-iframe-outputs-prod"
-routes = [
-    { pattern = "runtusercontent.com", custom_domain = true },
-    { pattern = "*.runtusercontent.com", custom_domain = true },
-]
+routes = [{ pattern = "runtusercontent.com", custom_domain = true }]
 
 [env.production.assets]
-directory = "./"
+directory = "assets"
 binding = "ASSETS"
+
 
 # Preview Environment
 [env.preview]
@@ -33,8 +31,9 @@ name = "anode-iframe-outputs-preview"
 routes = [{ pattern = "preview.runtusercontent.com", custom_domain = true }]
 
 [env.preview.assets]
-directory = "./"
+directory = "assets"
 binding = "ASSETS"
+
 
 # Staging Environment
 [env.staging]
@@ -42,5 +41,5 @@ name = "anode-iframe-outputs-staging"
 routes = [{ pattern = "staging.runtusercontent.com", custom_domain = true }]
 
 [env.staging.assets]
-directory = "./"
+directory = "assets"
 binding = "ASSETS"

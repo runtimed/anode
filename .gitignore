@@ -148,6 +148,7 @@ Thumbs.db
 tmp/
 .wrangler/
 iframe-outputs/.wrangler/
+iframe-outputs/assets/
 SQLite/
 
 # Pyodide cache
