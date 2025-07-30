@@ -15,6 +15,8 @@ import {
 } from "@runt/schema";
 import { AnsiStreamOutput } from "@/components/outputs";
 import { AnsiErrorOutput } from "@/components/outputs/AnsiOutput.js";
+import { outputDeltasQuery, getFinalContent } from "@/queries/outputDeltas";
+import { useQuery } from "@livestore/react";
 import "@/components/outputs/outputs.css";
 
 // Dynamic imports for heavy components
@@ -68,6 +70,7 @@ interface RichOutputProps {
     | "terminal"
     | "markdown"
     | "error";
+  outputId: string;
 }
 
 const LoadingSpinner = () => (
@@ -78,21 +81,30 @@ const LoadingSpinner = () => (
 
 export const RichOutput: React.FC<RichOutputProps> = ({
   data,
-
   outputType = "multimedia_display",
+  outputId,
 }) => {
+  // Always query deltas (even if not used)
+  const deltas = useQuery(outputDeltasQuery(outputId));
+
   // Handle terminal outputs specially
   if (outputType === "terminal") {
     const textData = typeof data === "string" ? data : String(data || "");
     return <AnsiStreamOutput text={textData} streamName="stdout" />;
   }
 
-  // Handle markdown outputs specially
+  // Handle markdown outputs specially with delta support
   if (outputType === "markdown") {
     const markdownData = typeof data === "string" ? data : String(data || "");
+
+    // Apply deltas if we have an outputId
+    const { content: finalContent } = outputId
+      ? getFinalContent(markdownData, deltas)
+      : { content: markdownData };
+
     return (
       <Suspense fallback={<LoadingSpinner />}>
-        <MarkdownRenderer content={markdownData} enableCopyCode={true} />
+        <MarkdownRenderer content={finalContent} enableCopyCode={true} />
       </Suspense>
     );
   }

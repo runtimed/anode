@@ -70,6 +70,9 @@ function prefetchWhenIdle(
  */
 export function prefetchOutputChunks(): void {
   prefetchWhenIdle(() => {
+    // Preload react-spring first as it's used on initial page load
+    import("@react-spring/web").catch(() => {});
+
     // These imports will trigger chunk loading but won't execute the modules
     // until they're actually needed via React.lazy()
     import("../components/outputs/MarkdownRenderer.js").catch(() => {
@@ -120,6 +123,8 @@ export function prefetchOutputsConservative(): void {
       // Only prefetch the most commonly used components
       import("../components/outputs/PlainTextOutput.js").catch(() => {});
       import("../components/outputs/MarkdownRenderer.js").catch(() => {});
+      // Preload react-spring as it's used in the loading screen
+      import("@react-spring/web").catch(() => {});
     },
     { timeout: 5000 }
   );

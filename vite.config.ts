@@ -6,6 +6,7 @@ import react from "@vitejs/plugin-react";
 import tailwindcss from "@tailwindcss/vite";
 import { defineConfig, loadEnv } from "vite";
 import { cloudflare } from "@cloudflare/vite-plugin";
+import { injectLoadingScreen } from "./vite-plugins/inject-loading-screen.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -13,6 +14,7 @@ export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), "");
 
   const plugins = [
+    injectLoadingScreen(),
     react({
       babel: {
         plugins: [
@@ -39,11 +41,14 @@ export default defineConfig(({ mode }) => {
 
   // Include Cloudflare plugin in development and auth modes
   if (mode === "development" || mode === "auth") {
-    plugins.push(
-      cloudflare({
-        configPath: "./wrangler.toml",
-      })
-    );
+    // TODO: This isn't working with SPA
+    // Even with the symlink, this 307 redirects /oidc?code to /oidc/code
+    // which breaks the auth flow.
+    // plugins.push(
+    //   cloudflare({
+    //     configPath: "./wrangler.toml",
+    //   })
+    // );
   }
 
   return {
@@ -58,6 +63,7 @@ export default defineConfig(({ mode }) => {
         ignored: ["!**/node_modules/@runt/schema/mod.ts", "**/.env*"],
         followSymlinks: true,
       },
+      strictPort: true,
     },
     worker: { format: "es" },
     resolve: {
@@ -73,6 +79,7 @@ export default defineConfig(({ mode }) => {
         "effect",
         "@livestore/livestore",
         "@livestore/react",
+        "@react-spring/web",
       ],
       esbuildOptions: {
         target: "esnext",

@@ -9,11 +9,11 @@ import React, {
   useMemo,
   useRef,
   useState,
+  Suspense,
 } from "react";
 
-import { MarkdownRenderer } from "@/components/outputs/MarkdownRenderer.js";
 import { Button } from "@/components/ui/button.js";
-import { useCurrentUserId } from "@/hooks/useCurrentUser.js";
+import { useAuth } from "@/components/auth/AuthProvider.js";
 import { useUserRegistry } from "@/hooks/useUserRegistry.js";
 import { Edit3, Eye } from "lucide-react";
 import { ErrorBoundary } from "react-error-boundary";
@@ -37,6 +37,12 @@ interface MarkdownCellProps {
   onFocus?: () => void;
   contextSelectionMode?: boolean;
 }
+
+const MarkdownRenderer = React.lazy(() =>
+  import("@/components/outputs/MarkdownRenderer.js").then((m) => ({
+    default: m.MarkdownRenderer,
+  }))
+);
 
 export const MarkdownCell: React.FC<MarkdownCellProps> = ({
   cell,
@@ -68,7 +74,9 @@ export const MarkdownCell: React.FC<MarkdownCellProps> = ({
 
   // All hooks must be called at the top level before any conditional returns
   const { store } = useStore();
-  const currentUserId = useCurrentUserId();
+  const {
+    user: { sub: userId },
+  } = useAuth();
   const { getUsersOnCell, getUserColor } = useUserRegistry();
   const [isEditing, setIsEditing] = useState(autoFocus);
 
@@ -79,7 +87,7 @@ export const MarkdownCell: React.FC<MarkdownCellProps> = ({
 
   // Get users present on this cell (excluding current user)
   const usersOnCell = getUsersOnCell(cell.id).filter(
-    (user) => user.id !== currentUserId
+    (user) => user.id !== userId
   );
 
   // Use shared outputs hook with markdown-specific configuration
@@ -97,11 +105,11 @@ export const MarkdownCell: React.FC<MarkdownCellProps> = ({
         events.cellTypeChanged({
           id: cell.id,
           cellType: newType,
-          actorId: currentUserId,
+          actorId: userId,
         })
       );
     },
-    [cell.id, store, currentUserId]
+    [cell.id, store, userId]
   );
 
   const toggleSourceVisibility = useCallback(() => {
@@ -109,20 +117,20 @@ export const MarkdownCell: React.FC<MarkdownCellProps> = ({
       events.cellSourceVisibilityToggled({
         id: cell.id,
         sourceVisible: !cell.sourceVisible,
-        actorId: currentUserId,
+        actorId: userId,
       })
     );
-  }, [cell.id, cell.sourceVisible, store, currentUserId]);
+  }, [cell.id, cell.sourceVisible, store, userId]);
 
   const toggleAiContextVisibility = useCallback(() => {
     store.commit(
       events.cellAiContextVisibilityToggled({
         id: cell.id,
         aiContextVisible: !cell.aiContextVisible,
-        actorId: currentUserId,
+        actorId: userId,
       })
     );
-  }, [cell.id, cell.aiContextVisible, store, currentUserId]);
+  }, [cell.id, cell.aiContextVisible, store, userId]);
 
   const clearCellOutputs = useCallback(async () => {
     if (hasOutputs) {
@@ -130,11 +138,11 @@ export const MarkdownCell: React.FC<MarkdownCellProps> = ({
         events.cellOutputsCleared({
           cellId: cell.id,
           wait: false,
-          clearedBy: currentUserId,
+          clearedBy: userId,
         })
       );
     }
-  }, [cell.id, store, hasOutputs, currentUserId]);
+  }, [cell.id, store, hasOutputs, userId]);
 
   // Use shared keyboard navigation hook
   const { keyMap, handleKeyDown } = useCellKeyboardNavigation({
@@ -230,7 +238,8 @@ export const MarkdownCell: React.FC<MarkdownCellProps> = ({
         </div>
 
         <CellControls
-          cell={cell}
+          sourceVisible={cell.sourceVisible}
+          aiContextVisible={cell.aiContextVisible}
           contextSelectionMode={contextSelectionMode}
           onMoveUp={onMoveUp}
           onMoveDown={onMoveDown}
@@ -265,7 +274,11 @@ export const MarkdownCell: React.FC<MarkdownCellProps> = ({
             className="cell-content bg-white py-1 pr-4 pl-4 transition-colors"
             onDoubleClick={() => setIsEditing(true)}
           >
-            <MarkdownRenderer content={localSource} />
+            <Suspense
+              fallback={<div className="animate-pulse">Loading...</div>}
+            >
+              <MarkdownRenderer content={localSource} />
+            </Suspense>
           </div>
         )}
       </div>

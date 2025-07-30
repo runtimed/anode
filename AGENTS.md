@@ -52,7 +52,7 @@ event-sourcing based local-first data synchronization library.
   with visibility toggles
 - ✅ **Production deployment** - All-in-one worker deployed to Cloudflare at
   https://app.runt.run
-- ✅ **Authentication** - Google OAuth and fallback token system working in
+- ✅ **Authentication** - OIDC OAuth and fallback token system working in
   production
 - ✅ **Mobile support** - Responsive design with mobile keyboard optimizations
 - ✅ **Offline-first operation** - Works without network, syncs when connected

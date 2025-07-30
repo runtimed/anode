@@ -1,13 +1,13 @@
 import { Bot, NotebookPen, Terminal, LucideIcon } from "lucide-react";
 
-export interface ClientTypeInfo {
+export type ClientTypeInfo = {
   type: "runtime" | "tui" | "automation" | "user";
   name: string;
   icon: LucideIcon | null;
   color: string | null; // null for users who get dynamic colors
   backgroundColor: string;
   textColor: string;
-}
+};
 
 export const CLIENT_TYPE_CONFIGS: Record<string, ClientTypeInfo> = {
   runtime: {

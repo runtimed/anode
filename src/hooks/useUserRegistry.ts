@@ -9,14 +9,14 @@ import {
   getClientDisplayName,
 } from "../services/userTypes.js";
 
-export interface UserInfo {
+export type UserInfo = {
   id: string;
   name: string;
   email?: string;
   picture?: string;
   isAnonymous: boolean;
   lastSeen: number;
-}
+};
 
 // Queries for user presence and profile information from LiveStore
 const actorsQuery = queryDb(tables.actors);
@@ -26,8 +26,6 @@ export const useUserRegistry = () => {
   // Fetch all actor profiles and presence data from LiveStore
   const actors = useQuery(actorsQuery);
   const presence = useQuery(presenceQuery);
-
-  // Actor profile emission is now handled in useCurrentUser hook
 
   // Create a reactive map of user info from actors and presence data
   const userRegistry = useMemo(() => {

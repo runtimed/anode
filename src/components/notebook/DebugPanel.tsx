@@ -2,80 +2,87 @@ import React, { useState } from "react";
 import { useQuery, useStore } from "@livestore/react";
 import { queryDb, sql, Schema } from "@livestore/livestore";
 
-import {
-  CellData,
-  ExecutionQueueData,
-  RuntimeSessionData,
-  NotebookMetadataData,
-  tables,
-  events,
-} from "@runt/schema";
+import { tables, events } from "@runt/schema";
 import { schema } from "../../schema.js";
 import { Bug, Database } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import {
+  cellIDs$,
+  cellQuery,
+  notebookMetadata$,
+  runtimeSessions$,
+} from "@/queries/index.js";
 
-interface DebugPanelProps {
-  metadata: readonly NotebookMetadataData[];
-  cells: readonly CellData[];
-  allRuntimeSessions: readonly RuntimeSessionData[];
-  executionQueue: readonly ExecutionQueueData[];
-  currentNotebookId: string;
-  runtimeHealth: string;
-}
-
-// Hook for discovering available tables
 const useAvailableTables = () => {
-  const { store } = useStore();
-
-  // Query available tables
-  const availableTables = React.useMemo(() => {
-    try {
-      const result = store.query(
-        queryDb({
-          query: sql`SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%'`,
-          schema: Schema.Array(Schema.Struct({ name: Schema.String })),
-        })
-      );
-      const tableNames = result.map((row) => row.name);
-
-      // Sort tables with __ prefixed tables at the bottom
-      return tableNames.sort((a, b) => {
-        const aHasPrefix = a.startsWith("__");
-        const bHasPrefix = b.startsWith("__");
-
-        if (aHasPrefix && !bHasPrefix) return 1;
-        if (!aHasPrefix && bHasPrefix) return -1;
-        return a.localeCompare(b);
-      });
-    } catch (error) {
-      console.error("Failed to query available tables:", error);
-      return [];
-    }
-  }, [store]);
-
-  return availableTables;
+  return useQuery(
+    queryDb(
+      {
+        query: sql`SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%'`,
+        schema: Schema.Array(Schema.Struct({ name: Schema.String })),
+      },
+      { label: "debug.tables" }
+    )
+  );
 };
 
-const DebugPanel: React.FC<DebugPanelProps> = ({
-  metadata,
-  cells,
-  allRuntimeSessions,
-  executionQueue,
-  currentNotebookId,
-  runtimeHealth,
+const DebugCell = ({
+  cellId,
+  cellIndex,
+}: {
+  cellId: string;
+  cellIndex: number;
 }) => {
+  const cell = useQuery(cellQuery.byId(cellId));
+  if (!cell) {
+    return (
+      <div className="animate-pulse border-4 border-red-500 bg-red-900 p-4 text-xl font-bold text-white">
+        CELL ID '{cellId}' DOES NOT EXIST
+      </div>
+    );
+  }
+
+  return (
+    <details className="group">
+      <summary className="hover:bg-muted/50 cursor-pointer rounded p-1 font-mono text-xs">
+        {cellIndex + 1}. {cell.cellType} ({cellId.slice(-8)})
+      </summary>
+      <pre className="bg-card mt-1 overflow-x-auto rounded border p-2 text-xs">
+        {JSON.stringify(cell, null, 2)}
+      </pre>
+    </details>
+  );
+};
+
+const inflightExecutionQueue$ = queryDb(
+  tables.executionQueue
+    .select()
+    .where({
+      status: {
+        op: "IN",
+        value: ["pending", "assigned", "executing", "failed"],
+      },
+    })
+    .orderBy("id", "desc")
+);
+
+const DebugPanel: React.FC = () => {
   const { store } = useStore();
   const availableTables = useAvailableTables();
   const [buttonState, setButtonState] = useState<"default" | "success">(
     "default"
   );
 
+  const notebookMetadata = useQuery(notebookMetadata$);
+  const cellIds = useQuery(cellIDs$);
+  const runtimeSessions = useQuery(runtimeSessions$);
+  const executionQueue = useQuery(inflightExecutionQueue$);
+
   return (
     <div className="bg-muted/5 w-96 overflow-y-auto border-l">
       <div className="bg-card border-b p-4">
         <h3 className="flex items-center gap-2 text-sm font-semibold">
           <Bug className="h-4 w-4" />
-          Anode Debug Panel
+          Runt Debug Panel
         </h3>
       </div>
 
@@ -99,9 +106,9 @@ const DebugPanel: React.FC<DebugPanelProps> = ({
           <div className="bg-card max-h-32 overflow-y-auto rounded border p-2 text-xs">
             {availableTables.length > 0 ? (
               <div className="space-y-1">
-                {availableTables.map((tableName) => (
-                  <div key={tableName} className="font-mono text-xs">
-                    • {tableName}
+                {availableTables.map(({ name }) => (
+                  <div key={name} className="font-mono text-xs">
+                    • {name}
                   </div>
                 ))}
               </div>
@@ -120,7 +127,7 @@ const DebugPanel: React.FC<DebugPanelProps> = ({
           </h4>
           <pre className="bg-card overflow-x-auto rounded border p-2 text-xs">
             {JSON.stringify(
-              Object.fromEntries(metadata.map((m) => [m.key, m.value])),
+              Object.fromEntries(notebookMetadata.map((m) => [m.key, m.value])),
               null,
               2
             )}
@@ -130,18 +137,11 @@ const DebugPanel: React.FC<DebugPanelProps> = ({
         {/* Cells Data */}
         <div>
           <h4 className="text-muted-foreground mb-2 text-xs font-medium tracking-wide uppercase">
-            Cells ({cells.length})
+            Cells ({cellIds.length})
           </h4>
           <div className="space-y-2">
-            {cells.map((cell, index) => (
-              <details key={cell.id} className="group">
-                <summary className="hover:bg-muted/50 cursor-pointer rounded p-1 font-mono text-xs">
-                  {index + 1}. {cell.cellType} ({cell.id.slice(-8)})
-                </summary>
-                <pre className="bg-card mt-1 overflow-x-auto rounded border p-2 text-xs">
-                  {JSON.stringify(cell, null, 2)}
-                </pre>
-              </details>
+            {cellIds.map((cellId, index) => (
+              <DebugCell key={cellId} cellId={cellId} cellIndex={index} />
             ))}
           </div>
         </div>
@@ -149,10 +149,10 @@ const DebugPanel: React.FC<DebugPanelProps> = ({
         {/* Runtime Sessions */}
         <div>
           <h4 className="text-muted-foreground mb-2 text-xs font-medium tracking-wide uppercase">
-            Runtime Sessions ({allRuntimeSessions.length})
+            Runtime Sessions ({runtimeSessions.length})
           </h4>
           <div className="space-y-2">
-            {allRuntimeSessions.map((session, index) => (
+            {runtimeSessions.map((session, index) => (
               <details key={session.sessionId} className="group">
                 <summary className="hover:bg-muted/50 cursor-pointer rounded p-1 font-mono text-xs">
                   {index + 1}. {session.status} ({session.sessionId.slice(-8)})
@@ -201,13 +201,6 @@ const DebugPanel: React.FC<DebugPanelProps> = ({
           <div className="bg-card space-y-1 rounded border p-2 text-xs">
             <div>
               Store ID: <code className="font-mono">{store.storeId}</code>
-            </div>
-            <div>
-              Notebook ID:{" "}
-              <code className="font-mono">{currentNotebookId}</code>
-            </div>
-            <div>
-              Runtime Health: <code className="font-mono">{runtimeHealth}</code>
             </div>
           </div>
         </div>
@@ -277,7 +270,7 @@ const DebugPanel: React.FC<DebugPanelProps> = ({
                   (globalThis as any).schema = schema;
                   (globalThis as any).events = events;
 
-                  console.log("✅ Anode Debug Globals Set:");
+                  console.log("✅ Runt Debug Globals Set:");
                   console.log("📦 store  - LiveStore debug instance");
                   console.log("📋 tables - Database table definitions");
                   console.log("🔧 schema - LiveStore schema");
@@ -319,14 +312,17 @@ const DebugPanel: React.FC<DebugPanelProps> = ({
 };
 
 function DebugPin() {
-  const firstItem = useQuery(queryDb(tables.debug.select()));
+  const debugVersion = useQuery(
+    queryDb(
+      tables.debug.select("version").first({
+        fallback: () => {
+          return "unknown";
+        },
+      })
+    )
+  );
   return (
-    <div className="font-mono text-xs">
-      Debug Pin Version: {!firstItem && "NONE"}
-      {firstItem.length === 0 && "EMPTY"}
-      {/* If using VSCode, updating the schema doesn't automatically update the types in VSCode. Open command palette and run "TypeScript: Restart TS Server" */}
-      {firstItem.length > 0 && firstItem.map((item) => item.version).join(", ")}
-    </div>
+    <div className="font-mono text-xs">Debug Pin Version: {debugVersion}</div>
   );
 }
 

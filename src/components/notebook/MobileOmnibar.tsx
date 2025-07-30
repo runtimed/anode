@@ -5,7 +5,7 @@ import { queryDb } from "@livestore/livestore";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Send } from "lucide-react";
-import { useCurrentUserId } from "../../hooks/useCurrentUser.js";
+import { useAuth } from "@/components/auth/AuthProvider.js";
 
 interface MobileOmnibarProps {
   onCellAdded?: () => void;
@@ -15,7 +15,9 @@ export const MobileOmnibar: React.FC<MobileOmnibarProps> = ({
   onCellAdded,
 }) => {
   const { store } = useStore();
-  const currentUserId = useCurrentUserId();
+  const {
+    user: { sub: userId },
+  } = useAuth();
   const [input, setInput] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -42,8 +44,8 @@ export const MobileOmnibar: React.FC<MobileOmnibarProps> = ({
           id: cellId,
           position: newPosition,
           cellType: "ai",
-          createdBy: currentUserId,
-          actorId: currentUserId,
+          createdBy: userId,
+          actorId: userId,
         })
       );
 
@@ -52,7 +54,7 @@ export const MobileOmnibar: React.FC<MobileOmnibarProps> = ({
         events.cellSourceChanged({
           id: cellId,
           source: input.trim(),
-          modifiedBy: currentUserId,
+          modifiedBy: userId,
         })
       );
 
@@ -66,7 +68,7 @@ export const MobileOmnibar: React.FC<MobileOmnibarProps> = ({
           queueId,
           cellId,
           executionCount: 1,
-          requestedBy: currentUserId,
+          requestedBy: userId,
         })
       );
     } catch (error) {

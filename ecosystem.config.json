@@ -10,6 +10,15 @@
       }
     },
     {
+      "name": "sync",
+      "script": "pnpm",
+      "args": "run dev:sync",
+      "watch": false,
+      "env": {
+        "NODE_ENV": "development"
+      }
+    },
+    {
       "name": "nb",
       "script": "./scripts/start-runtime.sh",
       "watch": false

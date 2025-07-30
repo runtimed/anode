@@ -38,11 +38,13 @@ bucket_name = "anode-artifacts-dev"
 # Environment variables for local development (`wrangler dev`)
 # These are injected into the local worker process. The Vite dev server (`pnpm dev`)
 # will pick up variables from the `.env` file. Ensure they match.
+AUTH_ISSUER = "https://auth.stage.anaconda.com/api/auth"
 DEPLOYMENT_ENV = "development"
 VITE_LIVESTORE_SYNC_URL = "/livestore"
-VITE_GOOGLE_CLIENT_ID = "94663405566-1go7jlpd2ar9u9urbfirmtjv1bm0tcis.apps.googleusercontent.com"
-VITE_GOOGLE_AUTH_ENABLED = "false"
 VITE_RUNTIME_COMMAND = "pnpm run dev:runtime"
+VITE_AUTH_URI = "https://auth.stage.anaconda.com/api/auth"
+VITE_AUTH_CLIENT_ID = "b7296d39-c1eb-49f4-b9a1-f36e6d5b8b6d"
+VITE_AUTH_REDIRECT_URI = "http://localhost:5173/oidc"
 
 # ---
 # Deployed Environments
@@ -73,7 +75,9 @@ GOOGLE_CLIENT_ID = "94663405566-1go7jlpd2ar9u9urbfirmtjv1bm0tcis.apps.googleuser
 name = "anode-main-prod"
 main = "./backend/entry.ts"
 routes = [{ pattern = "app.runt.run", custom_domain = true }]
-assets = { directory = "./dist" }
+[env.production.assets]
+directory = "./dist"
+binding = "ASSETS"
 
 [[env.production.durable_objects.bindings]]
 name = "WEBSOCKET_SERVER"
@@ -91,13 +95,15 @@ bucket_name = "anode-artifacts-prod"
 [env.production.vars]
 # Worker runtime variables
 DEPLOYMENT_ENV = "production"
-GOOGLE_CLIENT_ID = "94663405566-1go7jlpd2ar9u9urbfirmtjv1bm0tcis.apps.googleusercontent.com"
 ARTIFACT_STORAGE = "r2"
 ARTIFACT_THRESHOLD = "16384"
+AUTH_ISSUER = "https://auth.anaconda.com/api/auth"
 # Vite build-time variables
 VITE_LIVESTORE_SYNC_URL = "/livestore"
-VITE_GOOGLE_CLIENT_ID = "94663405566-1go7jlpd2ar9u9urbfirmtjv1bm0tcis.apps.googleusercontent.com"
-VITE_GOOGLE_AUTH_ENABLED = "true"
+VITE_AUTH_URI = "https://auth.anaconda.com/api/auth"
+VITE_AUTH_CLIENT_ID = "74a51ff4-5814-48fa-9ae7-6d3ef0aca3e2"
+VITE_AUTH_REDIRECT_URI = "https://app.runt.run/oidc"
+
 VITE_RUNTIME_COMMAND = "pnpm run dev:runtime"
 
 # Preview Environment (all-in-one worker)
@@ -105,7 +111,9 @@ VITE_RUNTIME_COMMAND = "pnpm run dev:runtime"
 name = "anode-docworker-preview"
 main = "./backend/entry.ts"
 routes = [{ pattern = "preview.runt.run", custom_domain = true }]
-assets = { directory = "./dist" }
+[env.preview.assets]
+directory = "./dist"
+binding = "ASSETS"
 
 [[env.preview.durable_objects.bindings]]
 name = "WEBSOCKET_SERVER"
@@ -124,14 +132,14 @@ preview_bucket_name = "anode-artifacts-preview"
 [env.preview.vars]
 # Worker runtime variables
 DEPLOYMENT_ENV = "preview"
-GOOGLE_CLIENT_ID = "94663405566-1go7jlpd2ar9u9urbfirmtjv1bm0tcis.apps.googleusercontent.com"
 ARTIFACT_STORAGE = "r2"
 ARTIFACT_THRESHOLD = "16384"
 # Vite build-time variables
 VITE_LIVESTORE_SYNC_URL = "/livestore"
-VITE_GOOGLE_CLIENT_ID = "94663405566-1go7jlpd2ar9u9urbfirmtjv1bm0tcis.apps.googleusercontent.com"
-VITE_GOOGLE_AUTH_ENABLED = "true"
 VITE_RUNTIME_COMMAND = "pnpm run dev:runtime"
+VITE_AUTH_URI = "https://auth.anaconda.com/api/auth"
+VITE_AUTH_CLIENT_ID = "6a038ed5-eea7-4c7c-9b65-8e6068a0c84f"
+VITE_AUTH_REDIRECT_URI = "https://preview.runt.run/oidc"
 
 
 # ---
@@ -140,7 +148,7 @@ VITE_RUNTIME_COMMAND = "pnpm run dev:runtime"
 # Secrets must be set per environment via: `pnpm wrangler secret put <NAME> --env <ENV>`
 #
 # Example for production:
-# pnpm wrangler secret put GOOGLE_CLIENT_SECRET --env production
+# pnpm wrangler secret put AUTH_TOKEN --env production
 #
 # Example for preview:
 # pnpm wrangler secret put AUTH_TOKEN --env preview

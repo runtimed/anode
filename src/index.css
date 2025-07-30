@@ -359,6 +359,13 @@
     -ms-user-select: none;
     user-select: none;
   }
+
+  /* Disabled button styles */
+  button:disabled {
+    cursor: not-allowed;
+    opacity: 0.5;
+    pointer-events: none;
+  }
 }
 
 /* Safe area support for devices with notches */
@@ -369,5 +376,88 @@
 
   .safe-area-inset-bottom {
     padding-bottom: max(env(safe-area-inset-bottom), 0px);
+  }
+}
+
+/* Pixel-perfect logo rendering */
+.pixel-logo {
+  image-rendering: pixelated;
+  image-rendering: -moz-crisp-edges;
+  image-rendering: crisp-edges;
+}
+
+/* Rune throb animation */
+@keyframes rune-throb {
+  0% {
+    opacity: 0.8;
+    filter: brightness(1) saturate(1);
+  }
+  50% {
+    opacity: 1;
+    filter: brightness(1.3) saturate(1.4) drop-shadow(0 0 4px rgba(147, 51, 234, 0.4));
+  }
+  100% {
+    opacity: 0.9;
+    filter: brightness(1.1) saturate(1.2);
+  }
+}
+
+.rune-throb {
+  animation: rune-throb 2s ease-in-out infinite alternate;
+}
+
+/* Intense rune throb for hover states */
+@keyframes rune-throb-intense {
+  0% {
+    opacity: 0.85;
+    filter: brightness(1.05) saturate(1.1);
+  }
+  50% {
+    opacity: 1;
+    filter: brightness(1.2) saturate(1.3) drop-shadow(0 0 5px rgba(147, 51, 234, 0.5));
+  }
+  100% {
+    opacity: 0.92;
+    filter: brightness(1.1) saturate(1.2) drop-shadow(0 0 3px rgba(147, 51, 234, 0.3));
+  }
+}
+
+.rune-throb-intense {
+  animation: rune-throb-intense 1.5s ease-in-out infinite alternate;
+}
+
+/* Magical logo transition animations */
+.logo-transition-container {
+  transition-property: transform, opacity, filter;
+  transition-timing-function: cubic-bezier(0.4, 0.0, 0.2, 1);
+}
+
+.logo-fly-out {
+  animation: logo-fly-out 0.8s cubic-bezier(0.4, 0.0, 0.2, 1) forwards;
+}
+
+.logo-fly-in {
+  animation: logo-fly-in 1.0s cubic-bezier(0.4, 0.0, 0.2, 1) forwards;
+}
+
+@keyframes logo-fly-out {
+  0% {
+    transform: translateX(0) scale(1);
+    opacity: 1;
+  }
+  100% {
+    transform: translateX(200vw) scale(0.5);
+    opacity: 0;
+  }
+}
+
+@keyframes logo-fly-in {
+  0% {
+    transform: translateX(-200vw) scale(0.5);
+    opacity: 0;
+  }
+  100% {
+    transform: translateX(0) scale(1);
+    opacity: 1;
   }
 }

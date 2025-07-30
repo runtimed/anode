@@ -10,13 +10,11 @@ import { VirtualizedCellList } from "./VirtualizedCellList.js";
 import { Avatar } from "@/components/ui/Avatar.js";
 import { Button } from "@/components/ui/button";
 
-import { useCurrentUserId } from "@/hooks/useCurrentUser.js";
-import { useRuntimeHealth } from "@/hooks/useRuntimeHealth.js";
+import { useAuth } from "@/components/auth/AuthProvider.js";
 import { useUserRegistry } from "@/hooks/useUserRegistry.js";
 
 import { getClientColor, getClientTypeInfo } from "@/services/userTypes.js";
 import { getDefaultAiModel, useAvailableAiModels } from "@/util/ai-models.js";
-import { getCurrentNotebookId } from "@/util/store-id.js";
 import { Bug, BugOff, Filter, Terminal, X } from "lucide-react";
 import { UserProfile } from "../auth/UserProfile.js";
 import { RuntimeHealthIndicator } from "./RuntimeHealthIndicator.js";
@@ -46,10 +44,11 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
   onDebugToggle,
 }) => {
   const { store } = useStore();
-  const currentUserId = useCurrentUserId();
+  const {
+    user: { sub: userId },
+  } = useAuth();
   const { presentUsers, getUserInfo, getUserColor } = useUserRegistry();
   const { models } = useAvailableAiModels();
-  const { runtimeHealth } = useRuntimeHealth();
 
   const cells = useQuery(
     queryDb(tables.cells.select().orderBy("position", "asc"))
@@ -76,12 +75,6 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
   const runtimeSessions = useQuery(
     queryDb(tables.runtimeSessions.select().where({ isActive: true }))
   );
-  // Get all runtime sessions for debug panel
-  const allRuntimeSessions = useQuery(queryDb(tables.runtimeSessions.select()));
-  // Get execution queue for debug panel
-  const executionQueue = useQuery(
-    queryDb(tables.executionQueue.select().orderBy("id", "desc"))
-  ) as any[];
 
   const [showRuntimeHelper, setShowRuntimeHelper] = React.useState(false);
   const [focusedCellId, setFocusedCellId] = React.useState<string | null>(null);
@@ -155,8 +148,8 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
           id: newCellId,
           position: newPosition,
           cellType,
-          createdBy: currentUserId,
-          actorId: currentUserId,
+          createdBy: userId,
+          actorId: userId,
         })
       );
 
@@ -181,7 +174,7 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
       // Focus the new cell after creation
       setTimeout(() => setFocusedCellId(newCellId), 0);
     },
-    [cells, store, currentUserId, models, lastUsedAiModel, lastUsedAiProvider]
+    [cells, store, userId, models, lastUsedAiModel, lastUsedAiProvider]
   );
 
   const deleteCell = useCallback(
@@ -189,11 +182,11 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
       store.commit(
         events.cellDeleted({
           id: cellId,
-          actorId: currentUserId,
+          actorId: userId,
         })
       );
     },
-    [store, currentUserId]
+    [store, userId]
   );
 
   const moveCell = useCallback(
@@ -211,14 +204,14 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
             events.cellMoved({
               id: cellId,
               newPosition: targetCell.position,
-              actorId: currentUserId,
+              actorId: userId,
             })
           );
           store.commit(
             events.cellMoved({
               id: targetCell.id,
               newPosition: currentCell.position,
-              actorId: currentUserId,
+              actorId: userId,
             })
           );
         }
@@ -230,20 +223,20 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
             events.cellMoved({
               id: cellId,
               newPosition: targetCell.position,
-              actorId: currentUserId,
+              actorId: userId,
             })
           );
           store.commit(
             events.cellMoved({
               id: targetCell.id,
               newPosition: currentCell.position,
-              actorId: currentUserId,
+              actorId: userId,
             })
           );
         }
       }
     },
-    [cells, store, currentUserId]
+    [cells, store, userId]
   );
 
   const focusCell = useCallback((cellId: string) => {
@@ -310,7 +303,30 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
           className={`flex w-full items-center justify-between ${debugMode ? "sm:mx-auto sm:max-w-none" : "sm:mx-auto sm:max-w-6xl"}`}
         >
           <div className="flex items-center gap-2 sm:gap-4">
-            <img src="/logo.svg" alt="Anode" className="h-6 w-auto sm:h-8" />
+            <div className="relative h-8 w-8 overflow-hidden sm:h-10 sm:w-10">
+              <img
+                src="/hole.png"
+                alt=""
+                className="pixel-logo absolute inset-0 h-full w-full"
+              />
+
+              <img
+                src="/runes.png"
+                alt=""
+                className="pixel-logo absolute inset-0 h-full w-full"
+              />
+
+              <img
+                src="/bunny-sit.png"
+                alt=""
+                className="pixel-logo absolute inset-0 h-full w-full"
+              />
+              <img
+                src="/bracket.png"
+                alt="Runt"
+                className="pixel-logo absolute inset-0 h-full w-full"
+              />
+            </div>
             <a
               href={window.location.origin}
               className="ring-offset-background focus-visible:ring-ring border-input bg-background hover:bg-accent hover:text-accent-foreground inline-flex h-8 items-center justify-center rounded-md border px-2 text-sm font-medium whitespace-nowrap transition-colors focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none disabled:pointer-events-none disabled:opacity-50 sm:h-9 sm:px-3"
@@ -322,7 +338,7 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
           <div className="flex items-center gap-2">
             <div className="flex -space-x-2">
               {presentUsers
-                .filter((user) => user.id !== currentUserId)
+                .filter((user) => user.id !== userId)
                 .map((user) => {
                   const userInfo = getUserInfo(user.id);
                   const clientInfo = getClientTypeInfo(user.id);
@@ -416,7 +432,7 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
                     <Terminal className="h-3 w-3 sm:h-4 sm:w-4" />
                     <span className="hidden text-xs capitalize sm:block sm:text-sm">
                       {metadata.find((m) => m.key === "runtimeType")?.value ??
-                        "python3"}
+                        "unknown"}
                     </span>
                     <RuntimeHealthIndicator />
                   </Button>
@@ -523,14 +539,7 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
             }
           >
             <ErrorBoundary fallback={<div>Error rendering debug panel</div>}>
-              <LazyDebugPanel
-                metadata={metadata}
-                cells={cells}
-                allRuntimeSessions={allRuntimeSessions}
-                executionQueue={executionQueue}
-                currentNotebookId={getCurrentNotebookId()}
-                runtimeHealth={runtimeHealth}
-              />
+              <LazyDebugPanel />
             </ErrorBoundary>
           </Suspense>
         )}

@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
-export interface CellData {
+export type CellData = {
   id: string;
   position: number;
   cellType: string;
@@ -10,7 +10,7 @@ export interface CellData {
   sourceVisible?: boolean;
   outputVisible?: boolean;
   aiContextVisible?: boolean;
-}
+};
 
 interface UseCellFocusOptions {
   cells: CellData[];
