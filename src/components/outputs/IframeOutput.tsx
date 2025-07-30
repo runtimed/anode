@@ -72,7 +72,7 @@ export const IframeOutput: React.FC<IframeOutputProps> = ({
 
   return (
     <iframe
-      src="http://localhost:8000"
+      src={import.meta.env.VITE_IFRAME_OUTPUT_URI}
       ref={iframeRef}
       className={className}
       width="100%"
