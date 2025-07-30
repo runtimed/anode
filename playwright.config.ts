@@ -1,7 +1,7 @@
 import { defineConfig, devices } from "@playwright/test";
 
 export default defineConfig({
-  testDir: "./tests/playwright",
+  testDir: "./test/playwright",
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,
@@ -19,7 +19,7 @@ export default defineConfig({
     },
   ],
   webServer: {
-    command: "NOTEBOOK_ID=test-notebook pm2 delete all && pnpm dev",
+    command: "NOTEBOOK_ID=test-notebook pm2 delete all && pnpm dev:runt",
     url: "http://localhost:5173",
     reuseExistingServer: !process.env.CI,
     timeout: 120 * 1000,
