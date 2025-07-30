@@ -153,5 +153,8 @@ venv.bak/
 .dmypy.json
 dmypy.json
 
+# PM2 ecosystem file
+ecosystem.config.json
+
 # Caddy configuration
 Caddyfile*

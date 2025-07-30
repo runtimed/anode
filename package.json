@@ -8,6 +8,7 @@
     "pnpm": ">=10.9.0"
   },
   "scripts": {
+    "dev:pm2": "./scripts/start-dev.sh && pnpm exec pm2 logs",
     "dev": "pnpm dev:web",
     "dev:web": "vite",
     "dev:scan": "pnpm run dev & npx react-scan@latest localhost:5173",
