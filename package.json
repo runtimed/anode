@@ -10,8 +10,7 @@
   "scripts": {
     "dev:pm2": "./scripts/start-dev.sh && pnpm exec pm2 logs",
     "dev": "pnpm dev:web",
-    "dev:web": "concurrently \"vite\" \"pnpm dev:iframe-outputs\"",
-    "dev:iframe-outputs": "./scripts/start-iframe-output.sh",
+    "dev:web": "vite",
     "dev:scan": "pnpm run dev & npx react-scan@latest localhost:5173",
     "dev:auth": "vite --mode auth",
     "dev:sync": "wrangler dev",
@@ -118,7 +117,6 @@
     "@vitest/ui": "^3.0.0",
     "autoprefixer": "^10.4.21",
     "babel-plugin-react-compiler": "19.1.0-rc.2",
-    "concurrently": "^9.2.0",
     "eslint": "^9.30.1",
     "eslint-plugin-react-compiler": "19.1.0-rc.2",
     "eslint-plugin-react-hooks": "^5.2.0",
