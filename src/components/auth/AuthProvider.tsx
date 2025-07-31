@@ -7,7 +7,6 @@ type AuthState =
   | { valid: false; loading: boolean; error?: Error };
 
 type AuthContextType = {
-  isLocalMode: boolean;
   authState: AuthState;
   get user(): UserInfo;
   get accessToken(): string;
@@ -33,36 +32,8 @@ export function AuthProvider({ children }: AuthProviderProps) {
     valid: false,
     loading: true,
   });
-  const isLocalMode = !import.meta.env.VITE_AUTH_CLIENT_ID;
 
   useEffect(() => {
-    if (isLocalMode) {
-      const localToken = import.meta.env.VITE_AUTH_TOKEN;
-      if (!localToken) {
-        console.error("VITE_AUTH_TOKEN is required for local development mode");
-        setAuthState({
-          valid: false,
-          loading: false,
-          error: new Error("Missing VITE_AUTH_TOKEN"),
-        });
-        return;
-      }
-
-      const dummyUser: UserInfo = {
-        sub: "local-dev-user",
-        email: "local@example.com",
-        email_verified: true,
-        name: "Local Development User",
-        picture: undefined,
-      };
-      setAuthState({
-        valid: true,
-        token: localToken,
-        user: dummyUser,
-      });
-      return;
-    }
-
     // OpenID mode - use the service
     const openIdService = getOpenIdService();
     const subscription = openIdService.getUser().subscribe({
@@ -84,7 +55,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
     });
 
     return () => subscription.unsubscribe();
-  }, [isLocalMode]);
+  }, []);
 
   useEffect(() => {
     const openIdService = getOpenIdService();
@@ -116,7 +87,6 @@ export function AuthProvider({ children }: AuthProviderProps) {
   };
 
   const value: AuthContextType = {
-    isLocalMode,
     authState,
     signOut,
     get user() {

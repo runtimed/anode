@@ -10,9 +10,7 @@ import {
   CardTitle,
 } from "../ui/card";
 import { RuntLogo } from "../logo";
-import {
-  removeStaticLoadingScreen,
-} from "@/util/domUpdates";
+import { removeStaticLoadingScreen } from "@/util/domUpdates";
 
 interface RegisterFormData {
   firstName: string;

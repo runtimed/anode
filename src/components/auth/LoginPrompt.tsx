@@ -2,6 +2,8 @@ import React, { useEffect, useState } from "react";
 import { LogIn, ExternalLink } from "lucide-react";
 import { getOpenIdService, RedirectUrls } from "../../services/openid";
 import { redirectHelper } from "./redirect-url-helper";
+// @ts-ignore
+import psl from "psl";
 
 // DEV MODE: Design testing states
 const DESIGN_TEST_MODE = {
@@ -15,6 +17,23 @@ interface LoginPromptProps {
   error: string | null;
   setError: (error: string | null) => void;
   onButtonHover?: (hovered: boolean) => void;
+}
+
+function getAuthProviderName(url: URL | null | undefined): string | null {
+  if (!url) {
+    return null;
+  }
+  const hostname = url.hostname;
+
+  const parsed = psl.parse(hostname);
+  if (!parsed?.domain) {
+    return null;
+  }
+
+  const domainParts = parsed.domain.split(".");
+  const mainPart = domainParts[0];
+
+  return mainPart.charAt(0).toUpperCase() + mainPart.slice(1);
 }
 
 const LoginPrompt: React.FC<LoginPromptProps> = ({
@@ -102,6 +121,10 @@ const LoginPrompt: React.FC<LoginPromptProps> = ({
     }
   };
 
+  const providerName = getAuthProviderName(redirectUrls?.loginUrl);
+
+  const signinText = providerName ? `Sign In with ${providerName}` : "Sign In";
+
   return (
     <div className="auth-wrapper mx-auto flex max-w-[400px] flex-col items-center space-y-8">
       {/* Primary action button */}
@@ -118,7 +141,7 @@ const LoginPrompt: React.FC<LoginPromptProps> = ({
             <div className="h-5 w-5 animate-spin rounded-full border-2 border-white/20 border-t-white" />
           ) : (
             <>
-              <span>Sign In with Anaconda</span>
+              <span>{signinText}</span>
               <LogIn className="h-5 w-5 transition-transform group-hover:translate-x-0.5" />
             </>
           )}

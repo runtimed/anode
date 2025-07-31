@@ -121,7 +121,6 @@ Web client environment variables are built into the static assets at build time:
 Key variables:
 
 - `VITE_LIVESTORE_SYNC_URL`: URL of the sync worker
-- `VITE_AUTH_TOKEN`: Authentication token for the sync backend
 
 ## Local Development
 
