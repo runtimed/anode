@@ -131,8 +131,7 @@ function getUserId(userData: UserData): string {
 
 async function generateTokens(
   userData: UserData,
-  baseUrl: string,
-  privateKey: any
+  env: Env,
 ): Promise<{
   access_token: string;
   token_type: string;
@@ -141,7 +140,10 @@ async function generateTokens(
   expires_in: number;
   scope: string;
 }> {
-  const issuer = `${baseUrl}/local_oidc`;
+    const pem = await ensurePEM(env);
+    const privateKey = await jose.importPKCS8(pem, "RS256", {
+      extractable: true,
+    });
   const userId = getUserId(userData);
   const now = Math.floor(Date.now() / 1000);
 
@@ -150,7 +152,7 @@ async function generateTokens(
     given_name: userData.firstName,
     family_name: userData.lastName,
     email: userData.email,
-    iss: issuer,
+    iss: env.AUTH_ISSUER,
     aud: "local-anode-client",
     iat: now,
   };
@@ -232,13 +234,7 @@ async function handleToken(request: Request, env: Env): Promise<Response> {
     }
 
     try {
-      const pem = await ensurePEM(env);
-      const privateKey = await jose.importPKCS8(pem, "RS256", {
-        extractable: true,
-      });
-      const baseUrl = getBaseUrl(request);
-
-      const tokens = await generateTokens(userData, baseUrl, privateKey);
+      const tokens = await generateTokens(userData, env);
 
       return new Response(JSON.stringify(tokens), {
         status: 200,
@@ -257,30 +253,13 @@ async function handleToken(request: Request, env: Env): Promise<Response> {
     }
 
     try {
-      const pem = await ensurePEM(env);
-      const privateKey = await jose.importPKCS8(pem, "RS256", {
-        extractable: true,
-      });
-      const baseUrl = getBaseUrl(request);
-      const issuer = `${baseUrl}/local_oidc`;
-
-      // Create JWKS for verification
-      const publicKey = await jose.exportJWK(privateKey);
-      const jwks = {
-        keys: [
-          {
-            kty: publicKey.kty!,
-            use: "sig",
-            kid: "1",
-            n: publicKey.n!,
-            e: publicKey.e!,
-          },
-        ],
-      };
+      const jwks = jose.createRemoteJWKSet(
+        new URL(`${env.AUTH_ISSUER}/.well-known/jwks.json`)
+      );
 
       // Verify the refresh token using the public key
-      const { payload } = await jose.jwtVerify(refreshToken, jwks.keys[0], {
-        issuer,
+      const { payload } = await jose.jwtVerify(refreshToken, jwks, {
+        issuer: env.AUTH_ISSUER,
         audience: "local-anode-client",
       });
 
@@ -292,7 +271,7 @@ async function handleToken(request: Request, env: Env): Promise<Response> {
       };
 
       // Generate new tokens
-      const tokens = await generateTokens(userData, baseUrl, privateKey);
+      const tokens = await generateTokens(userData, env);
 
       return new Response(JSON.stringify(tokens), {
         status: 200,
@@ -324,30 +303,14 @@ async function handleUserinfo(request: Request, env: Env): Promise<Response> {
   const accessToken = authHeader.substring(7);
 
   try {
-    const pem = await ensurePEM(env);
-    const privateKey = await jose.importPKCS8(pem, "RS256", {
-      extractable: true,
-    });
-    const baseUrl = getBaseUrl(request);
-    const issuer = `${baseUrl}/local_oidc`;
+      const jwks = jose.createRemoteJWKSet(
+        new URL(`${env.AUTH_ISSUER}/.well-known/jwks.json`)
+      );
 
-    const publicKey = await jose.exportJWK(privateKey);
-    const jwks = {
-      keys: [
-        {
-          kty: publicKey.kty!,
-          use: "sig",
-          kid: "1",
-          n: publicKey.n!,
-          e: publicKey.e!,
-        },
-      ],
-    };
-
-    const { payload } = await jose.jwtVerify(accessToken, jwks.keys[0], {
-      issuer,
-      audience: "local-anode-client",
-    });
+      const { payload } = await jose.jwtVerify(accessToken, jwks, {
+        issuer: env.AUTH_ISSUER,
+        audience: "local-anode-client",
+      });
 
     const userinfo = {
       sub: payload.sub,
