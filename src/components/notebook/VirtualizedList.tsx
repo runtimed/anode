@@ -16,9 +16,9 @@ export function VirtualizedList() {
 
   // The virtualizer
   const rowVirtualizer = useVirtualizer({
-    count: 10000,
+    count: ITEMS.length,
     getScrollElement: () => parentRef.current,
-    estimateSize: () => 35,
+    estimateSize: (i) => ITEMS[i],
   });
 
   return (
@@ -43,11 +43,8 @@ export function VirtualizedList() {
           {rowVirtualizer.getVirtualItems().map((virtualItem) => (
             <div
               key={virtualItem.key}
+              className={`absolute top-0 left-0 w-full ${virtualItem.index % 2 === 0 ? "bg-yellow-100" : "bg-cyan-100"}`}
               style={{
-                position: "absolute",
-                top: 0,
-                left: 0,
-                width: "100%",
                 height: `${virtualItem.size}px`,
                 transform: `translateY(${virtualItem.start}px)`,
               }}
