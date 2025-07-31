@@ -9,6 +9,32 @@ export { WebSocketServer };
 
 import { Env } from "./types.ts";
 
+// CORS middleware function
+function addCorsHeaders(response: Response): Response {
+  const newHeaders = new Headers(response.headers);
+  newHeaders.set("Access-Control-Allow-Origin", "*");
+  newHeaders.set(
+    "Access-Control-Allow-Methods",
+    "GET, POST, PUT, DELETE, OPTIONS"
+  );
+  newHeaders.set("Access-Control-Allow-Headers", "Content-Type, Authorization");
+
+  return new Response(response.body, {
+    status: response.status,
+    statusText: response.statusText,
+    headers: newHeaders,
+  });
+}
+
+// Wrapper function to apply CORS middleware to any async handler
+async function withCors<T extends any[]>(
+  handler: (...args: T) => Promise<Response>,
+  ...args: T
+): Promise<Response> {
+  const response = await handler(...args);
+  return addCorsHeaders(response);
+}
+
 export default {
   /**
    * The main fetch handler for the all-in-one preview worker.
@@ -55,7 +81,7 @@ export default {
 
       if (url.pathname.startsWith("/local_oidc")) {
         console.log("🔐 Routing to OIDC handler");
-        return handleOidcRequest(request, env);
+        return withCors(handleOidcRequest, request, env);
       }
 
       // If it's an API request, delegate it to the imported sync worker's logic.

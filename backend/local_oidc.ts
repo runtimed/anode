@@ -116,9 +116,6 @@ async function handleOpenIdConfiguration(
     status: 200,
     headers: {
       "Content-Type": "application/json",
-      "Access-Control-Allow-Origin": "*",
-      "Access-Control-Allow-Methods": "GET, OPTIONS",
-      "Access-Control-Allow-Headers": "Content-Type",
     },
   });
 }
@@ -309,9 +306,6 @@ async function handleUserinfo(request: Request, env: Env): Promise<Response> {
       status: 200,
       headers: {
         "Content-Type": "application/json",
-        "Access-Control-Allow-Origin": "*",
-        "Access-Control-Allow-Methods": "GET, OPTIONS",
-        "Access-Control-Allow-Headers": "Content-Type, Authorization",
       },
     });
   } catch (error) {
@@ -379,9 +373,6 @@ async function handleJwks(_request: Request, env: Env): Promise<Response> {
       status: 200,
       headers: {
         "Content-Type": "application/json",
-        "Access-Control-Allow-Origin": "*",
-        "Access-Control-Allow-Methods": "GET, OPTIONS",
-        "Access-Control-Allow-Headers": "Content-Type",
       },
     });
   } catch (error) {
@@ -400,11 +391,6 @@ export async function handleOidcRequest(
   if (request.method === "OPTIONS") {
     return new Response(null, {
       status: 200,
-      headers: {
-        "Access-Control-Allow-Origin": "*",
-        "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
-        "Access-Control-Allow-Headers": "Content-Type, Authorization",
-      },
     });
   }
 
