@@ -23,21 +23,25 @@ describe("Local OIDC handler", () => {
     return handleOidcRequest(request, mockEnv);
   };
 
-  describe("Discovery", () => {
+  const getConfig = async () => {
+    const url = new URL(
+      "http://localhost:8787/local_oidc/.well-known/openid-configuration"
+    );
+    return openidClient.discovery(
+      url,
+      "local-anode-client",
+      undefined,
+      undefined,
+      {
+        [openidClient.customFetch]: customFetch,
+        execute: [openidClient.allowInsecureRequests],
+      }
+    );
+  };
+
+  describe("Local OIDC", () => {
     it("should discover the client", async () => {
-      const url = new URL(
-        "http://localhost:8787/local_oidc/.well-known/openid-configuration"
-      );
-      const config = await openidClient.discovery(
-        url,
-        "local-anode-client",
-        undefined,
-        undefined,
-        {
-          [openidClient.customFetch]: customFetch,
-          execute: [openidClient.allowInsecureRequests],
-        }
-      );
+      const config = await getConfig();
       expect(config).toBeDefined();
       const resp = config.serverMetadata();
       expect(resp.authorization_endpoint).toBe(
@@ -58,5 +62,25 @@ describe("Local OIDC handler", () => {
       expect(resp.scopes_supported).toEqual(["profile", "email", "openid"]);
       expect(resp.response_types_supported).toEqual(["code"]);
     });
+
+    it("should exchange a code for a token", async () => {
+      const config = await getConfig();
+      const state = openidClient.randomState();
+      const verifier = openidClient.randomPKCECodeVerifier();
+      const challenge = await openidClient.calculatePKCECodeChallenge(verifier);
+      const code = btoa(JSON.stringify({
+        firstName: "White",
+        lastName: "Rabbit",
+        email: "white.rabbit@runt.run"
+      }));
+      const url = new URL("http://localhost:5173/oidc");
+      url.searchParams.set("code", code);
+      url.searchParams.set("state", state);
+      const exchangePromise = openidClient.authorizationCodeGrant(config, url, {
+        pkceCodeVerifier: verifier,
+        expectedState: state,
+      });
+      await expect(exchangePromise).resolves.toBeDefined();
+    })
   });
 });
