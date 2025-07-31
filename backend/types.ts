@@ -25,4 +25,7 @@ export type Env = {
   ADMIN_SECRET: string;
 
   LOCAL_OIDC_AUTHORIZATION_ENDPOINT?: string;
+
+  // Whether to enable the local_oidc routes
+  ALLOW_LOCAL_AUTH?: string;
 };

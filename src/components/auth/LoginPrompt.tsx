@@ -71,13 +71,22 @@ const LoginPrompt: React.FC<LoginPromptProps> = ({
         setRedirectUrls(urls);
       },
       error: (error) => {
-        setError(error.message);
+        // Check if this is a local auth disabled error
+        const providerName = getAuthProviderName(redirectUrls?.loginUrl);
+        if (
+          error.message.includes("unexpected response content-type") &&
+          providerName === null
+        ) {
+          setError("ALLOW_LOCAL_AUTH not enabled");
+        } else {
+          setError(error.message);
+        }
         setLoading(false);
       },
     });
 
     return () => subscription.unsubscribe();
-  }, [openIdService, error, setError]);
+  }, [openIdService, error, setError, redirectUrls]);
 
   useEffect(() => {
     if (action && redirectUrls) {

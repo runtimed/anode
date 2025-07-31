@@ -58,6 +58,9 @@ export default {
       searchParams: url.searchParams.toString(),
     });
 
+    // Check if local auth is enabled
+    const allowLocalAuth = env.ALLOW_LOCAL_AUTH === "true";
+
     // Define the paths that should be handled by the backend API.
     // This includes the main sync endpoint, artifacts API, health endpoint, and OIDC endpoints.
     const isApiRequest =
@@ -66,11 +69,12 @@ export default {
       url.pathname === "/health" ||
       url.pathname.startsWith("/debug/") ||
       url.pathname === "/websocket" ||
-      url.pathname.startsWith("/local_oidc");
+      (allowLocalAuth && url.pathname.startsWith("/local_oidc"));
 
     console.log("🎯 Route decision:", {
       isApiRequest,
       isArtifactPath: url.pathname.startsWith("/api/artifacts"),
+      allowLocalAuth,
     });
 
     if (isApiRequest) {
@@ -79,7 +83,7 @@ export default {
         return artifactWorker.fetch(request, env, ctx);
       }
 
-      if (url.pathname.startsWith("/local_oidc")) {
+      if (allowLocalAuth && url.pathname.startsWith("/local_oidc")) {
         console.log("🔐 Routing to OIDC handler");
         return withCors(handleOidcRequest, request, env);
       }
@@ -118,8 +122,9 @@ export default {
     <li><span class="code">POST /api/artifacts</span> - Upload artifacts</li>
     <li><span class="code">GET /api/artifacts/{id}</span> - Download artifacts</li>
     <li><span class="code">WS /livestore</span> - LiveStore sync</li>
-    <li><span class="code">GET /local_oidc</span> - OpenID connect implementation for local-only usage</li>
+    ${allowLocalAuth ? '<li><span class="code">GET /local_oidc</span> - OpenID connect implementation for local-only usage</li>' : ""}
   </ul>
+  ${!allowLocalAuth ? '<p><em>Local OIDC endpoints are disabled. Set ALLOW_LOCAL_AUTH="true" to enable them.</em></p>' : ""}
 </body>
 </html>
           `.trim(),
