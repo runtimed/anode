@@ -41,7 +41,7 @@ describe("Local OIDC handler", () => {
       expect(config).toBeDefined();
       const resp = config.serverMetadata();
       expect(resp.authorization_endpoint).toBe(
-        "http://localhost:5731/local_oidc/authorize"
+        "http://localhost:5173/local_oidc/authorize"
       );
       expect(resp.token_endpoint).toBe(
         "http://localhost:8787/local_oidc/token"

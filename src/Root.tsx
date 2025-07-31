@@ -38,6 +38,10 @@ import { AuthGuard } from "./components/auth/AuthGuard.js";
 const AuthRedirect = React.lazy(
   () => import("./components/auth/AuthRedirect.js")
 );
+const AuthorizePage = React.lazy(
+  () => import("./components/auth/AuthorizePage.js")
+);
+
 import { AuthProvider } from "./components/auth/AuthProvider.js";
 
 import LiveStoreWorker from "./livestore.worker?worker";
@@ -308,6 +312,18 @@ export const App: React.FC = () => {
               }
             >
               <AuthRedirect />
+            </Suspense>
+          }
+        />
+        <Route
+          path="/local_oidc/authorize"
+          element={
+            <Suspense
+              fallback={
+                <LoadingState variant="fullscreen" message="Loading..." />
+              }
+            >
+              <AuthorizePage />
             </Suspense>
           }
         />
