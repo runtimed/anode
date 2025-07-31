@@ -188,5 +188,134 @@ describe("Local OIDC handler", () => {
       const idToken = tokenResponse.id_token;
       expect(idToken).toBe(tokens);
     });
+
+    it("should refresh a token successfully", async () => {
+      const config = await getConfig();
+      const state = openidClient.randomState();
+      const verifier = openidClient.randomPKCECodeVerifier();
+      const code = btoa(
+        JSON.stringify({
+          firstName: "Alice",
+          lastName: "Wonderland",
+          email: "alice@wonderland.com",
+        })
+      );
+      const url = new URL("http://localhost:5173/oidc");
+      url.searchParams.set("code", code);
+      url.searchParams.set("state", state);
+      const tokenResponse = await openidClient.authorizationCodeGrant(
+        config,
+        url,
+        {
+          pkceCodeVerifier: verifier,
+          expectedState: state,
+        }
+      );
+
+      const originalRefreshToken = tokenResponse.refresh_token;
+      expect(originalRefreshToken).toBeDefined();
+
+      const refreshResponse = await openidClient.refreshTokenGrant(
+        config,
+        originalRefreshToken!
+      );
+      expect(refreshResponse).toBeDefined();
+
+      const refreshTokenData = refreshResponse;
+      expect(refreshTokenData).toHaveProperty("access_token");
+      expect(refreshTokenData).toHaveProperty("refresh_token");
+      expect(refreshTokenData).toHaveProperty("id_token");
+      expect(refreshTokenData).toHaveProperty("expires_in", 300);
+      expect(refreshTokenData).toHaveProperty("scope", "openid profile email");
+
+      const jwksObject = await jose.createRemoteJWKSet(
+        new URL("http://localhost:8787/local_oidc/.well-known/jwks.json"),
+        {
+          [jose.customFetch]: customFetch,
+        }
+      );
+
+      const { payload: newAccessTokenPayload } = await jose.jwtVerify(
+        refreshTokenData.access_token,
+        jwksObject,
+        {
+          issuer: "http://localhost:8787/local_oidc",
+          audience: "local-anode-client",
+        }
+      );
+
+      // Verify the new access token has the same user data
+      expect(newAccessTokenPayload.sub).toBeDefined();
+      expect(newAccessTokenPayload.given_name).toBe("Alice");
+      expect(newAccessTokenPayload.family_name).toBe("Wonderland");
+      expect(newAccessTokenPayload.email).toBe("alice@wonderland.com");
+      expect(newAccessTokenPayload.iss).toBe(
+        "http://localhost:8787/local_oidc"
+      );
+      expect(newAccessTokenPayload.aud).toBe("local-anode-client");
+
+      // Verify the new refresh token
+      expect(refreshTokenData.refresh_token).toBeDefined();
+      const { payload: newRefreshTokenPayload } = await jose.jwtVerify(
+        refreshTokenData.refresh_token!,
+        jwksObject,
+        {
+          issuer: "http://localhost:8787/local_oidc",
+          audience: "local-anode-client",
+        }
+      );
+
+      // Verify the new refresh token has the same user data
+      expect(newRefreshTokenPayload.sub).toBe(newAccessTokenPayload.sub);
+      expect(newRefreshTokenPayload.given_name).toBe("Alice");
+      expect(newRefreshTokenPayload.family_name).toBe("Wonderland");
+      expect(newRefreshTokenPayload.email).toBe("alice@wonderland.com");
+      expect(newRefreshTokenPayload.iss).toBe(
+        "http://localhost:8787/local_oidc"
+      );
+      expect(newRefreshTokenPayload.aud).toBe("local-anode-client");
+
+      expect(refreshTokenData.id_token).toBe(refreshTokenData.access_token);
+    });
+
+    it("should reject invalid refresh tokens", async () => {
+      const formData = new FormData();
+      formData.append("grant_type", "refresh_token");
+      formData.append("client_id", "local-anode-client");
+      formData.append("refresh_token", "invalid.refresh.token");
+
+      const refreshRequest = new Request(
+        "http://localhost:8787/local_oidc/token",
+        {
+          method: "POST",
+          body: formData,
+        }
+      );
+
+      const refreshResponse = await handleOidcRequest(refreshRequest, mockEnv);
+      expect(refreshResponse.status).toBe(400);
+      expect(await refreshResponse.text()).toBe("Invalid refresh token");
+    });
+
+    it("should reject missing refresh token parameter", async () => {
+      const formData = new FormData();
+      formData.append("grant_type", "refresh_token");
+      formData.append("client_id", "local-anode-client");
+      // Missing refresh_token parameter
+
+      const refreshRequest = new Request(
+        "http://localhost:8787/local_oidc/token",
+        {
+          method: "POST",
+          body: formData,
+        }
+      );
+
+      const refreshResponse = await handleOidcRequest(refreshRequest, mockEnv);
+      expect(refreshResponse.status).toBe(400);
+      expect(await refreshResponse.text()).toBe(
+        "Missing refresh_token parameter"
+      );
+    });
   });
 });

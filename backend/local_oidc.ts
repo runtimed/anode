@@ -155,6 +155,63 @@ function getUserId(userData: UserData): string {
   return uuidv5(userString, nullNamespace);
 }
 
+async function generateTokens(
+  userData: UserData,
+  baseUrl: string,
+  privateKey: any
+): Promise<{
+  access_token: string;
+  token_type: string;
+  refresh_token: string;
+  id_token: string;
+  expires_in: number;
+  scope: string;
+}> {
+  const issuer = `${baseUrl}/local_oidc`;
+  const userId = getUserId(userData);
+  const now = Math.floor(Date.now() / 1000);
+
+  const basePayload = {
+    sub: userId,
+    given_name: userData.firstName,
+    family_name: userData.lastName,
+    email: userData.email,
+    iss: issuer,
+    aud: "local-anode-client",
+    iat: now,
+  };
+
+  const accessTokenPayload = {
+    ...basePayload,
+    exp: now + 5 * 60, // 5 minutes
+  };
+
+  // Use a new timestamp for refresh token to ensure it's different
+  const refreshNow = Math.floor(Date.now() / 1000);
+  const refreshTokenPayload = {
+    ...basePayload,
+    iat: refreshNow,
+    exp: refreshNow + 365 * 24 * 60 * 60, // 1 year
+  };
+
+  const accessToken = await new jose.SignJWT(accessTokenPayload)
+    .setProtectedHeader({ alg: "RS256", kid: "1" })
+    .sign(privateKey);
+
+  const refreshToken = await new jose.SignJWT(refreshTokenPayload)
+    .setProtectedHeader({ alg: "RS256", kid: "1" })
+    .sign(privateKey);
+
+  return {
+    access_token: accessToken,
+    token_type: "Bearer",
+    expires_in: 300,
+    refresh_token: refreshToken,
+    id_token: accessToken,
+    scope: "openid profile email",
+  };
+}
+
 async function handleToken(request: Request, env: Env): Promise<Response> {
   // Parse form data instead of URL search params
   const formData = await request.formData();
@@ -162,6 +219,7 @@ async function handleToken(request: Request, env: Env): Promise<Response> {
   const redirectUri = formData.get("redirect_uri") as string;
   const code = formData.get("code") as string;
   const grantType = formData.get("grant_type") as string;
+  const refreshToken = formData.get("refresh_token") as string;
 
   console.log("formData", formData);
 
@@ -170,93 +228,111 @@ async function handleToken(request: Request, env: Env): Promise<Response> {
     return new Response("Invalid client_id", { status: 400 });
   }
 
-  if (!redirectUri || !redirectUri.startsWith("http://localhost")) {
-    console.log("Invalid redirect_uri", redirectUri);
-    return new Response("Invalid redirect_uri", { status: 400 });
-  }
+  if (grantType === "authorization_code") {
+    if (!redirectUri || !redirectUri.startsWith("http://localhost")) {
+      console.log("Invalid redirect_uri", redirectUri);
+      return new Response("Invalid redirect_uri", { status: 400 });
+    }
 
-  if (grantType !== "authorization_code") {
-    console.log("Invalid grant_type", grantType);
-    return new Response("Invalid grant_type", { status: 400 });
-  }
+    if (!code) {
+      console.log("Missing code parameter", code);
+      return new Response("Missing code parameter", { status: 400 });
+    }
 
-  if (!code) {
-    console.log("Missing code parameter", code);
-    return new Response("Missing code parameter", { status: 400 });
-  }
+    let userData: UserData;
+    try {
+      const decodedCode = atob(code);
+      userData = JSON.parse(decodedCode) as UserData;
 
-  let userData: UserData;
-  try {
-    const decodedCode = atob(code);
-    userData = JSON.parse(decodedCode) as UserData;
-
-    if (!userData.firstName || !userData.lastName || !userData.email) {
-      console.log("Invalid code: missing required fields", userData);
-      return new Response("Invalid code: missing required fields", {
+      if (!userData.firstName || !userData.lastName || !userData.email) {
+        console.log("Invalid code: missing required fields", userData);
+        return new Response("Invalid code: missing required fields", {
+          status: 400,
+        });
+      }
+    } catch {
+      console.log("Invalid code: not a valid BASE64 encoded JSON", code);
+      return new Response("Invalid code: not a valid BASE64 encoded JSON", {
         status: 400,
       });
     }
-  } catch {
-    console.log("Invalid code: not a valid BASE64 encoded JSON", code);
-    return new Response("Invalid code: not a valid BASE64 encoded JSON", {
-      status: 400,
-    });
-  }
 
-  try {
-    const pem = await ensurePEM(env);
-    const privateKey = await jose.importPKCS8(pem, "RS256");
-    const baseUrl = getBaseUrl(request);
-    const issuer = `${baseUrl}/local_oidc`;
-    const userId = getUserId(userData);
-    const now = Math.floor(Date.now() / 1000);
+    try {
+      const pem = await ensurePEM(env);
+      const privateKey = await jose.importPKCS8(pem, "RS256", {
+        extractable: true,
+      });
+      const baseUrl = getBaseUrl(request);
 
-    const basePayload = {
-      sub: userId,
-      given_name: userData.firstName,
-      family_name: userData.lastName,
-      email: userData.email,
-      iss: issuer,
-      aud: "local-anode-client",
-      iat: now,
-    };
+      const tokens = await generateTokens(userData, baseUrl, privateKey);
 
-    const accessTokenPayload = {
-      ...basePayload,
-      exp: now + 5 * 60, // 5 minutes
-    };
+      return new Response(JSON.stringify(tokens), {
+        status: 200,
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+    } catch (error) {
+      console.error("Error creating tokens:", error);
+      return new Response("Internal Server Error", { status: 500 });
+    }
+  } else if (grantType === "refresh_token") {
+    if (!refreshToken) {
+      console.log("Missing refresh_token parameter");
+      return new Response("Missing refresh_token parameter", { status: 400 });
+    }
 
-    const refreshTokenPayload = {
-      ...basePayload,
-      exp: now + 365 * 24 * 60 * 60, // 1 year
-    };
+    try {
+      const pem = await ensurePEM(env);
+      const privateKey = await jose.importPKCS8(pem, "RS256", {
+        extractable: true,
+      });
+      const baseUrl = getBaseUrl(request);
+      const issuer = `${baseUrl}/local_oidc`;
 
-    const accessToken = await new jose.SignJWT(accessTokenPayload)
-      .setProtectedHeader({ alg: "RS256", kid: "1" })
-      .sign(privateKey);
+      // Create JWKS for verification
+      const publicKey = await jose.exportJWK(privateKey);
+      const jwks = {
+        keys: [
+          {
+            kty: publicKey.kty!,
+            use: "sig",
+            kid: "1",
+            n: publicKey.n!,
+            e: publicKey.e!,
+          },
+        ],
+      };
 
-    const refreshToken = await new jose.SignJWT(refreshTokenPayload)
-      .setProtectedHeader({ alg: "RS256", kid: "1" })
-      .sign(privateKey);
+      // Verify the refresh token using the public key
+      const { payload } = await jose.jwtVerify(refreshToken, jwks.keys[0], {
+        issuer,
+        audience: "local-anode-client",
+      });
 
-    const payload = {
-      access_token: accessToken,
-      token_type: "Bearer",
-      expires_in: 300,
-      refresh_token: refreshToken,
-      id_token: accessToken,
-      scope: "openid profile email",
-    };
+      // Extract user data from the refresh token
+      const userData: UserData = {
+        firstName: payload.given_name as string,
+        lastName: payload.family_name as string,
+        email: payload.email as string,
+      };
 
-    return new Response(JSON.stringify(payload), {
-      status: 200,
-      headers: {
-        "Content-Type": "application/json",
-      },
-    });
-  } catch (error) {
-    console.error("Error creating tokens:", error);
-    return new Response("Internal Server Error", { status: 500 });
+      // Generate new tokens
+      const tokens = await generateTokens(userData, baseUrl, privateKey);
+
+      return new Response(JSON.stringify(tokens), {
+        status: 200,
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+    } catch (error) {
+      console.error("Error verifying refresh token:", error);
+      return new Response("Invalid refresh token", { status: 400 });
+    }
+  } else {
+    console.log("Invalid grant_type", grantType);
+    return new Response("Invalid grant_type", { status: 400 });
   }
 }
 
