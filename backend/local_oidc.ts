@@ -124,13 +124,9 @@ async function handleOpenIdConfiguration(
 }
 
 function getUserId(userData: UserData): string {
-  // Create a deterministic UUID using v5 with null namespace (all zeros)
+  // We want the userId to always be the same for a given email
   const nullNamespace = "00000000-0000-0000-0000-000000000000";
-
-  // Concatenate user data fields in a specific order (not using JSON.stringify)
-  const userString = `${userData.firstName}${userData.lastName}${userData.email}`;
-
-  return uuidv5(userString, nullNamespace);
+  return uuidv5(userData.email.toLowerCase(), nullNamespace);
 }
 
 async function generateTokens(
