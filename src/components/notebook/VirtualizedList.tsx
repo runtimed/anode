@@ -26,10 +26,7 @@ export function VirtualizedList() {
       {/* The scrollable element for your list */}
       <div
         ref={parentRef}
-        className="overflow-auto overscroll-contain border-2 border-red-500"
-        style={{
-          height: `400px`,
-        }}
+        className="h-screen overflow-auto overscroll-contain border-2 border-red-500"
       >
         {/* The large inner element to hold all of the items */}
         <div
