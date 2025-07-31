@@ -10,11 +10,13 @@ export const redirectHelper = {
       localStorage.setItem(NOTEBOOK_ID_KEY, notebook);
     }
   },
-  navigateToSavedNotebook: () => {
+  navigateToSavedNotebook: (navigate: (to: string) => void) => {
     const notebookId = localStorage.getItem(NOTEBOOK_ID_KEY);
     if (notebookId) {
       localStorage.removeItem(NOTEBOOK_ID_KEY);
-      window.location.href = `/?notebook=${notebookId}`;
+      navigate(`/?notebook=${notebookId}`);
+    } else {
+      navigate("/");
     }
   },
 };

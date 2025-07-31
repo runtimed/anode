@@ -42,7 +42,7 @@ const AuthRedirect: React.FC = () => {
     // Legitimate OIDC callback - process it
     const subscription = openIdService.handleRedirect().subscribe({
       complete: () => {
-        redirectHelper.navigateToSavedNotebook();
+        redirectHelper.navigateToSavedNotebook(navigate);
       },
       error: (error) => {
         setError(error);

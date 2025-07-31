@@ -34,15 +34,15 @@ const getDisplayName = (user: UserInfo): string => {
 
 const useSyncUserToLiveStore = () => {
   const { store } = useStore();
-  const { isLocalMode, user } = useAuth();
+  const { user } = useAuth();
   const { picture, sub } = user;
-  const userId = isLocalMode ? "never-match" : sub;
+  const userId = sub;
   const displayName = getDisplayName(user);
   const existingActor = useQuery(
     queryDb(tables.actors.select().where({ id: userId }))
   );
 
-  const needsInsertion = !isLocalMode && existingActor.length === 0;
+  const needsInsertion = existingActor.length === 0;
 
   useEffect(() => {
     if (needsInsertion) {

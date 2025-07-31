@@ -1,5 +1,6 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { RuntLogo } from "../logo/RuntLogo";
+import { removeStaticLoadingScreen } from "../../util/domUpdates";
 
 interface LoadingStateProps {
   /** Variant of the loading state */
@@ -22,6 +23,9 @@ export const LoadingState: React.FC<LoadingStateProps> = ({
   className = "",
   animated = true,
 }) => {
+  useEffect(() => {
+    removeStaticLoadingScreen();
+  }, []);
   if (variant === "fullscreen") {
     return (
       <div

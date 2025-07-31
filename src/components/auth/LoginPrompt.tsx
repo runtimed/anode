@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { LogIn, ExternalLink } from "lucide-react";
 import { getOpenIdService, RedirectUrls } from "../../services/openid";
 import { redirectHelper } from "./redirect-url-helper";
+import psl from "psl";
 
 // DEV MODE: Design testing states
 const DESIGN_TEST_MODE = {
@@ -17,6 +18,30 @@ interface LoginPromptProps {
   onButtonHover?: (hovered: boolean) => void;
 }
 
+function getAuthProviderName(url: URL | null | undefined): string | null {
+  if (!url) {
+    return null;
+  }
+  const hostname = url.hostname;
+
+  const parsed = psl.parse(hostname);
+
+  // Check if parsing failed (returned ErrorResult)
+  if ("error" in parsed) {
+    return null;
+  }
+
+  // Now we know it's a ParsedDomain
+  if (!parsed.domain) {
+    return null;
+  }
+
+  const domainParts = parsed.domain.split(".");
+  const mainPart = domainParts[0];
+
+  return mainPart.charAt(0).toUpperCase() + mainPart.slice(1);
+}
+
 const LoginPrompt: React.FC<LoginPromptProps> = ({
   error,
   setError,
@@ -26,6 +51,8 @@ const LoginPrompt: React.FC<LoginPromptProps> = ({
   const [redirectUrls, setRedirectUrls] = useState<RedirectUrls | null>(null);
   const [action, setAction] = useState<"login" | "registration" | null>(null);
   const [loading, setLoading] = useState(false);
+
+  const providerName = getAuthProviderName(redirectUrls?.loginUrl);
 
   useEffect(() => {
     // Skip real auth service in design test mode
@@ -52,13 +79,20 @@ const LoginPrompt: React.FC<LoginPromptProps> = ({
         setRedirectUrls(urls);
       },
       error: (error) => {
-        setError(error.message);
+        if (
+          error.message.includes("unexpected response content-type") &&
+          providerName === null
+        ) {
+          setError("ALLOW_LOCAL_AUTH not enabled");
+        } else {
+          setError(error.message);
+        }
         setLoading(false);
       },
     });
 
     return () => subscription.unsubscribe();
-  }, [openIdService, error, setError]);
+  }, [openIdService, error, setError, providerName]);
 
   useEffect(() => {
     if (action && redirectUrls) {
@@ -102,6 +136,8 @@ const LoginPrompt: React.FC<LoginPromptProps> = ({
     }
   };
 
+  const signinText = providerName ? `Sign In with ${providerName}` : "Sign In";
+
   return (
     <div className="auth-wrapper mx-auto flex max-w-[400px] flex-col items-center space-y-8">
       {/* Primary action button */}
@@ -118,7 +154,7 @@ const LoginPrompt: React.FC<LoginPromptProps> = ({
             <div className="h-5 w-5 animate-spin rounded-full border-2 border-white/20 border-t-white" />
           ) : (
             <>
-              <span>Sign In with Anaconda</span>
+              <span>{signinText}</span>
               <LogIn className="h-5 w-5 transition-transform group-hover:translate-x-0.5" />
             </>
           )}
