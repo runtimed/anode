@@ -336,6 +336,72 @@ async function handleToken(request: Request, env: Env): Promise<Response> {
   }
 }
 
+async function handleUserinfo(request: Request, env: Env): Promise<Response> {
+  const authHeader = request.headers.get("Authorization");
+  if (!authHeader || !authHeader.startsWith("Bearer ")) {
+    return new Response("Missing or invalid Authorization header", {
+      status: 401,
+      headers: {
+        "WWW-Authenticate": "Bearer",
+      },
+    });
+  }
+
+  const accessToken = authHeader.substring(7);
+
+  try {
+    const pem = await ensurePEM(env);
+    const privateKey = await jose.importPKCS8(pem, "RS256", {
+      extractable: true,
+    });
+    const baseUrl = getBaseUrl(request);
+    const issuer = `${baseUrl}/local_oidc`;
+
+    const publicKey = await jose.exportJWK(privateKey);
+    const jwks = {
+      keys: [
+        {
+          kty: publicKey.kty!,
+          use: "sig",
+          kid: "1",
+          n: publicKey.n!,
+          e: publicKey.e!,
+        },
+      ],
+    };
+
+    const { payload } = await jose.jwtVerify(accessToken, jwks.keys[0], {
+      issuer,
+      audience: "local-anode-client",
+    });
+
+    const userinfo = {
+      sub: payload.sub,
+      given_name: payload.given_name,
+      family_name: payload.family_name,
+      email: payload.email,
+    };
+
+    return new Response(JSON.stringify(userinfo), {
+      status: 200,
+      headers: {
+        "Content-Type": "application/json",
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Allow-Methods": "GET, OPTIONS",
+        "Access-Control-Allow-Headers": "Content-Type, Authorization",
+      },
+    });
+  } catch (error) {
+    console.error("Error verifying access token:", error);
+    return new Response("Invalid access token", {
+      status: 401,
+      headers: {
+        "WWW-Authenticate": "Bearer",
+      },
+    });
+  }
+}
+
 interface JWK {
   kty: string;
   use: string;
@@ -412,6 +478,10 @@ export async function handleOidcRequest(
 
   if (pathname === "/local_oidc/token") {
     return handleToken(request, env);
+  }
+
+  if (pathname === "/local_oidc/userinfo") {
+    return handleUserinfo(request, env);
   }
 
   return new Response("Not Found", { status: 404 });

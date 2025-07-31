@@ -317,5 +317,103 @@ describe("Local OIDC handler", () => {
         "Missing refresh_token parameter"
       );
     });
+
+    it("should return userinfo from valid access token", async () => {
+      // First, get a valid access token
+      const config = await getConfig();
+      const state = openidClient.randomState();
+      const verifier = openidClient.randomPKCECodeVerifier();
+      const code = btoa(
+        JSON.stringify({
+          firstName: "Mad",
+          lastName: "Hatter",
+          email: "mad.hatter@wonderland.com",
+        })
+      );
+      const url = new URL("http://localhost:5173/oidc");
+      url.searchParams.set("code", code);
+      url.searchParams.set("state", state);
+      const tokenResponse = await openidClient.authorizationCodeGrant(
+        config,
+        url,
+        {
+          pkceCodeVerifier: verifier,
+          expectedState: state,
+        }
+      );
+
+      const accessToken = tokenResponse.access_token;
+      expect(accessToken).toBeDefined();
+
+      // Now test the userinfo endpoint
+      const userinfoRequest = new Request(
+        "http://localhost:8787/local_oidc/userinfo",
+        {
+          method: "GET",
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+          },
+        }
+      );
+
+      const userinfoResponse = await handleOidcRequest(
+        userinfoRequest,
+        mockEnv
+      );
+      expect(userinfoResponse.status).toBe(200);
+      expect(userinfoResponse.headers.get("Content-Type")).toBe(
+        "application/json"
+      );
+
+      const userinfo = await userinfoResponse.json();
+      expect(userinfo).toHaveProperty("sub");
+      expect(userinfo).toHaveProperty("given_name", "Mad");
+      expect(userinfo).toHaveProperty("family_name", "Hatter");
+      expect(userinfo).toHaveProperty("email", "mad.hatter@wonderland.com");
+
+      // Verify the sub is a valid UUID
+      expect(userinfo.sub).toMatch(
+        /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/
+      );
+    });
+
+    it("should reject userinfo request without Authorization header", async () => {
+      const userinfoRequest = new Request(
+        "http://localhost:8787/local_oidc/userinfo",
+        {
+          method: "GET",
+        }
+      );
+
+      const userinfoResponse = await handleOidcRequest(
+        userinfoRequest,
+        mockEnv
+      );
+      expect(userinfoResponse.status).toBe(401);
+      expect(await userinfoResponse.text()).toBe(
+        "Missing or invalid Authorization header"
+      );
+      expect(userinfoResponse.headers.get("WWW-Authenticate")).toBe("Bearer");
+    });
+
+    it("should reject userinfo request with invalid token", async () => {
+      const userinfoRequest = new Request(
+        "http://localhost:8787/local_oidc/userinfo",
+        {
+          method: "GET",
+          headers: {
+            Authorization: "Bearer invalid.token.here",
+          },
+        }
+      );
+
+      const userinfoResponse = await handleOidcRequest(
+        userinfoRequest,
+        mockEnv
+      );
+      expect(userinfoResponse.status).toBe(401);
+      expect(await userinfoResponse.text()).toBe("Invalid access token");
+      expect(userinfoResponse.headers.get("WWW-Authenticate")).toBe("Bearer");
+    });
   });
 });
