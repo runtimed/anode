@@ -18,11 +18,14 @@ interface RegisterFormData {
   email: string;
 }
 
+const LOCAL_STORAGE_KEY = "local-auth-registration";
+
 const AuthorizePage: React.FC = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
 
-  const prompt = searchParams.get("prompt");
+  const initialPrompt = searchParams.get("prompt");
+  const [prompt, setPrompt] = useState<string | null>(initialPrompt);
   const [error, setError] = useState<string | null>(null);
 
   const [formData, setFormData] = useState<RegisterFormData>({
@@ -31,11 +34,43 @@ const AuthorizePage: React.FC = () => {
     email: "",
   });
 
+  const [userData, setUserData] = useState<RegisterFormData | null>(null);
+
   useEffect(() => {
+    const redirectUri = searchParams.get("redirect_uri");
+    if (!redirectUri) {
+      setError("Missing redirect_uri parameter");
+      return;
+    }
+
+    try {
+      const redirectUrl = new URL(redirectUri);
+      const currentUrl = new URL(window.location.href);
+
+      if (redirectUrl.hostname !== currentUrl.hostname) {
+        setError("Invalid redirect_uri: must be same hostname");
+        return;
+      }
+    } catch (error) {
+      setError("Invalid redirect_uri format");
+      return;
+    }
+
     if (prompt !== "login" && prompt !== "registration") {
       setError("Invalid prompt parameter. Must be 'login' or 'registration'.");
+      return;
     }
-  }, [prompt]);
+
+    if (prompt === "login") {
+      const savedData = localStorage.getItem(LOCAL_STORAGE_KEY);
+      if (!savedData) {
+        setPrompt("registration");
+      } else {
+        const parsedData = JSON.parse(savedData) as RegisterFormData;
+        setUserData(parsedData);
+      }
+    }
+  }, [prompt, searchParams]);
 
   useEffect(() => {
     removeStaticLoadingScreen();
@@ -49,6 +84,39 @@ const AuthorizePage: React.FC = () => {
         [field]: e.target.value,
       }));
     };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(formData));
+
+    const redirectUri = searchParams.get("redirect_uri");
+    const state = searchParams.get("state");
+
+    const authCode = btoa(JSON.stringify(formData));
+
+    const redirectUrl = new URL(redirectUri!);
+    redirectUrl.searchParams.set("code", authCode);
+    if (state) {
+      redirectUrl.searchParams.set("state", state);
+    }
+
+    navigate(redirectUrl.pathname + redirectUrl.search, { replace: true });
+  };
+
+  const handleLogin = () => {
+    const redirectUri = searchParams.get("redirect_uri");
+    const state = searchParams.get("state");
+
+    const authCode = btoa(JSON.stringify(userData));
+
+    const redirectUrl = new URL(redirectUri!);
+    redirectUrl.searchParams.set("code", authCode);
+    if (state) {
+      redirectUrl.searchParams.set("state", state);
+    }
+
+    navigate(redirectUrl.pathname + redirectUrl.search, { replace: true });
+  };
 
   if (error) {
     return (
@@ -97,7 +165,7 @@ const AuthorizePage: React.FC = () => {
           </CardHeader>
           <CardContent>
             {prompt === "registration" ? (
-              <form className="space-y-4">
+              <form className="space-y-4" onSubmit={handleSubmit}>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label
@@ -154,11 +222,23 @@ const AuthorizePage: React.FC = () => {
               </form>
             ) : (
               <div className="space-y-4">
-                <p className="text-muted-foreground text-sm">
-                  Login functionality is currently a stub. Click the button
-                  below to proceed with the login flow.
-                </p>
-                <Button className="w-full">Continue to Login</Button>
+                {userData ? (
+                  <>
+                    <p className="text-muted-foreground text-sm">
+                      Logging in as{" "}
+                      <strong>
+                        {userData.firstName} {userData.lastName}
+                      </strong>
+                    </p>
+                    <Button onClick={handleLogin} className="w-full">
+                      Login
+                    </Button>
+                  </>
+                ) : (
+                  <Button onClick={handleLogin} className="w-full">
+                    Continue to Login
+                  </Button>
+                )}
               </div>
             )}
           </CardContent>
