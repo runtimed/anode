@@ -46,6 +46,8 @@ const LoginPrompt: React.FC<LoginPromptProps> = ({
   const [action, setAction] = useState<"login" | "registration" | null>(null);
   const [loading, setLoading] = useState(false);
 
+  const providerName = getAuthProviderName(redirectUrls?.loginUrl);
+
   useEffect(() => {
     // Skip real auth service in design test mode
     if (DESIGN_TEST_MODE.enabled) {
@@ -71,8 +73,6 @@ const LoginPrompt: React.FC<LoginPromptProps> = ({
         setRedirectUrls(urls);
       },
       error: (error) => {
-        // Check if this is a local auth disabled error
-        const providerName = getAuthProviderName(redirectUrls?.loginUrl);
         if (
           error.message.includes("unexpected response content-type") &&
           providerName === null
@@ -86,7 +86,7 @@ const LoginPrompt: React.FC<LoginPromptProps> = ({
     });
 
     return () => subscription.unsubscribe();
-  }, [openIdService, error, setError, redirectUrls]);
+  }, [openIdService, error, setError, providerName]);
 
   useEffect(() => {
     if (action && redirectUrls) {
@@ -129,8 +129,6 @@ const LoginPrompt: React.FC<LoginPromptProps> = ({
       openIdService.reset();
     }
   };
-
-  const providerName = getAuthProviderName(redirectUrls?.loginUrl);
 
   const signinText = providerName ? `Sign In with ${providerName}` : "Sign In";
 
