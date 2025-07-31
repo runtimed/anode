@@ -1,11 +1,12 @@
 import { useVirtualizer } from "@tanstack/react-virtual";
 import { useRef } from "react";
+import { CodeMirrorEditor } from "./codemirror/CodeMirrorEditor";
 
 function getRandomInt(min: number, max: number) {
   return Math.floor(Math.random() * (max - min + 1)) + min;
 }
 
-const ITEMS = Array.from({ length: 1000 }, (_, i) => getRandomInt(20, 300));
+const ITEMS = Array.from({ length: 1000 }, (_, i) => getRandomInt(60, 300));
 
 export function VirtualizedList() {
   // eslint-disable-next-line react-compiler/react-compiler
@@ -40,13 +41,17 @@ export function VirtualizedList() {
           {rowVirtualizer.getVirtualItems().map((virtualItem) => (
             <div
               key={virtualItem.key}
-              className={`absolute top-0 left-0 w-full ${virtualItem.index % 2 === 0 ? "bg-yellow-100" : "bg-cyan-100"}`}
+              className={`absolute top-0 left-0 w-full p-2 ${virtualItem.index % 2 === 0 ? "bg-yellow-100" : "bg-cyan-100"}`}
               style={{
                 height: `${virtualItem.size}px`,
                 transform: `translateY(${virtualItem.start}px)`,
               }}
             >
               {virtualItem.index} • {ITEMS[virtualItem.index]}
+              <CodeMirrorEditor
+                value={`print ('${virtualItem.index} • ${ITEMS[virtualItem.index]}')`}
+                language="python"
+              />
             </div>
           ))}
         </div>
