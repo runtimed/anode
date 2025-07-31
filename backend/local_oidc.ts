@@ -1,5 +1,6 @@
 import { Env } from "./types";
 import * as jose from "jose";
+import { v5 as uuidv5 } from "uuid";
 
 export interface OpenIdConfiguration {
   issuer: string;
@@ -144,7 +145,17 @@ async function handleOpenIdConfiguration(
   });
 }
 
-async function handleToken(request: Request, _env: Env): Promise<Response> {
+function getUserId(userData: UserData): string {
+  // Create a deterministic UUID using v5 with null namespace (all zeros)
+  const nullNamespace = "00000000-0000-0000-0000-000000000000";
+
+  // Concatenate user data fields in a specific order (not using JSON.stringify)
+  const userString = `${userData.firstName}${userData.lastName}${userData.email}`;
+
+  return uuidv5(userString, nullNamespace);
+}
+
+async function handleToken(request: Request, env: Env): Promise<Response> {
   // Parse form data instead of URL search params
   const formData = await request.formData();
   const clientId = formData.get("client_id") as string;
@@ -174,9 +185,10 @@ async function handleToken(request: Request, _env: Env): Promise<Response> {
     return new Response("Missing code parameter", { status: 400 });
   }
 
+  let userData: UserData;
   try {
     const decodedCode = atob(code);
-    const userData = JSON.parse(decodedCode) as UserData;
+    userData = JSON.parse(decodedCode) as UserData;
 
     if (!userData.firstName || !userData.lastName || !userData.email) {
       console.log("Invalid code: missing required fields", userData);
@@ -191,20 +203,61 @@ async function handleToken(request: Request, _env: Env): Promise<Response> {
     });
   }
 
-  const payload = {
-    access_token: "my_access_token",
-    token_type: "Bearer",
-    expires_in: 3600,
-    refresh_token: "my_refresh_token",
-    scope: "openid profile email",
-  };
+  try {
+    const pem = await ensurePEM(env);
+    const privateKey = await jose.importPKCS8(pem, "RS256");
+    const baseUrl = getBaseUrl(request);
+    const issuer = `${baseUrl}/local_oidc`;
+    const userId = getUserId(userData);
+    const now = Math.floor(Date.now() / 1000);
 
-  return new Response(JSON.stringify(payload), {
-    status: 200,
-    headers: {
-      "Content-Type": "application/json",
-    },
-  });
+    const basePayload = {
+      sub: userId,
+      given_name: userData.firstName,
+      family_name: userData.lastName,
+      email: userData.email,
+      iss: issuer,
+      aud: "local-anode-client",
+      iat: now,
+    };
+
+    const accessTokenPayload = {
+      ...basePayload,
+      exp: now + 5 * 60, // 5 minutes
+    };
+
+    const refreshTokenPayload = {
+      ...basePayload,
+      exp: now + 365 * 24 * 60 * 60, // 1 year
+    };
+
+    const accessToken = await new jose.SignJWT(accessTokenPayload)
+      .setProtectedHeader({ alg: "RS256", kid: "1" })
+      .sign(privateKey);
+
+    const refreshToken = await new jose.SignJWT(refreshTokenPayload)
+      .setProtectedHeader({ alg: "RS256", kid: "1" })
+      .sign(privateKey);
+
+    const payload = {
+      access_token: accessToken,
+      token_type: "Bearer",
+      expires_in: 300,
+      refresh_token: refreshToken,
+      id_token: accessToken,
+      scope: "openid profile email",
+    };
+
+    return new Response(JSON.stringify(payload), {
+      status: 200,
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+  } catch (error) {
+    console.error("Error creating tokens:", error);
+    return new Response("Internal Server Error", { status: 500 });
+  }
 }
 
 interface JWK {

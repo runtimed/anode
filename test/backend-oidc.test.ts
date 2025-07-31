@@ -1,5 +1,6 @@
 import { describe, it, expect, beforeEach } from "vitest";
 import * as openidClient from "openid-client";
+import * as jose from "jose";
 import { handleOidcRequest, generatePEM } from "../backend/local_oidc";
 import { Env } from "../backend/types";
 
@@ -123,6 +124,69 @@ describe("Local OIDC handler", () => {
         expectedState: state,
       });
       await expect(exchangePromise).resolves.toBeDefined();
+      const tokenResponse = await exchangePromise;
+      const tokens = tokenResponse.access_token;
+
+      const jwksObject = await jose.createRemoteJWKSet(
+        new URL("http://localhost:8787/local_oidc/.well-known/jwks.json"),
+        {
+          [jose.customFetch]: customFetch,
+        }
+      );
+
+      const { payload: accessTokenPayload } = await jose.jwtVerify(
+        tokens,
+        jwksObject,
+        {
+          issuer: "http://localhost:8787/local_oidc",
+          audience: "local-anode-client",
+        }
+      );
+
+      // Verify the payload structure
+      expect(accessTokenPayload.sub).toBeDefined();
+      expect(accessTokenPayload.given_name).toBe("White");
+      expect(accessTokenPayload.family_name).toBe("Rabbit");
+      expect(accessTokenPayload.email).toBe("white.rabbit@runt.run");
+      expect(accessTokenPayload.iss).toBe("http://localhost:8787/local_oidc");
+      expect(accessTokenPayload.aud).toBe("local-anode-client");
+      expect(accessTokenPayload.iat).toBeDefined();
+      expect(accessTokenPayload.exp).toBeDefined();
+
+      // Verify expiration (should be 5 minutes from now)
+      const now = Math.floor(Date.now() / 1000);
+      expect(accessTokenPayload.exp).toBeGreaterThan(now);
+      expect(accessTokenPayload.exp).toBeLessThanOrEqual(now + 300); // 5 minutes
+
+      // Verify the refresh token
+      const refreshToken = tokenResponse.refresh_token;
+      const { payload: refreshTokenPayload } = await jose.jwtVerify(
+        refreshToken!,
+        jwksObject,
+        {
+          issuer: "http://localhost:8787/local_oidc",
+          audience: "local-anode-client",
+        }
+      );
+
+      // Verify refresh token has same user data but longer expiration
+      expect(refreshTokenPayload.sub).toBe(accessTokenPayload.sub);
+      expect(refreshTokenPayload.given_name).toBe("White");
+      expect(refreshTokenPayload.family_name).toBe("Rabbit");
+      expect(refreshTokenPayload.email).toBe("white.rabbit@runt.run");
+      expect(refreshTokenPayload.iss).toBe("http://localhost:8787/local_oidc");
+      expect(refreshTokenPayload.aud).toBe("local-anode-client");
+      expect(refreshTokenPayload.iat).toBeDefined();
+      expect(refreshTokenPayload.exp).toBeDefined();
+
+      expect(refreshTokenPayload.exp).toBeGreaterThan(now);
+      expect(refreshTokenPayload.exp).toBeLessThanOrEqual(
+        now + 365 * 24 * 60 * 60
+      ); // 1 year
+
+      // Verify ID token is the same as access token
+      const idToken = tokenResponse.id_token;
+      expect(idToken).toBe(tokens);
     });
   });
 });
