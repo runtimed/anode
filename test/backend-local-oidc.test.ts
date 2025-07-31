@@ -4,31 +4,39 @@ import * as jose from "jose";
 import { handleOidcRequest, generatePEM } from "../backend/local_oidc";
 import { Env } from "../backend/types";
 
+function createMockEnv(pem: string): Env {
+  return {
+    DEPLOYMENT_ENV: "development",
+    AUTH_TOKEN: "test-token",
+    AUTH_ISSUER: "http://localhost:8787/local_oidc",
+    WEBSOCKET_SERVER: {} as any,
+    DB: {
+      prepare: (sql: string) => ({
+        run: async () => {},
+        first: async () => ({ pem }),
+        bind: function (...args: any[]) {
+          return {
+            first: async () => ({ pem }),
+            run: async () => {},
+          };
+        },
+      }),
+    },
+    ASSETS: {} as any,
+    ARTIFACT_BUCKET: {} as any,
+    ARTIFACT_STORAGE: "r2",
+    ARTIFACT_THRESHOLD: "1000",
+    ADMIN_SECRET: "test-admin-secret",
+  } as Env;
+}
+
 describe("Local OIDC handler", () => {
   let mockEnv: Env;
 
   beforeEach(async () => {
     // Generate a real PEM for testing
     const pem = await generatePEM();
-
-    mockEnv = {
-      DEPLOYMENT_ENV: "development",
-      AUTH_TOKEN: "test-token",
-      AUTH_ISSUER: "http://localhost:8787/local_oidc",
-      DB: {
-        prepare: (sql: string) => ({
-          run: async () => {},
-          first: async () => ({ pem }),
-          bind: function (...args: any[]) {
-            return {
-              first: async () => ({ pem }),
-              run: async () => {},
-            };
-          },
-        }),
-      },
-      LOCAL_OIDC_PEM: pem,
-    } as Env;
+    mockEnv = createMockEnv(pem);
   });
 
   const customFetch = (

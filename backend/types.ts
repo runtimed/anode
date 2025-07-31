@@ -25,5 +25,4 @@ export type Env = {
   ADMIN_SECRET: string;
 
   LOCAL_OIDC_AUTHORIZATION_ENDPOINT?: string;
-  LOCAL_OIDC_PEM?: string;
 };
