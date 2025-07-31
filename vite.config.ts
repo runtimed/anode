@@ -19,21 +19,19 @@ export default defineConfig(({ mode }) => {
     iframeServerPlugin(),
     react({
       babel: {
-        plugins: [
-          [
-            "babel-plugin-react-compiler",
-            {
-              // Enable React Compiler
-              enable: true,
-              // Optional: Configure which files to compile
-              include: ["src/**/*.{js,jsx,ts,tsx}"],
-              // Optional: Exclude certain files
-              exclude: [
-                "src/**/*.test.{js,jsx,ts,tsx}",
-                "src/**/*.spec.{js,jsx,ts,tsx}",
-              ],
-            },
-          ],
+        plugins: [],
+        // 🚨 IMPORTANT: Some libraries and code might not work well with the React Compiler.
+        // You can use the overrides to target specific files or directories.
+        // https://react.dev/learn/react-compiler/incremental-adoption#expanding-coverage
+        overrides: [
+          {
+            test: "./src/**/*.{js,jsx,ts,tsx}",
+            plugins: ["babel-plugin-react-compiler"],
+          },
+          {
+            test: "./src/components/RowVirtualizedFixed.tsx",
+            plugins: [],
+          },
         ],
       },
     }),
