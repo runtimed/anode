@@ -4,12 +4,12 @@
 
 AUTH_TOKEN="insecure-token-change-me"
 
-AUTH_ISSUER="https://auth.stage.anaconda.com/api/auth"
+AUTH_ISSUER="http://localhost:8787/local_oidc"
 
 # Local authentication control
 # Set to "true" to enable local OIDC endpoints for development
 # Defaults to "false" if not set
-ALLOW_LOCAL_AUTH="false"
+ALLOW_LOCAL_AUTH="true"
 
 # Note: The auth system supports two modes:
 # 1. Development mode: Uses AUTH_TOKEN (hardcoded secret string)

@@ -25,7 +25,14 @@ function getAuthProviderName(url: URL | null | undefined): string | null {
   const hostname = url.hostname;
 
   const parsed = psl.parse(hostname);
-  if (!parsed?.domain) {
+
+  // Check if parsing failed (returned ErrorResult)
+  if ("error" in parsed) {
+    return null;
+  }
+
+  // Now we know it's a ParsedDomain
+  if (!parsed.domain) {
     return null;
   }
 
