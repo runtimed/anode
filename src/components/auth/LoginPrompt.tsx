@@ -2,7 +2,6 @@ import React, { useEffect, useState } from "react";
 import { LogIn, ExternalLink } from "lucide-react";
 import { getOpenIdService, RedirectUrls } from "../../services/openid";
 import { redirectHelper } from "./redirect-url-helper";
-// @ts-ignore
 import psl from "psl";
 
 // DEV MODE: Design testing states
