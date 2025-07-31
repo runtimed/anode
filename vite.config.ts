@@ -15,24 +15,13 @@ export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), "");
 
   const plugins = [
-    injectLoadingScreen(),
+    // injectLoadingScreen(),
     iframeServerPlugin(),
     react({
       babel: {
-        plugins: [],
-        // 🚨 IMPORTANT: Some libraries and code might not work well with the React Compiler.
-        // You can use the overrides to target specific files or directories.
-        // https://react.dev/learn/react-compiler/incremental-adoption#expanding-coverage
-        overrides: [
-          {
-            test: "./src/**/*.{js,jsx,ts,tsx}",
-            plugins: ["babel-plugin-react-compiler"],
-          },
-          {
-            test: "./src/components/RowVirtualizedFixed.tsx",
-            plugins: [],
-          },
-        ],
+        // 🚨 IMPORTANT:Add `"use no memo"` to opt out of React Compiler
+        // https://react.dev/reference/react-compiler/compilationMode#opting-out
+        plugins: [["babel-plugin-react-compiler"]],
       },
     }),
     tailwindcss(),
