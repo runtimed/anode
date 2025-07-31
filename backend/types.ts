@@ -23,4 +23,6 @@ export type Env = {
 
   // Hidden bits from LiveStore (?!)
   ADMIN_SECRET: string;
+
+  LOCAL_OIDC_AUTHORIZATION_ENDPOINT?: string;
 };

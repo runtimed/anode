@@ -394,8 +394,24 @@ export class OpenIdService {
             )
         ).pipe(shareReplay(1));
       } else {
+        const url = new URL(authUri);
+        const allowInsecure =
+          url.hostname === "localhost" &&
+          url.protocol === "http:" &&
+          clientId === "local-anode-client";
+
+        const discoveryOptions = allowInsecure
+          ? { execute: [this.client.allowInsecureRequests] }
+          : {};
+
         this.config$ = from(
-          this.client.discovery(new URL(authUri), clientId)
+          this.client.discovery(
+            url,
+            clientId,
+            undefined,
+            undefined,
+            discoveryOptions
+          )
         ).pipe(shareReplay(1));
       }
     }
