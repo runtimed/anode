@@ -18,7 +18,7 @@ interface RegisterFormData {
   email: string;
 }
 
-const LOCAL_STORAGE_KEY = "local-auth-registration";
+const LOCAL_STORAGE_KEY = "local-auth-registration"; // Keep in sync with openid.ts
 
 const AuthorizePage: React.FC = () => {
   const [searchParams] = useSearchParams();

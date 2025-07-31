@@ -56,9 +56,10 @@ export type RedirectUrls = {
   registrationUrl: URL;
 };
 
-enum LocalStorageKey {
+export enum LocalStorageKey {
   RequestState = "openid_request_state",
   Tokens = "openid_tokens",
+  LocalAuthRegistration = "local-auth-registration", // Keep in sync with AuthorizePage.tsx
 }
 
 const OPENID_SCOPES = "openid email profile offline_access";
@@ -203,6 +204,7 @@ export class OpenIdService {
     this.convertedCodes$ = null;
     this.syncToLocalStorage(LocalStorageKey.RequestState, null);
     this.syncToLocalStorage(LocalStorageKey.Tokens, null);
+    this.syncToLocalStorage(LocalStorageKey.LocalAuthRegistration, null);
     this.resetSubject$.next();
     // Note: Do NOT clear the tokens$ observable, because we want people to continue subscribing to it
     // $tokens will emit `null` due to the localStorage side-effect
