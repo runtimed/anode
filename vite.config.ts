@@ -15,26 +15,13 @@ export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), "");
 
   const plugins = [
-    injectLoadingScreen(),
+    // injectLoadingScreen(),
     iframeServerPlugin(),
     react({
       babel: {
-        plugins: [
-          [
-            "babel-plugin-react-compiler",
-            {
-              // Enable React Compiler
-              enable: true,
-              // Optional: Configure which files to compile
-              include: ["src/**/*.{js,jsx,ts,tsx}"],
-              // Optional: Exclude certain files
-              exclude: [
-                "src/**/*.test.{js,jsx,ts,tsx}",
-                "src/**/*.spec.{js,jsx,ts,tsx}",
-              ],
-            },
-          ],
-        ],
+        // 🚨 IMPORTANT:Add `"use no memo"` to opt out of React Compiler
+        // https://react.dev/reference/react-compiler/compilationMode#opting-out
+        plugins: [["babel-plugin-react-compiler"]],
       },
     }),
     tailwindcss(),
