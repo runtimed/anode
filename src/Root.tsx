@@ -45,7 +45,7 @@ import { schema } from "./schema.js";
 import { getCurrentNotebookId, getStoreId } from "./util/store-id.js";
 import { useAuth } from "./components/auth/AuthProvider.js";
 import { ErrorBoundary } from "react-error-boundary";
-import { RowVirtualizerFixed } from "./components/RowVirtualizedFixed.js";
+import { VirtualizedList } from "./components/notebook/VirtualizedList.js";
 
 interface NotebookAppProps {}
 
@@ -312,7 +312,7 @@ export const App: React.FC = () => {
             </Suspense>
           }
         />
-        <Route path="/virtualized" element={<RowVirtualizerFixed />} />
+        <Route path="/virtualized" element={<VirtualizedList />} />
         <Route
           path="/*"
           element={
