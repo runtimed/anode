@@ -1,17 +1,32 @@
-import { describe, it, expect, beforeEach, vi } from "vitest";
-import type { Mock } from "vitest";
+import { describe, it, expect, beforeEach } from "vitest";
 import * as openidClient from "openid-client";
-import { handleOidcRequest } from "../backend/local_oidc";
+import { handleOidcRequest, generatePEM } from "../backend/local_oidc";
 import { Env } from "../backend/types";
 
 describe("Local OIDC handler", () => {
   let mockEnv: Env;
 
-  beforeEach(() => {
+  beforeEach(async () => {
+    // Generate a real PEM for testing
+    const pem = await generatePEM();
+
     mockEnv = {
       DEPLOYMENT_ENV: "development",
       AUTH_TOKEN: "test-token",
       AUTH_ISSUER: "http://localhost:8787/local_oidc",
+      DB: {
+        prepare: (sql: string) => ({
+          run: async () => {},
+          first: async () => ({ pem }),
+          bind: function (...args: any[]) {
+            return {
+              first: async () => ({ pem }),
+              run: async () => {},
+            };
+          },
+        }),
+      },
+      LOCAL_OIDC_PEM: pem,
     } as Env;
   });
 
@@ -63,16 +78,43 @@ describe("Local OIDC handler", () => {
       expect(resp.response_types_supported).toEqual(["code"]);
     });
 
+    it("should return valid JWKS format", async () => {
+      const request = new Request(
+        "http://localhost:8787/local_oidc/.well-known/jwks.json"
+      );
+      const response = await handleOidcRequest(request, mockEnv);
+
+      expect(response.status).toBe(200);
+      expect(response.headers.get("Content-Type")).toBe("application/json");
+
+      const jwks = await response.json();
+      expect(jwks).toHaveProperty("keys");
+      expect(Array.isArray(jwks.keys)).toBe(true);
+      expect(jwks.keys.length).toBeGreaterThan(0);
+
+      const key = jwks.keys[0];
+      expect(key).toHaveProperty("kty", "RSA");
+      expect(key).toHaveProperty("use", "sig");
+      expect(key).toHaveProperty("kid", "1");
+      expect(key).toHaveProperty("n");
+      expect(key).toHaveProperty("e");
+
+      expect(key.n.length).toBeGreaterThan(0);
+      expect(key.e.length).toBeGreaterThan(0);
+    });
+
     it("should exchange a code for a token", async () => {
       const config = await getConfig();
       const state = openidClient.randomState();
       const verifier = openidClient.randomPKCECodeVerifier();
       const challenge = await openidClient.calculatePKCECodeChallenge(verifier);
-      const code = btoa(JSON.stringify({
-        firstName: "White",
-        lastName: "Rabbit",
-        email: "white.rabbit@runt.run"
-      }));
+      const code = btoa(
+        JSON.stringify({
+          firstName: "White",
+          lastName: "Rabbit",
+          email: "white.rabbit@runt.run",
+        })
+      );
       const url = new URL("http://localhost:5173/oidc");
       url.searchParams.set("code", code);
       url.searchParams.set("state", state);
@@ -81,6 +123,6 @@ describe("Local OIDC handler", () => {
         expectedState: state,
       });
       await expect(exchangePromise).resolves.toBeDefined();
-    })
+    });
   });
 });
