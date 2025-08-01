@@ -208,6 +208,36 @@ export default [
     },
   },
   {
+    files: ["vite-plugins/**/*.{js,ts}"],
+    languageOptions: {
+      parser: tsparser,
+      ecmaVersion: 2022,
+      sourceType: "module",
+      globals: {
+        // Node.js globals for Vite plugins
+        process: "readonly",
+        Buffer: "readonly",
+        __dirname: "readonly",
+        __filename: "readonly",
+        global: "readonly",
+        module: "readonly",
+        require: "readonly",
+        exports: "readonly",
+        console: "readonly",
+      },
+      parserOptions: {
+        project: "./tsconfig.node.json",
+      },
+    },
+    plugins: {
+      "@typescript-eslint": tseslint,
+    },
+    rules: {
+      "no-undef": "off", // TypeScript handles this
+      "no-unused-vars": "off", // TypeScript handles this
+    },
+  },
+  {
     files: ["vite.config.ts", "vitest.config.ts", "schema.ts"],
     languageOptions: {
       globals: {
