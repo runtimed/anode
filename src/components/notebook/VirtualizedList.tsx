@@ -153,8 +153,7 @@ export function VirtualizedList() {
                 height={estimateSize(virtualItem.index, iframeHeights)}
                 measureElement={virtualizer.measureElement}
                 inRange={Boolean(
-                  virtualizer?.range?.startIndex &&
-                    virtualizer?.range?.endIndex &&
+                  virtualizer.range &&
                     virtualizer.range.startIndex <= virtualItem.index &&
                     virtualizer.range.endIndex >= virtualItem.index
                 )}
