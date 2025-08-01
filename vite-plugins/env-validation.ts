@@ -10,8 +10,6 @@ const DEVELOPMENT_DEFAULTS: EnvConfig = {
   VITE_AUTH_REDIRECT_URI: "http://localhost:5173/oidc",
   VITE_LIVESTORE_SYNC_URL: "ws://localhost:8787",
   VITE_IFRAME_OUTPUT_URI: "http://localhost:8000",
-  VITE_AUTH_TOKEN: "insecure-token-change-me",
-  AUTH_TOKEN: "insecure-token-change-me",
 };
 
 const REQUIRED_ENV_VARS = Object.keys(DEVELOPMENT_DEFAULTS);
