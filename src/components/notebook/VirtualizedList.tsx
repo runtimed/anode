@@ -9,7 +9,7 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 const DEFAULT_LIST_SIZE = 25;
 const DEFAULT_OVERSCAN = 0;
 const DEFAULT_IS_STATIC_ESTIMATE = false;
-const DEFAULT_IS_IFRAME = false;
+const DEFAULT_IS_IFRAME = true;
 
 // ---
 
