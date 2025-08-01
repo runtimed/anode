@@ -118,6 +118,8 @@ export function VirtualizedList() {
         style={{
           width: "400px",
           height: "400px",
+          // https://github.com/TanStack/virtual/issues/925#issuecomment-2678438243
+          overflowAnchor: "auto",
         }}
       >
         {/* The large inner element to hold all of the items */}
