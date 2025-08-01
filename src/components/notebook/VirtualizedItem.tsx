@@ -6,6 +6,7 @@ interface VirtualizedItemProps {
   height: number;
   iframeHeight: number;
   isIframe: boolean;
+  inRange: boolean;
   onHeightChange?: (height: number) => void;
   measureElement: (node: HTMLElement | null) => void;
 }
@@ -14,6 +15,7 @@ export function VirtualizedItem({
   virtualItem,
   height,
   iframeHeight,
+  inRange,
   onHeightChange,
   measureElement,
   isIframe,

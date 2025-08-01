@@ -84,7 +84,7 @@ export function VirtualizedList() {
           />
           <Label htmlFor="use-static-estimate">Static Estimate</Label>
         </div>
-        </div>
+      </div>
       <div className="p-2">
         <Tabs
           value={overscan.toString()}
@@ -149,7 +149,13 @@ export function VirtualizedList() {
                 iframeHeight={iframeHeights[virtualItem.index]}
                 height={estimateSize(virtualItem.index, iframeHeights)}
                 measureElement={virtualizer.measureElement}
-onHeightChange={(height) => {
+                inRange={Boolean(
+                  virtualizer?.range?.startIndex &&
+                    virtualizer?.range?.endIndex &&
+                    virtualizer.range.startIndex <= virtualItem.index &&
+                    virtualizer.range.endIndex >= virtualItem.index
+                )}
+                onHeightChange={(height) => {
                   iframeHeights[virtualItem.index] = height;
                   // Update render count to force re-render the items
                   setRenderCount((prev) => prev + 1);
