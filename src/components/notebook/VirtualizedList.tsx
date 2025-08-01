@@ -1,11 +1,20 @@
 import { useVirtualizer } from "@tanstack/react-virtual";
-import { useRef, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { VirtualizedItem } from "./VirtualizedItem";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "../ui/label";
 import { Input } from "../ui/input";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
-const ITEM_COUNT = 25;
+const DEFAULT_LIST_SIZE = 25;
+const DEFAULT_OVERSCAN = 0;
+const DEFAULT_IS_STATIC_ESTIMATE = false;
+const DEFAULT_IS_IFRAME = false;
+
+// ---
+
+const LIST_SIZES = [5, 10, 25, 100, 500, 1000, 5000, 10000];
+type ListSize = (typeof LIST_SIZES)[number];
 
 // ---
 
@@ -13,21 +22,31 @@ function getRandomInt(min: number, max: number) {
   return Math.floor(Math.random() * (max - min + 1)) + min;
 }
 
-const iframeHeights = Array.from({ length: ITEM_COUNT }, (_, i) =>
-  getRandomInt(60, 300)
-);
+function generateIframeHeights(count: number) {
+  return Array.from({ length: count }, (_, i) => getRandomInt(60, 300));
+}
 
-function estimateSize(i: number) {
-  return iframeHeights[i] + 64;
+function estimateSize(i: number, heights: number[]) {
+  return heights[i] + 64;
 }
 
 export function VirtualizedList() {
-  // eslint-disable-next-line react-compiler/react-compiler
   "use no memo";
 
-  const [isIframe, setIsIframe] = useState(false);
-  const [isStaticEstimate, setIsStaticEstimate] = useState(true);
-  const [overscan, setOverscan] = useState<number | undefined>(0);
+  // settings
+  const [isIframe, setIsIframe] = useState(DEFAULT_IS_IFRAME);
+  const [isStaticEstimate, setIsStaticEstimate] = useState(
+    DEFAULT_IS_STATIC_ESTIMATE
+  );
+  const [overscan, setOverscan] = useState<number | undefined>(
+    DEFAULT_OVERSCAN
+  );
+  const [selectedSize, setSelectedSize] = useState<ListSize>(DEFAULT_LIST_SIZE);
+
+  const iframeHeights = useMemo(
+    () => generateIframeHeights(selectedSize),
+    [selectedSize]
+  );
 
   // The scrollable element for your list
   const parentRef = useRef(null);
@@ -36,7 +55,9 @@ export function VirtualizedList() {
   const virtualizer = useVirtualizer({
     count: iframeHeights.length,
     getScrollElement: () => parentRef.current,
-    estimateSize: isStaticEstimate ? (i) => 400 : estimateSize,
+    estimateSize: isStaticEstimate
+      ? () => 400
+      : (i) => estimateSize(i, iframeHeights),
     overscan,
   });
 
@@ -75,6 +96,21 @@ export function VirtualizedList() {
           />
         </div>
       </div>
+
+      <div className="p-2">
+        <Tabs
+          value={selectedSize.toString()}
+          onValueChange={(value) => setSelectedSize(Number(value))}
+        >
+          <TabsList className="grid w-full grid-cols-8">
+            {LIST_SIZES.map((size) => (
+              <TabsTrigger key={size} value={size.toString()}>
+                {size.toLocaleString()}
+              </TabsTrigger>
+            ))}
+          </TabsList>
+        </Tabs>
+      </div>
       {/* The scrollable element for your list */}
       <div
         ref={parentRef}
@@ -107,7 +143,7 @@ export function VirtualizedList() {
                 key={virtualItem.key}
                 virtualItem={virtualItem}
                 iframeHeight={iframeHeights[virtualItem.index]}
-                height={estimateSize(virtualItem.index)}
+                height={estimateSize(virtualItem.index, iframeHeights)}
                 measureElement={virtualizer.measureElement}
                 isIframe={isIframe}
               />
