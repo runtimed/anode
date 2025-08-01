@@ -141,7 +141,7 @@ VITE_RUNTIME_COMMAND = "pnpm run dev:runtime"
 VITE_AUTH_URI = "https://auth.anaconda.com/api/auth"
 VITE_AUTH_CLIENT_ID = "6a038ed5-eea7-4c7c-9b65-8e6068a0c84f"
 VITE_AUTH_REDIRECT_URI = "https://preview.runt.run/oidc"
-VITE_IFRAME_OUTPUT_URI = "https://preview.runtusercontent.com"
+VITE_IFRAME_OUTPUT_URI = "https://runtusercontent.com"
 
 
 # ---
