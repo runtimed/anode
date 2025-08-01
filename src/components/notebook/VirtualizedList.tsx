@@ -33,6 +33,8 @@ function estimateSize(i: number, heights: number[]) {
 export function VirtualizedList() {
   "use no memo";
 
+  const [renderCount, setRenderCount] = useState(0);
+
   // settings
   const [isIframe, setIsIframe] = useState(DEFAULT_IS_IFRAME);
   const [isStaticEstimate, setIsStaticEstimate] = useState(
@@ -147,6 +149,11 @@ export function VirtualizedList() {
                 iframeHeight={iframeHeights[virtualItem.index]}
                 height={estimateSize(virtualItem.index, iframeHeights)}
                 measureElement={virtualizer.measureElement}
+onHeightChange={(height) => {
+                  iframeHeights[virtualItem.index] = height;
+                  // Update render count to force re-render the items
+                  setRenderCount((prev) => prev + 1);
+                }}
                 isIframe={isIframe}
               />
             ))}
@@ -158,6 +165,7 @@ export function VirtualizedList() {
         cache size:{virtualizer.measurementsCache.length}
       </div>
       <div className="font-mono text-sm text-gray-500">
+        <pre>renderCount: {renderCount}</pre>
         <pre>
           total size:{" "}
           {String(virtualizer.getTotalSize().toLocaleString()).padStart(
