@@ -3,7 +3,6 @@ import { useMemo, useRef, useState } from "react";
 import { VirtualizedItem } from "./VirtualizedItem";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "../ui/label";
-import { Input } from "../ui/input";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 const DEFAULT_LIST_SIZE = 25;
@@ -12,6 +11,9 @@ const DEFAULT_IS_STATIC_ESTIMATE = false;
 const DEFAULT_IS_IFRAME = true;
 
 // ---
+
+const OVERSCAN_SIZES = [0, 3, 10, 50];
+type OverscanSize = (typeof OVERSCAN_SIZES)[number];
 
 const LIST_SIZES = [5, 10, 25, 100, 500, 1000, 5000, 10000];
 type ListSize = (typeof LIST_SIZES)[number];
@@ -40,9 +42,7 @@ export function VirtualizedList() {
   const [isStaticEstimate, setIsStaticEstimate] = useState(
     DEFAULT_IS_STATIC_ESTIMATE
   );
-  const [overscan, setOverscan] = useState<number | undefined>(
-    DEFAULT_OVERSCAN
-  );
+  const [overscan, setOverscan] = useState<OverscanSize>(DEFAULT_OVERSCAN);
   const [selectedSize, setSelectedSize] = useState<ListSize>(DEFAULT_LIST_SIZE);
 
   const iframeHeights = useMemo(
@@ -84,21 +84,21 @@ export function VirtualizedList() {
           />
           <Label htmlFor="use-static-estimate">Static Estimate</Label>
         </div>
-        <div className="flex items-center space-x-2">
-          <Label htmlFor="overscan">Overscan</Label>
-          <Input
-            className="w-16"
-            id="overscan"
-            type="number"
-            value={overscan}
-            onChange={(e) => {
-              const value = Number(e.target.value);
-              setOverscan(value);
-            }}
-          />
         </div>
+      <div className="p-2">
+        <Tabs
+          value={overscan.toString()}
+          onValueChange={(value) => setOverscan(Number(value))}
+        >
+          <TabsList className="grid w-full grid-cols-8">
+            {OVERSCAN_SIZES.map((size) => (
+              <TabsTrigger key={size} value={size.toString()}>
+                {size.toLocaleString()}
+              </TabsTrigger>
+            ))}
+          </TabsList>
+        </Tabs>
       </div>
-
       <div className="p-2">
         <Tabs
           value={selectedSize.toString()}
