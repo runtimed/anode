@@ -23,7 +23,7 @@ export function VirtualizedItem({
 }: VirtualizedItemProps) {
   const [isReady] = useTimeout(500);
 
-  if (!isReady() && !isIframe) {
+  if (!isReady() && !isIframe && inRange) {
     return (
       <div
         key={virtualItem.key}
@@ -56,7 +56,7 @@ export function VirtualizedItem({
         <div>Output:</div>
         {isIframe ? (
           <HtmlOutput
-            style={{ height: `${iframeHeight}px` }}
+            // style={{ height: `${iframeHeight}px` }}
             content={`<div id="container" style="height: ${iframeHeight}px; border: 2px solid green;">${virtualItem.index}<button style="padding: .5em; font-size: 1em" onclick="console.log('clicked'); document.getElementById('container').style.height = (${iframeHeight} + Math.floor(Math.random() * 100) - 50)+ 'px';">Click to resize</button></div>`}
             onHeightChange={onHeightChange}
           />
