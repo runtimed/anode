@@ -321,7 +321,7 @@ export const App: React.FC = () => {
             <Suspense
               fallback={
                 <LoadingState
-                  variant="auth"
+                  variant="fullscreen"
                   message="Preparing the rabbit hole..."
                 />
               }

@@ -4,7 +4,7 @@ import { removeStaticLoadingScreen } from "../../util/domUpdates";
 
 interface LoadingStateProps {
   /** Variant of the loading state */
-  variant?: "fullscreen" | "inline" | "minimal" | "auth";
+  variant?: "fullscreen" | "inline" | "minimal";
   /** Optional loading message */
   message?: string;
   /** Additional CSS classes */
@@ -31,41 +31,6 @@ export const LoadingState: React.FC<LoadingStateProps> = ({
       removeStaticLoadingScreen();
     }
   }, [skipStaticRemoval]);
-
-  // Auth variant - logo positioned at top like auth pages
-  if (variant === "auth") {
-    return (
-      <div
-        className={`bg-background flex min-h-screen items-center justify-center p-4 ${className}`}
-      >
-        <div className="w-full max-w-md text-center">
-          <div className="mb-8 flex items-center justify-center">
-            <RuntLogo
-              size="h-24 w-24 sm:h-32 sm:w-32"
-              variant="portal"
-              animated={animated}
-              className="mx-auto"
-              filterId="pixelate-loading-auth"
-            />
-          </div>
-          {message && (
-            <div
-              className="relative z-50 mb-2 text-xl font-black text-white sm:text-2xl"
-              style={{
-                textShadow:
-                  "2px 2px 0 #000, -2px -2px 0 #000, 2px -2px 0 #000, -2px 2px 0 #000, 0 2px 0 #000, 2px 0 0 #000, 0 -2px 0 #000, -2px 0 0 #000, 1px 1px 0 #000, -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 0 1px 0 #000, 1px 0 0 #000, 0 -1px 0 #000, -1px 0 0 #000",
-              }}
-            >
-              {message}
-            </div>
-          )}
-          {/* Invisible placeholder to match auth page form height */}
-          <div className="invisible h-96" aria-hidden="true" />
-        </div>
-      </div>
-    );
-  }
-
   if (variant === "fullscreen") {
     return (
       <div
