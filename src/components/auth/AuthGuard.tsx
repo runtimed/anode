@@ -51,7 +51,6 @@ export const AuthGuard: React.FC<AuthGuardProps> = ({ children, fallback }) => {
     return (
       <LoadingState
         variant="fullscreen"
-        message="Checking Authentication..."
         animated={true}
         skipStaticRemoval={true}
       />

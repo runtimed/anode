@@ -41,11 +41,19 @@ export const LoadingState: React.FC<LoadingStateProps> = ({
             size="h-24 w-24 sm:h-32 sm:w-32"
             animated={animated}
             energized={false}
-            className="mx-auto mb-6"
+            className="mx-auto mb-8"
             animation={animated ? "animate-pulse" : ""}
           />
           {message && (
-            <div className="text-lg font-semibold text-gray-700">{message}</div>
+            <div
+              className="relative z-50 mb-2 text-xl font-black text-white sm:text-2xl"
+              style={{
+                textShadow:
+                  "2px 2px 0 #000, -2px -2px 0 #000, 2px -2px 0 #000, -2px 2px 0 #000, 0 2px 0 #000, 2px 0 0 #000, 0 -2px 0 #000, -2px 0 0 #000, 1px 1px 0 #000, -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 0 1px 0 #000, 1px 0 0 #000, 0 -1px 0 #000, -1px 0 0 #000",
+              }}
+            >
+              {message}
+            </div>
           )}
         </div>
       </div>
