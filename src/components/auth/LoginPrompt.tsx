@@ -113,7 +113,7 @@ const LoginPrompt: React.FC<LoginPromptProps> = ({
 
       // Use View Transitions API if supported for smoother page transitions
       if ("startViewTransition" in document) {
-        (document as any).startViewTransition(() => {
+        document.startViewTransition(() => {
           window.location.href = url.toString();
         });
       } else {
