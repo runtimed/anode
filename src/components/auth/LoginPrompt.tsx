@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { LogIn, ExternalLink } from "lucide-react";
 import { getOpenIdService, RedirectUrls } from "../../services/openid";
 import { redirectHelper } from "./redirect-url-helper";
@@ -48,6 +49,7 @@ const LoginPrompt: React.FC<LoginPromptProps> = ({
   onButtonHover,
 }) => {
   const openIdService = getOpenIdService();
+  const navigate = useNavigate();
   const [redirectUrls, setRedirectUrls] = useState<RedirectUrls | null>(null);
   const [action, setAction] = useState<"login" | "registration" | null>(null);
   const [loading, setLoading] = useState(false);
@@ -111,16 +113,25 @@ const LoginPrompt: React.FC<LoginPromptProps> = ({
 
       redirectHelper.saveNotebookId();
 
-      // Use View Transitions API if supported for smoother page transitions
-      if ("startViewTransition" in document) {
-        document.startViewTransition(() => {
-          window.location.href = url.toString();
-        });
+      // Check if it's an internal route (local auth) or external URL
+      const currentOrigin = window.location.origin;
+      const targetOrigin = url.origin;
+
+      if (currentOrigin === targetOrigin) {
+        // Internal route - use React Router for smooth transition
+        navigate(url.pathname + url.search);
       } else {
-        window.location.href = url.toString();
+        // External URL - use window.location for full page navigation
+        if ("startViewTransition" in document) {
+          document.startViewTransition(() => {
+            window.location.href = url.toString();
+          });
+        } else {
+          window.location.href = url.toString();
+        }
       }
     }
-  }, [action, redirectUrls]);
+  }, [action, redirectUrls, navigate]);
 
   const handler = (action: "login" | "registration") => {
     // In design test mode, just simulate loading

@@ -37,6 +37,7 @@ const AuthorizePage: React.FC = () => {
 
   const [userData, setUserData] = useState<RegisterFormData | null>(null);
   const [showContent, setShowContent] = useState(false);
+  const [isNavigating, setIsNavigating] = useState(false);
 
   // Spring animations for smooth entry
   const logoSpring = useSpring({
@@ -127,6 +128,7 @@ const AuthorizePage: React.FC = () => {
       redirectUrl.searchParams.set("state", state);
     }
 
+    setIsNavigating(true);
     navigate(redirectUrl.pathname + redirectUrl.search, { replace: true });
   };
 
@@ -142,6 +144,7 @@ const AuthorizePage: React.FC = () => {
       redirectUrl.searchParams.set("state", state);
     }
 
+    setIsNavigating(true);
     navigate(redirectUrl.pathname + redirectUrl.search, { replace: true });
   };
 
@@ -176,6 +179,23 @@ const AuthorizePage: React.FC = () => {
               </CardContent>
             </Card>
           </animated.div>
+        </div>
+      </div>
+    );
+  }
+
+  // Show loading state during navigation to prevent white flicker
+  if (isNavigating) {
+    return (
+      <div className="bg-background flex min-h-screen items-center justify-center p-4">
+        <div className="text-center">
+          <RuntLogo
+            size="h-24 w-24 sm:h-32 sm:w-32"
+            variant="portal"
+            animated={true}
+            className="mx-auto"
+            filterId="pixelate-navigate"
+          />
         </div>
       </div>
     );
