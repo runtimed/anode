@@ -11,6 +11,8 @@ interface LoadingStateProps {
   className?: string;
   /** Whether to show the animated version */
   animated?: boolean;
+  /** Whether to skip removing the static loading screen */
+  skipStaticRemoval?: boolean;
 }
 
 /**
@@ -22,10 +24,13 @@ export const LoadingState: React.FC<LoadingStateProps> = ({
   message,
   className = "",
   animated = true,
+  skipStaticRemoval = false,
 }) => {
   useEffect(() => {
-    removeStaticLoadingScreen();
-  }, []);
+    if (!skipStaticRemoval) {
+      removeStaticLoadingScreen();
+    }
+  }, [skipStaticRemoval]);
   if (variant === "fullscreen") {
     return (
       <div

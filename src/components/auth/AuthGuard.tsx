@@ -3,6 +3,7 @@ import { useAuth } from "./AuthProvider.js";
 import LoginPrompt from "./LoginPrompt.js";
 import { updateLoadingStage } from "../../util/domUpdates.js";
 import { RuntLogo } from "../logo";
+import { LoadingState } from "../loading/LoadingState";
 
 // DEV MODE: Force login screen for design testing
 // Set to true to preview login screen locally
@@ -45,9 +46,16 @@ export const AuthGuard: React.FC<AuthGuardProps> = ({ children, fallback }) => {
   // Don't remove static loading screen here - let AnimatedLiveStoreApp handle it
   // to prevent white flicker between auth and notebook loading
 
-  // Show transparent loading state - let static HTML loading screen handle UI
+  // Show React-based loading state during auth check
   if (isLoading) {
-    return null;
+    return (
+      <LoadingState
+        variant="fullscreen"
+        message="Checking Authentication..."
+        animated={true}
+        skipStaticRemoval={true}
+      />
+    );
   }
 
   // Show error state if authentication failed or auth expired
