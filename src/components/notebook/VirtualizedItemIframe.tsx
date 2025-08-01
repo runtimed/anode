@@ -1,4 +1,5 @@
 import { VirtualItem } from "@tanstack/react-virtual";
+import { useState } from "react";
 import { HtmlOutput } from "../outputs";
 
 interface VirtualizedItemProps {
@@ -18,6 +19,7 @@ export function VirtualizedItemIframe({
   onHeightChange,
   measureElement,
 }: VirtualizedItemProps) {
+  const [isReady, setIsReady] = useState(false);
   return (
     <div
       data-index={virtualItem.index}
@@ -29,18 +31,31 @@ export function VirtualizedItemIframe({
       // }}
     >
       <div className="p-2">
-        {virtualItem.index} • {height}px
+        {virtualItem.index} • {height}px • {inRange ? "inRange" : "not inRange"}
         {/* <div>Input:</div> */}
         {/* <CodeMirrorEditor
           value={`print ('${virtualItem.index} • ${ITEMS[virtualItem.index]}')`}
           language="python"
         /> */}
         <div>Output:</div>
-        <HtmlOutput
-          // style={{ height: `${iframeHeight}px` }}
-          content={`<div id="container" style="height: ${iframeHeight}px; border: 2px solid green;">${virtualItem.index}<button style="padding: .5em; font-size: 1em" onclick="console.log('clicked'); document.getElementById('container').style.height = (${iframeHeight} + Math.floor(Math.random() * 100) - 50)+ 'px';">Click to resize</button></div>`}
-          onHeightChange={onHeightChange}
-        />
+        {/* {showPreview && <div>Loading...</div>} */}
+        {inRange && (
+          <HtmlOutput
+            style={{ height: !isReady ? "0px" : `${iframeHeight}px` }}
+            content={`<div id="container" style="height: ${iframeHeight}px; border: 2px solid green;">${virtualItem.index}<button style="padding: .5em; font-size: 1em" onclick="console.log('clicked'); document.getElementById('container').style.height = (${iframeHeight} + Math.floor(Math.random() * 100) - 50)+ 'px';">Click to resize</button></div>`}
+            onHeightChange={(height) => {
+              // console.log({
+              //   i: virtualItem.index,
+              //   inRange,
+              //   isReady,
+              //   iframeHeight,
+              //   height,
+              // });
+              setIsReady(true);
+              onHeightChange?.(height);
+            }}
+          />
+        )}
       </div>
     </div>
   );
