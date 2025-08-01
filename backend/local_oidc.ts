@@ -1,6 +1,7 @@
 import { Env } from "./types";
 import * as jose from "jose";
 import { v5 as uuidv5 } from "uuid";
+import { getPassport, parseToken } from "./auth";
 
 export interface OpenIdConfiguration {
   issuer: string;
@@ -251,17 +252,19 @@ async function handleToken(request: Request, env: Env): Promise<Response> {
 
     try {
       // Verify the refresh token using the public key
-      const { payload } = await validateToken(refreshToken, env);
+      const { user } = await parseToken(refreshToken, env);
 
-      // Extract user data from the refresh token
-      const userData: UserData = {
-        firstName: payload.given_name as string,
-        lastName: payload.family_name as string,
-        email: payload.email as string,
-      };
+      const { givenName, familyName, email } = user;
 
       // Generate new tokens
-      const tokens = await generateTokens(userData, env);
+      const tokens = await generateTokens(
+        {
+          firstName: givenName ?? "",
+          lastName: familyName ?? "",
+          email: email ?? "",
+        },
+        env
+      );
 
       return new Response(JSON.stringify(tokens), {
         status: 200,
@@ -280,34 +283,10 @@ async function handleToken(request: Request, env: Env): Promise<Response> {
 }
 
 async function handleUserinfo(request: Request, env: Env): Promise<Response> {
-  const authHeader = request.headers.get("Authorization");
-  if (!authHeader || !authHeader.startsWith("Bearer ")) {
-    return new Response("Missing or invalid Authorization header", {
-      status: 401,
-      headers: {
-        "WWW-Authenticate": "Bearer",
-      },
-    });
-  }
-
-  const accessToken = authHeader.substring(7);
-
+  let jwt: jose.JWTPayload;
   try {
-    const { payload } = await validateToken(accessToken, env);
-
-    const userinfo = {
-      sub: payload.sub,
-      given_name: payload.given_name,
-      family_name: payload.family_name,
-      email: payload.email,
-    };
-
-    return new Response(JSON.stringify(userinfo), {
-      status: 200,
-      headers: {
-        "Content-Type": "application/json",
-      },
-    });
+    const parsed = await getPassport(request, env);
+    jwt = parsed.jwt;
   } catch (error) {
     console.error("Error verifying access token:", error);
     return new Response("Invalid access token", {
@@ -317,6 +296,14 @@ async function handleUserinfo(request: Request, env: Env): Promise<Response> {
       },
     });
   }
+  const responseBody = JSON.stringify(jwt);
+
+  return new Response(responseBody, {
+    status: 200,
+    headers: {
+      "Content-Type": "application/json",
+    },
+  });
 }
 
 interface JWK {
@@ -350,19 +337,6 @@ async function getJwks(env: Env): Promise<JWKS> {
   return {
     keys: [jwk],
   };
-}
-
-async function validateToken(
-  token: string,
-  env: Env
-): Promise<jose.JWTVerifyResult> {
-  const jwks = await getJwks(env);
-  const localJWKSet = jose.createLocalJWKSet(jwks);
-
-  return jose.jwtVerify(token, localJWKSet, {
-    issuer: env.AUTH_ISSUER,
-    audience: "local-anode-client",
-  });
 }
 
 async function handleJwks(_request: Request, env: Env): Promise<Response> {

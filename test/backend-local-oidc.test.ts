@@ -4,7 +4,7 @@ import * as jose from "jose";
 import { handleOidcRequest, generatePEM } from "../backend/local_oidc";
 import { Env } from "../backend/types";
 
-function createMockEnv(pem: string): Env {
+function createMockEnv(pem: string, customFetch?: typeof fetch): Env {
   return {
     DEPLOYMENT_ENV: "development",
     AUTH_TOKEN: "test-token",
@@ -27,25 +27,25 @@ function createMockEnv(pem: string): Env {
     ARTIFACT_STORAGE: "r2",
     ARTIFACT_THRESHOLD: "1000",
     ADMIN_SECRET: "test-admin-secret",
+    customFetch,
   } as Env;
 }
 
 describe("Local OIDC handler", () => {
   let mockEnv: Env;
-
-  beforeEach(async () => {
-    // Generate a real PEM for testing
-    const pem = await generatePEM();
-    mockEnv = createMockEnv(pem);
-  });
-
-  const customFetch = (
-    url: string,
-    options: RequestInit
+  const customFetch: typeof fetch = (
+    url: RequestInfo | URL,
+    options?: RequestInit
   ): Promise<Response> => {
     const request = new Request(url, options);
     return handleOidcRequest(request, mockEnv);
   };
+
+  beforeEach(async () => {
+    // Generate a real PEM for testing
+    const pem = await generatePEM();
+    mockEnv = createMockEnv(pem, customFetch);
+  });
 
   const getConfig = async () => {
     const url = new URL(
@@ -398,9 +398,7 @@ describe("Local OIDC handler", () => {
         mockEnv
       );
       expect(userinfoResponse.status).toBe(401);
-      expect(await userinfoResponse.text()).toBe(
-        "Missing or invalid Authorization header"
-      );
+      expect(await userinfoResponse.text()).toBe("Invalid access token");
       expect(userinfoResponse.headers.get("WWW-Authenticate")).toBe("Bearer");
     });
 

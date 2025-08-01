@@ -28,4 +28,6 @@ export type Env = {
 
   // Whether to enable the local_oidc routes
   ALLOW_LOCAL_AUTH?: string;
+
+  customFetch?: typeof fetch; // Only used in unit tests to mock fetch
 };
