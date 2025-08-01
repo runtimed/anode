@@ -5,11 +5,13 @@ interface HtmlOutputProps {
   content: string;
   className?: string;
   delay?: number;
+  style?: React.CSSProperties;
 }
 
 export const HtmlOutput: React.FC<HtmlOutputProps> = ({
   content,
   className = "max-w-none dataframe-container",
+  style,
 }) => {
   return (
     <IframeOutput
@@ -22,6 +24,7 @@ export const HtmlOutput: React.FC<HtmlOutputProps> = ({
           "--dataframe-bg": "#fff",
           "--dataframe-header-bg": "#f9fafb",
           "--dataframe-hover-bg": "#f3f4f6",
+          ...style,
         } as React.CSSProperties
       }
     />
