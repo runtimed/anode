@@ -1,4 +1,4 @@
-import { useVirtualizer } from "@tanstack/react-virtual";
+import { useVirtualizer, useWindowVirtualizer } from "@tanstack/react-virtual";
 import { useMemo, useRef, useState } from "react";
 import { VirtualizedItem } from "./VirtualizedItem";
 import { Switch } from "@/components/ui/switch";
@@ -52,12 +52,12 @@ export function VirtualizedList() {
   );
 
   // The scrollable element for your list
-  const parentRef = useRef(null);
+  // const parentRef = useRef(null);
 
   // The virtualizer
-  const virtualizer = useVirtualizer({
+  const virtualizer = useWindowVirtualizer({
     count: iframeHeights.length,
-    getScrollElement: () => parentRef.current,
+    // getScrollElement: () => parentRef.current,
     estimateSize: isStaticEstimate
       ? () => 64
       : (i) => estimateSize(i, iframeHeights),
@@ -117,7 +117,7 @@ export function VirtualizedList() {
         </Tabs>
       </div>
       {/* The scrollable element for your list */}
-      <div
+      {/* <div
         ref={parentRef}
         className="overflow-auto overscroll-contain border-2 border-red-500 contain-strict"
         style={{
@@ -126,47 +126,47 @@ export function VirtualizedList() {
           // https://github.com/TanStack/virtual/issues/925#issuecomment-2678438243
           overflowAnchor: "auto",
         }}
+      > */}
+      {/* The large inner element to hold all of the items */}
+      <div
+        style={{
+          height: `${virtualizer.getTotalSize()}px`,
+          width: "100%",
+          position: "relative",
+        }}
       >
-        {/* The large inner element to hold all of the items */}
         <div
           style={{
-            height: `${virtualizer.getTotalSize()}px`,
+            position: "absolute",
+            top: 0,
+            left: 0,
             width: "100%",
-            position: "relative",
+            transform: `translateY(${vItems[0]?.start ?? 0}px)`,
           }}
         >
-          <div
-            style={{
-              position: "absolute",
-              top: 0,
-              left: 0,
-              width: "100%",
-              transform: `translateY(${vItems[0]?.start ?? 0}px)`,
-            }}
-          >
-            {/* Only the visible items in the virtualizer, manually positioned to be in view */}
-            {vItems.map((virtualItem) => (
-              <ItemComponent
-                key={virtualItem.key}
-                virtualItem={virtualItem}
-                iframeHeight={iframeHeights[virtualItem.index]}
-                height={estimateSize(virtualItem.index, iframeHeights)}
-                measureElement={virtualizer.measureElement}
-                inRange={Boolean(
-                  virtualizer.range &&
-                    virtualizer.range.startIndex <= virtualItem.index &&
-                    virtualizer.range.endIndex >= virtualItem.index
-                )}
-                onHeightChange={(height) => {
-                  iframeHeights[virtualItem.index] = height;
-                  // Update render count to force re-render the items
-                  setRenderCount((prev) => prev + 1);
-                }}
-              />
-            ))}
-          </div>
+          {/* Only the visible items in the virtualizer, manually positioned to be in view */}
+          {vItems.map((virtualItem) => (
+            <ItemComponent
+              key={virtualItem.key}
+              virtualItem={virtualItem}
+              iframeHeight={iframeHeights[virtualItem.index]}
+              height={estimateSize(virtualItem.index, iframeHeights)}
+              measureElement={virtualizer.measureElement}
+              inRange={Boolean(
+                virtualizer.range &&
+                  virtualizer.range.startIndex <= virtualItem.index &&
+                  virtualizer.range.endIndex >= virtualItem.index
+              )}
+              onHeightChange={(height) => {
+                iframeHeights[virtualItem.index] = height;
+                // Update render count to force re-render the items
+                setRenderCount((prev) => prev + 1);
+              }}
+            />
+          ))}
         </div>
       </div>
+      {/* </div> */}
       <div>
         Range: {virtualizer.range?.startIndex} - {virtualizer.range?.endIndex}
       </div>
