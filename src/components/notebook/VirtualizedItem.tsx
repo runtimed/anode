@@ -1,5 +1,6 @@
 import { VirtualItem } from "@tanstack/react-virtual";
 import { HtmlOutput } from "../outputs";
+import { useTimeout } from "react-use";
 
 interface VirtualizedItemProps {
   virtualItem: VirtualItem;
@@ -20,6 +21,20 @@ export function VirtualizedItem({
   measureElement,
   isIframe,
 }: VirtualizedItemProps) {
+  const [isReady] = useTimeout(500);
+
+  if (!isReady() && !isIframe) {
+    return (
+      <div
+        key={virtualItem.key}
+        data-index={virtualItem.index}
+        className={`p-2 ${virtualItem.index % 2 === 0 ? "bg-yellow-100" : "bg-cyan-100"}`}
+      >
+        Loading...
+      </div>
+    );
+  }
+
   return (
     <div
       key={virtualItem.key}
