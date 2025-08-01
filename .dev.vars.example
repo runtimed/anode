@@ -9,12 +9,14 @@ AUTH_ISSUER="http://localhost:8787/local_oidc"
 # Local authentication control
 # Set to "true" to enable local OIDC endpoints for development
 # Defaults to "false" if not set
+# WARNING: ALLOW_LOCAL_AUTH must NEVER be enabled in production environments.
+# The backend will reject startup if DEPLOYMENT_ENV=production and ALLOW_LOCAL_AUTH=true
 ALLOW_LOCAL_AUTH="true"
 
 # Note: The auth system supports two modes:
 # 1. Development mode: Uses AUTH_TOKEN (hardcoded secret string)
 # 2. Production mode: Uses AUTH_ISSUER (OIDC provider URL)
-# 
+#
 # In production mode, the frontend should be configured with:
 # - VITE_AUTH_ISSUER: The OIDC issuer URL
 # - VITE_CLIENT_ID: Your OAuth client ID

@@ -61,6 +61,23 @@ export default {
     // Check if local auth is enabled
     const allowLocalAuth = env.ALLOW_LOCAL_AUTH === "true";
 
+    // Security check: prevent local auth in production
+    if (allowLocalAuth && env.DEPLOYMENT_ENV === "production") {
+      return new Response(
+        JSON.stringify({
+          error: "SECURITY_ERROR",
+          message:
+            "Local authentication cannot be enabled in production environments",
+        }),
+        {
+          status: 500,
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      );
+    }
+
     // Define the paths that should be handled by the backend API.
     // This includes the main sync endpoint, artifacts API, health endpoint, and OIDC endpoints.
     const isApiRequest =
