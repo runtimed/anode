@@ -6,7 +6,7 @@ import { Label } from "../ui/label";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { VirtualizedItemIframe } from "./VirtualizedItemIframe";
 
-const DEFAULT_LIST_SIZE = 25;
+const DEFAULT_LIST_SIZE = 100;
 const DEFAULT_OVERSCAN = 0;
 const DEFAULT_IS_STATIC_ESTIMATE = false;
 const DEFAULT_IS_IFRAME = true;
@@ -59,7 +59,7 @@ export function VirtualizedList() {
     count: iframeHeights.length,
     getScrollElement: () => parentRef.current,
     estimateSize: isStaticEstimate
-      ? () => 70
+      ? () => 64
       : (i) => estimateSize(i, iframeHeights),
     overscan,
   });
@@ -167,6 +167,9 @@ export function VirtualizedList() {
             ))}
           </div>
         </div>
+      </div>
+      <div>
+        Range: {virtualizer.range?.startIndex} - {virtualizer.range?.endIndex}
       </div>
       {/* <div className="text-sm text-gray-500">renderCount: {renderCount}</div> */}
       <div className="text-sm text-gray-500">
