@@ -58,7 +58,7 @@ export function VirtualizedList() {
     count: iframeHeights.length,
     getScrollElement: () => parentRef.current,
     estimateSize: isStaticEstimate
-      ? () => 400
+      ? () => 70
       : (i) => estimateSize(i, iframeHeights),
     overscan,
   });
