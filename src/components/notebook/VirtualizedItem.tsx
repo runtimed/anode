@@ -43,7 +43,7 @@ export function VirtualizedItem({
       // }}
     >
       <div className="p-2">
-        {virtualItem.index} • {height}px
+        {virtualItem.index} • {height}px • {inRange ? "inRange" : "not inRange"}
         {/* <div>Input:</div> */}
         {/* <CodeMirrorEditor
           value={`print ('${virtualItem.index} • ${ITEMS[virtualItem.index]}')`}
