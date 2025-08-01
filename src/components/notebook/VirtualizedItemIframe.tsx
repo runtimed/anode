@@ -20,7 +20,6 @@ export function VirtualizedItemIframe({
 }: VirtualizedItemProps) {
   return (
     <div
-      key={virtualItem.key}
       data-index={virtualItem.index}
       ref={measureElement}
       className={`${virtualItem.index % 2 === 0 ? "bg-yellow-100" : "bg-cyan-100"}`}
