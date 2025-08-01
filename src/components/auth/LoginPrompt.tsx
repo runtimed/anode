@@ -178,8 +178,17 @@ const LoginPrompt: React.FC<LoginPromptProps> = ({
           data-qa-id="registration-button"
           disabled={loading}
         >
-          <span>Create your account</span>
-          <ExternalLink className="h-4 w-4 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+          {loading && action === "registration" ? (
+            <>
+              <div className="border-primary/20 border-t-primary h-4 w-4 animate-spin rounded-full border-2" />
+              <span>Creating account...</span>
+            </>
+          ) : (
+            <>
+              <span>Create your account</span>
+              <ExternalLink className="h-4 w-4 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+            </>
+          )}
         </button>
       </div>
     </div>
