@@ -6,12 +6,14 @@ interface HtmlOutputProps {
   className?: string;
   delay?: number;
   style?: React.CSSProperties;
+  onHeightChange?: (height: number) => void;
 }
 
 export const HtmlOutput: React.FC<HtmlOutputProps> = ({
   content,
   className = "max-w-none dataframe-container",
   style,
+  onHeightChange,
 }) => {
   return (
     <IframeOutput
@@ -27,6 +29,7 @@ export const HtmlOutput: React.FC<HtmlOutputProps> = ({
           ...style,
         } as React.CSSProperties
       }
+      onHeightChange={onHeightChange}
     />
   );
 };

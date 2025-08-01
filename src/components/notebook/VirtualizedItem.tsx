@@ -6,6 +6,7 @@ interface VirtualizedItemProps {
   height: number;
   iframeHeight: number;
   isIframe: boolean;
+  onHeightChange?: (height: number) => void;
   measureElement: (node: HTMLElement | null) => void;
 }
 
@@ -13,6 +14,7 @@ export function VirtualizedItem({
   virtualItem,
   height,
   iframeHeight,
+  onHeightChange,
   measureElement,
   isIframe,
 }: VirtualizedItemProps) {
@@ -39,6 +41,7 @@ export function VirtualizedItem({
           <HtmlOutput
             style={{ height: `${iframeHeight}px` }}
             content={`<div id="container" style="height: ${iframeHeight}px; border: 2px solid green;">${virtualItem.index}<button style="padding: .5em; font-size: 1em" onclick="console.log('clicked'); document.getElementById('container').style.height = (${iframeHeight} + Math.floor(Math.random() * 100) - 50)+ 'px';">Click to resize</button></div>`}
+            onHeightChange={onHeightChange}
           />
         ) : (
           <div
