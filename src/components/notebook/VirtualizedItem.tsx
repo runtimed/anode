@@ -4,13 +4,17 @@ import { HtmlOutput } from "../outputs";
 interface VirtualizedItemProps {
   virtualItem: VirtualItem;
   height: number;
+  iframeHeight: number;
+  isIframe: boolean;
   measureElement: (node: HTMLElement | null) => void;
 }
 
 export function VirtualizedItem({
   virtualItem,
   height,
+  iframeHeight,
   measureElement,
+  isIframe,
 }: VirtualizedItemProps) {
   return (
     <div
@@ -31,14 +35,16 @@ export function VirtualizedItem({
           language="python"
         /> */}
         <div>Output:</div>
-        {/* <div
-          className="border-2 border-green-500"
-          style={{ height: `${ITEMS[virtualItem.index]}px` }}
-        ></div> */}
-        <HtmlOutput
-          // delay={50 * (virtualItem.index % 5) + 100}
-          content={`<div style="height: ${height - 92}px; border: 2px solid green;">${virtualItem.index}</div>`}
-        />
+        {isIframe ? (
+          <HtmlOutput
+            content={`<div style="height: ${iframeHeight}px; border: 2px solid green;">${virtualItem.index}</div>`}
+          />
+        ) : (
+          <div
+            className="border-2 border-green-500"
+            style={{ height: `${iframeHeight}px` }}
+          ></div>
+        )}
       </div>
     </div>
   );
