@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { LogIn, ExternalLink } from "lucide-react";
 import { getOpenIdService, RedirectUrls } from "../../services/openid";
 import { redirectHelper } from "./redirect-url-helper";
@@ -48,6 +49,7 @@ const LoginPrompt: React.FC<LoginPromptProps> = ({
   onButtonHover,
 }) => {
   const openIdService = getOpenIdService();
+  const navigate = useNavigate();
   const [redirectUrls, setRedirectUrls] = useState<RedirectUrls | null>(null);
   const [action, setAction] = useState<"login" | "registration" | null>(null);
   const [loading, setLoading] = useState(false);
@@ -110,9 +112,26 @@ const LoginPrompt: React.FC<LoginPromptProps> = ({
       setLoading(false);
 
       redirectHelper.saveNotebookId();
-      window.location.href = url.toString();
+
+      // Check if it's an internal route (local auth) or external URL
+      const currentOrigin = window.location.origin;
+      const targetOrigin = url.origin;
+
+      if (currentOrigin === targetOrigin) {
+        // Internal route - use React Router for smooth transition
+        navigate(url.pathname + url.search);
+      } else {
+        // External URL - use window.location for full page navigation
+        if ("startViewTransition" in document) {
+          document.startViewTransition(() => {
+            window.location.href = url.toString();
+          });
+        } else {
+          window.location.href = url.toString();
+        }
+      }
     }
-  }, [action, redirectUrls]);
+  }, [action, redirectUrls, navigate]);
 
   const handler = (action: "login" | "registration") => {
     // In design test mode, just simulate loading
@@ -178,8 +197,17 @@ const LoginPrompt: React.FC<LoginPromptProps> = ({
           data-qa-id="registration-button"
           disabled={loading}
         >
-          <span>Create your account</span>
-          <ExternalLink className="h-4 w-4 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+          {loading && action === "registration" ? (
+            <>
+              <div className="border-primary/20 border-t-primary h-4 w-4 animate-spin rounded-full border-2" />
+              <span>Creating account...</span>
+            </>
+          ) : (
+            <>
+              <span>Create your account</span>
+              <ExternalLink className="h-4 w-4 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+            </>
+          )}
         </button>
       </div>
     </div>
