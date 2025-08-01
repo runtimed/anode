@@ -148,12 +148,16 @@ const AuthorizePage: React.FC = () => {
   if (error) {
     return (
       <div className="bg-background flex min-h-screen items-center justify-center p-4">
-        <div className="w-full max-w-md text-center">
+        <div className="auth-content w-full max-w-md text-center">
           <animated.div
             className="mb-8 flex items-center justify-center"
             style={logoSpring}
           >
-            <RuntLogo size="h-24 w-24" filterId="pixelate-error" />
+            <RuntLogo
+              size="h-24 w-24"
+              className="auth-logo"
+              filterId="pixelate-error"
+            />
           </animated.div>
           <animated.div style={cardSpring}>
             <Card className="border-red-200 bg-red-50">
@@ -179,12 +183,16 @@ const AuthorizePage: React.FC = () => {
 
   return (
     <div className="bg-background flex min-h-screen items-center justify-center p-4">
-      <div className="w-full max-w-md text-center">
+      <div className="auth-content w-full max-w-md text-center">
         <animated.div
           className="mb-8 flex items-center justify-center"
           style={logoSpring}
         >
-          <RuntLogo size="h-24 w-24" filterId="pixelate-authorize" />
+          <RuntLogo
+            size="h-24 w-24"
+            className="auth-logo"
+            filterId="pixelate-authorize"
+          />
         </animated.div>
 
         <animated.div style={cardSpring}>

@@ -89,7 +89,7 @@ export const AuthGuard: React.FC<AuthGuardProps> = ({ children, fallback }) => {
     return (
       fallback || (
         <div className="bg-background flex min-h-screen items-center justify-center p-4">
-          <div className="w-full max-w-md text-center">
+          <div className="auth-content w-full max-w-md text-center">
             {/* Hero logo section */}
             <div className="mb-16">
               <animated.div
@@ -100,7 +100,7 @@ export const AuthGuard: React.FC<AuthGuardProps> = ({ children, fallback }) => {
                   size="h-24 w-24 sm:h-32 sm:w-32"
                   animated={true}
                   energized={isButtonHovered}
-                  className="transition-transform hover:scale-105"
+                  className="auth-logo transition-transform hover:scale-105"
                   filterId="pixelate-auth"
                 />
               </animated.div>

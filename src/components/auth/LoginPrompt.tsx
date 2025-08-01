@@ -110,7 +110,15 @@ const LoginPrompt: React.FC<LoginPromptProps> = ({
       setLoading(false);
 
       redirectHelper.saveNotebookId();
-      window.location.href = url.toString();
+
+      // Use View Transitions API if supported for smoother page transitions
+      if ("startViewTransition" in document) {
+        (document as any).startViewTransition(() => {
+          window.location.href = url.toString();
+        });
+      } else {
+        window.location.href = url.toString();
+      }
     }
   }, [action, redirectUrls]);
 

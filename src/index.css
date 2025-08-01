@@ -461,3 +461,61 @@
     opacity: 1;
   }
 }
+
+/* View Transitions API styles for smooth page transitions */
+@supports (view-transition-name: none) {
+  /* Define transition areas for auth pages */
+  .auth-logo {
+    view-transition-name: auth-logo;
+  }
+
+  .auth-content {
+    view-transition-name: auth-content;
+  }
+
+  /* Customize the transition animation */
+  ::view-transition-old(auth-logo),
+  ::view-transition-new(auth-logo) {
+    animation-duration: 0.4s;
+    animation-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  ::view-transition-old(auth-content),
+  ::view-transition-new(auth-content) {
+    animation-duration: 0.5s;
+    animation-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  /* Fade out old content */
+  ::view-transition-old(auth-content) {
+    animation: fade-out 0.3s ease-out;
+  }
+
+  /* Slide and fade in new content */
+  ::view-transition-new(auth-content) {
+    animation: slide-fade-in 0.5s ease-out;
+  }
+
+  /* Keep logo stable during transition */
+  ::view-transition-group(auth-logo) {
+    animation-duration: 0.4s;
+    animation-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  }
+}
+
+@keyframes fade-out {
+  to {
+    opacity: 0;
+  }
+}
+
+@keyframes slide-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
