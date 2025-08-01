@@ -322,7 +322,7 @@ export const App: React.FC = () => {
               fallback={
                 <LoadingState
                   variant="fullscreen"
-                  message="Loading Suspense Root..."
+                  message="Preparing the rabbit hole..."
                 />
               }
             >
