@@ -34,14 +34,14 @@ export const LoadingState: React.FC<LoadingStateProps> = ({
   if (variant === "fullscreen") {
     return (
       <div
-        className={`flex min-h-screen items-center justify-center bg-white ${className}`}
+        className={`auth-content flex min-h-screen items-center justify-center bg-white ${className}`}
       >
         <div className="text-center">
           <RuntLogo
             size="h-24 w-24 sm:h-32 sm:w-32"
             variant="portal"
             animated={animated}
-            className="mx-auto mb-8"
+            className="auth-logo mx-auto mb-8"
             filterId="pixelate-loading-state"
           />
           {message && (
