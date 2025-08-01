@@ -1,5 +1,5 @@
 import React, { useEffect } from "react";
-import { RuntLogo } from "../logo/RuntLogo";
+
 import { removeStaticLoadingScreen } from "../../util/domUpdates";
 
 interface LoadingStateProps {
@@ -37,13 +37,70 @@ export const LoadingState: React.FC<LoadingStateProps> = ({
         className={`flex min-h-screen items-center justify-center bg-white ${className}`}
       >
         <div className="text-center">
-          <RuntLogo
-            size="h-24 w-24 sm:h-32 sm:w-32"
-            animated={animated}
-            energized={false}
-            className="mx-auto mb-8"
-            animation={animated ? "animate-pulse" : ""}
-          />
+          {/* Large layered logo with portal */}
+          <div className="relative mx-auto mb-8 h-24 w-24 sm:h-32 sm:w-32">
+            {/* Precisely positioned SVG hole */}
+            <div
+              className="absolute"
+              style={{
+                left: "37%",
+                top: "63%",
+                width: "119%",
+                height: "119%",
+                transform: "translate(-50%, -50%)",
+              }}
+            >
+              <svg
+                width="100%"
+                height="100%"
+                viewBox="0 0 200 200"
+                style={{ transformOrigin: "center center" }}
+              >
+                <defs>
+                  <filter id="pixelate-loading-state">
+                    <feMorphology
+                      operator="erode"
+                      radius="2"
+                      in="SourceGraphic"
+                      result="morphed"
+                    />
+                    <feComponentTransfer in="morphed">
+                      <feFuncA type="discrete" tableValues="0 1" />
+                    </feComponentTransfer>
+                  </filter>
+                </defs>
+                <circle
+                  cx="100"
+                  cy="100"
+                  r="95"
+                  fill="#000000"
+                  filter="url(#pixelate-loading-state)"
+                />
+              </svg>
+            </div>
+            <img
+              src="/shadow.png"
+              alt=""
+              className="pixel-logo absolute inset-0 h-full w-full"
+            />
+            <img
+              src="/bunny.png"
+              alt=""
+              className="pixel-logo absolute inset-0 h-full w-full"
+            />
+            <img
+              src="/runes.png"
+              alt=""
+              className={`pixel-logo absolute inset-0 h-full w-full ${
+                animated ? "rune-throb" : ""
+              }`}
+            />
+            <img
+              src="/bracket.png"
+              alt="Runt"
+              className="pixel-logo absolute inset-0 h-full w-full"
+            />
+          </div>
           {message && (
             <div
               className="relative z-50 mb-2 text-xl font-black text-white sm:text-2xl"
@@ -63,7 +120,7 @@ export const LoadingState: React.FC<LoadingStateProps> = ({
   if (variant === "minimal") {
     return (
       <div className={`flex items-center justify-center p-4 ${className}`}>
-        <RuntLogo size="h-8 w-8" animated={false} className="opacity-50" />
+        <div className="h-8 w-8 animate-spin rounded-full border-2 border-gray-300 border-t-gray-600" />
         {message && (
           <span className="text-muted-foreground ml-2 text-sm">{message}</span>
         )}
@@ -76,13 +133,70 @@ export const LoadingState: React.FC<LoadingStateProps> = ({
     <div
       className={`flex flex-col items-center justify-center py-12 ${className}`}
     >
-      <RuntLogo
-        size="h-16 w-16"
-        animated={animated}
-        energized={false}
-        className="mb-4"
-        animation={animated ? "animate-pulse" : ""}
-      />
+      {/* Medium layered logo with portal */}
+      <div className="relative mb-4 h-16 w-16">
+        {/* Precisely positioned SVG hole */}
+        <div
+          className="absolute"
+          style={{
+            left: "37%",
+            top: "63%",
+            width: "119%",
+            height: "119%",
+            transform: "translate(-50%, -50%)",
+          }}
+        >
+          <svg
+            width="100%"
+            height="100%"
+            viewBox="0 0 200 200"
+            style={{ transformOrigin: "center center" }}
+          >
+            <defs>
+              <filter id="pixelate-loading-inline">
+                <feMorphology
+                  operator="erode"
+                  radius="2"
+                  in="SourceGraphic"
+                  result="morphed"
+                />
+                <feComponentTransfer in="morphed">
+                  <feFuncA type="discrete" tableValues="0 1" />
+                </feComponentTransfer>
+              </filter>
+            </defs>
+            <circle
+              cx="100"
+              cy="100"
+              r="95"
+              fill="#000000"
+              filter="url(#pixelate-loading-inline)"
+            />
+          </svg>
+        </div>
+        <img
+          src="/shadow.png"
+          alt=""
+          className="pixel-logo absolute inset-0 h-full w-full"
+        />
+        <img
+          src="/bunny.png"
+          alt=""
+          className="pixel-logo absolute inset-0 h-full w-full"
+        />
+        <img
+          src="/runes.png"
+          alt=""
+          className={`pixel-logo absolute inset-0 h-full w-full ${
+            animated ? "rune-throb" : ""
+          }`}
+        />
+        <img
+          src="/bracket.png"
+          alt="Runt"
+          className="pixel-logo absolute inset-0 h-full w-full"
+        />
+      </div>
       {message && (
         <div className="text-muted-foreground animate-pulse text-sm">
           {message}
@@ -94,11 +208,11 @@ export const LoadingState: React.FC<LoadingStateProps> = ({
 
 // Export convenience components for common use cases
 export const FullscreenLoading: React.FC<{ message?: string }> = ({
-  message = "Loading...",
+  message = "Loading FULL...",
 }) => <LoadingState variant="fullscreen" message={message} />;
 
 export const InlineLoading: React.FC<{ message?: string }> = ({
-  message = "Loading...",
+  message = "Loading INLINE...",
 }) => <LoadingState variant="inline" message={message} />;
 
 export const MinimalLoading: React.FC<{ message?: string }> = ({ message }) => (

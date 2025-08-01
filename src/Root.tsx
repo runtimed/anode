@@ -320,7 +320,10 @@ export const App: React.FC = () => {
           element={
             <Suspense
               fallback={
-                <LoadingState variant="fullscreen" message="Loading..." />
+                <LoadingState
+                  variant="fullscreen"
+                  message="Loading Suspense Root..."
+                />
               }
             >
               <AuthorizePage />
