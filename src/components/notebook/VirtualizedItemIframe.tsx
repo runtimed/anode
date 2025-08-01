@@ -1,5 +1,5 @@
 import { VirtualItem } from "@tanstack/react-virtual";
-import { useTimeout } from "react-use";
+import { HtmlOutput } from "../outputs";
 
 interface VirtualizedItemProps {
   virtualItem: VirtualItem;
@@ -10,7 +10,7 @@ interface VirtualizedItemProps {
   measureElement: (node: HTMLElement | null) => void;
 }
 
-export function VirtualizedItem({
+export function VirtualizedItemIframe({
   virtualItem,
   height,
   iframeHeight,
@@ -18,20 +18,6 @@ export function VirtualizedItem({
   onHeightChange,
   measureElement,
 }: VirtualizedItemProps) {
-  const [isReady] = useTimeout(500);
-
-  if (!isReady() && inRange) {
-    return (
-      <div
-        key={virtualItem.key}
-        data-index={virtualItem.index}
-        className={`p-2 ${virtualItem.index % 2 === 0 ? "bg-yellow-100" : "bg-cyan-100"}`}
-      >
-        Loading...
-      </div>
-    );
-  }
-
   return (
     <div
       key={virtualItem.key}
@@ -51,10 +37,11 @@ export function VirtualizedItem({
           language="python"
         /> */}
         <div>Output:</div>
-        <div
-          className="border-2 border-green-500"
-          style={{ height: `${iframeHeight}px` }}
-        ></div>
+        <HtmlOutput
+          // style={{ height: `${iframeHeight}px` }}
+          content={`<div id="container" style="height: ${iframeHeight}px; border: 2px solid green;">${virtualItem.index}<button style="padding: .5em; font-size: 1em" onclick="console.log('clicked'); document.getElementById('container').style.height = (${iframeHeight} + Math.floor(Math.random() * 100) - 50)+ 'px';">Click to resize</button></div>`}
+          onHeightChange={onHeightChange}
+        />
       </div>
     </div>
   );

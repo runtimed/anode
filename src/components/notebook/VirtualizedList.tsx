@@ -4,6 +4,7 @@ import { VirtualizedItem } from "./VirtualizedItem";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "../ui/label";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { VirtualizedItemIframe } from "./VirtualizedItemIframe";
 
 const DEFAULT_LIST_SIZE = 25;
 const DEFAULT_OVERSCAN = 0;
@@ -64,6 +65,8 @@ export function VirtualizedList() {
   });
 
   const vItems = virtualizer.getVirtualItems();
+
+  const ItemComponent = isIframe ? VirtualizedItemIframe : VirtualizedItem;
 
   return (
     <>
@@ -143,7 +146,7 @@ export function VirtualizedList() {
           >
             {/* Only the visible items in the virtualizer, manually positioned to be in view */}
             {vItems.map((virtualItem) => (
-              <VirtualizedItem
+              <ItemComponent
                 key={virtualItem.key}
                 virtualItem={virtualItem}
                 iframeHeight={iframeHeights[virtualItem.index]}
@@ -160,7 +163,6 @@ export function VirtualizedList() {
                   // Update render count to force re-render the items
                   setRenderCount((prev) => prev + 1);
                 }}
-                isIframe={isIframe}
               />
             ))}
           </div>
