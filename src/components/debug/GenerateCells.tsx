@@ -5,6 +5,8 @@ import { useQuery, useStore } from "@livestore/react";
 import { CellData, events, tables } from "@runt/schema";
 import { useAuth } from "../auth/AuthProvider";
 
+const CELLS_TO_GENERATE = 200;
+
 export function GenerateCells() {
   const { store } = useStore();
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -16,7 +18,7 @@ export function GenerateCells() {
   const cells = useQuery(queryDb(tables.cells.select())) as CellData[];
 
   const generateCell = useCallback(
-    async (input: string) => {
+    (input: string) => {
       // Create AI cell at the bottom of the notebook
       const cellId = crypto.randomUUID();
 
@@ -29,7 +31,7 @@ export function GenerateCells() {
         events.cellCreated({
           id: cellId,
           position: newPosition,
-          cellType: "ai",
+          cellType: "code",
           createdBy: userId,
           actorId: userId,
         })
@@ -51,8 +53,10 @@ export function GenerateCells() {
     setIsSubmitting(true);
 
     try {
-      for (let i = 0; i < 1000; i++) {
-        await generateCell(`print ('Hello, world! ${i}')`);
+      for (let i = 0; i < CELLS_TO_GENERATE; i++) {
+        setTimeout(() => {
+          generateCell(`print ('Hello, world! ${i}')`);
+        }, i * 10);
       }
     } catch (error) {
       console.error("Failed to create AI cell:", error);
@@ -64,7 +68,7 @@ export function GenerateCells() {
   return (
     <div>
       <Button disabled={isSubmitting} onClick={generateCells}>
-        Generate 1000 cells
+        Generate {CELLS_TO_GENERATE} cells
       </Button>
     </div>
   );
