@@ -1,9 +1,7 @@
 import { CellData } from "@runt/schema";
 import { useWindowVirtualizer } from "@tanstack/react-virtual";
 import React from "react";
-import { ErrorBoundary } from "react-error-boundary";
-import { Cell } from "./cell/Cell.js";
-import { CellBetweener } from "./cell/CellBetweener.js";
+import { VirtualizedItemCell } from "./VirtualizedItemCell.js";
 
 interface VirtualizedCellListProps {
   cells: readonly CellData[];
@@ -72,37 +70,21 @@ export const VirtualizedCellList: React.FC<VirtualizedCellListProps> = ({
         }}
       >
         {vItems.map((vItem) => (
-          <div
+          <VirtualizedItemCell
             key={vItem.key}
-            data-index={vItem.index}
-            ref={virtualizer.measureElement}
-          >
-            <ErrorBoundary fallback={<div>Error rendering cell</div>}>
-              {vItem.index === 0 && (
-                <CellBetweener
-                  cell={cells[vItem.index]}
-                  onAddCell={onAddCell}
-                  position="before"
-                />
-              )}
-              <Cell
-                cell={cells[vItem.index]}
-                onDeleteCell={() => onDeleteCell(cells[vItem.index].id)}
-                onMoveUp={() => onMoveUp(cells[vItem.index].id)}
-                onMoveDown={() => onMoveDown(cells[vItem.index].id)}
-                onFocusNext={() => onFocusNext(cells[vItem.index].id)}
-                onFocusPrevious={() => onFocusPrevious(cells[vItem.index].id)}
-                onFocus={() => onFocus(cells[vItem.index].id)}
-                autoFocus={cells[vItem.index].id === focusedCellId}
-                contextSelectionMode={contextSelectionMode}
-              />
-              <CellBetweener
-                cell={cells[vItem.index]}
-                onAddCell={onAddCell}
-                position="after"
-              />
-            </ErrorBoundary>
-          </div>
+            virtualItem={vItem}
+            cell={cells[vItem.index]}
+            onDeleteCell={onDeleteCell}
+            onMoveUp={onMoveUp}
+            onMoveDown={onMoveDown}
+            onFocusNext={onFocusNext}
+            onFocusPrevious={onFocusPrevious}
+            onFocus={onFocus}
+            onAddCell={onAddCell}
+            autoFocus={cells[vItem.index].id === focusedCellId}
+            contextSelectionMode={contextSelectionMode}
+            measureElement={virtualizer.measureElement}
+          />
         ))}
       </div>
     </div>
