@@ -12,6 +12,7 @@ import {
   notebookMetadata$,
   runtimeSessions$,
 } from "@/queries/index.js";
+import { GenerateCells } from "../debug/GenerateCells.js";
 
 const useAvailableTables = () => {
   return useQuery(
@@ -98,6 +99,7 @@ const DebugPanel: React.FC = () => {
 
       <div className="space-y-4 p-4">
         <DebugPin />
+        <GenerateCells />
         {/* Available Tables */}
         <div>
           <h4 className="text-muted-foreground mb-2 text-xs font-medium tracking-wide uppercase">
