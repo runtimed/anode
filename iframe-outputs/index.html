@@ -4,6 +4,20 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>IFrame Content</title>
+    <style>
+      /* Make size calculations make sense */
+      * {
+        box-sizing: border-box;
+      }
+
+      html {
+        /* Use system font stack */
+        font-family:
+          -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica,
+          Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji",
+          "Segoe UI Symbol";
+      }
+    </style>
     <script>
       window.addEventListener("load", () => {
         document.body.style.margin = "0";
@@ -67,7 +81,7 @@
       });
     </script>
   </head>
-  <body>
+  <body class="dataframe-container">
     <!-- iframe content -->
     No content yet
   </body>
