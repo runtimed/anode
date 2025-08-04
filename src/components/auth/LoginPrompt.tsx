@@ -85,7 +85,9 @@ const LoginPrompt: React.FC<LoginPromptProps> = ({
           error.message.includes("unexpected response content-type") &&
           providerName === null
         ) {
-          setError("ALLOW_LOCAL_AUTH not enabled");
+          setError(
+            "ALLOW_LOCAL_AUTH not enabled, or you should check that AUTH_ISSUER is set in your .dev.vars file"
+          );
         } else {
           setError(error.message);
         }
