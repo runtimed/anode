@@ -1,6 +1,7 @@
 import { VirtualItem } from "@tanstack/react-virtual";
 import { useState } from "react";
 import { HtmlOutput } from "../outputs";
+import { CodeMirrorEditor } from "./codemirror/CodeMirrorEditor";
 
 interface VirtualizedItemProps {
   virtualItem: VirtualItem;
@@ -32,13 +33,12 @@ export function VirtualizedItemIframe({
     >
       <div className="p-2">
         {virtualItem.index} • {height}px • {inRange ? "inRange" : "not inRange"}
-        {/* <div>Input:</div> */}
-        {/* <CodeMirrorEditor
-          value={`print ('${virtualItem.index} • ${ITEMS[virtualItem.index]}')`}
+        <div>Input:</div>
+        <CodeMirrorEditor
+          value={`print ('${virtualItem.index} • ${iframeHeight}px')`}
           language="python"
-        /> */}
+        />
         <div>Output:</div>
-        {/* {showPreview && <div>Loading...</div>} */}
         {inRange && (
           <HtmlOutput
             style={{ height: !isReady ? "0px" : `${iframeHeight}px` }}
