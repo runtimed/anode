@@ -210,7 +210,7 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
       movingRef.current = true;
 
       // Log cell array to debug ordering
-      console.log("Current cell order:");
+      console.log("Current cell order before move:");
       console.log(
         cells.map((c, i) => ({
           index: i,
@@ -300,6 +300,30 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
       if (moveEvent) {
         console.log("Committing moveEvent");
         store.commit(moveEvent);
+
+        // Check if the cell's fractionalIndex updates after commit
+        setTimeout(() => {
+          const updatedCell = cells.find((c) => c.id === currentCell.id);
+          console.log("Cell after commit:", {
+            id: updatedCell?.id,
+            oldIndex: currentCell.fractionalIndex,
+            newIndex: updatedCell?.fractionalIndex,
+            expectedIndex: moveEvent.args.fractionalIndex,
+            matches:
+              updatedCell?.fractionalIndex === moveEvent.args.fractionalIndex,
+          });
+
+          // Log all cells to see if order changed
+          console.log("All cells after commit:");
+          console.log(
+            cells.map((c, i) => ({
+              index: i,
+              id: c.id,
+              fractionalIndex: c.fractionalIndex,
+              isMovedCell: c.id === currentCell.id,
+            }))
+          );
+        }, 50);
       } else {
         console.log("Cell already in target position or invalid move");
         console.log({
