@@ -15,9 +15,9 @@ import { useUserRegistry } from "@/hooks/useUserRegistry.js";
 
 import { getClientColor, getClientTypeInfo } from "@/services/userTypes.js";
 import { getDefaultAiModel, useAvailableAiModels } from "@/util/ai-models.js";
-import { Bug, BugOff, Filter, Terminal, X } from "lucide-react";
+import { Bug, BugOff, Filter, X } from "lucide-react";
 import { UserProfile } from "../auth/UserProfile.js";
-import { RuntimeHealthIndicator } from "./RuntimeHealthIndicator.js";
+import { RuntimeHealthIndicatorButton } from "./RuntimeHealthIndicatorButton.js";
 import { RuntimeHelper } from "./RuntimeHelper.js";
 
 // Lazy import DebugPanel only in development
@@ -71,7 +71,6 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
           .limit(1)
       )
     )[0] || null;
-  const metadata = useQuery(queryDb(tables.notebookMetadata.select()));
   const runtimeSessions = useQuery(
     queryDb(tables.runtimeSessions.select().where({ isActive: true }))
   );
@@ -423,19 +422,11 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
                 </div>
 
                 <div className="flex flex-shrink-0 items-center gap-1 sm:gap-2">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setShowRuntimeHelper(!showRuntimeHelper)}
-                    className="flex items-center gap-1 sm:gap-2"
-                  >
-                    <Terminal className="h-3 w-3 sm:h-4 sm:w-4" />
-                    <span className="hidden text-xs capitalize sm:block sm:text-sm">
-                      {metadata.find((m) => m.key === "runtimeType")?.value ??
-                        "unknown"}
-                    </span>
-                    <RuntimeHealthIndicator />
-                  </Button>
+                  <RuntimeHealthIndicatorButton
+                    onToggleClick={() =>
+                      setShowRuntimeHelper(!showRuntimeHelper)
+                    }
+                  />
                   <Button
                     variant={contextSelectionMode ? "default" : "outline"}
                     size="sm"
