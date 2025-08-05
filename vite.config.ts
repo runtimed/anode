@@ -1,5 +1,6 @@
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import git from "git-rev-sync";
 
 import { livestoreDevtoolsPlugin } from "@livestore/devtools-vite";
 import react from "@vitejs/plugin-react";
@@ -14,6 +15,9 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), "");
+
+  // Get git commit hash - prefer Cloudflare env var, fallback to git-rev-sync
+  const gitCommitHash = process.env.WORKERS_CI_COMMIT_SHA || git.short();
 
   const plugins = [
     envValidationPlugin(),
@@ -86,5 +90,8 @@ export default defineConfig(({ mode }) => {
       },
     },
     plugins,
+    define: {
+      "import.meta.env.VITE_GIT_COMMIT_HASH": JSON.stringify(gitCommitHash),
+    },
   };
 });

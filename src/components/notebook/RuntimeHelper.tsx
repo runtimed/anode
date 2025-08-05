@@ -8,6 +8,7 @@ import { getRuntimeCommand } from "@/util/runtime-command.js";
 import { getCurrentNotebookId } from "@/util/store-id.js";
 import { Copy, Square } from "lucide-react";
 import { RuntimeHealthIndicator } from "./RuntimeHealthIndicator.js";
+import { GitCommitHash } from "./GitCommitHash.js";
 
 interface RuntimeHelperProps {
   showRuntimeHelper: boolean;
@@ -56,10 +57,13 @@ export const RuntimeHelper: React.FC<RuntimeHelperProps> = ({
     <div className="bg-card border-t">
       <div className="w-full px-3 py-4 sm:mx-auto sm:max-w-6xl sm:px-4">
         <div className="mb-3 flex items-center justify-between">
-          <h4 className="flex items-center gap-2 text-sm font-medium">
-            Runtime Status
-            <RuntimeHealthIndicator showStatus />
-          </h4>
+          <div className="flex items-center gap-4">
+            <h4 className="flex items-center gap-2 text-sm font-medium">
+              Runtime Status
+              <RuntimeHealthIndicator showStatus />
+            </h4>
+            <GitCommitHash />
+          </div>
           <Button
             variant="ghost"
             size="sm"
