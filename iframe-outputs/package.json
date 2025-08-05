@@ -12,6 +12,7 @@
     "dev": "vite --port 8000",
     "build": "vite build",
     "preview": "vite preview",
+    "test": "http-server . -p 3000 -o test-react.html",
     "wrangler:dev": "wrangler dev",
     "deploy": "wrangler deploy --env production",
     "deploy:production": "wrangler deploy --env production",
@@ -29,6 +30,7 @@
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",
     "@vitejs/plugin-react": "^4.2.0",
+    "http-server": "^14.1.1",
     "typescript": "^5.8.3",
     "vite": "^5.4.19",
     "wrangler": "4.25.0"
