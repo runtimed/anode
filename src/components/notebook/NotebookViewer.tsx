@@ -7,7 +7,7 @@ import {
   createCellBetween,
   moveCellBetween,
 } from "@/schema";
-import React, { Suspense, useCallback } from "react";
+import React, { Suspense, useCallback, useRef } from "react";
 import { ErrorBoundary } from "react-error-boundary";
 
 import { NotebookTitle } from "./NotebookTitle.js";
@@ -241,34 +241,45 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
         return;
       }
 
-      // Check if cells are already in the desired order (prevent duplicate swaps)
-      const currentFractionalIndex = currentCell.fractionalIndex;
-      const targetFractionalIndex = targetCell.fractionalIndex;
+      // Determine the before and after cells based on direction
+      let cellBefore: CellData | null = null;
+      let cellAfter: CellData | null = null;
 
-      console.log(`Swapping cells:`, {
-        current: { id: currentCell.id, index: currentFractionalIndex },
-        target: { id: targetCell.id, index: targetFractionalIndex },
+      if (direction === "up") {
+        // Moving up: place current cell between targetIndex-1 and targetIndex
+        cellBefore = targetIndex > 0 ? cells[targetIndex - 1] : null;
+        cellAfter = targetCell;
+      } else {
+        // Moving down: place current cell between targetIndex and targetIndex+1
+        cellBefore = targetCell;
+        cellAfter =
+          targetIndex < cells.length - 1 ? cells[targetIndex + 1] : null;
+      }
+
+      console.log(`Moving cell:`, {
+        current: { id: currentCell.id, index: currentCell.fractionalIndex },
         direction,
-        currentIndex,
-        targetIndex,
+        cellBefore: cellBefore
+          ? { id: cellBefore.id, index: cellBefore.fractionalIndex }
+          : null,
+        cellAfter: cellAfter
+          ? { id: cellAfter.id, index: cellAfter.fractionalIndex }
+          : null,
       });
 
-      // Swap fractional indices
-      store.commit(
-        events.cellMoved2({
-          id: currentCell.id,
-          fractionalIndex: targetCell.fractionalIndex,
-          actorId: userId,
-        })
+      // Use moveCellBetween to calculate the new position
+      const moveEvent = moveCellBetween(
+        currentCell,
+        cellBefore,
+        cellAfter,
+        userId
       );
 
-      store.commit(
-        events.cellMoved2({
-          id: targetCell.id,
-          fractionalIndex: currentCell.fractionalIndex,
-          actorId: userId,
-        })
-      );
+      if (moveEvent) {
+        store.commit(moveEvent);
+      } else {
+        console.log("Cell already in target position or invalid move");
+      }
 
       // Reset the moving flag after a short delay to allow for database updates
       setTimeout(() => {
