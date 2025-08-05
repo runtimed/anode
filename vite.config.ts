@@ -18,6 +18,7 @@ export default defineConfig(({ mode }) => {
 
   // Get git commit hash - check various CI environments
   let gitCommitHash =
+    process.env.VITE_GIT_COMMIT_HASH || // Explicitly set
     process.env.WORKERS_CI_COMMIT_SHA || // Cloudflare
     process.env.GITHUB_SHA?.substring(0, 7); // GitHub Actions (short SHA)
 
