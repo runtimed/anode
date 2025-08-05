@@ -2,6 +2,8 @@ import { MediaContainer, OutputData } from "@runt/schema";
 import { groupConsecutiveStreamOutputs } from "@/util/output-grouping";
 import { AnsiErrorOutput, AnsiStreamOutput } from "./AnsiOutput";
 import { RichOutput } from "./RichOutput";
+import { IframeOutput2 } from "./IframeOutput2";
+import ReactJsonView from "@microlink/react-json-view";
 
 export const IframeOutputs = ({
   outputs,
@@ -23,8 +25,10 @@ export const IframeOutputs = ({
 
   return (
     <div>
-      IframeOutputs: {processedOutputs.length}
-      {processedOutputs.map((output: OutputData, index: number) => (
+      {/* IframeOutputs: {processedOutputs.length} */}
+      {/* <ReactJsonView src={processedOutputs} collapsed={1} /> */}
+      <IframeOutput2 outputs={processedOutputs} isReact />
+      {/* {processedOutputs.map((output: OutputData, index: number) => (
         <div
           key={output.id}
           className={index > 0 ? "border-border/30 mt-2 border-t pt-2" : ""}
@@ -35,7 +39,7 @@ export const IframeOutputs = ({
             mobileStyle={mobileStyle}
           />
         </div>
-      ))}
+      ))} */}
     </div>
   );
 };

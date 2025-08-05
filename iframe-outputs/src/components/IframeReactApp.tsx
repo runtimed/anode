@@ -1,14 +1,16 @@
 import React, { useEffect, useState } from "react";
+import { OutputData } from "@/schema";
 import ReactJsonView from "@microlink/react-json-view";
 
 interface IframeMessage {
   type: string;
   content?: string;
   height?: number;
+  outputs?: OutputData[];
 }
 
 export const IframeReactApp: React.FC = () => {
-  const [content, setContent] = useState<string>("");
+  const [outputs, setOutputs] = useState<OutputData[]>([]);
 
   useEffect(() => {
     document.body.style.margin = "0";
@@ -44,11 +46,9 @@ export const IframeReactApp: React.FC = () => {
     // Handle incoming content updates
     window.addEventListener("message", (event) => {
       const data: IframeMessage = event.data;
-      if (data && data.type === "update-content") {
-        setContent(data.content || "");
-        setTimeout(sendHeight, 50);
-      } else if (data && data.type === "update-react-content") {
-        setContent(data.content || "");
+      if (data && data.type === "update-outputs") {
+        console.log("update-outputs", data.outputs);
+        setOutputs(data.outputs || []);
         setTimeout(sendHeight, 50);
       }
     });
@@ -62,9 +62,9 @@ export const IframeReactApp: React.FC = () => {
   // Default content or non-React mode
   return (
     <div className="dataframe-container">
-      {(content && (
+      {outputs.length > 0 ? (
         <ReactJsonView
-          src={JSON.parse(content)}
+          src={outputs}
           theme="rjv-default"
           collapsed={false}
           displayDataTypes={false}
@@ -77,8 +77,9 @@ export const IframeReactApp: React.FC = () => {
             fontSize: "0.875rem",
           }}
         />
-      )) ||
-        "No content yet"}
+      ) : (
+        "No content yet"
+      )}
     </div>
   );
 };
