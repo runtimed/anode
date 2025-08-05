@@ -1,6 +1,13 @@
 import { queryDb } from "@livestore/livestore";
 import { useQuery, useStore } from "@livestore/react";
-import { CellData, events, tables } from "@/schema";
+import {
+  CellData,
+  events,
+  tables,
+  fractionalIndexBetween,
+  createCellAfter,
+  createCellBefore,
+} from "@/schema";
 import React, { Suspense, useCallback } from "react";
 import { ErrorBoundary } from "react-error-boundary";
 
@@ -51,7 +58,7 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
   const { models } = useAvailableAiModels();
 
   const cells = useQuery(
-    queryDb(tables.cells.select().orderBy("position", "asc"))
+    queryDb(tables.cells.select().orderBy("fractionalIndex", "asc"))
   );
   const lastUsedAiModel =
     useQuery(
@@ -95,39 +102,6 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
         .toString(36)
         .slice(2)}`;
 
-      let newPosition: number;
-      if (cellId) {
-        // Find the current cell and insert after it
-        const currentCell = cells.find((c: CellData) => c.id === cellId);
-        if (currentCell) {
-          if (position === "before") {
-            newPosition = currentCell.position;
-          } else {
-            newPosition = currentCell.position + 1;
-          }
-          // Shift all subsequent cells down by 1
-          const cellsToShift = cells.filter(
-            (c: CellData) => c.position >= newPosition
-          );
-          cellsToShift.forEach((cell: CellData) => {
-            store.commit(
-              events.cellMoved({
-                id: cell.id,
-                newPosition: cell.position + 1,
-              })
-            );
-          });
-        } else {
-          // Fallback: add at end
-          newPosition =
-            Math.max(...cells.map((c: CellData) => c.position), -1) + 1;
-        }
-      } else {
-        // Add at end
-        newPosition =
-          Math.max(...cells.map((c: CellData) => c.position), -1) + 1;
-      }
-
       // Get default AI model if creating an AI cell
       let aiProvider, aiModel;
       if (cellType === "ai") {
@@ -142,15 +116,21 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
         }
       }
 
-      store.commit(
-        events.cellCreated({
-          id: newCellId,
-          position: newPosition,
-          cellType,
-          createdBy: userId,
-          actorId: userId,
-        })
-      );
+      // Create cell using the appropriate helper
+      const cellCreatedEvent =
+        position === "before" && cellId
+          ? createCellBefore(cellId, cells, {
+              id: newCellId,
+              cellType,
+              createdBy: userId,
+            })
+          : createCellAfter(cellId || null, cells, {
+              id: newCellId,
+              cellType,
+              createdBy: userId,
+            });
+
+      store.commit(cellCreatedEvent);
 
       // Set default AI model for AI cells based on last used model
       if (cellType === "ai" && aiProvider && aiModel) {
@@ -190,6 +170,14 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
 
   const moveCell = useCallback(
     (cellId: string, direction: "up" | "down") => {
+      // TODO: Implement cell movement with fractional indexing
+      // This requires schema support for cellMoved2 event with fractional indices
+      console.warn(
+        "Cell movement not yet implemented with fractional indexing"
+      );
+      return;
+
+      /* Original position-based implementation:
       const currentCell = cells.find((c: CellData) => c.id === cellId);
       if (!currentCell) return;
 
@@ -234,6 +222,7 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
           );
         }
       }
+      */
     },
     [cells, store, userId]
   );
