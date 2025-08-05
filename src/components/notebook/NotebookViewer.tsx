@@ -1,6 +1,12 @@
 import { queryDb } from "@livestore/livestore";
 import { useQuery, useStore } from "@livestore/react";
-import { CellData, events, tables, createCellBetween } from "@/schema";
+import {
+  CellData,
+  events,
+  tables,
+  createCellBetween,
+  moveCellBetween,
+} from "@/schema";
 import React, { Suspense, useCallback } from "react";
 import { ErrorBoundary } from "react-error-boundary";
 
@@ -192,59 +198,85 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
     [store, userId]
   );
 
-  const moveCell = useCallback((_cellId: string, _direction: "up" | "down") => {
-    // TODO: Implement cell movement with fractional indexing
-    // This requires schema support for cellMoved2 event with fractional indices
-    console.warn("Cell movement not yet implemented with fractional indexing");
-    return;
+  // Track if a move operation is in progress to prevent race conditions
+  const movingRef = useRef(false);
 
-    /* Original position-based implementation:
-      const currentCell = cells.find((c: CellData) => c.id === cellId);
-      if (!currentCell) return;
-
-      const currentIndex = cells.findIndex((c: CellData) => c.id === cellId);
-
-      if (direction === "up" && currentIndex > 0) {
-        const targetCell = cells[currentIndex - 1];
-        if (targetCell) {
-          // Swap positions
-          store.commit(
-            events.cellMoved({
-              id: cellId,
-              newPosition: targetCell.position,
-              actorId: userId,
-            })
-          );
-          store.commit(
-            events.cellMoved({
-              id: targetCell.id,
-              newPosition: currentCell.position,
-              actorId: userId,
-            })
-          );
-        }
-      } else if (direction === "down" && currentIndex < cells.length - 1) {
-        const targetCell = cells[currentIndex + 1];
-        if (targetCell) {
-          // Swap positions
-          store.commit(
-            events.cellMoved({
-              id: cellId,
-              newPosition: targetCell.position,
-              actorId: userId,
-            })
-          );
-          store.commit(
-            events.cellMoved({
-              id: targetCell.id,
-              newPosition: currentCell.position,
-              actorId: userId,
-            })
-          );
-        }
+  const moveCell = useCallback(
+    (cellId: string, direction: "up" | "down") => {
+      // Prevent concurrent moves
+      if (movingRef.current) {
+        console.log("Move already in progress, skipping");
+        return;
       }
-      */
-  }, []);
+      movingRef.current = true;
+
+      // Cells are already sorted by fractionalIndex from the database query
+      const currentIndex = cells.findIndex((c) => c.id === cellId);
+      if (currentIndex === -1) {
+        console.warn(`Cell ${cellId} not found`);
+        return;
+      }
+
+      const currentCell = cells[currentIndex];
+      if (!currentCell.fractionalIndex) {
+        console.warn(`Cell ${cellId} has no fractionalIndex`);
+        return;
+      }
+
+      let targetIndex = -1;
+      if (direction === "up" && currentIndex > 0) {
+        targetIndex = currentIndex - 1;
+      } else if (direction === "down" && currentIndex < cells.length - 1) {
+        targetIndex = currentIndex + 1;
+      }
+
+      if (targetIndex === -1) {
+        console.log(`Cannot move cell ${direction} - at boundary`);
+        return;
+      }
+
+      const targetCell = cells[targetIndex];
+      if (!targetCell.fractionalIndex) {
+        console.warn(`Target cell has no fractionalIndex`);
+        return;
+      }
+
+      // Check if cells are already in the desired order (prevent duplicate swaps)
+      const currentFractionalIndex = currentCell.fractionalIndex;
+      const targetFractionalIndex = targetCell.fractionalIndex;
+
+      console.log(`Swapping cells:`, {
+        current: { id: currentCell.id, index: currentFractionalIndex },
+        target: { id: targetCell.id, index: targetFractionalIndex },
+        direction,
+        currentIndex,
+        targetIndex,
+      });
+
+      // Swap fractional indices
+      store.commit(
+        events.cellMoved2({
+          id: currentCell.id,
+          fractionalIndex: targetCell.fractionalIndex,
+          actorId: userId,
+        })
+      );
+
+      store.commit(
+        events.cellMoved2({
+          id: targetCell.id,
+          fractionalIndex: currentCell.fractionalIndex,
+          actorId: userId,
+        })
+      );
+
+      // Reset the moving flag after a short delay to allow for database updates
+      setTimeout(() => {
+        movingRef.current = false;
+      }, 100);
+    },
+    [cells, store, userId]
+  );
 
   const focusCell = useCallback((cellId: string) => {
     setFocusedCellId(cellId);

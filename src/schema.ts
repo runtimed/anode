@@ -27,6 +27,7 @@ export const {
   // Re-export functions
   fractionalIndexBetween,
   createCellBetween,
+  moveCellBetween,
   // Re-export type guards
   isInlineContainer,
   isArtifactContainer,
