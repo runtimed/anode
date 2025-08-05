@@ -66,7 +66,6 @@ export const CodeCell: React.FC<CodeCellProps> = ({
     cellId: cell.id,
     groupConsecutiveStreams: true,
     enableErrorOutput: true,
-    enableTerminalOutput: true,
     mobileStyle: "default",
   });
 

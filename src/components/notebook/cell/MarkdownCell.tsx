@@ -95,7 +95,6 @@ export const MarkdownCell: React.FC<MarkdownCellProps> = ({
     cellId: cell.id,
     groupConsecutiveStreams: true,
     enableErrorOutput: true,
-    enableTerminalOutput: true,
     mobileStyle: "default",
   });
 

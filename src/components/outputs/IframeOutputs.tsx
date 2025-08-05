@@ -7,13 +7,11 @@ export const IframeOutputs = ({
   outputs,
   groupConsecutiveStreams,
   enableErrorOutput,
-  enableTerminalOutput,
   mobileStyle,
 }: {
   outputs: OutputData[];
   groupConsecutiveStreams: boolean;
   enableErrorOutput: boolean;
-  enableTerminalOutput: boolean;
   mobileStyle: "default" | "chat-bubble";
 }) => {
   // Apply grouping strategy based on cell type
@@ -34,7 +32,6 @@ export const IframeOutputs = ({
           <SingleOutput
             output={output}
             enableErrorOutput={enableErrorOutput}
-            enableTerminalOutput={enableTerminalOutput}
             mobileStyle={mobileStyle}
           />
         </div>
@@ -46,12 +43,10 @@ export const IframeOutputs = ({
 function SingleOutput({
   output,
   enableErrorOutput,
-  enableTerminalOutput,
   mobileStyle,
 }: {
   output: OutputData;
   enableErrorOutput: boolean;
-  enableTerminalOutput: boolean;
   mobileStyle: "default" | "chat-bubble";
 }) {
   if (output.outputType === "error" && enableErrorOutput) {
@@ -76,9 +71,10 @@ function SingleOutput({
   }
 
   // Handle terminal outputs with AnsiStreamOutput
-  if (output.outputType === "terminal" && enableTerminalOutput) {
+  if (output.outputType === "terminal") {
     return (
       <div className="max-w-full overflow-hidden py-2">
+        ansi stream output
         <AnsiStreamOutput
           text={output.data || ""}
           streamName={(output.streamName as "stdout" | "stderr") || "stdout"}
@@ -91,7 +87,7 @@ function SingleOutput({
   const outputContent = (
     <RichOutput
       data={
-        output.outputType === "markdown" || output.outputType === "terminal"
+        output.outputType === "markdown"
           ? output.data || ""
           : (output.representations as Record<string, MediaContainer>) || {
               "text/plain": output.data || "",
@@ -115,5 +111,13 @@ function SingleOutput({
   }
 
   // Default styling
-  return <div className="max-w-full overflow-hidden py-2">{outputContent}</div>;
+  return (
+    <div className="max-w-full overflow-hidden py-2">
+      (default styling rich output){outputContent}
+    </div>
+  );
+}
+
+function BubbleOutput({ output }: { output: OutputData }) {
+  return <div>BubbleOutput</div>;
 }

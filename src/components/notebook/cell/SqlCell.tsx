@@ -70,7 +70,6 @@ export const SqlCell: React.FC<SqlCellProps> = ({
     cellId: cell.id,
     groupConsecutiveStreams: true,
     enableErrorOutput: true,
-    enableTerminalOutput: true,
     mobileStyle: "default",
   });
 

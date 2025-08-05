@@ -103,7 +103,6 @@ export const AiCell: React.FC<AiCellProps> = ({
     cellId: cell.id,
     groupConsecutiveStreams: false,
     enableErrorOutput: true,
-    enableTerminalOutput: true,
     mobileStyle: "chat-bubble",
   });
 
