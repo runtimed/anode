@@ -61,7 +61,7 @@ export const IframeReactApp: React.FC = () => {
 
   // Default content or non-React mode
   return (
-    <div className="dataframe-container">
+    <div className="dataframe-container border-2 border-amber-400">
       {outputs.length > 0 ? (
         <ReactJsonView
           src={outputs}

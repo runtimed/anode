@@ -1,3 +1,7 @@
+@import "tailwindcss";
+@plugin "@tailwindcss/typography";
+@import "tw-animate-css";
+
 /* Make size calculations make sense */
 * {
   box-sizing: border-box;
