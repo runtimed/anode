@@ -38,7 +38,7 @@ export {
   isArtifactContainer,
   isAiToolCallData,
   isAiToolResultData,
-} from "@runt/schema";
+} from "./runt-schema";
 
 // Re-export constants
 export {
@@ -48,4 +48,4 @@ export {
   AI_TOOL_RESULT_MIME_TYPE,
   TEXT_MIME_TYPES,
   APPLICATION_MIME_TYPES,
-} from "@runt/schema";
+} from "./runt-schema";

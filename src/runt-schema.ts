@@ -1769,8 +1769,8 @@ export class RandomJitterProvider implements JitterProvider {
     for (let i = 0; i < this.length; i++) {
       jitter += chars[Math.floor(Math.random() * chars.length)];
     }
-    // Separate jitter with underscore to maintain valid key format
-    return key + "_" + jitter;
+    // Separate jitter with tilde to maintain valid key format and proper sorting
+    return key + "~" + jitter;
   }
 }
 
@@ -1790,12 +1790,21 @@ export function fractionalIndexBetween(
   b: string | null | undefined,
   jitterProvider: JitterProvider = defaultJitterProvider
 ): string {
-  // Extract base key if it contains jitter (separated by underscore)
-  const cleanA = a ? a.split("_")[0] : a;
-  const cleanB = b ? b.split("_")[0] : b;
+  console.log("fractionalIndexBetween called with:", { a, b });
+
+  // Extract base key if it contains jitter (separated by tilde)
+  const cleanA = a ? a.split("~")[0] : a;
+  const cleanB = b ? b.split("~")[0] : b;
+
+  console.log("Cleaned keys:", { cleanA, cleanB });
 
   const key = generateKeyBetween(cleanA, cleanB);
-  return jitterProvider.addJitter(key);
+  console.log("Generated base key:", key);
+
+  const jitteredKey = jitterProvider.addJitter(key);
+  console.log("After jitter:", jitteredKey);
+
+  return jitteredKey;
 }
 
 export function generateFractionalIndices(
@@ -1833,31 +1842,57 @@ export function createCellAfter(
     createdBy: string;
   }
 ): ReturnType<typeof events.cellCreated2> {
-  const sortedCells = cells
-    .filter((c) => c.fractionalIndex)
-    .sort((a, b) => a.fractionalIndex!.localeCompare(b.fractionalIndex!));
+  console.log("createCellAfter called with:", {
+    afterCellId,
+    cellsCount: cells.length,
+    cells: cells.map((c) => ({ id: c.id, fractionalIndex: c.fractionalIndex })),
+  });
+
+  // Only consider cells with valid fractionalIndex for ordering
+  const cellsWithIndex = cells.filter((c) => c.fractionalIndex);
+  const sortedCells = cellsWithIndex.sort((a, b) =>
+    a.fractionalIndex!.localeCompare(b.fractionalIndex!)
+  );
+
+  console.log(
+    "Sorted cells:",
+    sortedCells.map((c) => ({ id: c.id, fractionalIndex: c.fractionalIndex }))
+  );
 
   let previousKey: string | null = null;
   let nextKey: string | null = null;
 
   if (afterCellId) {
-    const cellIndex = sortedCells.findIndex((c) => c.id === afterCellId);
-    if (cellIndex >= 0) {
-      const currentCell = sortedCells[cellIndex];
-      if (currentCell) {
-        previousKey = currentCell.fractionalIndex!;
-        const nextCell = sortedCells[cellIndex + 1];
+    // Find the cell we want to insert after
+    const targetCell = cells.find((c) => c.id === afterCellId);
+    if (targetCell && targetCell.fractionalIndex) {
+      // If the target cell has a fractionalIndex, use it
+      previousKey = targetCell.fractionalIndex;
+
+      // Find the next cell in sorted order
+      const targetIndex = sortedCells.findIndex((c) => c.id === afterCellId);
+      if (targetIndex >= 0 && targetIndex < sortedCells.length - 1) {
+        const nextCell = sortedCells[targetIndex + 1];
         if (nextCell) {
           nextKey = nextCell.fractionalIndex!;
         }
       }
     }
-  } else if (sortedCells.length > 0 && sortedCells[0]) {
-    // Insert at beginning
-    nextKey = sortedCells[0].fractionalIndex!;
+  } else {
+    // When afterCellId is null, insert at the end
+    if (sortedCells.length > 0) {
+      const lastCell = sortedCells[sortedCells.length - 1];
+      if (lastCell) {
+        previousKey = lastCell.fractionalIndex!;
+      }
+    }
+    // If no cells with fractionalIndex exist, previousKey and nextKey remain null
+    // This will create the first fractionalIndex
   }
 
+  console.log("Generating fractionalIndex with:", { previousKey, nextKey });
   const fractionalIndex = fractionalIndexBetween(previousKey, nextKey);
+  console.log("Generated fractionalIndex:", fractionalIndex);
 
   return events.cellCreated2({
     ...cellData,
@@ -1874,31 +1909,41 @@ export function createCellBefore(
     createdBy: string;
   }
 ): ReturnType<typeof events.cellCreated2> {
-  const sortedCells = cells
-    .filter((c) => c.fractionalIndex)
-    .sort((a, b) => a.fractionalIndex!.localeCompare(b.fractionalIndex!));
+  // Only consider cells with valid fractionalIndex for ordering
+  const cellsWithIndex = cells.filter((c) => c.fractionalIndex);
+  const sortedCells = cellsWithIndex.sort((a, b) =>
+    a.fractionalIndex!.localeCompare(b.fractionalIndex!)
+  );
 
   let previousKey: string | null = null;
   let nextKey: string | null = null;
 
   if (beforeCellId) {
-    const cellIndex = sortedCells.findIndex((c) => c.id === beforeCellId);
-    if (cellIndex >= 0) {
-      const currentCell = sortedCells[cellIndex];
-      if (currentCell) {
-        nextKey = currentCell.fractionalIndex!;
-        const prevCell = sortedCells[cellIndex - 1];
+    // Find the cell we want to insert before
+    const targetCell = cells.find((c) => c.id === beforeCellId);
+    if (targetCell && targetCell.fractionalIndex) {
+      // If the target cell has a fractionalIndex, use it
+      nextKey = targetCell.fractionalIndex;
+
+      // Find the previous cell in sorted order
+      const targetIndex = sortedCells.findIndex((c) => c.id === beforeCellId);
+      if (targetIndex > 0) {
+        const prevCell = sortedCells[targetIndex - 1];
         if (prevCell) {
           previousKey = prevCell.fractionalIndex!;
         }
       }
     }
-  } else if (sortedCells.length > 0) {
-    // Insert at end
-    const lastCell = sortedCells[sortedCells.length - 1];
-    if (lastCell) {
-      previousKey = lastCell.fractionalIndex!;
+  } else {
+    // When beforeCellId is null, also insert at the end (same as createCellAfter with null)
+    if (sortedCells.length > 0) {
+      const lastCell = sortedCells[sortedCells.length - 1];
+      if (lastCell) {
+        previousKey = lastCell.fractionalIndex!;
+      }
     }
+    // If no cells with fractionalIndex exist, previousKey and nextKey remain null
+    // This will create the first fractionalIndex
   }
 
   const fractionalIndex = fractionalIndexBetween(previousKey, nextKey);
