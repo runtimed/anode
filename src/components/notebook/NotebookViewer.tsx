@@ -4,7 +4,6 @@ import {
   CellData,
   events,
   tables,
-  fractionalIndexBetween,
   createCellAfter,
   createCellBefore,
 } from "@/schema";
@@ -119,12 +118,12 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
       // Create cell using the appropriate helper
       const cellCreatedEvent =
         position === "before" && cellId
-          ? createCellBefore(cellId, cells, {
+          ? createCellBefore(cellId, [...cells], {
               id: newCellId,
               cellType,
               createdBy: userId,
             })
-          : createCellAfter(cellId || null, cells, {
+          : createCellAfter(cellId || null, [...cells], {
               id: newCellId,
               cellType,
               createdBy: userId,
@@ -168,16 +167,13 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
     [store, userId]
   );
 
-  const moveCell = useCallback(
-    (cellId: string, direction: "up" | "down") => {
-      // TODO: Implement cell movement with fractional indexing
-      // This requires schema support for cellMoved2 event with fractional indices
-      console.warn(
-        "Cell movement not yet implemented with fractional indexing"
-      );
-      return;
+  const moveCell = useCallback((_cellId: string, _direction: "up" | "down") => {
+    // TODO: Implement cell movement with fractional indexing
+    // This requires schema support for cellMoved2 event with fractional indices
+    console.warn("Cell movement not yet implemented with fractional indexing");
+    return;
 
-      /* Original position-based implementation:
+    /* Original position-based implementation:
       const currentCell = cells.find((c: CellData) => c.id === cellId);
       if (!currentCell) return;
 
@@ -223,9 +219,7 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
         }
       }
       */
-    },
-    [cells, store, userId]
-  );
+  }, []);
 
   const focusCell = useCallback((cellId: string) => {
     setFocusedCellId(cellId);
