@@ -28,7 +28,6 @@ export const firstCell$ = queryDb(
   tables.cells
     .select("id", "fractionalIndex")
     .orderBy("fractionalIndex", "asc")
-    .limit(1)
     .first({ fallback: () => null }),
   { label: "cells.first" }
 );
@@ -38,7 +37,6 @@ export const lastCell$ = queryDb(
   tables.cells
     .select("id", "fractionalIndex")
     .orderBy("fractionalIndex", "desc")
-    .limit(1)
     .first({ fallback: () => null }),
   { label: "cells.last" }
 );
@@ -48,7 +46,7 @@ export const cellsBefore = (fractionalIndex: string, limit: number = 1) =>
   queryDb(
     tables.cells
       .select("id", "fractionalIndex")
-      .where({ fractionalIndex: { lt: fractionalIndex } })
+      .where("fractionalIndex", "<", fractionalIndex)
       .orderBy("fractionalIndex", "desc")
       .limit(limit),
     {
@@ -62,7 +60,7 @@ export const cellsAfter = (fractionalIndex: string, limit: number = 1) =>
   queryDb(
     tables.cells
       .select("id", "fractionalIndex")
-      .where({ fractionalIndex: { gt: fractionalIndex } })
+      .where("fractionalIndex", ">", fractionalIndex)
       .orderBy("fractionalIndex", "asc")
       .limit(limit),
     {
@@ -96,38 +94,28 @@ export const cellPositionInfo = (cellId: string) =>
     }
   );
 
-// Get cell count (useful for empty state detection)
-export const cellCount$ = queryDb(
-  tables.cells.select().count(),
-  { label: "cells.count" }
-);
-
 // Get cells in a range (useful for virtualization)
 export const cellsInRange = (
   startIndex: string | null,
   endIndex: string | null
 ) => {
-  const conditions: any = {};
-  if (startIndex) conditions.fractionalIndex = { gte: startIndex };
-  if (endIndex) {
-    if (conditions.fractionalIndex) {
-      conditions.fractionalIndex = {
-        ...conditions.fractionalIndex,
-        lte: endIndex,
-      };
-    } else {
-      conditions.fractionalIndex = { lte: endIndex };
-    }
+  let query = tables.cells.select("id", "fractionalIndex", "cellType");
+
+  if (startIndex && endIndex) {
+    // Both bounds specified
+    query = query
+      .where("fractionalIndex", ">=", startIndex)
+      .where("fractionalIndex", "<=", endIndex);
+  } else if (startIndex) {
+    // Only start bound
+    query = query.where("fractionalIndex", ">=", startIndex);
+  } else if (endIndex) {
+    // Only end bound
+    query = query.where("fractionalIndex", "<=", endIndex);
   }
 
-  return queryDb(
-    tables.cells
-      .select("id", "fractionalIndex", "cellType")
-      .where(conditions)
-      .orderBy("fractionalIndex", "asc"),
-    {
-      deps: [startIndex, endIndex],
-      label: `cells.range.${startIndex}-${endIndex}`,
-    }
-  );
+  return queryDb(query.orderBy("fractionalIndex", "asc"), {
+    deps: [startIndex, endIndex],
+    label: `cells.range.${startIndex}-${endIndex}`,
+  });
 };
