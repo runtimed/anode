@@ -20,10 +20,17 @@
     "logs": "wrangler tail --env production",
     "logs:preview": "wrangler tail --env preview"
   },
+  "dependencies": {
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0"
+  },
   "devDependencies": {
     "@cloudflare/workers-types": "^4.20250106.0",
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "@vitejs/plugin-react": "^4.2.0",
     "typescript": "^5.8.3",
-    "vite": "^5.0.0",
+    "vite": "^5.4.19",
     "wrangler": "4.25.0"
   },
   "keywords": [
