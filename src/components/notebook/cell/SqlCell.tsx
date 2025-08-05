@@ -68,9 +68,7 @@ export const SqlCell: React.FC<SqlCellProps> = ({
   // Use shared outputs hook with SQL-specific configuration
   const { outputs, hasOutputs, MaybeOutputs } = useCellOutputs({
     cellId: cell.id,
-    groupConsecutiveStreams: true,
     enableErrorOutput: true,
-    mobileStyle: "default",
   });
 
   const executeQuery = useCallback(() => {

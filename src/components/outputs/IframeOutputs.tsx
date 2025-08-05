@@ -1,27 +1,24 @@
 import { groupConsecutiveStreamOutputs } from "@/util/output-grouping";
 import { OutputData } from "@runt/schema";
 import { IframeOutput2 } from "./IframeOutput2";
+import ReactJsonView from "@microlink/react-json-view";
 
 export const IframeOutputs = ({
   outputs,
-  groupConsecutiveStreams,
   enableErrorOutput,
 }: {
   outputs: OutputData[];
-  groupConsecutiveStreams: boolean;
   enableErrorOutput: boolean;
 }) => {
   // Apply grouping strategy based on cell type
-  const processedOutputs = groupConsecutiveStreams
-    ? groupConsecutiveStreamOutputs(
-        outputs.sort((a: OutputData, b: OutputData) => a.position - b.position)
-      )
-    : outputs.sort((a: OutputData, b: OutputData) => a.position - b.position);
+  const processedOutputs = outputs.sort(
+    (a: OutputData, b: OutputData) => a.position - b.position
+  );
 
   return (
     <div>
       {/* IframeOutputs: {processedOutputs.length} */}
-      {/* <ReactJsonView src={processedOutputs} collapsed={1} /> */}
+      <ReactJsonView src={processedOutputs} collapsed={1} />
       <IframeOutput2 outputs={processedOutputs} isReact />
       {/* {processedOutputs.map((output: OutputData, index: number) => (
         <div

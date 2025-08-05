@@ -63,7 +63,6 @@ export const IframeOutput2: React.FC<IframeOutputProps> = ({
     }
     // Send content to iframe when it changes
     if (iframeRef.current && iframeRef.current.contentWindow) {
-      debugger;
       console.log("Sending outputs to iframe", outputs);
       iframeRef.current.contentWindow.postMessage(
         {

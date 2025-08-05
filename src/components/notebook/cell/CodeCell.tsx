@@ -64,9 +64,7 @@ export const CodeCell: React.FC<CodeCellProps> = ({
   // Use shared outputs hook with code-specific configuration
   const { outputs, hasOutputs, MaybeOutputs } = useCellOutputs({
     cellId: cell.id,
-    groupConsecutiveStreams: true,
     enableErrorOutput: true,
-    mobileStyle: "default",
   });
 
   const changeCellType = useCallback(

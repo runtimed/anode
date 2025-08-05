@@ -6,7 +6,6 @@ import React, { useCallback, useMemo } from "react";
 
 interface UseCellOutputsOptions {
   cellId: string;
-  groupConsecutiveStreams?: boolean;
   enableErrorOutput?: boolean;
 }
 
@@ -20,7 +19,6 @@ interface CellOutputsResult {
 // If prop drilling is needed, use React context
 export const useCellOutputs = ({
   cellId,
-  groupConsecutiveStreams = false,
   enableErrorOutput = true,
 }: UseCellOutputsOptions): CellOutputsResult => {
   // Create stable query using useMemo to prevent React Hook issues
@@ -41,12 +39,11 @@ export const useCellOutputs = ({
       <div className="outputs-container px-4 py-2">
         <IframeOutputs
           outputs={outputs}
-          groupConsecutiveStreams={groupConsecutiveStreams}
           enableErrorOutput={enableErrorOutput}
         />
       </div>
     );
-  }, [hasOutputs, outputs, groupConsecutiveStreams, enableErrorOutput]);
+  }, [hasOutputs, outputs, enableErrorOutput]);
 
   return {
     outputs,

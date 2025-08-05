@@ -93,9 +93,7 @@ export const MarkdownCell: React.FC<MarkdownCellProps> = ({
   // Use shared outputs hook with markdown-specific configuration
   const { hasOutputs } = useCellOutputs({
     cellId: cell.id,
-    groupConsecutiveStreams: true,
     enableErrorOutput: true,
-    mobileStyle: "default",
   });
 
   const changeCellType = useCallback(
