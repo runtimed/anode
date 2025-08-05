@@ -17,7 +17,6 @@ import { AnsiStreamOutput } from "@/components/outputs";
 import { AnsiErrorOutput } from "@/components/outputs/AnsiOutput.js";
 import { outputDeltasQuery, getFinalContent } from "@/queries/outputDeltas";
 import { useQuery } from "@livestore/react";
-import "@/components/outputs/outputs.css";
 
 // Dynamic imports for heavy components
 const MarkdownRenderer = React.lazy(() =>
