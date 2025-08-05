@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { ExampleReactComponent } from "./ExampleReactComponent";
+import ReactJsonView from "@microlink/react-json-view";
 
 interface IframeMessage {
   type: string;
@@ -9,7 +9,6 @@ interface IframeMessage {
 
 export const IframeReactApp: React.FC = () => {
   const [content, setContent] = useState<string>("");
-  const [isReactMode, setIsReactMode] = useState<boolean>(false);
 
   useEffect(() => {
     document.body.style.margin = "0";
@@ -47,11 +46,9 @@ export const IframeReactApp: React.FC = () => {
       const data: IframeMessage = event.data;
       if (data && data.type === "update-content") {
         setContent(data.content || "");
-        setIsReactMode(false);
         setTimeout(sendHeight, 50);
       } else if (data && data.type === "update-react-content") {
         setContent(data.content || "");
-        setIsReactMode(true);
         setTimeout(sendHeight, 50);
       }
     });
@@ -62,13 +59,26 @@ export const IframeReactApp: React.FC = () => {
     };
   }, []);
 
-  // If in React mode and we have content, render the example component
-  if (isReactMode && content) {
-    return <ExampleReactComponent content={content} />;
-  }
-
   // Default content or non-React mode
   return (
-    <div className="dataframe-container">{content || "No content yet"}</div>
+    <div className="dataframe-container">
+      {(content && (
+        <ReactJsonView
+          src={JSON.parse(content)}
+          theme="rjv-default"
+          collapsed={false}
+          displayDataTypes={false}
+          displayObjectSize={false}
+          enableClipboard={true}
+          indentWidth={2}
+          iconStyle="triangle"
+          style={{
+            backgroundColor: "transparent",
+            fontSize: "0.875rem",
+          }}
+        />
+      )) ||
+        "No content yet"}
+    </div>
   );
 };
