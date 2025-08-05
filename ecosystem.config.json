@@ -9,6 +9,15 @@
       }
     },
     {
+      "name": "iframe-outputs",
+      "script": "pnpm",
+      "args": "run dev",
+      "cwd": "./iframe-outputs",
+      "env": {
+        "NODE_ENV": "development"
+      }
+    },
+    {
       "name": "sync",
       "script": "pnpm",
       "args": "run dev:sync",

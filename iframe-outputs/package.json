@@ -9,7 +9,10 @@
     "pnpm": ">=10.9.0"
   },
   "scripts": {
-    "dev": "wrangler dev",
+    "dev": "vite --port 8000",
+    "build": "vite build",
+    "preview": "vite preview",
+    "wrangler:dev": "wrangler dev",
     "deploy": "wrangler deploy --env production",
     "deploy:production": "wrangler deploy --env production",
     "deploy:preview": "wrangler deploy --env preview",
@@ -20,6 +23,7 @@
   "devDependencies": {
     "@cloudflare/workers-types": "^4.20250106.0",
     "typescript": "^5.8.3",
+    "vite": "^5.0.0",
     "wrangler": "4.25.0"
   },
   "keywords": [

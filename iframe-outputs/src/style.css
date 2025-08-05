@@ -1,0 +1,128 @@
+/* Make size calculations make sense */
+* {
+  box-sizing: border-box;
+}
+
+html {
+  /* Use system font stack */
+  font-family:
+    -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial,
+    sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+}
+
+/* DataFrame styling for pandas HTML output */
+.dataframe-container table.dataframe {
+  border-collapse: collapse;
+  margin: 0;
+  font-size: 0.875rem;
+  width: 100%;
+  background-color: white;
+}
+
+.dataframe-container table.dataframe th,
+.dataframe-container table.dataframe td {
+  border: 1px solid #dee2e6;
+  padding: 8px 12px;
+  text-align: left;
+}
+
+.dataframe-container table.dataframe thead th {
+  background-color: #f8f9fa;
+  font-weight: 600;
+  border-bottom: 2px solid #dee2e6;
+}
+
+.dataframe-container table.dataframe tbody tr:nth-child(even) {
+  background-color: #f9f9f9;
+}
+
+.dataframe-container table.dataframe tbody tr:hover {
+  background-color: #f5f5f5;
+}
+
+.dataframe-container table.dataframe tbody tr th {
+  background-color: #f8f9fa;
+  font-weight: 500;
+  text-align: right;
+}
+
+/* Handle text alignment from pandas */
+.dataframe-container table.dataframe thead th[style*="text-align: right"] {
+  text-align: right;
+}
+
+.dataframe-container table.dataframe tbody td {
+  vertical-align: top;
+}
+
+/* Override any scoped styles that might interfere */
+.dataframe-container .dataframe tbody tr th:only-of-type {
+  vertical-align: middle;
+}
+
+.dataframe-container .dataframe tbody tr th {
+  vertical-align: top;
+}
+
+.dataframe-container .dataframe thead th {
+  text-align: right;
+}
+
+/* Make sure the table is responsive */
+.dataframe-container {
+  overflow-x: auto;
+  max-width: 100%;
+}
+
+/* Image responsiveness and zoom styles */
+.rich-output img {
+  max-width: 100% !important;
+  height: auto !important;
+  display: block;
+}
+
+/* Constrain large images on mobile */
+@media (max-width: 640px) {
+  .rich-output img {
+    max-height: 300px !important;
+    object-fit: contain;
+  }
+
+  .rich-output svg {
+    max-width: 100% !important;
+    max-height: 300px !important;
+  }
+}
+
+/* SVG responsiveness */
+.rich-output svg {
+  max-width: 100%;
+  height: auto;
+}
+
+/* Zoom modal styles */
+.zoom-modal {
+  backdrop-filter: blur(4px);
+}
+
+.zoom-modal img {
+  max-width: 95vw;
+  max-height: 95vh;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+}
+
+/* Hover effects for zoomable images */
+.zoomable-image {
+  transition: all 0.2s ease;
+}
+
+.zoomable-image:hover {
+  transform: scale(1.02);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+/* Style numeric columns to align right by default */
+.dataframe-container table.dataframe td:last-child,
+.dataframe-container table.dataframe td[style*="text-align: right"] {
+  text-align: right;
+}

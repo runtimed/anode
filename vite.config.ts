@@ -18,7 +18,7 @@ export default defineConfig(({ mode }) => {
   const plugins = [
     envValidationPlugin(),
     injectLoadingScreen(),
-    iframeServerPlugin(),
+    // iframeServerPlugin(),
     react({
       babel: {
         plugins: [
