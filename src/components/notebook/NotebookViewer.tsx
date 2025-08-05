@@ -31,7 +31,7 @@ const LazyDebugPanel = React.lazy(() =>
 import { prefetchOutputsAdaptive } from "@/util/prefetch.js";
 import { CellAdder } from "./cell/CellAdder.js";
 import { EmptyStateCellAdder } from "./EmptyStateCellAdder.js";
-import { MobileOmnibar } from "./MobileOmnibar.js";
+import { GitCommitHash } from "./GitCommitHash.js";
 
 interface NotebookViewerProps {
   notebookId: string;
@@ -535,8 +535,10 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
           </Suspense>
         )}
 
-        {/* Mobile Omnibar - sticky at bottom on mobile */}
-        <MobileOmnibar />
+        {/* Build info footer */}
+        <div className="mt-8 flex justify-center border-t px-4 py-2 text-center">
+          <GitCommitHash />
+        </div>
       </div>
     </div>
   );
