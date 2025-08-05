@@ -1,5 +1,15 @@
 import { makeSchema, State, Store as LiveStore } from "@livestore/livestore";
-import { events, tables, materializers } from "@runt/schema";
+// import { events, tables, materializers } from "@runt/schema";
+// import type { CellData, RuntimeSessionData, MediaContainer, OutputData, AiToolCallData, AiToolResultData } from "@runt/schema";
+import { events, tables, materializers } from "./runt-schema";
+import type {
+  CellData,
+  RuntimeSessionData,
+  MediaContainer,
+  OutputData,
+  AiToolCallData,
+  AiToolResultData,
+} from "./runt-schema";
 
 // Create the schema using the factory pattern
 const state = State.SQLite.makeState({ tables, materializers });
@@ -7,7 +17,7 @@ export const schema = makeSchema({ events, state });
 export type Store = LiveStore<typeof schema>;
 
 // Re-export core schema components
-export { events, tables, materializers } from "@runt/schema";
+export { events, tables, materializers };
 
 // Re-export types
 export type {
@@ -17,7 +27,7 @@ export type {
   OutputData,
   AiToolCallData,
   AiToolResultData,
-} from "@runt/schema";
+};
 
 // Re-export functions
 export { fractionalIndexBetween } from "@runt/schema";
