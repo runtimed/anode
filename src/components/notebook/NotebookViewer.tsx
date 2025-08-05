@@ -1,12 +1,6 @@
 import { queryDb } from "@livestore/livestore";
 import { useQuery, useStore } from "@livestore/react";
-import {
-  CellData,
-  events,
-  tables,
-  createCellAfter,
-  createCellBefore,
-} from "@/schema";
+import { CellData, events, tables, createCellBetween } from "@/schema";
 import React, { Suspense, useCallback } from "react";
 import { ErrorBoundary } from "react-error-boundary";
 
@@ -115,19 +109,50 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
         }
       }
 
-      // Create cell using the appropriate helper
-      const cellCreatedEvent =
-        position === "before" && cellId
-          ? createCellBefore(cellId, [...cells], {
-              id: newCellId,
-              cellType,
-              createdBy: userId,
-            })
-          : createCellAfter(cellId || null, [...cells], {
-              id: newCellId,
-              cellType,
-              createdBy: userId,
-            });
+      // Find adjacent cells for proper positioning
+      const sortedCells = [...cells]
+        .filter((c) => c.fractionalIndex)
+        .sort((a, b) => {
+          if (a.fractionalIndex! < b.fractionalIndex!) return -1;
+          if (a.fractionalIndex! > b.fractionalIndex!) return 1;
+          return a.id.localeCompare(b.id);
+        });
+
+      let cellBefore = null;
+      let cellAfter = null;
+
+      if (cellId) {
+        const targetIndex = sortedCells.findIndex((c) => c.id === cellId);
+        if (targetIndex >= 0) {
+          if (position === "before") {
+            // Insert before the target cell
+            cellAfter = sortedCells[targetIndex];
+            cellBefore = targetIndex > 0 ? sortedCells[targetIndex - 1] : null;
+          } else {
+            // Insert after the target cell
+            cellBefore = sortedCells[targetIndex];
+            cellAfter =
+              targetIndex < sortedCells.length - 1
+                ? sortedCells[targetIndex + 1]
+                : null;
+          }
+        }
+      } else if (position === "after") {
+        // No cellId specified, insert at the end
+        cellBefore =
+          sortedCells.length > 0 ? sortedCells[sortedCells.length - 1] : null;
+      }
+
+      // Create cell using the new API
+      const cellCreatedEvent = createCellBetween(
+        {
+          id: newCellId,
+          cellType,
+          createdBy: userId,
+        },
+        cellBefore,
+        cellAfter
+      );
 
       store.commit(cellCreatedEvent);
 
