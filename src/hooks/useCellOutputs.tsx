@@ -8,6 +8,7 @@ import {
   AnsiErrorOutput,
   AnsiStreamOutput,
 } from "../components/outputs/AnsiOutput.js";
+import { IframeOutputs } from "@/components/outputs/IframeOutputs.js";
 
 interface UseCellOutputsOptions {
   cellId: string;
@@ -132,6 +133,11 @@ export const useCellOutputs = ({
 
     return (
       <div className="outputs-container px-4 py-2">
+        <IframeOutputs
+          outputs={outputs}
+          groupConsecutiveStreams={groupConsecutiveStreams}
+        />
+        {/* TODO: render a single iframe here */}
         {processedOutputs.map((output: OutputData, index: number) => (
           <div
             key={output.id}
