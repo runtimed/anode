@@ -1,7 +1,5 @@
 import { makeSchema, State, Store as LiveStore } from "@livestore/livestore";
-// import { events, tables, materializers } from "@runt/schema";
-// import type { CellData, RuntimeSessionData, MediaContainer, OutputData, AiToolCallData, AiToolResultData } from "@runt/schema";
-import { events, tables, materializers } from "./runt-schema";
+import { events, tables, materializers } from "@runt/schema";
 import type {
   CellData,
   RuntimeSessionData,
@@ -9,7 +7,7 @@ import type {
   OutputData,
   AiToolCallData,
   AiToolResultData,
-} from "./runt-schema";
+} from "@runt/schema";
 
 // Create the schema using the factory pattern
 const state = State.SQLite.makeState({ tables, materializers });
@@ -38,7 +36,7 @@ export {
   isArtifactContainer,
   isAiToolCallData,
   isAiToolResultData,
-} from "./runt-schema";
+} from "@runt/schema";
 
 // Re-export constants
 export {
@@ -48,4 +46,4 @@ export {
   AI_TOOL_RESULT_MIME_TYPE,
   TEXT_MIME_TYPES,
   APPLICATION_MIME_TYPES,
-} from "./runt-schema";
+} from "@runt/schema";
