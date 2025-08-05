@@ -14,7 +14,7 @@ export const GitCommitHash: React.FC<GitCommitHashProps> = ({ className }) => {
 
   return (
     <span className={cn("text-muted-foreground font-mono text-xs", className)}>
-      {commitHash}
+      Build: {commitHash}
     </span>
   );
 };

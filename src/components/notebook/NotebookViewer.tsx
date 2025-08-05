@@ -6,7 +6,6 @@ import { ErrorBoundary } from "react-error-boundary";
 
 import { NotebookTitle } from "./NotebookTitle.js";
 import { VirtualizedCellList } from "./VirtualizedCellList.js";
-import { GitCommitHash } from "./GitCommitHash.js";
 
 import { Avatar } from "@/components/ui/Avatar.js";
 import { Button } from "@/components/ui/button";
@@ -420,7 +419,6 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
               <div className="flex items-center justify-between gap-2">
                 <div className="flex min-w-0 flex-1 items-center gap-2 sm:gap-4">
                   <NotebookTitle />
-                  <GitCommitHash className="ml-auto" />
                 </div>
 
                 <div className="flex flex-shrink-0 items-center gap-1 sm:gap-2">
