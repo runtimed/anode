@@ -5,7 +5,7 @@ import { useCellOutputs } from "@/hooks/useCellOutputs.js";
 import { useAuth } from "@/components/auth/AuthProvider.js";
 import { useUserRegistry } from "@/hooks/useUserRegistry.js";
 import { queryDb } from "@livestore/livestore";
-import { useStore } from "@livestore/react";
+import { useStore, useQuery } from "@livestore/react";
 import { events, tables } from "@runt/schema";
 import { ChevronDown, ChevronUp } from "lucide-react";
 import React, { useCallback } from "react";
@@ -105,11 +105,13 @@ export const SqlCell: React.FC<SqlCellProps> = ({
     }
   }, [cell.id, store, hasOutputs, userId]);
 
+  // Query execution queue for this cell
+  const executionQueue = useQuery(
+    queryDb(tables.executionQueue.select().where({ cellId: cell.id }))
+  );
+
   const interruptQuery = useCallback(() => {
     // Find the current execution in the queue for this cell
-    const executionQueue = store.query(
-      queryDb(tables.executionQueue.select().where({ cellId: cell.id }))
-    );
 
     const currentExecution = executionQueue.find(
       (exec: any) =>
@@ -128,7 +130,7 @@ export const SqlCell: React.FC<SqlCellProps> = ({
         })
       );
     }
-  }, [cell.id, store, userId]);
+  }, [cell.id, store, userId, executionQueue]);
 
   // Use shared keyboard navigation hook
   const { keyMap } = useCellKeyboardNavigation({
