@@ -1,6 +1,6 @@
 import { useQuery } from "@livestore/react";
 import { queryDb } from "@livestore/livestore";
-import { RuntimeSessionData, tables } from "@runt/schema";
+import { RuntimeSessionData, tables } from "@/schema";
 import { useCallback } from "react";
 
 export type RuntimeHealth =

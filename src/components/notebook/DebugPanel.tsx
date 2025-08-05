@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { useQuery, useStore } from "@livestore/react";
 import { queryDb, sql, Schema } from "@livestore/livestore";
 
-import { tables, events } from "@runt/schema";
+import { tables, events } from "@/schema";
 import { schema } from "../../schema.js";
 import { Bug, Database } from "lucide-react";
 import { Button } from "@/components/ui/button";

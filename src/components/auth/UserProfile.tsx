@@ -3,7 +3,7 @@ import { useAuth, UserInfo } from "./AuthProvider.js";
 import { useUserRegistry } from "../../hooks/useUserRegistry.js";
 import { AvatarWithDetails } from "../ui/AvatarWithDetails.js";
 import { useStore, useQuery } from "@livestore/react";
-import { events, tables } from "@runt/schema";
+import { events, tables } from "@/schema";
 import { queryDb } from "@livestore/livestore";
 
 interface UserProfileProps {

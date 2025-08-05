@@ -9,7 +9,7 @@ import { useInterruptExecution } from "@/hooks/useInterruptExecution.js";
 import { useAvailableAiModels } from "@/util/ai-models.js";
 
 import { useStore } from "@livestore/react";
-import { events, tables } from "@runt/schema";
+import { events, tables } from "@/schema";
 import { ChevronDown, ChevronUp } from "lucide-react";
 import React, { useCallback } from "react";
 import { ErrorBoundary } from "react-error-boundary";

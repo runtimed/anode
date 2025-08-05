@@ -7,7 +7,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Bot, Code, Database, FileText } from "lucide-react";
-import { tables } from "@runt/schema";
+import { tables } from "@/schema";
 
 interface CellTypeSelectorProps {
   cell: typeof tables.cells.Type;

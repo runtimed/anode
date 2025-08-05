@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { useStore, useQuery } from "@livestore/react";
-import { events, CellData, tables } from "@runt/schema";
+import { events, CellData, tables } from "@/schema";
 import { queryDb } from "@livestore/livestore";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";

@@ -15,11 +15,7 @@ export { SvgOutput } from "./SvgOutput.js";
 // to reduce bundle size. They are no longer exported from this index file.
 
 // Re-export types from schema for consistency
-export type {
-  OutputData,
-  AiToolCallData,
-  AiToolResultData,
-} from "@runt/schema";
+export type { OutputData, AiToolCallData, AiToolResultData } from "@/schema";
 
 // Legacy type aliases for backward compatibility
 export type ToolCallData = import("@runt/schema").AiToolCallData;

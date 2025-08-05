@@ -1,7 +1,7 @@
 import { cn } from "@/lib/utils";
 import { KeyBinding } from "@codemirror/view";
 import * as Dialog from "@radix-ui/react-dialog";
-import { tables } from "@runt/schema";
+import { tables } from "@/schema";
 import { Maximize2, Minimize2 } from "lucide-react";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
