@@ -205,10 +205,19 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
     (cellId: string, direction: "up" | "down") => {
       // Prevent concurrent moves
       if (movingRef.current) {
-        console.log("Move already in progress, skipping");
         return;
       }
       movingRef.current = true;
+
+      // Log cell array to debug ordering
+      console.log("Current cell order:");
+      console.log(
+        cells.map((c, i) => ({
+          index: i,
+          id: c.id,
+          fractionalIndex: c.fractionalIndex,
+        }))
+      );
 
       // Cells are already sorted by fractionalIndex from the database query
       const currentIndex = cells.findIndex((c) => c.id === cellId);
@@ -223,40 +232,34 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
         return;
       }
 
-      let targetIndex = -1;
-      if (direction === "up" && currentIndex > 0) {
-        targetIndex = currentIndex - 1;
-      } else if (direction === "down" && currentIndex < cells.length - 1) {
-        targetIndex = currentIndex + 1;
-      }
-
-      if (targetIndex === -1) {
-        console.log(`Cannot move cell ${direction} - at boundary`);
+      // Check boundaries
+      if (direction === "up" && currentIndex === 0) {
+        console.log("Cannot move cell up - already at top");
         return;
       }
-
-      const targetCell = cells[targetIndex];
-      if (!targetCell.fractionalIndex) {
-        console.warn(`Target cell has no fractionalIndex`);
+      if (direction === "down" && currentIndex === cells.length - 1) {
+        console.log("Cannot move cell down - already at bottom");
         return;
       }
 
       // Determine the before and after cells based on direction
+      // With fractional indexing, we place the cell between its new neighbors
       let cellBefore: CellData | null = null;
       let cellAfter: CellData | null = null;
 
       if (direction === "up") {
-        // Moving up: place current cell between targetIndex-1 and targetIndex
-        cellBefore = targetIndex > 0 ? cells[targetIndex - 1] : null;
-        cellAfter = targetCell;
+        // Moving up: place between the cell 2 positions up and 1 position up
+        cellBefore = currentIndex >= 2 ? cells[currentIndex - 2] : null;
+        cellAfter = cells[currentIndex - 1];
       } else {
-        // Moving down: place current cell between targetIndex and targetIndex+1
-        cellBefore = targetCell;
+        // Moving down: place between the cell 1 position down and 2 positions down
+        cellBefore = cells[currentIndex + 1];
         cellAfter =
-          targetIndex < cells.length - 1 ? cells[targetIndex + 1] : null;
+          currentIndex < cells.length - 2 ? cells[currentIndex + 2] : null;
       }
 
-      console.log(`Moving cell:`, {
+      console.log(`Moving cell ${direction} from index ${currentIndex}`);
+      console.log({
         current: { id: currentCell.id, index: currentCell.fractionalIndex },
         direction,
         cellBefore: cellBefore
@@ -265,6 +268,8 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
         cellAfter: cellAfter
           ? { id: cellAfter.id, index: cellAfter.fractionalIndex }
           : null,
+        currentIndex,
+        totalCells: cells.length,
       });
 
       // Use moveCellBetween to calculate the new position
@@ -279,6 +284,11 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
         store.commit(moveEvent);
       } else {
         console.log("Cell already in target position or invalid move");
+        console.log({
+          currentFractionalIndex: currentCell.fractionalIndex,
+          beforeIndex: cellBefore?.fractionalIndex || "null",
+          afterIndex: cellAfter?.fractionalIndex || "null",
+        });
       }
 
       // Reset the moving flag after a short delay to allow for database updates
