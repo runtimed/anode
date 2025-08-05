@@ -1,12 +1,7 @@
 import { queryDb } from "@livestore/livestore";
 import { useQuery, useStore } from "@livestore/react";
-import {
-  CellData,
-  events,
-  tables,
-  createCellBetween,
-  moveCellBetween,
-} from "@/schema";
+import { CellData, events, tables, createCellBetween } from "@/schema";
+import { moveCellBetween } from "@/runt-schema";
 import React, { Suspense, useCallback, useRef } from "react";
 import { ErrorBoundary } from "react-error-boundary";
 
@@ -273,6 +268,21 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
       });
 
       // Use moveCellBetween to calculate the new position
+      console.log("Calling moveCellBetween with:");
+      console.log({
+        currentCell: {
+          id: currentCell.id,
+          fractionalIndex: currentCell.fractionalIndex,
+        },
+        cellBefore: cellBefore
+          ? { id: cellBefore.id, fractionalIndex: cellBefore.fractionalIndex }
+          : null,
+        cellAfter: cellAfter
+          ? { id: cellAfter.id, fractionalIndex: cellAfter.fractionalIndex }
+          : null,
+        userId,
+      });
+
       const moveEvent = moveCellBetween(
         currentCell,
         cellBefore,
@@ -280,7 +290,10 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
         userId
       );
 
+      console.log("moveEvent result:", moveEvent);
+
       if (moveEvent) {
+        console.log("Committing moveEvent");
         store.commit(moveEvent);
       } else {
         console.log("Cell already in target position or invalid move");
