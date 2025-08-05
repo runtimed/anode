@@ -1,5 +1,6 @@
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { execSync } from "child_process";
 
 import { livestoreDevtoolsPlugin } from "@livestore/devtools-vite";
 import react from "@vitejs/plugin-react";
@@ -14,6 +15,35 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), "");
+
+  // Get git commit hash - check various CI environments
+  let gitCommitHash =
+    process.env.VITE_GIT_COMMIT_HASH || // Explicitly set
+    process.env.WORKERS_CI_COMMIT_SHA || // Cloudflare
+    process.env.GITHUB_SHA?.substring(0, 7); // GitHub Actions (short SHA)
+
+  if (!gitCommitHash) {
+    try {
+      // Get the commit hash
+      gitCommitHash = execSync("git rev-parse --short HEAD", {
+        encoding: "utf8",
+      }).trim();
+
+      // Check if the working directory is dirty
+      const isDirty =
+        execSync("git status --porcelain", {
+          encoding: "utf8",
+        }).trim().length > 0;
+
+      if (isDirty) {
+        gitCommitHash += "-dirty";
+      }
+    } catch (e) {
+      // Fallback when git info is not available (e.g., in CI or non-git directory)
+      console.error("git command error:", e);
+      gitCommitHash = "unknown";
+    }
+  }
 
   const plugins = [
     envValidationPlugin(),
@@ -86,5 +116,8 @@ export default defineConfig(({ mode }) => {
       },
     },
     plugins,
+    define: {
+      "import.meta.env.VITE_GIT_COMMIT_HASH": JSON.stringify(gitCommitHash),
+    },
   };
 });

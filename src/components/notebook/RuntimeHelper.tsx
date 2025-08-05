@@ -2,7 +2,7 @@ import React, { useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { useRuntimeHealth } from "@/hooks/useRuntimeHealth.js";
 import { useStore } from "@livestore/react";
-import { events } from "@runt/schema";
+import { events } from "@/schema";
 import { useAuth } from "@/components/auth/AuthProvider.js";
 import { getRuntimeCommand } from "@/util/runtime-command.js";
 import { getCurrentNotebookId } from "@/util/store-id.js";

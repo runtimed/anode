@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useStore, useQuery } from "@livestore/react";
 import { queryDb } from "@livestore/livestore";
-import { events, tables } from "@runt/schema";
+import { events, tables } from "@/schema";
 import { useAuth } from "@/components/auth/AuthProvider.js";
 
 export type ToolApprovalRequest = {

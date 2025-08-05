@@ -12,7 +12,7 @@ import {
   APPLICATION_MIME_TYPES,
   IMAGE_MIME_TYPES,
   JUPYTER_MIME_TYPES,
-} from "@runt/schema";
+} from "@/schema";
 import { AnsiStreamOutput } from "@/components/outputs";
 import { AnsiErrorOutput } from "@/components/outputs/AnsiOutput.js";
 import { outputDeltasQuery, getFinalContent } from "@/queries/outputDeltas";

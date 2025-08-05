@@ -1,4 +1,4 @@
-import { CellData } from "@runt/schema";
+import { CellData } from "@/schema";
 import React, {
   useCallback,
   useEffect,

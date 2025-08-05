@@ -1,7 +1,7 @@
 import { useCallback, useMemo } from "react";
 import { useQuery } from "@livestore/react";
 import { queryDb } from "@livestore/livestore";
-import { tables } from "@runt/schema";
+import { tables } from "@/schema";
 
 import { generateInitials, generateColor } from "../util/avatar.js";
 import {

@@ -4,9 +4,10 @@ import { useCellKeyboardNavigation } from "@/hooks/useCellKeyboardNavigation.js"
 import { useCellOutputs } from "@/hooks/useCellOutputs.js";
 import { useAuth } from "@/components/auth/AuthProvider.js";
 import { useUserRegistry } from "@/hooks/useUserRegistry.js";
-import { queryDb } from "@livestore/livestore";
+import { useInterruptExecution } from "@/hooks/useInterruptExecution.js";
+
 import { useStore } from "@livestore/react";
-import { events, tables } from "@runt/schema";
+import { events, tables } from "@/schema";
 import { ChevronDown, ChevronUp } from "lucide-react";
 import React, { useCallback } from "react";
 import { ErrorBoundary } from "react-error-boundary";
@@ -105,30 +106,11 @@ export const SqlCell: React.FC<SqlCellProps> = ({
     }
   }, [cell.id, store, hasOutputs, userId]);
 
-  const interruptQuery = useCallback(() => {
-    // Find the current execution in the queue for this cell
-    const executionQueue = store.query(
-      queryDb(tables.executionQueue.select().where({ cellId: cell.id }))
-    );
-
-    const currentExecution = executionQueue.find(
-      (exec: any) =>
-        exec.status === "executing" ||
-        exec.status === "pending" ||
-        exec.status === "assigned"
-    );
-
-    if (currentExecution) {
-      store.commit(
-        events.executionCancelled({
-          queueId: currentExecution.id,
-          cellId: cell.id,
-          cancelledBy: userId,
-          reason: "User interrupted SQL execution",
-        })
-      );
-    }
-  }, [cell.id, store, userId]);
+  const { interruptExecution: interruptQuery } = useInterruptExecution({
+    cellId: cell.id,
+    userId,
+    reason: "User interrupted SQL execution",
+  });
 
   // Use shared keyboard navigation hook
   const { keyMap } = useCellKeyboardNavigation({

@@ -1,5 +1,5 @@
 import React, { useMemo, useCallback } from "react";
-import { OutputData, tables, MediaContainer } from "@runt/schema";
+import { OutputData, tables, MediaContainer } from "@/schema";
 import { queryDb } from "@livestore/livestore";
 import { useQuery } from "@livestore/react";
 import { groupConsecutiveStreamOutputs } from "../util/output-grouping.js";

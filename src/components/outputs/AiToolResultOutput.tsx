@@ -1,6 +1,6 @@
 import React from "react";
 import { CheckCircle, XCircle, Clock, Info } from "lucide-react";
-import { AiToolResultData } from "@runt/schema";
+import { AiToolResultData } from "@/schema";
 
 interface AiToolResultOutputProps {
   resultData: AiToolResultData;

@@ -7,6 +7,7 @@ interface ImportMetaEnv {
   VITE_AUTH_REDIRECT_URI: string;
   VITE_LIVESTORE_URL?: string;
   VITE_RUNTIME_COMMAND?: string;
+  VITE_GIT_COMMIT_HASH?: string;
 }
 
 interface ImportMeta {

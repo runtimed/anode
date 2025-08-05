@@ -1,4 +1,4 @@
-import { tables } from "@runt/schema";
+import { tables } from "@/schema";
 import React from "react";
 
 import { AiCell } from "./AiCell.js";

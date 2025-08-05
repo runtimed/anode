@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { CellData } from "@runt/schema";
+import { CellData } from "@/schema";
 import { Plus } from "lucide-react";
 
 export function CellBetweener({
