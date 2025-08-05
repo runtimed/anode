@@ -9,11 +9,8 @@ const state = State.SQLite.makeState({
 export const schema = makeSchema({ events: RuntSchema.events, state });
 export type Store = LiveStore<typeof schema>;
 
-// Re-export everything we need from @runt/schema
-export const { events, tables, materializers } = RuntSchema;
-
-// Re-export types
 export type {
+  // Re-export types
   CellData,
   RuntimeSessionData,
   MediaContainer,
@@ -22,20 +19,20 @@ export type {
   AiToolResultData,
 };
 
-// Re-export functions
-export const { fractionalIndexBetween, createCellBetween, moveCellBetween } =
-  RuntSchema;
-
-// Re-export type guards
 export const {
+  // Re-export everything we need from @runt/schema
+  events,
+  tables,
+  materializers,
+  // Re-export functions
+  fractionalIndexBetween,
+  createCellBetween,
+  // Re-export type guards
   isInlineContainer,
   isArtifactContainer,
   isAiToolCallData,
   isAiToolResultData,
-} = RuntSchema;
-
-// Re-export constants
-export const {
+  // Re-export constants
   IMAGE_MIME_TYPES,
   JUPYTER_MIME_TYPES,
   AI_TOOL_CALL_MIME_TYPE,
