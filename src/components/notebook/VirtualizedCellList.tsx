@@ -73,7 +73,7 @@ export const VirtualizedCellList: React.FC<VirtualizedCellListProps> = ({
   const cellRefs = useRef<Map<string, HTMLDivElement>>(new Map());
   const [heightsVersion, setHeightsVersion] = useState(0);
 
-  // Cells are already sorted by database query (orderBy("position", "asc"))
+  // Cells are already sorted by database query (orderBy("fractionalIndex", "asc"))
   // Memoize cells array to prevent unnecessary recalculations
   const memoizedCells = useMemo(() => cells, [cells]);
 
