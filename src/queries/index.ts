@@ -1,4 +1,4 @@
-import { tables } from "@runt/schema";
+import { tables } from "@/schema";
 import { queryDb } from "@livestore/livestore";
 
 export * from "./outputDeltas";

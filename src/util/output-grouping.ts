@@ -1,4 +1,4 @@
-import { OutputData } from "@runt/schema";
+import { OutputData } from "@/schema";
 
 /**
  * Groups consecutive terminal outputs of the same type (stdout/stderr) into single outputs

@@ -1,6 +1,6 @@
 import { queryDb } from "@livestore/livestore";
 import { useQuery, useStore } from "@livestore/react";
-import { CellData, events, tables } from "@runt/schema";
+import { CellData, events, tables } from "@/schema";
 import React, { Suspense, useCallback } from "react";
 import { ErrorBoundary } from "react-error-boundary";
 

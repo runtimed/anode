@@ -1,4 +1,4 @@
-import { tables } from "@runt/schema";
+import { tables } from "@/schema";
 import { forwardRef, ReactNode } from "react";
 import "./PresenceIndicators.css";
 

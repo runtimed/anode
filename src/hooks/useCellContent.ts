@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { useStore } from "@livestore/react";
-import { events } from "@runt/schema";
+import { events } from "@/schema";
 import { useAuth } from "@/components/auth/AuthProvider.js";
 
 interface CellContentOptions {

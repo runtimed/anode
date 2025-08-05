@@ -8,7 +8,7 @@ import { useToolApprovals } from "@/hooks/useToolApprovals.js";
 import { useAvailableAiModels } from "@/util/ai-models.js";
 import { queryDb } from "@livestore/livestore";
 import { useStore } from "@livestore/react";
-import { events, tables } from "@runt/schema";
+import { events, tables } from "@/schema";
 import { ChevronDown, ChevronUp } from "lucide-react";
 import React, { useCallback } from "react";
 import { ErrorBoundary } from "react-error-boundary";
