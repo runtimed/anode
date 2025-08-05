@@ -534,11 +534,10 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
             </ErrorBoundary>
           </Suspense>
         )}
-
-        {/* Build info footer */}
-        <div className="mt-8 flex justify-center border-t px-4 py-2 text-center">
-          <GitCommitHash />
-        </div>
+      </div>
+      {/* Build info footer */}
+      <div className="mt-8 flex justify-center border-t px-4 py-2 text-center">
+        <GitCommitHash />
       </div>
     </div>
   );
