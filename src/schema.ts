@@ -23,7 +23,7 @@ export type {
 };
 
 // Re-export functions
-export const { fractionalIndexBetween, createCellAfter, createCellBefore } =
+export const { fractionalIndexBetween, createCellBetween, moveCellBetween } =
   RuntSchema;
 
 // Re-export type guards
