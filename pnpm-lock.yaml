@@ -89,8 +89,8 @@ importers:
         specifier: ^10.0.1
         version: 10.0.1(react-dom@19.0.0(react@19.0.0))(react@19.0.0)
       '@runt/schema':
-        specifier: github:runtimed/runt#a842a2dcb080ebee8965f15e6203d1d65bf4ff2c&path:/packages/schema
-        version: https://codeload.github.com/runtimed/runt/tar.gz/a842a2dcb080ebee8965f15e6203d1d65bf4ff2c#path:/packages/schema(f9c23af240f2640c0a9abef8711d3cc6)
+        specifier: github:runtimed/runt#9983a1ffdbc90928ea4e72c5ce277339b6fe90cb&path:/packages/schema
+        version: https://codeload.github.com/runtimed/runt/tar.gz/9983a1ffdbc90928ea4e72c5ce277339b6fe90cb#path:/packages/schema(f9c23af240f2640c0a9abef8711d3cc6)
       '@tanstack/react-virtual':
         specifier: ^3.13.12
         version: 3.13.12(react-dom@19.0.0(react@19.0.0))(react@19.0.0)
@@ -1947,8 +1947,8 @@ packages:
     cpu: [x64]
     os: [win32]
 
-  '@runt/schema@https://codeload.github.com/runtimed/runt/tar.gz/a842a2dcb080ebee8965f15e6203d1d65bf4ff2c#path:/packages/schema':
-    resolution: {path: /packages/schema, tarball: https://codeload.github.com/runtimed/runt/tar.gz/a842a2dcb080ebee8965f15e6203d1d65bf4ff2c}
+  '@runt/schema@https://codeload.github.com/runtimed/runt/tar.gz/9983a1ffdbc90928ea4e72c5ce277339b6fe90cb#path:/packages/schema':
+    resolution: {path: /packages/schema, tarball: https://codeload.github.com/runtimed/runt/tar.gz/9983a1ffdbc90928ea4e72c5ce277339b6fe90cb}
     version: 0.8.0
 
   '@sindresorhus/is@7.0.2':
@@ -6612,7 +6612,7 @@ snapshots:
   '@rollup/rollup-win32-x64-msvc@4.45.0':
     optional: true
 
-  '@runt/schema@https://codeload.github.com/runtimed/runt/tar.gz/a842a2dcb080ebee8965f15e6203d1d65bf4ff2c#path:/packages/schema(f9c23af240f2640c0a9abef8711d3cc6)':
+  '@runt/schema@https://codeload.github.com/runtimed/runt/tar.gz/9983a1ffdbc90928ea4e72c5ce277339b6fe90cb#path:/packages/schema(f9c23af240f2640c0a9abef8711d3cc6)':
     dependencies:
       '@livestore/livestore': 0.3.1(f9c23af240f2640c0a9abef8711d3cc6)
       fractional-indexing: 3.2.0
