@@ -81,6 +81,35 @@ export const neighboringCells = (cellId: string) =>
     }
   );
 
+// Get the immediate adjacent cells (previous and next) for a specific cell
+export const getAdjacentCells = (cellId: string, fractionalIndex: string) => {
+  const previousCell$ = queryDb(
+    tables.cells
+      .select("id", "fractionalIndex")
+      .where("fractionalIndex", "<", fractionalIndex)
+      .orderBy("fractionalIndex", "desc")
+      .first({ fallback: () => null }),
+    {
+      deps: [cellId, fractionalIndex],
+      label: `cells.previous.${cellId}`,
+    }
+  );
+
+  const nextCell$ = queryDb(
+    tables.cells
+      .select("id", "fractionalIndex")
+      .where("fractionalIndex", ">", fractionalIndex)
+      .orderBy("fractionalIndex", "asc")
+      .first({ fallback: () => null }),
+    {
+      deps: [cellId, fractionalIndex],
+      label: `cells.next.${cellId}`,
+    }
+  );
+
+  return { previousCell$, nextCell$ };
+};
+
 // Get cell position info (useful for UI that needs to know if a cell is first/last)
 export const cellPositionInfo = (cellId: string) =>
   queryDb(
