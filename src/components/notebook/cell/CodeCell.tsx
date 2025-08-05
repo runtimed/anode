@@ -5,7 +5,8 @@ import { useCellKeyboardNavigation } from "@/hooks/useCellKeyboardNavigation.js"
 import { useCellOutputs } from "@/hooks/useCellOutputs.js";
 import { useAuth } from "@/components/auth/AuthProvider.js";
 import { useUserRegistry } from "@/hooks/useUserRegistry.js";
-import { queryDb } from "@livestore/livestore";
+import { useInterruptExecution } from "@/hooks/useInterruptExecution.js";
+
 import { useStore } from "@livestore/react";
 import { events, tables } from "@runt/schema";
 import { ChevronDown, ChevronUp } from "lucide-react";
@@ -188,30 +189,11 @@ export const CodeCell: React.FC<CodeCellProps> = ({
     }
   }, [cell.id, localSource, cell.source, cell.executionCount, store, userId]);
 
-  const interruptCell = useCallback(async () => {
-    // Find the current execution in the queue for this cell
-    const executionQueue = store.query(
-      queryDb(tables.executionQueue.select().where({ cellId: cell.id }))
-    );
-
-    const currentExecution = executionQueue.find(
-      (exec: any) =>
-        exec.status === "executing" ||
-        exec.status === "pending" ||
-        exec.status === "assigned"
-    );
-
-    if (currentExecution) {
-      store.commit(
-        events.executionCancelled({
-          queueId: currentExecution.id,
-          cellId: cell.id,
-          cancelledBy: userId,
-          reason: "User interrupted execution",
-        })
-      );
-    }
-  }, [cell.id, store, userId]);
+  const { interruptExecution: interruptCell } = useInterruptExecution({
+    cellId: cell.id,
+    userId,
+    reason: "User interrupted execution",
+  });
 
   // Use shared keyboard navigation hook
   const { keyMap } = useCellKeyboardNavigation({
