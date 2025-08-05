@@ -1,4 +1,6 @@
 // Re-export AnsiOutput from the notebook folder for convenience
+import { AiToolCallData, AiToolResultData } from "@/schema";
+
 export { AiToolCallOutput } from "./AiToolCallOutput.js";
 export { AiToolResultOutput } from "./AiToolResultOutput.js";
 export { AiToolApprovalOutput } from "./AiToolApprovalOutput.js";
@@ -18,5 +20,5 @@ export { SvgOutput } from "./SvgOutput.js";
 export type { OutputData, AiToolCallData, AiToolResultData } from "@/schema";
 
 // Legacy type aliases for backward compatibility
-export type ToolCallData = import("@runt/schema").AiToolCallData;
-export type ToolResultData = import("@runt/schema").AiToolResultData;
+export type ToolCallData = AiToolCallData;
+export type ToolResultData = AiToolResultData;
