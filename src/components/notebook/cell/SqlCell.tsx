@@ -20,6 +20,7 @@ import { OutputsErrorBoundary } from "./shared/OutputsErrorBoundary.js";
 import { PlayButton } from "./shared/PlayButton.js";
 import { PresenceBookmarks } from "./shared/PresenceBookmarks.js";
 import { SqlToolbar } from "./toolbars/SqlToolbar.js";
+import { MaybeCellOutputs } from "@/components/outputs/CellOutputs.js";
 
 interface SqlCellProps {
   cell: typeof tables.cells.Type;
@@ -66,10 +67,7 @@ export const SqlCell: React.FC<SqlCellProps> = ({
   });
 
   // Use shared outputs hook with SQL-specific configuration
-  const { outputs, hasOutputs, MaybeOutputs } = useCellOutputs({
-    cellId: cell.id,
-    enableErrorOutput: true,
-  });
+  const { outputs, hasOutputs } = useCellOutputs(cell.id);
 
   const executeQuery = useCallback(() => {
     if (!localQuery.trim()) {
@@ -324,7 +322,9 @@ export const SqlCell: React.FC<SqlCellProps> = ({
 
       {/* Outputs Section */}
       <ErrorBoundary FallbackComponent={OutputsErrorBoundary}>
-        {cell.outputVisible && <MaybeOutputs />}
+        {cell.outputVisible && (
+          <MaybeCellOutputs outputs={outputs} enableErrorOutput={true} />
+        )}
       </ErrorBoundary>
     </CellContainer>
   );

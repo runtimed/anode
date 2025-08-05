@@ -20,6 +20,7 @@ import { OutputsErrorBoundary } from "./shared/OutputsErrorBoundary.js";
 import { PlayButton } from "./shared/PlayButton.js";
 import { PresenceBookmarks } from "./shared/PresenceBookmarks.js";
 import { CodeToolbar } from "./toolbars/CodeToolbar.js";
+import { MaybeCellOutputs } from "@/components/outputs/CellOutputs.js";
 
 interface CodeCellProps {
   cell: typeof tables.cells.Type;
@@ -62,10 +63,7 @@ export const CodeCell: React.FC<CodeCellProps> = ({
   });
 
   // Use shared outputs hook with code-specific configuration
-  const { outputs, hasOutputs, MaybeOutputs } = useCellOutputs({
-    cellId: cell.id,
-    enableErrorOutput: true,
-  });
+  const { outputs, hasOutputs } = useCellOutputs(cell.id);
 
   const changeCellType = useCallback(
     (newType: "code" | "markdown" | "sql" | "ai") => {
@@ -356,7 +354,7 @@ export const CodeCell: React.FC<CodeCellProps> = ({
               </div>
             )}
             <ErrorBoundary FallbackComponent={OutputsErrorBoundary}>
-              <MaybeOutputs />
+              <MaybeCellOutputs outputs={outputs} enableErrorOutput={true} />
             </ErrorBoundary>
           </div>
         )}
