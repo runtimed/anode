@@ -13,7 +13,6 @@ import {
   IMAGE_MIME_TYPES,
   JUPYTER_MIME_TYPES,
 } from "@/schema";
-import { AnsiStreamOutput } from "@/components/outputs";
 import { AnsiErrorOutput } from "@/components/outputs/AnsiOutput.js";
 import { outputDeltasQuery, getFinalContent } from "@/queries/outputDeltas";
 import { useQuery } from "@livestore/react";
@@ -66,7 +65,6 @@ interface RichOutputProps {
   outputType?:
     | "multimedia_display"
     | "multimedia_result"
-    | "terminal"
     | "markdown"
     | "error";
   outputId: string;
@@ -85,12 +83,6 @@ export const RichOutput: React.FC<RichOutputProps> = ({
 }) => {
   // Always query deltas (even if not used)
   const deltas = useQuery(outputDeltasQuery(outputId));
-
-  // Handle terminal outputs specially
-  if (outputType === "terminal") {
-    const textData = typeof data === "string" ? data : String(data || "");
-    return <AnsiStreamOutput text={textData} streamName="stdout" />;
-  }
 
   // Handle markdown outputs specially with delta support
   if (outputType === "markdown") {
