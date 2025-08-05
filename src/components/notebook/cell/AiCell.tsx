@@ -1,20 +1,21 @@
+import { useAuth } from "@/components/auth/AuthProvider.js";
 import { Button } from "@/components/ui/button";
 import { useCellContent } from "@/hooks/useCellContent.js";
 import { useCellKeyboardNavigation } from "@/hooks/useCellKeyboardNavigation.js";
-import { useCellOutputs } from "@/hooks/useCellOutputs.js";
-import { useAuth } from "@/components/auth/AuthProvider.js";
-import { useUserRegistry } from "@/hooks/useUserRegistry.js";
-import { useToolApprovals } from "@/hooks/useToolApprovals.js";
 import { useInterruptExecution } from "@/hooks/useInterruptExecution.js";
+import { useToolApprovals } from "@/hooks/useToolApprovals.js";
+import { useUserRegistry } from "@/hooks/useUserRegistry.js";
 import { useAvailableAiModels } from "@/util/ai-models.js";
 
-import { useStore } from "@livestore/react";
-import { events, tables } from "@/schema";
+import { SingleOutput } from "@/components/outputs/SingleOutput.js";
+import { events, OutputData, tables } from "@/schema";
+import { queryDb } from "@livestore/livestore";
+import { useQuery, useStore } from "@livestore/react";
 import { ChevronDown, ChevronUp } from "lucide-react";
 import React, { useCallback } from "react";
 import { ErrorBoundary } from "react-error-boundary";
-import { CodeMirrorEditor } from "../codemirror/CodeMirrorEditor.js";
 import { AiToolApprovalOutput } from "../../outputs/AiToolApprovalOutput.js";
+import { CodeMirrorEditor } from "../codemirror/CodeMirrorEditor.js";
 import { AiCellTypeSelector } from "./shared/AiCellTypeSelector.js";
 import { CellContainer } from "./shared/CellContainer.js";
 import { CellControls } from "./shared/CellControls.js";
@@ -80,6 +81,12 @@ export const AiCell: React.FC<AiCellProps> = ({
   } = useAuth();
   const { getUsersOnCell, getUserColor } = useUserRegistry();
 
+  const outputs = useQuery(
+    queryDb(tables.outputs.select().where({ cellId: cell.id }))
+  ) as OutputData[];
+
+  const hasOutputs = outputs.length > 0;
+
   // Get users present on this cell (excluding current user)
   const usersOnCell = getUsersOnCell(cell.id).filter(
     (user) => user.id !== userId
@@ -96,14 +103,6 @@ export const AiCell: React.FC<AiCellProps> = ({
   const { localSource, updateSource, handleSourceChange } = useCellContent({
     cellId: cell.id,
     initialSource: cell.source,
-  });
-
-  // Use shared outputs hook with AI-specific configuration
-  const { outputs, hasOutputs, MaybeOutputs } = useCellOutputs({
-    cellId: cell.id,
-    groupConsecutiveStreams: false,
-    enableErrorOutput: true,
-    mobileStyle: "chat-bubble",
   });
 
   const clearCellOutputs = useCallback(async () => {
@@ -421,7 +420,20 @@ export const AiCell: React.FC<AiCellProps> = ({
             {/* Inline Tool Approval Dialog */}
             <MaybeInlineToolApproval cellId={cell.id} />
             {/* Regular Outputs */}
-            <MaybeOutputs />
+            {hasOutputs && (
+              <div className="outputs-container px-4 py-2">
+                <div className="cell-content pr-1 pl-6 sm:pr-4">
+                  {outputs.map((output) => (
+                    <SingleOutput
+                      key={output.id}
+                      output={output}
+                      enableErrorOutput={true}
+                      mobileStyle="chat-bubble"
+                    />
+                  ))}
+                </div>
+              </div>
+            )}
           </>
         )}
       </ErrorBoundary>

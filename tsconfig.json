@@ -27,6 +27,6 @@
     "noUnusedParameters": true,
     "noFallthroughCasesInSwitch": true
   },
-  "include": ["src", "src/types", "backend", "iframe-outputs"],
+  "include": ["src", "src/types", "backend", "iframe-outputs/src"],
   "references": [{ "path": "./tsconfig.node.json" }]
 }

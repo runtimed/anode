@@ -8,7 +8,6 @@ interface UseCellOutputsOptions {
   cellId: string;
   groupConsecutiveStreams?: boolean;
   enableErrorOutput?: boolean;
-  mobileStyle?: "default" | "chat-bubble";
 }
 
 interface CellOutputsResult {
@@ -23,7 +22,6 @@ export const useCellOutputs = ({
   cellId,
   groupConsecutiveStreams = false,
   enableErrorOutput = true,
-  mobileStyle = "default",
 }: UseCellOutputsOptions): CellOutputsResult => {
   // Create stable query using useMemo to prevent React Hook issues
   const outputsQuery = useMemo(
@@ -45,17 +43,10 @@ export const useCellOutputs = ({
           outputs={outputs}
           groupConsecutiveStreams={groupConsecutiveStreams}
           enableErrorOutput={enableErrorOutput}
-          mobileStyle={mobileStyle}
         />
       </div>
     );
-  }, [
-    hasOutputs,
-    outputs,
-    groupConsecutiveStreams,
-    enableErrorOutput,
-    mobileStyle,
-  ]);
+  }, [hasOutputs, outputs, groupConsecutiveStreams, enableErrorOutput]);
 
   return {
     outputs,

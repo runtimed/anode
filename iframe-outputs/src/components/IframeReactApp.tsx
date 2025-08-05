@@ -1,6 +1,10 @@
 import React, { useEffect, useState } from "react";
 import { OutputData } from "@/schema";
 import ReactJsonView from "@microlink/react-json-view";
+import {
+  AnsiErrorOutput,
+  AnsiStreamOutput,
+} from "@/components/outputs/AnsiOutput";
 
 interface IframeMessage {
   type: string;
@@ -62,11 +66,67 @@ export const IframeReactApp: React.FC = () => {
   // Default content or non-React mode
   return (
     <div className="dataframe-container border-2 border-amber-400">
-      {outputs.length > 0 ? (
+      {outputs.length > 0
+        ? outputs.map((output, index) => (
+            <div
+              key={output.id}
+              className={index > 0 ? "mt-2 border-t border-black/10 pt-2" : ""}
+            >
+              <Output output={output} />
+            </div>
+          ))
+        : "No content yet"}
+    </div>
+  );
+};
+
+function Output({ output }: { output: OutputData }) {
+  switch (output.outputType) {
+    case "terminal":
+      return (
+        <AnsiStreamOutput
+          key={output.id}
+          text={output.data ?? ""}
+          streamName={output.streamName as "stdout" | "stderr"}
+        />
+      );
+    case "multimedia_display":
+      return (
+        <div
+          key={output.id}
+          dangerouslySetInnerHTML={{ __html: output.data ?? "" }}
+        />
+      );
+    case "error": {
+      let errorData;
+      try {
+        errorData =
+          typeof output.data === "string"
+            ? JSON.parse(output.data)
+            : output.data;
+      } catch {
+        errorData = {
+          ename: "Error",
+          evalue: String(output.data),
+          traceback: [],
+        };
+      }
+      return (
+        <AnsiErrorOutput
+          key={output.id}
+          ename={errorData?.ename}
+          evalue={errorData?.evalue}
+          traceback={errorData?.traceback || []}
+        />
+      );
+    }
+    default:
+      return (
         <ReactJsonView
-          src={outputs}
+          key={output.id}
+          src={output}
           theme="rjv-default"
-          collapsed={false}
+          collapsed={true}
           displayDataTypes={false}
           displayObjectSize={false}
           enableClipboard={true}
@@ -77,9 +137,6 @@ export const IframeReactApp: React.FC = () => {
             fontSize: "0.875rem",
           }}
         />
-      ) : (
-        "No content yet"
-      )}
-    </div>
-  );
-};
+      );
+  }
+}

@@ -13,9 +13,9 @@ import {
   IMAGE_MIME_TYPES,
   JUPYTER_MIME_TYPES,
 } from "@/schema";
-import { AnsiErrorOutput } from "@/components/outputs/AnsiOutput.js";
 import { outputDeltasQuery, getFinalContent } from "@/queries/outputDeltas";
 import { useQuery } from "@livestore/react";
+import { AnsiErrorOutput } from "@/components/outputs/AnsiOutput";
 
 // Dynamic imports for heavy components
 const MarkdownRenderer = React.lazy(() =>

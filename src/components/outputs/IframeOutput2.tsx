@@ -2,7 +2,7 @@ import { OutputData } from "@/schema";
 import React, { useEffect, useRef, useState } from "react";
 
 interface IframeOutputProps {
-  outputs: OutputData[];
+  outputs: (OutputData | string)[];
   style?: React.CSSProperties;
   className?: string;
   onHeightChange?: (height: number) => void;
@@ -63,6 +63,8 @@ export const IframeOutput2: React.FC<IframeOutputProps> = ({
     }
     // Send content to iframe when it changes
     if (iframeRef.current && iframeRef.current.contentWindow) {
+      debugger;
+      console.log("Sending outputs to iframe", outputs);
       iframeRef.current.contentWindow.postMessage(
         {
           type: "update-outputs",
