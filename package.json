@@ -11,6 +11,7 @@
     "dev:runt": "./scripts/start-runt-dev.sh",
     "dev": "vite",
     "dev:web": "vite --no-open",
+    "dev:iframe": "cd iframe-outputs && vite --port 8000",
     "dev:scan": "pnpm run dev & npx react-scan@latest localhost:5173",
     "dev:auth": "vite --mode auth",
     "dev:sync": "wrangler dev",
