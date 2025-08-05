@@ -1,7 +1,12 @@
 import { queryDb } from "@livestore/livestore";
 import { useQuery, useStore } from "@livestore/react";
-import { CellData, events, tables, createCellBetween } from "@/schema";
-import { moveCellBetween } from "@/runt-schema";
+import {
+  CellData,
+  events,
+  tables,
+  createCellBetween,
+  moveCellBetween,
+} from "@/schema";
 import React, { Suspense, useCallback, useRef } from "react";
 import { ErrorBoundary } from "react-error-boundary";
 
