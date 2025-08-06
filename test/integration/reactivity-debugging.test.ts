@@ -446,11 +446,9 @@ describe("Reactivity Debugging", () => {
         // Create multiple subscriptions
         for (let i = 0; i < 3; i++) {
           const query$ = queryDb(
-            tables.cells
-              .select()
-              .where({
-                fractionalIndex: { op: ">=", value: `a${i.toString(36)}` },
-              }),
+            tables.cells.select().where({
+              fractionalIndex: { op: ">=", value: `a${i.toString(36)}` },
+            }),
             { label: `memoryTestQuery-${cycle}-${i}` }
           );
 
