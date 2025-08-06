@@ -1961,9 +1961,17 @@ export function fractionalIndexBetween(
   const key = generateKeyBetween(a, b);
 
   // For better distribution, sometimes extend the key
+  // But we must ensure the result stays within bounds
   if (jitterProvider.random() < 0.3 && key.length < 10) {
     const suffix = valueToChar(jitterProvider.randomInt(BASE));
-    return key + suffix;
+    const candidate = key + suffix;
+
+    // Verify the candidate maintains ordering
+    const isValid = (!a || candidate > a) && (!b || candidate < b);
+
+    if (isValid) {
+      return candidate;
+    }
   }
 
   return key;

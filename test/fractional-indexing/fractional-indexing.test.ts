@@ -13,13 +13,14 @@ describe("Fractional Indexing", () => {
   describe("Basic Operations", () => {
     it("should generate initial index", () => {
       const index = initialFractionalIndex();
-      expect(index).toBe("m");
+      expect(index.startsWith("m")).toBe(true);
       expect(isValidFractionalIndex(index)).toBe(true);
     });
 
     it("should generate index between null boundaries", () => {
       const index = fractionalIndexBetween(null, null);
-      expect(index).toBe("m");
+      expect(index.startsWith("m")).toBe(true);
+      expect(isValidFractionalIndex(index)).toBe(true);
     });
 
     it("should generate index before a value", () => {
