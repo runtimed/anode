@@ -226,36 +226,6 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
       }
       movingRef.current = true;
 
-      // Log cell array to debug ordering
-      console.log("Current cell order before move:");
-      const cellInfo = cells.map((c, i) => ({
-        index: i,
-        id: c.id,
-        fractionalIndex: c.fractionalIndex,
-      }));
-      console.log(JSON.stringify(cellInfo, null, 2));
-
-      // Check if cells are properly sorted
-      const sortedCells = [...cells].sort((a, b) => {
-        if (!a.fractionalIndex || !b.fractionalIndex) return 0;
-        return a.fractionalIndex.localeCompare(b.fractionalIndex);
-      });
-      const isProperlyOrdered = cells.every(
-        (cell, i) => cell.id === sortedCells[i].id
-      );
-
-      if (!isProperlyOrdered) {
-        console.warn("❌ CELLS ARE NOT PROPERLY ORDERED!");
-        console.log("Expected order:");
-        console.log(
-          sortedCells.map((c, i) => ({
-            index: i,
-            id: c.id,
-            fractionalIndex: c.fractionalIndex,
-          }))
-        );
-      }
-
       // Cells are already sorted by fractionalIndex from the database query
       const currentIndex = cells.findIndex((c) => c.id === cellId);
       if (currentIndex === -1) {

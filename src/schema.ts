@@ -17,7 +17,7 @@ export type {
   OutputData,
   AiToolCallData,
   AiToolResultData,
-};
+} from "@runt/schema";
 
 export const {
   // Re-export everything we need from @runt/schema
