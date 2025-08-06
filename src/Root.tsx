@@ -49,6 +49,7 @@ import { schema } from "./schema.js";
 import { getCurrentNotebookId, getStoreId } from "./util/store-id.js";
 import { useAuth } from "./components/auth/AuthProvider.js";
 import { ErrorBoundary } from "react-error-boundary";
+import { Toaster } from "./components/ui/sonner.js";
 
 interface NotebookAppProps {}
 
@@ -339,6 +340,7 @@ export const App: React.FC = () => {
           }
         />
       </Routes>
+      <Toaster />
     </AuthProvider>
   );
 };
