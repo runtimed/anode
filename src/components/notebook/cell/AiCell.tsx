@@ -427,7 +427,6 @@ export const AiCell: React.FC<AiCellProps> = ({
                     <SingleOutput
                       key={output.id}
                       output={output}
-                      enableErrorOutput={true}
                       mobileStyle="chat-bubble"
                     />
                   ))}

@@ -4,11 +4,9 @@ import { AnsiErrorOutput, AnsiStreamOutput } from "./AnsiOutput";
 
 export function SingleOutput({
   output,
-  enableErrorOutput,
   mobileStyle,
 }: {
   output: OutputData;
-  enableErrorOutput: boolean;
   mobileStyle: "default" | "chat-bubble";
 }) {
   if (output.outputType === "error" && enableErrorOutput) {

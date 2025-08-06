@@ -354,7 +354,7 @@ export const CodeCell: React.FC<CodeCellProps> = ({
               </div>
             )}
             <ErrorBoundary FallbackComponent={OutputsErrorBoundary}>
-              <MaybeCellOutputs outputs={outputs} enableErrorOutput={true} />
+              <MaybeCellOutputs outputs={outputs} />
             </ErrorBoundary>
           </div>
         )}

@@ -322,9 +322,7 @@ export const SqlCell: React.FC<SqlCellProps> = ({
 
       {/* Outputs Section */}
       <ErrorBoundary FallbackComponent={OutputsErrorBoundary}>
-        {cell.outputVisible && (
-          <MaybeCellOutputs outputs={outputs} enableErrorOutput={true} />
-        )}
+        {cell.outputVisible && <MaybeCellOutputs outputs={outputs} />}
       </ErrorBoundary>
     </CellContainer>
   );

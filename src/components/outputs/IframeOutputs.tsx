@@ -3,13 +3,7 @@ import { OutputData } from "@runt/schema";
 import { IframeOutput2 } from "./IframeOutput2";
 import ReactJsonView from "@microlink/react-json-view";
 
-export const IframeOutputs = ({
-  outputs,
-  enableErrorOutput,
-}: {
-  outputs: OutputData[];
-  enableErrorOutput: boolean;
-}) => {
+export const IframeOutputs = ({ outputs }: { outputs: OutputData[] }) => {
   // Apply grouping strategy based on cell type
   const processedOutputs = outputs.sort(
     (a: OutputData, b: OutputData) => a.position - b.position

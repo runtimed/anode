@@ -4,18 +4,12 @@ import { IframeOutputs } from "./IframeOutputs";
 import { OutputData } from "@runt/schema";
 
 // Otherwise, just calling `<ErrorBoundary FallbackComponent={OutputsErrorBoundary}>renderOutputs()</ErrorBoundary>` will not work as expected
-export function MaybeCellOutputs({
-  outputs,
-  enableErrorOutput,
-}: {
-  outputs: OutputData[];
-  enableErrorOutput: boolean;
-}) {
+export function MaybeCellOutputs({ outputs }: { outputs: OutputData[] }) {
   if (!outputs.length) return null;
 
   return (
     <div className="outputs-container px-4 py-2">
-      <IframeOutputs outputs={outputs} enableErrorOutput={enableErrorOutput} />
+      <IframeOutputs outputs={outputs} />
     </div>
   );
 }
