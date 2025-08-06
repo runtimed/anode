@@ -1815,74 +1815,57 @@ function generateKeyBetween(
   if (!a) return generateKeyBefore(b!);
   if (!b) return generateKeyAfter(a);
 
-  // Validate inputs
-  if (!isValidFractionalIndex(a) || !isValidFractionalIndex(b)) {
-    throw new Error(`Invalid fractional index: a="${a}" b="${b}"`);
-  }
-
   // Ensure a < b
   if (a >= b) {
     throw new Error(`Invalid range: ${a} >= ${b}`);
   }
 
-  // Find the common prefix
+  // Find the first position where they differ
   let i = 0;
   while (i < a.length && i < b.length && a[i] === b[i]) {
     i++;
   }
 
-  // If one string is a prefix of the other
+  // If a is a prefix of b, we can insert a midpoint
   if (i === a.length) {
-    // a is a prefix of b (e.g., "a" and "ab")
-    // We need to append something to a that comes before b[i]
     const nextChar = b[i];
     const nextVal = charToValue(nextChar);
 
-    if (nextVal > 0) {
-      // We can append a character that comes before b[i]
-      const midVal = Math.floor(nextVal / 2);
-      return a + valueToChar(midVal);
-    } else {
-      // b[i] is '0', we need to extend further
-      return a + "0" + "m";
+    // Always use a safe midpoint
+    if (nextVal > 1) {
+      return a + valueToChar(Math.floor(nextVal / 2));
     }
+
+    // If b[i] is '0' or '1', we need to go deeper
+    // Recursively find a position between a and b.substring(0, i+1)
+    return generateKeyBetween(a, b.substring(0, i + 1));
   }
 
-  if (i === b.length) {
-    // b is a prefix of a (shouldn't happen if a < b)
-    throw new Error(`Invalid state: b is prefix of a`);
-  }
+  // Get the values at position i
+  const aVal = i < a.length ? charToValue(a[i]) : 0;
+  const bVal = charToValue(b[i]);
 
-  // Get the characters at the divergence point
-  const aChar = a[i] || "0";
-  const bChar = b[i];
-  const aVal = charToValue(aChar);
-  const bVal = charToValue(bChar);
-
+  // If there's room between them, use the midpoint
   if (bVal - aVal > 1) {
-    // There's room between the characters
     const midVal = Math.floor((aVal + bVal) / 2);
     return a.substring(0, i) + valueToChar(midVal);
   }
 
-  // Characters are adjacent, need to look further
-  if (i + 1 < b.length) {
-    // b has more characters, find a character between 0 and b[i+1]
-    const nextBChar = b[i + 1];
-    const nextBVal = charToValue(nextBChar);
+  // Characters are adjacent (diff is 1)
+  // We need to extend the string to find a position
 
-    if (nextBVal > 0) {
-      // We can insert a character before b[i+1]
-      const midVal = Math.floor(nextBVal / 2);
-      return a.substring(0, i + 1) + valueToChar(midVal);
-    } else {
-      // b[i+1] is '0', we need to look deeper or extend
-      return a.substring(0, i + 1) + "0" + "m";
-    }
+  // If a has more characters after position i, increment within a
+  if (i < a.length - 1) {
+    // Try to increment a character in a after position i
+    const result = a.substring(0, i + 1);
+    const remaining = a.substring(i + 1);
+
+    // Find a position between remaining and the end
+    return result + generateKeyBetween(remaining, null);
   }
 
-  // Need to extend a with a small character to stay less than b
-  return a + "1";
+  // Otherwise extend a with a midpoint character
+  return a.substring(0, i + 1) + "h"; // Use 'h' as a safe midpoint
 }
 
 function generateKeyBefore(b: string): string {
@@ -1890,17 +1873,33 @@ function generateKeyBefore(b: string): string {
     return "m"; // Middle of range if no upper bound
   }
 
-  const firstChar = b[0];
-  const firstVal = charToValue(firstChar);
-
-  if (firstVal > 0) {
-    // We can decrement the first character
-    const newVal = Math.floor(firstVal / 2);
-    return valueToChar(newVal);
+  // Find the first non-zero character
+  let i = 0;
+  while (i < b.length && b[i] === "0") {
+    i++;
   }
 
-  // First character is '0', need to prepend
-  return "0" + b;
+  if (i === b.length) {
+    // All zeros, prepend another zero
+    return "0" + b;
+  }
+
+  // Found a non-zero character
+  const val = charToValue(b[i]);
+
+  if (i === 0 && val > 1) {
+    // Can simply use a smaller first character
+    return valueToChar(Math.floor(val / 2));
+  }
+
+  // Need to preserve prefix and adjust
+  const prefix = b.substring(0, i);
+  if (val > 1) {
+    return prefix + valueToChar(Math.floor(val / 2));
+  }
+
+  // val is 1, so we use prefix + "0" + midpoint
+  return prefix + "0h";
 }
 
 function generateKeyAfter(a: string): string {
@@ -1908,28 +1907,29 @@ function generateKeyAfter(a: string): string {
     return "m"; // Middle of range if no lower bound
   }
 
-  // Try to increment within the existing string
-  for (let i = a.length - 1; i >= 0; i--) {
-    const char = a[i];
-    const val = charToValue(char);
-
-    if (val < BASE - 1) {
-      // We can increment this character
-      const prefix = a.substring(0, i);
-      const newChar = valueToChar(val + 1);
-
-      // If incrementing would make us equal to or past 'z',
-      // use a midpoint instead
-      if (val >= BASE - 2) {
-        return a + "m";
-      }
-
-      return prefix + newChar;
-    }
+  // Find the last character that isn't 'z'
+  let i = a.length - 1;
+  while (i >= 0 && a[i] === "z") {
+    i--;
   }
 
-  // All characters are at maximum, need to extend
-  return a + "m";
+  if (i === -1) {
+    // All 'z's, need to extend
+    return a + "h"; // Append midpoint
+  }
+
+  // Can increment the character at position i
+  const prefix = a.substring(0, i);
+  const val = charToValue(a[i]);
+
+  if (val < BASE - 2) {
+    // Simple increment
+    return prefix + valueToChar(val + 1);
+  }
+
+  // val is 'y', incrementing gives 'z'
+  // To avoid getting too close to the boundary, extend instead
+  return a + "h";
 }
 
 // JitterProvider interface for testability
