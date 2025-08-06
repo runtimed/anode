@@ -1,3 +1,4 @@
+// import { toast } from "sonner";
 import { queryDb } from "@livestore/livestore";
 import { useQuery, useStore } from "@livestore/react";
 import {
@@ -153,6 +154,8 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
         cellBefore,
         cellAfter
       );
+
+      // toast.success("Cell created successfully!");
 
       store.commit(cellCreatedEvent);
 
