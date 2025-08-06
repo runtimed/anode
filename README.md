@@ -180,7 +180,7 @@ pnpm use-runt prod
 Should update package.json to:
 
 ```json
-"@runt/schema": "jsr:^0.8.0"
+"@runt/schema": "jsr:^0.9.0"
 ```
 
 **Testing PR Changes (GitHub Reference)**:
