@@ -282,8 +282,8 @@ Python runtime and AI features are handled by the separate [@runt packages](http
 | Type errors               | TypeScript catches invalid queries at compile time - check column names     |
 | Execution not working     | Check @runt runtime setup - see https://github.com/runtimed/runt            |
 | Dev server crashes        | Restart with `pnpm dev` - .env file changes are ignored to prevent crashes  |
-| Stale state               | Run `pnpm reset-storage`                                                    |
-| Build errors              | Run `pnpm build` to check for TypeScript issues                             |
+| Build errors              | Run `pnpm type-check` to check for TypeScript issues                        |
+| Wrangler issues in logs   | Run `rm -rf .wrangler`                                                      |
 
 ## Why Anode Works
 
