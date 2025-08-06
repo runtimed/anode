@@ -82,13 +82,12 @@ export const mockEvents = {
     },
   },
   cellCreated: {
-    name: "v1.CellCreated",
+    name: "v2.CellCreated",
     args: {
       id: mockCellData.id,
-      notebookId: mockCellData.notebookId,
-      source: mockCellData.source,
+      fractionalIndex: "a0",
       cellType: mockCellData.cellType,
-      position: mockCellData.position,
+      createdBy: mockCellData.createdBy,
     },
   },
   executionRequested: {

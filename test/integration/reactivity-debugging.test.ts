@@ -63,10 +63,10 @@ describe("Reactivity Debugging", () => {
       const queueId = "test-queue";
 
       store.commit(
-        events.cellCreated({
+        events.cellCreated2({
           id: cellId,
           cellType: "code",
-          position: 0,
+          fractionalIndex: "a0",
           createdBy: "test-user",
         })
       );
@@ -132,10 +132,10 @@ describe("Reactivity Debugging", () => {
 
       // Add data to trigger updates
       store.commit(
-        events.cellCreated({
+        events.cellCreated2({
           id: "multi-sub-cell",
           cellType: "code",
-          position: 0,
+          fractionalIndex: "a0",
           createdBy: "test-user",
         })
       );
@@ -217,10 +217,10 @@ describe("Reactivity Debugging", () => {
 
       // Add data that should trigger the good query
       store.commit(
-        events.cellCreated({
+        events.cellCreated2({
           id: "error-test-cell",
           cellType: "code",
-          position: 0,
+          fractionalIndex: "a0",
           createdBy: "test-user",
         })
       );
@@ -248,7 +248,7 @@ describe("Reactivity Debugging", () => {
             cellCount: cells.length,
             cells: cells.map((c) => ({
               id: c.id,
-              position: c.position,
+              fractionalIndex: c.fractionalIndex,
             })),
           });
         },
@@ -261,10 +261,10 @@ describe("Reactivity Debugging", () => {
 
         operations.push(() =>
           store.commit(
-            events.cellCreated({
+            events.cellCreated2({
               id: cellId,
               cellType: "code",
-              position: i,
+              fractionalIndex: `a${i.toString(36)}`,
               createdBy: "test-user",
             })
           )
@@ -273,9 +273,9 @@ describe("Reactivity Debugging", () => {
         if (i > 0) {
           operations.push(() =>
             store.commit(
-              events.cellMoved({
+              events.cellMoved2({
                 id: `rapid-${i - 1}`,
-                newPosition: i * 10,
+                fractionalIndex: `b${(i * 10).toString(36)}`,
               })
             )
           );
@@ -381,10 +381,10 @@ describe("Reactivity Debugging", () => {
       const queueId = "dependency-test-queue";
 
       store.commit(
-        events.cellCreated({
+        events.cellCreated2({
           id: cellId,
           cellType: "code",
-          position: 0,
+          fractionalIndex: "a0",
           createdBy: "test-user",
         })
       );
@@ -446,7 +446,9 @@ describe("Reactivity Debugging", () => {
         // Create multiple subscriptions
         for (let i = 0; i < 3; i++) {
           const query$ = queryDb(
-            tables.cells.select().where({ position: { op: ">=", value: i } }),
+            tables.cells.select().where({
+              fractionalIndex: { op: ">=", value: `a${i.toString(36)}` },
+            }),
             { label: `memoryTestQuery-${cycle}-${i}` }
           );
 
@@ -464,10 +466,10 @@ describe("Reactivity Debugging", () => {
           const cellId = `memory-test-${cycle}-${op}`;
 
           store.commit(
-            events.cellCreated({
+            events.cellCreated2({
               id: cellId,
               cellType: "code",
-              position: op,
+              fractionalIndex: "a0",
               createdBy: "test-user",
             })
           );
@@ -570,10 +572,10 @@ describe("Reactivity Debugging", () => {
 
       // Add some valid data
       store.commit(
-        events.cellCreated({
+        events.cellCreated2({
           id: "recovery-cell-1",
           cellType: "code",
-          position: 0,
+          fractionalIndex: "a0",
           createdBy: "test-user",
         })
       );
@@ -583,10 +585,10 @@ describe("Reactivity Debugging", () => {
 
       // Add more valid data after potential error
       store.commit(
-        events.cellCreated({
+        events.cellCreated2({
           id: "recovery-cell-2",
           cellType: "code",
-          position: 1,
+          fractionalIndex: "a1",
           createdBy: "test-user",
         })
       );
@@ -614,10 +616,10 @@ describe("Reactivity Debugging", () => {
 
       // Add some data
       store.commit(
-        events.cellCreated({
+        events.cellCreated2({
           id: "shutdown-test-cell",
           cellType: "code",
-          position: 0,
+          fractionalIndex: "a0",
           createdBy: "test-user",
         })
       );
