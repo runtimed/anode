@@ -5,7 +5,7 @@ import {
   events,
   tables,
   createCellBetween,
-  moveCellBetween,
+  moveCellBetweenWithRebalancing,
   queries,
   CellReference,
 } from "@/schema";
@@ -145,19 +145,21 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
       }
 
       // Create cell using the new API
-      const cellCreatedEvent = createCellBetween(
+      const cellCreationResult = createCellBetween(
         {
           id: newCellId,
           cellType,
           createdBy: userId,
         },
         cellBefore,
-        cellAfter
+        cellAfter,
+        cellReferences // Pass current cell state for rebalancing context
       );
 
       // toast.success("Cell created successfully!");
 
-      store.commit(cellCreatedEvent);
+      // Commit all events (may include automatic rebalancing)
+      cellCreationResult.events.forEach((event) => store.commit(event));
 
       // Set default AI model for AI cells based on last used model
       if (cellType === "ai" && aiProvider && aiModel) {
@@ -273,15 +275,17 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
         }
       }
 
-      const moveEvent = moveCellBetween(
+      const moveResult = moveCellBetweenWithRebalancing(
         currentCell,
         cellBefore,
         cellAfter,
+        cellReferences, // Pass current cell state for rebalancing context
         userId
       );
 
-      if (moveEvent) {
-        store.commit(moveEvent);
+      if (moveResult.moved) {
+        // Commit all events (may include automatic rebalancing)
+        moveResult.events.forEach((event) => store.commit(event));
       } else {
         // Cell already in target position or invalid move
       }
