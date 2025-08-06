@@ -52,7 +52,12 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
   const { models } = useAvailableAiModels();
 
   const cells = useQuery(
-    queryDb(tables.cells.select().orderBy("fractionalIndex", "asc"))
+    queryDb(
+      tables.cells
+        .select()
+        .orderBy("fractionalIndex", "asc")
+        .orderBy("id", "asc")
+    )
   );
 
   // Check for cells without fractionalIndex and log warning
@@ -247,6 +252,26 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
       if (direction === "down" && currentIndex === cells.length - 1) {
         console.log("Cannot move cell down - already at bottom");
         return;
+      }
+
+      // Check for duplicate fractional indices
+      const duplicates = cells.filter(
+        (c) =>
+          c.fractionalIndex === currentCell.fractionalIndex &&
+          c.id !== currentCell.id
+      );
+      if (duplicates.length > 0) {
+        console.warn("Duplicate fractionalIndex detected:", {
+          currentCell: {
+            id: currentCell.id,
+            index: currentCell.fractionalIndex,
+          },
+          duplicates: duplicates.map((d) => ({
+            id: d.id,
+            index: d.fractionalIndex,
+          })),
+        });
+        // TODO: Consider auto-fixing by regenerating indices for duplicates
       }
 
       // Determine the before and after cells based on direction
