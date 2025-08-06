@@ -45,6 +45,7 @@ const MemoizedCell = React.memo(Cell, (prevProps, nextProps) => {
     prevProps.cell.aiContextVisible === nextProps.cell.aiContextVisible &&
     prevProps.cell.aiProvider === nextProps.cell.aiProvider &&
     prevProps.cell.aiModel === nextProps.cell.aiModel &&
+    prevProps.cell.fractionalIndex === nextProps.cell.fractionalIndex &&
     prevProps.autoFocus === nextProps.autoFocus &&
     prevProps.contextSelectionMode === nextProps.contextSelectionMode
   );
@@ -73,7 +74,7 @@ export const VirtualizedCellList: React.FC<VirtualizedCellListProps> = ({
   const cellRefs = useRef<Map<string, HTMLDivElement>>(new Map());
   const [heightsVersion, setHeightsVersion] = useState(0);
 
-  // Cells are already sorted by database query (orderBy("position", "asc"))
+  // Cells are already sorted by database query (orderBy("fractionalIndex", "asc"))
   // Memoize cells array to prevent unnecessary recalculations
   const memoizedCells = useMemo(() => cells, [cells]);
 

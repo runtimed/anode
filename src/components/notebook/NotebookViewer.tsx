@@ -1,7 +1,13 @@
 import { queryDb } from "@livestore/livestore";
 import { useQuery, useStore } from "@livestore/react";
-import { CellData, events, tables } from "@/schema";
-import React, { Suspense, useCallback } from "react";
+import {
+  CellData,
+  events,
+  tables,
+  createCellBetween,
+  moveCellBetween,
+} from "@/schema";
+import React, { Suspense, useCallback, useRef } from "react";
 import { ErrorBoundary } from "react-error-boundary";
 
 import { NotebookTitle } from "./NotebookTitle.js";
@@ -51,8 +57,21 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
   const { models } = useAvailableAiModels();
 
   const cells = useQuery(
-    queryDb(tables.cells.select().orderBy("position", "asc"))
+    queryDb(
+      tables.cells
+        .select()
+        .orderBy("fractionalIndex", "asc")
+        .orderBy("id", "asc")
+    )
   );
+
+  // Check for cells without fractionalIndex and log warning
+  React.useEffect(() => {
+    const cellsWithoutIndex = cells.filter((c) => !c.fractionalIndex);
+    if (cellsWithoutIndex.length > 0) {
+      // Legacy cells without fractionalIndex - will be migrated on first move
+    }
+  }, [cells]);
   const lastUsedAiModel =
     useQuery(
       queryDb(
@@ -95,39 +114,6 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
         .toString(36)
         .slice(2)}`;
 
-      let newPosition: number;
-      if (cellId) {
-        // Find the current cell and insert after it
-        const currentCell = cells.find((c: CellData) => c.id === cellId);
-        if (currentCell) {
-          if (position === "before") {
-            newPosition = currentCell.position;
-          } else {
-            newPosition = currentCell.position + 1;
-          }
-          // Shift all subsequent cells down by 1
-          const cellsToShift = cells.filter(
-            (c: CellData) => c.position >= newPosition
-          );
-          cellsToShift.forEach((cell: CellData) => {
-            store.commit(
-              events.cellMoved({
-                id: cell.id,
-                newPosition: cell.position + 1,
-              })
-            );
-          });
-        } else {
-          // Fallback: add at end
-          newPosition =
-            Math.max(...cells.map((c: CellData) => c.position), -1) + 1;
-        }
-      } else {
-        // Add at end
-        newPosition =
-          Math.max(...cells.map((c: CellData) => c.position), -1) + 1;
-      }
-
       // Get default AI model if creating an AI cell
       let aiProvider, aiModel;
       if (cellType === "ai") {
@@ -142,15 +128,52 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
         }
       }
 
-      store.commit(
-        events.cellCreated({
+      // Find adjacent cells for proper positioning
+      const sortedCells = [...cells]
+        .filter((c) => c.fractionalIndex)
+        .sort((a, b) => {
+          if (a.fractionalIndex! < b.fractionalIndex!) return -1;
+          if (a.fractionalIndex! > b.fractionalIndex!) return 1;
+          return a.id.localeCompare(b.id);
+        });
+
+      let cellBefore = null;
+      let cellAfter = null;
+
+      if (cellId) {
+        const targetIndex = sortedCells.findIndex((c) => c.id === cellId);
+        if (targetIndex >= 0) {
+          if (position === "before") {
+            // Insert before the target cell
+            cellAfter = sortedCells[targetIndex];
+            cellBefore = targetIndex > 0 ? sortedCells[targetIndex - 1] : null;
+          } else {
+            // Insert after the target cell
+            cellBefore = sortedCells[targetIndex];
+            cellAfter =
+              targetIndex < sortedCells.length - 1
+                ? sortedCells[targetIndex + 1]
+                : null;
+          }
+        }
+      } else if (position === "after") {
+        // No cellId specified, insert at the end
+        cellBefore =
+          sortedCells.length > 0 ? sortedCells[sortedCells.length - 1] : null;
+      }
+
+      // Create cell using the new API
+      const cellCreatedEvent = createCellBetween(
+        {
           id: newCellId,
-          position: newPosition,
           cellType,
           createdBy: userId,
-          actorId: userId,
-        })
+        },
+        cellBefore,
+        cellAfter
       );
+
+      store.commit(cellCreatedEvent);
 
       // Set default AI model for AI cells based on last used model
       if (cellType === "ai" && aiProvider && aiModel) {
@@ -188,52 +211,97 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
     [store, userId]
   );
 
+  // Track if a move operation is in progress to prevent race conditions
+  const movingRef = useRef(false);
+
   const moveCell = useCallback(
     (cellId: string, direction: "up" | "down") => {
-      const currentCell = cells.find((c: CellData) => c.id === cellId);
-      if (!currentCell) return;
+      // Prevent concurrent moves
+      if (movingRef.current) {
+        return;
+      }
+      movingRef.current = true;
 
-      const currentIndex = cells.findIndex((c: CellData) => c.id === cellId);
+      // Cells are already sorted by fractionalIndex from the database query
+      const currentIndex = cells.findIndex((c) => c.id === cellId);
+      if (currentIndex === -1) {
+        return;
+      }
 
-      if (direction === "up" && currentIndex > 0) {
-        const targetCell = cells[currentIndex - 1];
-        if (targetCell) {
-          // Swap positions
-          store.commit(
-            events.cellMoved({
-              id: cellId,
-              newPosition: targetCell.position,
-              actorId: userId,
-            })
-          );
-          store.commit(
-            events.cellMoved({
-              id: targetCell.id,
-              newPosition: currentCell.position,
-              actorId: userId,
-            })
-          );
-        }
-      } else if (direction === "down" && currentIndex < cells.length - 1) {
-        const targetCell = cells[currentIndex + 1];
-        if (targetCell) {
-          // Swap positions
-          store.commit(
-            events.cellMoved({
-              id: cellId,
-              newPosition: targetCell.position,
-              actorId: userId,
-            })
-          );
-          store.commit(
-            events.cellMoved({
-              id: targetCell.id,
-              newPosition: currentCell.position,
-              actorId: userId,
-            })
-          );
+      const currentCell = cells[currentIndex];
+      if (!currentCell.fractionalIndex) {
+        return;
+      }
+
+      // Check boundaries
+      if (direction === "up" && currentIndex === 0) {
+        return;
+      }
+      if (direction === "down" && currentIndex === cells.length - 1) {
+        return;
+      }
+
+      // Check for duplicate fractional indices
+      const duplicates = cells.filter(
+        (c) =>
+          c.fractionalIndex === currentCell.fractionalIndex &&
+          c.id !== currentCell.id
+      );
+      if (duplicates.length > 0) {
+        // Skip move if duplicate indices exist to prevent ordering issues
+        return;
+      }
+
+      // Determine the before and after cells based on direction
+      // With fractional indexing, we place the cell between its new neighbors
+      let cellBefore: CellData | null = null;
+      let cellAfter: CellData | null = null;
+
+      if (direction === "up") {
+        // Moving up: place between the cell 2 positions up and 1 position up
+        cellBefore = currentIndex >= 2 ? cells[currentIndex - 2] : null;
+        cellAfter = cells[currentIndex - 1];
+      } else {
+        // Moving down: place between the cell 1 position down and 2 positions down
+        cellBefore = cells[currentIndex + 1];
+        cellAfter =
+          currentIndex < cells.length - 2 ? cells[currentIndex + 2] : null;
+      }
+
+      // Use moveCellBetween to calculate the new position
+
+      // Verify the ordering makes sense
+      if (
+        cellBefore &&
+        cellAfter &&
+        cellBefore.fractionalIndex &&
+        cellAfter.fractionalIndex
+      ) {
+        const correctOrder =
+          cellBefore.fractionalIndex < cellAfter.fractionalIndex;
+        if (!correctOrder) {
+          // Invalid order detected - skip the move
+          return;
         }
       }
+
+      const moveEvent = moveCellBetween(
+        currentCell,
+        cellBefore,
+        cellAfter,
+        userId
+      );
+
+      if (moveEvent) {
+        store.commit(moveEvent);
+      } else {
+        // Cell already in target position or invalid move
+      }
+
+      // Reset the moving flag after a short delay to allow for database updates
+      setTimeout(() => {
+        movingRef.current = false;
+      }, 100);
     },
     [cells, store, userId]
   );
