@@ -1,6 +1,7 @@
 @import "tailwindcss";
 @plugin "@tailwindcss/typography";
 @import "tw-animate-css";
+@source "../../src/components/outputs/AnsiOutput.tsx";
 
 :root {
   --dataframe-border: 1px solid #e5e7eb;
