@@ -1,6 +1,8 @@
 // Copied from @runt/schema's mod.ts
 import { Events, Schema, SessionIdSymbol, State } from "@livestore/livestore";
 
+console.log("720PM");
+
 /**
  * CLIENT AUTHENTICATION PATTERNS
  *
@@ -1121,15 +1123,6 @@ export const materializers = State.SQLite.materializers(events, {
     return ops;
   },
 
-  "v2.CellMoved": ({ id, fractionalIndex, actorId }) => {
-    const ops = [];
-    ops.push(tables.cells.update({ fractionalIndex }).where({ id }));
-    if (actorId) {
-      ops.push(updatePresence(actorId, id));
-    }
-    return ops;
-  },
-
   "v1.CellSourceVisibilityToggled": ({ id, sourceVisible, actorId }) => {
     const ops = [];
     ops.push(tables.cells.update({ sourceVisible }).where({ id }));
@@ -1139,12 +1132,37 @@ export const materializers = State.SQLite.materializers(events, {
     return ops;
   },
 
-  "v1.CellOutputVisibilityToggled": ({ id, outputVisible, actorId }) => {
+  "v2.CellMoved": ({ id, fractionalIndex, actorId }) => {
+    console.log("[Materializer v2.CellMoved] Running with:", {
+      id,
+      fractionalIndex,
+      actorId,
+    });
+
     const ops = [];
-    ops.push(tables.cells.update({ outputVisible }).where({ id }));
+
+    // Log the update operation
+    console.log("[Materializer v2.CellMoved] Creating update operation:", {
+      table: "cells",
+      update: { fractionalIndex },
+      where: { id },
+    });
+
+    ops.push(tables.cells.update({ fractionalIndex }).where({ id }));
+
     if (actorId) {
+      console.log(
+        "[Materializer v2.CellMoved] Adding presence update for actorId:",
+        actorId
+      );
       ops.push(updatePresence(actorId, id));
     }
+
+    console.log(
+      "[Materializer v2.CellMoved] Returning",
+      ops.length,
+      "operations"
+    );
     return ops;
   },
 
@@ -2096,6 +2114,9 @@ export function moveCellBetween(
 ): ReturnType<typeof events.cellMoved2> | null {
   // Cell must have a valid fractional index to be moved
   if (!cell.fractionalIndex) {
+    console.log(
+      "[moveCellBetween] Cell has no fractionalIndex, returning null"
+    );
     return null;
   }
 
@@ -2103,23 +2124,46 @@ export function moveCellBetween(
   const previousKey = cellBefore?.fractionalIndex || null;
   const nextKey = cellAfter?.fractionalIndex || null;
 
+  console.log("[moveCellBetween] Called with:", {
+    cellId: cell.id,
+    cellIndex: cell.fractionalIndex,
+    previousKey,
+    nextKey,
+  });
+
   // Check if already in the target position
   if (cellBefore && cellAfter) {
     // If between two cells, check if we're already there
-    if (
-      cell.fractionalIndex > previousKey! &&
-      cell.fractionalIndex < nextKey!
-    ) {
+    const isBetween =
+      cell.fractionalIndex > previousKey! && cell.fractionalIndex < nextKey!;
+    console.log("[moveCellBetween] Checking if between two cells:", {
+      condition: `${previousKey} < ${cell.fractionalIndex} < ${nextKey}`,
+      isBetween,
+    });
+    if (isBetween) {
+      console.log("[moveCellBetween] Already in position, returning null");
       return null;
     }
   } else if (!cellBefore && cellAfter) {
     // Moving to beginning - check if already before cellAfter
-    if (cell.fractionalIndex < nextKey!) {
+    const isBefore = cell.fractionalIndex < nextKey!;
+    console.log("[moveCellBetween] Checking if before cellAfter:", {
+      condition: `${cell.fractionalIndex} < ${nextKey}`,
+      isBefore,
+    });
+    if (isBefore) {
+      console.log("[moveCellBetween] Already at beginning, returning null");
       return null;
     }
   } else if (cellBefore && !cellAfter) {
     // Moving to end - check if already after cellBefore
-    if (cell.fractionalIndex > previousKey!) {
+    const isAfter = cell.fractionalIndex > previousKey!;
+    console.log("[moveCellBetween] Checking if after cellBefore:", {
+      condition: `${cell.fractionalIndex} > ${previousKey}`,
+      isAfter,
+    });
+    if (isAfter) {
+      console.log("[moveCellBetween] Already at end, returning null");
       return null;
     }
   }
@@ -2129,6 +2173,12 @@ export function moveCellBetween(
     nextKey,
     jitterProvider
   );
+
+  console.log("[moveCellBetween] Generated new fractionalIndex:", {
+    previousKey,
+    nextKey,
+    newIndex: fractionalIndex,
+  });
 
   return events.cellMoved2({
     id: cell.id,

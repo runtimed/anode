@@ -54,6 +54,28 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
   const cells = useQuery(
     queryDb(tables.cells.select().orderBy("fractionalIndex", "asc"))
   );
+
+  // Check for cells without fractionalIndex and log warning
+  React.useEffect(() => {
+    const cellsWithoutIndex = cells.filter((c) => !c.fractionalIndex);
+    if (cellsWithoutIndex.length > 0) {
+      console.warn(
+        `[NotebookViewer] Found ${cellsWithoutIndex.length} cells without fractionalIndex:`,
+        cellsWithoutIndex.map((c) => ({ id: c.id, position: c.position }))
+      );
+
+      // Log current cell state
+      console.log(
+        "[NotebookViewer] All cells:",
+        cells.map((c) => ({
+          id: c.id,
+          fractionalIndex: c.fractionalIndex,
+          position: c.position,
+          cellType: c.cellType,
+        }))
+      );
+    }
+  }, [cells]);
   const lastUsedAiModel =
     useQuery(
       queryDb(
@@ -211,7 +233,7 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
         id: c.id,
         fractionalIndex: c.fractionalIndex,
       }));
-      console.log(cellInfo);
+      console.log(JSON.stringify(cellInfo, null, 2));
 
       // Check if cells are properly sorted
       const sortedCells = [...cells].sort((a, b) => {
@@ -274,34 +296,49 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
       }
 
       console.log(`Moving cell ${direction} from index ${currentIndex}`);
-      console.log({
-        current: { id: currentCell.id, index: currentCell.fractionalIndex },
-        direction,
-        cellBefore: cellBefore
-          ? { id: cellBefore.id, index: cellBefore.fractionalIndex }
-          : null,
-        cellAfter: cellAfter
-          ? { id: cellAfter.id, index: cellAfter.fractionalIndex }
-          : null,
-        currentIndex,
-        totalCells: cells.length,
-      });
+      console.log(
+        JSON.stringify(
+          {
+            current: { id: currentCell.id, index: currentCell.fractionalIndex },
+            direction,
+            cellBefore: cellBefore
+              ? { id: cellBefore.id, index: cellBefore.fractionalIndex }
+              : null,
+            cellAfter: cellAfter
+              ? { id: cellAfter.id, index: cellAfter.fractionalIndex }
+              : null,
+            currentIndex,
+            totalCells: cells.length,
+          },
+          null,
+          2
+        )
+      );
 
       // Use moveCellBetween to calculate the new position
       console.log("Calling moveCellBetween with:");
-      console.log({
-        currentCell: {
-          id: currentCell.id,
-          fractionalIndex: currentCell.fractionalIndex,
-        },
-        cellBefore: cellBefore
-          ? { id: cellBefore.id, fractionalIndex: cellBefore.fractionalIndex }
-          : null,
-        cellAfter: cellAfter
-          ? { id: cellAfter.id, fractionalIndex: cellAfter.fractionalIndex }
-          : null,
-        userId,
-      });
+      console.log(
+        JSON.stringify(
+          {
+            currentCell: {
+              id: currentCell.id,
+              fractionalIndex: currentCell.fractionalIndex,
+            },
+            cellBefore: cellBefore
+              ? {
+                  id: cellBefore.id,
+                  fractionalIndex: cellBefore.fractionalIndex,
+                }
+              : null,
+            cellAfter: cellAfter
+              ? { id: cellAfter.id, fractionalIndex: cellAfter.fractionalIndex }
+              : null,
+            userId,
+          },
+          null,
+          2
+        )
+      );
 
       // Verify the ordering makes sense
       if (
@@ -327,49 +364,75 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
         userId
       );
 
-      console.log("moveEvent result:", moveEvent);
+      console.log("moveEvent result:", JSON.stringify(moveEvent, null, 2));
 
       if (moveEvent) {
         console.log("Committing moveEvent");
 
         // Debug: Check if the event type is registered
-        console.log("Event being committed:", {
-          eventName: moveEvent.name,
-          eventArgs: moveEvent.args,
-        });
+        console.log(
+          "Event being committed:",
+          JSON.stringify(
+            {
+              eventName: moveEvent.name,
+              eventArgs: moveEvent.args,
+            },
+            null,
+            2
+          )
+        );
 
         store.commit(moveEvent);
 
         // Check if the cell's fractionalIndex updates after commit
         // First check immediately
         const immediateCell = cells.find((c) => c.id === currentCell.id);
-        console.log("Cell immediately after commit:", {
-          id: immediateCell?.id,
-          fractionalIndex: immediateCell?.fractionalIndex,
-          expectedIndex: moveEvent.args.fractionalIndex,
-        });
+        console.log(
+          "Cell immediately after commit:",
+          JSON.stringify(
+            {
+              id: immediateCell?.id,
+              fractionalIndex: immediateCell?.fractionalIndex,
+              expectedIndex: moveEvent.args.fractionalIndex,
+            },
+            null,
+            2
+          )
+        );
 
         // Then check after a delay
         setTimeout(() => {
           const updatedCell = cells.find((c) => c.id === currentCell.id);
-          console.log("Cell after commit:", {
-            id: updatedCell?.id,
-            oldIndex: currentCell.fractionalIndex,
-            newIndex: updatedCell?.fractionalIndex,
-            expectedIndex: moveEvent.args.fractionalIndex,
-            matches:
-              updatedCell?.fractionalIndex === moveEvent.args.fractionalIndex,
-          });
+          console.log(
+            "Cell after commit:",
+            JSON.stringify(
+              {
+                id: updatedCell?.id,
+                oldIndex: currentCell.fractionalIndex,
+                newIndex: updatedCell?.fractionalIndex,
+                expectedIndex: moveEvent.args.fractionalIndex,
+                matches:
+                  updatedCell?.fractionalIndex ===
+                  moveEvent.args.fractionalIndex,
+              },
+              null,
+              2
+            )
+          );
 
           // Log all cells to see if order changed
           console.log("All cells after commit:");
           console.log(
-            cells.map((c, i) => ({
-              index: i,
-              id: c.id,
-              fractionalIndex: c.fractionalIndex,
-              isMovedCell: c.id === currentCell.id,
-            }))
+            JSON.stringify(
+              cells.map((c, i) => ({
+                index: i,
+                id: c.id,
+                fractionalIndex: c.fractionalIndex,
+                isMovedCell: c.id === currentCell.id,
+              })),
+              null,
+              2
+            )
           );
         }, 50);
       } else {
@@ -387,12 +450,19 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
 
         // Final check - query the database directly
         const finalCell = cells.find((c) => c.id === currentCell.id);
-        console.log("Final cell state after 100ms:", {
-          id: finalCell?.id,
-          fractionalIndex: finalCell?.fractionalIndex,
-          stillStuck:
-            finalCell?.fractionalIndex === currentCell.fractionalIndex,
-        });
+        console.log(
+          "Final cell state after 100ms:",
+          JSON.stringify(
+            {
+              id: finalCell?.id,
+              fractionalIndex: finalCell?.fractionalIndex,
+              stillStuck:
+                finalCell?.fractionalIndex === currentCell.fractionalIndex,
+            },
+            null,
+            2
+          )
+        );
       }, 100);
     },
     [cells, store, userId]
