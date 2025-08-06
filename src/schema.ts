@@ -1,6 +1,8 @@
 import { makeSchema, State, Store as LiveStore } from "@livestore/livestore";
 import * as RuntSchema from "@runt/schema";
 
+export * as queries from "@runt/schema/queries";
+
 // Create the schema using the factory pattern
 const state = State.SQLite.makeState({
   tables: RuntSchema.tables,
@@ -8,6 +10,11 @@ const state = State.SQLite.makeState({
 });
 export const schema = makeSchema({ events: RuntSchema.events, state });
 export type Store = LiveStore<typeof schema>;
+
+// Overriding for now to include a cell type
+export type CellReference = RuntSchema.CellReference & {
+  cellType: RuntSchema.CellType;
+};
 
 export type {
   // Re-export types
