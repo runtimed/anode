@@ -211,13 +211,33 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
 
       // Log cell array to debug ordering
       console.log("Current cell order before move:");
-      console.log(
-        cells.map((c, i) => ({
-          index: i,
-          id: c.id,
-          fractionalIndex: c.fractionalIndex,
-        }))
+      const cellInfo = cells.map((c, i) => ({
+        index: i,
+        id: c.id,
+        fractionalIndex: c.fractionalIndex,
+      }));
+      console.log(cellInfo);
+
+      // Check if cells are properly sorted
+      const sortedCells = [...cells].sort((a, b) => {
+        if (!a.fractionalIndex || !b.fractionalIndex) return 0;
+        return a.fractionalIndex.localeCompare(b.fractionalIndex);
+      });
+      const isProperlyOrdered = cells.every(
+        (cell, i) => cell.id === sortedCells[i].id
       );
+
+      if (!isProperlyOrdered) {
+        console.warn("❌ CELLS ARE NOT PROPERLY ORDERED!");
+        console.log("Expected order:");
+        console.log(
+          sortedCells.map((c, i) => ({
+            index: i,
+            id: c.id,
+            fractionalIndex: c.fractionalIndex,
+          }))
+        );
+      }
 
       // Cells are already sorted by fractionalIndex from the database query
       const currentIndex = cells.findIndex((c) => c.id === cellId);
@@ -288,6 +308,23 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
         userId,
       });
 
+      // Verify the ordering makes sense
+      if (
+        cellBefore &&
+        cellAfter &&
+        cellBefore.fractionalIndex &&
+        cellAfter.fractionalIndex
+      ) {
+        const correctOrder =
+          cellBefore.fractionalIndex < cellAfter.fractionalIndex;
+        if (!correctOrder) {
+          console.error("❌ INVALID ORDER: cellBefore > cellAfter!", {
+            before: cellBefore.fractionalIndex,
+            after: cellAfter.fractionalIndex,
+          });
+        }
+      }
+
       const moveEvent = moveCellBetween(
         currentCell,
         cellBefore,
@@ -299,9 +336,25 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
 
       if (moveEvent) {
         console.log("Committing moveEvent");
+
+        // Debug: Check if the event type is registered
+        console.log("Event being committed:", {
+          eventName: moveEvent.name,
+          eventArgs: moveEvent.args,
+        });
+
         store.commit(moveEvent);
 
         // Check if the cell's fractionalIndex updates after commit
+        // First check immediately
+        const immediateCell = cells.find((c) => c.id === currentCell.id);
+        console.log("Cell immediately after commit:", {
+          id: immediateCell?.id,
+          fractionalIndex: immediateCell?.fractionalIndex,
+          expectedIndex: moveEvent.args.fractionalIndex,
+        });
+
+        // Then check after a delay
         setTimeout(() => {
           const updatedCell = cells.find((c) => c.id === currentCell.id);
           console.log("Cell after commit:", {
@@ -336,6 +389,15 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
       // Reset the moving flag after a short delay to allow for database updates
       setTimeout(() => {
         movingRef.current = false;
+
+        // Final check - query the database directly
+        const finalCell = cells.find((c) => c.id === currentCell.id);
+        console.log("Final cell state after 100ms:", {
+          id: finalCell?.id,
+          fractionalIndex: finalCell?.fractionalIndex,
+          stillStuck:
+            finalCell?.fractionalIndex === currentCell.fractionalIndex,
+        });
       }, 100);
     },
     [cells, store, userId]
