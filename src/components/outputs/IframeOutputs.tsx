@@ -1,9 +1,13 @@
 import { groupConsecutiveStreamOutputs } from "@/util/output-grouping";
 import { OutputData } from "@runt/schema";
 import { IframeOutput2 } from "./IframeOutput2";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
+import { SingleOutput } from "./SingleOutput";
+import { Button } from "../ui/button";
 
 export const IframeOutputs = ({ outputs }: { outputs: OutputData[] }) => {
+  const [shouldUseIframe, setShouldUseIframe] = useState(true);
+
   // Apply grouping strategy based on cell type
   const processedOutputs = useMemo(
     () =>
@@ -15,21 +19,25 @@ export const IframeOutputs = ({ outputs }: { outputs: OutputData[] }) => {
 
   return (
     <div>
-      {/* IframeOutputs: {processedOutputs.length} */}
-      {/* <ReactJsonView src={processedOutputs} collapsed={1} /> */}
-      <IframeOutput2 outputs={processedOutputs} isReact />
-      {/* {processedOutputs.map((output: OutputData, index: number) => (
-        <div
-          key={output.id}
-          className={index > 0 ? "border-border/30 mt-2 border-t pt-2" : ""}
-        >
-          <SingleOutput
-            output={output}
-            enableErrorOutput={enableErrorOutput}
-            mobileStyle={mobileStyle}
-          />
-        </div>
-      ))} */}
+      <Button
+        size="xs"
+        variant="outline"
+        onClick={() => setShouldUseIframe(!shouldUseIframe)}
+      >
+        {shouldUseIframe ? "Render directly" : "Use iframe"}
+      </Button>
+      {shouldUseIframe ? (
+        <IframeOutput2 outputs={processedOutputs} isReact />
+      ) : (
+        processedOutputs.map((output: OutputData, index: number) => (
+          <div
+            key={output.id}
+            className={index > 0 ? "border-border/30 mt-2 border-t pt-2" : ""}
+          >
+            <SingleOutput output={output} mobileStyle="default" />
+          </div>
+        ))
+      )}
     </div>
   );
 };

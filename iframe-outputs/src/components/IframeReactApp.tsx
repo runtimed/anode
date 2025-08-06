@@ -1,10 +1,8 @@
-import React, { useEffect, useState } from "react";
+import { AnsiStreamOutput } from "@/components/outputs/AnsiOutput";
+import { RichOutput } from "@/components/outputs/RichOutput";
 import { OutputData } from "@/schema";
 import ReactJsonView from "@microlink/react-json-view";
-import {
-  AnsiErrorOutput,
-  AnsiStreamOutput,
-} from "@/components/outputs/AnsiOutput";
+import React, { useEffect, useState } from "react";
 
 interface IframeMessage {
   type: string;
@@ -81,61 +79,47 @@ export const IframeReactApp: React.FC = () => {
 };
 
 function Output({ output }: { output: OutputData }) {
+  if (output.representations?.["application/json"]) {
+    return (
+      <ReactJsonView
+        key={output.id}
+        src={(output.representations["application/json"] as any).data}
+        theme="rjv-default"
+        collapsed={false}
+        displayDataTypes={false}
+        displayObjectSize={false}
+        enableClipboard={true}
+        indentWidth={2}
+        iconStyle="triangle"
+        style={{
+          backgroundColor: "transparent",
+          fontSize: "0.875rem",
+        }}
+      />
+    );
+  }
+
   switch (output.outputType) {
-    case "terminal":
-      return (
-        <AnsiStreamOutput
-          key={output.id}
-          text={output.data ?? ""}
-          streamName={output.streamName as "stdout" | "stderr"}
-        />
-      );
-    case "multimedia_display":
+    case "markdown":
       return (
         <div
           key={output.id}
           dangerouslySetInnerHTML={{ __html: output.data ?? "" }}
         />
       );
-    case "error": {
-      let errorData;
-      try {
-        errorData =
-          typeof output.data === "string"
-            ? JSON.parse(output.data)
-            : output.data;
-      } catch {
-        errorData = {
-          ename: "Error",
-          evalue: String(output.data),
-          traceback: [],
-        };
-      }
+    case "multimedia_display":
+    case "multimedia_result":
+    case "error":
       return (
-        <AnsiErrorOutput
-          key={output.id}
-          ename={errorData?.ename}
-          evalue={errorData?.evalue}
-          traceback={errorData?.traceback || []}
-        />
+        <RichOutput output={{ ...output, outputType: output.outputType }} />
       );
-    }
+    case "terminal":
     default:
       return (
-        <ReactJsonView
+        <AnsiStreamOutput
           key={output.id}
-          src={output}
-          theme="rjv-default"
-          collapsed={true}
-          displayDataTypes={false}
-          displayObjectSize={false}
-          enableClipboard={true}
-          indentWidth={2}
-          iconStyle="triangle"
-          style={{
-            backgroundColor: "transparent",
-            fontSize: "0.875rem",
-          }}
+          text={output.data ?? ""}
+          streamName={output.streamName as "stdout" | "stderr"}
         />
       );
   }

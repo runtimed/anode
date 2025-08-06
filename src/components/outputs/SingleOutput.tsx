@@ -1,6 +1,7 @@
-import { MediaContainer, OutputData } from "@runt/schema";
+import { OutputData } from "@runt/schema";
+import { AnsiStreamOutput } from "./AnsiOutput";
 import { RichOutput } from "./RichOutput";
-import { AnsiErrorOutput, AnsiStreamOutput } from "./AnsiOutput";
+import ReactJsonView from "@microlink/react-json-view";
 
 export function SingleOutput({
   output,
@@ -9,23 +10,22 @@ export function SingleOutput({
   output: OutputData;
   mobileStyle: "default" | "chat-bubble";
 }) {
-  if (output.outputType === "error" && enableErrorOutput) {
-    let errorData;
-    try {
-      errorData =
-        typeof output.data === "string" ? JSON.parse(output.data) : output.data;
-    } catch {
-      errorData = {
-        ename: "Error",
-        evalue: String(output.data),
-        traceback: [],
-      };
-    }
+  if (output.representations?.["application/json"]) {
     return (
-      <AnsiErrorOutput
-        ename={errorData?.ename}
-        evalue={errorData?.evalue}
-        traceback={errorData?.traceback || []}
+      <ReactJsonView
+        key={output.id}
+        src={(output.representations["application/json"] as any).data}
+        theme="rjv-default"
+        collapsed={false}
+        displayDataTypes={false}
+        displayObjectSize={false}
+        enableClipboard={true}
+        indentWidth={2}
+        iconStyle="triangle"
+        style={{
+          backgroundColor: "transparent",
+          fontSize: "0.875rem",
+        }}
       />
     );
   }
@@ -34,7 +34,6 @@ export function SingleOutput({
   if (output.outputType === "terminal") {
     return (
       <div className="max-w-full overflow-hidden py-2">
-        ansi stream output
         <AnsiStreamOutput
           text={output.data || ""}
           streamName={(output.streamName as "stdout" | "stderr") || "stdout"}
@@ -45,18 +44,8 @@ export function SingleOutput({
 
   // Handle all other outputs with RichOutput
   const outputContent = (
-    <RichOutput
-      data={
-        output.outputType === "markdown"
-          ? output.data || ""
-          : (output.representations as Record<string, MediaContainer>) || {
-              "text/plain": output.data || "",
-            }
-      }
-      metadata={output.metadata as Record<string, unknown> | undefined}
-      outputType={output.outputType}
-      outputId={output.id}
-    />
+    // Can't do `output={output}` because TS gets confused, thinking `outputType` can be "terminal"
+    <RichOutput output={{ ...output, outputType: output.outputType }} />
   );
 
   // Apply mobile chat bubble style for AI cells
@@ -71,9 +60,5 @@ export function SingleOutput({
   }
 
   // Default styling
-  return (
-    <div className="max-w-full overflow-hidden py-2">
-      (default styling rich output){outputContent}
-    </div>
-  );
+  return <div className="max-w-full overflow-hidden py-2">{outputContent}</div>;
 }

@@ -12,6 +12,7 @@ import {
   APPLICATION_MIME_TYPES,
   IMAGE_MIME_TYPES,
   JUPYTER_MIME_TYPES,
+  OutputData,
 } from "@/schema";
 import { outputDeltasQuery, getFinalContent } from "@/queries/outputDeltas";
 import { useQuery } from "@livestore/react";
@@ -59,67 +60,18 @@ const PlainTextOutput = React.lazy(() =>
   }))
 );
 
-interface RichOutputProps {
-  data: string | Record<string, MediaContainer>;
-  metadata?: Record<string, unknown>;
-  outputType?:
-    | "multimedia_display"
-    | "multimedia_result"
-    | "markdown"
-    | "error";
-  outputId: string;
-}
-
 const LoadingSpinner = () => (
   <div className="flex items-center justify-center p-4">
     <div className="h-4 w-4 animate-spin rounded-full border-b-2 border-gray-900"></div>
   </div>
 );
 
-export const RichOutput: React.FC<RichOutputProps> = ({
-  data,
-  outputType = "multimedia_display",
-  outputId,
-}) => {
-  // Always query deltas (even if not used)
-  const deltas = useQuery(outputDeltasQuery(outputId));
-
-  // Handle markdown outputs specially with delta support
-  if (outputType === "markdown") {
-    const markdownData = typeof data === "string" ? data : String(data || "");
-
-    // Apply deltas if we have an outputId
-    const { content: finalContent } = outputId
-      ? getFinalContent(markdownData, deltas)
-      : { content: markdownData };
-
-    return (
-      <Suspense fallback={<LoadingSpinner />}>
-        <MarkdownRenderer content={finalContent} enableCopyCode={true} />
-      </Suspense>
-    );
-  }
-
-  // Handle error outputs specially
-  if (outputType === "error") {
-    let errorData;
-    try {
-      errorData = typeof data === "string" ? JSON.parse(data) : data;
-    } catch {
-      errorData = { ename: "Error", evalue: String(data), traceback: [] };
-    }
-    return (
-      <AnsiErrorOutput
-        ename={errorData.ename}
-        evalue={errorData.evalue}
-        traceback={errorData.traceback}
-      />
-    );
-  }
-
-  // Handle multimedia outputs (multimedia_display, multimedia_result)
-  let outputData: Record<string, unknown> = {};
-
+/**
+ * Process multimedia data and convert it to a format suitable for rendering
+ */
+const processMultimediaData = (
+  data: string | Record<string, MediaContainer> | null
+): Record<string, unknown> => {
   // Check if data contains media containers (new format)
   if (data && typeof data === "object" && !Array.isArray(data)) {
     const potentialContainers = data as Record<string, MediaContainer>;
@@ -131,6 +83,7 @@ export const RichOutput: React.FC<RichOutputProps> = ({
 
     if (hasContainers) {
       // Convert from media containers to rendering format
+      const outputData: Record<string, unknown> = {};
       for (const [mimeType, container] of Object.entries(potentialContainers)) {
         if (isInlineContainer(container)) {
           outputData[mimeType] = container.data;
@@ -139,48 +92,119 @@ export const RichOutput: React.FC<RichOutputProps> = ({
           outputData[mimeType] = `/api/artifacts/${container.artifactId}`;
         }
       }
+      return outputData;
     } else {
       // Direct data format (legacy support)
-      outputData = potentialContainers as Record<string, unknown>;
+      return potentialContainers as Record<string, unknown>;
     }
   } else {
     // Fallback for simple data
-    outputData = { "text/plain": String(data || "") };
+    return { "text/plain": String(data || "") };
+  }
+};
+
+// Determine the best media type to render, in order of preference
+const getPreferredMediaType = (
+  outputData: Record<string, unknown>
+): string | null => {
+  const preferenceOrder = [
+    AI_TOOL_CALL_MIME_TYPE,
+    AI_TOOL_RESULT_MIME_TYPE,
+    // Jupyter rich formats (plots, widgets, etc.)
+    ...JUPYTER_MIME_TYPES,
+    // Text formats
+    TEXT_MIME_TYPES[2], // text/markdown
+    TEXT_MIME_TYPES[1], // text/html
+    // Images
+    IMAGE_MIME_TYPES[0], // image/png
+    IMAGE_MIME_TYPES[1], // image/jpeg
+    IMAGE_MIME_TYPES[2], // image/svg+xml
+    "image/svg", // legacy SVG format
+    // Application formats
+    APPLICATION_MIME_TYPES[0], // application/json
+    TEXT_MIME_TYPES[0], // text/plain
+  ];
+
+  for (const mediaType of preferenceOrder) {
+    if (outputData[mediaType] !== undefined && outputData[mediaType] !== null) {
+      return mediaType;
+    }
   }
 
-  // Determine the best media type to render, in order of preference
-  const getPreferredMediaType = (): string | null => {
-    const preferenceOrder = [
-      AI_TOOL_CALL_MIME_TYPE,
-      AI_TOOL_RESULT_MIME_TYPE,
-      // Jupyter rich formats (plots, widgets, etc.)
-      ...JUPYTER_MIME_TYPES,
-      // Text formats
-      TEXT_MIME_TYPES[2], // text/markdown
-      TEXT_MIME_TYPES[1], // text/html
-      // Images
-      IMAGE_MIME_TYPES[0], // image/png
-      IMAGE_MIME_TYPES[1], // image/jpeg
-      IMAGE_MIME_TYPES[2], // image/svg+xml
-      "image/svg", // legacy SVG format
-      // Application formats
-      APPLICATION_MIME_TYPES[0], // application/json
-      TEXT_MIME_TYPES[0], // text/plain
-    ];
+  return null;
+};
 
-    for (const mediaType of preferenceOrder) {
-      if (
-        outputData[mediaType] !== undefined &&
-        outputData[mediaType] !== null
-      ) {
-        return mediaType;
-      }
-    }
+function MarkdownOutput({
+  data,
+  outputId,
+}: {
+  data: string | null;
+  outputId: string;
+}) {
+  // Always query deltas (even if not used)
+  const deltas = useQuery(outputDeltasQuery(outputId));
 
-    return null;
+  const markdownData = typeof data === "string" ? data : String(data || "");
+
+  // Apply deltas if we have an outputId
+  const { content: finalContent } = outputId
+    ? getFinalContent(markdownData, deltas)
+    : { content: markdownData };
+
+  return (
+    <Suspense fallback={<LoadingSpinner />}>
+      <MarkdownRenderer content={finalContent} enableCopyCode={true} />
+    </Suspense>
+  );
+}
+
+export const RichOutput: React.FC<{
+  output: OutputData & {
+    outputType:
+      | "multimedia_display"
+      | "multimedia_result"
+      | "markdown"
+      | "error";
+  };
+}> = ({ output }) => {
+  const { data, outputType, id: outputId } = output;
+
+  // Handle markdown outputs specially with delta support
+  if (outputType === "markdown") {
+    return <MarkdownOutput data={data} outputId={outputId} />;
+  }
+
+  const data2 = (output.representations as Record<string, MediaContainer>) || {
+    "text/plain": output.data || "",
   };
 
-  const mediaType = getPreferredMediaType();
+  // Handle error outputs specially
+  if (outputType === "error") {
+    let errorData;
+    try {
+      errorData = typeof data === "string" ? JSON.parse(data) : data;
+    } catch {
+      errorData = { ename: "Error", evalue: String(data), traceback: [] };
+    }
+    if (!errorData) {
+      try {
+        errorData = typeof data2 === "string" ? JSON.parse(data2) : data2;
+      } catch {
+        errorData = { ename: "Error", evalue: String(data2), traceback: [] };
+      }
+    }
+    return (
+      <AnsiErrorOutput
+        ename={errorData.ename}
+        evalue={errorData.evalue}
+        traceback={errorData.traceback}
+      />
+    );
+  }
+
+  // Handle multimedia outputs (multimedia_display, multimedia_result)
+  const outputData = processMultimediaData(data2);
+  const mediaType = getPreferredMediaType(outputData);
 
   if (!mediaType) {
     return (
