@@ -283,7 +283,7 @@ Python runtime and AI features are handled by the separate [@runt packages](http
 | Execution not working     | Check @runt runtime setup - see https://github.com/runtimed/runt            |
 | Dev server crashes        | Restart with `pnpm dev` - .env file changes are ignored to prevent crashes  |
 | Build errors              | Run `pnpm type-check` to check for TypeScript issues                        |
-| Wrangler issues in logs   | Run `rm -rf .wrangler`                                                      |
+| Wrangler issues in logs   | Run `rm -rf .wrangler`. 🚨 IMPORTANT: you will also lose your notebooks     |
 
 ## Why Anode Works
 
