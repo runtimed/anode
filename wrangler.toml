@@ -135,6 +135,7 @@ preview_bucket_name = "anode-artifacts-preview"
 DEPLOYMENT_ENV = "preview"
 ARTIFACT_STORAGE = "r2"
 ARTIFACT_THRESHOLD = "16384"
+AUTH_ISSUER = "https://auth.anaconda.com/api/auth"
 # Vite build-time variables
 VITE_LIVESTORE_SYNC_URL = "/livestore"
 VITE_RUNTIME_COMMAND = "pnpm run dev:runtime"
