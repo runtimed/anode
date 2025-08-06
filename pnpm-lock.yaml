@@ -89,8 +89,8 @@ importers:
         specifier: ^10.0.1
         version: 10.0.1(react-dom@19.0.0(react@19.0.0))(react@19.0.0)
       '@runt/schema':
-        specifier: jsr:^0.9.0
-        version: '@jsr/runt__schema@0.9.0(f9c23af240f2640c0a9abef8711d3cc6)'
+        specifier: jsr:^0.9.1
+        version: '@jsr/runt__schema@0.9.1(f9c23af240f2640c0a9abef8711d3cc6)'
       '@tanstack/react-virtual':
         specifier: ^3.13.12
         version: 3.13.12(react-dom@19.0.0(react@19.0.0))(react@19.0.0)
@@ -1212,8 +1212,8 @@ packages:
   '@jridgewell/trace-mapping@0.3.9':
     resolution: {integrity: sha512-3Belt6tdc8bPgAtbcmdtNJlirVoTmEb5e2gC94PnkwEW9jI6CAHUeoG85tjWP5WquqfavoMtMwiG4P926ZKKuQ==}
 
-  '@jsr/runt__schema@0.9.0':
-    resolution: {integrity: sha512-52M6UChsvb88dN5Z4fTI4Aof8fdEAJv/FH85hmlt4tA3sonNgvfj/Hn4px/1vDq2a2NI6eaFz25hXAGRU1RPxA==, tarball: https://npm.jsr.io/~/11/@jsr/runt__schema/0.9.0.tgz}
+  '@jsr/runt__schema@0.9.1':
+    resolution: {integrity: sha512-800doqB0eAQy62Rgz5fWq82H1KpXL5HLq986vAyaLBmaQq3j+WtBF9jRfKypcNZWgvfoyZvlE3GcS6JYLfW0IQ==, tarball: https://npm.jsr.io/~/11/@jsr/runt__schema/0.9.1.tgz}
 
   '@lezer/common@1.2.3':
     resolution: {integrity: sha512-w7ojc8ejBqr2REPsWxJjrMFsA/ysDCFICn8zEOR9mrqzOu2amhITYuLD8ag6XZf0CFXDrhKqw7+tW8cX66NaDA==}
@@ -5683,10 +5683,9 @@ snapshots:
       '@jridgewell/resolve-uri': 3.1.2
       '@jridgewell/sourcemap-codec': 1.5.4
 
-  '@jsr/runt__schema@0.9.0(f9c23af240f2640c0a9abef8711d3cc6)':
+  '@jsr/runt__schema@0.9.1(f9c23af240f2640c0a9abef8711d3cc6)':
     dependencies:
       '@livestore/livestore': 0.3.1(f9c23af240f2640c0a9abef8711d3cc6)
-      fractional-indexing: 3.2.0
     transitivePeerDependencies:
       - '@effect/cli'
       - '@effect/cluster'
