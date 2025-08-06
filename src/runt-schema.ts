@@ -1867,12 +1867,22 @@ function generateKeyBetween(
 
   // Characters are adjacent, need to look further
   if (i + 1 < b.length) {
-    // b has more characters, we can append to a
-    return a.substring(0, i + 1) + "m"; // Append middle character
+    // b has more characters, find a character between 0 and b[i+1]
+    const nextBChar = b[i + 1];
+    const nextBVal = charToValue(nextBChar);
+
+    if (nextBVal > 0) {
+      // We can insert a character before b[i+1]
+      const midVal = Math.floor(nextBVal / 2);
+      return a.substring(0, i + 1) + valueToChar(midVal);
+    } else {
+      // b[i+1] is '0', we need to look deeper or extend
+      return a.substring(0, i + 1) + "0" + "m";
+    }
   }
 
-  // Need to extend a
-  return a + "m";
+  // Need to extend a with a small character to stay less than b
+  return a + "1";
 }
 
 function generateKeyBefore(b: string): string {

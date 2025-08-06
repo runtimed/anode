@@ -52,11 +52,11 @@ describe("Fractional Indexing", () => {
     it("should maintain ordering with binary collation", () => {
       const indices: string[] = [];
 
-      // Use deterministic jitter to avoid conflicts
-      const jitter = createTestJitterProvider(42);
+      // Use no jitter for this test to avoid ordering conflicts
+      const noJitter = { random: () => 0, randomInt: () => 0 };
 
       // Generate many indices by repeated insertion
-      indices.push(fractionalIndexBetween(null, null, jitter));
+      indices.push(fractionalIndexBetween(null, null, noJitter));
 
       for (let i = 0; i < 100; i++) {
         // Randomly insert between existing indices
@@ -64,7 +64,7 @@ describe("Fractional Indexing", () => {
         const before = insertPos > 0 ? indices[insertPos - 1] : null;
         const after = insertPos < indices.length ? indices[insertPos] : null;
 
-        const newIndex = fractionalIndexBetween(before, after, jitter);
+        const newIndex = fractionalIndexBetween(before, after, noJitter);
         indices.splice(insertPos, 0, newIndex);
       }
 
@@ -114,11 +114,14 @@ describe("Fractional Indexing", () => {
       let a = "a";
       let b = "b";
 
+      // Use a no-jitter provider for this test to avoid conflicts
+      const noJitter = { random: () => 0, randomInt: () => 0 };
+
       // Repeatedly insert between a and b
       const indices = [a, b];
 
       for (let i = 0; i < 20; i++) {
-        const mid = fractionalIndexBetween(a, b);
+        const mid = fractionalIndexBetween(a, b, noJitter);
         indices.push(mid);
 
         // Alternately move boundaries closer
