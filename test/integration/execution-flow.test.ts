@@ -99,10 +99,10 @@ describe("End-to-End Execution Flow", () => {
 
       // Step 2: Create a code cell
       store.commit(
-        events.cellCreated({
+        events.cellCreated2({
           id: cellId,
           cellType: "code",
-          position: 0,
+          fractionalIndex: "a0",
           createdBy: "test-user",
         })
       );
@@ -234,10 +234,10 @@ describe("End-to-End Execution Flow", () => {
       );
 
       store.commit(
-        events.cellCreated({
+        events.cellCreated2({
           id: cellId,
           cellType: "code",
-          position: 0,
+          fractionalIndex: "a0",
           createdBy: "test-user",
         })
       );
@@ -352,10 +352,10 @@ describe("End-to-End Execution Flow", () => {
       // Create multiple cells
       cells.forEach(({ cellId }, index) => {
         store.commit(
-          events.cellCreated({
+          events.cellCreated2({
             id: cellId,
             cellType: "code",
-            position: index,
+            fractionalIndex: `a${index.toString(36)}`,
             createdBy: "test-user",
           })
         );
