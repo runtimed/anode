@@ -2,6 +2,13 @@
 @plugin "@tailwindcss/typography";
 @import "tw-animate-css";
 
+:root {
+  --dataframe-border: 1px solid #e5e7eb;
+  --dataframe-bg: #fff;
+  --dataframe-header-bg: #f9fafb;
+  --dataframe-hover-bg: #f3f4f6;
+}
+
 /* Make size calculations make sense */
 * {
   box-sizing: border-box;
