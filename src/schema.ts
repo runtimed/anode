@@ -20,11 +20,7 @@ export type {
 } from "@runt/schema";
 
 // Re-export functions
-export {
-  fractionalIndexBetween,
-  createCellAfter,
-  createCellBefore,
-} from "@runt/schema";
+export { fractionalIndexBetween } from "@runt/schema";
 
 // Re-export type guards
 export {
