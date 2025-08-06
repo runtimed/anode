@@ -12,7 +12,7 @@ export default defineConfig({
     },
   },
   build: {
-    outDir: "../dist",
+    outDir: "../worker/dist",
     emptyOutDir: true,
     rollupOptions: {
       input: {
