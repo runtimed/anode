@@ -13,7 +13,7 @@ import React, { Suspense, useCallback, useRef } from "react";
 import { ErrorBoundary } from "react-error-boundary";
 
 import { NotebookTitle } from "./NotebookTitle.js";
-import { VirtualizedCellList } from "./VirtualizedCellList.js";
+import { CellList } from "./CellList.js";
 
 import { Avatar } from "@/components/ui/Avatar.js";
 import { Button } from "@/components/ui/button";
@@ -556,7 +556,7 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
             ) : (
               <>
                 <ErrorBoundary fallback={<div>Error rendering cell list</div>}>
-                  <VirtualizedCellList
+                  <CellList
                     cellReferences={cellReferences}
                     focusedCellId={focusedCellId}
                     onAddCell={addCell}
@@ -567,7 +567,6 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
                     onFocusPrevious={focusPreviousCell}
                     onFocus={focusCell}
                     contextSelectionMode={contextSelectionMode}
-                    threshold={50}
                   />
                 </ErrorBoundary>
                 {/* Add Cell Buttons */}
