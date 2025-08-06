@@ -62,20 +62,16 @@ export const IframeReactApp: React.FC = () => {
   }, []);
 
   // Default content or non-React mode
-  return (
-    <div className="dataframe-container border-2 border-amber-400">
-      {outputs.length > 0
-        ? outputs.map((output, index) => (
-            <div
-              key={output.id}
-              className={index > 0 ? "mt-2 border-t border-black/10 pt-2" : ""}
-            >
-              <Output output={output} />
-            </div>
-          ))
-        : "No content yet"}
-    </div>
-  );
+  return outputs.length > 0
+    ? outputs.map((output, index) => (
+        <div
+          key={output.id}
+          className={index > 0 ? "mt-2 border-t border-black/10 pt-2" : ""}
+        >
+          <Output output={output} />
+        </div>
+      ))
+    : "No content yet";
 };
 
 function Output({ output }: { output: OutputData }) {
