@@ -1,7 +1,14 @@
 import { queryDb } from "@livestore/livestore";
 import { useQuery, useStore } from "@livestore/react";
-import { CellData, events, tables } from "@/schema";
-import React, { Suspense, useCallback } from "react";
+import {
+  events,
+  tables,
+  createCellBetween,
+  moveCellBetween,
+  queries,
+  CellReference,
+} from "@/schema";
+import React, { Suspense, useCallback, useRef } from "react";
 import { ErrorBoundary } from "react-error-boundary";
 
 import { NotebookTitle } from "./NotebookTitle.js";
@@ -50,9 +57,8 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
   const { presentUsers, getUserInfo, getUserColor } = useUserRegistry();
   const { models } = useAvailableAiModels();
 
-  const cells = useQuery(
-    queryDb(tables.cells.select().orderBy("position", "asc"))
-  );
+  const cellReferences = useQuery(queries.cellsWithIndices$);
+
   const lastUsedAiModel =
     useQuery(
       queryDb(
@@ -95,39 +101,6 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
         .toString(36)
         .slice(2)}`;
 
-      let newPosition: number;
-      if (cellId) {
-        // Find the current cell and insert after it
-        const currentCell = cells.find((c: CellData) => c.id === cellId);
-        if (currentCell) {
-          if (position === "before") {
-            newPosition = currentCell.position;
-          } else {
-            newPosition = currentCell.position + 1;
-          }
-          // Shift all subsequent cells down by 1
-          const cellsToShift = cells.filter(
-            (c: CellData) => c.position >= newPosition
-          );
-          cellsToShift.forEach((cell: CellData) => {
-            store.commit(
-              events.cellMoved({
-                id: cell.id,
-                newPosition: cell.position + 1,
-              })
-            );
-          });
-        } else {
-          // Fallback: add at end
-          newPosition =
-            Math.max(...cells.map((c: CellData) => c.position), -1) + 1;
-        }
-      } else {
-        // Add at end
-        newPosition =
-          Math.max(...cells.map((c: CellData) => c.position), -1) + 1;
-      }
-
       // Get default AI model if creating an AI cell
       let aiProvider, aiModel;
       if (cellType === "ai") {
@@ -142,15 +115,46 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
         }
       }
 
-      store.commit(
-        events.cellCreated({
+      let cellBefore = null;
+      let cellAfter = null;
+
+      if (cellId) {
+        const targetIndex = cellReferences.findIndex((c) => c.id === cellId);
+        if (targetIndex >= 0) {
+          if (position === "before") {
+            // Insert before the target cell
+            cellAfter = cellReferences[targetIndex];
+            cellBefore =
+              targetIndex > 0 ? cellReferences[targetIndex - 1] : null;
+          } else {
+            // Insert after the target cell
+            cellBefore = cellReferences[targetIndex];
+            cellAfter =
+              targetIndex < cellReferences.length - 1
+                ? cellReferences[targetIndex + 1]
+                : null;
+          }
+        }
+      } else if (position === "after") {
+        // No cellId specified, insert at the end
+        cellBefore =
+          cellReferences.length > 0
+            ? cellReferences[cellReferences.length - 1]
+            : null;
+      }
+
+      // Create cell using the new API
+      const cellCreatedEvent = createCellBetween(
+        {
           id: newCellId,
-          position: newPosition,
           cellType,
           createdBy: userId,
-          actorId: userId,
-        })
+        },
+        cellBefore,
+        cellAfter
       );
+
+      store.commit(cellCreatedEvent);
 
       // Set default AI model for AI cells based on last used model
       if (cellType === "ai" && aiProvider && aiModel) {
@@ -173,7 +177,7 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
       // Focus the new cell after creation
       setTimeout(() => setFocusedCellId(newCellId), 0);
     },
-    [cells, store, userId, models, lastUsedAiModel, lastUsedAiProvider]
+    [cellReferences, store, userId, models, lastUsedAiModel, lastUsedAiProvider]
   );
 
   const deleteCell = useCallback(
@@ -188,54 +192,103 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
     [store, userId]
   );
 
+  // Track if a move operation is in progress to prevent race conditions
+  const movingRef = useRef(false);
+
   const moveCell = useCallback(
     (cellId: string, direction: "up" | "down") => {
-      const currentCell = cells.find((c: CellData) => c.id === cellId);
-      if (!currentCell) return;
+      // Prevent concurrent moves
+      if (movingRef.current) {
+        return;
+      }
+      movingRef.current = true;
 
-      const currentIndex = cells.findIndex((c: CellData) => c.id === cellId);
+      // Cells are already sorted by fractionalIndex from the database query
+      const currentIndex = cellReferences.findIndex((c) => c.id === cellId);
+      if (currentIndex === -1) {
+        return;
+      }
 
-      if (direction === "up" && currentIndex > 0) {
-        const targetCell = cells[currentIndex - 1];
-        if (targetCell) {
-          // Swap positions
-          store.commit(
-            events.cellMoved({
-              id: cellId,
-              newPosition: targetCell.position,
-              actorId: userId,
-            })
-          );
-          store.commit(
-            events.cellMoved({
-              id: targetCell.id,
-              newPosition: currentCell.position,
-              actorId: userId,
-            })
-          );
-        }
-      } else if (direction === "down" && currentIndex < cells.length - 1) {
-        const targetCell = cells[currentIndex + 1];
-        if (targetCell) {
-          // Swap positions
-          store.commit(
-            events.cellMoved({
-              id: cellId,
-              newPosition: targetCell.position,
-              actorId: userId,
-            })
-          );
-          store.commit(
-            events.cellMoved({
-              id: targetCell.id,
-              newPosition: currentCell.position,
-              actorId: userId,
-            })
-          );
+      const currentCell = cellReferences[currentIndex];
+      if (!currentCell.fractionalIndex) {
+        return;
+      }
+
+      // Check boundaries
+      if (direction === "up" && currentIndex === 0) {
+        return;
+      }
+      if (direction === "down" && currentIndex === cellReferences.length - 1) {
+        return;
+      }
+
+      // Check for duplicate fractional indices
+      const duplicates = cellReferences.filter(
+        (c) =>
+          c.fractionalIndex === currentCell.fractionalIndex &&
+          c.id !== currentCell.id
+      );
+      if (duplicates.length > 0) {
+        // Skip move if duplicate indices exist to prevent ordering issues
+        // TODO: Figure out what to do here
+        return;
+      }
+
+      // Determine the before and after cells based on direction
+      // With fractional indexing, we place the cell between its new neighbors
+      let cellBefore: CellReference | null = null;
+      let cellAfter: CellReference | null = null;
+
+      if (direction === "up") {
+        // Moving up: place between the cell 2 positions up and 1 position up
+        cellBefore =
+          currentIndex >= 2 ? cellReferences[currentIndex - 2] : null;
+        cellAfter = cellReferences[currentIndex - 1];
+      } else {
+        // Moving down: place between the cell 1 position down and 2 positions down
+        cellBefore = cellReferences[currentIndex + 1];
+        cellAfter =
+          currentIndex < cellReferences.length - 2
+            ? cellReferences[currentIndex + 2]
+            : null;
+      }
+
+      // Use moveCellBetween to calculate the new position
+
+      // Verify the ordering makes sense
+      if (
+        cellBefore &&
+        cellAfter &&
+        cellBefore.fractionalIndex &&
+        cellAfter.fractionalIndex
+      ) {
+        const correctOrder =
+          cellBefore.fractionalIndex < cellAfter.fractionalIndex;
+        if (!correctOrder) {
+          // Invalid order detected - skip the move
+          return;
         }
       }
+
+      const moveEvent = moveCellBetween(
+        currentCell,
+        cellBefore,
+        cellAfter,
+        userId
+      );
+
+      if (moveEvent) {
+        store.commit(moveEvent);
+      } else {
+        // Cell already in target position or invalid move
+      }
+
+      // Reset the moving flag after a short delay to allow for database updates
+      setTimeout(() => {
+        movingRef.current = false;
+      }, 100);
     },
-    [cells, store, userId]
+    [cellReferences, store, userId]
   );
 
   const focusCell = useCallback((cellId: string) => {
@@ -245,52 +298,56 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
 
   const focusNextCell = useCallback(
     (currentCellId: string) => {
-      const currentIndex = cells.findIndex(
-        (c: CellData) => c.id === currentCellId
+      const currentIndex = cellReferences.findIndex(
+        (c) => c.id === currentCellId
       );
 
-      if (currentIndex < cells.length - 1) {
-        const nextCell = cells[currentIndex + 1];
+      if (currentIndex < cellReferences.length - 1) {
+        const nextCell = cellReferences[currentIndex + 1];
         setFocusedCellId(nextCell.id);
       } else {
         // At the last cell, create a new one with same cell type (but never raw)
-        const currentCell = cells[currentIndex];
+        const currentCell = cellReferences[currentIndex];
         const newCellType =
           currentCell.cellType === "raw" ? "code" : currentCell.cellType;
         addCell(currentCellId, newCellType);
       }
     },
-    [cells, addCell]
+    [cellReferences, addCell]
   );
 
   const focusPreviousCell = useCallback(
     (currentCellId: string) => {
-      const currentIndex = cells.findIndex(
-        (c: CellData) => c.id === currentCellId
+      const currentIndex = cellReferences.findIndex(
+        (c) => c.id === currentCellId
       );
 
       if (currentIndex > 0) {
-        const previousCell = cells[currentIndex - 1];
+        const previousCell = cellReferences[currentIndex - 1];
         setFocusedCellId(previousCell.id);
       }
     },
-    [cells]
+    [cellReferences]
   );
 
   // Reset focus when focused cell changes or is removed
   React.useEffect(() => {
-    if (focusedCellId && !cells.find((c: CellData) => c.id === focusedCellId)) {
+    if (focusedCellId && !cellReferences.find((c) => c.id === focusedCellId)) {
       setFocusedCellId(null);
     }
-  }, [focusedCellId, cells]);
+  }, [focusedCellId, cellReferences]);
 
   // Focus first cell when notebook loads and has cells (but not after deletion)
   React.useEffect(() => {
-    if (!focusedCellId && cells.length > 0 && !hasEverFocusedRef.current) {
-      setFocusedCellId(cells[0].id);
+    if (
+      !focusedCellId &&
+      cellReferences.length > 0 &&
+      !hasEverFocusedRef.current
+    ) {
+      setFocusedCellId(cellReferences[0].id);
       hasEverFocusedRef.current = true;
     }
-  }, [focusedCellId, cells]);
+  }, [focusedCellId, cellReferences]);
 
   // cells are already sorted by position from the database query
 
@@ -459,7 +516,7 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
             className={`w-full px-0 py-3 pb-24 ${debugMode ? "px-4" : "sm:mx-auto sm:max-w-4xl sm:p-4 sm:pb-4"}`}
           >
             {/* Keyboard Shortcuts Help - Desktop only */}
-            {cells.length > 0 && (
+            {cellReferences.length > 0 && (
               <div className="mb-6 hidden sm:block">
                 <div className="bg-muted/30 rounded-md px-4 py-2">
                   <div className="text-muted-foreground flex items-center justify-center gap-6 text-xs">
@@ -487,13 +544,13 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
             )}
 
             {/* Cells */}
-            {cells.length === 0 ? (
+            {cellReferences.length === 0 ? (
               <EmptyStateCellAdder onAddCell={addCell} />
             ) : (
               <>
                 <ErrorBoundary fallback={<div>Error rendering cell list</div>}>
                   <VirtualizedCellList
-                    cells={cells}
+                    cellReferences={cellReferences}
                     focusedCellId={focusedCellId}
                     onAddCell={addCell}
                     onDeleteCell={deleteCell}

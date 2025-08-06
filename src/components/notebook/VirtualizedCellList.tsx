@@ -1,4 +1,3 @@
-import { CellData } from "@/schema";
 import React, {
   useCallback,
   useEffect,
@@ -10,9 +9,10 @@ import React, {
 import { ErrorBoundary } from "react-error-boundary";
 import { Cell } from "./cell/Cell.js";
 import { CellBetweener } from "./cell/CellBetweener.js";
+import { CellReference } from "@/schema";
 
 interface VirtualizedCellListProps {
-  cells: readonly CellData[];
+  cellReferences: readonly CellReference[];
   focusedCellId: string | null;
   onAddCell: (
     cellId?: string,
@@ -32,26 +32,8 @@ interface VirtualizedCellListProps {
   threshold?: number; // Number of cells before virtualization kicks in
 }
 
-const MemoizedCell = React.memo(Cell, (prevProps, nextProps) => {
-  // Only re-render if cell data, autoFocus, or contextSelectionMode changes
-  return (
-    prevProps.cell.id === nextProps.cell.id &&
-    prevProps.cell.source === nextProps.cell.source &&
-    prevProps.cell.executionState === nextProps.cell.executionState &&
-    prevProps.cell.executionCount === nextProps.cell.executionCount &&
-    prevProps.cell.cellType === nextProps.cell.cellType &&
-    prevProps.cell.sourceVisible === nextProps.cell.sourceVisible &&
-    prevProps.cell.outputVisible === nextProps.cell.outputVisible &&
-    prevProps.cell.aiContextVisible === nextProps.cell.aiContextVisible &&
-    prevProps.cell.aiProvider === nextProps.cell.aiProvider &&
-    prevProps.cell.aiModel === nextProps.cell.aiModel &&
-    prevProps.autoFocus === nextProps.autoFocus &&
-    prevProps.contextSelectionMode === nextProps.contextSelectionMode
-  );
-});
-
 export const VirtualizedCellList: React.FC<VirtualizedCellListProps> = ({
-  cells,
+  cellReferences: cells,
   focusedCellId,
   onAddCell,
   onDeleteCell,
@@ -73,7 +55,7 @@ export const VirtualizedCellList: React.FC<VirtualizedCellListProps> = ({
   const cellRefs = useRef<Map<string, HTMLDivElement>>(new Map());
   const [heightsVersion, setHeightsVersion] = useState(0);
 
-  // Cells are already sorted by database query (orderBy("position", "asc"))
+  // Cells are already sorted by database query (orderBy("fractionalIndex", "asc"))
   // Memoize cells array to prevent unnecessary recalculations
   const memoizedCells = useMemo(() => cells, [cells]);
 
@@ -268,28 +250,35 @@ export const VirtualizedCellList: React.FC<VirtualizedCellListProps> = ({
 
   const cellElements = useMemo(
     () =>
-      visibleCells.map((cell, index) => (
-        <div key={cell.id} ref={(el) => measureCellHeight(cell.id, el)}>
+      visibleCells.map((cellReference, index) => (
+        <div
+          key={cellReference.id}
+          ref={(el) => measureCellHeight(cellReference.id, el)}
+        >
           <ErrorBoundary fallback={<div>Error rendering cell</div>}>
             {index === 0 && (
               <CellBetweener
-                cell={cell}
+                cell={cellReference}
                 onAddCell={onAddCell}
                 position="before"
               />
             )}
-            <MemoizedCell
-              cell={cell}
-              onDeleteCell={() => onDeleteCell(cell.id)}
-              onMoveUp={() => onMoveUp(cell.id)}
-              onMoveDown={() => onMoveDown(cell.id)}
-              onFocusNext={() => onFocusNext(cell.id)}
-              onFocusPrevious={() => onFocusPrevious(cell.id)}
-              onFocus={() => onFocus(cell.id)}
-              autoFocus={cell.id === focusedCellId}
+            <Cell
+              cellId={cellReference.id}
+              onDeleteCell={() => onDeleteCell(cellReference.id)}
+              onMoveUp={() => onMoveUp(cellReference.id)}
+              onMoveDown={() => onMoveDown(cellReference.id)}
+              onFocusNext={() => onFocusNext(cellReference.id)}
+              onFocusPrevious={() => onFocusPrevious(cellReference.id)}
+              onFocus={() => onFocus(cellReference.id)}
+              autoFocus={cellReference.id === focusedCellId}
               contextSelectionMode={contextSelectionMode}
             />
-            <CellBetweener cell={cell} onAddCell={onAddCell} position="after" />
+            <CellBetweener
+              cell={cellReference}
+              onAddCell={onAddCell}
+              position="after"
+            />
           </ErrorBoundary>
         </div>
       )),

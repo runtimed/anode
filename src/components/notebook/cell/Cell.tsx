@@ -1,4 +1,4 @@
-import { tables } from "@/schema";
+import { queries } from "@/schema";
 import React from "react";
 
 import { AiCell } from "./AiCell.js";
@@ -7,11 +7,10 @@ import { MarkdownCell } from "./MarkdownCell.js";
 import { SqlCell } from "./SqlCell.js";
 
 import { ErrorBoundary } from "react-error-boundary";
-
-type CellType = typeof tables.cells.Type;
+import { useQuery } from "@livestore/react";
 
 interface CellProps {
-  cell: CellType;
+  cellId: string;
   onDeleteCell: () => void;
   onMoveUp: () => void;
   onMoveDown: () => void;
@@ -23,7 +22,7 @@ interface CellProps {
 }
 
 export const Cell: React.FC<CellProps> = ({
-  cell,
+  cellId,
   onDeleteCell,
   onMoveUp,
   onMoveDown,
@@ -33,6 +32,13 @@ export const Cell: React.FC<CellProps> = ({
   onFocus,
   contextSelectionMode = false,
 }) => {
+  const cell = useQuery(queries.cellQuery.byId(cellId));
+
+  if (!cell) {
+    console.warn("Asked to render a cell that does not exist");
+    return null;
+  }
+
   // Route to specialized cell components
   if (cell.cellType === "code") {
     return (

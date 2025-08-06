@@ -19,7 +19,7 @@ First, set up a `.env.production` file with the following variables:
 VITE_LIVESTORE_SYNC_URL=wss://anode-docworker.rgbkrk.workers.dev/api
 
 # You can change this to any runtime agent command, so long as it has access to its own auth token
-VITE_RUNTIME_COMMAND="deno run --allow-all --env-file=.env jsr:@runt/pyodide-runtime-agent@^0.8.0"
+VITE_RUNTIME_COMMAND="deno run --allow-all --env-file=.env jsr:@runt/pyodide-runtime-agent@^0.9.0"
 ```
 
 Run the development server with production environment variables (using `.env.production`):

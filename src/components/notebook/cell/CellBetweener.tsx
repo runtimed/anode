@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { CellData } from "@/schema";
+import { CellReference } from "@/schema";
 import { Plus } from "lucide-react";
 
 export function CellBetweener({
@@ -7,7 +7,7 @@ export function CellBetweener({
   onAddCell,
   position = "after",
 }: {
-  cell: CellData;
+  cell: CellReference;
   onAddCell: (
     cellId?: string,
     cellType?: "code" | "markdown" | "sql" | "ai",

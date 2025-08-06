@@ -2,7 +2,6 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 export type CellData = {
   id: string;
-  position: number;
   cellType: string;
   source?: string;
   executionState?: string;
@@ -22,7 +21,7 @@ export const useCellFocus = ({ cells, onAddCell }: UseCellFocusOptions) => {
   const focusTimeoutRef = useRef<number | null>(null);
   const hasEverFocusedRef = useRef(false);
 
-  // Cells are already sorted by database query (orderBy("position", "asc"))
+  // Cells are already sorted by database query (orderBy("fractionalIndex", "asc"))
   const sortedCells = cells;
 
   // Create cell position index for O(1) lookups
