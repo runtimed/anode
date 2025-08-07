@@ -1,9 +1,8 @@
 import { cn } from "@/lib/utils";
 import { KeyBinding } from "@codemirror/view";
-import * as Dialog from "@radix-ui/react-dialog";
 import { SupportedLanguage } from "@/types/misc.js";
 import { Maximize2, Minimize2 } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { CodeMirrorEditor } from "@/components/notebook/codemirror/CodeMirrorEditor";
 import { ErrorBoundary } from "react-error-boundary";
@@ -35,114 +34,97 @@ export function Editor({
 }) {
   const [isMaximized, setIsMaximized] = useState(false);
 
-  if (!isMaximized) {
-    return (
-      <div className={cn("relative min-h-[1.5rem]")}>
+  // Handle escape key to close maximized editor
+  useEffect(() => {
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key === "Escape" && isMaximized) {
+        setIsMaximized(false);
+      }
+    };
+
+    if (isMaximized) {
+      document.addEventListener("keydown", handleEscape);
+      return () => document.removeEventListener("keydown", handleEscape);
+    }
+  }, [isMaximized]);
+
+  // Handle clicking outside to close maximized editor
+  const handleBackdropClick = (e: React.MouseEvent) => {
+    if (e.target === e.currentTarget) {
+      setIsMaximized(false);
+    }
+  };
+
+  return (
+    <>
+      {/* Normal editor container */}
+      <div
+        className={cn("relative min-h-[1.5rem]", isMaximized && "opacity-20")}
+      >
         <ErrorBoundary FallbackComponent={ErrorFallback}>
           <CodeMirrorEditor
+            key="editor"
             className="text-base sm:text-sm"
             language={language}
             placeholder={placeholder}
             value={localSource}
             onValueChange={handleSourceChange}
-            autoFocus={autoFocus}
+            autoFocus={autoFocus && !isMaximized}
             onFocus={handleFocus}
             keyMap={keyMap}
             onBlur={onBlur}
             enableLineWrapping={enableLineWrapping}
           />
         </ErrorBoundary>
-        <MaxMinButton
-          className="absolute top-1 right-1 sm:hidden"
-          isMaximized={isMaximized}
-          setIsMaximized={setIsMaximized}
-        />
+        <Button
+          variant="ghost"
+          size="sm"
+          className="absolute top-1 right-1 h-6 w-6 p-1 sm:hidden"
+          onClick={() => setIsMaximized(true)}
+          aria-label="Maximize editor"
+        >
+          <Maximize2 className="h-3 w-3" />
+        </Button>
       </div>
-    );
-  }
 
-  return (
-    <>
-      <Dialog.Root defaultOpen={true} onOpenChange={setIsMaximized}>
-        <div className={cn("relative min-h-[1.5rem]")}>
-          {/* Duplicate editor for dialog to prevent layout shift */}
-          <ErrorBoundary FallbackComponent={ErrorFallback}>
-            <CodeMirrorEditor
-              className="text-base sm:text-sm"
-              language={language}
-              placeholder={placeholder}
-              value={localSource}
-              enableLineWrapping={enableLineWrapping}
-            />
-          </ErrorBoundary>
-          <MaxMinButton
-            className="absolute top-1 right-1 sm:hidden"
-            isMaximized={isMaximized}
-            setIsMaximized={setIsMaximized}
-          />
-        </div>
-        <Dialog.Portal>
-          <Dialog.Overlay
-            className="fixed inset-0 z-50 bg-black/20 backdrop-blur-sm"
-            onClick={() => setIsMaximized(false)}
-          />
-          <Dialog.Content
-            className={cn(
-              "animate-in fade-in slide-in-from-top-5 fixed top-0 z-50 w-full duration-200 outline-none"
-            )}
-            onOpenAutoFocus={(e) => e.preventDefault()}
-            onInteractOutside={() => setIsMaximized(false)}
-            onEscapeKeyDown={() => setIsMaximized(false)}
+      {/* Maximized editor overlay */}
+      {isMaximized && (
+        <div
+          className="fixed inset-0 z-50 bg-black/20 backdrop-blur-sm"
+          onClick={handleBackdropClick}
+        >
+          <div
+            className="bg-background absolute inset-0"
+            onClick={(e) => e.stopPropagation()}
           >
-            <Dialog.Title className="sr-only">Editor</Dialog.Title>
             <ErrorBoundary FallbackComponent={ErrorFallback}>
               <CodeMirrorEditor
-                className="bg-background relative text-base sm:text-sm"
-                maxHeight="100svh"
+                key="maximized-editor"
+                className="bg-background h-full text-base sm:text-sm"
+                maxHeight="100vh"
                 language={language}
                 placeholder={placeholder}
                 value={localSource}
                 onValueChange={handleSourceChange}
                 autoFocus={true}
                 onFocus={handleFocus}
+                keyMap={keyMap}
                 onBlur={onBlur}
                 enableLineWrapping={enableLineWrapping}
               />
             </ErrorBoundary>
-            <MaxMinButton
-              className="top-1 right-1"
-              isMaximized={isMaximized}
-              setIsMaximized={setIsMaximized}
-            />
-          </Dialog.Content>
-        </Dialog.Portal>
-      </Dialog.Root>
-    </>
-  );
-}
-
-function MaxMinButton({
-  className,
-  isMaximized,
-  setIsMaximized,
-}: {
-  className?: string;
-  isMaximized: boolean;
-  setIsMaximized: (isMaximized: boolean) => void;
-}) {
-  return (
-    <Button
-      variant="ghost"
-      size="sm"
-      className={cn(className, "absolute top-1 right-1 h-6 w-6 p-1")}
-      onClick={() => setIsMaximized(!isMaximized)}
-      aria-label={isMaximized ? "Minimize editor" : "Maximize editor"}
-    >
-      {isMaximized ? (
-        <Minimize2 className="h-3 w-3" />
-      ) : (
-        <Maximize2 className="h-3 w-3" />
+            <Button
+              variant="ghost"
+              size="sm"
+              className="absolute top-1 right-1 h-6 w-6 p-1"
+              onClick={() => setIsMaximized(false)}
+              aria-label="Minimize editor"
+            >
+              <Minimize2 className="h-3 w-3" />
+            </Button>
+          </div>
+        </div>
       )}
-    </Button>
+    </>
   );
 }
