@@ -45,7 +45,9 @@ export function Editor({
             onFocus={handleFocus}
             keyMap={keyMap}
             onBlur={onBlur}
-            enableLineWrapping={cell.cellType === "markdown"}
+            enableLineWrapping={
+              cell.cellType === "markdown" || cell.cellType === "ai"
+            }
           />
         </ErrorBoundary>
         <MaxMinButton
@@ -102,7 +104,9 @@ export function Editor({
                 autoFocus={true}
                 onFocus={handleFocus}
                 onBlur={onBlur}
-                enableLineWrapping={cell.cellType === "markdown"}
+                enableLineWrapping={
+                  cell.cellType === "markdown" || cell.cellType === "ai"
+                }
               />
             </ErrorBoundary>
             <MaxMinButton
@@ -153,6 +157,8 @@ function languageFromCellType(
     return "markdown";
   } else if (cellType === "ai") {
     return "markdown";
+  } else if (cellType === "sql") {
+    return "sql";
   }
   return undefined;
 }
@@ -166,6 +172,8 @@ function placeholderFromCellType(
     return "Enter markdown...";
   } else if (cellType === "ai") {
     return "Ask me anything about your notebook, data, or analysis...";
+  } else if (cellType === "sql") {
+    return "Write SQL query...";
   }
   return "Enter raw text...";
 }

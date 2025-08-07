@@ -15,6 +15,7 @@ import { ErrorBoundary } from "react-error-boundary";
 import { CellContainer } from "./shared/CellContainer.js";
 import { CellControls } from "./shared/CellControls.js";
 import { CellTypeSelector } from "./shared/CellTypeSelector.js";
+import { Editor } from "./shared/Editor.js";
 import { OutputsErrorBoundary } from "./shared/OutputsErrorBoundary.js";
 import { PlayButton } from "./shared/PlayButton.js";
 import { PresenceBookmarks } from "./shared/PresenceBookmarks.js";
@@ -24,11 +25,8 @@ import { CodeToolbar } from "./toolbars/CodeToolbar.js";
 import { AiToolbar } from "./toolbars/AiToolbar.js";
 import { SqlToolbar } from "./toolbars/SqlToolbar.js";
 import { AiCellTypeSelector } from "./shared/AiCellTypeSelector.js";
-
-// Import cell-type-specific content components
-import { CodeCellContent } from "./content/CodeCellContent.js";
-import { AiCellContent } from "./content/AiCellContent.js";
-import { SqlCellContent } from "./content/SqlCellContent.js";
+import { AiToolApprovalOutput } from "../../outputs/AiToolApprovalOutput.js";
+import { useToolApprovals } from "@/hooks/useToolApprovals.js";
 
 interface ExecutableCellProps {
   cell: typeof tables.cells.Type;
@@ -40,21 +38,6 @@ interface ExecutableCellProps {
   autoFocus?: boolean;
   onFocus?: () => void;
   contextSelectionMode?: boolean;
-}
-
-export interface CellContentProps {
-  cell: typeof tables.cells.Type;
-  localSource: string;
-  handleSourceChange: (value: string) => void;
-  updateSource: () => void;
-  autoFocus: boolean;
-  onFocus: () => void;
-  keyMap: any[];
-  executeCell?: () => Promise<void>;
-  interruptCell?: () => void;
-  outputs: any[];
-  hasOutputs: boolean;
-  MaybeOutputs: React.ComponentType;
 }
 
 export const ExecutableCell: React.FC<ExecutableCellProps> = ({
@@ -338,22 +321,6 @@ export const ExecutableCell: React.FC<ExecutableCellProps> = ({
 
   const { focusColor, focusBgColor } = getCellStyling();
 
-  // Prepare props for cell-type-specific content
-  const contentProps: CellContentProps = {
-    cell,
-    localSource,
-    handleSourceChange,
-    updateSource,
-    autoFocus,
-    onFocus: handleFocus,
-    keyMap,
-    executeCell: cell.cellType === "ai" ? executeAiPrompt : executeCell,
-    interruptCell,
-    outputs,
-    hasOutputs,
-    MaybeOutputs,
-  };
-
   return (
     <CellContainer
       ref={cellRef}
@@ -511,12 +478,25 @@ export const ExecutableCell: React.FC<ExecutableCellProps> = ({
           </div>
         )}
 
-        {/* Render cell-type-specific content */}
-        <ErrorBoundary fallback={<div>Error rendering cell content</div>}>
-          {cell.cellType === "code" && <CodeCellContent {...contentProps} />}
-          {cell.cellType === "ai" && <AiCellContent {...contentProps} />}
-          {cell.cellType === "sql" && <SqlCellContent {...contentProps} />}
-        </ErrorBoundary>
+        {/* AI Tool Approval (if any) */}
+        {cell.cellType === "ai" && <MaybeInlineToolApproval cellId={cell.id} />}
+
+        {/* Editor Content Area */}
+        {cell.sourceVisible && (
+          <div className="cell-content bg-white py-1 pl-4 transition-colors">
+            <ErrorBoundary fallback={<div>Error rendering editor</div>}>
+              <Editor
+                localSource={localSource}
+                handleSourceChange={handleSourceChange}
+                onBlur={updateSource}
+                handleFocus={handleFocus}
+                cell={cell}
+                autoFocus={autoFocus}
+                keyMap={keyMap}
+              />
+            </ErrorBoundary>
+          </div>
+        )}
       </div>
 
       {/* Execution Summary - appears after input (for executable cells) */}
@@ -662,4 +642,33 @@ const ExecutionStatus: React.FC<ExecutionStatusProps> = ({
     default:
       return null;
   }
+};
+
+// AI Tool Approval Component
+const MaybeInlineToolApproval: React.FC<{
+  cellId: string;
+}> = ({ cellId }) => {
+  const { currentApprovalRequest, respondToApproval } = useToolApprovals({
+    cellId,
+  });
+
+  if (!currentApprovalRequest) {
+    return null;
+  }
+
+  const handleApproval = (
+    status: "approved_once" | "approved_always" | "denied"
+  ) => {
+    respondToApproval(currentApprovalRequest.toolCallId, status);
+  };
+
+  return (
+    <div className="cell-content pr-1 pl-6 sm:pr-4">
+      <AiToolApprovalOutput
+        toolCallId={currentApprovalRequest.toolCallId}
+        toolName={currentApprovalRequest.toolName}
+        onApprove={handleApproval}
+      />
+    </div>
+  );
 };
