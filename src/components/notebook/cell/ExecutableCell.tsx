@@ -194,15 +194,7 @@ export const ExecutableCell: React.FC<ExecutableCellProps> = ({
         })
       );
     }
-  }, [
-    cell.id,
-    cell.cellType,
-    localSource,
-    cell.source,
-    cell.executionCount,
-    store,
-    userId,
-  ]);
+  }, [cell.id, localSource, cell.source, cell.executionCount, store, userId]);
 
   // AI-specific execution handler
   const executeAiPrompt = useCallback(async (): Promise<void> => {
