@@ -99,7 +99,7 @@ export const ExecutableCell: React.FC<ExecutableCellProps> = ({
   // Use shared outputs hook with cell-type-specific configuration
   const { outputs, hasOutputs, MaybeOutputs } = useCellOutputs({
     cellId: cell.id,
-    groupConsecutiveStreams: cell.cellType === "ai" ? false : true,
+    groupConsecutiveStreams: true,
     enableErrorOutput: true,
     enableTerminalOutput: true,
     mobileStyle: cell.cellType === "ai" ? "chat-bubble" : "default",
