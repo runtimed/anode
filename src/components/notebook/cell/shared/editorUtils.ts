@@ -1,9 +1,7 @@
-import { tables } from "@/schema";
+import { tables, CellType } from "@/schema";
 import { SupportedLanguage } from "@/types/misc.js";
 
-export function languageFromCellType(
-  cellType: (typeof tables.cells.Type)["cellType"]
-): SupportedLanguage {
+export function languageFromCellType(cellType: CellType): SupportedLanguage {
   if (cellType === "code") {
     // TODO: Pull from runtime agent session and/or notebook
     return "python";
@@ -17,9 +15,7 @@ export function languageFromCellType(
   return undefined;
 }
 
-export function placeholderFromCellType(
-  cellType: (typeof tables.cells.Type)["cellType"]
-) {
+export function placeholderFromCellType(cellType: CellType) {
   if (cellType === "code") {
     return "Enter your code here...";
   } else if (cellType === "markdown") {
@@ -32,8 +28,6 @@ export function placeholderFromCellType(
   return "Enter raw text...";
 }
 
-export function shouldEnableLineWrapping(
-  cellType: (typeof tables.cells.Type)["cellType"]
-) {
+export function shouldEnableLineWrapping(cellType: CellType) {
   return cellType === "markdown" || cellType === "ai";
 }
