@@ -344,7 +344,7 @@ export const CodeCell: React.FC<CodeCellProps> = ({
       {/* Output Area for Code Cells */}
       {cell.outputVisible &&
         (hasOutputs || cell.executionState === "running") && (
-          <div className="cell-content mt-1 max-w-full overflow-hidden bg-yellow-100 px-4 sm:px-4">
+          <div className="cell-content mt-1 max-w-full overflow-hidden px-4 sm:px-4">
             {cell.executionState === "running" && !hasOutputs && (
               <div className="border-l-2 border-blue-200 py-3 pl-1">
                 <div className="flex items-center gap-2">
