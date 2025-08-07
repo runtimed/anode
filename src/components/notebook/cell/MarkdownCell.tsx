@@ -96,7 +96,6 @@ export const MarkdownCell: React.FC<MarkdownCellProps> = ({
     groupConsecutiveStreams: true,
     enableErrorOutput: true,
     enableTerminalOutput: true,
-    mobileStyle: "default",
   });
 
   const changeCellType = useCallback(

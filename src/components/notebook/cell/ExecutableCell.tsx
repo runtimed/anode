@@ -102,7 +102,6 @@ export const ExecutableCell: React.FC<ExecutableCellProps> = ({
     groupConsecutiveStreams: true,
     enableErrorOutput: true,
     enableTerminalOutput: true,
-    mobileStyle: cell.cellType === "ai" ? "chat-bubble" : "default",
   });
 
   // Shared event handlers

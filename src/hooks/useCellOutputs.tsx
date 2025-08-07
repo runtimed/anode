@@ -14,7 +14,6 @@ interface UseCellOutputsOptions {
   groupConsecutiveStreams?: boolean;
   enableErrorOutput?: boolean;
   enableTerminalOutput?: boolean;
-  mobileStyle?: "default" | "chat-bubble";
 }
 
 interface CellOutputsResult {
@@ -30,7 +29,6 @@ export const useCellOutputs = ({
   groupConsecutiveStreams = false,
   enableErrorOutput = true,
   enableTerminalOutput = true,
-  mobileStyle = "default",
 }: UseCellOutputsOptions): CellOutputsResult => {
   // Create stable query using useMemo to prevent React Hook issues
   const outputsQuery = useMemo(
@@ -97,23 +95,11 @@ export const useCellOutputs = ({
         />
       );
 
-      // Apply mobile chat bubble style for AI cells
-      if (mobileStyle === "chat-bubble") {
-        return (
-          <div className="max-w-full overflow-hidden py-2">
-            <div className="max-w-full overflow-hidden rounded-lg border border-gray-200 bg-gray-50 p-3 sm:rounded-none sm:border-0 sm:bg-transparent sm:p-0">
-              {outputContent}
-            </div>
-          </div>
-        );
-      }
-
-      // Default styling
       return (
         <div className="max-w-full overflow-hidden py-2">{outputContent}</div>
       );
     },
-    [enableErrorOutput, enableTerminalOutput, mobileStyle]
+    [enableErrorOutput, enableTerminalOutput]
   );
 
   // Note: this approach is not ideal, but it ensures that if this component throws, we can put an error boundary that works
