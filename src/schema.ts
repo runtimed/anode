@@ -19,6 +19,7 @@ export type CellReference = RuntSchema.CellReference & {
 export type {
   // Re-export types
   CellData,
+  CellType,
   RuntimeSessionData,
   MediaContainer,
   OutputData,

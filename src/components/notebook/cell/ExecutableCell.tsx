@@ -16,6 +16,11 @@ import { CellContainer } from "./shared/CellContainer.js";
 import { CellControls } from "./shared/CellControls.js";
 import { CellTypeSelector } from "./shared/CellTypeSelector.js";
 import { Editor } from "./shared/Editor.js";
+import {
+  languageFromCellType,
+  placeholderFromCellType,
+  shouldEnableLineWrapping,
+} from "./shared/editorUtils.js";
 import { OutputsErrorBoundary } from "./shared/OutputsErrorBoundary.js";
 import { PlayButton } from "./shared/PlayButton.js";
 import { PresenceBookmarks } from "./shared/PresenceBookmarks.js";
@@ -490,7 +495,9 @@ export const ExecutableCell: React.FC<ExecutableCellProps> = ({
                 handleSourceChange={handleSourceChange}
                 onBlur={updateSource}
                 handleFocus={handleFocus}
-                cell={cell}
+                language={languageFromCellType(cell.cellType)}
+                placeholder={placeholderFromCellType(cell.cellType)}
+                enableLineWrapping={shouldEnableLineWrapping(cell.cellType)}
                 autoFocus={autoFocus}
                 keyMap={keyMap}
               />
