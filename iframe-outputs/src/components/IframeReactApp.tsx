@@ -67,12 +67,12 @@ export const IframeReactApp: React.FC = () => {
 
   // Default content or non-React mode
   return outputs.map((output, index) => (
-        <div
-          key={output.id}
-          className={index > 0 ? "mt-2 border-t border-black/10 pt-2" : ""}
-        >
-          <Output output={output} />
-        </div>
+    <div
+      key={output.id}
+      className={index > 0 ? "mt-2 border-t border-black/10 pt-2" : ""}
+    >
+      <Output output={output} />
+    </div>
   ));
 };
 
@@ -99,12 +99,6 @@ function Output({ output }: { output: OutputData }) {
 
   switch (output.outputType) {
     case "markdown":
-      return (
-        <div
-          key={output.id}
-          dangerouslySetInnerHTML={{ __html: output.data ?? "" }}
-        />
-      );
     case "multimedia_display":
     case "multimedia_result":
     case "error":
