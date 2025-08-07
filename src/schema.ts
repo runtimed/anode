@@ -24,6 +24,8 @@ export type {
   OutputData,
   AiToolCallData,
   AiToolResultData,
+  CellOperationResult,
+  MoveOperationResult,
 } from "@runt/schema";
 
 export const {
@@ -35,6 +37,10 @@ export const {
   fractionalIndexBetween,
   createCellBetween,
   moveCellBetween,
+  moveCellBetweenWithRebalancing,
+  // Re-export convenience functions
+  createCellBetweenAndCommit,
+  moveCellBetweenAndCommit,
   // Re-export type guards
   isInlineContainer,
   isArtifactContainer,

@@ -89,8 +89,8 @@ importers:
         specifier: ^10.0.1
         version: 10.0.1(react-dom@19.0.0(react@19.0.0))(react@19.0.0)
       '@runt/schema':
-        specifier: file:../runt/packages/schema
-        version: file:../runt/packages/schema(f9c23af240f2640c0a9abef8711d3cc6)
+        specifier: jsr:^0.11.1
+        version: '@jsr/runt__schema@0.11.1(f9c23af240f2640c0a9abef8711d3cc6)'
       '@tanstack/react-virtual':
         specifier: ^3.13.12
         version: 3.13.12(react-dom@19.0.0(react@19.0.0))(react@19.0.0)
@@ -1217,6 +1217,9 @@ packages:
 
   '@jridgewell/trace-mapping@0.3.9':
     resolution: {integrity: sha512-3Belt6tdc8bPgAtbcmdtNJlirVoTmEb5e2gC94PnkwEW9jI6CAHUeoG85tjWP5WquqfavoMtMwiG4P926ZKKuQ==}
+
+  '@jsr/runt__schema@0.11.1':
+    resolution: {integrity: sha512-SNkepFFWX49GgkGHczePcEdXlo+CKJwRDGP2u2Xx8JVkN+tiZL3TQP7dvFZ5z3oAyFKtjKLQavdhoxOE2YU0Lg==, tarball: https://npm.jsr.io/~/11/@jsr/runt__schema/0.11.1.tgz}
 
   '@lezer/common@1.2.3':
     resolution: {integrity: sha512-w7ojc8ejBqr2REPsWxJjrMFsA/ysDCFICn8zEOR9mrqzOu2amhITYuLD8ag6XZf0CFXDrhKqw7+tW8cX66NaDA==}
@@ -5698,6 +5701,26 @@ snapshots:
     dependencies:
       '@jridgewell/resolve-uri': 3.1.2
       '@jridgewell/sourcemap-codec': 1.5.4
+
+  '@jsr/runt__schema@0.11.1(f9c23af240f2640c0a9abef8711d3cc6)':
+    dependencies:
+      '@livestore/livestore': 0.3.1(f9c23af240f2640c0a9abef8711d3cc6)
+    transitivePeerDependencies:
+      - '@effect/cli'
+      - '@effect/cluster'
+      - '@effect/experimental'
+      - '@effect/opentelemetry'
+      - '@effect/platform'
+      - '@effect/platform-browser'
+      - '@effect/platform-bun'
+      - '@effect/platform-node'
+      - '@effect/printer'
+      - '@effect/printer-ansi'
+      - '@effect/rpc'
+      - '@effect/sql'
+      - '@effect/typeclass'
+      - '@opentelemetry/resources'
+      - effect
 
   '@lezer/common@1.2.3': {}
 

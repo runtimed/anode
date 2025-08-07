@@ -5,7 +5,7 @@ import {
   events,
   tables,
   createCellBetween,
-  moveCellBetween,
+  moveCellBetweenWithRebalancing,
   queries,
   CellReference,
 } from "@/schema";
@@ -13,7 +13,7 @@ import React, { Suspense, useCallback, useRef } from "react";
 import { ErrorBoundary } from "react-error-boundary";
 
 import { NotebookTitle } from "./NotebookTitle.js";
-import { VirtualizedCellList } from "./VirtualizedCellList.js";
+import { CellList } from "./CellList.js";
 
 import { Avatar } from "@/components/ui/Avatar.js";
 import { Button } from "@/components/ui/button";
@@ -145,19 +145,21 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
       }
 
       // Create cell using the new API
-      const cellCreatedEvent = createCellBetween(
+      const cellCreationResult = createCellBetween(
         {
           id: newCellId,
           cellType,
           createdBy: userId,
         },
         cellBefore,
-        cellAfter
+        cellAfter,
+        cellReferences // Pass current cell state for rebalancing context
       );
 
       // toast.success("Cell created successfully!");
 
-      store.commit(cellCreatedEvent);
+      // Commit all events (may include automatic rebalancing)
+      cellCreationResult.events.forEach((event) => store.commit(event));
 
       // Set default AI model for AI cells based on last used model
       if (cellType === "ai" && aiProvider && aiModel) {
@@ -273,15 +275,17 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
         }
       }
 
-      const moveEvent = moveCellBetween(
+      const moveResult = moveCellBetweenWithRebalancing(
         currentCell,
         cellBefore,
         cellAfter,
+        cellReferences, // Pass current cell state for rebalancing context
         userId
       );
 
-      if (moveEvent) {
-        store.commit(moveEvent);
+      if (moveResult.moved) {
+        // Commit all events (may include automatic rebalancing)
+        moveResult.events.forEach((event) => store.commit(event));
       } else {
         // Cell already in target position or invalid move
       }
@@ -552,7 +556,7 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
             ) : (
               <>
                 <ErrorBoundary fallback={<div>Error rendering cell list</div>}>
-                  <VirtualizedCellList
+                  <CellList
                     cellReferences={cellReferences}
                     focusedCellId={focusedCellId}
                     onAddCell={addCell}
@@ -563,7 +567,6 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
                     onFocusPrevious={focusPreviousCell}
                     onFocus={focusCell}
                     contextSelectionMode={contextSelectionMode}
-                    threshold={50}
                   />
                 </ErrorBoundary>
                 {/* Add Cell Buttons */}
