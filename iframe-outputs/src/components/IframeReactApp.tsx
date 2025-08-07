@@ -18,11 +18,12 @@ export const IframeReactApp: React.FC = () => {
     document.body.style.margin = "0";
 
     function sendHeight() {
+      const BUFFER = 1; // Add a small buffer to prevent scrollbars
       const height = document.body.scrollHeight;
       window.parent.postMessage(
         {
           type: "iframe-height",
-          height: height,
+          height: height + BUFFER,
         },
         "*"
       );
