@@ -160,7 +160,7 @@ export const ExecutableCell: React.FC<ExecutableCellProps> = ({
     }
   }, [cell.id, store, hasOutputs, userId]);
 
-  // Default execution handler (for code/sql cells)
+  // Execution handler for all executable cell types
   const executeCell = useCallback(async (): Promise<void> => {
     // Use localSource instead of cell.source to get the current typed content
     const sourceToExecute = localSource || cell.source;
@@ -203,66 +203,11 @@ export const ExecutableCell: React.FC<ExecutableCellProps> = ({
           content: {
             type: "inline",
             data: {
-              ename: "LiveStoreError",
+              ename: "ExecutionError",
               evalue:
                 error instanceof Error
                   ? error.message
                   : "Failed to queue execution request",
-              traceback: ["Error occurred while emitting LiveStore event"],
-            },
-          },
-        })
-      );
-    }
-  }, [cell.id, localSource, cell.source, cell.executionCount, store, userId]);
-
-  // AI-specific execution handler
-  const executeAiPrompt = useCallback(async (): Promise<void> => {
-    const sourceToExecute = localSource || cell.source;
-    if (!sourceToExecute?.trim()) {
-      return;
-    }
-
-    try {
-      // Clear previous outputs first
-      store.commit(
-        events.cellOutputsCleared({
-          cellId: cell.id,
-          wait: false,
-          clearedBy: userId,
-        })
-      );
-
-      // Generate unique queue ID
-      const queueId = `exec-${Date.now()}-${Math.random()
-        .toString(36)
-        .slice(2)}`;
-      const executionCount = (cell.executionCount || 0) + 1;
-
-      // Add to execution queue - runtimes will pick this up
-      store.commit(
-        events.executionRequested({
-          queueId,
-          cellId: cell.id,
-          executionCount,
-          requestedBy: userId,
-        })
-      );
-    } catch (error) {
-      // Store error information directly
-      store.commit(
-        events.errorOutputAdded({
-          id: `error-${Date.now()}-${Math.random().toString(36).slice(2)}`,
-          cellId: cell.id,
-          position: 0,
-          content: {
-            type: "inline",
-            data: {
-              ename: "AIExecutionError",
-              evalue:
-                error instanceof Error
-                  ? error.message
-                  : "Failed to queue AI execution request",
               traceback: ["Error occurred while emitting LiveStore event"],
             },
           },
@@ -283,8 +228,7 @@ export const ExecutableCell: React.FC<ExecutableCellProps> = ({
     onFocusPrevious,
     onDeleteCell,
     onExecute: () => {
-      const handler = cell.cellType === "ai" ? executeAiPrompt : executeCell;
-      handler();
+      executeCell();
     },
     onUpdateSource: updateSource,
   });
@@ -398,9 +342,7 @@ export const ExecutableCell: React.FC<ExecutableCellProps> = ({
               cellType={cell.cellType}
               autoFocus={autoFocus}
               onExecute={() => {
-                const handler =
-                  cell.cellType === "ai" ? executeAiPrompt : executeCell;
-                handler();
+                executeCell();
               }}
               onInterrupt={interruptCell}
               className="mobile-play-btn block sm:hidden"
@@ -424,9 +366,7 @@ export const ExecutableCell: React.FC<ExecutableCellProps> = ({
             cellType={cell.cellType}
             autoFocus={autoFocus}
             onExecute={() => {
-              const handler =
-                cell.cellType === "ai" ? executeAiPrompt : executeCell;
-              handler();
+              executeCell();
             }}
             onInterrupt={interruptCell}
             size="default"
