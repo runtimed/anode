@@ -1,4 +1,4 @@
-import { tables, CellType } from "@/schema";
+import { CellType } from "@/schema";
 import { SupportedLanguage } from "@/types/misc.js";
 
 export function languageFromCellType(cellType: CellType): SupportedLanguage {
