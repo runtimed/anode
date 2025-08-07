@@ -32,6 +32,7 @@ import { SqlToolbar } from "./toolbars/SqlToolbar.js";
 
 import { AiToolApprovalOutput } from "../../outputs/AiToolApprovalOutput.js";
 import { useToolApprovals } from "@/hooks/useToolApprovals.js";
+import { MaybeCellOutputs } from "@/components/outputs/CellOutputs.js";
 
 // Cell-specific styling configuration
 const getCellStyling = (cellType: "code" | "sql" | "ai") => {
@@ -97,12 +98,7 @@ export const ExecutableCell: React.FC<ExecutableCellProps> = ({
   });
 
   // Use shared outputs hook with cell-type-specific configuration
-  const { outputs, hasOutputs, MaybeOutputs } = useCellOutputs({
-    cellId: cell.id,
-    groupConsecutiveStreams: true,
-    enableErrorOutput: true,
-    enableTerminalOutput: true,
-  });
+  const { outputs, hasOutputs } = useCellOutputs(cell.id);
 
   // Shared event handlers
   const changeCellType = useCallback(
@@ -456,7 +452,7 @@ export const ExecutableCell: React.FC<ExecutableCellProps> = ({
               </div>
             )}
             <ErrorBoundary FallbackComponent={OutputsErrorBoundary}>
-              {hasOutputs && <MaybeOutputs />}
+              {hasOutputs && <MaybeCellOutputs outputs={outputs} />}
             </ErrorBoundary>
           </div>
         )}

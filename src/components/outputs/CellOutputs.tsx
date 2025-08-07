@@ -7,9 +7,5 @@ import { OutputData } from "@runt/schema";
 export function MaybeCellOutputs({ outputs }: { outputs: OutputData[] }) {
   if (!outputs.length) return null;
 
-  return (
-    <div className="outputs-container px-4 py-2">
-      <IframeOutputs outputs={outputs} />
-    </div>
-  );
+  return <IframeOutputs outputs={outputs} />;
 }

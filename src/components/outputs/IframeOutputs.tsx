@@ -38,7 +38,7 @@ export const IframeOutputs = ({ outputs }: { outputs: OutputData[] }) => {
             key={output.id}
             className={index > 0 ? "border-border/30 mt-2 border-t pt-2" : ""}
           >
-            <SingleOutput output={output} mobileStyle="default" />
+            <SingleOutput output={output} />
           </div>
         ))
       )}
