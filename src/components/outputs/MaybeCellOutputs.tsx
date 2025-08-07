@@ -1,17 +1,16 @@
 import { groupConsecutiveStreamOutputs } from "@/util/output-grouping";
 import { OutputData } from "@runt/schema";
-import { IframeOutput2 } from "./IframeOutput2";
 import { useMemo } from "react";
+import { IframeOutput2 } from "./IframeOutput2";
 import { SingleOutput } from "./SingleOutput";
-import { Button } from "../ui/button";
-import { useLocalStorage } from "react-use";
 
-export const IframeOutputs = ({ outputs }: { outputs: OutputData[] }) => {
-  const [shouldUseIframe, setShouldUseIframe] = useLocalStorage(
-    "shouldUseIframe",
-    true
-  );
-
+export const MaybeCellOutputs = ({
+  outputs,
+  shouldUseIframe,
+}: {
+  outputs: OutputData[];
+  shouldUseIframe: boolean;
+}) => {
   // Apply grouping strategy based on cell type
   const processedOutputs = useMemo(
     () =>
@@ -21,15 +20,10 @@ export const IframeOutputs = ({ outputs }: { outputs: OutputData[] }) => {
     [outputs]
   );
 
+  if (!outputs.length) return null;
+
   return (
     <div>
-      <Button
-        size="xs"
-        variant="outline"
-        onClick={() => setShouldUseIframe(!shouldUseIframe)}
-      >
-        {shouldUseIframe ? "Render directly" : "Use iframe"}
-      </Button>
       {shouldUseIframe ? (
         <IframeOutput2 outputs={processedOutputs} isReact />
       ) : (

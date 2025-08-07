@@ -37,11 +37,11 @@ export function SingleOutput({ output }: { output: OutputData }) {
   }
 
   // Handle all other outputs with RichOutput
-  const outputContent = (
-    // Can't do `output={output}` because TS gets confused, thinking `outputType` can be "terminal"
-    <RichOutput output={{ ...output, outputType: output.outputType }} />
-  );
-
   // Default styling
-  return <div className="max-w-full overflow-hidden py-2">{outputContent}</div>;
+  // Can't do `output={output}` because TS gets confused, thinking `outputType` can be "terminal"
+  return (
+    <div className="max-w-full overflow-hidden py-2">
+      <RichOutput output={{ ...output, outputType: output.outputType }} />
+    </div>
+  );
 }
