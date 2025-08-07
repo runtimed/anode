@@ -10,19 +10,51 @@ import { useInterruptExecution } from "@/hooks/useInterruptExecution.js";
 import { useStore } from "@livestore/react";
 import { events, tables } from "@/schema";
 import { ChevronDown, ChevronUp } from "lucide-react";
-import React, { useCallback } from "react";
+import React, { useCallback, useRef } from "react";
 import { ErrorBoundary } from "react-error-boundary";
 import { CellContainer } from "./shared/CellContainer.js";
 import { CellControls } from "./shared/CellControls.js";
 import { CellTypeSelector } from "./shared/CellTypeSelector.js";
 import { Editor } from "./shared/Editor.js";
+import {
+  languageFromCellType,
+  placeholderFromCellType,
+  shouldEnableLineWrapping,
+} from "./shared/editorUtils.js";
 import { OutputsErrorBoundary } from "./shared/OutputsErrorBoundary.js";
 import { PlayButton } from "./shared/PlayButton.js";
 import { PresenceBookmarks } from "./shared/PresenceBookmarks.js";
-import { CodeToolbar } from "./toolbars/CodeToolbar.js";
-import { MaybeCellOutputs } from "@/components/outputs/CellOutputs.js";
 
-interface CodeCellProps {
+// Import toolbars
+import { CodeToolbar } from "./toolbars/CodeToolbar.js";
+import { AiToolbar } from "./toolbars/AiToolbar.js";
+import { SqlToolbar } from "./toolbars/SqlToolbar.js";
+
+import { AiToolApprovalOutput } from "../../outputs/AiToolApprovalOutput.js";
+import { useToolApprovals } from "@/hooks/useToolApprovals.js";
+
+// Cell-specific styling configuration
+const getCellStyling = (cellType: "code" | "sql" | "ai") => {
+  switch (cellType) {
+    case "sql":
+      return {
+        focusColor: "bg-blue-500/40",
+        focusBgColor: "bg-blue-50/20",
+      };
+    case "ai":
+      return {
+        focusColor: "bg-purple-500/40",
+        focusBgColor: "bg-purple-50/20",
+      };
+    default: // code
+      return {
+        focusColor: "bg-primary/60",
+        focusBgColor: "bg-primary/5",
+      };
+  }
+};
+
+interface ExecutableCellProps {
   cell: typeof tables.cells.Type;
   onDeleteCell: () => void;
   onMoveUp: () => void;
@@ -34,7 +66,7 @@ interface CodeCellProps {
   contextSelectionMode?: boolean;
 }
 
-export const CodeCell: React.FC<CodeCellProps> = ({
+export const ExecutableCell: React.FC<ExecutableCellProps> = ({
   cell,
   onDeleteCell,
   onMoveUp,
@@ -45,6 +77,8 @@ export const CodeCell: React.FC<CodeCellProps> = ({
   onFocus,
   contextSelectionMode = false,
 }) => {
+  const cellRef = useRef<HTMLDivElement>(null);
+
   const { store } = useStore();
   const {
     user: { sub: userId },
@@ -62,9 +96,15 @@ export const CodeCell: React.FC<CodeCellProps> = ({
     initialSource: cell.source,
   });
 
-  // Use shared outputs hook with code-specific configuration
-  const { outputs, hasOutputs } = useCellOutputs(cell.id);
+  // Use shared outputs hook with cell-type-specific configuration
+  const { outputs, hasOutputs, MaybeOutputs } = useCellOutputs({
+    cellId: cell.id,
+    groupConsecutiveStreams: true,
+    enableErrorOutput: true,
+    enableTerminalOutput: true,
+  });
 
+  // Shared event handlers
   const changeCellType = useCallback(
     (newType: "code" | "markdown" | "sql" | "ai") => {
       store.commit(
@@ -120,7 +160,8 @@ export const CodeCell: React.FC<CodeCellProps> = ({
     }
   }, [cell.id, store, hasOutputs, userId]);
 
-  const executeCell = useCallback(async () => {
+  // Execution handler for all executable cell types
+  const executeCell = useCallback(async (): Promise<void> => {
     // Use localSource instead of cell.source to get the current typed content
     const sourceToExecute = localSource || cell.source;
     if (!sourceToExecute?.trim()) {
@@ -152,16 +193,7 @@ export const CodeCell: React.FC<CodeCellProps> = ({
           requestedBy: userId,
         })
       );
-
-      // The runtime service will now:
-      // 1. See the pending execution in the queue
-      // 2. Assign itself to the execution
-      // 3. Execute the code
-      // 4. Emit execution events and cell outputs
-      // 5. All clients will see the results in real-time!
     } catch (error) {
-      console.error("❌ LiveStore execution error:", error);
-
       // Store error information directly
       store.commit(
         events.errorOutputAdded({
@@ -171,7 +203,7 @@ export const CodeCell: React.FC<CodeCellProps> = ({
           content: {
             type: "inline",
             data: {
-              ename: "LiveStoreError",
+              ename: "ExecutionError",
               evalue:
                 error instanceof Error
                   ? error.message
@@ -190,7 +222,7 @@ export const CodeCell: React.FC<CodeCellProps> = ({
     reason: "User interrupted execution",
   });
 
-  // Use shared keyboard navigation hook
+  // Use shared keyboard navigation hook with cell-type-specific execution
   const { keyMap } = useCellKeyboardNavigation({
     onFocusNext,
     onFocusPrevious,
@@ -203,20 +235,83 @@ export const CodeCell: React.FC<CodeCellProps> = ({
     onFocus?.();
   }, [onFocus]);
 
+  const { focusColor, focusBgColor } = getCellStyling(
+    cell.cellType as "code" | "sql" | "ai"
+  );
+
   return (
     <CellContainer
+      ref={cellRef}
       cell={cell}
       autoFocus={autoFocus}
       contextSelectionMode={contextSelectionMode}
       onFocus={onFocus}
-      focusColor="bg-primary/60"
-      focusBgColor="bg-primary/5"
+      focusColor={focusColor}
+      focusBgColor={focusBgColor}
     >
       {/* Cell Header */}
       <div className="cell-header mb-2 flex items-center justify-between pr-1 pl-6 sm:pr-4">
         <div className="flex items-center gap-3">
           <CellTypeSelector cell={cell} onCellTypeChange={changeCellType} />
-          <CodeToolbar />
+
+          {/* Cell-type-specific toolbars */}
+          {cell.cellType === "code" && <CodeToolbar />}
+          {cell.cellType === "ai" && (
+            <AiToolbar
+              provider={cell.aiProvider || "openai"}
+              model={cell.aiModel || "gpt-4o-mini"}
+              onProviderChange={(newProvider: string, newModel: string) => {
+                store.commit(
+                  events.aiSettingsChanged({
+                    cellId: cell.id,
+                    provider: newProvider,
+                    model: newModel,
+                    settings: {
+                      temperature: 0.7,
+                      maxTokens: 1000,
+                    },
+                  })
+                );
+
+                // Save the last used AI model to notebook metadata for future AI cells
+                store.commit(
+                  events.notebookMetadataSet({
+                    key: "lastUsedAiProvider",
+                    value: newProvider,
+                  })
+                );
+                store.commit(
+                  events.notebookMetadataSet({
+                    key: "lastUsedAiModel",
+                    value: newModel,
+                  })
+                );
+              }}
+            />
+          )}
+          {cell.cellType === "sql" && (
+            <SqlToolbar
+              dataConnection={cell.sqlConnectionId || "default"}
+              onDataConnectionChange={(newConnectionId: string) => {
+                store.commit(
+                  events.sqlConnectionChanged({
+                    cellId: cell.id,
+                    connectionId: newConnectionId,
+                    changedBy: userId,
+                  })
+                );
+
+                // Save the last used SQL connection to notebook metadata for future SQL cells
+                store.commit(
+                  events.notebookMetadataSet({
+                    key: "lastUsedSqlConnection",
+                    value: newConnectionId,
+                  })
+                );
+              }}
+            />
+          )}
+
           <ExecutionStatus executionState={cell.executionState} />
           <PresenceBookmarks
             usersOnCell={usersOnCell}
@@ -266,9 +361,14 @@ export const CodeCell: React.FC<CodeCellProps> = ({
             onInterrupt={interruptCell}
             size="default"
             className="h-6 w-6 rounded-sm border-0 bg-white p-0 transition-colors hover:bg-white"
-            primaryColor="text-foreground"
+            primaryColor={
+              cell.cellType === "ai" ? "text-purple-600" : "text-foreground"
+            }
           />
         </div>
+
+        {/* AI Tool Approval (if any) */}
+        {cell.cellType === "ai" && <MaybeInlineToolApproval cellId={cell.id} />}
 
         {/* Editor Content Area */}
         {cell.sourceVisible && (
@@ -279,7 +379,9 @@ export const CodeCell: React.FC<CodeCellProps> = ({
                 handleSourceChange={handleSourceChange}
                 onBlur={updateSource}
                 handleFocus={handleFocus}
-                cell={cell}
+                language={languageFromCellType(cell.cellType)}
+                placeholder={placeholderFromCellType(cell.cellType)}
+                enableLineWrapping={shouldEnableLineWrapping(cell.cellType)}
                 autoFocus={autoFocus}
                 keyMap={keyMap}
               />
@@ -296,7 +398,7 @@ export const CodeCell: React.FC<CodeCellProps> = ({
           <div className="text-muted-foreground flex items-center justify-between pb-1 text-xs">
             <span>
               {cell.executionState === "running"
-                ? "Executing code..."
+                ? "Executing..."
                 : cell.executionState === "queued"
                   ? "Queued for execution"
                   : cell.executionCount
@@ -341,10 +443,10 @@ export const CodeCell: React.FC<CodeCellProps> = ({
         </div>
       )}
 
-      {/* Output Area for Code Cells */}
+      {/* Output Area */}
       {cell.outputVisible &&
         (hasOutputs || cell.executionState === "running") && (
-          <div className="cell-content mt-1 max-w-full overflow-hidden px-4 sm:px-4">
+          <div className="cell-content bg-background mt-1 max-w-full overflow-hidden px-4 sm:px-4">
             {cell.executionState === "running" && !hasOutputs && (
               <div className="border-l-2 border-blue-200 py-3 pl-1">
                 <div className="flex items-center gap-2">
@@ -354,7 +456,7 @@ export const CodeCell: React.FC<CodeCellProps> = ({
               </div>
             )}
             <ErrorBoundary FallbackComponent={OutputsErrorBoundary}>
-              <MaybeCellOutputs outputs={outputs} />
+              {hasOutputs && <MaybeOutputs />}
             </ErrorBoundary>
           </div>
         )}
@@ -362,11 +464,12 @@ export const CodeCell: React.FC<CodeCellProps> = ({
   );
 };
 
+// Execution Status Component
 interface ExecutionStatusProps {
   executionState: string;
 }
 
-export const ExecutionStatus: React.FC<ExecutionStatusProps> = ({
+const ExecutionStatus: React.FC<ExecutionStatusProps> = ({
   executionState,
 }) => {
   switch (executionState) {
@@ -400,4 +503,33 @@ export const ExecutionStatus: React.FC<ExecutionStatusProps> = ({
     default:
       return null;
   }
+};
+
+// AI Tool Approval Component
+const MaybeInlineToolApproval: React.FC<{
+  cellId: string;
+}> = ({ cellId }) => {
+  const { currentApprovalRequest, respondToApproval } = useToolApprovals({
+    cellId,
+  });
+
+  if (!currentApprovalRequest) {
+    return null;
+  }
+
+  const handleApproval = (
+    status: "approved_once" | "approved_always" | "denied"
+  ) => {
+    respondToApproval(currentApprovalRequest.toolCallId, status);
+  };
+
+  return (
+    <div className="cell-content pr-1 pl-6 sm:pr-4">
+      <AiToolApprovalOutput
+        toolCallId={currentApprovalRequest.toolCallId}
+        toolName={currentApprovalRequest.toolName}
+        onApprove={handleApproval}
+      />
+    </div>
+  );
 };

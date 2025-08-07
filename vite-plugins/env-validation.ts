@@ -14,7 +14,7 @@ const DEVELOPMENT_DEFAULTS: EnvConfig = {
 
 const REQUIRED_ENV_VARS = Object.keys(DEVELOPMENT_DEFAULTS);
 
-export function envValidationPlugin(): Plugin {
+export function envValidationPlugin(env: Record<string, string>): Plugin {
   return {
     name: "env-validation",
     config(config, { mode }) {
@@ -26,8 +26,11 @@ export function envValidationPlugin(): Plugin {
         for (const [key, defaultValue] of Object.entries(
           DEVELOPMENT_DEFAULTS
         )) {
-          if (!process.env[key]) {
-            process.env[key] = defaultValue;
+          if (!env[key]) {
+            console.log(
+              `[env-validation] Setting default ${key}=${defaultValue}`
+            );
+            env[key] = defaultValue;
             console.log(
               `[env-validation] Setting default ${key}=${defaultValue}`
             );
@@ -38,7 +41,7 @@ export function envValidationPlugin(): Plugin {
         const missingVars: string[] = [];
 
         for (const key of REQUIRED_ENV_VARS) {
-          if (!process.env[key]) {
+          if (!env[key]) {
             missingVars.push(key);
           }
         }
@@ -63,7 +66,7 @@ ${missingVars.map((v) => `  ${v}="${DEVELOPMENT_DEFAULTS[v]}"`).join("\n")}
         );
         for (const key of REQUIRED_ENV_VARS) {
           // Log the key but mask the value for security
-          const value = process.env[key]!;
+          const value = env[key]!;
           const masked =
             value.length > 8
               ? value.substring(0, 4) +
@@ -75,18 +78,25 @@ ${missingVars.map((v) => `  ${v}="${DEVELOPMENT_DEFAULTS[v]}"`).join("\n")}
       }
 
       // Pass the env vars to Vite's define config
-      return {
+      const injectedEnv = {
         define: {
           ...config.define,
           // Ensure env vars are available in the app
           ...Object.fromEntries(
-            REQUIRED_ENV_VARS.filter((key) => process.env[key]).map((key) => [
+            REQUIRED_ENV_VARS.filter((key) => env[key]).map((key) => [
               `import.meta.env.${key}`,
-              JSON.stringify(process.env[key]),
+              JSON.stringify(env[key]),
             ])
           ),
         },
       };
+      console.log(
+        "\nInjected vite required env vars:",
+        injectedEnv.define,
+        "\n"
+      );
+
+      return injectedEnv;
     },
   };
 }
