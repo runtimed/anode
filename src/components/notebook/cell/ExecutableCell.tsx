@@ -142,12 +142,6 @@ export const ExecutableCell: React.FC<ExecutableCellProps> = ({
 
   // Default execution handler (for code/sql cells)
   const executeCell = useCallback(async (): Promise<void> => {
-    console.log(
-      "🔧 executeCell called for cell:",
-      cell.id,
-      "cellType:",
-      cell.cellType
-    );
     // Use localSource instead of cell.source to get the current typed content
     const sourceToExecute = localSource || cell.source;
     if (!sourceToExecute?.trim()) {
@@ -180,8 +174,6 @@ export const ExecutableCell: React.FC<ExecutableCellProps> = ({
         })
       );
     } catch (error) {
-      console.error("❌ LiveStore execution error:", error);
-
       // Store error information directly
       store.commit(
         events.errorOutputAdded({
@@ -214,15 +206,11 @@ export const ExecutableCell: React.FC<ExecutableCellProps> = ({
 
   // AI-specific execution handler
   const executeAiPrompt = useCallback(async (): Promise<void> => {
-    console.log("🤖 AI executeAiPrompt called for cell:", cell.id);
     const sourceToExecute = localSource || cell.source;
-    console.log("🤖 Source to execute:", sourceToExecute);
     if (!sourceToExecute?.trim()) {
-      console.log("🤖 No source to execute, returning");
       return;
     }
 
-    console.log("🤖 Starting AI execution...");
     try {
       // Clear previous outputs first
       store.commit(
@@ -240,12 +228,6 @@ export const ExecutableCell: React.FC<ExecutableCellProps> = ({
       const executionCount = (cell.executionCount || 0) + 1;
 
       // Add to execution queue - runtimes will pick this up
-      console.log("🤖 Committing executionRequested event:", {
-        queueId,
-        cellId: cell.id,
-        executionCount,
-        requestedBy: userId,
-      });
       store.commit(
         events.executionRequested({
           queueId,
@@ -254,10 +236,7 @@ export const ExecutableCell: React.FC<ExecutableCellProps> = ({
           requestedBy: userId,
         })
       );
-      console.log("🤖 AI execution request committed successfully");
     } catch (error) {
-      console.error("❌ LiveStore AI execution error:", error);
-
       // Store error information directly
       store.commit(
         events.errorOutputAdded({
@@ -292,7 +271,6 @@ export const ExecutableCell: React.FC<ExecutableCellProps> = ({
     onFocusPrevious,
     onDeleteCell,
     onExecute: () => {
-      console.log("⌨️ Keyboard execute triggered for cellType:", cell.cellType);
       const handler = cell.cellType === "ai" ? executeAiPrompt : executeCell;
       handler();
     },
@@ -431,10 +409,6 @@ export const ExecutableCell: React.FC<ExecutableCellProps> = ({
                 cellType={cell.cellType}
                 autoFocus={autoFocus}
                 onExecute={() => {
-                  console.log(
-                    "📱 Mobile PlayButton clicked for cellType:",
-                    cell.cellType
-                  );
                   const handler =
                     cell.cellType === "ai" ? executeAiPrompt : executeCell;
                   handler();
@@ -465,10 +439,6 @@ export const ExecutableCell: React.FC<ExecutableCellProps> = ({
               cellType={cell.cellType}
               autoFocus={autoFocus}
               onExecute={() => {
-                console.log(
-                  "🖥️ Desktop PlayButton clicked for cellType:",
-                  cell.cellType
-                );
                 const handler =
                   cell.cellType === "ai" ? executeAiPrompt : executeCell;
                 handler();
