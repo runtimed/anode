@@ -84,6 +84,7 @@
     "jose": "^6.0.12",
     "js-cookie": "^3.0.5",
     "lucide-react": "^0.514.0",
+    "modern-normalize": "^3.0.1",
     "openid-client": "^6.6.2",
     "psl": "^1.15.0",
     "react": "19.0.0",

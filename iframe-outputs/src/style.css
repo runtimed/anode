@@ -1,6 +1,17 @@
-@import "tailwindcss";
-@plugin "@tailwindcss/typography";
+@layer theme, base, components, utilities;
+@import "tailwindcss/theme.css" layer(theme);
+
+/**
+The preflight styles remove default styles for many elements.
+In iframe outputs, we want users to be able to render a button and see it rendered as one.
+However, since preflight is based on `modern-normalize`, we want to use it to smooth out differences across browsers.
+Docs: https://tailwindcss.com/docs/preflight#overview
+*/
+/* @import "tailwindcss/utilities.css" layer(utilities); */
+@import "node_modules/modern-normalize/modern-normalize.css";
+
 @import "tw-animate-css";
+@plugin "@tailwindcss/typography";
 @source "../../src/components/outputs/AnsiOutput.tsx";
 
 :root {
