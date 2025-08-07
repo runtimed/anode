@@ -1,13 +1,8 @@
 import { queries } from "@/schema";
 import React from "react";
-
-import { AiCell } from "./AiCell.js";
-import { CodeCell } from "./CodeCell.js";
-import { MarkdownCell } from "./MarkdownCell.js";
-import { SqlCell } from "./SqlCell.js";
-
 import { ErrorBoundary } from "react-error-boundary";
 import { useQuery } from "@livestore/react";
+import { UniversalCell } from "./UniversalCell.js";
 
 interface CellProps {
   cellId: string;
@@ -39,78 +34,19 @@ export const Cell: React.FC<CellProps> = ({
     return null;
   }
 
-  // Route to specialized cell components
-  if (cell.cellType === "code") {
-    return (
-      <ErrorBoundary fallback={<div>Error rendering code cell</div>}>
-        <CodeCell
-          cell={cell}
-          onDeleteCell={onDeleteCell}
-          onMoveUp={onMoveUp}
-          onMoveDown={onMoveDown}
-          onFocusNext={onFocusNext}
-          onFocusPrevious={onFocusPrevious}
-          autoFocus={autoFocus}
-          onFocus={onFocus}
-          contextSelectionMode={contextSelectionMode}
-        />
-      </ErrorBoundary>
-    );
-  }
-
-  if (cell.cellType === "sql") {
-    return (
-      <ErrorBoundary fallback={<div>Error rendering SQL cell</div>}>
-        <SqlCell
-          cell={cell}
-          onDeleteCell={onDeleteCell}
-          onMoveUp={onMoveUp}
-          onMoveDown={onMoveDown}
-          onFocusNext={onFocusNext}
-          onFocusPrevious={onFocusPrevious}
-          autoFocus={autoFocus}
-          onFocus={onFocus}
-          contextSelectionMode={contextSelectionMode}
-        />
-      </ErrorBoundary>
-    );
-  }
-
-  if (cell.cellType === "ai") {
-    return (
-      <ErrorBoundary fallback={<div>Error rendering AI cell</div>}>
-        <AiCell
-          cell={cell}
-          onDeleteCell={onDeleteCell}
-          onMoveUp={onMoveUp}
-          onMoveDown={onMoveDown}
-          onFocusNext={onFocusNext}
-          onFocusPrevious={onFocusPrevious}
-          autoFocus={autoFocus}
-          onFocus={onFocus}
-          contextSelectionMode={contextSelectionMode}
-        />
-      </ErrorBoundary>
-    );
-  }
-
-  if (cell.cellType === "markdown") {
-    return (
-      <ErrorBoundary fallback={<div>Error rendering markdown cell</div>}>
-        <MarkdownCell
-          cell={cell}
-          onDeleteCell={onDeleteCell}
-          onMoveUp={onMoveUp}
-          onMoveDown={onMoveDown}
-          onFocusNext={onFocusNext}
-          onFocusPrevious={onFocusPrevious}
-          autoFocus={autoFocus}
-          onFocus={onFocus}
-          contextSelectionMode={contextSelectionMode}
-        />
-      </ErrorBoundary>
-    );
-  }
-
-  throw new Error(`Unknown cell type: ${cell.cellType}`);
+  return (
+    <ErrorBoundary fallback={<div>Error rendering cell</div>}>
+      <UniversalCell
+        cell={cell}
+        onDeleteCell={onDeleteCell}
+        onMoveUp={onMoveUp}
+        onMoveDown={onMoveDown}
+        onFocusNext={onFocusNext}
+        onFocusPrevious={onFocusPrevious}
+        autoFocus={autoFocus}
+        onFocus={onFocus}
+        contextSelectionMode={contextSelectionMode}
+      />
+    </ErrorBoundary>
+  );
 };
