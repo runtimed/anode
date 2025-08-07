@@ -29,7 +29,7 @@ import { PresenceBookmarks } from "./shared/PresenceBookmarks.js";
 import { CodeToolbar } from "./toolbars/CodeToolbar.js";
 import { AiToolbar } from "./toolbars/AiToolbar.js";
 import { SqlToolbar } from "./toolbars/SqlToolbar.js";
-import { AiCellTypeSelector } from "./shared/AiCellTypeSelector.js";
+
 import { AiToolApprovalOutput } from "../../outputs/AiToolApprovalOutput.js";
 import { useToolApprovals } from "@/hooks/useToolApprovals.js";
 
@@ -252,11 +252,7 @@ export const ExecutableCell: React.FC<ExecutableCellProps> = ({
       {/* Cell Header */}
       <div className="cell-header mb-2 flex items-center justify-between pr-1 pl-6 sm:pr-4">
         <div className="flex items-center gap-3">
-          {cell.cellType === "ai" ? (
-            <AiCellTypeSelector onCellTypeChange={changeCellType} />
-          ) : (
-            <CellTypeSelector cell={cell} onCellTypeChange={changeCellType} />
-          )}
+          <CellTypeSelector cell={cell} onCellTypeChange={changeCellType} />
 
           {/* Cell-type-specific toolbars */}
           {cell.cellType === "code" && <CodeToolbar />}
@@ -402,42 +398,26 @@ export const ExecutableCell: React.FC<ExecutableCellProps> = ({
           <div className="text-muted-foreground flex items-center justify-between pb-1 text-xs">
             <span>
               {cell.executionState === "running"
-                ? cell.cellType === "ai"
-                  ? "Generating AI response..."
-                  : "Executing..."
+                ? "Executing..."
                 : cell.executionState === "queued"
-                  ? cell.cellType === "ai"
-                    ? "Queued for AI processing"
-                    : "Queued for execution"
+                  ? "Queued for execution"
                   : cell.executionCount
                     ? cell.lastExecutionDurationMs
-                      ? cell.cellType === "ai"
-                        ? `Generated in ${
-                            cell.lastExecutionDurationMs < 1000
-                              ? `${cell.lastExecutionDurationMs}ms`
-                              : `${(cell.lastExecutionDurationMs / 1000).toFixed(1)}s`
-                          }`
-                        : `Executed in ${
-                            cell.lastExecutionDurationMs < 1000
-                              ? `${cell.lastExecutionDurationMs}ms`
-                              : `${(cell.lastExecutionDurationMs / 1000).toFixed(1)}s`
-                          }`
-                      : cell.cellType === "ai"
-                        ? "Generated"
-                        : "Executed"
+                      ? `Executed in ${
+                          cell.lastExecutionDurationMs < 1000
+                            ? `${cell.lastExecutionDurationMs}ms`
+                            : `${(cell.lastExecutionDurationMs / 1000).toFixed(1)}s`
+                        }`
+                      : "Executed"
                     : null}
             </span>
             {(outputs.length > 0 || cell.executionState === "running") && (
               <div className="flex items-center gap-2">
                 {!cell.outputVisible && hasOutputs && (
                   <span className="text-muted-foreground text-xs">
-                    {cell.cellType === "ai"
-                      ? outputs.length === 1
-                        ? "1 response hidden"
-                        : `${outputs.length} responses hidden`
-                      : outputs.length === 1
-                        ? "1 result hidden"
-                        : `${outputs.length} results hidden`}
+                    {outputs.length === 1
+                      ? "1 result hidden"
+                      : `${outputs.length} results hidden`}
                   </span>
                 )}
                 <Button
@@ -449,15 +429,7 @@ export const ExecutableCell: React.FC<ExecutableCellProps> = ({
                       ? "opacity-100"
                       : "opacity-100 sm:opacity-0 sm:group-hover:opacity-100"
                   } ${cell.outputVisible ? "" : "text-muted-foreground/60"}`}
-                  title={
-                    cell.outputVisible
-                      ? cell.cellType === "ai"
-                        ? "Hide response"
-                        : "Hide results"
-                      : cell.cellType === "ai"
-                        ? "Show response"
-                        : "Show results"
-                  }
+                  title={cell.outputVisible ? "Hide results" : "Show results"}
                 >
                   {cell.outputVisible ? (
                     <ChevronUp className="h-4 w-4 sm:h-3 sm:w-3" />
