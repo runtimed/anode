@@ -33,6 +33,27 @@ import { AiCellTypeSelector } from "./shared/AiCellTypeSelector.js";
 import { AiToolApprovalOutput } from "../../outputs/AiToolApprovalOutput.js";
 import { useToolApprovals } from "@/hooks/useToolApprovals.js";
 
+// Cell-specific styling configuration
+const getCellStyling = (cellType: "code" | "sql" | "ai") => {
+  switch (cellType) {
+    case "sql":
+      return {
+        focusColor: "bg-blue-500/40",
+        focusBgColor: "bg-blue-50/20",
+      };
+    case "ai":
+      return {
+        focusColor: "bg-purple-500/40",
+        focusBgColor: "bg-purple-50/20",
+      };
+    default: // code
+      return {
+        focusColor: "bg-primary/60",
+        focusBgColor: "bg-primary/5",
+      };
+  }
+};
+
 interface ExecutableCellProps {
   cell: typeof tables.cells.Type;
   onDeleteCell: () => void;
@@ -273,28 +294,9 @@ export const ExecutableCell: React.FC<ExecutableCellProps> = ({
     onFocus?.();
   }, [onFocus]);
 
-  // Determine cell-specific styling
-  const getCellStyling = () => {
-    switch (cell.cellType) {
-      case "sql":
-        return {
-          focusColor: "bg-blue-500/40",
-          focusBgColor: "bg-blue-50/20",
-        };
-      case "ai":
-        return {
-          focusColor: "bg-purple-500/40",
-          focusBgColor: "bg-purple-50/20",
-        };
-      default: // code
-        return {
-          focusColor: "bg-primary/60",
-          focusBgColor: "bg-primary/5",
-        };
-    }
-  };
-
-  const { focusColor, focusBgColor } = getCellStyling();
+  const { focusColor, focusBgColor } = getCellStyling(
+    cell.cellType as "code" | "sql" | "ai"
+  );
 
   return (
     <CellContainer
@@ -392,40 +394,6 @@ export const ExecutableCell: React.FC<ExecutableCellProps> = ({
           toggleSourceVisibility={toggleSourceVisibility}
           toggleAiContextVisibility={toggleAiContextVisibility}
           playButton={
-            // Only show mobile play button for executable cell types
-            cell.cellType === "code" ||
-            cell.cellType === "sql" ||
-            cell.cellType === "ai" ? (
-              <PlayButton
-                executionState={cell.executionState}
-                cellType={cell.cellType}
-                autoFocus={autoFocus}
-                onExecute={() => {
-                  const handler =
-                    cell.cellType === "ai" ? executeAiPrompt : executeCell;
-                  handler();
-                }}
-                onInterrupt={interruptCell}
-                className="mobile-play-btn block sm:hidden"
-                primaryColor="text-foreground"
-              />
-            ) : undefined
-          }
-        />
-      </div>
-
-      {/* Cell Content with Left Gutter Play Button - Desktop Only */}
-      <div className="relative">
-        {/* Play Button Breaking Through Left Border - Desktop Only (for executable cells) */}
-        {(cell.cellType === "code" ||
-          cell.cellType === "sql" ||
-          cell.cellType === "ai") && (
-          <div
-            className="desktop-play-btn absolute -left-3 z-10 hidden sm:block"
-            style={{
-              top: cell.sourceVisible ? "0.35rem" : "-1.5rem",
-            }}
-          >
             <PlayButton
               executionState={cell.executionState}
               cellType={cell.cellType}
@@ -436,14 +404,39 @@ export const ExecutableCell: React.FC<ExecutableCellProps> = ({
                 handler();
               }}
               onInterrupt={interruptCell}
-              size="default"
-              className="h-6 w-6 rounded-sm border-0 bg-white p-0 transition-colors hover:bg-white"
-              primaryColor={
-                cell.cellType === "ai" ? "text-purple-600" : "text-foreground"
-              }
+              className="mobile-play-btn block sm:hidden"
+              primaryColor="text-foreground"
             />
-          </div>
-        )}
+          }
+        />
+      </div>
+
+      {/* Cell Content with Left Gutter Play Button - Desktop Only */}
+      <div className="relative">
+        {/* Play Button Breaking Through Left Border - Desktop Only */}
+        <div
+          className="desktop-play-btn absolute -left-3 z-10 hidden sm:block"
+          style={{
+            top: cell.sourceVisible ? "0.35rem" : "-1.5rem",
+          }}
+        >
+          <PlayButton
+            executionState={cell.executionState}
+            cellType={cell.cellType}
+            autoFocus={autoFocus}
+            onExecute={() => {
+              const handler =
+                cell.cellType === "ai" ? executeAiPrompt : executeCell;
+              handler();
+            }}
+            onInterrupt={interruptCell}
+            size="default"
+            className="h-6 w-6 rounded-sm border-0 bg-white p-0 transition-colors hover:bg-white"
+            primaryColor={
+              cell.cellType === "ai" ? "text-purple-600" : "text-foreground"
+            }
+          />
+        </div>
 
         {/* AI Tool Approval (if any) */}
         {cell.cellType === "ai" && <MaybeInlineToolApproval cellId={cell.id} />}
@@ -468,91 +461,85 @@ export const ExecutableCell: React.FC<ExecutableCellProps> = ({
         )}
       </div>
 
-      {/* Execution Summary - appears after input (for executable cells) */}
-      {(cell.cellType === "code" ||
-        cell.cellType === "sql" ||
-        cell.cellType === "ai") &&
-        (cell.executionCount ||
-          cell.executionState === "running" ||
-          cell.executionState === "queued") && (
-          <div className="cell-content mt-1 pr-1 pl-6 sm:pr-4">
-            <div className="text-muted-foreground flex items-center justify-between pb-1 text-xs">
-              <span>
-                {cell.executionState === "running"
+      {/* Execution Summary - appears after input */}
+      {(cell.executionCount ||
+        cell.executionState === "running" ||
+        cell.executionState === "queued") && (
+        <div className="cell-content mt-1 pr-1 pl-6 sm:pr-4">
+          <div className="text-muted-foreground flex items-center justify-between pb-1 text-xs">
+            <span>
+              {cell.executionState === "running"
+                ? cell.cellType === "ai"
+                  ? "Generating AI response..."
+                  : "Executing..."
+                : cell.executionState === "queued"
                   ? cell.cellType === "ai"
-                    ? "Generating AI response..."
-                    : "Executing..."
-                  : cell.executionState === "queued"
-                    ? cell.cellType === "ai"
-                      ? "Queued for AI processing"
-                      : "Queued for execution"
-                    : cell.executionCount
-                      ? cell.lastExecutionDurationMs
-                        ? cell.cellType === "ai"
-                          ? `Generated in ${
-                              cell.lastExecutionDurationMs < 1000
-                                ? `${cell.lastExecutionDurationMs}ms`
-                                : `${(cell.lastExecutionDurationMs / 1000).toFixed(1)}s`
-                            }`
-                          : `Executed in ${
-                              cell.lastExecutionDurationMs < 1000
-                                ? `${cell.lastExecutionDurationMs}ms`
-                                : `${(cell.lastExecutionDurationMs / 1000).toFixed(1)}s`
-                            }`
-                        : cell.cellType === "ai"
-                          ? "Generated"
-                          : "Executed"
-                      : null}
-              </span>
-              {(outputs.length > 0 || cell.executionState === "running") && (
-                <div className="flex items-center gap-2">
-                  {!cell.outputVisible && hasOutputs && (
-                    <span className="text-muted-foreground text-xs">
-                      {cell.cellType === "ai"
-                        ? outputs.length === 1
-                          ? "1 response hidden"
-                          : `${outputs.length} responses hidden`
-                        : outputs.length === 1
-                          ? "1 result hidden"
-                          : `${outputs.length} results hidden`}
-                    </span>
+                    ? "Queued for AI processing"
+                    : "Queued for execution"
+                  : cell.executionCount
+                    ? cell.lastExecutionDurationMs
+                      ? cell.cellType === "ai"
+                        ? `Generated in ${
+                            cell.lastExecutionDurationMs < 1000
+                              ? `${cell.lastExecutionDurationMs}ms`
+                              : `${(cell.lastExecutionDurationMs / 1000).toFixed(1)}s`
+                          }`
+                        : `Executed in ${
+                            cell.lastExecutionDurationMs < 1000
+                              ? `${cell.lastExecutionDurationMs}ms`
+                              : `${(cell.lastExecutionDurationMs / 1000).toFixed(1)}s`
+                          }`
+                      : cell.cellType === "ai"
+                        ? "Generated"
+                        : "Executed"
+                    : null}
+            </span>
+            {(outputs.length > 0 || cell.executionState === "running") && (
+              <div className="flex items-center gap-2">
+                {!cell.outputVisible && hasOutputs && (
+                  <span className="text-muted-foreground text-xs">
+                    {cell.cellType === "ai"
+                      ? outputs.length === 1
+                        ? "1 response hidden"
+                        : `${outputs.length} responses hidden`
+                      : outputs.length === 1
+                        ? "1 result hidden"
+                        : `${outputs.length} results hidden`}
+                  </span>
+                )}
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={toggleOutputVisibility}
+                  className={`hover:bg-muted/80 h-6 w-6 p-0 transition-opacity sm:h-5 sm:w-5 ${
+                    autoFocus
+                      ? "opacity-100"
+                      : "opacity-100 sm:opacity-0 sm:group-hover:opacity-100"
+                  } ${cell.outputVisible ? "" : "text-muted-foreground/60"}`}
+                  title={
+                    cell.outputVisible
+                      ? cell.cellType === "ai"
+                        ? "Hide response"
+                        : "Hide results"
+                      : cell.cellType === "ai"
+                        ? "Show response"
+                        : "Show results"
+                  }
+                >
+                  {cell.outputVisible ? (
+                    <ChevronUp className="h-4 w-4 sm:h-3 sm:w-3" />
+                  ) : (
+                    <ChevronDown className="h-4 w-4 sm:h-3 sm:w-3" />
                   )}
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={toggleOutputVisibility}
-                    className={`hover:bg-muted/80 h-6 w-6 p-0 transition-opacity sm:h-5 sm:w-5 ${
-                      autoFocus
-                        ? "opacity-100"
-                        : "opacity-100 sm:opacity-0 sm:group-hover:opacity-100"
-                    } ${cell.outputVisible ? "" : "text-muted-foreground/60"}`}
-                    title={
-                      cell.outputVisible
-                        ? cell.cellType === "ai"
-                          ? "Hide response"
-                          : "Hide results"
-                        : cell.cellType === "ai"
-                          ? "Show response"
-                          : "Show results"
-                    }
-                  >
-                    {cell.outputVisible ? (
-                      <ChevronUp className="h-4 w-4 sm:h-3 sm:w-3" />
-                    ) : (
-                      <ChevronDown className="h-4 w-4 sm:h-3 sm:w-3" />
-                    )}
-                  </Button>
-                </div>
-              )}
-            </div>
+                </Button>
+              </div>
+            )}
           </div>
-        )}
+        </div>
+      )}
 
-      {/* Output Area (for executable cells) */}
-      {(cell.cellType === "code" ||
-        cell.cellType === "sql" ||
-        cell.cellType === "ai") &&
-        cell.outputVisible &&
+      {/* Output Area */}
+      {cell.outputVisible &&
         (hasOutputs || cell.executionState === "running") && (
           <div className="cell-content bg-background mt-1 max-w-full overflow-hidden px-4 sm:px-4">
             {cell.executionState === "running" && !hasOutputs && (
