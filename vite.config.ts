@@ -46,7 +46,7 @@ export default defineConfig(({ mode }) => {
   }
 
   const plugins = [
-    envValidationPlugin(),
+    envValidationPlugin(env),
     injectLoadingScreen(),
     iframeServerPlugin(),
     react({
