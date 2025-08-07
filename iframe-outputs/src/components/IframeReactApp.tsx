@@ -33,7 +33,7 @@ export const IframeReactApp: React.FC = () => {
     sendHeight();
 
     // Send height after a short delay to ensure content is rendered
-    setTimeout(sendHeight, 100);
+    setTimeout(sendHeight, 0);
 
     // Send height when content changes (for dynamic content)
     const observer = new MutationObserver(sendHeight);
@@ -52,7 +52,7 @@ export const IframeReactApp: React.FC = () => {
       if (data && data.type === "update-outputs") {
         console.log("update-outputs", data.outputs);
         setOutputs(data.outputs || []);
-        setTimeout(sendHeight, 50);
+        setTimeout(sendHeight, 0);
       }
     });
 
