@@ -8,7 +8,7 @@ import { useAvailableAiModels } from "@/util/ai-models.js";
 import { Editor } from "../shared/Editor.js";
 import { AiToolApprovalOutput } from "../../../outputs/AiToolApprovalOutput.js";
 
-import type { CellContentProps } from "../UniversalCell.js";
+import type { CellContentProps } from "../ExecutableCell.js";
 
 const MaybeInlineToolApproval: React.FC<{
   cellId: string;

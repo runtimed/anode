@@ -30,7 +30,7 @@ import { CodeCellContent } from "./content/CodeCellContent.js";
 import { AiCellContent } from "./content/AiCellContent.js";
 import { SqlCellContent } from "./content/SqlCellContent.js";
 
-interface UniversalCellProps {
+interface ExecutableCellProps {
   cell: typeof tables.cells.Type;
   onDeleteCell: () => void;
   onMoveUp: () => void;
@@ -57,7 +57,7 @@ export interface CellContentProps {
   MaybeOutputs: React.ComponentType;
 }
 
-export const UniversalCell: React.FC<UniversalCellProps> = ({
+export const ExecutableCell: React.FC<ExecutableCellProps> = ({
   cell,
   onDeleteCell,
   onMoveUp,

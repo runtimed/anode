@@ -2,7 +2,7 @@ import React from "react";
 import { ErrorBoundary } from "react-error-boundary";
 import { Editor } from "../shared/Editor.js";
 
-import type { CellContentProps } from "../UniversalCell.js";
+import type { CellContentProps } from "../ExecutableCell.js";
 
 export const SqlCellContent: React.FC<CellContentProps> = ({
   cell,

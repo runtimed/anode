@@ -2,7 +2,7 @@ import { queries } from "@/schema";
 import React from "react";
 import { ErrorBoundary } from "react-error-boundary";
 import { useQuery } from "@livestore/react";
-import { UniversalCell } from "./UniversalCell.js";
+import { ExecutableCell } from "./ExecutableCell.js";
 import { MarkdownCell } from "./MarkdownCell.js";
 
 interface CellProps {
@@ -50,7 +50,7 @@ export const Cell: React.FC<CellProps> = ({
           contextSelectionMode={contextSelectionMode}
         />
       ) : (
-        <UniversalCell
+        <ExecutableCell
           cell={cell}
           onDeleteCell={onDeleteCell}
           onMoveUp={onMoveUp}
