@@ -1,5 +1,4 @@
 import React from "react";
-import IframeOutput from "./IframeOutput";
 
 interface SvgOutputProps {
   content: string;
@@ -8,9 +7,9 @@ interface SvgOutputProps {
 export const SvgOutput: React.FC<SvgOutputProps> = ({ content }) => {
   return (
     <div className="py-2">
-      <IframeOutput
+      <div
         className="max-w-full overflow-hidden"
-        content={String(content || "")}
+        dangerouslySetInnerHTML={{ __html: content }}
       />
     </div>
   );
