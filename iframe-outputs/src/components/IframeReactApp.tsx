@@ -61,17 +61,19 @@ export const IframeReactApp: React.FC = () => {
     };
   }, []);
 
+  if (outputs.length === 0) {
+    return "No content yet";
+  }
+
   // Default content or non-React mode
-  return outputs.length > 0
-    ? outputs.map((output, index) => (
+  return outputs.map((output, index) => (
         <div
           key={output.id}
           className={index > 0 ? "mt-2 border-t border-black/10 pt-2" : ""}
         >
           <Output output={output} />
         </div>
-      ))
-    : "No content yet";
+  ));
 };
 
 function Output({ output }: { output: OutputData }) {
