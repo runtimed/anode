@@ -1,9 +1,8 @@
 import { AnsiStreamOutput } from "@/components/outputs/AnsiOutput";
 import { RichOutput } from "@/components/outputs/RichOutput";
-import { OutputData } from "@/schema";
-import ReactJsonView from "@microlink/react-json-view";
-import React from "react";
 import { useIframeCommsChild } from "@/components/outputs/shared-with-iframe/comms";
+import { OutputData } from "@/schema";
+import React from "react";
 
 export const IframeReactApp: React.FC = () => {
   const { outputs } = useIframeCommsChild();
@@ -24,26 +23,6 @@ export const IframeReactApp: React.FC = () => {
 };
 
 function Output({ output }: { output: OutputData }) {
-  if (output.representations?.["application/json"]) {
-    return (
-      <ReactJsonView
-        key={output.id}
-        src={(output.representations["application/json"] as any).data}
-        theme="rjv-default"
-        collapsed={false}
-        displayDataTypes={false}
-        displayObjectSize={false}
-        enableClipboard={true}
-        indentWidth={2}
-        iconStyle="triangle"
-        style={{
-          backgroundColor: "transparent",
-          fontSize: "0.875rem",
-        }}
-      />
-    );
-  }
-
   switch (output.outputType) {
     case "markdown":
     case "multimedia_display":

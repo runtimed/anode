@@ -1,29 +1,8 @@
 import { OutputData } from "@runt/schema";
 import { AnsiStreamOutput } from "./AnsiOutput";
 import { RichOutput } from "./RichOutput";
-import ReactJsonView from "@microlink/react-json-view";
 
 export function SingleOutput({ output }: { output: OutputData }) {
-  if (output.representations?.["application/json"]) {
-    return (
-      <ReactJsonView
-        key={output.id}
-        src={(output.representations["application/json"] as any).data}
-        theme="rjv-default"
-        collapsed={false}
-        displayDataTypes={false}
-        displayObjectSize={false}
-        enableClipboard={true}
-        indentWidth={2}
-        iconStyle="triangle"
-        style={{
-          backgroundColor: "transparent",
-          fontSize: "0.875rem",
-        }}
-      />
-    );
-  }
-
   // Handle terminal outputs with AnsiStreamOutput
   if (output.outputType === "terminal") {
     return (
