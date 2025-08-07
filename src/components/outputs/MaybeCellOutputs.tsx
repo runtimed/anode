@@ -23,7 +23,7 @@ export const MaybeCellOutputs = ({
   if (!outputs.length) return null;
 
   return (
-    <div>
+    <div className="outputs-container px-4 py-2">
       {shouldUseIframe ? (
         <IframeOutput2 outputs={processedOutputs} isReact />
       ) : (
