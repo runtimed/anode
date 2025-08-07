@@ -8,8 +8,8 @@ However, since preflight is based on `modern-normalize`, we want to use it to sm
 Docs: https://tailwindcss.com/docs/preflight#overview
 */
 /* @import "tailwindcss/preflight.css" layer(base); */
+@import "modern-normalize/modern-normalize.css" layer(base);
 @import "tailwindcss/utilities.css" layer(utilities);
-@import "modern-normalize/modern-normalize.css";
 
 @import "tw-animate-css";
 @plugin "@tailwindcss/typography";
