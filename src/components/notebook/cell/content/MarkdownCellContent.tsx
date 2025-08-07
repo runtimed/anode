@@ -24,27 +24,24 @@ export const MarkdownCellContent: React.FC<CellContentProps> = ({
   const cellContentRef = useRef<HTMLDivElement>(null);
 
   useClickAway(cellContentRef, () => {
-    if (localSource.length > 0) {
+    if (isEditing && localSource.length > 0) {
       setIsEditing(false);
+      updateSource();
     }
-    updateSource();
   });
 
-  // Enhanced keyMap for markdown-specific commands (only when editing)
+  // Enhanced keyMap for markdown-specific commands
   const extendedKeyMap = useMemo(() => {
-    if (!isEditing) {
-      return keyMap; // Use default keymap when not editing
-    }
-
     return [
       {
         key: "Escape",
         run: () => {
-          if (isEditing && cell.source.length > 0) {
+          if (isEditing) {
             setIsEditing(false);
-            return true; // Handled escape
+            updateSource();
+            return true;
           }
-          return false; // Let default handler take over
+          return false;
         },
       },
       {
@@ -53,14 +50,14 @@ export const MarkdownCellContent: React.FC<CellContentProps> = ({
           if (isEditing) {
             setIsEditing(false);
             updateSource();
-            return true; // Handled mod-enter
+            return true;
           }
-          return false; // Let default handler take over
+          return false;
         },
       },
       ...keyMap,
     ];
-  }, [cell.source, keyMap, updateSource, setIsEditing, isEditing]);
+  }, [keyMap, updateSource, setIsEditing, isEditing]);
 
   return (
     <>
@@ -84,16 +81,51 @@ export const MarkdownCellContent: React.FC<CellContentProps> = ({
         )}
         {cell.sourceVisible && !isEditing && (
           <div
-            className="cell-content bg-white py-1 pr-4 pl-4 transition-colors"
+            className="cell-content bg-white py-1 pr-4 pl-4 transition-colors focus:ring-2 focus:ring-amber-300 focus:ring-offset-2 focus:outline-none"
             onDoubleClick={() => setIsEditing(true)}
+            tabIndex={0}
+            onFocus={onFocus}
+            onKeyDown={(e) => {
+              // Handle Enter key to start editing
+              if (e.key === "Enter") {
+                setIsEditing(true);
+                e.preventDefault();
+                return;
+              }
+
+              // Process navigation keys from keyMap when in preview mode
+              for (const binding of keyMap) {
+                const matchesKey =
+                  binding.key === e.key ||
+                  (binding.mac &&
+                    e.metaKey &&
+                    binding.mac.replace("Meta-", "") === e.key) ||
+                  (binding.win &&
+                    e.ctrlKey &&
+                    binding.win.replace("Ctrl-", "") === e.key);
+
+                if (matchesKey && binding.run) {
+                  // Create a mock editor-like object for navigation
+                  const mockEditor = {
+                    state: {
+                      doc: { length: localSource.length },
+                      selection: { main: { head: localSource.length } },
+                    },
+                  };
+
+                  if (binding.run(mockEditor)) {
+                    e.preventDefault();
+                    break;
+                  }
+                }
+              }
+            }}
           >
-            <div onClick={() => setIsEditing(true)} className="cursor-text">
-              <Suspense
-                fallback={<div className="animate-pulse">Loading...</div>}
-              >
-                <MarkdownRenderer content={localSource} />
-              </Suspense>
-            </div>
+            <Suspense
+              fallback={<div className="animate-pulse">Loading...</div>}
+            >
+              <MarkdownRenderer content={localSource} />
+            </Suspense>
           </div>
         )}
       </div>

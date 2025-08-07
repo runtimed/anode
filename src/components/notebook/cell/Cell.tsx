@@ -3,6 +3,7 @@ import React from "react";
 import { ErrorBoundary } from "react-error-boundary";
 import { useQuery } from "@livestore/react";
 import { UniversalCell } from "./UniversalCell.js";
+import { MarkdownCell } from "./MarkdownCell.js";
 
 interface CellProps {
   cellId: string;
@@ -36,17 +37,31 @@ export const Cell: React.FC<CellProps> = ({
 
   return (
     <ErrorBoundary fallback={<div>Error rendering cell</div>}>
-      <UniversalCell
-        cell={cell}
-        onDeleteCell={onDeleteCell}
-        onMoveUp={onMoveUp}
-        onMoveDown={onMoveDown}
-        onFocusNext={onFocusNext}
-        onFocusPrevious={onFocusPrevious}
-        autoFocus={autoFocus}
-        onFocus={onFocus}
-        contextSelectionMode={contextSelectionMode}
-      />
+      {cell.cellType === "markdown" ? (
+        <MarkdownCell
+          cell={cell}
+          onDeleteCell={onDeleteCell}
+          onMoveUp={onMoveUp}
+          onMoveDown={onMoveDown}
+          onFocusNext={onFocusNext}
+          onFocusPrevious={onFocusPrevious}
+          autoFocus={autoFocus}
+          onFocus={onFocus}
+          contextSelectionMode={contextSelectionMode}
+        />
+      ) : (
+        <UniversalCell
+          cell={cell}
+          onDeleteCell={onDeleteCell}
+          onMoveUp={onMoveUp}
+          onMoveDown={onMoveDown}
+          onFocusNext={onFocusNext}
+          onFocusPrevious={onFocusPrevious}
+          autoFocus={autoFocus}
+          onFocus={onFocus}
+          contextSelectionMode={contextSelectionMode}
+        />
+      )}
     </ErrorBoundary>
   );
 };

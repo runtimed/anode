@@ -80,9 +80,9 @@ export const UniversalCell: React.FC<UniversalCellProps> = ({
   } = useAuth();
   const { getUsersOnCell, getUserColor } = useUserRegistry();
 
-  // Markdown-specific state - only start in editing mode for new markdown cells
+  // Markdown-specific state - start editing for new empty markdown cells
   const [isEditing, setIsEditing] = useState(() => {
-    return cell.cellType === "markdown" && autoFocus && !cell.source;
+    return cell.cellType === "markdown" && !cell.source?.trim();
   });
 
   // Get users present on this cell (excluding current user)
