@@ -1,7 +1,7 @@
 import { cn } from "@/lib/utils";
 import { KeyBinding } from "@codemirror/view";
 import * as Dialog from "@radix-ui/react-dialog";
-import { tables } from "@/schema";
+import { SupportedLanguage } from "@/types/misc.js";
 import { Maximize2, Minimize2 } from "lucide-react";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
@@ -17,7 +17,9 @@ export function Editor({
   handleSourceChange,
   handleFocus,
   onBlur,
-  cell,
+  language,
+  placeholder,
+  enableLineWrapping,
   autoFocus,
   keyMap,
 }: {
@@ -25,7 +27,9 @@ export function Editor({
   handleSourceChange: (source: string) => void;
   onBlur: () => void;
   handleFocus: () => void;
-  cell: typeof tables.cells.Type;
+  language?: SupportedLanguage;
+  placeholder?: string;
+  enableLineWrapping?: boolean;
   autoFocus: boolean;
   keyMap: KeyBinding[];
 }) {
@@ -37,17 +41,15 @@ export function Editor({
         <ErrorBoundary FallbackComponent={ErrorFallback}>
           <CodeMirrorEditor
             className="text-base sm:text-sm"
-            language={languageFromCellType(cell.cellType)}
-            placeholder={placeholderFromCellType(cell.cellType)}
+            language={language}
+            placeholder={placeholder}
             value={localSource}
             onValueChange={handleSourceChange}
             autoFocus={autoFocus}
             onFocus={handleFocus}
             keyMap={keyMap}
             onBlur={onBlur}
-            enableLineWrapping={
-              cell.cellType === "markdown" || cell.cellType === "ai"
-            }
+            enableLineWrapping={enableLineWrapping}
           />
         </ErrorBoundary>
         <MaxMinButton
@@ -67,10 +69,10 @@ export function Editor({
           <ErrorBoundary FallbackComponent={ErrorFallback}>
             <CodeMirrorEditor
               className="text-base sm:text-sm"
-              language={languageFromCellType(cell.cellType)}
-              placeholder={placeholderFromCellType(cell.cellType)}
+              language={language}
+              placeholder={placeholder}
               value={localSource}
-              enableLineWrapping={cell.cellType === "markdown"}
+              enableLineWrapping={enableLineWrapping}
             />
           </ErrorBoundary>
           <MaxMinButton
@@ -97,16 +99,14 @@ export function Editor({
               <CodeMirrorEditor
                 className="bg-background relative text-base sm:text-sm"
                 maxHeight="100svh"
-                language={languageFromCellType(cell.cellType)}
-                placeholder={placeholderFromCellType(cell.cellType)}
+                language={language}
+                placeholder={placeholder}
                 value={localSource}
                 onValueChange={handleSourceChange}
                 autoFocus={true}
                 onFocus={handleFocus}
                 onBlur={onBlur}
-                enableLineWrapping={
-                  cell.cellType === "markdown" || cell.cellType === "ai"
-                }
+                enableLineWrapping={enableLineWrapping}
               />
             </ErrorBoundary>
             <MaxMinButton
@@ -145,35 +145,4 @@ function MaxMinButton({
       )}
     </Button>
   );
-}
-
-function languageFromCellType(
-  cellType: (typeof tables.cells.Type)["cellType"]
-) {
-  if (cellType === "code") {
-    // TODO: Pull from runtime agent session and/or notebook
-    return "python";
-  } else if (cellType === "markdown") {
-    return "markdown";
-  } else if (cellType === "ai") {
-    return "markdown";
-  } else if (cellType === "sql") {
-    return "sql";
-  }
-  return undefined;
-}
-
-function placeholderFromCellType(
-  cellType: (typeof tables.cells.Type)["cellType"]
-) {
-  if (cellType === "code") {
-    return "Enter your code here...";
-  } else if (cellType === "markdown") {
-    return "Enter markdown...";
-  } else if (cellType === "ai") {
-    return "Ask me anything about your notebook, data, or analysis...";
-  } else if (cellType === "sql") {
-    return "Write SQL query...";
-  }
-  return "Enter raw text...";
 }
