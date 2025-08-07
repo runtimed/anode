@@ -379,18 +379,54 @@ export const UniversalCell: React.FC<UniversalCellProps> = ({
             <AiToolbar
               provider={cell.aiProvider || "openai"}
               model={cell.aiModel || "gpt-4o-mini"}
-              onProviderChange={() => {
-                // TODO: Implement AI model change events
-                console.log("AI model change not implemented yet");
+              onProviderChange={(newProvider: string, newModel: string) => {
+                store.commit(
+                  events.aiSettingsChanged({
+                    cellId: cell.id,
+                    provider: newProvider,
+                    model: newModel,
+                    settings: {
+                      temperature: 0.7,
+                      maxTokens: 1000,
+                    },
+                  })
+                );
+
+                // Save the last used AI model to notebook metadata for future AI cells
+                store.commit(
+                  events.notebookMetadataSet({
+                    key: "lastUsedAiProvider",
+                    value: newProvider,
+                  })
+                );
+                store.commit(
+                  events.notebookMetadataSet({
+                    key: "lastUsedAiModel",
+                    value: newModel,
+                  })
+                );
               }}
             />
           )}
           {cell.cellType === "sql" && (
             <SqlToolbar
-              dataConnection="default"
-              onDataConnectionChange={() => {
-                // TODO: Implement data connection change events
-                console.log("Data connection change not implemented yet");
+              dataConnection={cell.sqlConnectionId || "default"}
+              onDataConnectionChange={(newConnectionId: string) => {
+                store.commit(
+                  events.sqlConnectionChanged({
+                    cellId: cell.id,
+                    connectionId: newConnectionId,
+                    changedBy: userId,
+                  })
+                );
+
+                // Save the last used SQL connection to notebook metadata for future SQL cells
+                store.commit(
+                  events.notebookMetadataSet({
+                    key: "lastUsedSqlConnection",
+                    value: newConnectionId,
+                  })
+                );
               }}
             />
           )}
