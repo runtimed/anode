@@ -1,14 +1,14 @@
+import { useAuth } from "@/components/auth/AuthProvider.js";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { useCellContent } from "@/hooks/useCellContent.js";
 import { useCellKeyboardNavigation } from "@/hooks/useCellKeyboardNavigation.js";
 import { useCellOutputs } from "@/hooks/useCellOutputs.js";
-import { useAuth } from "@/components/auth/AuthProvider.js";
-import { useUserRegistry } from "@/hooks/useUserRegistry.js";
 import { useInterruptExecution } from "@/hooks/useInterruptExecution.js";
+import { useUserRegistry } from "@/hooks/useUserRegistry.js";
 
-import { useStore } from "@livestore/react";
 import { events, tables } from "@/schema";
+import { useStore } from "@livestore/react";
 import { ChevronDown, ChevronUp } from "lucide-react";
 import React, { useCallback, useRef } from "react";
 import { ErrorBoundary } from "react-error-boundary";
@@ -26,12 +26,13 @@ import { PlayButton } from "./shared/PlayButton.js";
 import { PresenceBookmarks } from "./shared/PresenceBookmarks.js";
 
 // Import toolbars
-import { CodeToolbar } from "./toolbars/CodeToolbar.js";
 import { AiToolbar } from "./toolbars/AiToolbar.js";
+import { CodeToolbar } from "./toolbars/CodeToolbar.js";
 import { SqlToolbar } from "./toolbars/SqlToolbar.js";
 
-import { AiToolApprovalOutput } from "../../outputs/AiToolApprovalOutput.js";
+import { MaybeCellOutputs } from "@/components/outputs/MaybeCellOutputs.js";
 import { useToolApprovals } from "@/hooks/useToolApprovals.js";
+import { AiToolApprovalOutput } from "../../outputs/AiToolApprovalOutput.js";
 
 // Cell-specific styling configuration
 const getCellStyling = (cellType: "code" | "sql" | "ai") => {
@@ -97,12 +98,7 @@ export const ExecutableCell: React.FC<ExecutableCellProps> = ({
   });
 
   // Use shared outputs hook with cell-type-specific configuration
-  const { outputs, hasOutputs, MaybeOutputs } = useCellOutputs({
-    cellId: cell.id,
-    groupConsecutiveStreams: true,
-    enableErrorOutput: true,
-    enableTerminalOutput: true,
-  });
+  const { outputs, hasOutputs } = useCellOutputs(cell.id);
 
   // Shared event handlers
   const changeCellType = useCallback(
@@ -456,7 +452,10 @@ export const ExecutableCell: React.FC<ExecutableCellProps> = ({
               </div>
             )}
             <ErrorBoundary FallbackComponent={OutputsErrorBoundary}>
-              {hasOutputs && <MaybeOutputs />}
+              <MaybeCellOutputs
+                outputs={outputs}
+                shouldUseIframe={cell.cellType === "code"}
+              />
             </ErrorBoundary>
           </div>
         )}

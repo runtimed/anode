@@ -9,6 +9,14 @@
       }
     },
     {
+      "name": "iframe-outputs",
+      "script": "pnpm",
+      "args": "run dev:iframe",
+      "env": {
+        "NODE_ENV": "development"
+      }
+    },
+    {
       "name": "sync",
       "script": "pnpm",
       "args": "run dev:sync",

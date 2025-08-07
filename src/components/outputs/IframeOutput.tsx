@@ -5,6 +5,7 @@ interface IframeOutputProps {
   style?: React.CSSProperties;
   className?: string;
   onHeightChange?: (height: number) => void;
+  isReact?: boolean;
   defaultHeight?: string;
 }
 
@@ -12,6 +13,7 @@ export const IframeOutput: React.FC<IframeOutputProps> = ({
   content,
   className,
   style,
+  isReact,
   onHeightChange,
   defaultHeight = "0px",
 }) => {
@@ -72,7 +74,9 @@ export const IframeOutput: React.FC<IframeOutputProps> = ({
 
   return (
     <iframe
-      src={import.meta.env.VITE_IFRAME_OUTPUT_URI}
+      src={
+        import.meta.env.VITE_IFRAME_OUTPUT_URI + (isReact ? "/react.html" : "")
+      }
       ref={iframeRef}
       className={className}
       width="100%"

@@ -4,7 +4,6 @@ import { AiToolCallData, AiToolResultData } from "@/schema";
 export { AiToolCallOutput } from "./AiToolCallOutput.js";
 export { AiToolResultOutput } from "./AiToolResultOutput.js";
 export { AiToolApprovalOutput } from "./AiToolApprovalOutput.js";
-export { AnsiOutput, AnsiStreamOutput } from "./AnsiOutput.js";
 export { HtmlOutput } from "./HtmlOutput.js";
 export { ImageOutput } from "./ImageOutput.js";
 export { JsonOutput } from "./JsonOutput.js";

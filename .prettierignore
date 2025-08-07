@@ -5,7 +5,6 @@ node_modules/
 
 # CSS files (potentially conflicting with Tailwind)
 src/index.css
-src/components/outputs/outputs.css
 
 # Lock files
 pnpm-lock.yaml

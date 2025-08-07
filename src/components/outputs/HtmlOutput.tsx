@@ -1,5 +1,4 @@
-import React from "react";
-import IframeOutput from "./IframeOutput";
+import React, { useEffect, useRef } from "react";
 
 interface HtmlOutputProps {
   content: string;
@@ -10,20 +9,22 @@ export const HtmlOutput: React.FC<HtmlOutputProps> = ({
   content,
   className = "max-w-none dataframe-container",
 }) => {
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    // Use createContextualFragment for efficient HTML/SVG parsing and script execution
+    // Without this, scripts don't run
+    const range = document.createRange();
+    const fragment = range.createContextualFragment(content);
+    if (ref.current) {
+      ref.current.innerHTML = "";
+      ref.current.appendChild(fragment);
+    }
+  }, [content]);
+
   return (
-    <IframeOutput
-      className={className}
-      content={String(content || "")}
-      style={
-        {
-          // Clean styles for pandas DataFrames
-          "--dataframe-border": "1px solid #e5e7eb",
-          "--dataframe-bg": "#fff",
-          "--dataframe-header-bg": "#f9fafb",
-          "--dataframe-hover-bg": "#f3f4f6",
-        } as React.CSSProperties
-      }
-    />
+    // TODO: if not in an iframe, we should create one
+    <div ref={ref} className={className} />
   );
 };
 

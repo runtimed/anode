@@ -57,6 +57,7 @@ export const AnsiStreamOutput: React.FC<{
 /**
  * AnsiErrorOutput component specifically for error messages and tracebacks
  */
+// TODO: allow tailwind styles to get picked up when imported from `iframe-outputs`
 export const AnsiErrorOutput: React.FC<{
   ename?: string;
   evalue?: string;

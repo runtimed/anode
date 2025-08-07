@@ -1,138 +1,50 @@
-import React, { useMemo, useCallback } from "react";
-import { OutputData, tables, MediaContainer } from "@/schema";
+import { OutputData, tables } from "@/schema";
 import { queryDb } from "@livestore/livestore";
 import { useQuery } from "@livestore/react";
-import { groupConsecutiveStreamOutputs } from "../util/output-grouping.js";
-import { RichOutput } from "../components/outputs/RichOutput.js";
-import {
-  AnsiErrorOutput,
-  AnsiStreamOutput,
-} from "../components/outputs/AnsiOutput.js";
-
-interface UseCellOutputsOptions {
-  cellId: string;
-  groupConsecutiveStreams?: boolean;
-  enableErrorOutput?: boolean;
-  enableTerminalOutput?: boolean;
-}
+import { useEffect, useRef } from "react";
 
 interface CellOutputsResult {
   outputs: OutputData[];
   hasOutputs: boolean;
-  MaybeOutputs: React.FC;
 }
 
-// TODO: extract components and have them consume the outputs of this
-// If prop drilling is needed, use React context
-export const useCellOutputs = ({
-  cellId,
-  groupConsecutiveStreams = false,
-  enableErrorOutput = true,
-  enableTerminalOutput = true,
-}: UseCellOutputsOptions): CellOutputsResult => {
-  // Create stable query using useMemo to prevent React Hook issues
-  const outputsQuery = useMemo(
-    () => queryDb(tables.outputs.select().where({ cellId })),
-    [cellId]
-  );
-  const outputs = useQuery(outputsQuery) as OutputData[];
+/**
+ * Track the last non-empty outputs for a cellId.
+ * This is to prevent the UI from flashing when cell is executing, and outputs are empty.
+ * Sometimes outputs are empty for multiple renders in a row.
+ */
+function useEffectiveOutputs(cellId: string, outputs: OutputData[]) {
+  // Cache the last non-empty outputs for this cellId
+  const lastNonEmptyOutputsRef = useRef<OutputData[] | null>(null);
 
-  const hasOutputs = useMemo(() => outputs.length > 0, [outputs.length]);
+  // Reset cached outputs when switching cells
+  useEffect(() => {
+    lastNonEmptyOutputsRef.current = null;
+  }, [cellId]);
 
-  const renderSingleOutput = useCallback(
-    (output: OutputData) => {
-      // Handle error outputs with AnsiErrorOutput
-      if (output.outputType === "error" && enableErrorOutput) {
-        let errorData;
-        try {
-          errorData =
-            typeof output.data === "string"
-              ? JSON.parse(output.data)
-              : output.data;
-        } catch {
-          errorData = {
-            ename: "Error",
-            evalue: String(output.data),
-            traceback: [],
-          };
-        }
-        return (
-          <AnsiErrorOutput
-            ename={errorData?.ename}
-            evalue={errorData?.evalue}
-            traceback={errorData?.traceback || []}
-          />
-        );
-      }
+  // Update cache whenever we have non-empty outputs
+  useEffect(() => {
+    if (outputs.length > 0) {
+      lastNonEmptyOutputsRef.current = outputs;
+    }
+  }, [outputs]);
 
-      // Handle terminal outputs with AnsiStreamOutput
-      if (output.outputType === "terminal" && enableTerminalOutput) {
-        return (
-          <div className="max-w-full overflow-hidden py-2">
-            <AnsiStreamOutput
-              text={output.data || ""}
-              streamName={
-                (output.streamName as "stdout" | "stderr") || "stdout"
-              }
-            />
-          </div>
-        );
-      }
+  const effectiveOutputs =
+    outputs.length > 0 ? outputs : (lastNonEmptyOutputsRef.current ?? outputs);
 
-      // Handle all other outputs with RichOutput
-      const outputContent = (
-        <RichOutput
-          data={
-            output.outputType === "markdown" || output.outputType === "terminal"
-              ? output.data || ""
-              : (output.representations as Record<string, MediaContainer>) || {
-                  "text/plain": output.data || "",
-                }
-          }
-          metadata={output.metadata as Record<string, unknown> | undefined}
-          outputType={output.outputType}
-          outputId={output.id}
-        />
-      );
+  return effectiveOutputs;
+}
 
-      return (
-        <div className="max-w-full overflow-hidden py-2">{outputContent}</div>
-      );
-    },
-    [enableErrorOutput, enableTerminalOutput]
-  );
+export const useCellOutputs = (cellId: string): CellOutputsResult => {
+  const outputs = useQuery(
+    queryDb(tables.outputs.select().where({ cellId }))
+  ) as OutputData[];
 
-  // Note: this approach is not ideal, but it ensures that if this component throws, we can put an error boundary that works
-  // Otherwise, just calling `<ErrorBoundary FallbackComponent={OutputsErrorBoundary}>renderOutputs()</ErrorBoundary>` will not work as expected
-  const MaybeOutputs = useCallback(() => {
-    if (!hasOutputs) return null;
-
-    // Apply grouping strategy based on cell type
-    const processedOutputs = groupConsecutiveStreams
-      ? groupConsecutiveStreamOutputs(
-          outputs.sort(
-            (a: OutputData, b: OutputData) => a.position - b.position
-          )
-        )
-      : outputs.sort((a: OutputData, b: OutputData) => a.position - b.position);
-
-    return (
-      <div className="outputs-container px-4 py-2">
-        {processedOutputs.map((output: OutputData, index: number) => (
-          <div
-            key={output.id}
-            className={index > 0 ? "border-border/30 mt-2 border-t pt-2" : ""}
-          >
-            {renderSingleOutput(output)}
-          </div>
-        ))}
-      </div>
-    );
-  }, [hasOutputs, outputs, groupConsecutiveStreams, renderSingleOutput]);
+  const effectiveOutputs = useEffectiveOutputs(cellId, outputs);
+  const hasOutputs = effectiveOutputs.length > 0;
 
   return {
-    outputs,
+    outputs: effectiveOutputs,
     hasOutputs,
-    MaybeOutputs,
   };
 };
