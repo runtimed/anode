@@ -9,8 +9,8 @@ import { useInterruptExecution } from "@/hooks/useInterruptExecution.js";
 
 import { useStore } from "@livestore/react";
 import { events, tables } from "@/schema";
-import { ChevronDown, ChevronUp, Edit3, Eye } from "lucide-react";
-import React, { useCallback, useRef, useEffect, useState } from "react";
+import { ChevronDown, ChevronUp } from "lucide-react";
+import React, { useCallback, useRef } from "react";
 import { ErrorBoundary } from "react-error-boundary";
 import { CellContainer } from "./shared/CellContainer.js";
 import { CellControls } from "./shared/CellControls.js";
@@ -27,7 +27,6 @@ import { AiCellTypeSelector } from "./shared/AiCellTypeSelector.js";
 
 // Import cell-type-specific content components
 import { CodeCellContent } from "./content/CodeCellContent.js";
-import { MarkdownCellContent } from "./content/MarkdownCellContent.js";
 import { AiCellContent } from "./content/AiCellContent.js";
 import { SqlCellContent } from "./content/SqlCellContent.js";
 
@@ -52,13 +51,10 @@ export interface CellContentProps {
   onFocus: () => void;
   keyMap: any[];
   executeCell?: () => Promise<void>;
-  interruptCell?: () => Promise<void>;
+  interruptCell?: () => void;
   outputs: any[];
   hasOutputs: boolean;
   MaybeOutputs: React.ComponentType;
-  // Markdown-specific props
-  isEditing?: boolean;
-  setIsEditing?: (editing: boolean) => void;
 }
 
 export const UniversalCell: React.FC<UniversalCellProps> = ({
@@ -73,17 +69,12 @@ export const UniversalCell: React.FC<UniversalCellProps> = ({
   contextSelectionMode = false,
 }) => {
   const cellRef = useRef<HTMLDivElement>(null);
-  const editButtonRef = useRef<HTMLButtonElement>(null);
+
   const { store } = useStore();
   const {
     user: { sub: userId },
   } = useAuth();
   const { getUsersOnCell, getUserColor } = useUserRegistry();
-
-  // Markdown-specific state - start editing for new empty markdown cells
-  const [isEditing, setIsEditing] = useState(() => {
-    return cell.cellType === "markdown" && !cell.source?.trim();
-  });
 
   // Get users present on this cell (excluding current user)
   const usersOnCell = getUsersOnCell(cell.id).filter(
@@ -223,7 +214,15 @@ export const UniversalCell: React.FC<UniversalCellProps> = ({
         })
       );
     }
-  }, [cell.id, localSource, cell.source, cell.executionCount, store, userId]);
+  }, [
+    cell.id,
+    cell.cellType,
+    localSource,
+    cell.source,
+    cell.executionCount,
+    store,
+    userId,
+  ]);
 
   // AI-specific execution handler
   const executeAiPrompt = useCallback(async (): Promise<void> => {
@@ -319,11 +318,6 @@ export const UniversalCell: React.FC<UniversalCellProps> = ({
   // Determine cell-specific styling
   const getCellStyling = () => {
     switch (cell.cellType) {
-      case "markdown":
-        return {
-          focusColor: "bg-amber-500/40",
-          focusBgColor: "bg-amber-50/20",
-        };
       case "sql":
         return {
           focusColor: "bg-blue-500/40",
@@ -358,9 +352,6 @@ export const UniversalCell: React.FC<UniversalCellProps> = ({
     outputs,
     hasOutputs,
     MaybeOutputs,
-    // Markdown-specific props
-    isEditing,
-    setIsEditing,
   };
 
   return (
@@ -384,33 +375,6 @@ export const UniversalCell: React.FC<UniversalCellProps> = ({
 
           {/* Cell-type-specific toolbars */}
           {cell.cellType === "code" && <CodeToolbar />}
-          {cell.cellType === "markdown" &&
-            (isEditing ? (
-              <Button
-                variant="outline"
-                size="xs"
-                ref={editButtonRef}
-                onClick={(e) => {
-                  e.preventDefault();
-                  e.stopPropagation();
-                  setIsEditing(false);
-                }}
-              >
-                <Eye className="size-4" /> Preview
-              </Button>
-            ) : (
-              <Button
-                variant="outline"
-                size="xs"
-                onClick={(e) => {
-                  e.preventDefault();
-                  e.stopPropagation();
-                  setIsEditing(true);
-                }}
-              >
-                <Edit3 className="size-4" /> Edit
-              </Button>
-            ))}
           {cell.cellType === "ai" && (
             <AiToolbar
               provider={cell.aiProvider || "openai"}
@@ -423,7 +387,7 @@ export const UniversalCell: React.FC<UniversalCellProps> = ({
           )}
           {cell.cellType === "sql" && (
             <SqlToolbar
-              dataConnection={cell.dataConnection || "default"}
+              dataConnection="default"
               onDataConnectionChange={() => {
                 // TODO: Implement data connection change events
                 console.log("Data connection change not implemented yet");
@@ -514,9 +478,6 @@ export const UniversalCell: React.FC<UniversalCellProps> = ({
         {/* Render cell-type-specific content */}
         <ErrorBoundary fallback={<div>Error rendering cell content</div>}>
           {cell.cellType === "code" && <CodeCellContent {...contentProps} />}
-          {cell.cellType === "markdown" && (
-            <MarkdownCellContent {...contentProps} />
-          )}
           {cell.cellType === "ai" && <AiCellContent {...contentProps} />}
           {cell.cellType === "sql" && <SqlCellContent {...contentProps} />}
         </ErrorBoundary>

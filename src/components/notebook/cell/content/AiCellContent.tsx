@@ -52,10 +52,6 @@ export const AiCellContent: React.FC<CellContentProps> = ({
     user: { sub: userId },
   } = useAuth();
 
-  // Get AI model settings
-  const provider = cell.aiProvider || "openai";
-  const model = cell.aiModel || "gpt-4o-mini";
-
   // Get available AI models from runtime capabilities
   const { models: _ } = useAvailableAiModels();
 
@@ -114,16 +110,7 @@ export const AiCellContent: React.FC<CellContentProps> = ({
         })
       );
     }
-  }, [
-    cell.id,
-    localSource,
-    cell.source,
-    cell.executionCount,
-    store,
-    userId,
-    provider,
-    model,
-  ]);
+  }, [cell.id, localSource, cell.source, cell.executionCount, store, userId]);
 
   // Enhanced keyMap for AI-specific commands
   const aiKeyMap = [

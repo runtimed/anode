@@ -27,8 +27,6 @@ export const SqlCellContent: React.FC<CellContentProps> = ({
               cell={cell}
               autoFocus={autoFocus}
               keyMap={keyMap}
-              language="sql"
-              placeholder="Write SQL query... (Shift+Enter to execute)"
             />
           </ErrorBoundary>
         </div>
