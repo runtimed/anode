@@ -34,6 +34,13 @@ html {
     sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
 }
 
+body {
+  /* Reset margin and prevent margin-collapsing from hiding top margins */
+  margin: 0;
+  /* This tiny padding ensures top margins of first child don't collapse with body */
+  padding-top: 0.01px;
+}
+
 /* DataFrame styling for pandas HTML output */
 .dataframe-container table.dataframe {
   border-collapse: collapse;
