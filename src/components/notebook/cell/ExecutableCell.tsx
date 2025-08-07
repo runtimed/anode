@@ -227,9 +227,7 @@ export const ExecutableCell: React.FC<ExecutableCellProps> = ({
     onFocusNext,
     onFocusPrevious,
     onDeleteCell,
-    onExecute: () => {
-      executeCell();
-    },
+    onExecute: executeCell,
     onUpdateSource: updateSource,
   });
 
@@ -341,9 +339,7 @@ export const ExecutableCell: React.FC<ExecutableCellProps> = ({
               executionState={cell.executionState}
               cellType={cell.cellType}
               autoFocus={autoFocus}
-              onExecute={() => {
-                executeCell();
-              }}
+              onExecute={executeCell}
               onInterrupt={interruptCell}
               className="mobile-play-btn block sm:hidden"
               primaryColor="text-foreground"
@@ -365,9 +361,7 @@ export const ExecutableCell: React.FC<ExecutableCellProps> = ({
             executionState={cell.executionState}
             cellType={cell.cellType}
             autoFocus={autoFocus}
-            onExecute={() => {
-              executeCell();
-            }}
+            onExecute={executeCell}
             onInterrupt={interruptCell}
             size="default"
             className="h-6 w-6 rounded-sm border-0 bg-white p-0 transition-colors hover:bg-white"
