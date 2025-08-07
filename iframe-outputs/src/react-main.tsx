@@ -1,6 +1,7 @@
 import { createRoot } from "react-dom/client";
 import { IframeReactApp } from "./components/IframeReactApp";
 import "./style.css";
+import { sendFromIframe } from "@/components/outputs/shared-with-iframe/comms";
 
 // Main React initialization for iframe outputs
 function initializeReactIframe() {
@@ -14,12 +15,7 @@ function initializeReactIframe() {
   root.render(<IframeReactApp />);
 
   // Send iframe loaded message
-  window.parent.postMessage(
-    {
-      type: "iframe-loaded",
-    },
-    "*"
-  );
+  sendFromIframe({ type: "iframe-loaded" });
 }
 
 // Initialize when DOM is ready

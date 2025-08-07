@@ -2,65 +2,11 @@ import { AnsiStreamOutput } from "@/components/outputs/AnsiOutput";
 import { RichOutput } from "@/components/outputs/RichOutput";
 import { OutputData } from "@/schema";
 import ReactJsonView from "@microlink/react-json-view";
-import React, { useEffect, useState } from "react";
-
-interface IframeMessage {
-  type: string;
-  content?: string;
-  height?: number;
-  outputs?: OutputData[];
-}
+import React from "react";
+import { useIframeCommsChild } from "@/components/outputs/shared-with-iframe/comms";
 
 export const IframeReactApp: React.FC = () => {
-  const [outputs, setOutputs] = useState<OutputData[]>([]);
-
-  useEffect(() => {
-    document.body.style.margin = "0";
-
-    function sendHeight() {
-      const BUFFER = 1; // Add a small buffer to prevent scrollbars
-      const height = document.body.scrollHeight;
-      window.parent.postMessage(
-        {
-          type: "iframe-height",
-          height: height + BUFFER,
-        },
-        "*"
-      );
-    }
-
-    // Send height on load
-    sendHeight();
-
-    // Send height after a short delay to ensure content is rendered
-    setTimeout(sendHeight, 0);
-
-    // Send height when content changes (for dynamic content)
-    const observer = new MutationObserver(sendHeight);
-    observer.observe(document.body, {
-      childList: true,
-      subtree: true,
-      attributes: true,
-    });
-
-    // Also send height on resize
-    window.addEventListener("resize", sendHeight);
-
-    // Handle incoming content updates
-    window.addEventListener("message", (event) => {
-      const data: IframeMessage = event.data;
-      if (data && data.type === "update-outputs") {
-        console.log("update-outputs", data.outputs);
-        setOutputs(data.outputs || []);
-        setTimeout(sendHeight, 0);
-      }
-    });
-
-    return () => {
-      observer.disconnect();
-      window.removeEventListener("resize", sendHeight);
-    };
-  }, []);
+  const { outputs } = useIframeCommsChild();
 
   if (outputs.length === 0) {
     return "No content yet";
