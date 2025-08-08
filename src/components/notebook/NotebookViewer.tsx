@@ -20,6 +20,7 @@ import { Button } from "@/components/ui/button";
 
 import { useAuth } from "@/components/auth/AuthProvider.js";
 import { useUserRegistry } from "@/hooks/useUserRegistry.js";
+import { useEditorRegistry } from "@/hooks/useEditorRegistry.js";
 
 import { getClientColor, getClientTypeInfo } from "@/services/userTypes.js";
 import { getDefaultAiModel, useAvailableAiModels } from "@/util/ai-models.js";
@@ -56,6 +57,7 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
     user: { sub: userId },
   } = useAuth();
   const { presentUsers, getUserInfo, getUserColor } = useUserRegistry();
+  const { focusCell: registryFocusCell } = useEditorRegistry();
   const { models } = useAvailableAiModels();
 
   const cellReferences = useQuery(queries.cellsWithIndices$);
@@ -319,11 +321,7 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
 
         // Position cursor in the next cell
         setTimeout(() => {
-          const editorRef = (window as any).cellEditorRefs?.get(nextCell.id);
-          if (editorRef) {
-            editorRef.setCursorPosition(cursorPosition);
-            editorRef.focus();
-          }
+          registryFocusCell(nextCell.id, cursorPosition);
         }, 50);
       } else {
         // At the last cell, create a new one with same cell type (but never raw)
@@ -348,13 +346,7 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
 
         // Position cursor in the previous cell
         setTimeout(() => {
-          const editorRef = (window as any).cellEditorRefs?.get(
-            previousCell.id
-          );
-          if (editorRef) {
-            editorRef.setCursorPosition(cursorPosition);
-            editorRef.focus();
-          }
+          registryFocusCell(previousCell.id, cursorPosition);
         }, 50);
       }
     },

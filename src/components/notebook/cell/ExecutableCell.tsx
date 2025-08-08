@@ -2,6 +2,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { useCellContent } from "@/hooks/useCellContent.js";
 import { useCellKeyboardNavigation } from "@/hooks/useCellKeyboardNavigation.js";
+import { useEditorRegistry } from "@/hooks/useEditorRegistry.js";
 import { useCellOutputs } from "@/hooks/useCellOutputs.js";
 import { useAuth } from "@/components/auth/AuthProvider.js";
 import { useUserRegistry } from "@/hooks/useUserRegistry.js";
@@ -15,7 +16,7 @@ import { ErrorBoundary } from "react-error-boundary";
 import { CellContainer } from "./shared/CellContainer.js";
 import { CellControls } from "./shared/CellControls.js";
 import { CellTypeSelector } from "./shared/CellTypeSelector.js";
-import { Editor, EditorRef } from "./shared/Editor.js";
+import { Editor } from "./shared/Editor.js";
 import {
   languageFromCellType,
   placeholderFromCellType,
@@ -80,9 +81,9 @@ export const ExecutableCell: React.FC<ExecutableCellProps> = ({
   contextSelectionMode = false,
 }) => {
   const cellRef = useRef<HTMLDivElement>(null);
-  const editorRef = useRef<EditorRef>(null);
 
   const { store } = useStore();
+  const { registerEditor, unregisterEditor } = useEditorRegistry();
   const {
     user: { sub: userId },
   } = useAuth();
@@ -238,19 +239,22 @@ export const ExecutableCell: React.FC<ExecutableCellProps> = ({
     onFocus?.();
   }, [onFocus]);
 
-  // Store editor ref globally for cursor positioning
-  React.useEffect(() => {
-    if (editorRef.current) {
-      // Store reference in a way that can be accessed by cell ID
-      (window as any).cellEditorRefs =
-        (window as any).cellEditorRefs || new Map();
-      (window as any).cellEditorRefs.set(cell.id, editorRef.current);
+  // Handle editor registration for navigation
+  const handleEditorReady = React.useCallback(
+    (editorRef: any) => {
+      if (editorRef) {
+        registerEditor(cell.id, editorRef);
+      }
+    },
+    [cell.id, registerEditor]
+  );
 
-      return () => {
-        (window as any).cellEditorRefs?.delete(cell.id);
-      };
-    }
-  }, [cell.id]);
+  // Cleanup editor registration on unmount
+  React.useEffect(() => {
+    return () => {
+      unregisterEditor(cell.id);
+    };
+  }, [cell.id, unregisterEditor]);
 
   const { focusColor, focusBgColor } = getCellStyling(
     cell.cellType as "code" | "sql" | "ai"
@@ -393,7 +397,7 @@ export const ExecutableCell: React.FC<ExecutableCellProps> = ({
           <div className="cell-content bg-white py-1 pl-4 transition-colors">
             <ErrorBoundary fallback={<div>Error rendering editor</div>}>
               <Editor
-                ref={editorRef}
+                ref={handleEditorReady}
                 localSource={localSource}
                 handleSourceChange={handleSourceChange}
                 onBlur={updateSource}

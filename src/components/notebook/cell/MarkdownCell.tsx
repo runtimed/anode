@@ -1,5 +1,6 @@
 import { useCellContent } from "@/hooks/useCellContent.js";
 import { useCellKeyboardNavigation } from "@/hooks/useCellKeyboardNavigation.js";
+import { useEditorRegistry } from "@/hooks/useEditorRegistry.js";
 import { useCellOutputs } from "@/hooks/useCellOutputs.js";
 import { useStore } from "@livestore/react";
 import { events, tables } from "@/schema";
@@ -22,7 +23,7 @@ import { useClickAway } from "react-use";
 import { CellContainer } from "./shared/CellContainer.js";
 import { CellControls } from "./shared/CellControls.js";
 import { CellTypeSelector } from "./shared/CellTypeSelector.js";
-import { Editor, EditorRef } from "./shared/Editor.js";
+import { Editor } from "./shared/Editor.js";
 import { PresenceBookmarks } from "./shared/PresenceBookmarks.js";
 
 type CellType = typeof tables.cells.Type;
@@ -60,7 +61,6 @@ export const MarkdownCell: React.FC<MarkdownCellProps> = ({
 }) => {
   const editButtonRef = useRef<HTMLButtonElement>(null);
   const cellContainerRef = useRef<HTMLDivElement>(null);
-  const editorRef = useRef<EditorRef>(null);
 
   // Use shared content management hook
   const { localSource, setLocalSource, updateSource, handleSourceChange } =
@@ -78,6 +78,7 @@ export const MarkdownCell: React.FC<MarkdownCellProps> = ({
 
   // All hooks must be called at the top level before any conditional returns
   const { store } = useStore();
+  const { registerEditor, unregisterEditor } = useEditorRegistry();
   const {
     user: { sub: userId },
   } = useAuth();
@@ -195,19 +196,22 @@ export const MarkdownCell: React.FC<MarkdownCellProps> = ({
     onFocus?.();
   }, [onFocus]);
 
-  // Store editor ref globally for cursor positioning
-  React.useEffect(() => {
-    if (editorRef.current) {
-      // Store reference in a way that can be accessed by cell ID
-      (window as any).cellEditorRefs =
-        (window as any).cellEditorRefs || new Map();
-      (window as any).cellEditorRefs.set(cell.id, editorRef.current);
+  // Handle editor registration for navigation
+  const handleEditorReady = React.useCallback(
+    (editorRef: any) => {
+      if (editorRef) {
+        registerEditor(cell.id, editorRef);
+      }
+    },
+    [cell.id, registerEditor]
+  );
 
-      return () => {
-        (window as any).cellEditorRefs?.delete(cell.id);
-      };
-    }
-  }, [cell.id]);
+  // Cleanup editor registration on unmount
+  React.useEffect(() => {
+    return () => {
+      unregisterEditor(cell.id);
+    };
+  }, [cell.id, unregisterEditor]);
 
   const focusColor = "bg-amber-500/40";
   const focusBgColor = "bg-amber-50/20";
@@ -276,7 +280,7 @@ export const MarkdownCell: React.FC<MarkdownCellProps> = ({
           <div className="cell-content bg-white py-1 pl-4 transition-colors">
             <ErrorBoundary fallback={<div>Error rendering editor</div>}>
               <Editor
-                ref={editorRef}
+                ref={handleEditorReady}
                 localSource={localSource}
                 handleSourceChange={handleSourceChange}
                 onBlur={updateSource}
