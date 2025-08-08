@@ -2,13 +2,12 @@ import React, { useState } from "react";
 import { useQuery, useStore } from "@livestore/react";
 import { queryDb, sql, Schema } from "@livestore/livestore";
 
-import { tables, events } from "@/schema";
+import { tables, events, queries } from "@/schema";
 import { schema } from "../../schema.js";
 import { Bug, Database } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   cellIDs$,
-  cellQuery,
   notebookMetadata$,
   runtimeSessions$,
 } from "@/queries/index.js";
@@ -32,7 +31,7 @@ const DebugCell = ({
   cellId: string;
   cellIndex: number;
 }) => {
-  const cell = useQuery(cellQuery.byId(cellId));
+  const cell = useQuery(queries.cellQuery.byId(cellId));
   if (!cell) {
     return (
       <div className="animate-pulse border-4 border-red-500 bg-red-900 p-4 text-xl font-bold text-white">

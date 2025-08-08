@@ -7,14 +7,6 @@ import { queryDb } from "@livestore/livestore";
  * to minimize re-renders across the application
  */
 
-// Get all cells with their fractional indices, sorted
-export const cellsWithIndices$ = queryDb(
-  tables.cells
-    .select("id", "fractionalIndex", "cellType")
-    .orderBy("fractionalIndex", "asc"),
-  { label: "cells.withIndices" }
-);
-
 // Get just the cell ordering information (minimal fields)
 export const cellOrdering$ = queryDb(
   tables.cells

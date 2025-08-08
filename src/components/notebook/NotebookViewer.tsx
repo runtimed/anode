@@ -9,6 +9,7 @@ import {
   queries,
   CellReference,
 } from "@/schema";
+import { lastUsedAiModel$, lastUsedAiProvider$ } from "@/queries";
 import React, { Suspense, useCallback, useRef } from "react";
 import { ErrorBoundary } from "react-error-boundary";
 
@@ -60,24 +61,8 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
 
   const cellReferences = useQuery(queries.cellsWithIndices$);
 
-  const lastUsedAiModel =
-    useQuery(
-      queryDb(
-        tables.notebookMetadata
-          .select()
-          .where({ key: "lastUsedAiModel" })
-          .limit(1)
-      )
-    )[0] || null;
-  const lastUsedAiProvider =
-    useQuery(
-      queryDb(
-        tables.notebookMetadata
-          .select()
-          .where({ key: "lastUsedAiProvider" })
-          .limit(1)
-      )
-    )[0] || null;
+  const lastUsedAiModel = useQuery(lastUsedAiModel$);
+  const lastUsedAiProvider = useQuery(lastUsedAiProvider$);
   const runtimeSessions = useQuery(
     queryDb(tables.runtimeSessions.select().where({ isActive: true }))
   );
