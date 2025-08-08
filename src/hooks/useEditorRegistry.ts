@@ -4,10 +4,9 @@ import { signal } from "@livestore/livestore";
 import type { CodeMirrorEditorRef } from "@/components/notebook/codemirror/CodeMirrorEditor";
 
 // Create a signal to store editor refs by cell ID
-const editorRefsSignal = signal(
-  new Map<string, CodeMirrorEditorRef>(),
-  { label: "editorRefs" }
-);
+const editorRefsSignal = signal(new Map<string, CodeMirrorEditorRef>(), {
+  label: "editorRefs",
+});
 
 export const useEditorRegistry = () => {
   const { store } = useStore();
@@ -41,6 +40,20 @@ export const useEditorRegistry = () => {
       if (editorRef) {
         editorRef.focus();
         editorRef.setCursorPosition(cursorPosition);
+
+        // Scroll cell into view for arrow key navigation
+        setTimeout(() => {
+          const cellElement = document.querySelector(
+            `[data-cell-id="${cellId}"]`
+          );
+          if (cellElement) {
+            cellElement.scrollIntoView({
+              behavior: "smooth",
+              block: "center",
+              inline: "nearest",
+            });
+          }
+        }, 0);
       }
     },
     []
