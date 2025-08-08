@@ -15,7 +15,7 @@ import {
 } from "@/schema";
 import { AnsiStreamOutput } from "@/components/outputs";
 import { AnsiErrorOutput } from "@/components/outputs/AnsiOutput.js";
-import { outputDeltasQuery, getFinalContent } from "@/queries/outputDeltas";
+import { queries } from "@/schema";
 import { useQuery } from "@livestore/react";
 import "@/components/outputs/outputs.css";
 
@@ -85,7 +85,7 @@ export const RichOutput: React.FC<RichOutputProps> = ({
   outputId,
 }) => {
   // Always query deltas (even if not used)
-  const deltas = useQuery(outputDeltasQuery(outputId));
+  const deltas = useQuery(queries.outputDeltasQuery(outputId));
 
   // Handle terminal outputs specially
   if (outputType === "terminal") {
@@ -99,7 +99,7 @@ export const RichOutput: React.FC<RichOutputProps> = ({
 
     // Apply deltas if we have an outputId
     const { content: finalContent } = outputId
-      ? getFinalContent(markdownData, deltas)
+      ? queries.getFinalContent(markdownData, deltas)
       : { content: markdownData };
 
     return (

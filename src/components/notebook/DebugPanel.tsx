@@ -6,11 +6,6 @@ import { tables, events, queries } from "@/schema";
 import { schema } from "../../schema.js";
 import { Bug, Database } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import {
-  cellIDs$,
-  notebookMetadata$,
-  runtimeSessions$,
-} from "@/queries/index.js";
 
 const useAvailableTables = () => {
   return useQuery(
@@ -71,9 +66,9 @@ const DebugPanel: React.FC = () => {
     "default"
   );
 
-  const notebookMetadata = useQuery(notebookMetadata$);
-  const cellIds = useQuery(cellIDs$);
-  const runtimeSessions = useQuery(runtimeSessions$);
+  const notebookMetadata = useQuery(queries.notebookMetadata$);
+  const cellIds = useQuery(queries.cellIDs$);
+  const runtimeSessions = useQuery(queries.runtimeSessions$);
   const executionQueue = useQuery(inflightExecutionQueue$);
 
   return (
