@@ -32,14 +32,11 @@ export const CellContainer = forwardRef<HTMLDivElement, CellContainerProps>(
       if (scrollIntoView && ref && typeof ref !== "function") {
         const element = ref.current;
         if (element) {
-          // Use a small delay to ensure the cell is fully rendered
-          setTimeout(() => {
-            element.scrollIntoView({
-              behavior: "smooth",
-              block: "center",
-              inline: "nearest",
-            });
-          }, 50);
+          element.scrollIntoView({
+            behavior: "smooth",
+            block: "center",
+            inline: "nearest",
+          });
         }
       }
     }, [scrollIntoView, ref]);

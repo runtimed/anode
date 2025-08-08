@@ -42,18 +42,16 @@ export const useEditorRegistry = () => {
         editorRef.setCursorPosition(cursorPosition);
 
         // Scroll cell into view for arrow key navigation
-        setTimeout(() => {
-          const cellElement = document.querySelector(
-            `[data-cell-id="${cellId}"]`
-          );
-          if (cellElement) {
-            cellElement.scrollIntoView({
-              behavior: "smooth",
-              block: "center",
-              inline: "nearest",
-            });
-          }
-        }, 100);
+        const cellElement = document.querySelector(
+          `[data-cell-id="${cellId}"]`
+        );
+        if (cellElement) {
+          cellElement.scrollIntoView({
+            behavior: "smooth",
+            block: "center",
+            inline: "nearest",
+          });
+        }
       }
     },
     []
