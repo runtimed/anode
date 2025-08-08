@@ -13,10 +13,10 @@ function createMockEnv(pem: string, customFetch?: typeof fetch): Env {
     DB: {
       prepare: (sql: string) => ({
         run: async () => {},
-        first: async () => ({ pem }),
+        first: async () => ({ value: pem }),
         bind: function (...args: any[]) {
           return {
-            first: async () => ({ pem }),
+            first: async () => ({ value: pem }),
             run: async () => {},
           };
         },
