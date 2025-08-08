@@ -1,8 +1,8 @@
 import { groupConsecutiveStreamOutputs } from "@/util/output-grouping";
 import { OutputData } from "@runt/schema";
 import { useMemo } from "react";
-import { IframeOutput2 } from "./IframeOutput2";
 import { SingleOutput } from "./SingleOutput";
+import { useIframeCommsParent } from "./shared-with-iframe/comms";
 
 export const MaybeCellOutputs = ({
   outputs,
@@ -28,7 +28,7 @@ export const MaybeCellOutputs = ({
   return (
     <div className="outputs-container px-4 py-2">
       {shouldUseIframe ? (
-        <IframeOutput2 outputs={processedOutputs} isReact />
+        <IframeOutput outputs={processedOutputs} isReact />
       ) : (
         processedOutputs.map((output: OutputData, index: number) => (
           <div
@@ -40,5 +40,43 @@ export const MaybeCellOutputs = ({
         ))
       )}
     </div>
+  );
+};
+
+interface IframeOutputProps {
+  outputs: OutputData[];
+  style?: React.CSSProperties;
+  className?: string;
+  onHeightChange?: (height: number) => void;
+  isReact?: boolean;
+  defaultHeight?: string;
+}
+
+export const IframeOutput: React.FC<IframeOutputProps> = ({
+  outputs,
+  className,
+  style,
+  isReact,
+  onHeightChange,
+  defaultHeight = "0px",
+}) => {
+  const { iframeRef, iframeHeight } = useIframeCommsParent({
+    defaultHeight,
+    onHeightChange,
+    outputs,
+  });
+
+  return (
+    <iframe
+      src={
+        import.meta.env.VITE_IFRAME_OUTPUT_URI + (isReact ? "/react.html" : "")
+      }
+      ref={iframeRef}
+      className={className}
+      width="100%"
+      height={iframeHeight}
+      style={style}
+      sandbox="allow-scripts allow-same-origin"
+    />
   );
 };
