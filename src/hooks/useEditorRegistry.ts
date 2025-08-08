@@ -53,7 +53,7 @@ export const useEditorRegistry = () => {
               inline: "nearest",
             });
           }
-        }, 0);
+        }, 100);
       }
     },
     []

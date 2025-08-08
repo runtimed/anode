@@ -320,9 +320,7 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
         setFocusedCellId(nextCell.id);
 
         // Position cursor in the next cell
-        setTimeout(() => {
-          registryFocusCell(nextCell.id, cursorPosition);
-        }, 50);
+        registryFocusCell(nextCell.id, cursorPosition);
       } else {
         // At the last cell, create a new one with same cell type (but never raw)
         const currentCell = cellReferences[currentIndex];
@@ -345,9 +343,7 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
         setFocusedCellId(previousCell.id);
 
         // Position cursor in the previous cell
-        setTimeout(() => {
-          registryFocusCell(previousCell.id, cursorPosition);
-        }, 50);
+        registryFocusCell(previousCell.id, cursorPosition);
       }
     },
     [cellReferences]
