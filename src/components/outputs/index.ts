@@ -4,13 +4,13 @@ import { AiToolCallData, AiToolResultData } from "@/schema";
 export { AiToolCallOutput } from "./AiToolCallOutput.js";
 export { AiToolResultOutput } from "./AiToolResultOutput.js";
 export { AiToolApprovalOutput } from "./AiToolApprovalOutput.js";
-export { HtmlOutput } from "./HtmlOutput.js";
-export { ImageOutput } from "./ImageOutput.js";
-export { JsonOutput } from "./JsonOutput.js";
+export { HtmlOutput } from "./shared-with-iframe/HtmlOutput.js";
+export { ImageOutput } from "./shared-with-iframe/ImageOutput.js";
+export { JsonOutput } from "./shared-with-iframe/JsonOutput.js";
 
-export { PlainTextOutput } from "./PlainTextOutput.js";
+export { PlainTextOutput } from "./shared-with-iframe/PlainTextOutput.js";
 export { RichOutput } from "./RichOutput.js";
-export { SvgOutput } from "./SvgOutput.js";
+export { SvgOutput } from "./shared-with-iframe/SvgOutput.js";
 
 // Note: Heavy output components are now dynamically imported in RichOutput.tsx
 // to reduce bundle size. They are no longer exported from this index file.

@@ -1,4 +1,4 @@
-import { AnsiStreamOutput } from "@/components/outputs/AnsiOutput";
+import { AnsiStreamOutput } from "@/components/outputs/shared-with-iframe/AnsiOutput";
 import { RichOutput } from "@/components/outputs/RichOutput";
 import { useIframeCommsChild } from "@/components/outputs/shared-with-iframe/comms";
 import { OutputData } from "@/schema";

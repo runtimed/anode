@@ -16,16 +16,18 @@ import {
 } from "@/schema";
 import { outputDeltasQuery, getFinalContent } from "@/queries/outputDeltas";
 import { useQuery } from "@livestore/react";
-import { AnsiErrorOutput } from "@/components/outputs/AnsiOutput";
+import { AnsiErrorOutput } from "@/components/outputs/shared-with-iframe/AnsiOutput";
 
 // Dynamic imports for heavy components
 const MarkdownRenderer = React.lazy(() =>
-  import("@/components/outputs/MarkdownRenderer").then((m) => ({
+  import("@/components/outputs/shared-with-iframe/MarkdownRenderer").then(
+    (m) => ({
     default: m.MarkdownRenderer,
-  }))
+    })
+  )
 );
 const JsonOutput = React.lazy(() =>
-  import("@/components/outputs/JsonOutput").then((m) => ({
+  import("@/components/outputs/shared-with-iframe/JsonOutput").then((m) => ({
     default: m.JsonOutput,
   }))
 );
@@ -40,24 +42,26 @@ const AiToolResultOutput = React.lazy(() =>
   }))
 );
 const HtmlOutput = React.lazy(() =>
-  import("@/components/outputs/HtmlOutput").then((m) => ({
+  import("@/components/outputs/shared-with-iframe/HtmlOutput").then((m) => ({
     default: m.HtmlOutput,
   }))
 );
 const ImageOutput = React.lazy(() =>
-  import("@/components/outputs/ImageOutput").then((m) => ({
+  import("@/components/outputs/shared-with-iframe/ImageOutput").then((m) => ({
     default: m.ImageOutput,
   }))
 );
 const SvgOutput = React.lazy(() =>
-  import("@/components/outputs/SvgOutput").then((m) => ({
+  import("@/components/outputs/shared-with-iframe/SvgOutput").then((m) => ({
     default: m.SvgOutput,
   }))
 );
 const PlainTextOutput = React.lazy(() =>
-  import("@/components/outputs/PlainTextOutput").then((m) => ({
+  import("@/components/outputs/shared-with-iframe/PlainTextOutput").then(
+    (m) => ({
     default: m.PlainTextOutput,
-  }))
+    })
+  )
 );
 
 const LoadingSpinner = () => (

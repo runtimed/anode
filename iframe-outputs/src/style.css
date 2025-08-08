@@ -13,7 +13,7 @@ Docs: https://tailwindcss.com/docs/preflight#overview
 
 @import "tw-animate-css";
 @plugin "@tailwindcss/typography";
-@source "../../src/components/outputs/AnsiOutput.tsx";
+@source "../../src/components/outputs/shared-with-iframe";
 
 :root {
   --dataframe-border: 1px solid #e5e7eb;

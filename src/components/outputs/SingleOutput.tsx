@@ -1,5 +1,5 @@
 import { OutputData } from "@runt/schema";
-import { AnsiStreamOutput } from "./AnsiOutput";
+import { AnsiStreamOutput } from "./shared-with-iframe/AnsiOutput";
 import { RichOutput } from "./RichOutput";
 
 export function SingleOutput({ output }: { output: OutputData }) {
