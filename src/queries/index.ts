@@ -1,6 +1,8 @@
 import { tables } from "@/schema";
 import { queryDb } from "@livestore/livestore";
 
+// Most queries come from `@runt/schema/queries`. Where we've needed something custom, we've written it here.
+
 // Stable queries for notebook metadata to prevent reference instability
 export const lastUsedAiModel$ = queryDb(
   tables.notebookMetadata
