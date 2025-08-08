@@ -15,7 +15,7 @@ import { ErrorBoundary } from "react-error-boundary";
 import { CellContainer } from "./shared/CellContainer.js";
 import { CellControls } from "./shared/CellControls.js";
 import { CellTypeSelector } from "./shared/CellTypeSelector.js";
-import { Editor } from "./shared/Editor.js";
+import { Editor, EditorRef } from "./shared/Editor.js";
 import {
   languageFromCellType,
   placeholderFromCellType,
@@ -62,6 +62,7 @@ interface ExecutableCellProps {
   onFocusNext?: () => void;
   onFocusPrevious?: () => void;
   autoFocus?: boolean;
+  scrollIntoView?: boolean;
   onFocus?: () => void;
   contextSelectionMode?: boolean;
 }
@@ -74,10 +75,12 @@ export const ExecutableCell: React.FC<ExecutableCellProps> = ({
   onFocusNext,
   onFocusPrevious,
   autoFocus = false,
+  scrollIntoView = false,
   onFocus,
   contextSelectionMode = false,
 }) => {
   const cellRef = useRef<HTMLDivElement>(null);
+  const editorRef = useRef<EditorRef>(null);
 
   const { store } = useStore();
   const {
@@ -235,6 +238,20 @@ export const ExecutableCell: React.FC<ExecutableCellProps> = ({
     onFocus?.();
   }, [onFocus]);
 
+  // Store editor ref globally for cursor positioning
+  React.useEffect(() => {
+    if (editorRef.current) {
+      // Store reference in a way that can be accessed by cell ID
+      (window as any).cellEditorRefs =
+        (window as any).cellEditorRefs || new Map();
+      (window as any).cellEditorRefs.set(cell.id, editorRef.current);
+
+      return () => {
+        (window as any).cellEditorRefs?.delete(cell.id);
+      };
+    }
+  }, [cell.id]);
+
   const { focusColor, focusBgColor } = getCellStyling(
     cell.cellType as "code" | "sql" | "ai"
   );
@@ -244,6 +261,7 @@ export const ExecutableCell: React.FC<ExecutableCellProps> = ({
       ref={cellRef}
       cell={cell}
       autoFocus={autoFocus}
+      scrollIntoView={scrollIntoView}
       contextSelectionMode={contextSelectionMode}
       onFocus={onFocus}
       focusColor={focusColor}
@@ -375,6 +393,7 @@ export const ExecutableCell: React.FC<ExecutableCellProps> = ({
           <div className="cell-content bg-white py-1 pl-4 transition-colors">
             <ErrorBoundary fallback={<div>Error rendering editor</div>}>
               <Editor
+                ref={editorRef}
                 localSource={localSource}
                 handleSourceChange={handleSourceChange}
                 onBlur={updateSource}

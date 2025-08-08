@@ -2,8 +2,8 @@ import { KeyBinding } from "@codemirror/view";
 import { useCallback, useMemo } from "react";
 
 interface CellKeyboardNavigationOptions {
-  onFocusNext?: () => void;
-  onFocusPrevious?: () => void;
+  onFocusNext?: (cursorPosition?: "start" | "end") => void;
+  onFocusPrevious?: (cursorPosition?: "start" | "end") => void;
   onExecute?: () => void;
   onUpdateSource?: () => void;
   onDeleteCell?: () => void;
@@ -33,7 +33,7 @@ export const useCellKeyboardNavigation = ({
         run: () => {
           onUpdateSource?.();
           onExecute?.();
-          onFocusNext?.();
+          onFocusNext?.("start");
           return true;
         },
       },
@@ -45,12 +45,11 @@ export const useCellKeyboardNavigation = ({
           const cursorPos = selection.main.head;
           const docLength = state.doc.length;
 
+          // Navigate to next cell when at very end of document
           if (cursorPos === docLength) {
-            onFocusNext?.();
-            // Prevent CodeMirror from handling
+            onFocusNext?.("start");
             return true;
           }
-          // Pass on to CodeMirror
           return false;
         },
       },
@@ -61,12 +60,11 @@ export const useCellKeyboardNavigation = ({
           const { selection } = state;
           const cursorPos = selection.main.head;
 
+          // Navigate to previous cell when at very start of document
           if (cursorPos === 0) {
-            onFocusPrevious?.();
-            // Prevent CodeMirror from handling
+            onFocusPrevious?.("end");
             return true;
           }
-          // Pass on to CodeMirror
           return false;
         },
       },
@@ -137,7 +135,7 @@ export const useCellKeyboardNavigation = ({
             if (onFocusPrevious) {
               e.preventDefault();
               onUpdateSource?.();
-              onFocusPrevious();
+              onFocusPrevious("end");
               return;
             }
           } else {
@@ -166,7 +164,7 @@ export const useCellKeyboardNavigation = ({
             if (onFocusNext) {
               e.preventDefault();
               onUpdateSource?.();
-              onFocusNext();
+              onFocusNext("start");
               return;
             }
           } else {
@@ -190,7 +188,7 @@ export const useCellKeyboardNavigation = ({
         e.preventDefault();
         onUpdateSource?.();
         onExecute?.();
-        onFocusNext?.(); // Move to next cell (or create new if at end)
+        onFocusNext?.("start"); // Move to next cell (or create new if at end)
       }
     },
     [onFocusNext, onFocusPrevious, onExecute, onUpdateSource, onDeleteCell]

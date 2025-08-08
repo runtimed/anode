@@ -7,6 +7,7 @@ import { CellReference } from "@/schema";
 interface CellListProps {
   cellReferences: readonly CellReference[];
   focusedCellId: string | null;
+  newlyCreatedCellId: string | null;
   onAddCell: (
     cellId?: string,
     cellType?: "code" | "markdown" | "sql" | "ai",
@@ -18,6 +19,7 @@ interface CellListProps {
   onFocusNext: (cellId: string) => void;
   onFocusPrevious: (cellId: string) => void;
   onFocus: (cellId: string) => void;
+  onNewCellRendered: () => void;
   contextSelectionMode?: boolean;
   // Legacy virtualization props (ignored but kept for compatibility)
   itemHeight?: number;
@@ -28,6 +30,7 @@ interface CellListProps {
 export const CellList: React.FC<CellListProps> = ({
   cellReferences,
   focusedCellId,
+  newlyCreatedCellId,
   onAddCell,
   onDeleteCell,
   onMoveUp,
@@ -35,9 +38,19 @@ export const CellList: React.FC<CellListProps> = ({
   onFocusNext,
   onFocusPrevious,
   onFocus,
+  onNewCellRendered,
   contextSelectionMode = false,
   // Virtualization props ignored
 }) => {
+  // Clear newly created cell status after first render
+  React.useEffect(() => {
+    if (newlyCreatedCellId) {
+      const timer = setTimeout(() => {
+        onNewCellRendered();
+      }, 100);
+      return () => clearTimeout(timer);
+    }
+  }, [newlyCreatedCellId, onNewCellRendered]);
   return (
     <div style={{ paddingLeft: "1rem" }}>
       {cellReferences.map((cellReference, index) => (
@@ -59,6 +72,7 @@ export const CellList: React.FC<CellListProps> = ({
               onFocusPrevious={() => onFocusPrevious(cellReference.id)}
               onFocus={() => onFocus(cellReference.id)}
               autoFocus={cellReference.id === focusedCellId}
+              scrollIntoView={cellReference.id === newlyCreatedCellId}
               contextSelectionMode={contextSelectionMode}
             />
             <CellBetweener

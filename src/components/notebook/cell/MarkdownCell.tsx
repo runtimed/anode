@@ -12,16 +12,17 @@ import React, {
   Suspense,
 } from "react";
 
-import { Button } from "@/components/ui/button.js";
 import { useAuth } from "@/components/auth/AuthProvider.js";
 import { useUserRegistry } from "@/hooks/useUserRegistry.js";
-import { Edit3, Eye } from "lucide-react";
+
+import { Button } from "@/components/ui/button";
 import { ErrorBoundary } from "react-error-boundary";
+import { Edit3, Eye } from "lucide-react";
 import { useClickAway } from "react-use";
 import { CellContainer } from "./shared/CellContainer.js";
 import { CellControls } from "./shared/CellControls.js";
 import { CellTypeSelector } from "./shared/CellTypeSelector.js";
-import { Editor } from "./shared/Editor.js";
+import { Editor, EditorRef } from "./shared/Editor.js";
 import { PresenceBookmarks } from "./shared/PresenceBookmarks.js";
 
 type CellType = typeof tables.cells.Type;
@@ -34,6 +35,7 @@ interface MarkdownCellProps {
   onFocusNext?: () => void;
   onFocusPrevious?: () => void;
   autoFocus?: boolean;
+  scrollIntoView?: boolean;
   onFocus?: () => void;
   contextSelectionMode?: boolean;
 }
@@ -52,11 +54,13 @@ export const MarkdownCell: React.FC<MarkdownCellProps> = ({
   onFocusNext,
   onFocusPrevious,
   autoFocus = false,
+  scrollIntoView = false,
   onFocus,
   contextSelectionMode = false,
 }) => {
   const editButtonRef = useRef<HTMLButtonElement>(null);
   const cellContainerRef = useRef<HTMLDivElement>(null);
+  const editorRef = useRef<EditorRef>(null);
 
   // Use shared content management hook
   const { localSource, setLocalSource, updateSource, handleSourceChange } =
@@ -191,6 +195,20 @@ export const MarkdownCell: React.FC<MarkdownCellProps> = ({
     onFocus?.();
   }, [onFocus]);
 
+  // Store editor ref globally for cursor positioning
+  React.useEffect(() => {
+    if (editorRef.current) {
+      // Store reference in a way that can be accessed by cell ID
+      (window as any).cellEditorRefs =
+        (window as any).cellEditorRefs || new Map();
+      (window as any).cellEditorRefs.set(cell.id, editorRef.current);
+
+      return () => {
+        (window as any).cellEditorRefs?.delete(cell.id);
+      };
+    }
+  }, [cell.id]);
+
   const focusColor = "bg-amber-500/40";
   const focusBgColor = "bg-amber-50/20";
 
@@ -199,6 +217,7 @@ export const MarkdownCell: React.FC<MarkdownCellProps> = ({
       ref={cellContainerRef}
       cell={cell}
       autoFocus={autoFocus}
+      scrollIntoView={scrollIntoView}
       contextSelectionMode={contextSelectionMode}
       onFocus={onFocus}
       focusColor={focusColor}
@@ -257,15 +276,16 @@ export const MarkdownCell: React.FC<MarkdownCellProps> = ({
           <div className="cell-content bg-white py-1 pl-4 transition-colors">
             <ErrorBoundary fallback={<div>Error rendering editor</div>}>
               <Editor
+                ref={editorRef}
                 localSource={localSource}
                 handleSourceChange={handleSourceChange}
+                onBlur={updateSource}
                 handleFocus={handleFocus}
                 language="markdown"
-                placeholder="Enter markdown..."
+                placeholder="Write markdown..."
                 enableLineWrapping={true}
                 autoFocus={autoFocus}
                 keyMap={extendedKeyMap}
-                onBlur={updateSource}
               />
             </ErrorBoundary>
           </div>

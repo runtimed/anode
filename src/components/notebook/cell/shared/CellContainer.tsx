@@ -1,10 +1,11 @@
 import { tables } from "@/schema";
-import { forwardRef, ReactNode } from "react";
+import { forwardRef, ReactNode, useEffect } from "react";
 import "./PresenceIndicators.css";
 
 interface CellContainerProps {
   cell: typeof tables.cells.Type;
   autoFocus?: boolean;
+  scrollIntoView?: boolean;
   contextSelectionMode?: boolean;
   onFocus?: () => void;
   children: ReactNode;
@@ -17,6 +18,7 @@ export const CellContainer = forwardRef<HTMLDivElement, CellContainerProps>(
     {
       cell,
       autoFocus = false,
+      scrollIntoView = false,
       contextSelectionMode = false,
       onFocus,
       children,
@@ -25,9 +27,27 @@ export const CellContainer = forwardRef<HTMLDivElement, CellContainerProps>(
     },
     ref
   ) => {
+    // Scroll into view when explicitly requested (for new cells)
+    useEffect(() => {
+      if (scrollIntoView && ref && typeof ref !== "function") {
+        const element = ref.current;
+        if (element) {
+          // Use a small delay to ensure the cell is fully rendered
+          setTimeout(() => {
+            element.scrollIntoView({
+              behavior: "smooth",
+              block: "center",
+              inline: "nearest",
+            });
+          }, 50);
+        }
+      }
+    }, [scrollIntoView, ref]);
+
     return (
       <div
         ref={ref}
+        data-cell-id={cell.id}
         className={`cell-container group relative pt-2 transition-all duration-200 ${
           autoFocus && !contextSelectionMode
             ? focusBgColor

@@ -13,6 +13,7 @@ interface CellProps {
   onFocusNext?: () => void;
   onFocusPrevious?: () => void;
   autoFocus?: boolean;
+  scrollIntoView?: boolean;
   onFocus?: () => void;
   contextSelectionMode?: boolean;
 }
@@ -25,6 +26,7 @@ export const Cell: React.FC<CellProps> = ({
   onFocusNext,
   onFocusPrevious,
   autoFocus = false,
+  scrollIntoView = false,
   onFocus,
   contextSelectionMode = false,
 }) => {
@@ -46,6 +48,7 @@ export const Cell: React.FC<CellProps> = ({
           onFocusNext={onFocusNext}
           onFocusPrevious={onFocusPrevious}
           autoFocus={autoFocus}
+          scrollIntoView={scrollIntoView}
           onFocus={onFocus}
           contextSelectionMode={contextSelectionMode}
         />
@@ -58,6 +61,7 @@ export const Cell: React.FC<CellProps> = ({
           onFocusNext={onFocusNext}
           onFocusPrevious={onFocusPrevious}
           autoFocus={autoFocus}
+          scrollIntoView={scrollIntoView}
           onFocus={onFocus}
           contextSelectionMode={contextSelectionMode}
         />

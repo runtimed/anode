@@ -84,6 +84,9 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
 
   const [showRuntimeHelper, setShowRuntimeHelper] = React.useState(false);
   const [focusedCellId, setFocusedCellId] = React.useState<string | null>(null);
+  const [newlyCreatedCellId, setNewlyCreatedCellId] = React.useState<
+    string | null
+  >(null);
   const [contextSelectionMode, setContextSelectionMode] = React.useState(false);
   const hasEverFocusedRef = React.useRef(false);
 
@@ -179,7 +182,8 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
       // Prefetch output components when user creates cells
       prefetchOutputsAdaptive();
 
-      // Focus the new cell after creation
+      // Focus the new cell after creation and mark it as newly created for scroll
+      setNewlyCreatedCellId(newCellId);
       setTimeout(() => setFocusedCellId(newCellId), 0);
     },
     [cellReferences, store, userId, models, lastUsedAiModel, lastUsedAiProvider]
@@ -304,7 +308,7 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
   }, []);
 
   const focusNextCell = useCallback(
-    (currentCellId: string) => {
+    (currentCellId: string, cursorPosition: "start" | "end" = "start") => {
       const currentIndex = cellReferences.findIndex(
         (c) => c.id === currentCellId
       );
@@ -312,6 +316,15 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
       if (currentIndex < cellReferences.length - 1) {
         const nextCell = cellReferences[currentIndex + 1];
         setFocusedCellId(nextCell.id);
+
+        // Position cursor in the next cell
+        setTimeout(() => {
+          const editorRef = (window as any).cellEditorRefs?.get(nextCell.id);
+          if (editorRef) {
+            editorRef.setCursorPosition(cursorPosition);
+            editorRef.focus();
+          }
+        }, 50);
       } else {
         // At the last cell, create a new one with same cell type (but never raw)
         const currentCell = cellReferences[currentIndex];
@@ -324,7 +337,7 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
   );
 
   const focusPreviousCell = useCallback(
-    (currentCellId: string) => {
+    (currentCellId: string, cursorPosition: "start" | "end" = "end") => {
       const currentIndex = cellReferences.findIndex(
         (c) => c.id === currentCellId
       );
@@ -332,6 +345,17 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
       if (currentIndex > 0) {
         const previousCell = cellReferences[currentIndex - 1];
         setFocusedCellId(previousCell.id);
+
+        // Position cursor in the previous cell
+        setTimeout(() => {
+          const editorRef = (window as any).cellEditorRefs?.get(
+            previousCell.id
+          );
+          if (editorRef) {
+            editorRef.setCursorPosition(cursorPosition);
+            editorRef.focus();
+          }
+        }, 50);
       }
     },
     [cellReferences]
@@ -559,6 +583,7 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
                   <CellList
                     cellReferences={cellReferences}
                     focusedCellId={focusedCellId}
+                    newlyCreatedCellId={newlyCreatedCellId}
                     onAddCell={addCell}
                     onDeleteCell={deleteCell}
                     onMoveUp={(cellId) => moveCell(cellId, "up")}
@@ -566,6 +591,7 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
                     onFocusNext={focusNextCell}
                     onFocusPrevious={focusPreviousCell}
                     onFocus={focusCell}
+                    onNewCellRendered={() => setNewlyCreatedCellId(null)}
                     contextSelectionMode={contextSelectionMode}
                   />
                 </ErrorBoundary>
