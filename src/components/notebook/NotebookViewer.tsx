@@ -14,6 +14,7 @@ import { Button } from "@/components/ui/button";
 
 import { useAuth } from "@/components/auth/AuthProvider.js";
 import { useUserRegistry } from "@/hooks/useUserRegistry.js";
+import { useEditorRegistry } from "@/hooks/useEditorRegistry.js";
 
 import { getClientColor, getClientTypeInfo } from "@/services/userTypes.js";
 import { getDefaultAiModel, useAvailableAiModels } from "@/util/ai-models.js";
@@ -47,6 +48,7 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
   debugMode = false,
   onDebugToggle,
 }) => {
+  const { focusCell } = useEditorRegistry();
   const { store } = useStore();
   const {
     user: { sub: userId },
@@ -168,56 +170,36 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
 
   const deleteCell = useCallback(
     (cellId: string) => {
+      // Determine which cell to focus before deletion
+      const currentIndex = cellReferences.findIndex((c) => c.id === cellId);
+      let cellToFocus: string | null = null;
+
+      if (currentIndex > 0) {
+        // Focus previous cell
+        cellToFocus = cellReferences[currentIndex - 1].id;
+      } else if (cellReferences.length > 1) {
+        // Focus next cell if deleting the first cell
+        cellToFocus = cellReferences[currentIndex + 1].id;
+      }
+
+      // Delete the cell
       store.commit(
         events.cellDeleted({
           id: cellId,
           actorId: userId,
         })
       );
-    },
-    [store, userId]
-  );
 
-  const focusCell = useCallback(
-    (cellId: string) => {
-      store.setSignal(focusedCellSignal$, cellId);
-      store.setSignal(hasManuallyFocused$, true);
-    },
-    [store]
-  );
-
-  const focusNextCell = useCallback(
-    (currentCellId: string) => {
-      const currentIndex = cellReferences.findIndex(
-        (c) => c.id === currentCellId
-      );
-
-      if (currentIndex < cellReferences.length - 1) {
-        const nextCell = cellReferences[currentIndex + 1];
-        store.setSignal(focusedCellSignal$, nextCell.id);
-      } else {
-        // At the last cell, create a new one with same cell type (but never raw)
-        const currentCell = cellReferences[currentIndex];
-        const newCellType =
-          currentCell.cellType === "raw" ? "code" : currentCell.cellType;
-        addCell(currentCellId, newCellType);
+      // Focus the determined cell after deletion
+      if (cellToFocus) {
+        store.setSignal(focusedCellSignal$, cellToFocus);
+        // Use setTimeout to ensure the cell is rendered before focusing
+        setTimeout(() => {
+          focusCell(cellToFocus, "end");
+        }, 0);
       }
     },
-    [cellReferences, addCell, store]
-  );
-
-  const focusPreviousCell = useCallback(
-    (currentCellId: string) => {
-      const currentIndex = cellReferences.findIndex(
-        (c) => c.id === currentCellId
-      );
-
-      if (currentIndex > 0) {
-        const previousCell = cellReferences[currentIndex - 1];
-        store.setSignal(focusedCellSignal$, previousCell.id);
-      }
-    },
-    [cellReferences, store]
+    [store, userId, cellReferences, focusCell]
   );
 
   // Reset focus when focused cell changes or is removed
@@ -442,9 +424,6 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
                     cellReferences={cellReferences}
                     onAddCell={addCell}
                     onDeleteCell={deleteCell}
-                    onFocusNext={focusNextCell}
-                    onFocusPrevious={focusPreviousCell}
-                    onFocus={focusCell}
                   />
                 </ErrorBoundary>
                 {/* Add Cell Buttons */}

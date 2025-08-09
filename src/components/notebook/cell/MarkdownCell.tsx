@@ -1,8 +1,9 @@
 import { useCellContent } from "@/hooks/useCellContent.js";
 import { useCellKeyboardNavigation } from "@/hooks/useCellKeyboardNavigation.js";
 import { useCellOutputs } from "@/hooks/useCellOutputs.js";
+import { useEditorRegistry } from "@/hooks/useEditorRegistry.js";
 import { useStore } from "@livestore/react";
-import { events, tables } from "@/schema";
+import { events, tables, queries } from "@/schema";
 import React, {
   useCallback,
   useEffect,
@@ -21,18 +22,21 @@ import { useClickAway } from "react-use";
 import { CellContainer } from "./shared/CellContainer.js";
 import { CellControls } from "./shared/CellControls.js";
 import { CellTypeSelector } from "./shared/CellTypeSelector.js";
-import { Editor } from "./shared/Editor.js";
+import { Editor, EditorRef } from "./shared/Editor.js";
 import { PresenceBookmarks } from "./shared/PresenceBookmarks.js";
+import { focusedCellSignal$, hasManuallyFocused$ } from "../signals/focus.js";
 
 type CellType = typeof tables.cells.Type;
 
 interface MarkdownCellProps {
   cell: CellType;
   onDeleteCell: () => void;
-  onFocusNext?: () => void;
-  onFocusPrevious?: () => void;
+  onAddCell: (
+    cellId?: string,
+    cellType?: "code" | "markdown" | "sql" | "ai",
+    position?: "before" | "after"
+  ) => void;
   autoFocus?: boolean;
-  onFocus?: () => void;
 }
 
 const MarkdownRenderer = React.lazy(() =>
@@ -44,15 +48,18 @@ const MarkdownRenderer = React.lazy(() =>
 export const MarkdownCell: React.FC<MarkdownCellProps> = ({
   cell,
   onDeleteCell,
-  onFocusNext,
-  onFocusPrevious,
+  onAddCell,
   autoFocus = false,
-  onFocus,
 }) => {
   const editButtonRef = useRef<HTMLButtonElement>(null);
   const cellContainerRef = useRef<HTMLDivElement>(null);
 
   const { store } = useStore();
+  const {
+    registerEditor,
+    unregisterEditor,
+    focusCell: registryFocusCell,
+  } = useEditorRegistry();
   // Use shared content management hook
   const { localSource, setLocalSource, updateSource, handleSourceChange } =
     useCellContent({
@@ -137,6 +144,41 @@ export const MarkdownCell: React.FC<MarkdownCellProps> = ({
     }
   }, [cell.id, store, hasOutputs, userId]);
 
+  // Create navigation handlers using the registry
+  const onFocusNext = useCallback(
+    (cursorPosition: "start" | "end" = "start") => {
+      const cellReferences = store.query(queries.cellsWithIndices$);
+      const currentIndex = cellReferences.findIndex((c) => c.id === cell.id);
+
+      if (currentIndex < cellReferences.length - 1) {
+        const nextCell = cellReferences[currentIndex + 1];
+        store.setSignal(focusedCellSignal$, nextCell.id);
+        registryFocusCell(nextCell.id, cursorPosition);
+      } else {
+        // At the last cell, create a new one with same cell type (but never raw)
+        const currentCell = cellReferences[currentIndex];
+        const newCellType =
+          currentCell.cellType === "raw" ? "code" : currentCell.cellType;
+        onAddCell(cell.id, newCellType);
+      }
+    },
+    [cell.id, store, registryFocusCell, onAddCell]
+  );
+
+  const onFocusPrevious = useCallback(
+    (cursorPosition: "start" | "end" = "end") => {
+      const cellReferences = store.query(queries.cellsWithIndices$);
+      const currentIndex = cellReferences.findIndex((c) => c.id === cell.id);
+
+      if (currentIndex > 0) {
+        const previousCell = cellReferences[currentIndex - 1];
+        store.setSignal(focusedCellSignal$, previousCell.id);
+        registryFocusCell(previousCell.id, cursorPosition);
+      }
+    },
+    [cell.id, store, registryFocusCell]
+  );
+
   // Use shared keyboard navigation hook
   const { keyMap, handleKeyDown } = useCellKeyboardNavigation({
     onFocusNext,
@@ -182,8 +224,26 @@ export const MarkdownCell: React.FC<MarkdownCellProps> = ({
   ]);
 
   const handleFocus = useCallback(() => {
-    onFocus?.();
-  }, [onFocus]);
+    store.setSignal(focusedCellSignal$, cell.id);
+    store.setSignal(hasManuallyFocused$, true);
+  }, [store, cell.id]);
+
+  // Handle editor registration for navigation
+  const handleEditorReady = useCallback(
+    (editorRef: EditorRef) => {
+      if (editorRef) {
+        registerEditor(cell.id, editorRef);
+      }
+    },
+    [cell.id, registerEditor]
+  );
+
+  // Cleanup editor registration on unmount
+  React.useEffect(() => {
+    return () => {
+      unregisterEditor(cell.id);
+    };
+  }, [cell.id, unregisterEditor]);
 
   const focusColor = "bg-amber-500/40";
   const focusBgColor = "bg-amber-50/20";
@@ -193,7 +253,7 @@ export const MarkdownCell: React.FC<MarkdownCellProps> = ({
       ref={cellContainerRef}
       cell={cell}
       autoFocus={autoFocus}
-      onFocus={onFocus}
+      onFocus={handleFocus}
       focusColor={focusColor}
       focusBgColor={focusBgColor}
     >
@@ -247,15 +307,16 @@ export const MarkdownCell: React.FC<MarkdownCellProps> = ({
           <div className="cell-content bg-white py-1 pl-4 transition-colors">
             <ErrorBoundary fallback={<div>Error rendering editor</div>}>
               <Editor
+                ref={handleEditorReady}
                 localSource={localSource}
                 handleSourceChange={handleSourceChange}
+                onBlur={updateSource}
                 handleFocus={handleFocus}
                 language="markdown"
-                placeholder="Enter markdown..."
+                placeholder="Write markdown..."
                 enableLineWrapping={true}
                 autoFocus={autoFocus}
                 keyMap={extendedKeyMap}
-                onBlur={updateSource}
               />
             </ErrorBoundary>
           </div>

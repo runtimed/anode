@@ -14,18 +14,12 @@ interface CellListProps {
     position?: "before" | "after"
   ) => void;
   onDeleteCell: (cellId: string) => void;
-  onFocusNext: (cellId: string) => void;
-  onFocusPrevious: (cellId: string) => void;
-  onFocus: (cellId: string) => void;
 }
 
 export const CellList: React.FC<CellListProps> = ({
   cellReferences,
   onAddCell,
   onDeleteCell,
-  onFocusNext,
-  onFocusPrevious,
-  onFocus,
 }) => {
   const focusedCellId = useQuery(focusedCellSignal$);
   return (
@@ -44,9 +38,7 @@ export const CellList: React.FC<CellListProps> = ({
               cellId={cellReference.id}
               isFocused={cellReference.id === focusedCellId}
               onDeleteCell={() => onDeleteCell(cellReference.id)}
-              onFocusNext={() => onFocusNext(cellReference.id)}
-              onFocusPrevious={() => onFocusPrevious(cellReference.id)}
-              onFocus={() => onFocus(cellReference.id)}
+              onAddCell={onAddCell}
             />
             <CellBetweener
               cell={cellReference}
