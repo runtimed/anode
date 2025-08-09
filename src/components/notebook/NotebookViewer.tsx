@@ -1,5 +1,5 @@
 // import { toast } from "sonner";
-import { queryDb, signal } from "@livestore/livestore";
+import { queryDb } from "@livestore/livestore";
 import { useQuery, useStore } from "@livestore/react";
 import {
   events,
