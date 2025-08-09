@@ -2,6 +2,7 @@ import { queries } from "@/schema";
 import React from "react";
 import { ErrorBoundary } from "react-error-boundary";
 import { useQuery } from "@livestore/react";
+import type { SignalDef } from "@livestore/livestore";
 import { ExecutableCell } from "./ExecutableCell.js";
 import { MarkdownCell } from "./MarkdownCell.js";
 
@@ -12,7 +13,7 @@ interface CellProps {
   onMoveDown: () => void;
   onFocusNext?: () => void;
   onFocusPrevious?: () => void;
-  autoFocus?: boolean;
+  focusedCellSignal$: SignalDef<string | null>;
   onFocus?: () => void;
   contextSelectionMode?: boolean;
 }
@@ -24,11 +25,13 @@ export const Cell: React.FC<CellProps> = ({
   onMoveDown,
   onFocusNext,
   onFocusPrevious,
-  autoFocus = false,
+  focusedCellSignal$,
   onFocus,
   contextSelectionMode = false,
 }) => {
   const cell = useQuery(queries.cellQuery.byId(cellId));
+  const focusedCellId = useQuery(focusedCellSignal$);
+  const autoFocus = cellId === focusedCellId;
 
   if (!cell) {
     console.warn("Asked to render a cell that does not exist");

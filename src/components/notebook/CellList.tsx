@@ -3,10 +3,11 @@ import { ErrorBoundary } from "react-error-boundary";
 import { Cell } from "./cell/Cell.js";
 import { CellBetweener } from "./cell/CellBetweener.js";
 import { CellReference } from "@/schema";
+import type { SignalDef } from "@livestore/livestore";
 
 interface CellListProps {
   cellReferences: readonly CellReference[];
-  focusedCellId: string | null;
+  focusedCellSignal$: SignalDef<string | null>;
   onAddCell: (
     cellId?: string,
     cellType?: "code" | "markdown" | "sql" | "ai",
@@ -27,7 +28,7 @@ interface CellListProps {
 
 export const CellList: React.FC<CellListProps> = ({
   cellReferences,
-  focusedCellId,
+  focusedCellSignal$,
   onAddCell,
   onDeleteCell,
   onMoveUp,
@@ -58,7 +59,7 @@ export const CellList: React.FC<CellListProps> = ({
               onFocusNext={() => onFocusNext(cellReference.id)}
               onFocusPrevious={() => onFocusPrevious(cellReference.id)}
               onFocus={() => onFocus(cellReference.id)}
-              autoFocus={cellReference.id === focusedCellId}
+              focusedCellSignal$={focusedCellSignal$}
               contextSelectionMode={contextSelectionMode}
             />
             <CellBetweener

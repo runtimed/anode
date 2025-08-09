@@ -561,7 +561,7 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
                 <ErrorBoundary fallback={<div>Error rendering cell list</div>}>
                   <CellList
                     cellReferences={cellReferences}
-                    focusedCellId={focusedCellId}
+                    focusedCellSignal$={focusedCellSignal$}
                     onAddCell={addCell}
                     onDeleteCell={deleteCell}
                     onMoveUp={(cellId) => moveCell(cellId, "up")}
