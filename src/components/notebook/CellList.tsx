@@ -5,6 +5,7 @@ import { Cell } from "./cell/Cell.js";
 import { CellBetweener } from "./cell/CellBetweener.js";
 import { CellReference } from "@/schema";
 import { focusedCellSignal$ } from "./signals/focus.js";
+import { contextSelectionMode$ } from "./signals/ai-context.js";
 
 interface CellListProps {
   cellReferences: readonly CellReference[];
@@ -12,6 +13,8 @@ interface CellListProps {
 
 export const CellList: React.FC<CellListProps> = ({ cellReferences }) => {
   const focusedCellId = useQuery(focusedCellSignal$);
+  const contextSelectionMode = useQuery(contextSelectionMode$);
+
   return (
     <div style={{ paddingLeft: "1rem" }}>
       {cellReferences.map((cellReference, index) => (
@@ -23,6 +26,7 @@ export const CellList: React.FC<CellListProps> = ({ cellReferences }) => {
             <Cell
               cellId={cellReference.id}
               isFocused={cellReference.id === focusedCellId}
+              contextSelectionMode={contextSelectionMode}
             />
             <CellBetweener cell={cellReference} position="after" />
           </ErrorBoundary>
