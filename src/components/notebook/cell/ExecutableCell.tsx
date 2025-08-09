@@ -9,6 +9,7 @@ import { useInterruptExecution } from "@/hooks/useInterruptExecution.js";
 import { useEditorRegistry } from "@/hooks/useEditorRegistry.js";
 
 import { useStore } from "@livestore/react";
+import { focusedCellSignal$, hasManuallyFocused$ } from "../signals/focus.js";
 import { events, tables, queries } from "@/schema";
 import { ChevronDown, ChevronUp } from "lucide-react";
 import React, { useCallback, useRef } from "react";
@@ -58,7 +59,6 @@ const getCellStyling = (cellType: "code" | "sql" | "ai") => {
 
 interface ExecutableCellProps {
   cell: typeof tables.cells.Type;
-  onDeleteCell: () => void;
   onAddCell: (
     cellId?: string,
     cellType?: "code" | "markdown" | "sql" | "ai",
@@ -69,7 +69,6 @@ interface ExecutableCellProps {
 
 export const ExecutableCell: React.FC<ExecutableCellProps> = ({
   cell,
-  onDeleteCell,
   onAddCell,
   autoFocus = false,
 }) => {
@@ -259,11 +258,53 @@ export const ExecutableCell: React.FC<ExecutableCellProps> = ({
     [cell.id, store, registryFocusCell]
   );
 
+  // Cell-level delete handler
+  const handleDeleteCell = useCallback(
+    (trigger: "keyboard" | "click" = "click") => {
+      const cellReferences = store.query(queries.cellsWithIndices$);
+      const currentIndex = cellReferences.findIndex((c) => c.id === cell.id);
+
+      // Focus management based on trigger type
+      if (trigger === "keyboard") {
+        // Backspace: focus previous cell
+        if (currentIndex > 0) {
+          const previousCell = cellReferences[currentIndex - 1];
+          store.setSignal(focusedCellSignal$, previousCell.id);
+          setTimeout(() => {
+            registryFocusCell(previousCell.id, "end");
+          }, 0);
+        } else if (cellReferences.length > 1) {
+          // Focus next cell if deleting the first cell
+          const nextCell = cellReferences[currentIndex + 1];
+          store.setSignal(focusedCellSignal$, nextCell.id);
+          setTimeout(() => {
+            registryFocusCell(nextCell.id, "start");
+          }, 0);
+        } else {
+          // Last cell - clear focus
+          store.setSignal(focusedCellSignal$, null);
+        }
+      } else if (trigger === "click") {
+        // Click delete: clear focus
+        store.setSignal(focusedCellSignal$, null);
+      }
+
+      // Delete the cell
+      store.commit(
+        events.cellDeleted({
+          id: cell.id,
+          actorId: userId,
+        })
+      );
+    },
+    [store, cell.id, userId, registryFocusCell]
+  );
+
   // Use shared keyboard navigation hook with cell-type-specific execution
   const { keyMap } = useCellKeyboardNavigation({
     onFocusNext,
     onFocusPrevious,
-    onDeleteCell,
+    onDeleteCell: () => handleDeleteCell("keyboard"),
     onExecute: executeCell,
     onUpdateSource: updateSource,
   });
@@ -376,7 +417,7 @@ export const ExecutableCell: React.FC<ExecutableCellProps> = ({
         <CellControls
           sourceVisible={cell.sourceVisible}
           aiContextVisible={cell.aiContextVisible}
-          onDeleteCell={onDeleteCell}
+          onDeleteCell={() => handleDeleteCell("click")}
           onClearOutputs={clearCellOutputs}
           hasOutputs={hasOutputs}
           toggleSourceVisibility={toggleSourceVisibility}

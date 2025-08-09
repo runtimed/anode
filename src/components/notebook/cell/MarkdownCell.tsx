@@ -30,7 +30,6 @@ type CellType = typeof tables.cells.Type;
 
 interface MarkdownCellProps {
   cell: CellType;
-  onDeleteCell: () => void;
   onAddCell: (
     cellId?: string,
     cellType?: "code" | "markdown" | "sql" | "ai",
@@ -47,7 +46,6 @@ const MarkdownRenderer = React.lazy(() =>
 
 export const MarkdownCell: React.FC<MarkdownCellProps> = ({
   cell,
-  onDeleteCell,
   onAddCell,
   autoFocus = false,
 }) => {
@@ -179,11 +177,53 @@ export const MarkdownCell: React.FC<MarkdownCellProps> = ({
     [cell.id, store, registryFocusCell]
   );
 
+  // Cell-level delete handler
+  const handleDeleteCell = useCallback(
+    (trigger: "keyboard" | "click" = "click") => {
+      const cellReferences = store.query(queries.cellsWithIndices$);
+      const currentIndex = cellReferences.findIndex((c) => c.id === cell.id);
+
+      // Focus management based on trigger type
+      if (trigger === "keyboard") {
+        // Backspace: focus previous cell
+        if (currentIndex > 0) {
+          const previousCell = cellReferences[currentIndex - 1];
+          store.setSignal(focusedCellSignal$, previousCell.id);
+          setTimeout(() => {
+            registryFocusCell(previousCell.id, "end");
+          }, 0);
+        } else if (cellReferences.length > 1) {
+          // Focus next cell if deleting the first cell
+          const nextCell = cellReferences[currentIndex + 1];
+          store.setSignal(focusedCellSignal$, nextCell.id);
+          setTimeout(() => {
+            registryFocusCell(nextCell.id, "start");
+          }, 0);
+        } else {
+          // Last cell - clear focus
+          store.setSignal(focusedCellSignal$, null);
+        }
+      } else if (trigger === "click") {
+        // Click delete: clear focus
+        store.setSignal(focusedCellSignal$, null);
+      }
+
+      // Delete the cell
+      store.commit(
+        events.cellDeleted({
+          id: cell.id,
+          actorId: userId,
+        })
+      );
+    },
+    [store, cell.id, userId, registryFocusCell]
+  );
+
   // Use shared keyboard navigation hook
   const { keyMap, handleKeyDown } = useCellKeyboardNavigation({
     onFocusNext,
     onFocusPrevious,
-    onDeleteCell,
+    onDeleteCell: () => handleDeleteCell("keyboard"),
     onUpdateSource: updateSource,
   });
 
@@ -292,7 +332,7 @@ export const MarkdownCell: React.FC<MarkdownCellProps> = ({
         <CellControls
           sourceVisible={cell.sourceVisible}
           aiContextVisible={cell.aiContextVisible}
-          onDeleteCell={onDeleteCell}
+          onDeleteCell={() => handleDeleteCell("click")}
           onClearOutputs={clearCellOutputs}
           hasOutputs={hasOutputs}
           toggleSourceVisibility={toggleSourceVisibility}
