@@ -2,8 +2,9 @@ import { Button } from "@/components/ui/button";
 import { CellReference } from "@/schema";
 import { Plus } from "lucide-react";
 import { useAddCell } from "@/hooks/useAddCell.js";
+import { memo } from "react";
 
-export function CellBetweener({
+export const CellBetweener = memo(function CellBetweener({
   cell,
   position = "after",
 }: {
@@ -11,6 +12,7 @@ export function CellBetweener({
   position: "before" | "after";
 }) {
   const { addCell } = useAddCell();
+
   return (
     <div className="group relative flex h-6 w-full items-center justify-center">
       <div className="absolute -left-[13px] z-10 flex h-px w-full items-center bg-transparent has-hover:bg-neutral-500">
@@ -31,4 +33,4 @@ export function CellBetweener({
       </div>
     </div>
   );
-}
+});
