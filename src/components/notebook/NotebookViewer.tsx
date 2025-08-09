@@ -2,7 +2,7 @@
 import { queryDb } from "@livestore/livestore";
 import { useQuery, useStore } from "@livestore/react";
 import { events, tables, createCellBetween, queries } from "@/schema";
-import { lastUsedAiModel$, lastUsedAiProvider$ } from "@/queries";
+import { lastUsedAiModel$, lastUsedAiProvider$ } from "./signals/ai-context.js";
 import React, { Suspense, useCallback } from "react";
 import { ErrorBoundary } from "react-error-boundary";
 
@@ -22,6 +22,7 @@ import { UserProfile } from "../auth/UserProfile.js";
 import { RuntimeHealthIndicatorButton } from "./RuntimeHealthIndicatorButton.js";
 import { RuntimeHelper } from "./RuntimeHelper.js";
 import { focusedCellSignal$, hasManuallyFocused$ } from "./signals/focus.js";
+import { contextSelectionMode$ } from "./signals/ai-context.js";
 
 // Lazy import DebugPanel only in development
 const LazyDebugPanel = React.lazy(() =>
@@ -62,9 +63,9 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
   );
 
   const [showRuntimeHelper, setShowRuntimeHelper] = React.useState(false);
-  const [contextSelectionMode, setContextSelectionMode] = React.useState(false);
 
   const focusedCellId = useQuery(focusedCellSignal$);
+  const contextSelectionMode = useQuery(contextSelectionMode$);
   const hasManuallyFocused = useQuery(hasManuallyFocused$);
 
   // Prefetch output components adaptively based on connection speed
@@ -373,7 +374,10 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
                     variant={contextSelectionMode ? "default" : "outline"}
                     size="sm"
                     onClick={() =>
-                      setContextSelectionMode(!contextSelectionMode)
+                      store.setSignal(
+                        contextSelectionMode$,
+                        !contextSelectionMode
+                      )
                     }
                     className="flex items-center gap-1 sm:gap-2"
                   >
@@ -441,7 +445,6 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
                     onFocusNext={focusNextCell}
                     onFocusPrevious={focusPreviousCell}
                     onFocus={focusCell}
-                    contextSelectionMode={contextSelectionMode}
                   />
                 </ErrorBoundary>
                 {/* Add Cell Buttons */}

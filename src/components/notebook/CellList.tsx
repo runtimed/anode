@@ -5,6 +5,7 @@ import { Cell } from "./cell/Cell.js";
 import { CellBetweener } from "./cell/CellBetweener.js";
 import { CellReference } from "@/schema";
 import { focusedCellSignal$ } from "./signals/focus.js";
+import { contextSelectionMode$ } from "./signals/ai-context.js";
 
 interface CellListProps {
   cellReferences: readonly CellReference[];
@@ -17,7 +18,6 @@ interface CellListProps {
   onFocusNext: (cellId: string) => void;
   onFocusPrevious: (cellId: string) => void;
   onFocus: (cellId: string) => void;
-  contextSelectionMode?: boolean;
   // Legacy virtualization props (ignored but kept for compatibility)
   itemHeight?: number;
   overscan?: number;
@@ -31,10 +31,10 @@ export const CellList: React.FC<CellListProps> = ({
   onFocusNext,
   onFocusPrevious,
   onFocus,
-  contextSelectionMode = false,
   // Virtualization props ignored
 }) => {
   const focusedCellId = useQuery(focusedCellSignal$);
+  const contextSelectionMode = useQuery(contextSelectionMode$);
   return (
     <div style={{ paddingLeft: "1rem" }}>
       {cellReferences.map((cellReference, index) => (
@@ -54,7 +54,6 @@ export const CellList: React.FC<CellListProps> = ({
               onFocusNext={() => onFocusNext(cellReference.id)}
               onFocusPrevious={() => onFocusPrevious(cellReference.id)}
               onFocus={() => onFocus(cellReference.id)}
-              contextSelectionMode={contextSelectionMode}
             />
             <CellBetweener
               cell={cellReference}

@@ -1,7 +1,7 @@
 import { useCellContent } from "@/hooks/useCellContent.js";
 import { useCellKeyboardNavigation } from "@/hooks/useCellKeyboardNavigation.js";
 import { useCellOutputs } from "@/hooks/useCellOutputs.js";
-import { useStore } from "@livestore/react";
+import { useStore, useQuery } from "@livestore/react";
 import { events, tables } from "@/schema";
 import React, {
   useCallback,
@@ -22,7 +22,9 @@ import { CellContainer } from "./shared/CellContainer.js";
 import { CellControls } from "./shared/CellControls.js";
 import { CellTypeSelector } from "./shared/CellTypeSelector.js";
 import { Editor } from "./shared/Editor.js";
+import { ExecutionStatus } from "./shared/ExecutionStatus.js";
 import { PresenceBookmarks } from "./shared/PresenceBookmarks.js";
+import { contextSelectionMode$ } from "../signals/ai-context.js";
 
 type CellType = typeof tables.cells.Type;
 
@@ -33,7 +35,6 @@ interface MarkdownCellProps {
   onFocusPrevious?: () => void;
   autoFocus?: boolean;
   onFocus?: () => void;
-  contextSelectionMode?: boolean;
 }
 
 const MarkdownRenderer = React.lazy(() =>
@@ -49,11 +50,12 @@ export const MarkdownCell: React.FC<MarkdownCellProps> = ({
   onFocusPrevious,
   autoFocus = false,
   onFocus,
-  contextSelectionMode = false,
 }) => {
   const editButtonRef = useRef<HTMLButtonElement>(null);
   const cellContainerRef = useRef<HTMLDivElement>(null);
 
+  const { store } = useStore();
+  const contextSelectionMode = useQuery(contextSelectionMode$);
   // Use shared content management hook
   const { localSource, setLocalSource, updateSource, handleSourceChange } =
     useCellContent({
@@ -195,7 +197,6 @@ export const MarkdownCell: React.FC<MarkdownCellProps> = ({
       ref={cellContainerRef}
       cell={cell}
       autoFocus={autoFocus}
-      contextSelectionMode={contextSelectionMode}
       onFocus={onFocus}
       focusColor={focusColor}
       focusBgColor={focusBgColor}
@@ -235,7 +236,6 @@ export const MarkdownCell: React.FC<MarkdownCellProps> = ({
         <CellControls
           sourceVisible={cell.sourceVisible}
           aiContextVisible={cell.aiContextVisible}
-          contextSelectionMode={contextSelectionMode}
           onDeleteCell={onDeleteCell}
           onClearOutputs={clearCellOutputs}
           hasOutputs={hasOutputs}

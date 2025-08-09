@@ -7,7 +7,7 @@ import { useAuth } from "@/components/auth/AuthProvider.js";
 import { useUserRegistry } from "@/hooks/useUserRegistry.js";
 import { useInterruptExecution } from "@/hooks/useInterruptExecution.js";
 
-import { useStore } from "@livestore/react";
+import { useStore, useQuery } from "@livestore/react";
 import { events, tables } from "@/schema";
 import { ChevronDown, ChevronUp } from "lucide-react";
 import React, { useCallback, useRef } from "react";
@@ -32,6 +32,7 @@ import { SqlToolbar } from "./toolbars/SqlToolbar.js";
 
 import { AiToolApprovalOutput } from "../../outputs/AiToolApprovalOutput.js";
 import { useToolApprovals } from "@/hooks/useToolApprovals.js";
+import { contextSelectionMode$ } from "../signals/ai-context.js";
 
 // Cell-specific styling configuration
 const getCellStyling = (cellType: "code" | "sql" | "ai") => {
@@ -61,7 +62,6 @@ interface ExecutableCellProps {
   onFocusPrevious?: () => void;
   autoFocus?: boolean;
   onFocus?: () => void;
-  contextSelectionMode?: boolean;
 }
 
 export const ExecutableCell: React.FC<ExecutableCellProps> = ({
@@ -71,11 +71,11 @@ export const ExecutableCell: React.FC<ExecutableCellProps> = ({
   onFocusPrevious,
   autoFocus = false,
   onFocus,
-  contextSelectionMode = false,
 }) => {
   const cellRef = useRef<HTMLDivElement>(null);
 
   const { store } = useStore();
+  const contextSelectionMode = useQuery(contextSelectionMode$);
   const {
     user: { sub: userId },
   } = useAuth();
@@ -240,7 +240,6 @@ export const ExecutableCell: React.FC<ExecutableCellProps> = ({
       ref={cellRef}
       cell={cell}
       autoFocus={autoFocus}
-      contextSelectionMode={contextSelectionMode}
       onFocus={onFocus}
       focusColor={focusColor}
       focusBgColor={focusBgColor}
@@ -318,7 +317,6 @@ export const ExecutableCell: React.FC<ExecutableCellProps> = ({
         <CellControls
           sourceVisible={cell.sourceVisible}
           aiContextVisible={cell.aiContextVisible}
-          contextSelectionMode={contextSelectionMode}
           onDeleteCell={onDeleteCell}
           onClearOutputs={clearCellOutputs}
           hasOutputs={hasOutputs}
