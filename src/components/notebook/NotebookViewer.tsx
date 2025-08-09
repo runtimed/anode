@@ -1,15 +1,9 @@
 // import { toast } from "sonner";
 import { queryDb } from "@livestore/livestore";
 import { useQuery, useStore } from "@livestore/react";
-import {
-  events,
-  tables,
-  createCellBetween,
-  queries,
-  CellReference,
-} from "@/schema";
+import { events, tables, createCellBetween, queries } from "@/schema";
 import { lastUsedAiModel$, lastUsedAiProvider$ } from "@/queries";
-import React, { Suspense, useCallback, useRef } from "react";
+import React, { Suspense, useCallback } from "react";
 import { ErrorBoundary } from "react-error-boundary";
 
 import { NotebookTitle } from "./NotebookTitle.js";
