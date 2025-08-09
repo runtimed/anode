@@ -9,18 +9,18 @@ interface CellProps {
   cellId: string;
   isFocused: boolean;
   onDeleteCell: () => void;
-  onFocusNext?: () => void;
-  onFocusPrevious?: () => void;
-  onFocus?: () => void;
+  onAddCell: (
+    cellId?: string,
+    cellType?: "code" | "markdown" | "sql" | "ai",
+    position?: "before" | "after"
+  ) => void;
 }
 
 export const Cell: React.FC<CellProps> = ({
   cellId,
   isFocused,
   onDeleteCell,
-  onFocusNext,
-  onFocusPrevious,
-  onFocus,
+  onAddCell,
 }) => {
   const cell = useQuery(queries.cellQuery.byId(cellId));
 
@@ -35,19 +35,15 @@ export const Cell: React.FC<CellProps> = ({
         <MarkdownCell
           cell={cell}
           onDeleteCell={onDeleteCell}
-          onFocusNext={onFocusNext}
-          onFocusPrevious={onFocusPrevious}
+          onAddCell={onAddCell}
           autoFocus={isFocused}
-          onFocus={onFocus}
         />
       ) : (
         <ExecutableCell
           cell={cell}
           onDeleteCell={onDeleteCell}
-          onFocusNext={onFocusNext}
-          onFocusPrevious={onFocusPrevious}
+          onAddCell={onAddCell}
           autoFocus={isFocused}
-          onFocus={onFocus}
         />
       )}
     </ErrorBoundary>
