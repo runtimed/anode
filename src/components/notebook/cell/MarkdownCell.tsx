@@ -29,8 +29,6 @@ type CellType = typeof tables.cells.Type;
 interface MarkdownCellProps {
   cell: CellType;
   onDeleteCell: () => void;
-  onMoveUp: () => void;
-  onMoveDown: () => void;
   onFocusNext?: () => void;
   onFocusPrevious?: () => void;
   autoFocus?: boolean;
@@ -47,8 +45,6 @@ const MarkdownRenderer = React.lazy(() =>
 export const MarkdownCell: React.FC<MarkdownCellProps> = ({
   cell,
   onDeleteCell,
-  onMoveUp,
-  onMoveDown,
   onFocusNext,
   onFocusPrevious,
   autoFocus = false,
@@ -240,8 +236,6 @@ export const MarkdownCell: React.FC<MarkdownCellProps> = ({
           sourceVisible={cell.sourceVisible}
           aiContextVisible={cell.aiContextVisible}
           contextSelectionMode={contextSelectionMode}
-          onMoveUp={onMoveUp}
-          onMoveDown={onMoveDown}
           onDeleteCell={onDeleteCell}
           onClearOutputs={clearCellOutputs}
           hasOutputs={hasOutputs}
