@@ -69,7 +69,6 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
 
   const [showRuntimeHelper, setShowRuntimeHelper] = React.useState(false);
   const [contextSelectionMode, setContextSelectionMode] = React.useState(false);
-  const hasEverFocusedRef = React.useRef(false);
 
   // Create a local signal for focused cell (not persisted to LiveStore)
   const focusedCellSignal$ = React.useMemo(
@@ -77,7 +76,14 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
     []
   );
 
+  // Create a signal to track if user has manually focused (prevents auto-focus after interaction)
+  const hasManuallyFocused$ = React.useMemo(
+    () => signal<boolean>(false, { label: "hasManuallyFocused$" }),
+    []
+  );
+
   const focusedCellId = useQuery(focusedCellSignal$);
+  const hasManuallyFocused = useQuery(hasManuallyFocused$);
 
   // Prefetch output components adaptively based on connection speed
   React.useEffect(() => {
@@ -301,9 +307,9 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
   const focusCell = useCallback(
     (cellId: string) => {
       store.setSignal(focusedCellSignal$, cellId);
-      hasEverFocusedRef.current = true;
+      store.setSignal(hasManuallyFocused$, true);
     },
-    [store, focusedCellSignal$]
+    [store, focusedCellSignal$, hasManuallyFocused$]
   );
 
   const focusNextCell = useCallback(
@@ -349,15 +355,18 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
 
   // Focus first cell when notebook loads and has cells (but not after deletion)
   React.useEffect(() => {
-    if (
-      !focusedCellId &&
-      cellReferences.length > 0 &&
-      !hasEverFocusedRef.current
-    ) {
+    if (!focusedCellId && cellReferences.length > 0 && !hasManuallyFocused) {
       store.setSignal(focusedCellSignal$, cellReferences[0].id);
-      hasEverFocusedRef.current = true;
+      store.setSignal(hasManuallyFocused$, true);
     }
-  }, [focusedCellId, cellReferences, store, focusedCellSignal$]);
+  }, [
+    focusedCellId,
+    cellReferences,
+    store,
+    focusedCellSignal$,
+    hasManuallyFocused,
+    hasManuallyFocused$,
+  ]);
 
   // cells are already sorted by position from the database query
 
