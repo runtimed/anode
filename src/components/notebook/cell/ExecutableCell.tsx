@@ -61,11 +61,13 @@ const getCellStyling = (cellType: "code" | "sql" | "ai") => {
 interface ExecutableCellProps {
   cell: typeof tables.cells.Type;
   autoFocus?: boolean;
+  contextSelectionMode?: boolean;
 }
 
 export const ExecutableCell: React.FC<ExecutableCellProps> = ({
   cell,
   autoFocus = false,
+  contextSelectionMode = false,
 }) => {
   const cellRef = useRef<HTMLDivElement>(null);
 
@@ -296,6 +298,7 @@ export const ExecutableCell: React.FC<ExecutableCellProps> = ({
       ref={cellRef}
       cell={cell}
       autoFocus={autoFocus}
+      contextSelectionMode={contextSelectionMode}
       onFocus={handleFocus}
       focusColor={focusColor}
       focusBgColor={focusBgColor}
@@ -373,6 +376,7 @@ export const ExecutableCell: React.FC<ExecutableCellProps> = ({
         <CellControls
           sourceVisible={cell.sourceVisible}
           aiContextVisible={cell.aiContextVisible}
+          contextSelectionMode={contextSelectionMode}
           onDeleteCell={() => handleDeleteCell("click")}
           onClearOutputs={clearCellOutputs}
           hasOutputs={hasOutputs}

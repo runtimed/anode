@@ -33,6 +33,7 @@ type CellType = typeof tables.cells.Type;
 interface MarkdownCellProps {
   cell: CellType;
   autoFocus?: boolean;
+  contextSelectionMode?: boolean;
 }
 
 const MarkdownRenderer = React.lazy(() =>
@@ -44,6 +45,7 @@ const MarkdownRenderer = React.lazy(() =>
 export const MarkdownCell: React.FC<MarkdownCellProps> = ({
   cell,
   autoFocus = false,
+  contextSelectionMode = false,
 }) => {
   const editButtonRef = useRef<HTMLButtonElement>(null);
   const cellContainerRef = useRef<HTMLDivElement>(null);
@@ -250,6 +252,7 @@ export const MarkdownCell: React.FC<MarkdownCellProps> = ({
       ref={cellContainerRef}
       cell={cell}
       autoFocus={autoFocus}
+      contextSelectionMode={contextSelectionMode}
       onFocus={handleFocus}
       focusColor={focusColor}
       focusBgColor={focusBgColor}
@@ -289,6 +292,7 @@ export const MarkdownCell: React.FC<MarkdownCellProps> = ({
         <CellControls
           sourceVisible={cell.sourceVisible}
           aiContextVisible={cell.aiContextVisible}
+          contextSelectionMode={contextSelectionMode}
           onDeleteCell={() => handleDeleteCell("click")}
           onClearOutputs={clearCellOutputs}
           hasOutputs={hasOutputs}
