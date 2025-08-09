@@ -17,10 +17,6 @@ interface CellListProps {
   onFocusNext: (cellId: string) => void;
   onFocusPrevious: (cellId: string) => void;
   onFocus: (cellId: string) => void;
-  // Legacy virtualization props (ignored but kept for compatibility)
-  itemHeight?: number;
-  overscan?: number;
-  threshold?: number;
 }
 
 export const CellList: React.FC<CellListProps> = ({
@@ -30,7 +26,6 @@ export const CellList: React.FC<CellListProps> = ({
   onFocusNext,
   onFocusPrevious,
   onFocus,
-  // Virtualization props ignored
 }) => {
   const focusedCellId = useQuery(focusedCellSignal$);
   return (
