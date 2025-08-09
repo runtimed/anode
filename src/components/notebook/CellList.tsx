@@ -1,13 +1,13 @@
 import React from "react";
 import { ErrorBoundary } from "react-error-boundary";
+import { useQuery } from "@livestore/react";
 import { Cell } from "./cell/Cell.js";
 import { CellBetweener } from "./cell/CellBetweener.js";
 import { CellReference } from "@/schema";
-import type { SignalDef } from "@livestore/livestore";
+import { focusedCellSignal$ } from "./signals/focus.js";
 
 interface CellListProps {
   cellReferences: readonly CellReference[];
-  focusedCellSignal$: SignalDef<string | null>;
   onAddCell: (
     cellId?: string,
     cellType?: "code" | "markdown" | "sql" | "ai",
@@ -28,7 +28,6 @@ interface CellListProps {
 
 export const CellList: React.FC<CellListProps> = ({
   cellReferences,
-  focusedCellSignal$,
   onAddCell,
   onDeleteCell,
   onMoveUp,
@@ -39,6 +38,7 @@ export const CellList: React.FC<CellListProps> = ({
   contextSelectionMode = false,
   // Virtualization props ignored
 }) => {
+  const focusedCellId = useQuery(focusedCellSignal$);
   return (
     <div style={{ paddingLeft: "1rem" }}>
       {cellReferences.map((cellReference, index) => (
@@ -53,13 +53,13 @@ export const CellList: React.FC<CellListProps> = ({
             )}
             <Cell
               cellId={cellReference.id}
+              isFocused={cellReference.id === focusedCellId}
               onDeleteCell={() => onDeleteCell(cellReference.id)}
               onMoveUp={() => onMoveUp(cellReference.id)}
               onMoveDown={() => onMoveDown(cellReference.id)}
               onFocusNext={() => onFocusNext(cellReference.id)}
               onFocusPrevious={() => onFocusPrevious(cellReference.id)}
               onFocus={() => onFocus(cellReference.id)}
-              focusedCellSignal$={focusedCellSignal$}
               contextSelectionMode={contextSelectionMode}
             />
             <CellBetweener

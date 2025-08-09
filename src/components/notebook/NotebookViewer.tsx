@@ -28,14 +28,7 @@ import { Bug, BugOff, Filter, X } from "lucide-react";
 import { UserProfile } from "../auth/UserProfile.js";
 import { RuntimeHealthIndicatorButton } from "./RuntimeHealthIndicatorButton.js";
 import { RuntimeHelper } from "./RuntimeHelper.js";
-
-// Global focus signals (not persisted to LiveStore)
-const focusedCellSignal$ = signal<string | null>(null, {
-  label: "focusedCellId$",
-});
-const hasManuallyFocused$ = signal<boolean>(false, {
-  label: "hasManuallyFocused$",
-});
+import { focusedCellSignal$, hasManuallyFocused$ } from "./signals/focus.js";
 
 // Lazy import DebugPanel only in development
 const LazyDebugPanel = React.lazy(() =>
@@ -551,7 +544,6 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
                 <ErrorBoundary fallback={<div>Error rendering cell list</div>}>
                   <CellList
                     cellReferences={cellReferences}
-                    focusedCellSignal$={focusedCellSignal$}
                     onAddCell={addCell}
                     onDeleteCell={deleteCell}
                     onMoveUp={(cellId) => moveCell(cellId, "up")}
