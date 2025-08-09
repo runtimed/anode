@@ -1,5 +1,5 @@
 // import { toast } from "sonner";
-import { queryDb } from "@livestore/livestore";
+import { queryDb, signal } from "@livestore/livestore";
 import { useQuery, useStore } from "@livestore/react";
 import {
   events,
@@ -28,6 +28,14 @@ import { Bug, BugOff, Filter, X } from "lucide-react";
 import { UserProfile } from "../auth/UserProfile.js";
 import { RuntimeHealthIndicatorButton } from "./RuntimeHealthIndicatorButton.js";
 import { RuntimeHelper } from "./RuntimeHelper.js";
+
+// Global focus signals (not persisted to LiveStore)
+const focusedCellSignal$ = signal<string | null>(null, {
+  label: "focusedCellId$",
+});
+const hasManuallyFocused$ = signal<boolean>(false, {
+  label: "hasManuallyFocused$",
+});
 
 // Lazy import DebugPanel only in development
 const LazyDebugPanel = React.lazy(() =>
@@ -68,9 +76,10 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
   );
 
   const [showRuntimeHelper, setShowRuntimeHelper] = React.useState(false);
-  const [focusedCellId, setFocusedCellId] = React.useState<string | null>(null);
   const [contextSelectionMode, setContextSelectionMode] = React.useState(false);
-  const hasEverFocusedRef = React.useRef(false);
+
+  const focusedCellId = useQuery(focusedCellSignal$);
+  const hasManuallyFocused = useQuery(hasManuallyFocused$);
 
   // Prefetch output components adaptively based on connection speed
   React.useEffect(() => {
@@ -165,7 +174,7 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
       prefetchOutputsAdaptive();
 
       // Focus the new cell after creation
-      setTimeout(() => setFocusedCellId(newCellId), 0);
+      setTimeout(() => store.setSignal(focusedCellSignal$, newCellId), 0);
     },
     [cellReferences, store, userId, models, lastUsedAiModel, lastUsedAiProvider]
   );
@@ -283,10 +292,13 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
     [cellReferences, store, userId]
   );
 
-  const focusCell = useCallback((cellId: string) => {
-    setFocusedCellId(cellId);
-    hasEverFocusedRef.current = true;
-  }, []);
+  const focusCell = useCallback(
+    (cellId: string) => {
+      store.setSignal(focusedCellSignal$, cellId);
+      store.setSignal(hasManuallyFocused$, true);
+    },
+    [store]
+  );
 
   const focusNextCell = useCallback(
     (currentCellId: string) => {
@@ -296,7 +308,7 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
 
       if (currentIndex < cellReferences.length - 1) {
         const nextCell = cellReferences[currentIndex + 1];
-        setFocusedCellId(nextCell.id);
+        store.setSignal(focusedCellSignal$, nextCell.id);
       } else {
         // At the last cell, create a new one with same cell type (but never raw)
         const currentCell = cellReferences[currentIndex];
@@ -305,7 +317,7 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
         addCell(currentCellId, newCellType);
       }
     },
-    [cellReferences, addCell]
+    [cellReferences, addCell, store]
   );
 
   const focusPreviousCell = useCallback(
@@ -316,30 +328,26 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
 
       if (currentIndex > 0) {
         const previousCell = cellReferences[currentIndex - 1];
-        setFocusedCellId(previousCell.id);
+        store.setSignal(focusedCellSignal$, previousCell.id);
       }
     },
-    [cellReferences]
+    [cellReferences, store]
   );
 
   // Reset focus when focused cell changes or is removed
   React.useEffect(() => {
     if (focusedCellId && !cellReferences.find((c) => c.id === focusedCellId)) {
-      setFocusedCellId(null);
+      store.setSignal(focusedCellSignal$, null);
     }
-  }, [focusedCellId, cellReferences]);
+  }, [focusedCellId, cellReferences, store]);
 
   // Focus first cell when notebook loads and has cells (but not after deletion)
   React.useEffect(() => {
-    if (
-      !focusedCellId &&
-      cellReferences.length > 0 &&
-      !hasEverFocusedRef.current
-    ) {
-      setFocusedCellId(cellReferences[0].id);
-      hasEverFocusedRef.current = true;
+    if (!focusedCellId && cellReferences.length > 0 && !hasManuallyFocused) {
+      store.setSignal(focusedCellSignal$, cellReferences[0].id);
+      store.setSignal(hasManuallyFocused$, true);
     }
-  }, [focusedCellId, cellReferences]);
+  }, [focusedCellId, cellReferences, store, hasManuallyFocused]);
 
   // cells are already sorted by position from the database query
 
@@ -543,7 +551,7 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
                 <ErrorBoundary fallback={<div>Error rendering cell list</div>}>
                   <CellList
                     cellReferences={cellReferences}
-                    focusedCellId={focusedCellId}
+                    focusedCellSignal$={focusedCellSignal$}
                     onAddCell={addCell}
                     onDeleteCell={deleteCell}
                     onMoveUp={(cellId) => moveCell(cellId, "up")}
