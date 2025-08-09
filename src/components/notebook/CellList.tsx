@@ -17,7 +17,6 @@ interface CellListProps {
   onFocusNext: (cellId: string) => void;
   onFocusPrevious: (cellId: string) => void;
   onFocus: (cellId: string) => void;
-  contextSelectionMode?: boolean;
   // Legacy virtualization props (ignored but kept for compatibility)
   itemHeight?: number;
   overscan?: number;
@@ -31,7 +30,6 @@ export const CellList: React.FC<CellListProps> = ({
   onFocusNext,
   onFocusPrevious,
   onFocus,
-  contextSelectionMode = false,
   // Virtualization props ignored
 }) => {
   const focusedCellId = useQuery(focusedCellSignal$);
@@ -54,7 +52,6 @@ export const CellList: React.FC<CellListProps> = ({
               onFocusNext={() => onFocusNext(cellReference.id)}
               onFocusPrevious={() => onFocusPrevious(cellReference.id)}
               onFocus={() => onFocus(cellReference.id)}
-              contextSelectionMode={contextSelectionMode}
             />
             <CellBetweener
               cell={cellReference}

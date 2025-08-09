@@ -12,7 +12,6 @@ interface CellProps {
   onFocusNext?: () => void;
   onFocusPrevious?: () => void;
   onFocus?: () => void;
-  contextSelectionMode?: boolean;
 }
 
 export const Cell: React.FC<CellProps> = ({
@@ -22,7 +21,6 @@ export const Cell: React.FC<CellProps> = ({
   onFocusNext,
   onFocusPrevious,
   onFocus,
-  contextSelectionMode = false,
 }) => {
   const cell = useQuery(queries.cellQuery.byId(cellId));
 
@@ -41,7 +39,6 @@ export const Cell: React.FC<CellProps> = ({
           onFocusPrevious={onFocusPrevious}
           autoFocus={isFocused}
           onFocus={onFocus}
-          contextSelectionMode={contextSelectionMode}
         />
       ) : (
         <ExecutableCell
@@ -51,7 +48,6 @@ export const Cell: React.FC<CellProps> = ({
           onFocusPrevious={onFocusPrevious}
           autoFocus={isFocused}
           onFocus={onFocus}
-          contextSelectionMode={contextSelectionMode}
         />
       )}
     </ErrorBoundary>

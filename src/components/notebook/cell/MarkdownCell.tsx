@@ -33,7 +33,6 @@ interface MarkdownCellProps {
   onFocusPrevious?: () => void;
   autoFocus?: boolean;
   onFocus?: () => void;
-  contextSelectionMode?: boolean;
 }
 
 const MarkdownRenderer = React.lazy(() =>
@@ -49,11 +48,11 @@ export const MarkdownCell: React.FC<MarkdownCellProps> = ({
   onFocusPrevious,
   autoFocus = false,
   onFocus,
-  contextSelectionMode = false,
 }) => {
   const editButtonRef = useRef<HTMLButtonElement>(null);
   const cellContainerRef = useRef<HTMLDivElement>(null);
 
+  const { store } = useStore();
   // Use shared content management hook
   const { localSource, setLocalSource, updateSource, handleSourceChange } =
     useCellContent({
@@ -69,7 +68,6 @@ export const MarkdownCell: React.FC<MarkdownCellProps> = ({
   });
 
   // All hooks must be called at the top level before any conditional returns
-  const { store } = useStore();
   const {
     user: { sub: userId },
   } = useAuth();
@@ -195,7 +193,6 @@ export const MarkdownCell: React.FC<MarkdownCellProps> = ({
       ref={cellContainerRef}
       cell={cell}
       autoFocus={autoFocus}
-      contextSelectionMode={contextSelectionMode}
       onFocus={onFocus}
       focusColor={focusColor}
       focusBgColor={focusBgColor}
@@ -235,7 +232,6 @@ export const MarkdownCell: React.FC<MarkdownCellProps> = ({
         <CellControls
           sourceVisible={cell.sourceVisible}
           aiContextVisible={cell.aiContextVisible}
-          contextSelectionMode={contextSelectionMode}
           onDeleteCell={onDeleteCell}
           onClearOutputs={clearCellOutputs}
           hasOutputs={hasOutputs}

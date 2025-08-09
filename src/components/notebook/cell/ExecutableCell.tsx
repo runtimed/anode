@@ -61,7 +61,6 @@ interface ExecutableCellProps {
   onFocusPrevious?: () => void;
   autoFocus?: boolean;
   onFocus?: () => void;
-  contextSelectionMode?: boolean;
 }
 
 export const ExecutableCell: React.FC<ExecutableCellProps> = ({
@@ -71,7 +70,6 @@ export const ExecutableCell: React.FC<ExecutableCellProps> = ({
   onFocusPrevious,
   autoFocus = false,
   onFocus,
-  contextSelectionMode = false,
 }) => {
   const cellRef = useRef<HTMLDivElement>(null);
 
@@ -240,7 +238,6 @@ export const ExecutableCell: React.FC<ExecutableCellProps> = ({
       ref={cellRef}
       cell={cell}
       autoFocus={autoFocus}
-      contextSelectionMode={contextSelectionMode}
       onFocus={onFocus}
       focusColor={focusColor}
       focusBgColor={focusBgColor}
@@ -318,7 +315,6 @@ export const ExecutableCell: React.FC<ExecutableCellProps> = ({
         <CellControls
           sourceVisible={cell.sourceVisible}
           aiContextVisible={cell.aiContextVisible}
-          contextSelectionMode={contextSelectionMode}
           onDeleteCell={onDeleteCell}
           onClearOutputs={clearCellOutputs}
           hasOutputs={hasOutputs}
