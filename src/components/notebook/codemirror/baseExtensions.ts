@@ -33,19 +33,9 @@ const customStyles = EditorView.theme({
       padding: "0.75rem 0.5rem",
     },
   },
-  // Reset cursor animation on focus for better visibility
-  "&.cm-focused .cm-cursor": {
-    animation: "steps(1) cm-blink 1.2s infinite",
-    animationDelay: "0s !important",
-  },
-  // Ensure cursor is visible immediately on focus
-  "&.cm-focused .cm-cursor-primary": {
-    opacity: 1,
-  },
-  // Define the blink animation
-  "@keyframes cm-blink": {
-    "0%, 50%": { opacity: 1 },
-    "51%, 100%": { opacity: 0 },
+  // Slightly thicker cursor for better visibility in the notebook
+  ".cm-cursor": {
+    borderLeftWidth: "2px",
   },
 });
 
