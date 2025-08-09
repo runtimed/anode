@@ -57,8 +57,6 @@ const getCellStyling = (cellType: "code" | "sql" | "ai") => {
 interface ExecutableCellProps {
   cell: typeof tables.cells.Type;
   onDeleteCell: () => void;
-  onMoveUp: () => void;
-  onMoveDown: () => void;
   onFocusNext?: () => void;
   onFocusPrevious?: () => void;
   autoFocus?: boolean;
@@ -69,8 +67,6 @@ interface ExecutableCellProps {
 export const ExecutableCell: React.FC<ExecutableCellProps> = ({
   cell,
   onDeleteCell,
-  onMoveUp,
-  onMoveDown,
   onFocusNext,
   onFocusPrevious,
   autoFocus = false,
@@ -323,8 +319,6 @@ export const ExecutableCell: React.FC<ExecutableCellProps> = ({
           sourceVisible={cell.sourceVisible}
           aiContextVisible={cell.aiContextVisible}
           contextSelectionMode={contextSelectionMode}
-          onMoveUp={onMoveUp}
-          onMoveDown={onMoveDown}
           onDeleteCell={onDeleteCell}
           onClearOutputs={clearCellOutputs}
           hasOutputs={hasOutputs}

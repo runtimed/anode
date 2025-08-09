@@ -14,8 +14,6 @@ interface CellListProps {
     position?: "before" | "after"
   ) => void;
   onDeleteCell: (cellId: string) => void;
-  onMoveUp: (cellId: string) => void;
-  onMoveDown: (cellId: string) => void;
   onFocusNext: (cellId: string) => void;
   onFocusPrevious: (cellId: string) => void;
   onFocus: (cellId: string) => void;
@@ -30,8 +28,6 @@ export const CellList: React.FC<CellListProps> = ({
   cellReferences,
   onAddCell,
   onDeleteCell,
-  onMoveUp,
-  onMoveDown,
   onFocusNext,
   onFocusPrevious,
   onFocus,
@@ -55,8 +51,6 @@ export const CellList: React.FC<CellListProps> = ({
               cellId={cellReference.id}
               isFocused={cellReference.id === focusedCellId}
               onDeleteCell={() => onDeleteCell(cellReference.id)}
-              onMoveUp={() => onMoveUp(cellReference.id)}
-              onMoveDown={() => onMoveDown(cellReference.id)}
               onFocusNext={() => onFocusNext(cellReference.id)}
               onFocusPrevious={() => onFocusPrevious(cellReference.id)}
               onFocus={() => onFocus(cellReference.id)}

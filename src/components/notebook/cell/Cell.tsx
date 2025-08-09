@@ -9,8 +9,6 @@ interface CellProps {
   cellId: string;
   isFocused: boolean;
   onDeleteCell: () => void;
-  onMoveUp: () => void;
-  onMoveDown: () => void;
   onFocusNext?: () => void;
   onFocusPrevious?: () => void;
   onFocus?: () => void;
@@ -21,8 +19,6 @@ export const Cell: React.FC<CellProps> = ({
   cellId,
   isFocused,
   onDeleteCell,
-  onMoveUp,
-  onMoveDown,
   onFocusNext,
   onFocusPrevious,
   onFocus,
@@ -41,8 +37,6 @@ export const Cell: React.FC<CellProps> = ({
         <MarkdownCell
           cell={cell}
           onDeleteCell={onDeleteCell}
-          onMoveUp={onMoveUp}
-          onMoveDown={onMoveDown}
           onFocusNext={onFocusNext}
           onFocusPrevious={onFocusPrevious}
           autoFocus={isFocused}
@@ -53,8 +47,6 @@ export const Cell: React.FC<CellProps> = ({
         <ExecutableCell
           cell={cell}
           onDeleteCell={onDeleteCell}
-          onMoveUp={onMoveUp}
-          onMoveDown={onMoveDown}
           onFocusNext={onFocusNext}
           onFocusPrevious={onFocusPrevious}
           autoFocus={isFocused}
