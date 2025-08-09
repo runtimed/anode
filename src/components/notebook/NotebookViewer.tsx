@@ -1,5 +1,5 @@
 // import { toast } from "sonner";
-import { queryDb } from "@livestore/livestore";
+import { queryDb, signal } from "@livestore/livestore";
 import { useQuery, useStore } from "@livestore/react";
 import {
   events,
@@ -68,9 +68,16 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
   );
 
   const [showRuntimeHelper, setShowRuntimeHelper] = React.useState(false);
-  const [focusedCellId, setFocusedCellId] = React.useState<string | null>(null);
   const [contextSelectionMode, setContextSelectionMode] = React.useState(false);
   const hasEverFocusedRef = React.useRef(false);
+
+  // Create a local signal for focused cell (not persisted to LiveStore)
+  const focusedCellSignal$ = React.useMemo(
+    () => signal<string | null>(null, { label: "focusedCellId$" }),
+    []
+  );
+
+  const focusedCellId = useQuery(focusedCellSignal$);
 
   // Prefetch output components adaptively based on connection speed
   React.useEffect(() => {
@@ -165,9 +172,17 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
       prefetchOutputsAdaptive();
 
       // Focus the new cell after creation
-      setTimeout(() => setFocusedCellId(newCellId), 0);
+      setTimeout(() => store.setSignal(focusedCellSignal$, newCellId), 0);
     },
-    [cellReferences, store, userId, models, lastUsedAiModel, lastUsedAiProvider]
+    [
+      cellReferences,
+      store,
+      userId,
+      models,
+      lastUsedAiModel,
+      lastUsedAiProvider,
+      focusedCellSignal$,
+    ]
   );
 
   const deleteCell = useCallback(
@@ -283,10 +298,13 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
     [cellReferences, store, userId]
   );
 
-  const focusCell = useCallback((cellId: string) => {
-    setFocusedCellId(cellId);
-    hasEverFocusedRef.current = true;
-  }, []);
+  const focusCell = useCallback(
+    (cellId: string) => {
+      store.setSignal(focusedCellSignal$, cellId);
+      hasEverFocusedRef.current = true;
+    },
+    [store, focusedCellSignal$]
+  );
 
   const focusNextCell = useCallback(
     (currentCellId: string) => {
@@ -296,7 +314,7 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
 
       if (currentIndex < cellReferences.length - 1) {
         const nextCell = cellReferences[currentIndex + 1];
-        setFocusedCellId(nextCell.id);
+        store.setSignal(focusedCellSignal$, nextCell.id);
       } else {
         // At the last cell, create a new one with same cell type (but never raw)
         const currentCell = cellReferences[currentIndex];
@@ -305,7 +323,7 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
         addCell(currentCellId, newCellType);
       }
     },
-    [cellReferences, addCell]
+    [cellReferences, addCell, store, focusedCellSignal$]
   );
 
   const focusPreviousCell = useCallback(
@@ -316,18 +334,18 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
 
       if (currentIndex > 0) {
         const previousCell = cellReferences[currentIndex - 1];
-        setFocusedCellId(previousCell.id);
+        store.setSignal(focusedCellSignal$, previousCell.id);
       }
     },
-    [cellReferences]
+    [cellReferences, store, focusedCellSignal$]
   );
 
   // Reset focus when focused cell changes or is removed
   React.useEffect(() => {
     if (focusedCellId && !cellReferences.find((c) => c.id === focusedCellId)) {
-      setFocusedCellId(null);
+      store.setSignal(focusedCellSignal$, null);
     }
-  }, [focusedCellId, cellReferences]);
+  }, [focusedCellId, cellReferences, store, focusedCellSignal$]);
 
   // Focus first cell when notebook loads and has cells (but not after deletion)
   React.useEffect(() => {
@@ -336,10 +354,10 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
       cellReferences.length > 0 &&
       !hasEverFocusedRef.current
     ) {
-      setFocusedCellId(cellReferences[0].id);
+      store.setSignal(focusedCellSignal$, cellReferences[0].id);
       hasEverFocusedRef.current = true;
     }
-  }, [focusedCellId, cellReferences]);
+  }, [focusedCellId, cellReferences, store, focusedCellSignal$]);
 
   // cells are already sorted by position from the database query
 
