@@ -14,7 +14,6 @@ import { Button } from "@/components/ui/button";
 
 import { useAuth } from "@/components/auth/AuthProvider.js";
 import { useUserRegistry } from "@/hooks/useUserRegistry.js";
-import { useEditorRegistry } from "@/hooks/useEditorRegistry.js";
 
 import { getClientColor, getClientTypeInfo } from "@/services/userTypes.js";
 import { getDefaultAiModel, useAvailableAiModels } from "@/util/ai-models.js";
@@ -48,7 +47,6 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
   debugMode = false,
   onDebugToggle,
 }) => {
-  const { focusCell } = useEditorRegistry();
   const { store } = useStore();
   const {
     user: { sub: userId },
@@ -166,40 +164,6 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
       setTimeout(() => store.setSignal(focusedCellSignal$, newCellId), 0);
     },
     [cellReferences, store, userId, models, lastUsedAiModel, lastUsedAiProvider]
-  );
-
-  const deleteCell = useCallback(
-    (cellId: string) => {
-      // Determine which cell to focus before deletion
-      const currentIndex = cellReferences.findIndex((c) => c.id === cellId);
-      let cellToFocus: string | null = null;
-
-      if (currentIndex > 0) {
-        // Focus previous cell
-        cellToFocus = cellReferences[currentIndex - 1].id;
-      } else if (cellReferences.length > 1) {
-        // Focus next cell if deleting the first cell
-        cellToFocus = cellReferences[currentIndex + 1].id;
-      }
-
-      // Delete the cell
-      store.commit(
-        events.cellDeleted({
-          id: cellId,
-          actorId: userId,
-        })
-      );
-
-      // Focus the determined cell after deletion
-      if (cellToFocus) {
-        store.setSignal(focusedCellSignal$, cellToFocus);
-        // Use setTimeout to ensure the cell is rendered before focusing
-        setTimeout(() => {
-          focusCell(cellToFocus, "end");
-        }, 0);
-      }
-    },
-    [store, userId, cellReferences, focusCell]
   );
 
   // Reset focus when focused cell changes or is removed
@@ -423,7 +387,6 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
                   <CellList
                     cellReferences={cellReferences}
                     onAddCell={addCell}
-                    onDeleteCell={deleteCell}
                   />
                 </ErrorBoundary>
                 {/* Add Cell Buttons */}

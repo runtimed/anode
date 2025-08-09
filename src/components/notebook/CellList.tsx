@@ -13,13 +13,11 @@ interface CellListProps {
     cellType?: "code" | "markdown" | "sql" | "ai",
     position?: "before" | "after"
   ) => void;
-  onDeleteCell: (cellId: string) => void;
 }
 
 export const CellList: React.FC<CellListProps> = ({
   cellReferences,
   onAddCell,
-  onDeleteCell,
 }) => {
   const focusedCellId = useQuery(focusedCellSignal$);
   return (
@@ -37,7 +35,6 @@ export const CellList: React.FC<CellListProps> = ({
             <Cell
               cellId={cellReference.id}
               isFocused={cellReference.id === focusedCellId}
-              onDeleteCell={() => onDeleteCell(cellReference.id)}
               onAddCell={onAddCell}
             />
             <CellBetweener

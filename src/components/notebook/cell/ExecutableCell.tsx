@@ -7,8 +7,10 @@ import { useAuth } from "@/components/auth/AuthProvider.js";
 import { useUserRegistry } from "@/hooks/useUserRegistry.js";
 import { useInterruptExecution } from "@/hooks/useInterruptExecution.js";
 import { useEditorRegistry } from "@/hooks/useEditorRegistry.js";
+import { useDeleteCell } from "@/hooks/useDeleteCell.js";
 
 import { useStore } from "@livestore/react";
+import { focusedCellSignal$, hasManuallyFocused$ } from "../signals/focus.js";
 import { events, tables, queries } from "@/schema";
 import { ChevronDown, ChevronUp } from "lucide-react";
 import React, { useCallback, useRef } from "react";
@@ -33,7 +35,6 @@ import { SqlToolbar } from "./toolbars/SqlToolbar.js";
 
 import { AiToolApprovalOutput } from "../../outputs/AiToolApprovalOutput.js";
 import { useToolApprovals } from "@/hooks/useToolApprovals.js";
-import { focusedCellSignal$, hasManuallyFocused$ } from "../signals/focus.js";
 
 // Cell-specific styling configuration
 const getCellStyling = (cellType: "code" | "sql" | "ai") => {
@@ -58,7 +59,6 @@ const getCellStyling = (cellType: "code" | "sql" | "ai") => {
 
 interface ExecutableCellProps {
   cell: typeof tables.cells.Type;
-  onDeleteCell: () => void;
   onAddCell: (
     cellId?: string,
     cellType?: "code" | "markdown" | "sql" | "ai",
@@ -69,7 +69,6 @@ interface ExecutableCellProps {
 
 export const ExecutableCell: React.FC<ExecutableCellProps> = ({
   cell,
-  onDeleteCell,
   onAddCell,
   autoFocus = false,
 }) => {
@@ -81,6 +80,8 @@ export const ExecutableCell: React.FC<ExecutableCellProps> = ({
     unregisterEditor,
     focusCell: registryFocusCell,
   } = useEditorRegistry();
+
+  const { handleDeleteCell } = useDeleteCell(cell.id);
 
   const {
     user: { sub: userId },
@@ -263,7 +264,7 @@ export const ExecutableCell: React.FC<ExecutableCellProps> = ({
   const { keyMap } = useCellKeyboardNavigation({
     onFocusNext,
     onFocusPrevious,
-    onDeleteCell,
+    onDeleteCell: () => handleDeleteCell("keyboard"),
     onExecute: executeCell,
     onUpdateSource: updateSource,
   });
@@ -376,7 +377,7 @@ export const ExecutableCell: React.FC<ExecutableCellProps> = ({
         <CellControls
           sourceVisible={cell.sourceVisible}
           aiContextVisible={cell.aiContextVisible}
-          onDeleteCell={onDeleteCell}
+          onDeleteCell={() => handleDeleteCell("click")}
           onClearOutputs={clearCellOutputs}
           hasOutputs={hasOutputs}
           toggleSourceVisibility={toggleSourceVisibility}

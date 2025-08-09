@@ -2,6 +2,7 @@ import { useCellContent } from "@/hooks/useCellContent.js";
 import { useCellKeyboardNavigation } from "@/hooks/useCellKeyboardNavigation.js";
 import { useCellOutputs } from "@/hooks/useCellOutputs.js";
 import { useEditorRegistry } from "@/hooks/useEditorRegistry.js";
+import { useDeleteCell } from "@/hooks/useDeleteCell.js";
 import { useStore } from "@livestore/react";
 import { events, tables, queries } from "@/schema";
 import React, {
@@ -30,7 +31,6 @@ type CellType = typeof tables.cells.Type;
 
 interface MarkdownCellProps {
   cell: CellType;
-  onDeleteCell: () => void;
   onAddCell: (
     cellId?: string,
     cellType?: "code" | "markdown" | "sql" | "ai",
@@ -47,7 +47,6 @@ const MarkdownRenderer = React.lazy(() =>
 
 export const MarkdownCell: React.FC<MarkdownCellProps> = ({
   cell,
-  onDeleteCell,
   onAddCell,
   autoFocus = false,
 }) => {
@@ -60,6 +59,8 @@ export const MarkdownCell: React.FC<MarkdownCellProps> = ({
     unregisterEditor,
     focusCell: registryFocusCell,
   } = useEditorRegistry();
+
+  const { handleDeleteCell } = useDeleteCell(cell.id);
   // Use shared content management hook
   const { localSource, setLocalSource, updateSource, handleSourceChange } =
     useCellContent({
@@ -183,7 +184,7 @@ export const MarkdownCell: React.FC<MarkdownCellProps> = ({
   const { keyMap, handleKeyDown } = useCellKeyboardNavigation({
     onFocusNext,
     onFocusPrevious,
-    onDeleteCell,
+    onDeleteCell: () => handleDeleteCell("keyboard"),
     onUpdateSource: updateSource,
   });
 
@@ -292,7 +293,7 @@ export const MarkdownCell: React.FC<MarkdownCellProps> = ({
         <CellControls
           sourceVisible={cell.sourceVisible}
           aiContextVisible={cell.aiContextVisible}
-          onDeleteCell={onDeleteCell}
+          onDeleteCell={() => handleDeleteCell("click")}
           onClearOutputs={clearCellOutputs}
           hasOutputs={hasOutputs}
           toggleSourceVisibility={toggleSourceVisibility}

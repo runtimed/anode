@@ -8,7 +8,6 @@ import { MarkdownCell } from "./MarkdownCell.js";
 interface CellProps {
   cellId: string;
   isFocused: boolean;
-  onDeleteCell: () => void;
   onAddCell: (
     cellId?: string,
     cellType?: "code" | "markdown" | "sql" | "ai",
@@ -16,12 +15,7 @@ interface CellProps {
   ) => void;
 }
 
-export const Cell: React.FC<CellProps> = ({
-  cellId,
-  isFocused,
-  onDeleteCell,
-  onAddCell,
-}) => {
+export const Cell: React.FC<CellProps> = ({ cellId, isFocused, onAddCell }) => {
   const cell = useQuery(queries.cellQuery.byId(cellId));
 
   if (!cell) {
@@ -32,16 +26,10 @@ export const Cell: React.FC<CellProps> = ({
   return (
     <ErrorBoundary fallback={<div>Error rendering cell</div>}>
       {cell.cellType === "markdown" ? (
-        <MarkdownCell
-          cell={cell}
-          onDeleteCell={onDeleteCell}
-          onAddCell={onAddCell}
-          autoFocus={isFocused}
-        />
+        <MarkdownCell cell={cell} onAddCell={onAddCell} autoFocus={isFocused} />
       ) : (
         <ExecutableCell
           cell={cell}
-          onDeleteCell={onDeleteCell}
           onAddCell={onAddCell}
           autoFocus={isFocused}
         />
