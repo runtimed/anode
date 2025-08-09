@@ -75,7 +75,6 @@ export const ExecutableCell: React.FC<ExecutableCellProps> = ({
   const cellRef = useRef<HTMLDivElement>(null);
 
   const { store } = useStore();
-  const contextSelectionMode = useQuery(contextSelectionMode$);
   const {
     user: { sub: userId },
   } = useAuth();

@@ -88,8 +88,8 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
       if (cellType === "ai") {
         const defaultModel = getDefaultAiModel(
           models,
-          lastUsedAiProvider?.value,
-          lastUsedAiModel?.value
+          lastUsedAiProvider,
+          lastUsedAiModel
         );
         if (defaultModel) {
           aiProvider = defaultModel.provider;

@@ -1,7 +1,7 @@
 import { useCellContent } from "@/hooks/useCellContent.js";
 import { useCellKeyboardNavigation } from "@/hooks/useCellKeyboardNavigation.js";
 import { useCellOutputs } from "@/hooks/useCellOutputs.js";
-import { useStore, useQuery } from "@livestore/react";
+import { useStore } from "@livestore/react";
 import { events, tables } from "@/schema";
 import React, {
   useCallback,
@@ -22,9 +22,7 @@ import { CellContainer } from "./shared/CellContainer.js";
 import { CellControls } from "./shared/CellControls.js";
 import { CellTypeSelector } from "./shared/CellTypeSelector.js";
 import { Editor } from "./shared/Editor.js";
-import { ExecutionStatus } from "./shared/ExecutionStatus.js";
 import { PresenceBookmarks } from "./shared/PresenceBookmarks.js";
-import { contextSelectionMode$ } from "../signals/ai-context.js";
 
 type CellType = typeof tables.cells.Type;
 
@@ -55,7 +53,6 @@ export const MarkdownCell: React.FC<MarkdownCellProps> = ({
   const cellContainerRef = useRef<HTMLDivElement>(null);
 
   const { store } = useStore();
-  const contextSelectionMode = useQuery(contextSelectionMode$);
   // Use shared content management hook
   const { localSource, setLocalSource, updateSource, handleSourceChange } =
     useCellContent({
@@ -71,7 +68,6 @@ export const MarkdownCell: React.FC<MarkdownCellProps> = ({
   });
 
   // All hooks must be called at the top level before any conditional returns
-  const { store } = useStore();
   const {
     user: { sub: userId },
   } = useAuth();
