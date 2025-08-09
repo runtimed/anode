@@ -1,12 +1,11 @@
 import { tables } from "@/schema";
 import { forwardRef, ReactNode } from "react";
-import { useQuery } from "@livestore/react";
-import { contextSelectionMode$ } from "../../signals/ai-context.js";
 import "./PresenceIndicators.css";
 
 interface CellContainerProps {
   cell: typeof tables.cells.Type;
   autoFocus?: boolean;
+  contextSelectionMode?: boolean;
   onFocus?: () => void;
   children: ReactNode;
   focusColor?: string;
@@ -18,6 +17,7 @@ export const CellContainer = forwardRef<HTMLDivElement, CellContainerProps>(
     {
       cell,
       autoFocus = false,
+      contextSelectionMode = false,
       onFocus,
       children,
       focusColor = "bg-primary/60",
@@ -25,7 +25,6 @@ export const CellContainer = forwardRef<HTMLDivElement, CellContainerProps>(
     },
     ref
   ) => {
-    const contextSelectionMode = useQuery(contextSelectionMode$);
     return (
       <div
         ref={ref}

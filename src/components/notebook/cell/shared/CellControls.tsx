@@ -15,12 +15,10 @@ import {
   MoreVertical,
   Eraser,
 } from "lucide-react";
-import { useQuery } from "@livestore/react";
-import { contextSelectionMode$ } from "../../signals/ai-context.js";
-
 interface CellControlsProps {
   sourceVisible: boolean;
   aiContextVisible: boolean;
+  contextSelectionMode?: boolean;
   onDeleteCell: () => void;
   onClearOutputs: () => void;
   hasOutputs: boolean;
@@ -32,6 +30,7 @@ interface CellControlsProps {
 export const CellControls: React.FC<CellControlsProps> = ({
   sourceVisible,
   aiContextVisible,
+  contextSelectionMode = false,
   onDeleteCell,
   onClearOutputs,
   hasOutputs,
@@ -39,7 +38,6 @@ export const CellControls: React.FC<CellControlsProps> = ({
   toggleAiContextVisibility,
   playButton,
 }) => {
-  const contextSelectionMode = useQuery(contextSelectionMode$);
   return (
     <div className="cell-controls flex items-center gap-0.5 opacity-100 transition-opacity sm:opacity-0 sm:group-hover:opacity-100">
       {/* Mobile Play Button */}

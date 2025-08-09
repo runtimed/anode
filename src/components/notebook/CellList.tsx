@@ -8,17 +8,9 @@ import { focusedCellSignal$ } from "./signals/focus.js";
 
 interface CellListProps {
   cellReferences: readonly CellReference[];
-  onAddCell: (
-    cellId?: string,
-    cellType?: "code" | "markdown" | "sql" | "ai",
-    position?: "before" | "after"
-  ) => void;
 }
 
-export const CellList: React.FC<CellListProps> = ({
-  cellReferences,
-  onAddCell,
-}) => {
+export const CellList: React.FC<CellListProps> = ({ cellReferences }) => {
   const focusedCellId = useQuery(focusedCellSignal$);
   return (
     <div style={{ paddingLeft: "1rem" }}>
@@ -26,22 +18,13 @@ export const CellList: React.FC<CellListProps> = ({
         <div key={cellReference.id}>
           <ErrorBoundary fallback={<div>Error rendering cell</div>}>
             {index === 0 && (
-              <CellBetweener
-                cell={cellReference}
-                onAddCell={onAddCell}
-                position="before"
-              />
+              <CellBetweener cell={cellReference} position="before" />
             )}
             <Cell
               cellId={cellReference.id}
               isFocused={cellReference.id === focusedCellId}
-              onAddCell={onAddCell}
             />
-            <CellBetweener
-              cell={cellReference}
-              onAddCell={onAddCell}
-              position="after"
-            />
+            <CellBetweener cell={cellReference} position="after" />
           </ErrorBoundary>
         </div>
       ))}

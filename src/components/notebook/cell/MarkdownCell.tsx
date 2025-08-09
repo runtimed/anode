@@ -3,6 +3,7 @@ import { useCellKeyboardNavigation } from "@/hooks/useCellKeyboardNavigation.js"
 import { useCellOutputs } from "@/hooks/useCellOutputs.js";
 import { useEditorRegistry } from "@/hooks/useEditorRegistry.js";
 import { useDeleteCell } from "@/hooks/useDeleteCell.js";
+import { useAddCell } from "@/hooks/useAddCell.js";
 import { useStore } from "@livestore/react";
 import { events, tables, queries } from "@/schema";
 import React, {
@@ -31,12 +32,8 @@ type CellType = typeof tables.cells.Type;
 
 interface MarkdownCellProps {
   cell: CellType;
-  onAddCell: (
-    cellId?: string,
-    cellType?: "code" | "markdown" | "sql" | "ai",
-    position?: "before" | "after"
-  ) => void;
   autoFocus?: boolean;
+  contextSelectionMode?: boolean;
 }
 
 const MarkdownRenderer = React.lazy(() =>
@@ -47,8 +44,8 @@ const MarkdownRenderer = React.lazy(() =>
 
 export const MarkdownCell: React.FC<MarkdownCellProps> = ({
   cell,
-  onAddCell,
   autoFocus = false,
+  contextSelectionMode = false,
 }) => {
   const editButtonRef = useRef<HTMLButtonElement>(null);
   const cellContainerRef = useRef<HTMLDivElement>(null);
@@ -61,6 +58,7 @@ export const MarkdownCell: React.FC<MarkdownCellProps> = ({
   } = useEditorRegistry();
 
   const { handleDeleteCell } = useDeleteCell(cell.id);
+  const { addCell } = useAddCell();
   // Use shared content management hook
   const { localSource, setLocalSource, updateSource, handleSourceChange } =
     useCellContent({
@@ -160,10 +158,10 @@ export const MarkdownCell: React.FC<MarkdownCellProps> = ({
         const currentCell = cellReferences[currentIndex];
         const newCellType =
           currentCell.cellType === "raw" ? "code" : currentCell.cellType;
-        onAddCell(cell.id, newCellType);
+        addCell(cell.id, newCellType);
       }
     },
-    [cell.id, store, registryFocusCell, onAddCell]
+    [cell.id, store, registryFocusCell, addCell]
   );
 
   const onFocusPrevious = useCallback(
@@ -254,6 +252,7 @@ export const MarkdownCell: React.FC<MarkdownCellProps> = ({
       ref={cellContainerRef}
       cell={cell}
       autoFocus={autoFocus}
+      contextSelectionMode={contextSelectionMode}
       onFocus={handleFocus}
       focusColor={focusColor}
       focusBgColor={focusBgColor}
@@ -293,6 +292,7 @@ export const MarkdownCell: React.FC<MarkdownCellProps> = ({
         <CellControls
           sourceVisible={cell.sourceVisible}
           aiContextVisible={cell.aiContextVisible}
+          contextSelectionMode={contextSelectionMode}
           onDeleteCell={() => handleDeleteCell("click")}
           onClearOutputs={clearCellOutputs}
           hasOutputs={hasOutputs}
