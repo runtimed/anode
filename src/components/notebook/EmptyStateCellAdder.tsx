@@ -1,18 +1,10 @@
 import React from "react";
 import { Button } from "@/components/ui/button";
 import { Bot, Code, Database, FileText } from "lucide-react";
+import { useAddCell } from "@/hooks/useAddCell.js";
 
-interface EmptyStateCellAdderProps {
-  onAddCell: (
-    cellId?: string,
-    cellType?: "code" | "markdown" | "sql" | "ai",
-    position?: "before" | "after"
-  ) => void;
-}
-
-export const EmptyStateCellAdder: React.FC<EmptyStateCellAdderProps> = ({
-  onAddCell,
-}) => {
+export const EmptyStateCellAdder: React.FC = () => {
+  const { addCell } = useAddCell();
   return (
     <div className="px-4 pt-6 pb-6 text-center sm:px-0 sm:pt-12">
       <div className="text-muted-foreground mb-6">
@@ -23,7 +15,7 @@ export const EmptyStateCellAdder: React.FC<EmptyStateCellAdderProps> = ({
         <Button
           size="lg"
           autoFocus
-          onClick={() => onAddCell()}
+          onClick={() => addCell()}
           className="flex items-center gap-2"
         >
           <Code className="h-4 w-4" />
@@ -33,7 +25,7 @@ export const EmptyStateCellAdder: React.FC<EmptyStateCellAdderProps> = ({
           size="lg"
           variant="outline"
           color="yellow"
-          onClick={() => onAddCell(undefined, "markdown")}
+          onClick={() => addCell(undefined, "markdown")}
           className="flex items-center gap-2"
         >
           <FileText className="h-4 w-4" />
@@ -43,7 +35,7 @@ export const EmptyStateCellAdder: React.FC<EmptyStateCellAdderProps> = ({
           size="lg"
           variant="outline"
           color="blue"
-          onClick={() => onAddCell(undefined, "sql")}
+          onClick={() => addCell(undefined, "sql")}
           className="flex items-center gap-2"
         >
           <Database className="h-4 w-4" />
@@ -53,7 +45,7 @@ export const EmptyStateCellAdder: React.FC<EmptyStateCellAdderProps> = ({
           size="lg"
           variant="outline"
           color="purple"
-          onClick={() => onAddCell(undefined, "ai")}
+          onClick={() => addCell(undefined, "ai")}
           className="flex items-center gap-2"
         >
           <Bot className="h-4 w-4" />

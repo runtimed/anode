@@ -1,9 +1,9 @@
 // import { toast } from "sonner";
 import { queryDb } from "@livestore/livestore";
 import { useQuery, useStore } from "@livestore/react";
-import { events, tables, createCellBetween, queries } from "@/schema";
-import { lastUsedAiModel$, lastUsedAiProvider$ } from "./signals/ai-context.js";
-import React, { Suspense, useCallback } from "react";
+import { tables, queries } from "@/schema";
+
+import React, { Suspense } from "react";
 import { ErrorBoundary } from "react-error-boundary";
 
 import { NotebookTitle } from "./NotebookTitle.js";
@@ -16,7 +16,7 @@ import { useAuth } from "@/components/auth/AuthProvider.js";
 import { useUserRegistry } from "@/hooks/useUserRegistry.js";
 
 import { getClientColor, getClientTypeInfo } from "@/services/userTypes.js";
-import { getDefaultAiModel, useAvailableAiModels } from "@/util/ai-models.js";
+
 import { Bug, BugOff, Filter, X } from "lucide-react";
 import { UserProfile } from "../auth/UserProfile.js";
 import { RuntimeHealthIndicatorButton } from "./RuntimeHealthIndicatorButton.js";
@@ -31,8 +31,6 @@ const LazyDebugPanel = React.lazy(() =>
   }))
 );
 
-// Import prefetch utilities
-import { prefetchOutputsAdaptive } from "@/util/prefetch.js";
 import { CellAdder } from "./cell/CellAdder.js";
 import { EmptyStateCellAdder } from "./EmptyStateCellAdder.js";
 import { GitCommitHash } from "./GitCommitHash.js";
@@ -52,12 +50,8 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
     user: { sub: userId },
   } = useAuth();
   const { presentUsers, getUserInfo, getUserColor } = useUserRegistry();
-  const { models } = useAvailableAiModels();
-
   const cellReferences = useQuery(queries.cellsWithIndices$);
 
-  const lastUsedAiModel = useQuery(lastUsedAiModel$);
-  const lastUsedAiProvider = useQuery(lastUsedAiProvider$);
   const runtimeSessions = useQuery(
     queryDb(tables.runtimeSessions.select().where({ isActive: true }))
   );
@@ -67,104 +61,6 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
   const focusedCellId = useQuery(focusedCellSignal$);
   const contextSelectionMode = useQuery(contextSelectionMode$);
   const hasManuallyFocused = useQuery(hasManuallyFocused$);
-
-  // Prefetch output components adaptively based on connection speed
-  React.useEffect(() => {
-    prefetchOutputsAdaptive();
-  }, []);
-
-  const addCell = useCallback(
-    (
-      cellId?: string,
-      cellType: "code" | "markdown" | "sql" | "ai" = "code",
-      position: "before" | "after" = "after"
-    ) => {
-      const newCellId = `cell-${Date.now()}-${Math.random()
-        .toString(36)
-        .slice(2)}`;
-
-      // Get default AI model if creating an AI cell
-      let aiProvider, aiModel;
-      if (cellType === "ai") {
-        const defaultModel = getDefaultAiModel(
-          models,
-          lastUsedAiProvider,
-          lastUsedAiModel
-        );
-        if (defaultModel) {
-          aiProvider = defaultModel.provider;
-          aiModel = defaultModel.model;
-        }
-      }
-
-      let cellBefore = null;
-      let cellAfter = null;
-
-      if (cellId) {
-        const targetIndex = cellReferences.findIndex((c) => c.id === cellId);
-        if (targetIndex >= 0) {
-          if (position === "before") {
-            // Insert before the target cell
-            cellAfter = cellReferences[targetIndex];
-            cellBefore =
-              targetIndex > 0 ? cellReferences[targetIndex - 1] : null;
-          } else {
-            // Insert after the target cell
-            cellBefore = cellReferences[targetIndex];
-            cellAfter =
-              targetIndex < cellReferences.length - 1
-                ? cellReferences[targetIndex + 1]
-                : null;
-          }
-        }
-      } else if (position === "after") {
-        // No cellId specified, insert at the end
-        cellBefore =
-          cellReferences.length > 0
-            ? cellReferences[cellReferences.length - 1]
-            : null;
-      }
-
-      // Create cell using the new API
-      const cellCreationResult = createCellBetween(
-        {
-          id: newCellId,
-          cellType,
-          createdBy: userId,
-        },
-        cellBefore,
-        cellAfter,
-        cellReferences // Pass current cell state for rebalancing context
-      );
-
-      // toast.success("Cell created successfully!");
-
-      // Commit all events (may include automatic rebalancing)
-      cellCreationResult.events.forEach((event) => store.commit(event));
-
-      // Set default AI model for AI cells based on last used model
-      if (cellType === "ai" && aiProvider && aiModel) {
-        store.commit(
-          events.aiSettingsChanged({
-            cellId: newCellId,
-            provider: aiProvider,
-            model: aiModel,
-            settings: {
-              temperature: 0.7,
-              maxTokens: 1000,
-            },
-          })
-        );
-      }
-
-      // Prefetch output components when user creates cells
-      prefetchOutputsAdaptive();
-
-      // Focus the new cell after creation
-      setTimeout(() => store.setSignal(focusedCellSignal$, newCellId), 0);
-    },
-    [cellReferences, store, userId, models, lastUsedAiModel, lastUsedAiProvider]
-  );
 
   // Reset focus when focused cell changes or is removed
   React.useEffect(() => {
@@ -380,19 +276,16 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
 
             {/* Cells */}
             {cellReferences.length === 0 ? (
-              <EmptyStateCellAdder onAddCell={addCell} />
+              <EmptyStateCellAdder />
             ) : (
               <>
                 <ErrorBoundary fallback={<div>Error rendering cell list</div>}>
-                  <CellList
-                    cellReferences={cellReferences}
-                    onAddCell={addCell}
-                  />
+                  <CellList cellReferences={cellReferences} />
                 </ErrorBoundary>
                 {/* Add Cell Buttons */}
                 <div className="border-border/30 mt-6 border-t px-4 pt-4 sm:mt-8 sm:px-0 sm:pt-6">
                   <div className="space-y-3 text-center">
-                    <CellAdder onAddCell={addCell} position="after" />
+                    <CellAdder position="after" />
                     <div className="text-muted-foreground mt-2 hidden text-xs sm:block">
                       Add a new cell
                     </div>

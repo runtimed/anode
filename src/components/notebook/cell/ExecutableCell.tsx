@@ -8,6 +8,7 @@ import { useUserRegistry } from "@/hooks/useUserRegistry.js";
 import { useInterruptExecution } from "@/hooks/useInterruptExecution.js";
 import { useEditorRegistry } from "@/hooks/useEditorRegistry.js";
 import { useDeleteCell } from "@/hooks/useDeleteCell.js";
+import { useAddCell } from "@/hooks/useAddCell.js";
 
 import { useStore } from "@livestore/react";
 import { focusedCellSignal$, hasManuallyFocused$ } from "../signals/focus.js";
@@ -59,17 +60,11 @@ const getCellStyling = (cellType: "code" | "sql" | "ai") => {
 
 interface ExecutableCellProps {
   cell: typeof tables.cells.Type;
-  onAddCell: (
-    cellId?: string,
-    cellType?: "code" | "markdown" | "sql" | "ai",
-    position?: "before" | "after"
-  ) => void;
   autoFocus?: boolean;
 }
 
 export const ExecutableCell: React.FC<ExecutableCellProps> = ({
   cell,
-  onAddCell,
   autoFocus = false,
 }) => {
   const cellRef = useRef<HTMLDivElement>(null);
@@ -82,6 +77,7 @@ export const ExecutableCell: React.FC<ExecutableCellProps> = ({
   } = useEditorRegistry();
 
   const { handleDeleteCell } = useDeleteCell(cell.id);
+  const { addCell } = useAddCell();
 
   const {
     user: { sub: userId },
@@ -240,10 +236,10 @@ export const ExecutableCell: React.FC<ExecutableCellProps> = ({
         const currentCell = cellReferences[currentIndex];
         const newCellType =
           currentCell.cellType === "raw" ? "code" : currentCell.cellType;
-        onAddCell(cell.id, newCellType);
+        addCell(cell.id, newCellType);
       }
     },
-    [cell.id, store, registryFocusCell, onAddCell]
+    [cell.id, store, registryFocusCell, addCell]
   );
 
   const onFocusPrevious = useCallback(
