@@ -7,7 +7,7 @@ import { useAuth } from "@/components/auth/AuthProvider.js";
 import { useUserRegistry } from "@/hooks/useUserRegistry.js";
 import { useInterruptExecution } from "@/hooks/useInterruptExecution.js";
 
-import { useStore, useQuery } from "@livestore/react";
+import { useStore } from "@livestore/react";
 import { events, tables } from "@/schema";
 import { ChevronDown, ChevronUp } from "lucide-react";
 import React, { useCallback, useRef } from "react";
@@ -32,7 +32,6 @@ import { SqlToolbar } from "./toolbars/SqlToolbar.js";
 
 import { AiToolApprovalOutput } from "../../outputs/AiToolApprovalOutput.js";
 import { useToolApprovals } from "@/hooks/useToolApprovals.js";
-import { contextSelectionMode$ } from "../signals/ai-context.js";
 
 // Cell-specific styling configuration
 const getCellStyling = (cellType: "code" | "sql" | "ai") => {
