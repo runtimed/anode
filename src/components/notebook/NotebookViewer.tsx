@@ -14,7 +14,6 @@ import { Button } from "@/components/ui/button";
 
 import { useAuth } from "@/components/auth/AuthProvider.js";
 import { useUserRegistry } from "@/hooks/useUserRegistry.js";
-import { useEditorRegistry } from "@/hooks/useEditorRegistry.js";
 
 import { getClientColor, getClientTypeInfo } from "@/services/userTypes.js";
 import { getDefaultAiModel, useAvailableAiModels } from "@/util/ai-models.js";
@@ -48,7 +47,6 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
   debugMode = false,
   onDebugToggle,
 }) => {
-  const { focusCell } = useEditorRegistry();
   const { store } = useStore();
   const {
     user: { sub: userId },

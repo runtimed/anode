@@ -34,7 +34,6 @@ import { SqlToolbar } from "./toolbars/SqlToolbar.js";
 
 import { AiToolApprovalOutput } from "../../outputs/AiToolApprovalOutput.js";
 import { useToolApprovals } from "@/hooks/useToolApprovals.js";
-import { focusedCellSignal$, hasManuallyFocused$ } from "../signals/focus.js";
 
 // Cell-specific styling configuration
 const getCellStyling = (cellType: "code" | "sql" | "ai") => {
