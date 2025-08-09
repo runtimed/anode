@@ -4,16 +4,19 @@ import { ErrorBoundary } from "react-error-boundary";
 import { useQuery } from "@livestore/react";
 import { ExecutableCell } from "./ExecutableCell.js";
 import { MarkdownCell } from "./MarkdownCell.js";
-import { contextSelectionMode$ } from "../signals/ai-context.js";
 
 interface CellProps {
   cellId: string;
   isFocused: boolean;
+  contextSelectionMode: boolean;
 }
 
-export const Cell: React.FC<CellProps> = ({ cellId, isFocused }) => {
+export const Cell: React.FC<CellProps> = ({
+  cellId,
+  isFocused,
+  contextSelectionMode,
+}) => {
   const cell = useQuery(queries.cellQuery.byId(cellId));
-  const contextSelectionMode = useQuery(contextSelectionMode$);
 
   if (!cell) {
     console.warn("Asked to render a cell that does not exist");
