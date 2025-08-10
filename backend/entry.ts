@@ -1,7 +1,14 @@
 import syncWorker, { WebSocketServer } from "./sync.ts";
+import {
+  workerGlobals,
+  type ExecutionContext,
+  type WorkerRequest,
+  type SimpleHandler,
+  type WorkerResponse,
+} from "./types.ts";
 
 import artifactWorker from "./artifact.ts";
-import { handleOidcRequest } from "./local_oidc.ts";
+import localOidcHandler from "./local_oidc.ts";
 
 // The preview worker needs to re-export the Durable Object class
 // so the Workers runtime can find and instantiate it.
@@ -10,8 +17,8 @@ export { WebSocketServer };
 import { Env } from "./types.ts";
 
 // CORS middleware function
-function addCorsHeaders(response: Response): Response {
-  const newHeaders = new Headers(response.headers);
+function addCorsHeaders(response: WorkerResponse): WorkerResponse {
+  const newHeaders = new workerGlobals.Headers(response.headers);
   newHeaders.set("Access-Control-Allow-Origin", "*");
   newHeaders.set(
     "Access-Control-Allow-Methods",
@@ -19,20 +26,24 @@ function addCorsHeaders(response: Response): Response {
   );
   newHeaders.set("Access-Control-Allow-Headers", "Content-Type, Authorization");
 
-  return new Response(response.body, {
+  return new workerGlobals.Response(response.body, {
     status: response.status,
     statusText: response.statusText,
     headers: newHeaders,
   });
 }
 
-// Wrapper function to apply CORS middleware to any async handler
-async function withCors<T extends any[]>(
-  handler: (...args: T) => Promise<Response>,
-  ...args: T
-): Promise<Response> {
-  const response = await handler(...args);
-  return addCorsHeaders(response);
+function withCors(handler: SimpleHandler): SimpleHandler {
+  return {
+    fetch: async (
+      request: WorkerRequest,
+      env: Env,
+      ctx: ExecutionContext
+    ): Promise<WorkerResponse> => {
+      const response = await handler.fetch(request, env, ctx);
+      return addCorsHeaders(response);
+    },
+  };
 }
 
 export default {
@@ -46,10 +57,10 @@ export default {
    * @returns A promise that resolves to a Response.
    */
   async fetch(
-    request: Request,
+    request: WorkerRequest,
     env: Env,
     ctx: ExecutionContext
-  ): Promise<Response> {
+  ): Promise<WorkerResponse> {
     const url = new URL(request.url);
 
     console.log("🔍 Entry point request:", {
@@ -63,7 +74,7 @@ export default {
 
     // Security check: prevent local auth in production
     if (allowLocalAuth && env.DEPLOYMENT_ENV === "production") {
-      return new Response(
+      return new workerGlobals.Response(
         JSON.stringify({
           error: "SECURITY_ERROR",
           message:
@@ -102,7 +113,8 @@ export default {
 
       if (allowLocalAuth && url.pathname.startsWith("/local_oidc")) {
         console.log("🔐 Routing to OIDC handler");
-        return withCors(handleOidcRequest, request, env);
+
+        return withCors(localOidcHandler).fetch(request, env, ctx);
       }
 
       // If it's an API request, delegate it to the imported sync worker's logic.
@@ -118,7 +130,7 @@ export default {
 
       // In local development, ASSETS may not be available
       if (!env.ASSETS) {
-        return new Response(
+        return new workerGlobals.Response(
           `
 <!DOCTYPE html>
 <html>
@@ -166,10 +178,13 @@ export default {
         return env.ASSETS.fetch(request);
       } else {
         // Client-side route - serve index.html for SPA routing
-        const indexRequest = new Request(new URL("/", request.url), {
-          method: request.method,
-          headers: request.headers,
-        });
+        const indexRequest = new workerGlobals.Request(
+          new URL("/", request.url),
+          {
+            method: request.method,
+            headers: request.headers,
+          }
+        );
         return env.ASSETS.fetch(indexRequest);
       }
     }

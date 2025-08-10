@@ -1,5 +1,5 @@
 import * as jose from "jose";
-import { Env } from "./types";
+import { type Env, type WorkerRequest } from "./types";
 
 export type ValidatedUser = {
   id: string;
@@ -46,7 +46,7 @@ export function validateProductionEnvironment(env: Env): void {
   }
 }
 
-function extractBearerToken(request: Request): string | null {
+function extractBearerToken(request: WorkerRequest): string | null {
   const authHeader = request.headers.get("Authorization");
   if (!authHeader || !authHeader.toLowerCase().startsWith("bearer ")) {
     return null;
@@ -55,7 +55,7 @@ function extractBearerToken(request: Request): string | null {
 }
 
 export function getPassport(
-  request: Request,
+  request: WorkerRequest,
   env: Env,
   verify?: jose.JWTVerifyOptions
 ): Promise<Passport> {

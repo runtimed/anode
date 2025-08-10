@@ -1,15 +1,22 @@
-import { Env } from "./types.ts";
+import {
+  workerGlobals,
+  type Env,
+  type SimpleHandler,
+  type WorkerRequest,
+  type ExecutionContext,
+  type WorkerResponse,
+} from "./types.ts";
 import { validateAuthPayload } from "./auth";
 
-export default {
+const handler: SimpleHandler = {
   fetch: async (
-    request: Request,
+    request: WorkerRequest,
     env: Env,
     _ctx: ExecutionContext
-  ): Promise<Response> => {
+  ): Promise<WorkerResponse> => {
     const url = new URL(request.url);
     if (!url.pathname.startsWith("/api/artifacts")) {
-      return new Response(
+      return new workerGlobals.Response(
         JSON.stringify({
           error: "Not Found",
         }),
@@ -19,7 +26,7 @@ export default {
 
     // Don't process deletes
     if (request.method === "DELETE") {
-      return new Response(
+      return new workerGlobals.Response(
         JSON.stringify({
           error: "Method Not Allowed",
         }),
@@ -38,7 +45,7 @@ export default {
         request.headers.get("content-type") || "application/octet-stream";
 
       if (!authToken) {
-        return new Response(
+        return new workerGlobals.Response(
           JSON.stringify({
             error: "Unauthorized",
           }),
@@ -48,7 +55,7 @@ export default {
       try {
         await validateAuthPayload({ authToken }, env);
       } catch {
-        return new Response(
+        return new workerGlobals.Response(
           JSON.stringify({
             error: "Unauthorized",
           }),
@@ -78,7 +85,7 @@ export default {
         },
       });
 
-      return new Response(JSON.stringify({ artifactId }), {
+      return new workerGlobals.Response(JSON.stringify({ artifactId }), {
         status: 200,
         headers: {
           "Content-Type": "application/json",
@@ -96,7 +103,7 @@ export default {
       // Extract the full artifact ID from the path after /api/artifacts/
       const artifactId = url.pathname.replace("/api/artifacts/", "");
       if (!artifactId) {
-        return new Response(
+        return new workerGlobals.Response(
           JSON.stringify({
             error: "Bad Request",
           }),
@@ -106,7 +113,7 @@ export default {
 
       const artifact = await env.ARTIFACT_BUCKET.get(artifactId);
       if (!artifact) {
-        return new Response(
+        return new workerGlobals.Response(
           JSON.stringify({
             error: "Not Found",
           }),
@@ -117,7 +124,7 @@ export default {
       const contentType =
         artifact.httpMetadata?.contentType || "application/octet-stream";
 
-      return new Response(artifact.body, {
+      return new workerGlobals.Response(artifact.body, {
         status: 200,
         headers: {
           "Content-Type": contentType,
@@ -129,7 +136,7 @@ export default {
     // Since this endpoint is used for images as direct urls...
     if (request.method === "OPTIONS") {
       // Handle CORS preflight requests
-      return new Response(null, {
+      return new workerGlobals.Response(null, {
         status: 204,
         headers: {
           "Access-Control-Allow-Origin": "*",
@@ -139,7 +146,7 @@ export default {
       });
     }
 
-    return new Response(
+    return new workerGlobals.Response(
       JSON.stringify({
         error: "Unknown Method",
       }),
@@ -147,3 +154,5 @@ export default {
     );
   },
 };
+
+export default handler;
