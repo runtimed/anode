@@ -5,7 +5,7 @@
     "lib": ["ES2020", "DOM", "DOM.Iterable"],
     "module": "ESNext",
     "skipLibCheck": true,
-    "types": ["vite/client", "@cloudflare/workers-types"],
+    "types": ["vite/client"],
 
     /* Bundler mode */
     "moduleResolution": "bundler",
