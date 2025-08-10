@@ -1,6 +1,7 @@
 import { afterAll, afterEach, beforeAll, beforeEach, vi } from "vitest";
 import { Effect, TestContext } from "effect";
 import "@testing-library/jest-dom";
+import "@testing-library/jest-dom/vitest";
 
 // Global test setup
 beforeAll(async () => {
@@ -140,9 +141,12 @@ export const expectError = async <T>(
     await promise;
     throw new Error("Expected promise to reject, but it resolved");
   } catch (error) {
-    if (expectedMessage && !error.message.includes(expectedMessage)) {
+    if (
+      expectedMessage &&
+      !(error as Error).message.includes(expectedMessage)
+    ) {
       throw new Error(
-        `Expected error message to contain "${expectedMessage}", but got: ${error.message}`
+        `Expected error message to contain "${expectedMessage}", but got: ${(error as Error).message}`
       );
     }
     return error;

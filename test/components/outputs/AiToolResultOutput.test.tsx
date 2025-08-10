@@ -2,10 +2,11 @@ import React from "react";
 import { render, screen } from "@testing-library/react";
 import { describe, it, expect } from "vitest";
 import { AiToolResultOutput } from "../../../src/components/outputs/AiToolResultOutput";
+import type { AiToolResultData } from "@runt/schema";
 
 describe("AiToolResultOutput", () => {
   it("renders success result correctly", () => {
-    const resultData = {
+    const resultData: AiToolResultData = {
       tool_call_id: "call_123",
       result: "Created code cell: cell-abc123",
       status: "success",
@@ -19,7 +20,7 @@ describe("AiToolResultOutput", () => {
   });
 
   it("renders error result correctly", () => {
-    const resultData = {
+    const resultData: AiToolResultData = {
       tool_call_id: "call_456",
       result: "Failed to create cell: Invalid parameters",
       status: "error",
@@ -33,10 +34,10 @@ describe("AiToolResultOutput", () => {
   });
 
   it("renders pending result correctly", () => {
-    const resultData = {
+    const resultData: AiToolResultData = {
       tool_call_id: "call_789",
       result: "Processing request...",
-      status: "pending",
+      status: "pending" as any, // TODO: Update the type hints in AiToolResultData to specify pending is allowed
     };
 
     render(<AiToolResultOutput resultData={resultData} />);
@@ -45,7 +46,7 @@ describe("AiToolResultOutput", () => {
   });
 
   it("renders without result text when result is undefined", () => {
-    const resultData = {
+    const resultData: AiToolResultData = {
       tool_call_id: "call_empty",
       status: "success",
     };
@@ -57,10 +58,10 @@ describe("AiToolResultOutput", () => {
   });
 
   it("renders unknown status with default config", () => {
-    const resultData = {
+    const resultData: AiToolResultData = {
       tool_call_id: "call_unknown",
       result: "Unknown status result",
-      status: "unknown",
+      status: "unknown" as any,
     };
 
     render(<AiToolResultOutput resultData={resultData} />);
@@ -69,7 +70,7 @@ describe("AiToolResultOutput", () => {
   });
 
   it("preserves whitespace in result text", () => {
-    const resultData = {
+    const resultData: AiToolResultData = {
       tool_call_id: "call_multiline",
       result: "Line 1\nLine 2\n  Indented line",
       status: "success",
