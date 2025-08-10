@@ -37,6 +37,7 @@
     "test:debug": "DEBUG_TESTS=true vitest run",
     "db:migrate": "echo y | wrangler d1 migrations apply DB",
     "type-check": "tsc --noEmit",
+    "type-check:test": "tsc --noEmit --project tsconfig.test.json",
     "lint": "eslint src/ backend/ iframe-outputs/",
     "lint:check": "eslint src/ backend/ iframe-outputs/ --max-warnings 0",
     "format": "prettier --write .",
