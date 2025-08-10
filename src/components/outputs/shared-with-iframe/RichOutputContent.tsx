@@ -49,14 +49,18 @@ const PlainTextOutput = React.lazy(() =>
 
 // Dynamic imports for AI outputs
 const AiToolCallOutput = React.lazy(() =>
-  import("@/components/outputs/AiToolCallOutput").then((m) => ({
-    default: m.AiToolCallOutput,
-  }))
+  import("@/components/outputs/shared-with-iframe/AiToolCallOutput").then(
+    (m) => ({
+      default: m.AiToolCallOutput,
+    })
+  )
 );
 const AiToolResultOutput = React.lazy(() =>
-  import("@/components/outputs/AiToolResultOutput").then((m) => ({
-    default: m.AiToolResultOutput,
-  }))
+  import("@/components/outputs/shared-with-iframe/AiToolResultOutput").then(
+    (m) => ({
+      default: m.AiToolResultOutput,
+    })
+  )
 );
 
 export function RichOutputContent({

@@ -95,8 +95,12 @@ export function prefetchOutputChunks(): void {
     import("../components/outputs/shared-with-iframe/SvgOutput.js").catch(
       () => {}
     );
-    import("../components/outputs/AiToolCallOutput.js").catch(() => {});
-    import("../components/outputs/AiToolResultOutput.js").catch(() => {});
+    import(
+      "../components/outputs/shared-with-iframe/AiToolCallOutput.js"
+    ).catch(() => {});
+    import(
+      "../components/outputs/shared-with-iframe/AiToolResultOutput.js"
+    ).catch(() => {});
   });
 }
 
