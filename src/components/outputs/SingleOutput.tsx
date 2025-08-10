@@ -4,7 +4,6 @@ import {
   AnsiErrorOutput,
   AnsiStreamOutput,
 } from "@/components/outputs/shared-with-iframe/AnsiOutput";
-import { getFinalContent, outputDeltasQuery } from "@/queries/outputDeltas";
 import {
   AI_TOOL_CALL_MIME_TYPE,
   AI_TOOL_RESULT_MIME_TYPE,
@@ -17,7 +16,6 @@ import {
   isArtifactContainer,
   isInlineContainer,
 } from "@/schema";
-import { useQuery } from "@livestore/react";
 import PlainTextOutput from "./shared-with-iframe/PlainTextOutput";
 import { RichOutputContent } from "./shared-with-iframe/RichOutputContent";
 import { SuspenseSpinner } from "./shared-with-iframe/SuspenseSpinner";
@@ -97,30 +95,6 @@ const getPreferredMediaType = (
   return null;
 };
 
-function MarkdownOutput({
-  data,
-  outputId,
-}: {
-  data: string | null;
-  outputId: string;
-}) {
-  // Always query deltas (even if not used)
-  const deltas = useQuery(outputDeltasQuery(outputId));
-
-  const markdownData = typeof data === "string" ? data : String(data || "");
-
-  // Apply deltas if we have an outputId
-  const { content: finalContent } = outputId
-    ? getFinalContent(markdownData, deltas)
-    : { content: markdownData };
-
-  return (
-    <SuspenseSpinner>
-      <MarkdownRenderer content={finalContent} enableCopyCode={true} />
-    </SuspenseSpinner>
-  );
-}
-
 function ErrorOutput({ data }: { data: string | null }) {
   let errorData;
   try {
@@ -147,7 +121,7 @@ export const SingleOutput: React.FC<{
       | "error";
   };
 }> = ({ output }) => {
-  const { data, outputType, id: outputId } = output;
+  const { data, outputType } = output;
 
   // Handle terminal outputs specially
   switch (outputType) {
@@ -165,7 +139,14 @@ export const SingleOutput: React.FC<{
     }
     // Handle markdown outputs specially with delta support
     case "markdown": {
-      return <MarkdownOutput data={data} outputId={outputId} />;
+      return (
+        <SuspenseSpinner>
+          <MarkdownRenderer
+            content={String(data || "")}
+            enableCopyCode={true}
+          />
+        </SuspenseSpinner>
+      );
     }
     // Handle error outputs specially
     case "error": {

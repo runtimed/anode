@@ -1,5 +1,7 @@
+import { outputDeltasQuery, processDeltas } from "@/queries";
+import { OutputData } from "@/schema";
 import { groupConsecutiveStreamOutputs } from "@/util/output-grouping";
-import { OutputData } from "@runt/schema";
+import { useQuery } from "@livestore/react";
 import { useMemo } from "react";
 import { SingleOutput } from "./SingleOutput";
 import { useIframeCommsParent } from "./shared-with-iframe/comms";
@@ -11,16 +13,20 @@ export const MaybeCellOutputs = ({
   outputs: OutputData[];
   shouldUseIframe: boolean;
 }) => {
+  const outputDeltas = useQuery(
+    outputDeltasQuery(outputs.map((output) => output.id))
+  );
   // TODO: collapse AI results?
 
   // Apply grouping strategy based on cell type
-  const processedOutputs = useMemo(
-    () =>
-      groupConsecutiveStreamOutputs(
-        outputs.sort((a: OutputData, b: OutputData) => a.position - b.position)
-      ),
-    [outputs]
-  );
+  const processedOutputs = useMemo(() => {
+    // TODO: doesn't .sort mutate?
+    const sorted = outputs.sort(
+      (a: OutputData, b: OutputData) => a.position - b.position
+    );
+    const grouped = groupConsecutiveStreamOutputs(sorted);
+    return processDeltas(grouped, outputDeltas);
+  }, [outputs, outputDeltas]);
 
   if (!outputs.length) return null;
 

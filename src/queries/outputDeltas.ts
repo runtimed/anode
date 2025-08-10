@@ -1,4 +1,4 @@
-import { tables } from "@/schema";
+import { OutputData, tables } from "@/schema";
 import { queryDb } from "@livestore/livestore";
 
 interface OutputDelta {
@@ -11,13 +11,13 @@ interface OutputDelta {
 /**
  * Query deltas for a given output ID, sorted by sequence number
  */
-export const outputDeltasQuery = (outputId: string) =>
+export const outputDeltasQuery = (outputIds: readonly string[]) =>
   queryDb(
     tables.outputDeltas
       .select()
-      .where({ outputId })
+      .where({ outputId: { op: "IN", value: outputIds } })
       .orderBy("sequenceNumber", "asc"),
-    { deps: [outputId], label: "outputDeltas" }
+    { deps: outputIds, label: "outputDeltas" }
   );
 
 /**
@@ -52,3 +52,18 @@ export const getFinalContent = (
     deltaCount: deltas.length,
   };
 };
+
+export function processDeltas(
+  outputs: OutputData[],
+  outputDeltas: readonly OutputDelta[]
+) {
+  return outputs.map((output) => {
+    if (output.outputType === "markdown") {
+      return {
+        ...output,
+        data: getFinalContent(output.data || "", outputDeltas).content,
+      };
+    }
+    return output;
+  });
+}
