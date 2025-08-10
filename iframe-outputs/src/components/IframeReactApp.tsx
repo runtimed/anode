@@ -1,4 +1,4 @@
-import { SingleOutput } from "@/components/outputs/SingleOutput";
+import { SingleOutput } from "@/components/outputs/shared-with-iframe/SingleOutput";
 import { useIframeCommsChild } from "@/components/outputs/shared-with-iframe/comms";
 import React from "react";
 

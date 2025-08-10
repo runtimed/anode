@@ -16,9 +16,9 @@ import {
   isArtifactContainer,
   isInlineContainer,
 } from "@/schema";
-import PlainTextOutput from "./shared-with-iframe/PlainTextOutput";
-import { RichOutputContent } from "./shared-with-iframe/RichOutputContent";
-import { SuspenseSpinner } from "./shared-with-iframe/SuspenseSpinner";
+import PlainTextOutput from "./PlainTextOutput";
+import { RichOutputContent } from "./RichOutputContent";
+import { SuspenseSpinner } from "./SuspenseSpinner";
 
 // Dynamic imports for heavy components
 const MarkdownRenderer = React.lazy(() =>

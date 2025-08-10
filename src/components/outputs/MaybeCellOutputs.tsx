@@ -3,7 +3,7 @@ import { OutputData } from "@/schema";
 import { groupConsecutiveStreamOutputs } from "@/util/output-grouping";
 import { useQuery } from "@livestore/react";
 import { useMemo } from "react";
-import { SingleOutput } from "./SingleOutput";
+import { SingleOutput } from "./shared-with-iframe/SingleOutput";
 import { useIframeCommsParent } from "./shared-with-iframe/comms";
 
 export const MaybeCellOutputs = ({
