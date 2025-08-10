@@ -11,7 +11,6 @@ export const MaybeCellOutputs = ({
   outputs: OutputData[];
   shouldUseIframe: boolean;
 }) => {
-  // TODO: look through all the outputs and see if any are HTML/SVG. If so, use an iframe.
   // TODO: collapse AI results?
 
   // Apply grouping strategy based on cell type

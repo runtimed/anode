@@ -1,7 +1,5 @@
-import { AnsiStreamOutput } from "@/components/outputs/shared-with-iframe/AnsiOutput";
-import { RichOutput } from "@/components/outputs/RichOutput";
+import { SingleOutput } from "@/components/outputs/SingleOutput";
 import { useIframeCommsChild } from "@/components/outputs/shared-with-iframe/comms";
-import { OutputData } from "@/schema";
 import React from "react";
 
 export const IframeReactApp: React.FC = () => {
@@ -17,28 +15,7 @@ export const IframeReactApp: React.FC = () => {
       key={output.id}
       className={index > 0 ? "mt-2 border-t border-black/10 pt-2" : ""}
     >
-      <Output output={output} />
+      <SingleOutput output={output} />
     </div>
   ));
 };
-
-function Output({ output }: { output: OutputData }) {
-  switch (output.outputType) {
-    case "markdown":
-    case "multimedia_display":
-    case "multimedia_result":
-    case "error":
-      return (
-        <RichOutput output={{ ...output, outputType: output.outputType }} />
-      );
-    case "terminal":
-    default:
-      return (
-        <AnsiStreamOutput
-          key={output.id}
-          text={output.data ?? ""}
-          streamName={output.streamName as "stdout" | "stderr"}
-        />
-      );
-  }
-}

@@ -9,7 +9,7 @@ export { ImageOutput } from "./shared-with-iframe/ImageOutput.js";
 export { JsonOutput } from "./shared-with-iframe/JsonOutput.js";
 
 export { PlainTextOutput } from "./shared-with-iframe/PlainTextOutput.js";
-export { RichOutput } from "./RichOutput.js";
+export { SingleOutput as RichOutput } from "./SingleOutput.js";
 export { SvgOutput } from "./shared-with-iframe/SvgOutput.js";
 
 // Note: Heavy output components are now dynamically imported in RichOutput.tsx
