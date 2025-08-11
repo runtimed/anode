@@ -16,7 +16,6 @@ export const MaybeCellOutputs = ({
   const outputDeltas = useQuery(
     outputDeltasQuery(outputs.map((output) => output.id))
   );
-  // TODO: collapse AI results?
 
   // Apply grouping strategy based on cell type
   const processedOutputs = useMemo(() => {
