@@ -16,6 +16,7 @@ export default defineConfig({
     emptyOutDir: true,
     rollupOptions: {
       input: {
+        // TODO: add a basic index.html entry point too!
         react: resolve(__dirname, "src/react.html"),
       },
     },
