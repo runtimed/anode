@@ -1,10 +1,10 @@
-import { outputDeltasQuery, processDeltas } from "@/queries";
 import { OutputData } from "@/schema";
 import { groupConsecutiveStreamOutputs } from "@/util/output-grouping";
 import { useQuery } from "@livestore/react";
 import { useMemo } from "react";
 import { SingleOutput } from "./shared-with-iframe/SingleOutput";
 import { useIframeCommsParent } from "./shared-with-iframe/comms";
+import { outputsDeltasQuery, processDeltas } from "@/queries/outputDeltas";
 
 export const MaybeCellOutputs = ({
   outputs,
@@ -14,7 +14,7 @@ export const MaybeCellOutputs = ({
   shouldUseIframe: boolean;
 }) => {
   const outputDeltas = useQuery(
-    outputDeltasQuery(outputs.map((output) => output.id))
+    outputsDeltasQuery(outputs.map((output) => output.id))
   );
 
   // Apply grouping strategy based on cell type
