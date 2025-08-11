@@ -6,9 +6,7 @@ import { livestoreDevtoolsPlugin } from "@livestore/devtools-vite";
 import react from "@vitejs/plugin-react";
 import tailwindcss from "@tailwindcss/vite";
 import { defineConfig, loadEnv } from "vite";
-import { cloudflare } from "@cloudflare/vite-plugin";
 import { injectLoadingScreen } from "./vite-plugins/inject-loading-screen.js";
-import { iframeServerPlugin } from "./vite-plugins/iframe-server.js";
 import { envValidationPlugin } from "./vite-plugins/env-validation.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -48,7 +46,6 @@ export default defineConfig(({ mode }) => {
   const plugins = [
     envValidationPlugin(env),
     injectLoadingScreen(),
-    // iframeServerPlugin(),
     react({
       babel: {
         plugins: [
