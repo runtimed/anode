@@ -9,7 +9,6 @@
     "pnpm": ">=10.9.0"
   },
   "scripts": {
-    "dev": "wrangler dev",
     "deploy": "wrangler deploy --env production",
     "deploy:production": "wrangler deploy --env production",
     "deploy:preview": "wrangler deploy --env preview",
