@@ -11,6 +11,7 @@ export const mockCellData = {
   source: 'print("Hello, World!")',
   cellType: "code" as const,
   position: 0,
+  createdBy: "test-user",
 };
 
 export const mockRuntimeSession = {

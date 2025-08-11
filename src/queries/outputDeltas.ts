@@ -1,6 +1,6 @@
 import { OutputData, tables } from "@/schema";
 import { queryDb } from "@livestore/livestore";
-import { applyDeltas } from "@runt/schema";
+import { getFinalContent } from "@runt/schema";
 
 // TODO: code here is duplicated from `runt/packages/schema/queries/outputDeltas.ts`
 // Reconcile it in the future
@@ -15,7 +15,7 @@ interface OutputDelta {
 /**
  * Query deltas for a given output ID, sorted by sequence number
  */
-export const outputDeltasQuery = (outputIds: readonly string[]) =>
+export const outputsDeltasQuery = (outputIds: readonly string[]) =>
   queryDb(
     tables.outputDeltas
       .select()
@@ -23,23 +23,6 @@ export const outputDeltasQuery = (outputIds: readonly string[]) =>
       .orderBy("sequenceNumber", "asc"),
     { deps: outputIds, label: "outputDeltas" }
   );
-
-/**
- * Get final content with deltas applied
- */
-export const getFinalContent = (
-  originalContent: string,
-  deltas: readonly OutputDelta[]
-): { content: string; hasDeltas: boolean; deltaCount: number } => {
-  const hasDeltas = deltas.length > 0;
-  const content = applyDeltas(originalContent, deltas);
-
-  return {
-    content,
-    hasDeltas,
-    deltaCount: deltas.length,
-  };
-};
 
 export function processDeltas(
   outputs: OutputData[],

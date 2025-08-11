@@ -11,19 +11,14 @@ import {
   ChevronDown,
   Eye,
   EyeOff,
-  ArrowUp,
-  ArrowDown,
   X,
   MoreVertical,
   Eraser,
 } from "lucide-react";
-
 interface CellControlsProps {
   sourceVisible: boolean;
   aiContextVisible: boolean;
   contextSelectionMode?: boolean;
-  onMoveUp: () => void;
-  onMoveDown: () => void;
   onDeleteCell: () => void;
   onClearOutputs: () => void;
   hasOutputs: boolean;
@@ -36,8 +31,6 @@ export const CellControls: React.FC<CellControlsProps> = ({
   sourceVisible,
   aiContextVisible,
   contextSelectionMode = false,
-  onMoveUp,
-  onMoveDown,
   onDeleteCell,
   onClearOutputs,
   hasOutputs,
@@ -92,24 +85,6 @@ export const CellControls: React.FC<CellControlsProps> = ({
       <div className="desktop-controls hidden items-center gap-0.5 sm:flex">
         {/* Separator */}
         <div className="bg-border/50 mx-1 h-4 w-px" />
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={onMoveUp}
-          className="hover:bg-muted/80 h-7 w-7 p-0"
-          title="Move cell up"
-        >
-          <ArrowUp className="h-3 w-3" />
-        </Button>
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={onMoveDown}
-          className="hover:bg-muted/80 h-7 w-7 p-0"
-          title="Move cell down"
-        >
-          <ArrowDown className="h-3 w-3" />
-        </Button>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button

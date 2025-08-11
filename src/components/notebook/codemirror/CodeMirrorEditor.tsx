@@ -5,7 +5,14 @@ import {
   placeholder as placeholderExt,
   EditorView,
 } from "@codemirror/view";
-import { useCallback, useEffect, useMemo, useRef } from "react";
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  forwardRef,
+  useImperativeHandle,
+} from "react";
 
 import { markdown } from "@codemirror/lang-markdown";
 
@@ -13,6 +20,12 @@ import { SupportedLanguage } from "@/types/misc.js";
 import { sql } from "@codemirror/lang-sql";
 import { useCodeMirror } from "@uiw/react-codemirror";
 import { baseExtensions, aiBaseExtensions } from "./baseExtensions.js";
+
+export interface CodeMirrorEditorRef {
+  focus: () => void;
+  setCursorPosition: (position: "start" | "end") => void;
+  getEditor: () => EditorView | null;
+}
 
 type CodeMirrorEditorProps = {
   value: string;
@@ -40,85 +53,128 @@ function languageExtension(language: SupportedLanguage) {
   return [];
 }
 
-export const CodeMirrorEditor: React.FC<CodeMirrorEditorProps> = ({
-  className,
-  value,
-  language,
-  onValueChange,
-  autoFocus,
-  keyMap,
-  onFocus,
-  onBlur,
-  placeholder,
-  maxHeight,
-  enableLineWrapping = false,
-  disableAutocompletion = false,
-}) => {
-  const editorRef = useRef<HTMLDivElement | null>(null);
-
-  const langExtension = useMemo(() => languageExtension(language), [language]);
-
-  const extensions = useMemo(() => {
-    const selectedBaseExtensions = disableAutocompletion
-      ? aiBaseExtensions
-      : baseExtensions;
-
-    const exts = [
-      keymap.of(keyMap || []),
-      ...selectedBaseExtensions,
-      langExtension,
-    ];
-
-    if (placeholder) {
-      exts.push(placeholderExt(placeholder));
-    }
-
-    if (enableLineWrapping) {
-      exts.push(EditorView.lineWrapping);
-    }
-
-    return exts;
-  }, [
-    keyMap,
-    langExtension,
-    placeholder,
-    enableLineWrapping,
-    disableAutocompletion,
-  ]);
-
-  const handleChange = useCallback(
-    (val: string) => {
-      onValueChange?.(val);
+export const CodeMirrorEditor = forwardRef<
+  CodeMirrorEditorRef,
+  CodeMirrorEditorProps
+>(
+  (
+    {
+      className,
+      value,
+      language,
+      onValueChange,
+      autoFocus,
+      keyMap,
+      onFocus,
+      onBlur,
+      placeholder,
+      maxHeight,
+      enableLineWrapping = false,
+      disableAutocompletion = false,
     },
-    [onValueChange]
-  );
+    ref
+  ) => {
+    const editorRef = useRef<HTMLDivElement | null>(null);
+    const editorViewRef = useRef<EditorView | null>(null);
 
-  const handleFocus = useCallback(() => {
-    onFocus?.();
-  }, [onFocus]);
+    const langExtension = useMemo(
+      () => languageExtension(language),
+      [language]
+    );
 
-  const { setContainer } = useCodeMirror({
-    container: editorRef.current,
-    extensions,
-    basicSetup: false,
-    maxHeight,
-    value,
-    onChange: handleChange,
-    autoFocus,
-  });
+    const extensions = useMemo(() => {
+      const selectedBaseExtensions = disableAutocompletion
+        ? aiBaseExtensions
+        : baseExtensions;
 
-  useEffect(() => {
-    if (editorRef.current) {
-      setContainer(editorRef.current);
-    }
-  }, [setContainer]);
+      const exts = [
+        keymap.of(keyMap || []),
+        ...selectedBaseExtensions,
+        langExtension,
+      ];
 
-  return (
-    <div
-      ref={editorRef}
-      onBlur={onBlur}
-      onFocus={handleFocus}
-      className={className}
-    />
-  );
-};
+      if (placeholder) {
+        exts.push(placeholderExt(placeholder));
+      }
+
+      if (enableLineWrapping) {
+        exts.push(EditorView.lineWrapping);
+      }
+
+      return exts;
+    }, [
+      keyMap,
+      langExtension,
+      placeholder,
+      enableLineWrapping,
+      disableAutocompletion,
+    ]);
+
+    const handleChange = useCallback(
+      (val: string) => {
+        onValueChange?.(val);
+      },
+      [onValueChange]
+    );
+
+    const handleFocus = useCallback(() => {
+      onFocus?.();
+    }, [onFocus]);
+
+    const { setContainer, view } = useCodeMirror({
+      container: editorRef.current,
+      extensions,
+      basicSetup: false,
+      maxHeight,
+      value,
+      onChange: handleChange,
+      autoFocus,
+    });
+
+    // Store the editor view reference
+    useEffect(() => {
+      editorViewRef.current = view || null;
+    }, [view]);
+
+    // Expose methods via ref
+    useImperativeHandle(
+      ref,
+      () => ({
+        focus: () => {
+          if (editorViewRef.current) {
+            editorViewRef.current.focus();
+          }
+        },
+        setCursorPosition: (position: "start" | "end") => {
+          if (editorViewRef.current) {
+            const doc = editorViewRef.current.state.doc;
+            const pos = position === "start" ? 0 : doc.length;
+            editorViewRef.current.dispatch({
+              selection: { anchor: pos, head: pos },
+              scrollIntoView: true,
+            });
+          }
+        },
+        getEditor: () => editorViewRef.current,
+      }),
+      []
+    );
+
+    useEffect(() => {
+      if (editorRef.current) {
+        setContainer(editorRef.current);
+      }
+    }, [setContainer]);
+
+    return (
+      <div
+        ref={editorRef}
+        onBlur={onBlur}
+        onFocus={handleFocus}
+        className={className}
+      />
+    );
+  }
+);
+
+CodeMirrorEditor.displayName = "CodeMirrorEditor";

@@ -6,16 +6,20 @@ import { useCellKeyboardNavigation } from "@/hooks/useCellKeyboardNavigation.js"
 import { useCellOutputs } from "@/hooks/useCellOutputs.js";
 import { useInterruptExecution } from "@/hooks/useInterruptExecution.js";
 import { useUserRegistry } from "@/hooks/useUserRegistry.js";
+import { useEditorRegistry } from "@/hooks/useEditorRegistry.js";
+import { useDeleteCell } from "@/hooks/useDeleteCell.js";
+import { useAddCell } from "@/hooks/useAddCell.js";
 
-import { events, tables } from "@/schema";
 import { useStore } from "@livestore/react";
+import { focusedCellSignal$, hasManuallyFocused$ } from "../signals/focus.js";
+import { events, tables, queries } from "@/schema";
 import { ChevronDown, ChevronUp } from "lucide-react";
 import React, { useCallback, useRef } from "react";
 import { ErrorBoundary } from "react-error-boundary";
 import { CellContainer } from "./shared/CellContainer.js";
 import { CellControls } from "./shared/CellControls.js";
 import { CellTypeSelector } from "./shared/CellTypeSelector.js";
-import { Editor } from "./shared/Editor.js";
+import { Editor, EditorRef } from "./shared/Editor.js";
 import {
   languageFromCellType,
   placeholderFromCellType,
@@ -57,30 +61,27 @@ const getCellStyling = (cellType: "code" | "sql" | "ai") => {
 
 interface ExecutableCellProps {
   cell: typeof tables.cells.Type;
-  onDeleteCell: () => void;
-  onMoveUp: () => void;
-  onMoveDown: () => void;
-  onFocusNext?: () => void;
-  onFocusPrevious?: () => void;
   autoFocus?: boolean;
-  onFocus?: () => void;
   contextSelectionMode?: boolean;
 }
 
 export const ExecutableCell: React.FC<ExecutableCellProps> = ({
   cell,
-  onDeleteCell,
-  onMoveUp,
-  onMoveDown,
-  onFocusNext,
-  onFocusPrevious,
   autoFocus = false,
-  onFocus,
   contextSelectionMode = false,
 }) => {
   const cellRef = useRef<HTMLDivElement>(null);
 
   const { store } = useStore();
+  const {
+    registerEditor,
+    unregisterEditor,
+    focusCell: registryFocusCell,
+  } = useEditorRegistry();
+
+  const { handleDeleteCell } = useDeleteCell(cell.id);
+  const { addCell } = useAddCell();
+
   const {
     user: { sub: userId },
   } = useAuth();
@@ -218,18 +219,71 @@ export const ExecutableCell: React.FC<ExecutableCellProps> = ({
     reason: "User interrupted execution",
   });
 
+  // Create navigation handlers using the registry
+  const onFocusNext = useCallback(
+    (cursorPosition: "start" | "end" = "start") => {
+      const cellReferences = store.query(queries.cellsWithIndices$);
+      const currentIndex = cellReferences.findIndex((c) => c.id === cell.id);
+
+      if (currentIndex < cellReferences.length - 1) {
+        const nextCell = cellReferences[currentIndex + 1];
+        store.setSignal(focusedCellSignal$, nextCell.id);
+        registryFocusCell(nextCell.id, cursorPosition);
+      } else {
+        // At the last cell, create a new one with same cell type (but never raw)
+        const currentCell = cellReferences[currentIndex];
+        const newCellType =
+          currentCell.cellType === "raw" ? "code" : currentCell.cellType;
+        addCell(cell.id, newCellType);
+      }
+    },
+    [cell.id, store, registryFocusCell, addCell]
+  );
+
+  const onFocusPrevious = useCallback(
+    (cursorPosition: "start" | "end" = "end") => {
+      const cellReferences = store.query(queries.cellsWithIndices$);
+      const currentIndex = cellReferences.findIndex((c) => c.id === cell.id);
+
+      if (currentIndex > 0) {
+        const previousCell = cellReferences[currentIndex - 1];
+        store.setSignal(focusedCellSignal$, previousCell.id);
+        registryFocusCell(previousCell.id, cursorPosition);
+      }
+    },
+    [cell.id, store, registryFocusCell]
+  );
+
   // Use shared keyboard navigation hook with cell-type-specific execution
   const { keyMap } = useCellKeyboardNavigation({
     onFocusNext,
     onFocusPrevious,
-    onDeleteCell,
+    onDeleteCell: () => handleDeleteCell("keyboard"),
     onExecute: executeCell,
     onUpdateSource: updateSource,
   });
 
   const handleFocus = useCallback(() => {
-    onFocus?.();
-  }, [onFocus]);
+    store.setSignal(focusedCellSignal$, cell.id);
+    store.setSignal(hasManuallyFocused$, true);
+  }, [store, cell.id]);
+
+  // Handle editor registration for navigation
+  const handleEditorReady = useCallback(
+    (editorRef: EditorRef) => {
+      if (editorRef) {
+        registerEditor(cell.id, editorRef);
+      }
+    },
+    [cell.id, registerEditor]
+  );
+
+  // Cleanup editor registration on unmount
+  React.useEffect(() => {
+    return () => {
+      unregisterEditor(cell.id);
+    };
+  }, [cell.id, unregisterEditor]);
 
   const { focusColor, focusBgColor } = getCellStyling(
     cell.cellType as "code" | "sql" | "ai"
@@ -241,7 +295,7 @@ export const ExecutableCell: React.FC<ExecutableCellProps> = ({
       cell={cell}
       autoFocus={autoFocus}
       contextSelectionMode={contextSelectionMode}
-      onFocus={onFocus}
+      onFocus={handleFocus}
       focusColor={focusColor}
       focusBgColor={focusBgColor}
     >
@@ -319,9 +373,7 @@ export const ExecutableCell: React.FC<ExecutableCellProps> = ({
           sourceVisible={cell.sourceVisible}
           aiContextVisible={cell.aiContextVisible}
           contextSelectionMode={contextSelectionMode}
-          onMoveUp={onMoveUp}
-          onMoveDown={onMoveDown}
-          onDeleteCell={onDeleteCell}
+          onDeleteCell={() => handleDeleteCell("click")}
           onClearOutputs={clearCellOutputs}
           hasOutputs={hasOutputs}
           toggleSourceVisibility={toggleSourceVisibility}
@@ -371,6 +423,7 @@ export const ExecutableCell: React.FC<ExecutableCellProps> = ({
           <div className="cell-content bg-white py-1 pl-4 transition-colors">
             <ErrorBoundary fallback={<div>Error rendering editor</div>}>
               <Editor
+                ref={handleEditorReady}
                 localSource={localSource}
                 handleSourceChange={handleSourceChange}
                 onBlur={updateSource}

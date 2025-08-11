@@ -1,15 +1,9 @@
 // import { toast } from "sonner";
 import { queryDb } from "@livestore/livestore";
 import { useQuery, useStore } from "@livestore/react";
-import {
-  events,
-  tables,
-  createCellBetween,
-  moveCellBetweenWithRebalancing,
-  queries,
-  CellReference,
-} from "@/schema";
-import React, { Suspense, useCallback, useRef } from "react";
+import { tables, queries } from "@/schema";
+
+import React, { Suspense } from "react";
 import { ErrorBoundary } from "react-error-boundary";
 
 import { NotebookTitle } from "./NotebookTitle.js";
@@ -22,11 +16,13 @@ import { useAuth } from "@/components/auth/AuthProvider.js";
 import { useUserRegistry } from "@/hooks/useUserRegistry.js";
 
 import { getClientColor, getClientTypeInfo } from "@/services/userTypes.js";
-import { getDefaultAiModel, useAvailableAiModels } from "@/util/ai-models.js";
+
 import { Bug, BugOff, Filter, X } from "lucide-react";
 import { UserProfile } from "../auth/UserProfile.js";
 import { RuntimeHealthIndicatorButton } from "./RuntimeHealthIndicatorButton.js";
 import { RuntimeHelper } from "./RuntimeHelper.js";
+import { focusedCellSignal$, hasManuallyFocused$ } from "./signals/focus.js";
+import { contextSelectionMode$ } from "./signals/ai-context.js";
 
 // Lazy import DebugPanel only in development
 const LazyDebugPanel = React.lazy(() =>
@@ -35,8 +31,6 @@ const LazyDebugPanel = React.lazy(() =>
   }))
 );
 
-// Import prefetch utilities
-import { prefetchOutputsAdaptive } from "@/util/prefetch.js";
 import { CellAdder } from "./cell/CellAdder.js";
 import { EmptyStateCellAdder } from "./EmptyStateCellAdder.js";
 import { GitCommitHash } from "./GitCommitHash.js";
@@ -56,307 +50,37 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
     user: { sub: userId },
   } = useAuth();
   const { presentUsers, getUserInfo, getUserColor } = useUserRegistry();
-  const { models } = useAvailableAiModels();
-
   const cellReferences = useQuery(queries.cellsWithIndices$);
 
-  const lastUsedAiModel =
-    useQuery(
-      queryDb(
-        tables.notebookMetadata
-          .select()
-          .where({ key: "lastUsedAiModel" })
-          .limit(1)
-      )
-    )[0] || null;
-  const lastUsedAiProvider =
-    useQuery(
-      queryDb(
-        tables.notebookMetadata
-          .select()
-          .where({ key: "lastUsedAiProvider" })
-          .limit(1)
-      )
-    )[0] || null;
   const runtimeSessions = useQuery(
     queryDb(tables.runtimeSessions.select().where({ isActive: true }))
   );
 
   const [showRuntimeHelper, setShowRuntimeHelper] = React.useState(false);
-  const [focusedCellId, setFocusedCellId] = React.useState<string | null>(null);
-  const [contextSelectionMode, setContextSelectionMode] = React.useState(false);
-  const hasEverFocusedRef = React.useRef(false);
 
-  // Prefetch output components adaptively based on connection speed
-  React.useEffect(() => {
-    prefetchOutputsAdaptive();
-  }, []);
-
-  const addCell = useCallback(
-    (
-      cellId?: string,
-      cellType: "code" | "markdown" | "sql" | "ai" = "code",
-      position: "before" | "after" = "after"
-    ) => {
-      const newCellId = `cell-${Date.now()}-${Math.random()
-        .toString(36)
-        .slice(2)}`;
-
-      // Get default AI model if creating an AI cell
-      let aiProvider, aiModel;
-      if (cellType === "ai") {
-        const defaultModel = getDefaultAiModel(
-          models,
-          lastUsedAiProvider?.value,
-          lastUsedAiModel?.value
-        );
-        if (defaultModel) {
-          aiProvider = defaultModel.provider;
-          aiModel = defaultModel.model;
-        }
-      }
-
-      let cellBefore = null;
-      let cellAfter = null;
-
-      if (cellId) {
-        const targetIndex = cellReferences.findIndex((c) => c.id === cellId);
-        if (targetIndex >= 0) {
-          if (position === "before") {
-            // Insert before the target cell
-            cellAfter = cellReferences[targetIndex];
-            cellBefore =
-              targetIndex > 0 ? cellReferences[targetIndex - 1] : null;
-          } else {
-            // Insert after the target cell
-            cellBefore = cellReferences[targetIndex];
-            cellAfter =
-              targetIndex < cellReferences.length - 1
-                ? cellReferences[targetIndex + 1]
-                : null;
-          }
-        }
-      } else if (position === "after") {
-        // No cellId specified, insert at the end
-        cellBefore =
-          cellReferences.length > 0
-            ? cellReferences[cellReferences.length - 1]
-            : null;
-      }
-
-      // Create cell using the new API
-      const cellCreationResult = createCellBetween(
-        {
-          id: newCellId,
-          cellType,
-          createdBy: userId,
-        },
-        cellBefore,
-        cellAfter,
-        cellReferences // Pass current cell state for rebalancing context
-      );
-
-      // toast.success("Cell created successfully!");
-
-      // Commit all events (may include automatic rebalancing)
-      cellCreationResult.events.forEach((event) => store.commit(event));
-
-      // Set default AI model for AI cells based on last used model
-      if (cellType === "ai" && aiProvider && aiModel) {
-        store.commit(
-          events.aiSettingsChanged({
-            cellId: newCellId,
-            provider: aiProvider,
-            model: aiModel,
-            settings: {
-              temperature: 0.7,
-              maxTokens: 1000,
-            },
-          })
-        );
-      }
-
-      // Prefetch output components when user creates cells
-      prefetchOutputsAdaptive();
-
-      // Focus the new cell after creation
-      setTimeout(() => setFocusedCellId(newCellId), 0);
-    },
-    [cellReferences, store, userId, models, lastUsedAiModel, lastUsedAiProvider]
-  );
-
-  const deleteCell = useCallback(
-    (cellId: string) => {
-      store.commit(
-        events.cellDeleted({
-          id: cellId,
-          actorId: userId,
-        })
-      );
-    },
-    [store, userId]
-  );
-
-  // Track if a move operation is in progress to prevent race conditions
-  const movingRef = useRef(false);
-
-  const moveCell = useCallback(
-    (cellId: string, direction: "up" | "down") => {
-      // Prevent concurrent moves
-      if (movingRef.current) {
-        return;
-      }
-      movingRef.current = true;
-
-      // Cells are already sorted by fractionalIndex from the database query
-      const currentIndex = cellReferences.findIndex((c) => c.id === cellId);
-      if (currentIndex === -1) {
-        return;
-      }
-
-      const currentCell = cellReferences[currentIndex];
-      if (!currentCell.fractionalIndex) {
-        return;
-      }
-
-      // Check boundaries
-      if (direction === "up" && currentIndex === 0) {
-        return;
-      }
-      if (direction === "down" && currentIndex === cellReferences.length - 1) {
-        return;
-      }
-
-      // Check for duplicate fractional indices
-      const duplicates = cellReferences.filter(
-        (c) =>
-          c.fractionalIndex === currentCell.fractionalIndex &&
-          c.id !== currentCell.id
-      );
-      if (duplicates.length > 0) {
-        // Skip move if duplicate indices exist to prevent ordering issues
-        // TODO: Figure out what to do here
-        return;
-      }
-
-      // Determine the before and after cells based on direction
-      // With fractional indexing, we place the cell between its new neighbors
-      let cellBefore: CellReference | null = null;
-      let cellAfter: CellReference | null = null;
-
-      if (direction === "up") {
-        // Moving up: place between the cell 2 positions up and 1 position up
-        cellBefore =
-          currentIndex >= 2 ? cellReferences[currentIndex - 2] : null;
-        cellAfter = cellReferences[currentIndex - 1];
-      } else {
-        // Moving down: place between the cell 1 position down and 2 positions down
-        cellBefore = cellReferences[currentIndex + 1];
-        cellAfter =
-          currentIndex < cellReferences.length - 2
-            ? cellReferences[currentIndex + 2]
-            : null;
-      }
-
-      // Use moveCellBetween to calculate the new position
-
-      // Verify the ordering makes sense
-      if (
-        cellBefore &&
-        cellAfter &&
-        cellBefore.fractionalIndex &&
-        cellAfter.fractionalIndex
-      ) {
-        const correctOrder =
-          cellBefore.fractionalIndex < cellAfter.fractionalIndex;
-        if (!correctOrder) {
-          // Invalid order detected - skip the move
-          return;
-        }
-      }
-
-      const moveResult = moveCellBetweenWithRebalancing(
-        currentCell,
-        cellBefore,
-        cellAfter,
-        cellReferences, // Pass current cell state for rebalancing context
-        userId
-      );
-
-      if (moveResult.moved) {
-        // Commit all events (may include automatic rebalancing)
-        moveResult.events.forEach((event) => store.commit(event));
-      } else {
-        // Cell already in target position or invalid move
-      }
-
-      // Reset the moving flag after a short delay to allow for database updates
-      setTimeout(() => {
-        movingRef.current = false;
-      }, 100);
-    },
-    [cellReferences, store, userId]
-  );
-
-  const focusCell = useCallback((cellId: string) => {
-    setFocusedCellId(cellId);
-    hasEverFocusedRef.current = true;
-  }, []);
-
-  const focusNextCell = useCallback(
-    (currentCellId: string) => {
-      const currentIndex = cellReferences.findIndex(
-        (c) => c.id === currentCellId
-      );
-
-      if (currentIndex < cellReferences.length - 1) {
-        const nextCell = cellReferences[currentIndex + 1];
-        setFocusedCellId(nextCell.id);
-      } else {
-        // At the last cell, create a new one with same cell type (but never raw)
-        const currentCell = cellReferences[currentIndex];
-        const newCellType =
-          currentCell.cellType === "raw" ? "code" : currentCell.cellType;
-        addCell(currentCellId, newCellType);
-      }
-    },
-    [cellReferences, addCell]
-  );
-
-  const focusPreviousCell = useCallback(
-    (currentCellId: string) => {
-      const currentIndex = cellReferences.findIndex(
-        (c) => c.id === currentCellId
-      );
-
-      if (currentIndex > 0) {
-        const previousCell = cellReferences[currentIndex - 1];
-        setFocusedCellId(previousCell.id);
-      }
-    },
-    [cellReferences]
-  );
+  const focusedCellId = useQuery(focusedCellSignal$);
+  const contextSelectionMode = useQuery(contextSelectionMode$);
+  const hasManuallyFocused = useQuery(hasManuallyFocused$);
 
   // Reset focus when focused cell changes or is removed
   React.useEffect(() => {
     if (focusedCellId && !cellReferences.find((c) => c.id === focusedCellId)) {
-      setFocusedCellId(null);
+      store.setSignal(focusedCellSignal$, null);
     }
-  }, [focusedCellId, cellReferences]);
+  }, [focusedCellId, cellReferences, store]);
 
   // Focus first cell when notebook loads and has cells (but not after deletion)
   React.useEffect(() => {
-    if (
-      !focusedCellId &&
-      cellReferences.length > 0 &&
-      !hasEverFocusedRef.current
-    ) {
-      setFocusedCellId(cellReferences[0].id);
-      hasEverFocusedRef.current = true;
+    if (!focusedCellId && cellReferences.length > 0 && !hasManuallyFocused) {
+      store.setSignal(focusedCellSignal$, cellReferences[0].id);
+      store.setSignal(hasManuallyFocused$, true);
     }
-  }, [focusedCellId, cellReferences]);
+  }, [focusedCellId, cellReferences, store, hasManuallyFocused]);
 
   // cells are already sorted by position from the database query
+
+  const otherUsers = presentUsers.filter((user) => user.id !== userId);
+  const LIMIT = 5;
 
   return (
     <div className="bg-background min-h-screen">
@@ -398,54 +122,59 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
             </a>
           </div>
 
-          <div className="flex items-center gap-2">
-            <div className="flex -space-x-2">
-              {presentUsers
-                .filter((user) => user.id !== userId)
-                .map((user) => {
-                  const userInfo = getUserInfo(user.id);
-                  const clientInfo = getClientTypeInfo(user.id);
-                  const IconComponent = clientInfo.icon;
+          <div className="group/users flex items-center gap-2">
+            <div className="flex -space-x-2 group-hover/users:space-x-1">
+              {otherUsers.slice(0, LIMIT).map((user) => {
+                const userInfo = getUserInfo(user.id);
+                const clientInfo = getClientTypeInfo(user.id);
+                const IconComponent = clientInfo.icon;
 
-                  return (
-                    <div
-                      key={user.id}
-                      className="shrink-0 overflow-hidden rounded-full border-2"
-                      style={{
-                        borderColor: getClientColor(user.id, getUserColor),
-                      }}
-                      title={
-                        clientInfo.type === "user"
-                          ? (userInfo?.name ?? "Unknown User")
-                          : clientInfo.name
-                      }
-                    >
-                      {IconComponent ? (
-                        <div
-                          className={`flex size-8 items-center justify-center rounded-full ${clientInfo.backgroundColor}`}
-                        >
-                          <IconComponent
-                            className={`size-4 ${clientInfo.textColor}`}
-                          />
-                        </div>
-                      ) : userInfo?.picture ? (
-                        <img
-                          src={userInfo.picture}
-                          alt={userInfo.name ?? "User"}
-                          className="h-8 w-8 rounded-full bg-gray-300"
+                return (
+                  <div
+                    key={user.id}
+                    className="shrink-0 overflow-hidden rounded-full border-2 transition-[margin]"
+                    style={{
+                      borderColor: getClientColor(user.id, getUserColor),
+                    }}
+                    title={
+                      clientInfo.type === "user"
+                        ? (userInfo?.name ?? "Unknown User")
+                        : clientInfo.name
+                    }
+                  >
+                    {IconComponent ? (
+                      <div
+                        className={`flex size-8 items-center justify-center rounded-full ${clientInfo.backgroundColor}`}
+                      >
+                        <IconComponent
+                          className={`size-4 ${clientInfo.textColor}`}
                         />
-                      ) : (
-                        <Avatar
-                          initials={
-                            userInfo?.name?.charAt(0).toUpperCase() ?? "?"
-                          }
-                          backgroundColor={getUserColor(user.id)}
-                        />
-                      )}
-                    </div>
-                  );
-                })}
+                      </div>
+                    ) : userInfo?.picture ? (
+                      <img
+                        src={userInfo.picture}
+                        alt={userInfo.name ?? "User"}
+                        className="h-8 w-8 rounded-full bg-gray-300"
+                      />
+                    ) : (
+                      <Avatar
+                        initials={
+                          userInfo?.name?.charAt(0).toUpperCase() ?? "?"
+                        }
+                        backgroundColor={getUserColor(user.id)}
+                      />
+                    )}
+                  </div>
+                );
+              })}
             </div>
+            {otherUsers.length > LIMIT && (
+              <div className="flex items-center gap-1">
+                <span className="text-muted-foreground text-xs">
+                  +{otherUsers.length - LIMIT}
+                </span>
+              </div>
+            )}
 
             {import.meta.env.DEV && onDebugToggle && (
               <Button
@@ -495,7 +224,10 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
                     variant={contextSelectionMode ? "default" : "outline"}
                     size="sm"
                     onClick={() =>
-                      setContextSelectionMode(!contextSelectionMode)
+                      store.setSignal(
+                        contextSelectionMode$,
+                        !contextSelectionMode
+                      )
                     }
                     className="flex items-center gap-1 sm:gap-2"
                   >
@@ -552,27 +284,16 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
 
             {/* Cells */}
             {cellReferences.length === 0 ? (
-              <EmptyStateCellAdder onAddCell={addCell} />
+              <EmptyStateCellAdder />
             ) : (
               <>
                 <ErrorBoundary fallback={<div>Error rendering cell list</div>}>
-                  <CellList
-                    cellReferences={cellReferences}
-                    focusedCellId={focusedCellId}
-                    onAddCell={addCell}
-                    onDeleteCell={deleteCell}
-                    onMoveUp={(cellId) => moveCell(cellId, "up")}
-                    onMoveDown={(cellId) => moveCell(cellId, "down")}
-                    onFocusNext={focusNextCell}
-                    onFocusPrevious={focusPreviousCell}
-                    onFocus={focusCell}
-                    contextSelectionMode={contextSelectionMode}
-                  />
+                  <CellList cellReferences={cellReferences} />
                 </ErrorBoundary>
                 {/* Add Cell Buttons */}
                 <div className="border-border/30 mt-6 border-t px-4 pt-4 sm:mt-8 sm:px-0 sm:pt-6">
                   <div className="space-y-3 text-center">
-                    <CellAdder onAddCell={addCell} position="after" />
+                    <CellAdder position="after" />
                     <div className="text-muted-foreground mt-2 hidden text-xs sm:block">
                       Add a new cell
                     </div>

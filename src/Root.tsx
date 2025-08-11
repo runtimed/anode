@@ -273,7 +273,7 @@ export const App: React.FC = () => {
     const checkInterval = setInterval(() => {
       if (isLoadingScreenVisible()) {
         // Check if React has rendered content
-        const rootElement = document.getElementById("root");
+        const rootElement = document.getElementById("react-app");
         const hasContent = rootElement && rootElement.children.length > 0;
 
         if (hasContent) {

@@ -1,6 +1,12 @@
 import { makeDurableObject, makeWorker } from "@livestore/sync-cf/cf-worker";
-
-import { Env } from "./types";
+import {
+  workerGlobals,
+  type Env,
+  type WorkerRequest,
+  type WorkerResponse,
+  type ExecutionContext,
+  type SimpleHandler,
+} from "./types";
 
 import { validateAuthPayload, validateProductionEnvironment } from "./auth";
 
@@ -13,14 +19,18 @@ export class WebSocketServer extends makeDurableObject({
   },
 }) {}
 
-export default {
-  fetch: async (request: Request, env: Env, ctx: ExecutionContext) => {
+const handler: SimpleHandler = {
+  fetch: async (
+    request: WorkerRequest,
+    env: Env,
+    ctx: ExecutionContext
+  ): Promise<WorkerResponse> => {
     // Validate environment on first request
     try {
       validateProductionEnvironment(env);
     } catch (error: any) {
       console.error("💥 Startup validation failed:", error.message);
-      return new Response(
+      return new workerGlobals.Response(
         JSON.stringify({
           error: "STARTUP_VALIDATION_FAILED",
           message: error.message,
@@ -51,7 +61,7 @@ export default {
 
     // Handle health endpoint
     if (url.pathname === "/health") {
-      return new Response(
+      return new workerGlobals.Response(
         JSON.stringify({
           status: "healthy",
           deployment_env: env.DEPLOYMENT_ENV || "development",
@@ -77,7 +87,7 @@ export default {
     // Handle CORS preflight for all requests
     if (request.method === "OPTIONS") {
       console.log("✅ Handling CORS preflight request");
-      return new Response(null, {
+      return new workerGlobals.Response(null, {
         status: 204,
         headers: {
           "Access-Control-Allow-Origin": "*",
@@ -99,7 +109,7 @@ export default {
         searchParams: url.searchParams.toString(),
       });
 
-      const worker = makeWorker({
+      const worker: SimpleHandler = makeWorker({
         validatePayload: async (payload: any) => {
           console.log("🔐 Validating payload:", {
             hasAuthToken: !!payload?.authToken,
@@ -171,7 +181,7 @@ export default {
           }
         },
         enableCORS: true,
-      });
+      }) as unknown as SimpleHandler; // This is another problem with the global cloudflare types mismatching. Once this is fixed, we can remove this cast
 
       try {
         const response = await worker.fetch(request, env, ctx);
@@ -208,7 +218,7 @@ export default {
         const authToken = body.authToken;
 
         if (!authToken) {
-          return new Response(
+          return new workerGlobals.Response(
             JSON.stringify({
               error: "MISSING_AUTH_TOKEN",
               message: "No authToken provided in request body",
@@ -230,7 +240,7 @@ export default {
         // Test authentication
         try {
           await validateAuthPayload({ authToken }, env);
-          return new Response(
+          return new workerGlobals.Response(
             JSON.stringify({
               success: true,
               message: "Authentication successful",
@@ -251,7 +261,7 @@ export default {
             }
           );
         } catch (authError: any) {
-          return new Response(
+          return new workerGlobals.Response(
             JSON.stringify({
               error: "AUTHENTICATION_FAILED",
               message: authError.message,
@@ -275,7 +285,7 @@ export default {
           );
         }
       } catch {
-        return new Response(
+        return new workerGlobals.Response(
           JSON.stringify({
             error: "INVALID_REQUEST",
             message: "Invalid JSON in request body",
@@ -296,7 +306,7 @@ export default {
 
     console.log("❌ Request not handled, returning 404:", url.pathname);
     // Return 404 for non-API routes (web client now served by Pages)
-    return new Response("Not Found", {
+    return new workerGlobals.Response("Not Found", {
       status: 404,
       headers: {
         "Access-Control-Allow-Origin": "*",
@@ -306,3 +316,5 @@ export default {
     });
   },
 };
+
+export default handler;

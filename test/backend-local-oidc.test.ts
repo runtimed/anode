@@ -1,8 +1,8 @@
 import { describe, it, expect, beforeEach } from "vitest";
 import * as openidClient from "openid-client";
 import * as jose from "jose";
-import { handleOidcRequest, generatePEM } from "../backend/local_oidc";
-import { Env } from "../backend/types";
+import localOidcHandler, { generatePEM } from "../backend/local_oidc";
+import { workerGlobals, type Env } from "../backend/types";
 
 function createMockEnv(pem: string, customFetch?: typeof fetch): Env {
   return {
@@ -13,15 +13,15 @@ function createMockEnv(pem: string, customFetch?: typeof fetch): Env {
     DB: {
       prepare: (sql: string) => ({
         run: async () => {},
-        first: async () => ({ pem }),
+        first: async () => ({ value: pem }),
         bind: function (...args: any[]) {
           return {
-            first: async () => ({ pem }),
+            first: async () => ({ value: pem }),
             run: async () => {},
           };
         },
       }),
-    },
+    } as unknown,
     ASSETS: {} as any,
     ARTIFACT_BUCKET: {} as any,
     ARTIFACT_STORAGE: "r2",
@@ -37,8 +37,9 @@ describe("Local OIDC handler", () => {
     url: RequestInfo | URL,
     options?: RequestInit
   ): Promise<Response> => {
-    const request = new Request(url, options);
-    return handleOidcRequest(request, mockEnv);
+    const request = new workerGlobals.Request(url as any, options as any); // More fallout from the cloudflare global type mismatch
+    // Since this is test code, we're just going to cast away our problems
+    return localOidcHandler.fetch(request, mockEnv, {} as any) as any;
   };
 
   beforeEach(async () => {
@@ -88,15 +89,19 @@ describe("Local OIDC handler", () => {
     });
 
     it("should return valid JWKS format", async () => {
-      const request = new Request(
+      const request = new workerGlobals.Request(
         "http://localhost:8787/local_oidc/.well-known/jwks.json"
       );
-      const response = await handleOidcRequest(request, mockEnv);
+      const response = await localOidcHandler.fetch(
+        request,
+        mockEnv,
+        {} as any
+      );
 
       expect(response.status).toBe(200);
       expect(response.headers.get("Content-Type")).toBe("application/json");
 
-      const jwks = await response.json();
+      const jwks: any = await response.json();
       expect(jwks).toHaveProperty("keys");
       expect(Array.isArray(jwks.keys)).toBe(true);
       expect(jwks.keys.length).toBeGreaterThan(0);
@@ -287,12 +292,12 @@ describe("Local OIDC handler", () => {
     });
 
     it("should reject invalid refresh tokens", async () => {
-      const formData = new FormData();
+      const formData = new workerGlobals.FormData();
       formData.append("grant_type", "refresh_token");
       formData.append("client_id", "local-anode-client");
       formData.append("refresh_token", "invalid.refresh.token");
 
-      const refreshRequest = new Request(
+      const refreshRequest = new workerGlobals.Request(
         "http://localhost:8787/local_oidc/token",
         {
           method: "POST",
@@ -300,18 +305,22 @@ describe("Local OIDC handler", () => {
         }
       );
 
-      const refreshResponse = await handleOidcRequest(refreshRequest, mockEnv);
+      const refreshResponse = await localOidcHandler.fetch(
+        refreshRequest,
+        mockEnv,
+        {} as any
+      );
       expect(refreshResponse.status).toBe(400);
       expect(await refreshResponse.text()).toBe("Invalid refresh token");
     });
 
     it("should reject missing refresh token parameter", async () => {
-      const formData = new FormData();
+      const formData = new workerGlobals.FormData();
       formData.append("grant_type", "refresh_token");
       formData.append("client_id", "local-anode-client");
       // Missing refresh_token parameter
 
-      const refreshRequest = new Request(
+      const refreshRequest = new workerGlobals.Request(
         "http://localhost:8787/local_oidc/token",
         {
           method: "POST",
@@ -319,7 +328,11 @@ describe("Local OIDC handler", () => {
         }
       );
 
-      const refreshResponse = await handleOidcRequest(refreshRequest, mockEnv);
+      const refreshResponse = await localOidcHandler.fetch(
+        refreshRequest,
+        mockEnv,
+        {} as any
+      );
       expect(refreshResponse.status).toBe(400);
       expect(await refreshResponse.text()).toBe(
         "Missing refresh_token parameter"
@@ -354,7 +367,7 @@ describe("Local OIDC handler", () => {
       expect(accessToken).toBeDefined();
 
       // Now test the userinfo endpoint
-      const userinfoRequest = new Request(
+      const userinfoRequest = new workerGlobals.Request(
         "http://localhost:8787/local_oidc/userinfo",
         {
           method: "GET",
@@ -364,16 +377,17 @@ describe("Local OIDC handler", () => {
         }
       );
 
-      const userinfoResponse = await handleOidcRequest(
+      const userinfoResponse = await localOidcHandler.fetch(
         userinfoRequest,
-        mockEnv
+        mockEnv,
+        {} as any
       );
       expect(userinfoResponse.status).toBe(200);
       expect(userinfoResponse.headers.get("Content-Type")).toBe(
         "application/json"
       );
 
-      const userinfo = await userinfoResponse.json();
+      const userinfo: any = await userinfoResponse.json();
       expect(userinfo).toHaveProperty("sub");
       expect(userinfo).toHaveProperty("given_name", "Mad");
       expect(userinfo).toHaveProperty("family_name", "Hatter");
@@ -386,16 +400,17 @@ describe("Local OIDC handler", () => {
     });
 
     it("should reject userinfo request without Authorization header", async () => {
-      const userinfoRequest = new Request(
+      const userinfoRequest = new workerGlobals.Request(
         "http://localhost:8787/local_oidc/userinfo",
         {
           method: "GET",
         }
       );
 
-      const userinfoResponse = await handleOidcRequest(
+      const userinfoResponse = await localOidcHandler.fetch(
         userinfoRequest,
-        mockEnv
+        mockEnv,
+        {} as any
       );
       expect(userinfoResponse.status).toBe(401);
       expect(await userinfoResponse.text()).toBe("Invalid access token");
@@ -403,7 +418,7 @@ describe("Local OIDC handler", () => {
     });
 
     it("should reject userinfo request with invalid token", async () => {
-      const userinfoRequest = new Request(
+      const userinfoRequest = new workerGlobals.Request(
         "http://localhost:8787/local_oidc/userinfo",
         {
           method: "GET",
@@ -413,9 +428,10 @@ describe("Local OIDC handler", () => {
         }
       );
 
-      const userinfoResponse = await handleOidcRequest(
+      const userinfoResponse = await localOidcHandler.fetch(
         userinfoRequest,
-        mockEnv
+        mockEnv,
+        {} as any
       );
       expect(userinfoResponse.status).toBe(401);
       expect(await userinfoResponse.text()).toBe("Invalid access token");
