@@ -10,7 +10,7 @@ export const PlainTextOutput: React.FC<PlainTextOutputProps> = ({
   className = "font-mono text-sm whitespace-pre-wrap leading-relaxed text-gray-700",
 }) => {
   // TODO: added stuff for testing
-  return <div className={className}>plain text output {content}</div>;
+  return <div className={className}>{content}</div>;
 };
 
 export default PlainTextOutput;
