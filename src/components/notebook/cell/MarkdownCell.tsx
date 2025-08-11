@@ -92,9 +92,6 @@ export const MarkdownCell: React.FC<MarkdownCellProps> = ({
     (user) => user.id !== userId
   );
 
-  // Use shared outputs hook with markdown-specific configuration
-  const hasOutputs = true;
-
   const changeCellType = useCallback(
     (newType: "code" | "markdown" | "sql" | "ai") => {
       store.commit(
@@ -129,16 +126,14 @@ export const MarkdownCell: React.FC<MarkdownCellProps> = ({
   }, [cell.id, cell.aiContextVisible, store, userId]);
 
   const clearCellOutputs = useCallback(async () => {
-    if (hasOutputs) {
-      store.commit(
-        events.cellOutputsCleared({
-          cellId: cell.id,
-          wait: false,
-          clearedBy: userId,
-        })
-      );
-    }
-  }, [cell.id, store, hasOutputs, userId]);
+    store.commit(
+      events.cellOutputsCleared({
+        cellId: cell.id,
+        wait: false,
+        clearedBy: userId,
+      })
+    );
+  }, [cell.id, store, userId]);
 
   // Use shared keyboard navigation hook
   const { keyMap, handleKeyDown } = useCellKeyboardNavigation({
@@ -241,7 +236,7 @@ export const MarkdownCell: React.FC<MarkdownCellProps> = ({
           onMoveDown={onMoveDown}
           onDeleteCell={onDeleteCell}
           onClearOutputs={clearCellOutputs}
-          hasOutputs={hasOutputs}
+          hasOutputs={true}
           toggleSourceVisibility={toggleSourceVisibility}
           toggleAiContextVisibility={toggleAiContextVisibility}
         />
