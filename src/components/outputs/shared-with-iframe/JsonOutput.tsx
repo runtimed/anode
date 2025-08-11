@@ -18,7 +18,7 @@ export const JsonOutput: React.FC<JsonOutputProps> = ({
       <ReactJsonView
         src={jsonData}
         theme="rjv-default"
-        collapsed={false}
+        collapsed={compact ? 1 : false}
         displayDataTypes={false}
         displayObjectSize={false}
         enableClipboard={true}
