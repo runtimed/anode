@@ -6,6 +6,10 @@ export function injectLoadingScreen(): Plugin {
     transformIndexHtml: {
       order: "pre",
       handler(html) {
+        if (html.includes('name="livestore-devtools"')) {
+          return html;
+        }
+
         // Static HTML loading screen that matches NotebookLoadingScreen styling
         const loadingHTML = `
           <div id="static-loading-screen" style="
