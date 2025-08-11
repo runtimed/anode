@@ -33,13 +33,3 @@ routes = [{ pattern = "preview.runtusercontent.com", custom_domain = true }]
 [env.preview.assets]
 directory = "./dist"
 binding = "ASSETS"
-
-
-# Staging Environment
-[env.staging]
-name = "anode-iframe-outputs-staging"
-routes = [{ pattern = "staging.runtusercontent.com", custom_domain = true }]
-
-[env.staging.assets]
-directory = "./dist"
-binding = "ASSETS"

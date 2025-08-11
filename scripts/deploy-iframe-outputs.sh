@@ -41,12 +41,12 @@ cd "$IFRAME_DIR"
 
 # Validate environment
 case "$ENV" in
-    production|preview|staging)
+    production|preview)
         echo -e "${GREEN}✓ Valid environment: $ENV${NC}"
         ;;
     *)
         echo -e "${RED}❌ Error: Invalid environment '$ENV'${NC}"
-        echo "Valid environments: production, preview, staging"
+        echo "Valid environments: production, preview"
         exit 1
         ;;
 esac
@@ -63,10 +63,6 @@ case "$ENV" in
         echo "Target domain: https://preview.runtusercontent.com"
         wrangler deploy --env preview
         ;;
-    staging)
-        echo "Target domain: https://staging.runtusercontent.com"
-        wrangler deploy --env staging
-        ;;
 esac
 
 if [ $? -eq 0 ]; then
@@ -81,9 +77,6 @@ if [ $? -eq 0 ]; then
             ;;
         preview)
             echo "   curl -I https://preview.runtusercontent.com"
-            ;;
-        staging)
-            echo "   curl -I https://staging.runtusercontent.com"
             ;;
     esac
     echo ""
