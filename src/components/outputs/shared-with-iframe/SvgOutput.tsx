@@ -1,16 +1,18 @@
+import { throwIfNotInIframe } from "@/util/iframe";
 import React from "react";
-import IframeOutput from "./IframeOutput";
 
 interface SvgOutputProps {
   content: string;
 }
 
 export const SvgOutput: React.FC<SvgOutputProps> = ({ content }) => {
+  throwIfNotInIframe();
+
   return (
     <div className="py-2">
-      <IframeOutput
+      <div
         className="max-w-full overflow-hidden"
-        content={String(content || "")}
+        dangerouslySetInnerHTML={{ __html: content }}
       />
     </div>
   );

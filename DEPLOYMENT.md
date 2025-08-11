@@ -311,23 +311,19 @@ The iframe outputs service is a simple Cloudflare Worker that serves the iframe 
 
 # Deploy to preview (preview.runtusercontent.com)
 ./scripts/deploy-iframe-outputs.sh preview
-
-# Deploy to staging (staging.runtusercontent.com)
-./scripts/deploy-iframe-outputs.sh staging
 ```
 
 **Manual deployment:**
 
 ```bash
 cd iframe-outputs
-pnpm deploy:production  # or deploy:preview, deploy:staging
+pnpm deploy:production  # or deploy:preview
 ```
 
 ### Iframe Service URLs
 
 - **Production**: https://runtusercontent.com
 - **Preview**: https://preview.runtusercontent.com
-- **Staging**: https://staging.runtusercontent.com
 - **Local Development**: http://localhost:8000
 
 ### Environment Configuration

@@ -1,5 +1,5 @@
-import React from "react";
 import ReactJsonView from "@microlink/react-json-view";
+import React from "react";
 
 interface JsonOutputProps {
   data: unknown;

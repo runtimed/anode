@@ -1,3 +1,46 @@
+@layer theme, base, components, utilities;
+@import "tailwindcss/theme.css" layer(theme);
+
+/**
+The preflight styles remove default styles for many elements.
+In iframe outputs, we want users to be able to render a button and see it rendered as one.
+However, since preflight is based on `modern-normalize`, we want to use it to smooth out differences across browsers.
+Docs: https://tailwindcss.com/docs/preflight#overview
+*/
+/* @import "tailwindcss/preflight.css" layer(base); */
+@import "modern-normalize/modern-normalize.css" layer(base);
+@import "tailwindcss/utilities.css" layer(utilities);
+
+@import "tw-animate-css";
+@plugin "@tailwindcss/typography";
+@source "../../src/components/outputs/shared-with-iframe";
+
+:root {
+  --dataframe-border: 1px solid #e5e7eb;
+  --dataframe-bg: #fff;
+  --dataframe-header-bg: #f9fafb;
+  --dataframe-hover-bg: #f3f4f6;
+}
+
+/* Make size calculations make sense */
+* {
+  box-sizing: border-box;
+}
+
+html {
+  /* Use system font stack */
+  font-family:
+    -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial,
+    sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+}
+
+body {
+  /* Reset margin and prevent margin-collapsing from hiding top margins */
+  margin: 0;
+  /* This tiny padding ensures top margins of first child don't collapse with body */
+  padding-top: 0.01px;
+}
+
 /* DataFrame styling for pandas HTML output */
 .dataframe-container table.dataframe {
   border-collapse: collapse;

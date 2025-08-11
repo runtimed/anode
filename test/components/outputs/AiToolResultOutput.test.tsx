@@ -1,8 +1,8 @@
 import React from "react";
 import { render, screen } from "@testing-library/react";
 import { describe, it, expect } from "vitest";
-import { AiToolResultOutput } from "../../../src/components/outputs/AiToolResultOutput";
 import type { AiToolResultData } from "@runt/schema";
+import { AiToolResultOutput } from "../../../src/components/outputs/shared-with-iframe/AiToolResultOutput";
 
 describe("AiToolResultOutput", () => {
   it("renders success result correctly", () => {

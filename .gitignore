@@ -147,8 +147,8 @@ Thumbs.db
 # LiveStore / Anode specific
 tmp/
 .wrangler/
-iframe-outputs/.wrangler/
-iframe-outputs/assets/
+iframe-outputs/worker/.wrangler/
+iframe-outputs/worker/assets/
 SQLite/
 
 # Pyodide cache

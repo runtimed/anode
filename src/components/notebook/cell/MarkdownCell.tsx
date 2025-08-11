@@ -1,6 +1,5 @@
 import { useCellContent } from "@/hooks/useCellContent.js";
 import { useCellKeyboardNavigation } from "@/hooks/useCellKeyboardNavigation.js";
-import { useCellOutputs } from "@/hooks/useCellOutputs.js";
 import { useEditorRegistry } from "@/hooks/useEditorRegistry.js";
 import { useDeleteCell } from "@/hooks/useDeleteCell.js";
 import { useAddCell } from "@/hooks/useAddCell.js";
@@ -37,9 +36,11 @@ interface MarkdownCellProps {
 }
 
 const MarkdownRenderer = React.lazy(() =>
-  import("@/components/outputs/MarkdownRenderer.js").then((m) => ({
-    default: m.MarkdownRenderer,
-  }))
+  import("@/components/outputs/shared-with-iframe/MarkdownRenderer.js").then(
+    (m) => ({
+      default: m.MarkdownRenderer,
+    })
+  )
 );
 
 export const MarkdownCell: React.FC<MarkdownCellProps> = ({
@@ -90,14 +91,6 @@ export const MarkdownCell: React.FC<MarkdownCellProps> = ({
     (user) => user.id !== userId
   );
 
-  // Use shared outputs hook with markdown-specific configuration
-  const { hasOutputs } = useCellOutputs({
-    cellId: cell.id,
-    groupConsecutiveStreams: true,
-    enableErrorOutput: true,
-    enableTerminalOutput: true,
-  });
-
   const changeCellType = useCallback(
     (newType: "code" | "markdown" | "sql" | "ai") => {
       store.commit(
@@ -132,16 +125,14 @@ export const MarkdownCell: React.FC<MarkdownCellProps> = ({
   }, [cell.id, cell.aiContextVisible, store, userId]);
 
   const clearCellOutputs = useCallback(async () => {
-    if (hasOutputs) {
-      store.commit(
-        events.cellOutputsCleared({
-          cellId: cell.id,
-          wait: false,
-          clearedBy: userId,
-        })
-      );
-    }
-  }, [cell.id, store, hasOutputs, userId]);
+    store.commit(
+      events.cellOutputsCleared({
+        cellId: cell.id,
+        wait: false,
+        clearedBy: userId,
+      })
+    );
+  }, [cell.id, store, userId]);
 
   // Create navigation handlers using the registry
   const onFocusNext = useCallback(
@@ -295,7 +286,7 @@ export const MarkdownCell: React.FC<MarkdownCellProps> = ({
           contextSelectionMode={contextSelectionMode}
           onDeleteCell={() => handleDeleteCell("click")}
           onClearOutputs={clearCellOutputs}
-          hasOutputs={hasOutputs}
+          hasOutputs={true}
           toggleSourceVisibility={toggleSourceVisibility}
           toggleAiContextVisibility={toggleAiContextVisibility}
         />
