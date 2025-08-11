@@ -1,3 +1,4 @@
+import { throwIfNotInIframe } from "@/util/iframe";
 import React, { useEffect, useRef } from "react";
 
 interface HtmlOutputProps {
@@ -12,6 +13,8 @@ export const HtmlOutput: React.FC<HtmlOutputProps> = ({
   const ref = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
+    throwIfNotInIframe();
+
     // Use createContextualFragment for efficient HTML/SVG parsing and script execution
     // Without this, scripts don't run
     const range = document.createRange();
@@ -22,10 +25,7 @@ export const HtmlOutput: React.FC<HtmlOutputProps> = ({
     }
   }, [content]);
 
-  return (
-    // TODO: if not in an iframe, we should create one
-    <div ref={ref} className={className} />
-  );
+  return <div ref={ref} className={className} />;
 };
 
 export default HtmlOutput;

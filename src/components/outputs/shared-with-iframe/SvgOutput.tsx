@@ -1,3 +1,4 @@
+import { throwIfNotInIframe } from "@/util/iframe";
 import React from "react";
 
 interface SvgOutputProps {
@@ -5,6 +6,8 @@ interface SvgOutputProps {
 }
 
 export const SvgOutput: React.FC<SvgOutputProps> = ({ content }) => {
+  throwIfNotInIframe();
+
   return (
     <div className="py-2">
       <div
