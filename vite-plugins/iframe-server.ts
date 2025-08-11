@@ -4,6 +4,9 @@ import { join, extname } from "node:path";
 import { existsSync } from "node:fs";
 import type { Plugin, ViteDevServer } from "vite";
 
+// Global server reference to persist across Vite restarts
+let globalIframeServer: ReturnType<typeof createServer> | null = null;
+
 const mimeTypes: Record<string, string> = {
   ".html": "text/html",
   ".js": "text/javascript",
@@ -17,8 +20,6 @@ const mimeTypes: Record<string, string> = {
 };
 
 export function iframeServerPlugin(): Plugin {
-  let server: ReturnType<typeof createServer> | null = null;
-
   return {
     name: "iframe-server",
     apply: "serve", // Only run in dev mode
@@ -43,8 +44,22 @@ export function iframeServerPlugin(): Plugin {
 
       const iframeOutputsDir = join(process.cwd(), "iframe-outputs");
 
+      // If server already exists and is listening, reuse it
+      if (globalIframeServer && globalIframeServer.listening) {
+        viteServer.config.logger.info(
+          `  ➜  Iframe server: http://localhost:${port} (reusing existing)`
+        );
+        return;
+      }
+
+      // Clean up any existing server before creating a new one
+      if (globalIframeServer) {
+        globalIframeServer.close();
+        globalIframeServer = null;
+      }
+
       // Create HTTP server
-      server = createServer(async (req, res) => {
+      globalIframeServer = createServer(async (req, res) => {
         try {
           // Default to index.html for root path
           let filePath = req.url === "/" ? "/index.html" : req.url || "";
@@ -91,25 +106,40 @@ export function iframeServerPlugin(): Plugin {
       });
 
       // Start the server
-      server.listen(port, () => {
+      globalIframeServer.listen(port, () => {
         viteServer.config.logger.info(
           `  ➜  Iframe server: http://localhost:${port}`
         );
       });
 
-      // Handle graceful shutdown
-      process.on("SIGTERM", () => {
-        if (server) {
-          server.close();
+      // Handle error when port is already in use
+      globalIframeServer.on("error", (err: any) => {
+        if (err.code === "EADDRINUSE") {
+          viteServer.config.logger.warn(
+            `Port ${port} already in use for iframe server`
+          );
+        } else {
+          console.error("Iframe server error:", err);
         }
       });
+
+      // Handle graceful shutdown
+      const cleanup = () => {
+        if (globalIframeServer) {
+          globalIframeServer.close();
+          globalIframeServer = null;
+        }
+      };
+
+      process.on("SIGTERM", cleanup);
+      process.on("SIGINT", cleanup);
     },
 
     closeBundle() {
       // Clean up server when Vite closes
-      if (server) {
-        server.close();
-        server = null;
+      if (globalIframeServer) {
+        globalIframeServer.close();
+        globalIframeServer = null;
       }
     },
   };
