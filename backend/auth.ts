@@ -46,7 +46,7 @@ export function validateProductionEnvironment(env: Env): void {
   }
 }
 
-function extractBearerToken(request: WorkerRequest): string | null {
+export function extractBearerToken(request: WorkerRequest): string | null {
   const authHeader = request.headers.get("Authorization");
   if (!authHeader || !authHeader.toLowerCase().startsWith("bearer ")) {
     return null;

@@ -6,6 +6,7 @@ import {
   type WorkerResponse,
   type ExecutionContext,
   type SimpleHandler,
+  IncomingRequestCfProperties,
 } from "./types";
 
 import { validateAuthPayload, validateProductionEnvironment } from "./auth";
@@ -21,7 +22,7 @@ export class WebSocketServer extends makeDurableObject({
 
 const handler: SimpleHandler = {
   fetch: async (
-    request: WorkerRequest,
+    request: WorkerRequest<unknown, IncomingRequestCfProperties<unknown>>,
     env: Env,
     ctx: ExecutionContext
   ): Promise<WorkerResponse> => {

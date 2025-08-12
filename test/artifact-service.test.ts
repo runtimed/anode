@@ -1,6 +1,11 @@
 import { describe, it, expect, beforeEach, vi, Mock } from "vitest";
 import artifactWorker from "../backend/artifact";
-import { workerGlobals, type Env, type WorkerResponse } from "../backend/types";
+import {
+  IncomingRequestCfProperties,
+  workerGlobals,
+  type Env,
+  type WorkerResponse,
+} from "../backend/types";
 
 describe("Artifact Service", () => {
   let mockEnv: Env;
@@ -25,18 +30,18 @@ describe("Artifact Service", () => {
   it("should upload artifact successfully", async () => {
     mockR2Bucket.put.mockResolvedValue(undefined);
 
-    const request = new workerGlobals.Request(
-      "http://localhost/api/artifacts",
-      {
-        method: "POST",
-        headers: {
-          authorization: "Bearer test-token",
-          "x-notebook-id": "test-notebook",
-          "content-type": "image/png",
-        },
-        body: "test-data",
-      }
-    );
+    const request = new workerGlobals.Request<
+      unknown,
+      IncomingRequestCfProperties<unknown>
+    >("http://localhost/api/artifacts", {
+      method: "POST",
+      headers: {
+        authorization: "Bearer test-token",
+        "x-notebook-id": "test-notebook",
+        "content-type": "image/png",
+      },
+      body: "test-data",
+    });
 
     const response: WorkerResponse = await artifactWorker.fetch(
       request,
@@ -61,9 +66,10 @@ describe("Artifact Service", () => {
     };
     mockR2Bucket.get.mockResolvedValue(mockArtifact);
 
-    const request = new workerGlobals.Request(
-      "http://localhost/api/artifacts/test-notebook/uuid-123"
-    );
+    const request = new workerGlobals.Request<
+      unknown,
+      IncomingRequestCfProperties<unknown>
+    >("http://localhost/api/artifacts/test-notebook/uuid-123");
 
     const response = await artifactWorker.fetch(request, mockEnv, {} as any);
 

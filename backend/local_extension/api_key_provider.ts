@@ -6,6 +6,7 @@ import {
   ErrorType,
   AuthType,
   Scope,
+  Resource,
 } from "@runtimed/extensions";
 import {
   type ApiKeyProvider,
@@ -53,7 +54,7 @@ const claimToMaybeString = (item: unknown): string | undefined => {
 };
 
 const convertRowToApiKey = (row: ApiKeyRow): ApiKey => {
-  return {
+  const key: ApiKey = {
     id: row.kid,
     userId: row.user_id,
     revoked: row.revoked,
@@ -62,10 +63,17 @@ const convertRowToApiKey = (row: ApiKeyRow): ApiKey => {
     userGenerated: row.metadata.userGenerated as boolean,
     name: row.metadata.name as string,
   };
+  if (row.metadata.resources) {
+    key.resources = row.metadata.resources as Resource[];
+  }
+  return key;
 };
 
 const provider: ApiKeyProvider = {
-  capabilities: new Set([ApiKeyCapabilities.Revoke]),
+  capabilities: new Set([
+    ApiKeyCapabilities.Revoke,
+    ApiKeyCapabilities.CreateWithResources,
+  ]),
   isApiKey: (context: ProviderContext): boolean => {
     if (!context.bearerToken) {
       return false;
@@ -140,15 +148,11 @@ const provider: ApiKeyProvider = {
     context: AuthenticatedProviderContext,
     request: CreateApiKeyRequest
   ): Promise<string> => {
-    if (request.resources) {
-      throw new RuntError(ErrorType.CapabilityNotAvailable, {
-        message: "Creating api keys with resources is not supported",
-      });
-    }
     let result: CreateApiKeyResult;
     try {
       const claims: JWTPayload = {
         scopes: request.scopes,
+        resources: request.resources,
       };
       const options: CreateApiKeyOptions = {
         sub: context.passport.user.id,
@@ -170,6 +174,7 @@ const provider: ApiKeyProvider = {
       throw new RuntError(ErrorType.Unknown, { cause: error as Error });
     }
     const db = new D1Driver(context.env.DB);
+    await db.ensureTable();
     try {
       await db.insertApiKey({
         kid: result.kid,
@@ -178,6 +183,7 @@ const provider: ApiKeyProvider = {
         jwk: result.jwk,
         metadata: {
           scopes: request.scopes,
+          resources: request.resources,
           expiresAt: request.expiresAt,
           name: request.name,
           userGenerated: request.userGenerated,
@@ -196,6 +202,7 @@ const provider: ApiKeyProvider = {
     id: string
   ): Promise<ApiKey> => {
     const db = new D1Driver(context.env.DB);
+    await db.ensureTable();
     let row: ApiKeyRow | null;
     try {
       row = await db.getApiKey(id);
@@ -215,6 +222,7 @@ const provider: ApiKeyProvider = {
     request: ListApiKeysRequest
   ): Promise<ApiKey[]> => {
     const db = new D1Driver(context.env.DB);
+    await db.ensureTable();
     let rows: ApiKeyRow[];
     try {
       rows = await db.findApiKeys(
@@ -235,6 +243,7 @@ const provider: ApiKeyProvider = {
     id: string
   ): Promise<void> => {
     const db = new D1Driver(context.env.DB);
+    await db.ensureTable();
     try {
       await db.revokeApiKey({ user_id: context.passport.user.id, kid: id });
     } catch (error) {
