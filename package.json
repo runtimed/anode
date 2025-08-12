@@ -92,6 +92,7 @@
     "lucide-react": "^0.514.0",
     "modern-normalize": "^3.0.1",
     "openid-client": "^6.6.2",
+    "path-to-regexp": "^8.2.0",
     "psl": "^1.15.0",
     "react": "19.0.0",
     "react-dom": "19.0.0",

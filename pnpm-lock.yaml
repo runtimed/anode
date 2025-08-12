@@ -151,6 +151,9 @@ importers:
       openid-client:
         specifier: ^6.6.2
         version: 6.6.2
+      path-to-regexp:
+        specifier: ^8.2.0
+        version: 8.2.0
       psl:
         specifier: ^1.15.0
         version: 1.15.0
