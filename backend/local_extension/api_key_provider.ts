@@ -170,6 +170,7 @@ const provider: ApiKeyProvider = {
       throw new RuntError(ErrorType.Unknown, { cause: error as Error });
     }
     const db = new D1Driver(context.env.DB);
+    await db.ensureTable();
     try {
       await db.insertApiKey({
         kid: result.kid,
@@ -196,6 +197,7 @@ const provider: ApiKeyProvider = {
     id: string
   ): Promise<ApiKey> => {
     const db = new D1Driver(context.env.DB);
+    await db.ensureTable();
     let row: ApiKeyRow | null;
     try {
       row = await db.getApiKey(id);
@@ -215,6 +217,7 @@ const provider: ApiKeyProvider = {
     request: ListApiKeysRequest
   ): Promise<ApiKey[]> => {
     const db = new D1Driver(context.env.DB);
+    await db.ensureTable();
     let rows: ApiKeyRow[];
     try {
       rows = await db.findApiKeys(
@@ -235,6 +238,7 @@ const provider: ApiKeyProvider = {
     id: string
   ): Promise<void> => {
     const db = new D1Driver(context.env.DB);
+    await db.ensureTable();
     try {
       await db.revokeApiKey({ user_id: context.passport.user.id, kid: id });
     } catch (error) {

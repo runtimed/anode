@@ -2,7 +2,11 @@ import { describe, it, expect, beforeEach } from "vitest";
 import * as openidClient from "openid-client";
 import * as jose from "jose";
 import localOidcHandler, { generatePEM } from "../backend/local_oidc";
-import { workerGlobals, type Env } from "../backend/types";
+import {
+  IncomingRequestCfProperties,
+  workerGlobals,
+  type Env,
+} from "../backend/types";
 
 function createMockEnv(pem: string, customFetch?: typeof fetch): Env {
   return {
@@ -37,7 +41,10 @@ describe("Local OIDC handler", () => {
     url: RequestInfo | URL,
     options?: RequestInit
   ): Promise<Response> => {
-    const request = new workerGlobals.Request(url as any, options as any); // More fallout from the cloudflare global type mismatch
+    const request = new workerGlobals.Request<
+      unknown,
+      IncomingRequestCfProperties<unknown>
+    >(url as any, options as any); // More fallout from the cloudflare global type mismatch
     // Since this is test code, we're just going to cast away our problems
     return localOidcHandler.fetch(request, mockEnv, {} as any) as any;
   };
@@ -89,9 +96,10 @@ describe("Local OIDC handler", () => {
     });
 
     it("should return valid JWKS format", async () => {
-      const request = new workerGlobals.Request(
-        "http://localhost:8787/local_oidc/.well-known/jwks.json"
-      );
+      const request = new workerGlobals.Request<
+        unknown,
+        IncomingRequestCfProperties<unknown>
+      >("http://localhost:8787/local_oidc/.well-known/jwks.json");
       const response = await localOidcHandler.fetch(
         request,
         mockEnv,
@@ -297,13 +305,13 @@ describe("Local OIDC handler", () => {
       formData.append("client_id", "local-anode-client");
       formData.append("refresh_token", "invalid.refresh.token");
 
-      const refreshRequest = new workerGlobals.Request(
-        "http://localhost:8787/local_oidc/token",
-        {
-          method: "POST",
-          body: formData,
-        }
-      );
+      const refreshRequest = new workerGlobals.Request<
+        unknown,
+        IncomingRequestCfProperties<unknown>
+      >("http://localhost:8787/local_oidc/token", {
+        method: "POST",
+        body: formData,
+      });
 
       const refreshResponse = await localOidcHandler.fetch(
         refreshRequest,
@@ -320,13 +328,13 @@ describe("Local OIDC handler", () => {
       formData.append("client_id", "local-anode-client");
       // Missing refresh_token parameter
 
-      const refreshRequest = new workerGlobals.Request(
-        "http://localhost:8787/local_oidc/token",
-        {
-          method: "POST",
-          body: formData,
-        }
-      );
+      const refreshRequest = new workerGlobals.Request<
+        unknown,
+        IncomingRequestCfProperties<unknown>
+      >("http://localhost:8787/local_oidc/token", {
+        method: "POST",
+        body: formData,
+      });
 
       const refreshResponse = await localOidcHandler.fetch(
         refreshRequest,
@@ -367,15 +375,15 @@ describe("Local OIDC handler", () => {
       expect(accessToken).toBeDefined();
 
       // Now test the userinfo endpoint
-      const userinfoRequest = new workerGlobals.Request(
-        "http://localhost:8787/local_oidc/userinfo",
-        {
-          method: "GET",
-          headers: {
-            Authorization: `Bearer ${accessToken}`,
-          },
-        }
-      );
+      const userinfoRequest = new workerGlobals.Request<
+        unknown,
+        IncomingRequestCfProperties<unknown>
+      >("http://localhost:8787/local_oidc/userinfo", {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      });
 
       const userinfoResponse = await localOidcHandler.fetch(
         userinfoRequest,
@@ -400,12 +408,12 @@ describe("Local OIDC handler", () => {
     });
 
     it("should reject userinfo request without Authorization header", async () => {
-      const userinfoRequest = new workerGlobals.Request(
-        "http://localhost:8787/local_oidc/userinfo",
-        {
-          method: "GET",
-        }
-      );
+      const userinfoRequest = new workerGlobals.Request<
+        unknown,
+        IncomingRequestCfProperties<unknown>
+      >("http://localhost:8787/local_oidc/userinfo", {
+        method: "GET",
+      });
 
       const userinfoResponse = await localOidcHandler.fetch(
         userinfoRequest,
@@ -418,15 +426,15 @@ describe("Local OIDC handler", () => {
     });
 
     it("should reject userinfo request with invalid token", async () => {
-      const userinfoRequest = new workerGlobals.Request(
-        "http://localhost:8787/local_oidc/userinfo",
-        {
-          method: "GET",
-          headers: {
-            Authorization: "Bearer invalid.token.here",
-          },
-        }
-      );
+      const userinfoRequest = new workerGlobals.Request<
+        unknown,
+        IncomingRequestCfProperties<unknown>
+      >("http://localhost:8787/local_oidc/userinfo", {
+        method: "GET",
+        headers: {
+          Authorization: "Bearer invalid.token.here",
+        },
+      });
 
       const userinfoResponse = await localOidcHandler.fetch(
         userinfoRequest,

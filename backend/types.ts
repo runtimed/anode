@@ -9,8 +9,10 @@ import type {
   R2Bucket,
   Headers,
   FormData,
-} from "@cloudflare/workers-types/experimental";
-// N.B. it's important that we pull in all the types directly from /experimental
+  IncomingRequestCfProperties,
+  ExportedHandlerFetchHandler,
+} from "@cloudflare/workers-types";
+// N.B. it's important that we pull in all the types directly from @cloudflare/workers-types
 // because we are NOT adding @cloudflare/workers-types to the types[] field in tsconfig.json
 // This means that e.g. the global Request and Response objects are not correct
 // If we use the experimental types, then these don't assume the global vars are correctly typed
@@ -47,6 +49,8 @@ export type Env = {
   // Whether to enable the local_oidc routes
   ALLOW_LOCAL_AUTH?: string;
 
+  DEBUG?: boolean;
+
   customFetch?: typeof fetch; // Only used in unit tests to mock fetch
 };
 
@@ -63,11 +67,7 @@ const workerGlobals = {
   FormData: globalThis.FormData as any as typeof FormData,
 };
 
-export type FetchHandler = (
-  request: WorkerRequest,
-  env: Env,
-  ctx: ExecutionContext
-) => WorkerResponse | Promise<WorkerResponse>;
+export type FetchHandler = ExportedHandlerFetchHandler<Env>;
 
 export type SimpleHandler = {
   fetch: FetchHandler;
@@ -78,7 +78,9 @@ export type {
   WorkerResponse,
   ExecutionContext,
   ExportedHandler,
+  ExportedHandlerFetchHandler,
   Headers,
   FormData,
+  IncomingRequestCfProperties,
 };
 export { workerGlobals };

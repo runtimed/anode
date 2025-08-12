@@ -5,16 +5,18 @@ import {
   type WorkerRequest,
   type SimpleHandler,
   type WorkerResponse,
+  ExportedHandler,
 } from "./types.ts";
 
 import artifactWorker from "./artifact.ts";
 import localOidcHandler from "./local_oidc.ts";
+import apiKeyHandler from "./api_keys.ts";
 
 // The preview worker needs to re-export the Durable Object class
 // so the Workers runtime can find and instantiate it.
 export { WebSocketServer };
 
-import { Env } from "./types.ts";
+import { Env, IncomingRequestCfProperties } from "./types.ts";
 
 // CORS middleware function
 function addCorsHeaders(response: WorkerResponse): WorkerResponse {
@@ -36,7 +38,7 @@ function addCorsHeaders(response: WorkerResponse): WorkerResponse {
 function withCors(handler: SimpleHandler): SimpleHandler {
   return {
     fetch: async (
-      request: WorkerRequest,
+      request: WorkerRequest<unknown, IncomingRequestCfProperties<unknown>>,
       env: Env,
       ctx: ExecutionContext
     ): Promise<WorkerResponse> => {
@@ -46,7 +48,7 @@ function withCors(handler: SimpleHandler): SimpleHandler {
   };
 }
 
-export default {
+const handler: ExportedHandler<Env> = {
   /**
    * The main fetch handler for the all-in-one preview worker.
    * It routes requests to either the backend API (sync worker) or the
@@ -57,7 +59,7 @@ export default {
    * @returns A promise that resolves to a Response.
    */
   async fetch(
-    request: WorkerRequest,
+    request: WorkerRequest<unknown, IncomingRequestCfProperties<unknown>>,
     env: Env,
     ctx: ExecutionContext
   ): Promise<WorkerResponse> {
@@ -113,8 +115,11 @@ export default {
 
       if (allowLocalAuth && url.pathname.startsWith("/local_oidc")) {
         console.log("🔐 Routing to OIDC handler");
-
         return withCors(localOidcHandler).fetch(request, env, ctx);
+      }
+      if (url.pathname.startsWith("/api/api-keys")) {
+        console.log("🔐 Routing to API key handler");
+        return withCors(apiKeyHandler).fetch(request, env, ctx);
       }
 
       // If it's an API request, delegate it to the imported sync worker's logic.
@@ -190,3 +195,5 @@ export default {
     }
   },
 };
+
+export default handler;
