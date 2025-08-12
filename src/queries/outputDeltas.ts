@@ -30,9 +30,12 @@ export function processDeltas(
 ) {
   return outputs.map((output) => {
     if (output.outputType === "markdown") {
+      const outputDeltasFiltered = outputDeltas.filter(
+        (delta) => delta.outputId === output.id
+      );
       return {
         ...output,
-        data: getFinalContent(output.data || "", outputDeltas).content,
+        data: getFinalContent(output.data || "", outputDeltasFiltered).content,
       };
     }
     return output;
