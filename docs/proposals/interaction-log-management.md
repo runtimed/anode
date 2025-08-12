@@ -21,7 +21,7 @@ This proposal outlines the transition from the current ephemeral notebook system
 ### Proposed State
 - Interaction logs have explicit ownership and permissions
 - User-friendly URLs: `/i/{ulid}/{vanity-url}`
-- Granular permission system (owner, writer, public)
+- Granular permission system (owner, writer)
 - Integration with existing API key system for programmatic access
 
 ## Architecture
@@ -56,9 +56,8 @@ Examples:
 
 **Owner**: Full control - can edit, share, delete, manage API keys
 **Writer**: Can edit content and execute code
-**Public**: Read-only access (when interaction log is marked public)
 
-Permission hierarchy: `Public < Writer < Owner`
+Permission hierarchy: `Writer < Owner`
 
 ## Database Schema
 
@@ -75,8 +74,7 @@ CREATE TABLE interaction_logs (
     vanity_url TEXT NOT NULL,         -- URL-friendly version of title
     created_by TEXT NOT NULL,         -- User ID from auth
     created_at INTEGER NOT NULL,      -- Unix timestamp
-    updated_at INTEGER NOT NULL,
-    is_public INTEGER DEFAULT 0       -- 0=private, 1=public
+    updated_at INTEGER NOT NULL
 );
 
 -- migrations/0002_create_log_permissions.sql  
@@ -177,7 +175,6 @@ Extends recently merged API key work:
 
 ### Vanity URLs
 - **User Experience**: Shareable URLs that hint at content
-- **SEO-friendly**: Better for public interaction logs
 - **Flexible**: Can be regenerated if title changes
 
 ### Owner-Centric Model
@@ -206,7 +203,8 @@ WORKER_TO_WORKER_TOKEN=secure-production-token
 
 ## Future Considerations
 
-- **Organization Support**: Multi-user teams with role-based access
+- **Public Sharing**: Read-only access, sandboxing, published snapshots
+- **Organization Support**: Multi-user teams with role-based access  
 - **Advanced Sharing**: Time-limited access, view-only links
 - **Audit Logging**: Track access patterns and permission changes
 - **API Rate Limiting**: Per-log and per-user quotas
