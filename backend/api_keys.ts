@@ -1,4 +1,7 @@
-import { CreateApiKeyRequest } from "@runtimed/extensions/providers/api_key";
+import {
+  ApiKeyCapabilities,
+  CreateApiKeyRequest,
+} from "@runtimed/extensions/providers/api_key";
 import * as jose from "jose";
 import {
   RuntError,
@@ -55,6 +58,14 @@ const validateCreateApiKeyRequest = (
     ) {
       throw new RuntError(ErrorType.InvalidRequest, {
         message: "resources is invalid",
+      });
+    }
+
+    if (
+      !apiKeyProvider.capabilities.has(ApiKeyCapabilities.CreateWithResources)
+    ) {
+      throw new RuntError(ErrorType.CapabilityNotAvailable, {
+        message: "Creating api keys with resources is not supported",
       });
     }
   }
@@ -167,7 +178,11 @@ const mainHandler: ExportedHandlerFetchHandler<Env> = async (
       runtError = new RuntError(ErrorType.Unknown, { cause: error as Error });
     }
     if (runtError.statusCode === 500) {
-      console.error("500 error for request", request.url, JSON.stringify(runtError.getPayload(true), null, 2));
+      console.error(
+        "500 error for request",
+        request.url,
+        JSON.stringify(runtError.getPayload(true), null, 2)
+      );
     }
     return new workerGlobals.Response(
       JSON.stringify(runtError.getPayload(env.DEBUG ?? false)),
