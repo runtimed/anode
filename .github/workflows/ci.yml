@@ -55,6 +55,13 @@ jobs:
       - name: Type check
         run: pnpm type-check
 
+      - name: Check extension_overrides.ts content
+        run: |
+          if ! grep -q "export default {} as Record<string, string>;" extension_overrides.ts; then
+            echo "Error: extension_overrides.ts does not contain the expected string"
+            exit 1
+          fi
+
       - name: Build web client
         run: pnpm build
         env:

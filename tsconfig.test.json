@@ -18,7 +18,8 @@
     "jsx": "react-jsx",
     "baseUrl": ".",
     "paths": {
-      "@/*": ["./src/*"]
+      "@/*": ["./src/*"],
+      "@runtimed/extension_impl": ["./backend/local_extension/index.ts"]
     }
   },
   "include": ["test/**/*"],
