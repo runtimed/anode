@@ -4,19 +4,25 @@ import { WebSocketServer } from "./sync.ts";
 import originalHandler from "./entry.ts";
 
 import { type Env } from "./types.ts";
+import { authMiddleware, type AuthContext } from "./middleware.ts";
 
 // Re-export the Durable Object class for the Workers runtime
 export { WebSocketServer };
 
 // Create a simple Hono app for middleware
-const app = new Hono<{ Bindings: Env }>();
+const app = new Hono<{ Bindings: Env; Variables: AuthContext }>();
 
 // Global CORS middleware
 app.use(
   "*",
   cors({
     origin: "*",
-    allowHeaders: ["Content-Type", "Authorization"],
+    allowHeaders: [
+      "Content-Type",
+      "Authorization",
+      "x-auth-token",
+      "x-notebook-id",
+    ],
     allowMethods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
   })
 );
@@ -29,6 +35,24 @@ app.use("*", async (c, next) => {
     pathname: url.pathname,
   });
   await next();
+});
+
+// Example migrated route - artifact health check with auth
+app.get("/api/artifacts/health", authMiddleware, (c) => {
+  const userId = c.get("userId");
+  const isRuntime = c.get("isRuntime");
+
+  return c.json({
+    status: "healthy",
+    service: "artifacts",
+    user_id: userId,
+    is_runtime: isRuntime,
+    storage: {
+      has_db: Boolean(c.env.DB),
+      has_r2: Boolean(c.env.ARTIFACT_BUCKET),
+      threshold: c.env.ARTIFACT_THRESHOLD || "16384",
+    },
+  });
 });
 
 // Catch-all route that delegates to original handler
