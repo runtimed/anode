@@ -111,6 +111,38 @@ const handler: ExportedHandler<Env> = {
       allowLocalAuth,
     });
 
+    // Handle JWKS endpoint for API key validation (must be before isApiRequest check)
+    if (url.pathname.match(/^\/api-keys\/[^\/]+\/\.well-known\/jwks\.json$/)) {
+      console.log("🔑 Routing to JWKS endpoint");
+      try {
+        const issuer = env.AUTH_ISSUER;
+        const match = issuer.match(/^http:\/\/localhost:(\d+)\/local_oidc$/);
+        if (!match) {
+          throw new Error("Cannot determine API key issuer from AUTH_ISSUER");
+        }
+        const baseIssuer = new URL(`http://localhost:${match[1]}/api-keys`);
+        const getJWKS = createGetJWKS(baseIssuer);
+        const jwksData = await getJWKS();
+
+        return new workerGlobals.Response(JSON.stringify(jwksData), {
+          headers: {
+            "Content-Type": "application/json",
+            "Access-Control-Allow-Origin": "*",
+            "Cache-Control": "public, max-age=3600",
+          },
+        });
+      } catch (error) {
+        console.error("Failed to serve JWKS:", error);
+        return new workerGlobals.Response(
+          JSON.stringify({ error: "Failed to generate JWKS" }),
+          {
+            status: 500,
+            headers: { "Content-Type": "application/json" },
+          }
+        );
+      }
+    }
+
     if (isApiRequest) {
       if (url.pathname.startsWith("/api/artifacts")) {
         console.log("📦 Routing to artifact worker");
@@ -124,40 +156,6 @@ const handler: ExportedHandler<Env> = {
       if (url.pathname.startsWith("/api/api-keys")) {
         console.log("🔐 Routing to API key handler");
         return withCors(apiKeyHandler).fetch(request, env, ctx);
-      }
-
-      // Handle JWKS endpoint for API key validation
-      if (
-        url.pathname.match(/^\/api-keys\/[^\/]+\/\.well-known\/jwks\.json$/)
-      ) {
-        console.log("🔑 Routing to JWKS endpoint");
-        try {
-          const issuer = env.AUTH_ISSUER;
-          const match = issuer.match(/^http:\/\/localhost:(\d+)\/local_oidc$/);
-          if (!match) {
-            throw new Error("Cannot determine API key issuer from AUTH_ISSUER");
-          }
-          const baseIssuer = new URL(`http://localhost:${match[1]}/api-keys`);
-          const getJWKS = createGetJWKS(baseIssuer);
-          const jwksData = await getJWKS();
-
-          return new workerGlobals.Response(JSON.stringify(jwksData), {
-            headers: {
-              "Content-Type": "application/json",
-              "Access-Control-Allow-Origin": "*",
-              "Cache-Control": "public, max-age=3600",
-            },
-          });
-        } catch (error) {
-          console.error("Failed to serve JWKS:", error);
-          return new workerGlobals.Response(
-            JSON.stringify({ error: "Failed to generate JWKS" }),
-            {
-              status: 500,
-              headers: { "Content-Type": "application/json" },
-            }
-          );
-        }
       }
 
       // Handle interaction logs API
