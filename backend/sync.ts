@@ -60,31 +60,6 @@ const handler: SimpleHandler = {
       timestamp: new Date().toISOString(),
     });
 
-    // Handle health endpoint
-    if (url.pathname === "/health") {
-      return new workerGlobals.Response(
-        JSON.stringify({
-          status: "healthy",
-          deployment_env: env.DEPLOYMENT_ENV || "development",
-          timestamp: new Date().toISOString(),
-          config: {
-            has_auth_token: !!env.AUTH_TOKEN,
-            has_auth_issuer: !!env.AUTH_ISSUER,
-            deployment_env: env.DEPLOYMENT_ENV,
-          },
-        }),
-        {
-          status: 200,
-          headers: {
-            "Content-Type": "application/json",
-            "Access-Control-Allow-Origin": "*",
-            "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
-            "Access-Control-Allow-Headers": "*",
-          },
-        }
-      );
-    }
-
     // Handle CORS preflight for all requests
     if (request.method === "OPTIONS") {
       console.log("✅ Handling CORS preflight request");

@@ -5,6 +5,7 @@ import originalHandler from "./entry.ts";
 import { type Env } from "./types.ts";
 import { type AuthContext } from "./middleware.ts";
 import apiRoutes from "./routes.ts";
+import localOidcRoutes from "./local-oidc-routes.ts";
 
 // Re-export the Durable Object class for the Workers runtime
 export { WebSocketServer };
@@ -32,23 +33,34 @@ app.use("*", async (c, next) => {
   await next();
 });
 
-// Top-level health endpoint for backward compatibility
-app.get("/health", (c) => {
-  return c.json({
-    status: "healthy",
-    deployment_env: c.env.DEPLOYMENT_ENV,
-    timestamp: new Date().toISOString(),
-    framework: "hono",
-    config: {
-      has_auth_token: Boolean(c.env.AUTH_TOKEN),
-      has_auth_issuer: Boolean(c.env.AUTH_ISSUER),
-      deployment_env: c.env.DEPLOYMENT_ENV,
-    },
-  });
+// Environment-based security check middleware for local OIDC
+app.use("/local_oidc/*", async (c, next) => {
+  const allowLocalAuth = c.env.ALLOW_LOCAL_AUTH === "true";
+
+  if (!allowLocalAuth) {
+    return c.json({ error: "Local OIDC is disabled" }, 403);
+  }
+
+  // Security check: prevent local auth in production
+  if (c.env.DEPLOYMENT_ENV === "production") {
+    return c.json(
+      {
+        error: "SECURITY_ERROR",
+        message:
+          "Local authentication cannot be enabled in production environments",
+      },
+      500
+    );
+  }
+
+  await next();
 });
 
-// Mount API routes (health, debug, artifacts)
+// Mount API routes (health, debug, artifacts, API keys)
 app.route("/api", apiRoutes);
+
+// Mount local OIDC routes (development only)
+app.route("/local_oidc", localOidcRoutes);
 
 // Catch-all route that delegates to original handler
 app.all("*", async (c) => {

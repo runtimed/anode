@@ -8,8 +8,6 @@ import {
   ExportedHandler,
 } from "./types.ts";
 
-import localOidcHandler from "./local_oidc.ts";
-
 // The preview worker needs to re-export the Durable Object class
 // so the Workers runtime can find and instantiate it.
 export { WebSocketServer };
@@ -106,11 +104,6 @@ const handler: ExportedHandler<Env> = {
     });
 
     if (isApiRequest) {
-      if (allowLocalAuth && url.pathname.startsWith("/local_oidc")) {
-        console.log("🔐 Routing to OIDC handler");
-        return withCors(localOidcHandler).fetch(request, env, ctx);
-      }
-
       // If it's an API request, delegate it to the imported sync worker's logic.
       // This allows us to reuse the existing backend code without modification.
       console.log("🔄 Routing to sync worker");
@@ -144,7 +137,6 @@ const handler: ExportedHandler<Env> = {
     <li><a href="/health">GET /health</a> - Health check</li>
 
     <li><span class="code">WS /livestore</span> - LiveStore sync</li>
-    ${allowLocalAuth ? '<li><span class="code">GET /local_oidc</span> - OpenID connect implementation for local-only usage</li>' : ""}
   </ul>
   ${!allowLocalAuth ? '<p><em>Local OIDC endpoints are disabled. Set ALLOW_LOCAL_AUTH="true" to enable them.</em></p>' : ""}
 </body>
