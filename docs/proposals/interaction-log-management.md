@@ -157,9 +157,9 @@ Extends recently merged API key work:
 3. Add log-scoped API key creation
 
 ### Phase 4: Migration & Cleanup
-1. Migrate existing notebooks to interaction logs
-2. Assign ownership based on usage patterns or manual assignment
-3. Remove legacy notebook endpoints and redirect to new URLs
+1. Existing notebooks remain as-is (development artifacts, no migration needed)
+2. Remove legacy notebook endpoints and redirect to new interaction log creation
+3. Add banner encouraging users to create new interaction logs for important work
 
 ## Key Design Decisions
 
