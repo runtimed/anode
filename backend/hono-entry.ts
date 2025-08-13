@@ -2,6 +2,7 @@ import { Hono } from "hono";
 import { cors } from "hono/cors";
 import { WebSocketServer } from "./sync.ts";
 import originalHandler from "./entry.ts";
+
 import { type Env } from "./types.ts";
 
 // Re-export the Durable Object class for the Workers runtime
