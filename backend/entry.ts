@@ -3,7 +3,6 @@ import {
   workerGlobals,
   type ExecutionContext,
   type WorkerRequest,
-  type SimpleHandler,
   type WorkerResponse,
   ExportedHandler,
 } from "./types.ts";
@@ -13,36 +12,6 @@ import {
 export { WebSocketServer };
 
 import { Env, IncomingRequestCfProperties } from "./types.ts";
-
-// CORS middleware function
-function addCorsHeaders(response: WorkerResponse): WorkerResponse {
-  const newHeaders = new workerGlobals.Headers(response.headers);
-  newHeaders.set("Access-Control-Allow-Origin", "*");
-  newHeaders.set(
-    "Access-Control-Allow-Methods",
-    "GET, POST, PUT, DELETE, OPTIONS"
-  );
-  newHeaders.set("Access-Control-Allow-Headers", "Content-Type, Authorization");
-
-  return new workerGlobals.Response(response.body, {
-    status: response.status,
-    statusText: response.statusText,
-    headers: newHeaders,
-  });
-}
-
-function withCors(handler: SimpleHandler): SimpleHandler {
-  return {
-    fetch: async (
-      request: WorkerRequest<unknown, IncomingRequestCfProperties<unknown>>,
-      env: Env,
-      ctx: ExecutionContext
-    ): Promise<WorkerResponse> => {
-      const response = await handler.fetch(request, env, ctx);
-      return addCorsHeaders(response);
-    },
-  };
-}
 
 const handler: ExportedHandler<Env> = {
   /**
