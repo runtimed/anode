@@ -10,7 +10,7 @@ export const MaybeCellOutputs = ({
   outputs,
   shouldUseIframe,
 }: {
-  outputs: OutputData[];
+  outputs: readonly OutputData[];
   shouldUseIframe: boolean;
 }) => {
   const outputDeltas = useQuery(
@@ -20,7 +20,7 @@ export const MaybeCellOutputs = ({
   // Apply grouping strategy based on cell type
   const processedOutputs = useMemo(() => {
     // TODO: doesn't .sort mutate?
-    const sorted = outputs.sort(
+    const sorted = [...outputs].sort(
       (a: OutputData, b: OutputData) => a.position - b.position
     );
     const grouped = groupConsecutiveStreamOutputs(sorted);
