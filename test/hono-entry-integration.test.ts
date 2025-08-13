@@ -4,12 +4,10 @@ import honoEntry from "../backend/hono-entry";
 import { type Env } from "../backend/types";
 
 // Mock the original handler
-const mockOriginalHandler = {
-  fetch: vi.fn(),
-};
-
 vi.mock("../backend/entry", () => ({
-  default: mockOriginalHandler,
+  default: {
+    fetch: vi.fn(),
+  },
 }));
 
 // Mock all the route modules
@@ -28,9 +26,14 @@ vi.mock("../backend/sync", () => ({
 
 describe("Hono Entry Integration", () => {
   let mockEnv: Env;
+  let mockOriginalHandler: any;
 
-  beforeEach(() => {
+  beforeEach(async () => {
     vi.clearAllMocks();
+
+    // Get the mocked handler
+    const originalHandlerModule = await import("../backend/entry");
+    mockOriginalHandler = originalHandlerModule.default;
 
     mockEnv = {
       DEPLOYMENT_ENV: "development",
@@ -47,7 +50,11 @@ describe("Hono Entry Integration", () => {
 
   describe("Local OIDC Security Middleware", () => {
     it("should allow local OIDC when ALLOW_LOCAL_AUTH is true and not in production", async () => {
-      const res = await honoEntry.request("/local_oidc/.well-known/openid-configuration", {}, mockEnv);
+      const res = await honoEntry.request(
+        "/local_oidc/.well-known/openid-configuration",
+        {},
+        mockEnv
+      );
 
       expect(res.status).not.toBe(403);
       expect(res.status).not.toBe(500);
@@ -60,7 +67,11 @@ describe("Hono Entry Integration", () => {
         ALLOW_LOCAL_AUTH: "false",
       };
 
-      const res = await honoEntry.request("/local_oidc/.well-known/openid-configuration", {}, restrictedEnv);
+      const res = await honoEntry.request(
+        "/local_oidc/.well-known/openid-configuration",
+        {},
+        restrictedEnv
+      );
       const error = await res.json();
 
       expect(res.status).toBe(403);
@@ -73,7 +84,11 @@ describe("Hono Entry Integration", () => {
         ALLOW_LOCAL_AUTH: undefined,
       };
 
-      const res = await honoEntry.request("/local_oidc/.well-known/openid-configuration", {}, restrictedEnv);
+      const res = await honoEntry.request(
+        "/local_oidc/.well-known/openid-configuration",
+        {},
+        restrictedEnv
+      );
       const error = await res.json();
 
       expect(res.status).toBe(403);
@@ -87,12 +102,18 @@ describe("Hono Entry Integration", () => {
         ALLOW_LOCAL_AUTH: "true", // Even with this enabled
       };
 
-      const res = await honoEntry.request("/local_oidc/.well-known/openid-configuration", {}, productionEnv);
+      const res = await honoEntry.request(
+        "/local_oidc/.well-known/openid-configuration",
+        {},
+        productionEnv
+      );
       const error = await res.json();
 
       expect(res.status).toBe(500);
       expect(error.error).toBe("SECURITY_ERROR");
-      expect(error.message).toBe("Local authentication cannot be enabled in production environments");
+      expect(error.message).toBe(
+        "Local authentication cannot be enabled in production environments"
+      );
     });
 
     it("should allow non-local-oidc routes even when local OIDC is disabled", async () => {
@@ -117,7 +138,11 @@ describe("Hono Entry Integration", () => {
     });
 
     it("should handle local OIDC routes when enabled", async () => {
-      const res = await honoEntry.request("/local_oidc/.well-known/openid-configuration", {}, mockEnv);
+      const res = await honoEntry.request(
+        "/local_oidc/.well-known/openid-configuration",
+        {},
+        mockEnv
+      );
 
       // Should pass security middleware (status won't be 403/500 from security)
       expect(res.status).not.toBe(403);
@@ -160,20 +185,28 @@ describe("Hono Entry Integration", () => {
     });
 
     it("should preserve request method in delegation", async () => {
-      await honoEntry.request("/unknown", {
-        method: "POST",
-        body: JSON.stringify({ test: "data" }),
-        headers: { "Content-Type": "application/json" },
-      }, mockEnv);
+      await honoEntry.request(
+        "/unknown",
+        {
+          method: "POST",
+          body: JSON.stringify({ test: "data" }),
+          headers: { "Content-Type": "application/json" },
+        },
+        mockEnv
+      );
 
       const [request] = mockOriginalHandler.fetch.mock.calls[0];
       expect(request.method).toBe("POST");
     });
 
     it("should preserve request headers in delegation", async () => {
-      await honoEntry.request("/unknown", {
-        headers: { "X-Custom-Header": "test-value" },
-      }, mockEnv);
+      await honoEntry.request(
+        "/unknown",
+        {
+          headers: { "X-Custom-Header": "test-value" },
+        },
+        mockEnv
+      );
 
       const [request] = mockOriginalHandler.fetch.mock.calls[0];
       expect(request.headers.get("X-Custom-Header")).toBe("test-value");
@@ -185,20 +218,30 @@ describe("Hono Entry Integration", () => {
       const res = await honoEntry.request("/api/health", {}, mockEnv);
 
       expect(res.headers.get("Access-Control-Allow-Origin")).toBe("*");
-      expect(res.headers.get("Access-Control-Allow-Methods")).toBe("GET, POST, PUT, DELETE, OPTIONS");
+      expect(res.headers.get("Access-Control-Allow-Methods")).toBe(
+        "GET, POST, PUT, DELETE, OPTIONS"
+      );
     });
 
     it("should handle OPTIONS preflight requests", async () => {
-      const res = await honoEntry.request("/api/health", {
-        method: "OPTIONS",
-      }, mockEnv);
+      const res = await honoEntry.request(
+        "/api/health",
+        {
+          method: "OPTIONS",
+        },
+        mockEnv
+      );
 
       expect(res.status).toBe(204);
       expect(res.headers.get("Access-Control-Allow-Origin")).toBe("*");
     });
 
     it("should add CORS headers to local OIDC routes", async () => {
-      const res = await honoEntry.request("/local_oidc/.well-known/openid-configuration", {}, mockEnv);
+      const res = await honoEntry.request(
+        "/local_oidc/.well-known/openid-configuration",
+        {},
+        mockEnv
+      );
 
       expect(res.headers.get("Access-Control-Allow-Origin")).toBe("*");
     });
@@ -241,14 +284,20 @@ describe("Hono Entry Integration", () => {
 
       // Should not crash when DEPLOYMENT_ENV is undefined
       await expect(
-        honoEntry.request("/local_oidc/.well-known/openid-configuration", {}, envWithoutDeployment)
+        honoEntry.request(
+          "/local_oidc/.well-known/openid-configuration",
+          {},
+          envWithoutDeployment
+        )
       ).resolves.not.toThrow();
     });
   });
 
   describe("Error Handling", () => {
     it("should handle errors from original handler gracefully", async () => {
-      mockOriginalHandler.fetch.mockRejectedValueOnce(new Error("Original handler error"));
+      mockOriginalHandler.fetch.mockRejectedValueOnce(
+        new Error("Original handler error")
+      );
 
       await expect(
         honoEntry.request("/unknown-route", {}, mockEnv)

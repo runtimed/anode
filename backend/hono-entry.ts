@@ -67,7 +67,15 @@ app.all("*", async (c) => {
   // Convert to original Cloudflare Worker format (type incompatibility requires as any)
   const request = c.req.raw as any;
   const env = c.env;
-  const ctx = c.executionCtx as any;
+
+  // Handle test environment where executionCtx might not be available
+  let ctx: any = {};
+  try {
+    ctx = c.executionCtx;
+  } catch {
+    // In test environment, executionCtx throws an error, use empty object
+    ctx = {};
+  }
 
   // Delegate to original handler (requires as any for type compatibility)
   const response = await (originalHandler as any).fetch(request, env, ctx);
