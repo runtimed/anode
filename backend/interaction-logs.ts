@@ -520,5 +520,3 @@ export async function handleInteractionLogRoutes(
     );
   }
 }
-
-export { InteractionLogsService };

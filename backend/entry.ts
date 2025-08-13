@@ -11,12 +11,14 @@ import {
 import artifactWorker from "./artifact.ts";
 import localOidcHandler from "./local_oidc.ts";
 import apiKeyHandler from "./api_keys.ts";
+import { handleInteractionLogRoutes } from "./interaction-logs.ts";
 
 // The preview worker needs to re-export the Durable Object class
 // so the Workers runtime can find and instantiate it.
 export { WebSocketServer };
 
 import { Env, IncomingRequestCfProperties } from "./types.ts";
+import { validateAuthPayload } from "./auth.ts";
 
 // CORS middleware function
 function addCorsHeaders(response: WorkerResponse): WorkerResponse {
@@ -120,6 +122,44 @@ const handler: ExportedHandler<Env> = {
       if (url.pathname.startsWith("/api/api-keys")) {
         console.log("🔐 Routing to API key handler");
         return withCors(apiKeyHandler).fetch(request, env, ctx);
+      }
+
+      // Handle interaction logs API
+      if (url.pathname.startsWith("/api/i")) {
+        console.log("📓 Routing to interaction logs handler");
+        try {
+          const authToken = request.headers.get("Authorization")?.substring(7); // Remove "Bearer "
+          if (!authToken) {
+            return new workerGlobals.Response(
+              JSON.stringify({ error: "Authorization required" }),
+              {
+                status: 401,
+                headers: { "Content-Type": "application/json" },
+              }
+            );
+          }
+
+          const validatedUser = await validateAuthPayload(authToken, env);
+          const response = await handleInteractionLogRoutes(
+            request,
+            env,
+            ctx,
+            validatedUser
+          );
+
+          if (response) {
+            return response;
+          }
+        } catch (error) {
+          console.error("Auth error for interaction logs:", error);
+          return new workerGlobals.Response(
+            JSON.stringify({ error: "Authentication failed" }),
+            {
+              status: 401,
+              headers: { "Content-Type": "application/json" },
+            }
+          );
+        }
       }
 
       // If it's an API request, delegate it to the imported sync worker's logic.
