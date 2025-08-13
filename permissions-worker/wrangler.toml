@@ -1,0 +1,33 @@
+name = "anode-permissions-worker"
+main = "src/index.ts"
+compatibility_date = "2024-12-01"
+compatibility_flags = ["nodejs_compat"]
+
+[env.development]
+name = "anode-permissions-worker-dev"
+
+[[env.development.d1_databases]]
+binding = "DB"
+database_name = "anode-permissions-dev"
+database_id = "create-with-wrangler-d1-create"
+
+[env.development.vars]
+WORKER_TO_WORKER_TOKEN = "dev-permissions-token"
+
+[env.production]
+name = "anode-permissions-worker"
+
+[[env.production.d1_databases]]
+binding = "DB"
+database_name = "anode-permissions"
+database_id = "create-with-wrangler-d1-create"
+
+[[env.production.secrets]]
+name = "WORKER_TO_WORKER_TOKEN"
+
+[build]
+command = "npm run build"
+
+[dev]
+port = 8788
+local_protocol = "http"
