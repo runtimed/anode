@@ -65,7 +65,7 @@ These scripts handle the build process and use the correct environment configura
 **1. Build the Web Client**
 
 ```bash
-# Build for production
+# Build for our deployed production environment
 pnpm build:production
 
 # Or build for preview
@@ -106,6 +106,7 @@ Set in `wrangler.toml`:
 
 - `DEPLOYMENT_ENV`: `"production"`
 - `AUTH_ISSUER`: Your OIDC issuer URL (e.g., `https://your-auth-provider.com`)
+- `EXTENSION_CONFIG`: A JSON encoded string of extra data to pass into the backend extension
 - `ARTIFACT_STORAGE`: `"r2"`
 - `ARTIFACT_THRESHOLD`: `"16384"` (16KB threshold for artifact storage)
 - `AUTH_TOKEN`: Set via secrets (see above)

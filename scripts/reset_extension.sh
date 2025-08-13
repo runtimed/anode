@@ -26,4 +26,8 @@ cat > extension_overrides.ts << EOF
 export default {} as Record<string, string>;
 EOF
 
+echo "Resetting tsconfig.json..."
+# Use jq to reset the @runtimed/extension_impl path mapping
+jq '.compilerOptions.paths."@runtimed/extension_impl" = ["./REPLACE_ME_WITH_EXTENSION_PATH", "./backend/local_extension/index.ts"]' tsconfig.json > tsconfig.json.tmp && mv tsconfig.json.tmp tsconfig.json
+
 echo "Successfully reset extension configuration"

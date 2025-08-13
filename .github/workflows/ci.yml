@@ -55,6 +55,14 @@ jobs:
       - name: Type check
         run: pnpm type-check
 
+      - name: Check tsconfig.json extension path placeholder
+        run: |
+          if ! grep -q "REPLACE_ME_WITH_EXTENSION_PATH" tsconfig.json; then
+            echo "Error: tsconfig.json does not contain REPLACE_ME_WITH_EXTENSION_PATH placeholder"
+            echo "Please ensure the placeholder is present in the committed version"
+            exit 1
+          fi
+
       - name: Check extension_overrides.ts content
         run: |
           if ! grep -q "export default {} as Record<string, string>;" extension_overrides.ts; then
@@ -67,8 +75,11 @@ jobs:
         env:
           VITE_LIVESTORE_SYNC_URL: wss://anode-docworker.rgbkrk.workers.dev/api
 
-      - name: Validate sync worker
-        run: pnpm build:sync
-
       - name: Run tests
         run: pnpm test --run
+
+      - name: Validate preview sync worker
+        run: pnpm build:sync:preview:anaconda
+
+      - name: Validate production sync worker
+        run: pnpm build:sync:production:anaconda

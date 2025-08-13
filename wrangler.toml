@@ -100,6 +100,7 @@ DEPLOYMENT_ENV = "production"
 ARTIFACT_STORAGE = "r2"
 ARTIFACT_THRESHOLD = "16384"
 AUTH_ISSUER = "https://auth.anaconda.com/api/auth"
+EXTENSION_CONFIG='{"apiKeyUrl": "https://anaconda.com/api/iam/api-keys", "userinfoUrl": "https://auth.anaconda.com/api/auth/sessions/whoami"}'
 # Vite build-time variables
 VITE_LIVESTORE_SYNC_URL = "/livestore"
 VITE_AUTH_URI = "https://auth.anaconda.com/api/auth"
@@ -138,6 +139,7 @@ DEPLOYMENT_ENV = "preview"
 ARTIFACT_STORAGE = "r2"
 ARTIFACT_THRESHOLD = "16384"
 AUTH_ISSUER = "https://auth.anaconda.com/api/auth"
+EXTENSION_CONFIG='{"apiKeyUrl": "https://anaconda.com/api/iam/api-keys", "userinfoUrl": "https://auth.anaconda.com/api/auth/sessions/whoami"}'
 # Vite build-time variables
 VITE_LIVESTORE_SYNC_URL = "/livestore"
 VITE_RUNTIME_COMMAND = "pnpm run dev:runtime"

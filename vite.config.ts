@@ -84,6 +84,7 @@ export default defineConfig(({ mode }) => {
   }
 
   return {
+    mode,
     build: {
       sourcemap: true,
     },
