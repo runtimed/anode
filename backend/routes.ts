@@ -2,6 +2,12 @@ import { Hono } from "hono";
 import { v4 as uuidv4 } from "uuid";
 import { authMiddleware, type AuthContext } from "./middleware.ts";
 import { type Env } from "./types.ts";
+import apiKeyProvider from "./local_extension/api_key_provider.ts";
+import {
+  ApiKeyCapabilities,
+  CreateApiKeyRequest,
+} from "@runtimed/extensions/providers/api_key";
+import { RuntError } from "@runtimed/extensions";
 
 const api = new Hono<{ Bindings: Env; Variables: AuthContext }>();
 
@@ -71,6 +77,194 @@ api.post("/debug/auth", async (c) => {
         timestamp: new Date().toISOString(),
       },
       400
+    );
+  }
+});
+
+// API Key routes - all require authentication
+api.post("/api-keys", authMiddleware, async (c) => {
+  try {
+    const body = (await c.req.json()) as CreateApiKeyRequest;
+
+    // Validate request
+    if (
+      !Array.isArray(body.scopes) ||
+      body.scopes.length === 0 ||
+      body.scopes.some((scope) => typeof scope !== "string")
+    ) {
+      return c.json(
+        {
+          error: "INVALID_REQUEST",
+          message: "scopes is invalid",
+        },
+        400
+      );
+    }
+
+    const context = {
+      env: c.env,
+      user: { id: c.get("userId") },
+      passport: c.get("passport"),
+    };
+
+    // TODO: Fix type compatibility for context parameter
+    const result = await apiKeyProvider.createApiKey(context as any, body);
+    return c.json(result);
+  } catch (error: any) {
+    if (error instanceof RuntError) {
+      // TODO: Fix type compatibility between RuntError.statusCode and Hono status codes
+      return c.json(
+        { error: error.type, message: error.message },
+        error.statusCode as any
+      );
+    }
+    return c.json(
+      { error: "INTERNAL_ERROR", message: "Failed to create API key" },
+      500
+    );
+  }
+});
+
+api.get("/api-keys", authMiddleware, async (c) => {
+  try {
+    const limit = parseInt(c.req.query("limit") || "100");
+    const offset = parseInt(c.req.query("offset") || "0");
+
+    const context = {
+      env: c.env,
+      user: { id: c.get("userId") },
+      passport: c.get("passport"),
+    };
+
+    // TODO: Fix type compatibility for context parameter
+    const result = await apiKeyProvider.listApiKeys(context as any, {
+      limit,
+      offset,
+    });
+    return c.json(result);
+  } catch (error: any) {
+    if (error instanceof RuntError) {
+      // TODO: Fix type compatibility between RuntError.statusCode and Hono status codes
+      return c.json(
+        { error: error.type, message: error.message },
+        error.statusCode as any
+      );
+    }
+    return c.json(
+      { error: "INTERNAL_ERROR", message: "Failed to list API keys" },
+      500
+    );
+  }
+});
+
+api.get("/api-keys/:id", authMiddleware, async (c) => {
+  try {
+    const keyId = c.req.param("id");
+    if (!keyId) {
+      return c.json(
+        { error: "INVALID_REQUEST", message: "API key ID is required" },
+        400
+      );
+    }
+
+    const context = {
+      env: c.env,
+      user: { id: c.get("userId") },
+      passport: c.get("passport"),
+    };
+
+    // TODO: Fix type compatibility for context parameter
+    const result = await apiKeyProvider.getApiKey(context as any, keyId);
+    return c.json(result);
+  } catch (error: any) {
+    if (error instanceof RuntError) {
+      // TODO: Fix type compatibility between RuntError.statusCode and Hono status codes
+      return c.json(
+        { error: error.type, message: error.message },
+        error.statusCode as any
+      );
+    }
+    return c.json(
+      { error: "INTERNAL_ERROR", message: "Failed to get API key" },
+      500
+    );
+  }
+});
+
+api.delete("/api-keys/:id", authMiddleware, async (c) => {
+  try {
+    const keyId = c.req.param("id");
+    if (!keyId) {
+      return c.json(
+        { error: "INVALID_REQUEST", message: "API key ID is required" },
+        400
+      );
+    }
+
+    const context = {
+      env: c.env,
+      user: { id: c.get("userId") },
+      passport: c.get("passport"),
+    };
+
+    // TODO: Fix type compatibility for context parameter
+    await apiKeyProvider.deleteApiKey(context as any, keyId);
+    return c.json({ success: true });
+  } catch (error: any) {
+    if (error instanceof RuntError) {
+      // TODO: Fix type compatibility between RuntError.statusCode and Hono status codes
+      return c.json(
+        { error: error.type, message: error.message },
+        error.statusCode as any
+      );
+    }
+    return c.json(
+      { error: "INTERNAL_ERROR", message: "Failed to delete API key" },
+      500
+    );
+  }
+});
+
+api.patch("/api-keys/:id", authMiddleware, async (c) => {
+  try {
+    const keyId = c.req.param("id");
+    if (!keyId) {
+      return c.json(
+        { error: "INVALID_REQUEST", message: "API key ID is required" },
+        400
+      );
+    }
+
+    if (!apiKeyProvider.capabilities.has(ApiKeyCapabilities.Revoke)) {
+      return c.json(
+        {
+          error: "CAPABILITY_NOT_AVAILABLE",
+          message: "Revoke capability is not supported",
+        },
+        501
+      );
+    }
+
+    const context = {
+      env: c.env,
+      user: { id: c.get("userId") },
+      passport: c.get("passport"),
+    };
+
+    // TODO: Fix type compatibility for context parameter
+    await apiKeyProvider.revokeApiKey(context as any, keyId);
+    return c.json({ success: true, message: "API key revoked successfully" });
+  } catch (error: any) {
+    if (error instanceof RuntError) {
+      // TODO: Fix type compatibility between RuntError.statusCode and Hono status codes
+      return c.json(
+        { error: error.type, message: error.message },
+        error.statusCode as any
+      );
+    }
+    return c.json(
+      { error: "INTERNAL_ERROR", message: "Failed to revoke API key" },
+      500
     );
   }
 });
