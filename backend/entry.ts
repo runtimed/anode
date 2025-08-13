@@ -12,6 +12,7 @@ import artifactWorker from "./artifact.ts";
 import localOidcHandler from "./local_oidc.ts";
 import apiKeyHandler from "./api_keys.ts";
 import { handleInteractionLogRoutes } from "./interaction-logs.ts";
+import apiKeyProvider from "./local_extension/api_key_provider.ts";
 
 // The preview worker needs to re-export the Durable Object class
 // so the Workers runtime can find and instantiate it.
@@ -139,7 +140,23 @@ const handler: ExportedHandler<Env> = {
             );
           }
 
-          const validatedUser = await validateAuthPayload({ authToken }, env);
+          let validatedUser;
+
+          // Check if this is an API key first
+          const context = { request, env, ctx, bearerToken: authToken };
+          if (apiKeyProvider && apiKeyProvider.isApiKey(context)) {
+            console.log("🔑 Validating API key for interaction logs");
+            const passport = await apiKeyProvider.validateApiKey(context);
+            validatedUser = {
+              id: passport.user.id,
+              email: passport.user.email,
+            };
+          } else {
+            // Fall back to standard auth (OIDC, AUTH_TOKEN)
+            console.log("🔐 Validating standard auth for interaction logs");
+            validatedUser = await validateAuthPayload({ authToken }, env);
+          }
+
           const response = await handleInteractionLogRoutes(
             request,
             env,
