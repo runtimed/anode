@@ -139,7 +139,7 @@ const handler: ExportedHandler<Env> = {
             );
           }
 
-          const validatedUser = await validateAuthPayload(authToken, env);
+          const validatedUser = await validateAuthPayload({ authToken }, env);
           const response = await handleInteractionLogRoutes(
             request,
             env,
