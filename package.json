@@ -21,6 +21,7 @@
     "build": "vite build --mode development",
     "use-runt": "./scripts/use-runt.sh",
     "build:preview": "vite build --mode preview",
+    "build:production:anaconda": "pnpm run set-extension @runtimed/anaconda 0.1.0 && pnpm run type-check && pnpm run build:production",
     "build:production": "./scripts/optimize-build.sh && vite build --mode production",
     "build:production:fast": "vite build --mode production",
     "build:sync": "vite build --config vite.wrangler_config.ts --mode production && wrangler deploy --dry-run",
