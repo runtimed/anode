@@ -196,12 +196,35 @@ curl -X POST http://localhost:8787/api/i \
 
 ### Tagging System (Labels)
 - **Problem**: Users need to organize and find old interaction logs easily
-- **Solution Approach**: Add tagging/labeling system to interaction logs
-- **Technical Considerations**:
-  - Add `tags` table with many-to-many relationship to `interaction_logs`
-  - Support tag-based filtering in list endpoints
-  - Auto-suggest existing tags in UI
-  - Consider tag hierarchies or categories
+- **Solution Approach**: User-scoped tagging system (each user has private tag namespace)
+- **Design Rationale**:
+  - **Private taxonomy**: Each user organizes content their way
+  - **No conflicts**: Your "work" tag won't clash with other users' "work" tags
+  - **Clean filtering**: Tags naturally scope to what you can access
+  - **Permissions-aligned**: Tags only apply to interaction logs you own/can access
+- **Database Schema**:
+  ```sql
+  CREATE TABLE user_tags (
+      id TEXT PRIMARY KEY,              -- ULID
+      user_id TEXT NOT NULL,           -- Owner of this tag
+      name TEXT NOT NULL,              -- "work", "machine-learning", etc.
+      created_at INTEGER NOT NULL,
+      UNIQUE(user_id, name)            -- Each user can only have one tag with given name
+  );
+  
+  CREATE TABLE interaction_log_tags (
+      log_id TEXT NOT NULL,
+      tag_id TEXT NOT NULL,
+      PRIMARY KEY (log_id, tag_id),
+      FOREIGN KEY (log_id) REFERENCES interaction_logs(id) ON DELETE CASCADE,
+      FOREIGN KEY (tag_id) REFERENCES user_tags(id) ON DELETE CASCADE
+  );
+  ```
+- **API Integration**:
+  - `GET /api/i?tags=work,ml` - Filter by user's tags
+  - `GET /api/i/tags` - List user's existing tags for auto-complete
+  - `POST /api/i/:id/tags` - Add tags to interaction log
+  - `DELETE /api/i/:id/tags/:tagName` - Remove tag from interaction log
 
 ### Title Management Complexity
 - **Problem**: Two different "title" concepts:
