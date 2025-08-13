@@ -180,7 +180,10 @@ export const ExecutableCell: React.FC<ExecutableCellProps> = ({
     }
 
     try {
-      // Clear previous outputs first
+      // Save old outputs to be shown while new ones are being generated
+      setStaleOutputs(outputs);
+
+      // Clear previous outputs before generating new ones
       store.commit(
         events.cellOutputsCleared({
           cellId: cell.id,
@@ -188,7 +191,6 @@ export const ExecutableCell: React.FC<ExecutableCellProps> = ({
           clearedBy: userId,
         })
       );
-      setStaleOutputs(outputs);
 
       // Generate unique queue ID
       const queueId = `exec-${Date.now()}-${Math.random()
