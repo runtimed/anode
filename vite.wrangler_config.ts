@@ -8,6 +8,7 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), "");
   return {
+    mode: mode === "preview" ? "production" : mode,
     build: {
       sourcemap: true,
       rollupOptions: {

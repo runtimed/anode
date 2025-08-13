@@ -84,6 +84,7 @@ export default defineConfig(({ mode }) => {
   }
 
   return {
+    mode: mode === "preview" ? "production" : mode,
     build: {
       sourcemap: true,
     },
