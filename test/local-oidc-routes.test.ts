@@ -458,7 +458,7 @@ describe("Local OIDC Routes", () => {
       expect(res.status).toBe(204);
       expect(res.headers.get("Access-Control-Allow-Origin")).toBe("*");
       expect(res.headers.get("Access-Control-Allow-Methods")).toBe(
-        "GET, POST, OPTIONS"
+        "GET,POST,OPTIONS"
       );
     });
 
