@@ -14,6 +14,7 @@ Docs: https://tailwindcss.com/docs/preflight#overview
 @import "tw-animate-css";
 @plugin "@tailwindcss/typography";
 @source "../../src/components/outputs/shared-with-iframe";
+@source "../../src/components/ui";
 
 :root {
   --dataframe-border: 1px solid #e5e7eb;

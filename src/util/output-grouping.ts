@@ -16,7 +16,7 @@ function isMarkdownOutput(output: OutputData): boolean {
 }
 
 export function groupConsecutiveStreamOutputs(
-  outputs: OutputData[]
+  outputs: readonly OutputData[]
 ): OutputData[] {
   const result: OutputData[] = [];
 

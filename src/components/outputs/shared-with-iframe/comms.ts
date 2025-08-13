@@ -125,6 +125,7 @@ export function useIframeCommsChild() {
     function sendHeight() {
       const BUFFER = 1; // Add a small buffer to prevent scrollbars
       const height = document.body.scrollHeight;
+      console.log("sending height 2", height);
       sendFromIframe({
         type: "iframe-height",
         height: height + BUFFER,
@@ -132,21 +133,18 @@ export function useIframeCommsChild() {
     }
 
     // Send height on load
-    sendHeight();
+    // sendHeight();
 
     // Send height after a short delay to ensure content is rendered
-    setTimeout(sendHeight, 0);
+    // setTimeout(sendHeight, 0);
 
     // Send height when content changes (for dynamic content)
     const observer = new MutationObserver(sendHeight);
     observer.observe(document.body, {
-      childList: true,
-      subtree: true,
+      childList: false,
+      subtree: false,
       attributes: true,
     });
-
-    // Also send height on resize
-    window.addEventListener("resize", sendHeight);
 
     // Handle incoming content updates
     window.addEventListener("message", (event: MessageEvent<ToIframeEvent>) => {
@@ -155,13 +153,33 @@ export function useIframeCommsChild() {
       if (data && data.type === "update-outputs") {
         console.log("update-outputs", data.outputs);
         setOutputs(data.outputs || []);
-        setTimeout(sendHeight, 0);
+        // setTimeout(sendHeight, 50);
       }
     });
 
+    // After the MutationObserver setup
+    const resizeObserver = new ResizeObserver(sendHeight);
+    resizeObserver.observe(document.documentElement); // or document.body, or your content container
+
+    // Capture-phase load listener to catch <img>, <video>, <iframe> loads
+    // document.addEventListener("load", sendHeight, true);
+
+    // Fonts can also change height when they finish loading
+    if ("fonts" in document) {
+      // Fire once all current fonts are ready
+      (document as any).fonts.ready
+        .then(() => {
+          if (document.fonts.size > 0) {
+            sendHeight();
+          }
+        })
+        .catch(() => {});
+    }
+
     return () => {
       observer.disconnect();
-      window.removeEventListener("resize", sendHeight);
+      resizeObserver.disconnect();
+      document.removeEventListener("load", sendHeight, true);
     };
   }, []);
 

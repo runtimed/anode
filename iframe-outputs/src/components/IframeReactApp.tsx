@@ -6,7 +6,7 @@ export const IframeReactApp: React.FC = () => {
   const { outputs } = useIframeCommsChild();
 
   if (outputs.length === 0) {
-    return "No content yet";
+    return null;
   }
 
   // Default content or non-React mode

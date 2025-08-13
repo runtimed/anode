@@ -1,17 +1,21 @@
 import { OutputData } from "@/schema";
 import { groupConsecutiveStreamOutputs } from "@/util/output-grouping";
 import { useQuery } from "@livestore/react";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { SingleOutput } from "./shared-with-iframe/SingleOutput";
 import { useIframeCommsParent } from "./shared-with-iframe/comms";
 import { outputsDeltasQuery, processDeltas } from "@/queries/outputDeltas";
+import { cn } from "@/lib/utils";
+import { useDebounce } from "react-use";
 
 export const MaybeCellOutputs = ({
   outputs,
   shouldUseIframe,
+  isLoading,
 }: {
-  outputs: OutputData[];
+  outputs: readonly OutputData[];
   shouldUseIframe: boolean;
+  isLoading: boolean;
 }) => {
   const outputDeltas = useQuery(
     outputsDeltasQuery(outputs.map((output) => output.id))
@@ -19,20 +23,25 @@ export const MaybeCellOutputs = ({
 
   // Apply grouping strategy based on cell type
   const processedOutputs = useMemo(() => {
-    // TODO: doesn't .sort mutate?
-    const sorted = outputs.sort(
-      (a: OutputData, b: OutputData) => a.position - b.position
-    );
-    const grouped = groupConsecutiveStreamOutputs(sorted);
+    const grouped = groupConsecutiveStreamOutputs(outputs);
     return processDeltas(grouped, outputDeltas);
   }, [outputs, outputDeltas]);
 
   if (!outputs.length) return null;
 
   return (
-    <div className="outputs-container px-4 py-2">
+    <div
+      className={cn(
+        "outputs-container px-4 py-2 transition-opacity duration-300",
+        isLoading ? "opacity-50" : "opacity-100"
+      )}
+    >
       {shouldUseIframe ? (
-        <IframeOutput outputs={processedOutputs} isReact />
+        <IframeOutput
+          outputs={processedOutputs}
+          isReact
+          className="transition-[height] duration-300"
+        />
       ) : (
         processedOutputs.map((output: OutputData, index: number) => (
           <div
@@ -70,6 +79,15 @@ export const IframeOutput: React.FC<IframeOutputProps> = ({
     outputs,
   });
 
+  const [debouncedIframeHeight, setDebouncedIframeHeight] =
+    useState(iframeHeight);
+
+  // Iframe can get height updates pretty often, but we want to avoid layout jumping each time
+  // TODO: ensure that it's a leading debounce!
+  useDebounce(() => setDebouncedIframeHeight(iframeHeight), 200, [
+    iframeHeight,
+  ]);
+
   return (
     <iframe
       src={
@@ -78,7 +96,7 @@ export const IframeOutput: React.FC<IframeOutputProps> = ({
       ref={iframeRef}
       className={className}
       width="100%"
-      height={iframeHeight}
+      height={debouncedIframeHeight}
       style={style}
       sandbox="allow-scripts allow-same-origin"
     />
