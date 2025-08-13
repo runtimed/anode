@@ -1,6 +1,7 @@
 import {
   ApiKeyCapabilities,
   CreateApiKeyRequest,
+  ListApiKeysRequest,
 } from "@runtimed/extensions/providers/api_key";
 import * as jose from "jose";
 import {
@@ -81,7 +82,7 @@ const validateCreateApiKeyRequest = (
   } catch (error) {
     throw new RuntError(ErrorType.InvalidRequest, {
       message: "expiresAt is invalid",
-      cause: error as Error,
+      cause: error,
     });
   }
 
@@ -126,7 +127,7 @@ const parseJsonBody = async <T>(
   } catch (error) {
     throw new RuntError(ErrorType.InvalidRequest, {
       message: "Failed to JSON parse the request body",
-      cause: error as Error,
+      cause: error,
     });
   }
 };
@@ -154,7 +155,7 @@ const createAuthenticatedContext = async (
     if (error instanceof jose.errors.JWTExpired) {
       throw new RuntError(ErrorType.AuthTokenExpired, { cause: error });
     }
-    throw new RuntError(ErrorType.AuthTokenInvalid, { cause: error as Error });
+    throw new RuntError(ErrorType.AuthTokenInvalid, { cause: error });
   }
   const context: AuthenticatedProviderContext = {
     request,
@@ -224,10 +225,30 @@ const listApiKeysHandler: ExportedHandlerFetchHandler<Env> = async (
 ): Promise<WorkerResponse> => {
   const context = await createAuthenticatedContext(request, env, ctx);
   const url = new URL(request.url);
-  const limit = parseInt(url.searchParams.get("limit") || "100");
-  const offset = parseInt(url.searchParams.get("offset") || "0");
+  const limitStr = url.searchParams.get("limit");
+  const offsetStr = url.searchParams.get("offset");
+  const options: ListApiKeysRequest = {};
+  if (apiKeyProvider.capabilities.has(ApiKeyCapabilities.ListKeysPaginated)) {
+    try {
+      if (limitStr) {
+        options.limit = parseInt(limitStr);
+      }
+      if (offsetStr) {
+        options.offset = parseInt(offsetStr);
+      }
+    } catch (error) {
+      throw new RuntError(ErrorType.InvalidRequest, {
+        message: "Invalid pagination parameters",
+        cause: error,
+      });
+    }
+  } else if (limitStr || offsetStr) {
+    throw new RuntError(ErrorType.CapabilityNotAvailable, {
+      message: "Listing api keys with pagination is not supported",
+    });
+  }
 
-  const result = await apiKeyProvider.listApiKeys(context, { limit, offset });
+  const result = await apiKeyProvider.listApiKeys(context, options);
   return new workerGlobals.Response(JSON.stringify(result), {
     headers: { "Content-Type": "application/json" },
   });
@@ -329,7 +350,7 @@ const mainHandler: ExportedHandlerFetchHandler<Env> = async (
     if (error instanceof RuntError) {
       runtError = error;
     } else {
-      runtError = new RuntError(ErrorType.Unknown, { cause: error as Error });
+      runtError = new RuntError(ErrorType.Unknown, { cause: error });
     }
     if (runtError.statusCode === 500) {
       console.error(
