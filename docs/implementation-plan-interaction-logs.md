@@ -192,4 +192,35 @@ curl -X POST http://localhost:8787/api/i \
 - **Incremental Deployment**: Can deploy Hono refactor independently of interaction logs
 - **Rollback Plan**: Feature flag or branch-based deployment allows easy rollback
 
+## Additional Future Considerations
+
+### Tagging System (Labels)
+- **Problem**: Users need to organize and find old interaction logs easily
+- **Solution Approach**: Add tagging/labeling system to interaction logs
+- **Technical Considerations**:
+  - Add `tags` table with many-to-many relationship to `interaction_logs`
+  - Support tag-based filtering in list endpoints
+  - Auto-suggest existing tags in UI
+  - Consider tag hierarchies or categories
+
+### Title Management Complexity
+- **Problem**: Two different "title" concepts:
+  - **Service Title**: User-set title in our interaction logs system (stored in D1)
+  - **LiveStore Title**: Title stored in LiveStore notebook metadata (source of truth)
+- **Technical Challenge**: LiveStore is currently the authoritative source, but it's "out of band" for our service
+- **Potential Solutions**:
+  - **Option A**: Make our service title authoritative, sync to LiveStore
+  - **Option B**: Read LiveStore metadata to get canonical title
+  - **Option C**: Allow both to coexist with clear precedence rules
+- **Considerations**:
+  - LiveStore metadata access patterns
+  - Real-time sync vs periodic sync
+  - Conflict resolution when titles diverge
+  - User experience around title editing
+
+### Integration Points
+- **LiveStore Metadata Access**: Need to determine best patterns for reading notebook metadata
+- **Real-time Updates**: Consider how title changes in LiveStore should update interaction log records
+- **Search & Discovery**: Tags and titles should both contribute to search functionality
+
 This implementation plan provides a clear path forward while addressing the technical debt that made the initial implementation complex.
