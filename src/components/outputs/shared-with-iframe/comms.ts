@@ -4,24 +4,40 @@
 import { OutputData } from "@/schema";
 import { useEffect, useRef, useState } from "react";
 
-type UpdateOutputsEvent = {
-  type: "update-outputs";
+const allowedToIframeEvents = ["update-outputs"] as const;
+const allowedFromIframeEvents = ["iframe-height", "iframe-loaded"] as const;
+
+type ToIframeEventType = (typeof allowedToIframeEvents)[number];
+type FromIframeEventType = (typeof allowedFromIframeEvents)[number];
+
+// Type guard helpers to ensure event types are valid
+function isValidToIframeEventType(type: string): type is ToIframeEventType {
+  return allowedToIframeEvents.includes(type as ToIframeEventType);
+}
+
+function isValidFromIframeEventType(type: string): type is FromIframeEventType {
+  return allowedFromIframeEvents.includes(type as FromIframeEventType);
+}
+
+export type ToIframeEvent = {
+  type: ToIframeEventType;
   outputs: OutputData[];
 };
 
-type IframeLoadedEvent = {
-  type: "iframe-loaded";
-};
-
-type IframeHeightEvent = {
-  type: "iframe-height";
-  height: number;
-};
-
-export type ToIframeEvent = UpdateOutputsEvent;
-export type FromIframeEvent = IframeHeightEvent | IframeLoadedEvent;
+export type FromIframeEvent =
+  | {
+      type: "iframe-loaded";
+    }
+  | {
+      type: "iframe-height";
+      height: number;
+    };
 
 export function sendFromIframe(event: FromIframeEvent) {
+  if (!isValidFromIframeEventType(event.type)) {
+    console.error("Invalid event type", event);
+    return;
+  }
   window.parent.postMessage(event, "*");
 }
 
@@ -30,6 +46,10 @@ export function sendToIframe(
   data: ToIframeEvent
 ) {
   if (iframeElement.contentWindow) {
+    if (!isValidToIframeEventType(data.type)) {
+      console.error("Invalid event type", data);
+      return;
+    }
     iframeElement.contentWindow.postMessage(data, "*");
   } else {
     console.error("Iframe element is not loaded");
@@ -39,11 +59,43 @@ export function sendToIframe(
 export function addParentMessageListener(
   cb: (event: MessageEvent<FromIframeEvent>) => void
 ) {
-  window.addEventListener("message", cb);
+  window.addEventListener("message", (event) => {
+    if (event.source !== window.parent) {
+      console.error("Invalid event source", event);
+      return;
+    }
+    if (!isValidFromIframeEventType(event.data.type)) {
+      console.error("Invalid event type", event.data);
+      return;
+    }
+    cb(event);
+  });
 }
 
 export function removeParentMessageListener(
   cb: (event: MessageEvent<FromIframeEvent>) => void
+) {
+  window.removeEventListener("message", cb);
+}
+
+export function addIframeMessageListener(
+  cb: (event: MessageEvent<ToIframeEvent>) => void
+) {
+  window.addEventListener("message", (event) => {
+    if (event.source !== window.parent) {
+      console.error("Invalid event source", event);
+      return;
+    }
+    if (!isValidToIframeEventType(event.data.type)) {
+      console.error("Invalid event type", event.data);
+      return;
+    }
+    cb(event);
+  });
+}
+
+export function removeIframeMessageListener(
+  cb: (event: MessageEvent<ToIframeEvent>) => void
 ) {
   window.removeEventListener("message", cb);
 }
@@ -147,15 +199,15 @@ export function useIframeCommsChild() {
     });
 
     // Handle incoming content updates
-    window.addEventListener("message", (event: MessageEvent<ToIframeEvent>) => {
+
+    const listener = (event: MessageEvent<ToIframeEvent>) => {
       console.log("received message", event.data);
       const data = event.data;
-      if (data && data.type === "update-outputs") {
-        console.log("update-outputs", data.outputs);
-        setOutputs(data.outputs || []);
-        // setTimeout(sendHeight, 50);
-      }
-    });
+      console.log("update-outputs", data.outputs);
+      setOutputs(data.outputs || []);
+    };
+
+    addIframeMessageListener(listener);
 
     // After the MutationObserver setup
     const resizeObserver = new ResizeObserver(sendHeight);
@@ -177,6 +229,7 @@ export function useIframeCommsChild() {
     }
 
     return () => {
+      removeIframeMessageListener(listener);
       observer.disconnect();
       resizeObserver.disconnect();
       document.removeEventListener("load", sendHeight, true);
