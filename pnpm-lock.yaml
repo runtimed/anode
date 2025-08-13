@@ -104,8 +104,8 @@ importers:
         specifier: jsr:^0.11.1
         version: '@jsr/runt__schema@0.11.1(f9c23af240f2640c0a9abef8711d3cc6)'
       '@runtimed/extensions':
-        specifier: ^0.2.0
-        version: 0.2.0(@cloudflare/workers-types@4.20250801.0)
+        specifier: ^0.3.0
+        version: 0.3.0(@cloudflare/workers-types@4.20250801.0)
       '@tanstack/react-virtual':
         specifier: ^3.13.12
         version: 3.13.12(react-dom@19.0.0(react@19.0.0))(react@19.0.0)
@@ -1992,8 +1992,8 @@ packages:
     cpu: [x64]
     os: [win32]
 
-  '@runtimed/extensions@0.2.0':
-    resolution: {integrity: sha512-VNxtsBU4EScEz3arhKVJ7E8sPG/lU+KCpBCblaCDox+5EDPElXIl7sM2PtKHbXc6rGdUcbZD2LJvH2ecLQEvHw==}
+  '@runtimed/extensions@0.3.0':
+    resolution: {integrity: sha512-2OZlQSAo4Ip9mo0PsF1sQI20blRaRzlC1FD1ZS1JfuEzxTTTcANhlXFyFk/EsWQS/YMLuIu5VkogIhK4LGRkfQ==}
     peerDependencies:
       '@cloudflare/workers-types': ^4.20250810.0
 
@@ -6710,7 +6710,7 @@ snapshots:
   '@rollup/rollup-win32-x64-msvc@4.45.0':
     optional: true
 
-  '@runtimed/extensions@0.2.0(@cloudflare/workers-types@4.20250801.0)':
+  '@runtimed/extensions@0.3.0(@cloudflare/workers-types@4.20250801.0)':
     dependencies:
       '@cloudflare/workers-types': 4.20250801.0
 

@@ -76,7 +76,7 @@
     "@radix-ui/react-tooltip": "^1.1.6",
     "@react-spring/web": "^10.0.1",
     "@runt/schema": "jsr:^0.11.1",
-    "@runtimed/extensions": "^0.2.0",
+    "@runtimed/extensions": "^0.3.0",
     "@tanstack/react-virtual": "^3.13.12",
     "@types/react-syntax-highlighter": "^15.5.13",
     "@uiw/codemirror-theme-github": "^4.23.14",
