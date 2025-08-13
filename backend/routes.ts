@@ -1,4 +1,5 @@
 import { Hono } from "hono";
+import { v4 as uuidv4 } from "uuid";
 import { authMiddleware, type AuthContext } from "./middleware.ts";
 import { type Env } from "./types.ts";
 
@@ -27,18 +28,8 @@ artifacts.post("/", authMiddleware, async (c) => {
     // TODO: Validate the notebook ID
     // TODO: Validate that the user has permission to add artifacts to this notebook
     // TODO: Validate that the artifact name is unique within the notebook
-    //
     // TODO: Compute hash of data on the fly
-    // For now we'll just accept a random UUID as the artifact ID
     // TODO: Rely on multipart upload for large files
-    const uuidv4 = () =>
-      // @ts-ignore
-      ([1e7] + -1e3 + -4e3 + -8e3 + -1e11).replace(/[018]/g, (c) =>
-        (
-          c ^
-          (crypto.getRandomValues(new Uint8Array(1))[0] & (15 >> (c / 4)))
-        ).toString(16)
-      );
 
     const artifactId = `${notebookId}/${uuidv4()}`;
     await c.env.ARTIFACT_BUCKET.put(artifactId, await c.req.arrayBuffer(), {
