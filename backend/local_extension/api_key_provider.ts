@@ -73,7 +73,6 @@ const provider: ApiKeyProvider = {
   capabilities: new Set([
     ApiKeyCapabilities.Revoke,
     ApiKeyCapabilities.CreateWithResources,
-    ApiKeyCapabilities.ListKeysPaginated,
   ]),
   isApiKey: (context: ProviderContext): boolean => {
     if (!context.bearerToken) {

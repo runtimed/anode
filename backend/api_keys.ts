@@ -29,6 +29,11 @@ import { pathToRegexp } from "path-to-regexp";
 import backendExtension from "@runtimed/extension_impl";
 const { apiKey: apiKeyProvider } = backendExtension;
 
+// Assert that the API key provider is available
+if (!apiKeyProvider) {
+  throw new Error("API key provider is not available");
+}
+
 // ajv doesn't work in cloudflare workers, so just implement manual validation
 const validateCreateApiKeyRequest = (
   body: unknown
@@ -83,7 +88,7 @@ const validateCreateApiKeyRequest = (
   } catch (error) {
     throw new RuntError(ErrorType.InvalidRequest, {
       message: "expiresAt is invalid",
-      cause: error,
+      cause: error as Error,
     });
   }
 
@@ -128,7 +133,7 @@ const parseJsonBody = async <T>(
   } catch (error) {
     throw new RuntError(ErrorType.InvalidRequest, {
       message: "Failed to JSON parse the request body",
-      cause: error,
+      cause: error as Error,
     });
   }
 };
@@ -156,7 +161,7 @@ const createAuthenticatedContext = async (
     if (error instanceof jose.errors.JWTExpired) {
       throw new RuntError(ErrorType.AuthTokenExpired, { cause: error });
     }
-    throw new RuntError(ErrorType.AuthTokenInvalid, { cause: error });
+    throw new RuntError(ErrorType.AuthTokenInvalid, { cause: error as Error });
   }
   const context: AuthenticatedProviderContext = {
     request,
@@ -229,23 +234,18 @@ const listApiKeysHandler: ExportedHandlerFetchHandler<Env> = async (
   const limitStr = url.searchParams.get("limit");
   const offsetStr = url.searchParams.get("offset");
   const options: ListApiKeysRequest = {};
-  if (apiKeyProvider.capabilities.has(ApiKeyCapabilities.ListKeysPaginated)) {
-    try {
-      if (limitStr) {
-        options.limit = parseInt(limitStr);
-      }
-      if (offsetStr) {
-        options.offset = parseInt(offsetStr);
-      }
-    } catch (error) {
-      throw new RuntError(ErrorType.InvalidRequest, {
-        message: "Invalid pagination parameters",
-        cause: error,
-      });
+  // Parse pagination parameters
+  try {
+    if (limitStr) {
+      options.limit = parseInt(limitStr);
     }
-  } else if (limitStr || offsetStr) {
-    throw new RuntError(ErrorType.CapabilityNotAvailable, {
-      message: "Listing api keys with pagination is not supported",
+    if (offsetStr) {
+      options.offset = parseInt(offsetStr);
+    }
+  } catch (error) {
+    throw new RuntError(ErrorType.InvalidRequest, {
+      message: "Invalid pagination parameters",
+      cause: error as Error,
     });
   }
 
@@ -351,7 +351,7 @@ const mainHandler: ExportedHandlerFetchHandler<Env> = async (
     if (error instanceof RuntError) {
       runtError = error;
     } else {
-      runtError = new RuntError(ErrorType.Unknown, { cause: error });
+      runtError = new RuntError(ErrorType.Unknown, { cause: error as Error });
     }
     if (runtError.statusCode === 500) {
       console.error(
