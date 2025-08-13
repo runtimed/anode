@@ -26,16 +26,14 @@ This proposal outlines the transition from the current ephemeral notebook system
 
 ## Architecture
 
-### Dual-Worker Architecture
+### Single-Worker Architecture
 
-**Main Worker (existing)**: Handles sync, auth, frontend serving, and API key management
-**Permissions Worker (new)**: Dedicated authorization service for interaction logs
+**Main Worker (enhanced)**: Handles sync, auth, frontend serving, API key management, and permissions
 
-This separation provides:
-- Independent scaling of permission checks
-- Clear security boundary
-- Reusable authorization service for future features
-- Simplified main worker logic
+The permissions system is implemented as internal modules:
+- `backend/permissions.ts` - Core permission checking and management logic
+- `backend/interaction-logs.ts` - HTTP API endpoints and business logic
+- Integrated with existing D1 database and authentication flow
 
 ### URL Structure
 
@@ -61,10 +59,9 @@ Permission hierarchy: `Writer < Owner`
 
 ## Database Schema
 
-### Main Database (D1)
-Existing tables remain unchanged. API key system (recently merged) continues to work.
+### Enhanced Database Schema
 
-### Permissions Database (separate D1 for permissions worker)
+Existing tables remain unchanged. API key system continues to work. New tables added for interaction log management:
 
 ```sql
 -- migrations/0001_create_interaction_logs.sql
@@ -93,38 +90,42 @@ CREATE TABLE log_permissions (
 
 ## API Design
 
-### Permissions Worker Endpoints
-
-```
-POST /check
-- Validate user permission for specific interaction log
-- Used internally by main worker before allowing access
-
-POST /logs  
-- Create new interaction log with owner permission
-- Returns ULID and vanity URL for immediate use
-
-GET /logs/{userId}
-- List interaction logs accessible to user
-- Returns permission level for each log
-```
-
-### Main Worker Extensions
+### New API Endpoints
 
 ```
 POST /api/logs
-- Create interaction log (proxies to permissions worker)
-- Returns full URL for immediate navigation
+- Create new interaction log with owner permission
+- Returns ULID, vanity URL, and full URL for navigation
 
 GET /api/logs
-- List user's accessible interaction logs
+- List user's accessible interaction logs  
 - Powers dashboard interface
+
+GET /api/logs/:id
+- Get interaction log details
+- Optional ?include=collaborators for owner view
+
+PUT /api/logs/:id  
+- Update interaction log title/metadata
+- Requires writer permission
+
+DELETE /api/logs/:id
+- Delete interaction log and all permissions
+- Requires owner permission
+
+POST /api/logs/:id/permissions
+- Grant writer permission to another user
+- Requires owner permission
+
+DELETE /api/logs/:id/permissions/:userId
+- Revoke user's permission
+- Requires owner permission
 ```
 
 ## Integration Points
 
 ### LiveStore Sync
-Current sync endpoint `/api/livestore/{storeId}/...` continues working. Permission validation happens before sync operations using the permissions worker.
+Current sync endpoint `/api/livestore/{storeId}/...` continues working. Permission validation happens before sync operations using the internal permissions service.
 
 ### API Key System
 Extends recently merged API key work:
@@ -141,9 +142,9 @@ Extends recently merged API key work:
 ## Migration Strategy
 
 ### Phase 1: Infrastructure
-1. Deploy permissions worker with schema
-2. Add ULID generation to main worker
-3. Create interaction log creation endpoints
+1. Apply database migrations for new tables
+2. Add ULID utilities and permissions modules
+3. Create interaction log API endpoints
 
 ### Phase 2: Frontend
 1. Build dashboard component
@@ -156,9 +157,9 @@ Extends recently merged API key work:
 3. Add log-scoped API key creation
 
 ### Phase 4: Migration & Cleanup
-1. Migrate existing notebooks to interaction logs (all become owned by system admin initially)
-2. Add owner assignment UI for migrated logs
-3. Remove legacy notebook endpoints
+1. Migrate existing notebooks to interaction logs
+2. Assign ownership based on usage patterns or manual assignment
+3. Remove legacy notebook endpoints and redirect to new URLs
 
 ## Key Design Decisions
 
@@ -167,11 +168,11 @@ Extends recently merged API key work:
 - **URL-safe**: Case-insensitive, no special characters
 - **Collision-resistant**: 128-bit entropy like UUID
 
-### Separate Permissions Worker
-- **Security**: Clear authorization boundary
-- **Performance**: Independent scaling of permission checks
-- **Reusability**: Other services can use same permission system
-- **Development**: Cleaner separation of concerns
+### Modular Permissions System
+- **Security**: Clear authorization logic separate from sync/auth concerns
+- **Performance**: Direct database queries without HTTP overhead
+- **Maintainability**: Well-defined interfaces and responsibilities
+- **Development**: Easier testing and debugging within single service
 
 ### Vanity URLs
 - **User Experience**: Shareable URLs that hint at content
@@ -182,17 +183,14 @@ Extends recently merged API key work:
 - **API Key Management**: Only owners create programmatic access
 - **Sharing Control**: Owners decide collaboration level
 
-## Environment Configuration
+## Database Migrations
 
-```bash
-# Development
-PERMISSIONS_WORKER_URL=http://localhost:8788
-WORKER_TO_WORKER_TOKEN=dev-token
-
-# Production  
-PERMISSIONS_WORKER_URL=https://permissions.your-domain.workers.dev
-WORKER_TO_WORKER_TOKEN=secure-production-token
+```sql
+-- migrations/0002_create_interaction_logs.sql
+-- migrations/0003_create_log_permissions.sql
 ```
+
+Apply with existing migration workflow: `pnpm db:migrate`
 
 ## Success Metrics
 
