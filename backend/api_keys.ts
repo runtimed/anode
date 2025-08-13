@@ -26,7 +26,8 @@ import {
 import { extractBearerToken, parseToken } from "./auth";
 import { pathToRegexp } from "path-to-regexp";
 
-import apiKeyProvider from "./local_extension/api_key_provider";
+import backendExtension from "@runtimed/extension_impl";
+const { apiKey: apiKeyProvider } = backendExtension;
 
 // ajv doesn't work in cloudflare workers, so just implement manual validation
 const validateCreateApiKeyRequest = (
