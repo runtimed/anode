@@ -14,7 +14,7 @@ import { useStore } from "@livestore/react";
 import { focusedCellSignal$, hasManuallyFocused$ } from "../signals/focus.js";
 import { events, tables, queries } from "@/schema";
 import { ChevronDown, ChevronUp } from "lucide-react";
-import React, { useCallback, useRef } from "react";
+import React, { useCallback, useEffect, useRef } from "react";
 import { ErrorBoundary } from "react-error-boundary";
 import { CellContainer } from "./shared/CellContainer.js";
 import { CellControls } from "./shared/CellControls.js";
@@ -37,6 +37,7 @@ import { SqlToolbar } from "./toolbars/SqlToolbar.js";
 import { MaybeCellOutputs } from "@/components/outputs/MaybeCellOutputs.js";
 import { useToolApprovals } from "@/hooks/useToolApprovals.js";
 import { AiToolApprovalOutput } from "../../outputs/shared-with-iframe/AiToolApprovalOutput.js";
+import { cn } from "@/lib/utils.js";
 
 // Cell-specific styling configuration
 const getCellStyling = (cellType: "code" | "sql" | "ai") => {
@@ -70,6 +71,7 @@ export const ExecutableCell: React.FC<ExecutableCellProps> = ({
   autoFocus = false,
   contextSelectionMode = false,
 }) => {
+  const hasRunRef = useRef(false);
   const cellRef = useRef<HTMLDivElement>(null);
 
   const { store } = useStore();
@@ -99,7 +101,19 @@ export const ExecutableCell: React.FC<ExecutableCellProps> = ({
   });
 
   // Use shared outputs hook with cell-type-specific configuration
-  const { outputs, hasOutputs } = useCellOutputs(cell.id);
+  const { outputs, hasOutputs, staleOutputs, setStaleOutputs } = useCellOutputs(
+    cell.id
+  );
+
+  // Clear stale outputs when cell is completed or in error state
+  useEffect(() => {
+    if (
+      cell.executionState === "completed" ||
+      cell.executionState === "error"
+    ) {
+      setStaleOutputs([]);
+    }
+  }, [cell.executionState, setStaleOutputs]);
 
   // Shared event handlers
   const changeCellType = useCallback(
@@ -174,6 +188,7 @@ export const ExecutableCell: React.FC<ExecutableCellProps> = ({
           clearedBy: userId,
         })
       );
+      setStaleOutputs(outputs);
 
       // Generate unique queue ID
       const queueId = `exec-${Date.now()}-${Math.random()
@@ -190,6 +205,7 @@ export const ExecutableCell: React.FC<ExecutableCellProps> = ({
           requestedBy: userId,
         })
       );
+      hasRunRef.current = true;
     } catch (error) {
       // Store error information directly
       store.commit(
@@ -211,7 +227,16 @@ export const ExecutableCell: React.FC<ExecutableCellProps> = ({
         })
       );
     }
-  }, [cell.id, localSource, cell.source, cell.executionCount, store, userId]);
+  }, [
+    cell.id,
+    localSource,
+    cell.source,
+    cell.executionCount,
+    store,
+    userId,
+    setStaleOutputs,
+    outputs,
+  ]);
 
   const { interruptExecution: interruptCell } = useInterruptExecution({
     cellId: cell.id,
@@ -443,13 +468,21 @@ export const ExecutableCell: React.FC<ExecutableCellProps> = ({
       {(cell.executionCount ||
         cell.executionState === "running" ||
         cell.executionState === "queued") && (
-        <div className="cell-content mt-1 pr-1 pl-6 sm:pr-4">
-          <div className="text-muted-foreground flex items-center justify-between pb-1 text-xs">
-            <span>
+        <div className="cell-content flex h-7 items-center justify-stretch pr-1 pl-6 sm:pr-4">
+          <div
+            className={cn(
+              "text-muted-foreground flex w-full items-center justify-between text-xs"
+            )}
+          >
+            <span
+              key={cell.executionCount}
+              className="animate-in fade-in duration-300 ease-in-out"
+            >
               {cell.executionState === "running"
                 ? "Executing..."
                 : cell.executionState === "queued"
-                  ? "Queued for execution"
+                  ? // Show count in case runtime is not responsive, to show that at least something is happening
+                    `Queued for execution (execution count: ${cell.executionCount})`
                   : cell.executionCount
                     ? cell.lastExecutionDurationMs
                       ? `Executed in ${
@@ -494,19 +527,14 @@ export const ExecutableCell: React.FC<ExecutableCellProps> = ({
 
       {/* Output Area */}
       {cell.outputVisible &&
-        (hasOutputs || cell.executionState === "running") && (
-          <div className="cell-content bg-background mt-1 max-w-full overflow-hidden px-4 sm:px-4">
-            {cell.executionState === "running" && !hasOutputs && (
-              <div className="border-l-2 border-blue-200 py-3 pl-1">
-                <div className="flex items-center gap-2">
-                  <div className="h-4 w-4 animate-spin rounded-full border-2 border-blue-600 border-t-transparent"></div>
-                  <span className="text-sm text-blue-700">Executing...</span>
-                </div>
-              </div>
-            )}
+        (hasOutputs ||
+          cell.executionState === "running" ||
+          staleOutputs.length > 0) && (
+          <div className="cell-content bg-background max-w-full overflow-hidden px-4 sm:px-4">
             <ErrorBoundary FallbackComponent={OutputsErrorBoundary}>
               <MaybeCellOutputs
-                outputs={outputs}
+                isLoading={cell.executionState === "running" && !hasOutputs}
+                outputs={hasOutputs ? outputs : staleOutputs}
                 shouldUseIframe={cell.cellType === "code"}
               />
             </ErrorBoundary>
