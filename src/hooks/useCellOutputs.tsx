@@ -14,7 +14,9 @@ export const useCellOutputs = (cellId: string): CellOutputsResult => {
   const [staleOutputs, setStaleOutputs] = useState<OutputData[]>([]);
 
   const outputs = useQuery(
-    queryDb(tables.outputs.select().where({ cellId }))
+    queryDb(
+      tables.outputs.select().where({ cellId }).orderBy("position", "asc")
+    )
   ) as OutputData[];
 
   const hasOutputs = outputs.length > 0;

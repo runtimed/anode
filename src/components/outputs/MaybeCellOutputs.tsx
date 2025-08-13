@@ -23,10 +23,7 @@ export const MaybeCellOutputs = ({
 
   // Apply grouping strategy based on cell type
   const processedOutputs = useMemo(() => {
-    const sorted = [...outputs].sort(
-      (a: OutputData, b: OutputData) => a.position - b.position
-    );
-    const grouped = groupConsecutiveStreamOutputs(sorted);
+    const grouped = groupConsecutiveStreamOutputs(outputs);
     return processDeltas(grouped, outputDeltas);
   }, [outputs, outputDeltas]);
 
@@ -36,7 +33,7 @@ export const MaybeCellOutputs = ({
     <div
       className={cn(
         "outputs-container px-4 py-2 transition-opacity duration-300",
-        isLoading && "opacity-50"
+        isLoading ? "opacity-50" : "opacity-100"
       )}
     >
       {shouldUseIframe ? (
