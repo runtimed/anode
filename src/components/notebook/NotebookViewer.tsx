@@ -319,6 +319,7 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
           </Suspense>
         )}
       </div>
+      <div className="h-[70vh]"></div>
       {/* Build info footer */}
       <div className="mt-8 flex justify-center border-t px-4 py-2 text-center">
         <GitCommitHash />
