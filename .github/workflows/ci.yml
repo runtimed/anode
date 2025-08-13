@@ -55,6 +55,14 @@ jobs:
       - name: Type check
         run: pnpm type-check
 
+      - name: Check tsconfig.json extension path placeholder
+        run: |
+          if ! grep -q "REPLACE_ME_WITH_EXTENSION_PATH" tsconfig.json; then
+            echo "Error: tsconfig.json does not contain REPLACE_ME_WITH_EXTENSION_PATH placeholder"
+            echo "Please ensure the placeholder is present in the committed version"
+            exit 1
+          fi
+
       - name: Check extension_overrides.ts content
         run: |
           if ! grep -q "export default {} as Record<string, string>;" extension_overrides.ts; then
