@@ -11,12 +11,16 @@ import {
 import artifactWorker from "./artifact.ts";
 import localOidcHandler from "./local_oidc.ts";
 import apiKeyHandler from "./api_keys.ts";
+import { handleInteractionLogRoutes } from "./interaction-logs.ts";
+import apiKeyProvider from "./local_extension/api_key_provider.ts";
+import { createGetJWKS } from "@japikey/authenticate";
 
 // The preview worker needs to re-export the Durable Object class
 // so the Workers runtime can find and instantiate it.
 export { WebSocketServer };
 
 import { Env, IncomingRequestCfProperties } from "./types.ts";
+import { validateAuthPayload } from "./auth.ts";
 
 // CORS middleware function
 function addCorsHeaders(response: WorkerResponse): WorkerResponse {
@@ -107,6 +111,38 @@ const handler: ExportedHandler<Env> = {
       allowLocalAuth,
     });
 
+    // Handle JWKS endpoint for API key validation (must be before isApiRequest check)
+    if (url.pathname.match(/^\/api-keys\/[^\/]+\/\.well-known\/jwks\.json$/)) {
+      console.log("🔑 Routing to JWKS endpoint");
+      try {
+        const issuer = env.AUTH_ISSUER;
+        const match = issuer.match(/^http:\/\/localhost:(\d+)\/local_oidc$/);
+        if (!match) {
+          throw new Error("Cannot determine API key issuer from AUTH_ISSUER");
+        }
+        const baseIssuer = new URL(`http://localhost:${match[1]}/api-keys`);
+        const getJWKS = createGetJWKS(baseIssuer);
+        const jwksData = await getJWKS();
+
+        return new workerGlobals.Response(JSON.stringify(jwksData), {
+          headers: {
+            "Content-Type": "application/json",
+            "Access-Control-Allow-Origin": "*",
+            "Cache-Control": "public, max-age=3600",
+          },
+        });
+      } catch (error) {
+        console.error("Failed to serve JWKS:", error);
+        return new workerGlobals.Response(
+          JSON.stringify({ error: "Failed to generate JWKS" }),
+          {
+            status: 500,
+            headers: { "Content-Type": "application/json" },
+          }
+        );
+      }
+    }
+
     if (isApiRequest) {
       if (url.pathname.startsWith("/api/artifacts")) {
         console.log("📦 Routing to artifact worker");
@@ -120,6 +156,78 @@ const handler: ExportedHandler<Env> = {
       if (url.pathname.startsWith("/api/api-keys")) {
         console.log("🔐 Routing to API key handler");
         return withCors(apiKeyHandler).fetch(request, env, ctx);
+      }
+
+      // Handle interaction logs API
+      if (url.pathname.startsWith("/api/i")) {
+        console.log("📓 Routing to interaction logs handler");
+        try {
+          const authToken = request.headers.get("Authorization")?.substring(7); // Remove "Bearer "
+          if (!authToken) {
+            return new workerGlobals.Response(
+              JSON.stringify({ error: "Authorization required" }),
+              {
+                status: 401,
+                headers: { "Content-Type": "application/json" },
+              }
+            );
+          }
+
+          let validatedUser;
+
+          // Check if this is an API key first
+          const context = { request, env, ctx, bearerToken: authToken };
+          if (apiKeyProvider && apiKeyProvider.isApiKey(context)) {
+            console.log("🔑 Validating API key for interaction logs");
+            try {
+              const passport = await apiKeyProvider.validateApiKey(context);
+              validatedUser = {
+                id: passport.user.id,
+                email: passport.user.email,
+              };
+              console.log(
+                "✅ API key validation successful for user:",
+                validatedUser.id
+              );
+            } catch (error) {
+              console.error("❌ API key validation failed:", error);
+              throw new Error("API key validation failed");
+            }
+          } else {
+            // Fall back to standard auth (OIDC, AUTH_TOKEN)
+            console.log("🔐 Validating standard auth for interaction logs");
+            try {
+              validatedUser = await validateAuthPayload({ authToken }, env);
+              console.log(
+                "✅ Standard auth validation successful for user:",
+                validatedUser.id
+              );
+            } catch (error) {
+              console.error("❌ Standard auth validation failed:", error);
+              throw new Error("Standard auth validation failed");
+            }
+          }
+
+          const response = await handleInteractionLogRoutes(
+            request,
+            env,
+            ctx,
+            validatedUser
+          );
+
+          if (response) {
+            return response;
+          }
+        } catch (error) {
+          console.error("Auth error for interaction logs:", error);
+          return new workerGlobals.Response(
+            JSON.stringify({ error: "Authentication failed" }),
+            {
+              status: 401,
+              headers: { "Content-Type": "application/json" },
+            }
+          );
+        }
       }
 
       // If it's an API request, delegate it to the imported sync worker's logic.
