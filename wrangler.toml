@@ -9,7 +9,7 @@
 
 # Default environment (local development for the all-in-one worker)
 name = "anode-docworker"
-main = "./backend/entry.ts"
+main = "./backend/hono-entry.ts"
 compatibility_date = "2025-05-08"
 compatibility_flags = ["nodejs_compat"]
 
@@ -75,7 +75,7 @@ GOOGLE_CLIENT_ID = "94663405566-1go7jlpd2ar9u9urbfirmtjv1bm0tcis.apps.googleuser
 # New Production Environment (all-in-one worker)
 [env.production]
 name = "anode-main-prod"
-main = "./backend/entry.ts"
+main = "./backend/hono-entry.ts"
 routes = [{ pattern = "app.runt.run", custom_domain = true }]
 [env.production.assets]
 directory = "./dist"
@@ -112,7 +112,7 @@ VITE_RUNTIME_COMMAND = "pnpm run dev:runtime"
 # Preview Environment (all-in-one worker)
 [env.preview]
 name = "anode-docworker-preview"
-main = "./backend/entry.ts"
+main = "./backend/hono-entry.ts"
 routes = [{ pattern = "preview.runt.run", custom_domain = true }]
 [env.preview.assets]
 directory = "./dist"

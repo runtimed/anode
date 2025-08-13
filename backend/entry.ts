@@ -8,9 +8,7 @@ import {
   ExportedHandler,
 } from "./types.ts";
 
-import artifactWorker from "./artifact.ts";
 import localOidcHandler from "./local_oidc.ts";
-import apiKeyHandler from "./api_keys.ts";
 
 // The preview worker needs to re-export the Durable Object class
 // so the Workers runtime can find and instantiate it.
@@ -108,18 +106,9 @@ const handler: ExportedHandler<Env> = {
     });
 
     if (isApiRequest) {
-      if (url.pathname.startsWith("/api/artifacts")) {
-        console.log("📦 Routing to artifact worker");
-        return artifactWorker.fetch(request, env, ctx);
-      }
-
       if (allowLocalAuth && url.pathname.startsWith("/local_oidc")) {
         console.log("🔐 Routing to OIDC handler");
         return withCors(localOidcHandler).fetch(request, env, ctx);
-      }
-      if (url.pathname.startsWith("/api/api-keys")) {
-        console.log("🔐 Routing to API key handler");
-        return withCors(apiKeyHandler).fetch(request, env, ctx);
       }
 
       // If it's an API request, delegate it to the imported sync worker's logic.
@@ -153,8 +142,7 @@ const handler: ExportedHandler<Env> = {
   <h2>Available Endpoints:</h2>
   <ul>
     <li><a href="/health">GET /health</a> - Health check</li>
-    <li><span class="code">POST /api/artifacts</span> - Upload artifacts</li>
-    <li><span class="code">GET /api/artifacts/{id}</span> - Download artifacts</li>
+
     <li><span class="code">WS /livestore</span> - LiveStore sync</li>
     ${allowLocalAuth ? '<li><span class="code">GET /local_oidc</span> - OpenID connect implementation for local-only usage</li>' : ""}
   </ul>
