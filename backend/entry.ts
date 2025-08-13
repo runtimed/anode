@@ -13,6 +13,7 @@ import localOidcHandler from "./local_oidc.ts";
 import apiKeyHandler from "./api_keys.ts";
 import { handleInteractionLogRoutes } from "./interaction-logs.ts";
 import apiKeyProvider from "./local_extension/api_key_provider.ts";
+import { createGetJWKS } from "@japikey/authenticate";
 
 // The preview worker needs to re-export the Durable Object class
 // so the Workers runtime can find and instantiate it.
@@ -125,6 +126,40 @@ const handler: ExportedHandler<Env> = {
         return withCors(apiKeyHandler).fetch(request, env, ctx);
       }
 
+      // Handle JWKS endpoint for API key validation
+      if (
+        url.pathname.match(/^\/api-keys\/[^\/]+\/\.well-known\/jwks\.json$/)
+      ) {
+        console.log("🔑 Routing to JWKS endpoint");
+        try {
+          const issuer = env.AUTH_ISSUER;
+          const match = issuer.match(/^http:\/\/localhost:(\d+)\/local_oidc$/);
+          if (!match) {
+            throw new Error("Cannot determine API key issuer from AUTH_ISSUER");
+          }
+          const baseIssuer = new URL(`http://localhost:${match[1]}/api-keys`);
+          const getJWKS = createGetJWKS(baseIssuer);
+          const jwksData = await getJWKS();
+
+          return new workerGlobals.Response(JSON.stringify(jwksData), {
+            headers: {
+              "Content-Type": "application/json",
+              "Access-Control-Allow-Origin": "*",
+              "Cache-Control": "public, max-age=3600",
+            },
+          });
+        } catch (error) {
+          console.error("Failed to serve JWKS:", error);
+          return new workerGlobals.Response(
+            JSON.stringify({ error: "Failed to generate JWKS" }),
+            {
+              status: 500,
+              headers: { "Content-Type": "application/json" },
+            }
+          );
+        }
+      }
+
       // Handle interaction logs API
       if (url.pathname.startsWith("/api/i")) {
         console.log("📓 Routing to interaction logs handler");
@@ -146,15 +181,33 @@ const handler: ExportedHandler<Env> = {
           const context = { request, env, ctx, bearerToken: authToken };
           if (apiKeyProvider && apiKeyProvider.isApiKey(context)) {
             console.log("🔑 Validating API key for interaction logs");
-            const passport = await apiKeyProvider.validateApiKey(context);
-            validatedUser = {
-              id: passport.user.id,
-              email: passport.user.email,
-            };
+            try {
+              const passport = await apiKeyProvider.validateApiKey(context);
+              validatedUser = {
+                id: passport.user.id,
+                email: passport.user.email,
+              };
+              console.log(
+                "✅ API key validation successful for user:",
+                validatedUser.id
+              );
+            } catch (error) {
+              console.error("❌ API key validation failed:", error);
+              throw new Error("API key validation failed");
+            }
           } else {
             // Fall back to standard auth (OIDC, AUTH_TOKEN)
             console.log("🔐 Validating standard auth for interaction logs");
-            validatedUser = await validateAuthPayload({ authToken }, env);
+            try {
+              validatedUser = await validateAuthPayload({ authToken }, env);
+              console.log(
+                "✅ Standard auth validation successful for user:",
+                validatedUser.id
+              );
+            } catch (error) {
+              console.error("❌ Standard auth validation failed:", error);
+              throw new Error("Standard auth validation failed");
+            }
           }
 
           const response = await handleInteractionLogRoutes(
