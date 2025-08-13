@@ -2,7 +2,6 @@ import { Hono } from "hono";
 import { cors } from "hono/cors";
 import { WebSocketServer } from "./sync.ts";
 import originalHandler from "./entry.ts";
-
 import { type Env } from "./types.ts";
 import { type AuthContext } from "./middleware.ts";
 import artifactRoutes from "./routes.ts";
@@ -53,12 +52,12 @@ app.route("/api/artifacts", artifactRoutes);
 
 // Catch-all route that delegates to original handler
 app.all("*", async (c) => {
-  // Convert Hono context back to original Cloudflare Worker format
+  // Convert to original Cloudflare Worker format (type incompatibility requires as any)
   const request = c.req.raw as any;
   const env = c.env;
   const ctx = c.executionCtx as any;
 
-  // Delegate to original handler logic - bypass type checking
+  // Delegate to original handler (requires as any for type compatibility)
   const response = await (originalHandler as any).fetch(request, env, ctx);
   return response as any;
 });

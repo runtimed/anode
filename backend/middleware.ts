@@ -1,11 +1,17 @@
 import { createMiddleware } from "hono/factory";
 import { getPassport, validateAuthPayload, type Passport } from "./auth.ts";
-import type { Env } from "./types.ts";
+import { type Env } from "./types.ts";
 
 export interface AuthContext {
   passport?: Passport;
   userId?: string;
   isRuntime?: boolean;
+}
+
+// Adapter for converting Hono requests to Worker requests for auth
+// Type incompatibility between Hono and Cloudflare Worker requires as any
+function adaptRequestForAuth(honoRequest: Request): any {
+  return honoRequest as any;
 }
 
 // Auth middleware for standard API routes
@@ -25,7 +31,7 @@ export const authMiddleware = createMiddleware<{
       );
     }
 
-    const passport = await getPassport(c.req.raw as any, c.env);
+    const passport = await getPassport(adaptRequestForAuth(c.req.raw), c.env);
 
     c.set("passport", passport);
     c.set("userId", passport.user.id);
@@ -56,7 +62,7 @@ export const optionalAuthMiddleware = createMiddleware<{
       c.req.header("x-auth-token");
 
     if (authToken) {
-      const passport = await getPassport(c.req.raw as any, c.env);
+      const passport = await getPassport(adaptRequestForAuth(c.req.raw), c.env);
       c.set("passport", passport);
       c.set("userId", passport.user.id);
       c.set("isRuntime", Boolean(passport.jwt.runtime));
