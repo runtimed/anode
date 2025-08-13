@@ -4,7 +4,8 @@ import { WebSocketServer } from "./sync.ts";
 import originalHandler from "./entry.ts";
 
 import { type Env } from "./types.ts";
-import { authMiddleware, type AuthContext } from "./middleware.ts";
+import { type AuthContext } from "./middleware.ts";
+import artifactRoutes from "./routes.ts";
 
 // Re-export the Durable Object class for the Workers runtime
 export { WebSocketServer };
@@ -37,23 +38,23 @@ app.use("*", async (c, next) => {
   await next();
 });
 
-// Example migrated route - artifact health check with auth
-app.get("/api/artifacts/health", authMiddleware, (c) => {
-  const userId = c.get("userId");
-  const isRuntime = c.get("isRuntime");
-
+// Enhanced health endpoint
+app.get("/health", (c) => {
   return c.json({
     status: "healthy",
-    service: "artifacts",
-    user_id: userId,
-    is_runtime: isRuntime,
-    storage: {
-      has_db: Boolean(c.env.DB),
-      has_r2: Boolean(c.env.ARTIFACT_BUCKET),
-      threshold: c.env.ARTIFACT_THRESHOLD || "16384",
+    deployment_env: c.env.DEPLOYMENT_ENV,
+    timestamp: new Date().toISOString(),
+    framework: "hono",
+    config: {
+      has_auth_token: Boolean(c.env.AUTH_TOKEN),
+      has_auth_issuer: Boolean(c.env.AUTH_ISSUER),
+      deployment_env: c.env.DEPLOYMENT_ENV,
     },
   });
 });
+
+// Mount artifact routes
+app.route("/api/artifacts", artifactRoutes);
 
 // Catch-all route that delegates to original handler
 app.all("*", async (c) => {
