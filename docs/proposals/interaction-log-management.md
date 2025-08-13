@@ -93,31 +93,31 @@ CREATE TABLE log_permissions (
 ### New API Endpoints
 
 ```
-POST /api/logs
+POST /api/i
 - Create new interaction log with owner permission
 - Returns ULID, vanity URL, and full URL for navigation
 
-GET /api/logs
+GET /api/i
 - List user's accessible interaction logs  
 - Powers dashboard interface
 
-GET /api/logs/:id
+GET /api/i/:id
 - Get interaction log details
 - Optional ?include=collaborators for owner view
 
-PUT /api/logs/:id  
+PUT /api/i/:id  
 - Update interaction log title/metadata
 - Requires writer permission
 
-DELETE /api/logs/:id
+DELETE /api/i/:id
 - Delete interaction log and all permissions
 - Requires owner permission
 
-POST /api/logs/:id/permissions
+POST /api/i/:id/permissions
 - Grant writer permission to another user
 - Requires owner permission
 
-DELETE /api/logs/:id/permissions/:userId
+DELETE /api/i/:id/permissions/:userId
 - Revoke user's permission
 - Requires owner permission
 ```
