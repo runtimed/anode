@@ -4,11 +4,10 @@ import { type Env } from "./types.ts";
 
 const artifacts = new Hono<{ Bindings: Env; Variables: AuthContext }>();
 
-// Apply auth middleware to all artifact routes
-artifacts.use("*", authMiddleware);
+// Auth applied per route - uploads need auth, downloads are public
 
-// POST /api/artifacts - Upload artifact
-artifacts.post("/", async (c) => {
+// POST /api/artifacts - Upload artifact (requires auth)
+artifacts.post("/", authMiddleware, async (c) => {
   console.log("✅ Handling POST request to /api/artifacts");
 
   const notebookId = c.req.header("x-notebook-id");
@@ -96,7 +95,7 @@ artifacts.post("/", async (c) => {
   }
 });
 
-// GET /api/artifacts/:id - Download artifact
+// GET /api/artifacts/:id - Download artifact (public, no auth required)
 artifacts.get("/:id", async (c) => {
   const artifactId = c.req.param("id");
 
@@ -190,7 +189,8 @@ artifacts.get("/:id", async (c) => {
 });
 
 // GET /api/artifacts/health - Health check (already exists in main app)
-artifacts.get("/health", (c) => {
+// GET /api/artifacts/health - Health check (requires auth for user context)
+artifacts.get("/health", authMiddleware, (c) => {
   const userId = c.get("userId");
   const isRuntime = c.get("isRuntime");
 
