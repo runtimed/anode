@@ -18,12 +18,7 @@ app.use(
   "*",
   cors({
     origin: "*",
-    allowHeaders: [
-      "Content-Type",
-      "Authorization",
-      "x-auth-token",
-      "x-notebook-id",
-    ],
+    allowHeaders: ["Content-Type", "Authorization", "x-notebook-id"],
     allowMethods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
   })
 );

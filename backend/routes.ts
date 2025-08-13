@@ -12,7 +12,6 @@ artifacts.post("/", authMiddleware, async (c) => {
 
   const notebookId = c.req.header("x-notebook-id");
   const mimeType = c.req.header("content-type") || "application/octet-stream";
-  const userId = c.get("userId");
 
   if (!notebookId) {
     return c.json(
@@ -25,64 +24,30 @@ artifacts.post("/", authMiddleware, async (c) => {
   }
 
   try {
-    const body = await c.req.arrayBuffer();
-    const bodySize = body.byteLength;
-
-    console.log(`📤 Artifact upload: ${bodySize} bytes, type: ${mimeType}`);
-
-    // Generate artifact ID
-    const artifactId = crypto.randomUUID();
-
-    // Determine storage method based on size threshold
-    const threshold = parseInt(c.env.ARTIFACT_THRESHOLD || "16384", 10);
-    const useR2 =
-      bodySize > threshold &&
-      c.env.ARTIFACT_STORAGE === "r2" &&
-      c.env.ARTIFACT_BUCKET;
-
-    if (useR2) {
-      // Store in R2
-      const key = `${notebookId}/${artifactId}`;
-      await c.env.ARTIFACT_BUCKET.put(key, body, {
-        httpMetadata: { contentType: mimeType },
-      });
-
-      // Store metadata in database
-      await c.env.DB.prepare(
-        `
-        INSERT INTO artifacts (id, notebook_id, user_id, mime_type, size_bytes, storage_type, storage_key, created_at)
-        VALUES (?, ?, ?, ?, ?, 'r2', ?, datetime('now'))
-      `
-      )
-        .bind(artifactId, notebookId, userId, mimeType, bodySize, key)
-        .run();
-
-      console.log(`💾 Stored artifact ${artifactId} in R2 (${bodySize} bytes)`);
-    } else {
-      // Store inline in database (base64 encoded)
-      const base64Data = btoa(String.fromCharCode(...new Uint8Array(body)));
-
-      await c.env.DB.prepare(
-        `
-        INSERT INTO artifacts (id, notebook_id, user_id, mime_type, size_bytes, storage_type, data, created_at)
-        VALUES (?, ?, ?, ?, ?, 'inline', ?, datetime('now'))
-      `
-      )
-        .bind(artifactId, notebookId, userId, mimeType, bodySize, base64Data)
-        .run();
-
-      console.log(
-        `💾 Stored artifact ${artifactId} inline (${bodySize} bytes)`
+    // TODO: Validate the notebook ID
+    // TODO: Validate that the user has permission to add artifacts to this notebook
+    // TODO: Validate that the artifact name is unique within the notebook
+    //
+    // TODO: Compute hash of data on the fly
+    // For now we'll just accept a random UUID as the artifact ID
+    // TODO: Rely on multipart upload for large files
+    const uuidv4 = () =>
+      // @ts-ignore
+      ([1e7] + -1e3 + -4e3 + -8e3 + -1e11).replace(/[018]/g, (c) =>
+        (
+          c ^
+          (crypto.getRandomValues(new Uint8Array(1))[0] & (15 >> (c / 4)))
+        ).toString(16)
       );
-    }
 
-    return c.json({
-      id: artifactId,
-      url: `/api/artifacts/${artifactId}`,
-      mimeType,
-      size: bodySize,
-      storageType: useR2 ? "r2" : "inline",
+    const artifactId = `${notebookId}/${uuidv4()}`;
+    await c.env.ARTIFACT_BUCKET.put(artifactId, await c.req.arrayBuffer(), {
+      httpMetadata: {
+        contentType: mimeType,
+      },
     });
+
+    return c.json({ artifactId });
   } catch (error) {
     console.error("❌ Artifact upload failed:", error);
     return c.json(
@@ -95,85 +60,42 @@ artifacts.post("/", authMiddleware, async (c) => {
   }
 });
 
-// GET /api/artifacts/:id - Download artifact (public, no auth required)
-artifacts.get("/:id", async (c) => {
-  const artifactId = c.req.param("id");
+// GET /api/artifacts/* - Download artifact (public, no auth required)
+// Handle any path after /api/artifacts/ to support compound IDs like notebookId/uuid
+artifacts.get("/*", async (c) => {
+  const url = new URL(c.req.url);
+  // Extract the full artifact ID from the path after /api/artifacts/
+  const artifactId = url.pathname.replace("/api/artifacts/", "");
 
   if (!artifactId) {
     return c.json(
-      { error: "Bad Request", message: "Artifact ID is required" },
+      {
+        error: "Bad Request",
+        message: "Artifact ID is required",
+      },
       400
     );
   }
 
   try {
-    // Fetch artifact metadata
-    const artifact = (await c.env.DB.prepare(
-      `
-      SELECT id, mime_type, size_bytes, storage_type, storage_key, data
-      FROM artifacts
-      WHERE id = ?
-    `
-    )
-      .bind(artifactId)
-      .first()) as {
-      id: string;
-      mime_type: string;
-      size_bytes: number;
-      storage_type: string;
-      storage_key?: string;
-      data?: string;
-    } | null;
-
+    const artifact = await c.env.ARTIFACT_BUCKET.get(artifactId);
     if (!artifact) {
-      return c.json({ error: "Not Found", message: "Artifact not found" }, 404);
-    }
-
-    console.log(
-      `📥 Retrieving artifact ${artifactId} (${artifact.storage_type})`
-    );
-
-    let body: ArrayBuffer;
-
-    if (
-      artifact.storage_type === "r2" &&
-      artifact.storage_key &&
-      c.env.ARTIFACT_BUCKET
-    ) {
-      // Retrieve from R2
-      const object = await c.env.ARTIFACT_BUCKET.get(artifact.storage_key);
-      if (!object) {
-        return c.json(
-          { error: "Not Found", message: "Artifact data not found in storage" },
-          404
-        );
-      }
-      body = await object.arrayBuffer();
-    } else if (artifact.storage_type === "inline" && artifact.data) {
-      // Decode from base64
-      const binaryString = atob(artifact.data);
-      const bytes = new Uint8Array(binaryString.length);
-      for (let i = 0; i < binaryString.length; i++) {
-        bytes[i] = binaryString.charCodeAt(i);
-      }
-      body = bytes.buffer;
-    } else {
       return c.json(
         {
-          error: "Internal Server Error",
-          message: "Invalid storage configuration",
+          error: "Not Found",
+          message: "Artifact not found",
         },
-        500
+        404
       );
     }
 
-    // Return artifact with appropriate headers
-    return new Response(body, {
+    const contentType =
+      artifact.httpMetadata?.contentType || "application/octet-stream";
+
+    return new Response(await artifact.arrayBuffer(), {
       status: 200,
       headers: {
-        "Content-Type": artifact.mime_type,
-        "Content-Length": artifact.size_bytes.toString(),
-        "Cache-Control": "public, max-age=31536000", // 1 year cache
+        "Content-Type": contentType,
       },
     });
   } catch (error) {
@@ -188,21 +110,15 @@ artifacts.get("/:id", async (c) => {
   }
 });
 
-// GET /api/artifacts/health - Health check (already exists in main app)
-// GET /api/artifacts/health - Health check (requires auth for user context)
-artifacts.get("/health", authMiddleware, (c) => {
-  const userId = c.get("userId");
-  const isRuntime = c.get("isRuntime");
-
-  return c.json({
-    status: "healthy",
-    service: "artifacts",
-    user_id: userId,
-    is_runtime: isRuntime,
-    storage: {
-      has_db: Boolean(c.env.DB),
-      has_r2: Boolean(c.env.ARTIFACT_BUCKET),
-      threshold: c.env.ARTIFACT_THRESHOLD || "16384",
+// OPTIONS - Handle CORS preflight requests
+// Since this endpoint is used for images as direct urls...
+artifacts.options("*", () => {
+  return new Response(null, {
+    status: 204,
+    headers: {
+      "Access-Control-Allow-Origin": "*",
+      "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+      "Access-Control-Allow-Headers": "Content-Type",
     },
   });
 });
@@ -210,6 +126,11 @@ artifacts.get("/health", authMiddleware, (c) => {
 // DELETE method not allowed
 artifacts.delete("*", (c) => {
   return c.json({ error: "Method Not Allowed" }, 405);
+});
+
+// All other methods not allowed
+artifacts.all("*", (c) => {
+  return c.json({ error: "Unknown Method" }, 405);
 });
 
 export default artifacts;
