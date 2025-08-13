@@ -4,7 +4,7 @@ import { WebSocketServer } from "./sync.ts";
 import originalHandler from "./entry.ts";
 import { type Env } from "./types.ts";
 import { type AuthContext } from "./middleware.ts";
-import artifactRoutes from "./routes.ts";
+import apiRoutes from "./routes.ts";
 
 // Re-export the Durable Object class for the Workers runtime
 export { WebSocketServer };
@@ -32,7 +32,7 @@ app.use("*", async (c, next) => {
   await next();
 });
 
-// Enhanced health endpoint
+// Top-level health endpoint for backward compatibility
 app.get("/health", (c) => {
   return c.json({
     status: "healthy",
@@ -47,8 +47,8 @@ app.get("/health", (c) => {
   });
 });
 
-// Mount artifact routes
-app.route("/api/artifacts", artifactRoutes);
+// Mount API routes (health, debug, artifacts)
+app.route("/api", apiRoutes);
 
 // Catch-all route that delegates to original handler
 app.all("*", async (c) => {

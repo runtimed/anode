@@ -3,12 +3,82 @@ import { v4 as uuidv4 } from "uuid";
 import { authMiddleware, type AuthContext } from "./middleware.ts";
 import { type Env } from "./types.ts";
 
-const artifacts = new Hono<{ Bindings: Env; Variables: AuthContext }>();
+const api = new Hono<{ Bindings: Env; Variables: AuthContext }>();
 
-// Auth applied per route - uploads need auth, downloads are public
+// Health endpoint - no auth required
+api.get("/health", (c) => {
+  return c.json({
+    status: "healthy",
+    deployment_env: c.env.DEPLOYMENT_ENV,
+    timestamp: new Date().toISOString(),
+    framework: "hono",
+    config: {
+      has_auth_token: Boolean(c.env.AUTH_TOKEN),
+      has_auth_issuer: Boolean(c.env.AUTH_ISSUER),
+      deployment_env: c.env.DEPLOYMENT_ENV,
+    },
+  });
+});
 
-// POST /api/artifacts - Upload artifact (requires auth)
-artifacts.post("/", authMiddleware, async (c) => {
+// Debug auth endpoint - no auth middleware, handles auth internally
+api.post("/debug/auth", async (c) => {
+  console.log("🔧 Debug auth endpoint called");
+
+  try {
+    const body = (await c.req.json()) as { authToken?: string };
+    const authToken = body.authToken;
+
+    if (!authToken) {
+      return c.json(
+        {
+          error: "MISSING_AUTH_TOKEN",
+          message: "No authToken provided in request body",
+          timestamp: new Date().toISOString(),
+        },
+        400
+      );
+    }
+
+    // Test authentication using the existing auth system
+    const { validateAuthPayload } = await import("./auth.ts");
+
+    try {
+      await validateAuthPayload({ authToken }, c.env);
+      return c.json({
+        success: true,
+        message: "Authentication successful",
+        tokenType: authToken.startsWith("eyJ") ? "OIDC JWT" : "Service Token",
+        timestamp: new Date().toISOString(),
+      });
+    } catch (authError: any) {
+      return c.json(
+        {
+          error: "AUTHENTICATION_FAILED",
+          message: authError.message,
+          tokenType: authToken.startsWith("eyJ") ? "OIDC JWT" : "Service Token",
+          timestamp: new Date().toISOString(),
+          hasAuthToken: Boolean(c.env.AUTH_TOKEN),
+          hasAuthIssuer: Boolean(c.env.AUTH_ISSUER),
+        },
+        401
+      );
+    }
+  } catch {
+    return c.json(
+      {
+        error: "INVALID_REQUEST",
+        message: "Invalid JSON in request body",
+        timestamp: new Date().toISOString(),
+      },
+      400
+    );
+  }
+});
+
+// Artifact routes - Auth applied per route - uploads need auth, downloads are public
+
+// POST /artifacts - Upload artifact (requires auth)
+api.post("/artifacts", authMiddleware, async (c) => {
   console.log("✅ Handling POST request to /api/artifacts");
 
   const notebookId = c.req.header("x-notebook-id");
@@ -51,12 +121,13 @@ artifacts.post("/", authMiddleware, async (c) => {
   }
 });
 
-// GET /api/artifacts/* - Download artifact (public, no auth required)
-// Handle any path after /api/artifacts/ to support compound IDs like notebookId/uuid
-artifacts.get("/*", async (c) => {
+// GET /artifacts/* - Download artifact (public, no auth required)
+// Handle any path after /artifacts/ to support compound IDs like notebookId/uuid
+api.get("/artifacts/*", async (c) => {
   const url = new URL(c.req.url);
-  // Extract the full artifact ID from the path after /api/artifacts/
-  const artifactId = url.pathname.replace("/api/artifacts/", "");
+  // Extract the artifact ID from the path after /artifacts/
+  const pathMatch = url.pathname.match(/\/artifacts\/(.+)$/);
+  const artifactId = pathMatch ? pathMatch[1] : "";
 
   if (!artifactId) {
     return c.json(
@@ -101,9 +172,8 @@ artifacts.get("/*", async (c) => {
   }
 });
 
-// OPTIONS - Handle CORS preflight requests
-// Since this endpoint is used for images as direct urls...
-artifacts.options("*", () => {
+// OPTIONS - Handle CORS preflight requests for artifacts
+api.options("/artifacts/*", () => {
   return new Response(null, {
     status: 204,
     headers: {
@@ -114,14 +184,14 @@ artifacts.options("*", () => {
   });
 });
 
-// DELETE method not allowed
-artifacts.delete("*", (c) => {
+// DELETE method not allowed for artifacts
+api.delete("/artifacts/*", (c) => {
   return c.json({ error: "Method Not Allowed" }, 405);
 });
 
-// All other methods not allowed
-artifacts.all("*", (c) => {
+// All other artifact methods not allowed
+api.all("/artifacts/*", (c) => {
   return c.json({ error: "Unknown Method" }, 405);
 });
 
-export default artifacts;
+export default api;
