@@ -1,10 +1,7 @@
 import { Hono } from "hono";
 import { type Env } from "./types.ts";
 import { authMiddleware, type AuthContext } from "./middleware.ts";
-import {
-  createApiKeyProvider,
-  getProviderName,
-} from "./providers/api-key-factory.ts";
+import { createApiKeyProvider } from "./providers/api-key-factory.ts";
 import {
   validateCreateApiKeyRequest,
   createProviderContext,
@@ -60,24 +57,10 @@ const oauthOnlyMiddleware = async (c: any, next: any) => {
  * POST /api-keys - Create new API key (OAuth only)
  */
 apiKeyRoutes.post("/", oauthOnlyMiddleware, async (c) => {
-  console.log("🔑 API key routes: POST / called", {
-    method: c.req.method,
-    url: c.req.url,
-    pathname: new URL(c.req.url).pathname,
-    hasAuth: Boolean(c.req.header("Authorization")),
-  });
-
   const passport = c.get("passport");
   const authToken = c.req.header("Authorization")?.replace("Bearer ", "");
 
-  console.log("🎫 Authentication check", {
-    hasPassport: Boolean(passport),
-    hasAuthToken: Boolean(authToken),
-    userId: passport?.user?.id,
-  });
-
   if (!passport || !authToken) {
-    console.log("❌ Authentication failed - missing passport or token");
     return c.json(
       {
         error: "Unauthorized",
@@ -89,14 +72,7 @@ apiKeyRoutes.post("/", oauthOnlyMiddleware, async (c) => {
 
   try {
     // Parse and validate request body
-    console.log("📝 Parsing request body...");
     const body = await c.req.json();
-    console.log("📋 Request body parsed", {
-      hasName: Boolean(body.name),
-      scopes: body.scopes,
-      hasExpiresAt: Boolean(body.expiresAt),
-      userGenerated: body.userGenerated,
-    });
     const request: CreateApiKeyRequest = validateCreateApiKeyRequest(body);
 
     // Create provider and context
@@ -107,17 +83,11 @@ apiKeyRoutes.post("/", oauthOnlyMiddleware, async (c) => {
       authToken
     );
 
-    console.log(`🔑 Using ${getProviderName(c.env)} provider for key creation`);
-
     // Create the API key
     const apiKey = await provider.createApiKey(context, request);
 
-    console.log("✅ API key created successfully");
-
     return c.json({ api_key: apiKey });
   } catch (error) {
-    console.error("❌ Failed to create API key:", error);
-
     if (error instanceof RuntError) {
       return c.json(
         error.getPayload(c.env.DEBUG || false),
@@ -153,8 +123,6 @@ apiKeyRoutes.get("/:id", authMiddleware, async (c) => {
     );
   }
 
-  console.log(`🔍 Getting API key: ${keyId}`);
-
   try {
     const provider = createApiKeyProvider(c.env);
     const context = createAuthenticatedProviderContext(
@@ -174,11 +142,8 @@ apiKeyRoutes.get("/:id", authMiddleware, async (c) => {
       });
     }
 
-    console.log("✅ API key retrieved successfully");
     return c.json(apiKey);
   } catch (error) {
-    console.error(`❌ Failed to get API key ${keyId}:`, error);
-
     if (error instanceof RuntError) {
       return c.json(
         error.getPayload(c.env.DEBUG || false),
@@ -212,8 +177,6 @@ apiKeyRoutes.get("/", authMiddleware, async (c) => {
       401
     );
   }
-
-  console.log(`📋 Listing API keys for user: ${passport.user.id}`);
 
   try {
     // Parse optional query parameters
@@ -256,11 +219,8 @@ apiKeyRoutes.get("/", authMiddleware, async (c) => {
     // List API keys
     const apiKeys: ApiKey[] = await provider.listApiKeys(context, request);
 
-    console.log(`✅ Listed ${apiKeys.length} API keys`);
     return c.json(apiKeys);
   } catch (error) {
-    console.error("❌ Failed to list API keys:", error);
-
     if (error instanceof RuntError) {
       return c.json(
         error.getPayload(c.env.DEBUG || false),
@@ -296,8 +256,6 @@ apiKeyRoutes.delete("/:id", authMiddleware, async (c) => {
     );
   }
 
-  console.log(`🗑️ Deleting API key: ${keyId}`);
-
   try {
     const provider = createApiKeyProvider(c.env);
     const context = createAuthenticatedProviderContext(
@@ -325,11 +283,8 @@ apiKeyRoutes.delete("/:id", authMiddleware, async (c) => {
     // Delete the API key
     await provider.deleteApiKey(context, keyId);
 
-    console.log("✅ API key deleted successfully");
     return new Response("", { status: 204 });
   } catch (error) {
-    console.error(`❌ Failed to delete API key ${keyId}:`, error);
-
     if (error instanceof RuntError) {
       return c.json(
         error.getPayload(c.env.DEBUG || false),
@@ -365,8 +320,6 @@ apiKeyRoutes.patch("/:id", authMiddleware, async (c) => {
     );
   }
 
-  console.log(`🔒 Revoking API key: ${keyId}`);
-
   try {
     // Parse request body
     const body = await c.req.json();
@@ -400,11 +353,8 @@ apiKeyRoutes.patch("/:id", authMiddleware, async (c) => {
     // Return the updated key
     const updatedKey = await provider.getApiKey(context, keyId);
 
-    console.log("✅ API key revoked successfully");
     return c.json(updatedKey);
   } catch (error) {
-    console.error(`❌ Failed to revoke API key ${keyId}:`, error);
-
     if (error instanceof RuntError) {
       return c.json(
         error.getPayload(c.env.DEBUG || false),

@@ -51,11 +51,6 @@ app.use(
 
 // Logging middleware
 app.use("*", async (c, next) => {
-  const url = new URL(c.req.url);
-  console.log("🔍 Hono middleware:", {
-    method: c.req.method,
-    pathname: url.pathname,
-  });
   await next();
 });
 
@@ -83,7 +78,6 @@ app.use("/local_oidc/*", async (c, next) => {
 });
 
 // Mount API routes (health, debug, artifacts, API keys)
-console.log("🚀 Mounting API routes at /api");
 app.route("/api", apiRoutes);
 
 // Mount local OIDC routes (development only)
@@ -96,13 +90,6 @@ app.all("/api-keys/*", async (c) => {
     return c.json({ error: "Not Found" }, 404);
   }
   const url = new URL(c.req.url);
-
-  console.log("🔍 /api-keys/* handler called", {
-    method: c.req.method,
-    url: c.req.url,
-    pathname: url.pathname,
-    isJWKS: url.pathname.includes("/.well-known/jwks.json"),
-  });
 
   const db = new D1Driver(c.env.DB);
   await db.ensureTable(); // Initialize the database table

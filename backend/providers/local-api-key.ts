@@ -157,13 +157,6 @@ export class LocalApiKeyProvider implements ApiKeyProvider {
     context: AuthenticatedProviderContext,
     request: CreateApiKeyRequest
   ): Promise<string> {
-    console.log("🔑 LocalApiKeyProvider.createApiKey called", {
-      userId: context.passport.user.id,
-      scopes: request.scopes,
-      expiresAt: request.expiresAt,
-      name: request.name,
-    });
-
     await this.ensureInitialized();
 
     let result: CreateApiKeyResult;
@@ -180,24 +173,8 @@ export class LocalApiKeyProvider implements ApiKeyProvider {
         expiresAt: new Date(request.expiresAt),
       };
 
-      console.log("🔗 Creating API key with japikey.createApiKey", {
-        sub: options.sub,
-        iss: options.iss.toString(),
-        aud: options.aud,
-        expiresAt: options.expiresAt.toISOString(),
-      });
-
       result = await createApiKey(claims, options);
-
-      console.log("✅ API key created, inserting into database", {
-        kid: result.kid,
-        hasJWT: Boolean(result.jwt),
-        hasJWK: Boolean(result.jwk),
-      });
     } catch (error) {
-      console.log("❌ Failed to create API key", {
-        error: error instanceof Error ? error.message : error,
-      });
       if (error instanceof SigningError) {
         throw new RuntError(ErrorType.InvalidRequest, {
           message: "Failed to create the api key",
@@ -224,12 +201,7 @@ export class LocalApiKeyProvider implements ApiKeyProvider {
           userGenerated: request.userGenerated,
         },
       });
-
-      console.log("✅ API key inserted into database successfully");
     } catch (error) {
-      console.log("❌ Failed to insert API key into database", {
-        error: error instanceof Error ? error.message : error,
-      });
       throw new RuntError(ErrorType.Unknown, {
         message: "Failed to insert the api key into the database",
         cause: error as Error,
