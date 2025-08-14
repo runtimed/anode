@@ -40,8 +40,6 @@
     "test:integration": "vitest run test/integration/",
     "test:debug": "DEBUG_TESTS=true vitest run",
     "test:iframe": "http-server ./iframe-outputs -p 3000 -o test-iframe.html",
-    "set-extension": "./scripts/set_extension.sh",
-    "reset-extension": "./scripts/reset_extension.sh",
     "db:migrate": "echo y | wrangler d1 migrations apply DB",
     "type-check": "tsc --noEmit && tsc --noEmit --project tsconfig.test.json",
     "lint": "eslint src/ backend/ iframe-outputs/",
