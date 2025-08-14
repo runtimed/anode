@@ -4,8 +4,13 @@
 import { OutputData } from "@/schema";
 import { useEffect, useRef, useState } from "react";
 
+// ---
+// NOTE: source of truth here. Updates here propogate down
+
 const allowedToIframeEvents = ["update-outputs"] as const;
 const allowedFromIframeEvents = ["iframe-height", "iframe-loaded"] as const;
+
+// ---
 
 type ToIframeEventName = (typeof allowedToIframeEvents)[number];
 type FromIframeEventName = (typeof allowedFromIframeEvents)[number];
