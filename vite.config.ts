@@ -99,10 +99,6 @@ export default defineConfig(({ mode }) => {
     resolve: {
       alias: {
         "@": path.resolve(__dirname, "./src"),
-        "@runtimed/extension_impl": path.resolve(
-          __dirname,
-          "./backend/local_extension/index"
-        ),
         ...extensionOverrides,
       },
     },

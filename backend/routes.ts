@@ -10,9 +10,8 @@ import {
 } from "@japikey/cloudflare";
 import { validateAuthPayload } from "./auth.ts";
 
-// Import API key provider for authentication checks
-import backendExtension from "@runtimed/extension_impl";
-const { apiKey: apiKeyProvider } = backendExtension;
+// Import API key provider factory
+import { createApiKeyProvider } from "./providers/index.ts";
 
 // Helper functions for japikey integration
 const getUserIdFromRequest = async (
@@ -107,17 +106,14 @@ api.post("/debug/auth", async (c) => {
       let authMethod = "Unknown";
 
       // Check if this is an API key first
-      const apiKeyContext = {
-        bearerToken: authToken,
-        env: c.env,
-        request: null as any, // Not used by the provider
-        ctx: {} as any, // Not used by the provider
-        passport: null, // Required by ProviderContext interface
-      };
+      const apiKeyProvider = createApiKeyProvider(c.env);
 
-      if (apiKeyProvider.isApiKey(apiKeyContext)) {
+      if (apiKeyProvider.isApiKey(authToken)) {
         // Validate using API key provider
-        await apiKeyProvider.validateApiKey(apiKeyContext);
+        const result = await apiKeyProvider.validateApiKey(authToken);
+        if (result.valid === false) {
+          throw new Error(result.error);
+        }
         tokenType = "API Key";
         authMethod = "API Key Provider";
       } else {
@@ -140,16 +136,8 @@ api.post("/debug/auth", async (c) => {
       let tokenType = "Service Token";
       if (authToken.startsWith("eyJ")) {
         // Check if it might be an API key JWT
-        const apiKeyContext = {
-          bearerToken: authToken,
-          env: c.env,
-          request: null as any,
-          ctx: {} as any,
-          passport: null, // Required by ProviderContext interface
-        };
-        tokenType = apiKeyProvider.isApiKey(apiKeyContext)
-          ? "API Key"
-          : "OIDC JWT";
+        const apiKeyProvider = createApiKeyProvider(c.env);
+        tokenType = apiKeyProvider.isApiKey(authToken) ? "API Key" : "OIDC JWT";
       }
 
       return c.json(

@@ -25,6 +25,9 @@ import type {
 export type Env = {
   DEPLOYMENT_ENV: string;
 
+  // Service provider configuration
+  SERVICE_PROVIDER?: string; // "local" | "anaconda"
+
   // Bindings from the original sync worker configuration
   WEBSOCKET_SERVER: DurableObjectNamespace;
   DB: D1Database;
@@ -48,6 +51,9 @@ export type Env = {
 
   // Whether to enable the local_oidc routes
   ALLOW_LOCAL_AUTH?: string;
+
+  // Extension configuration for Anaconda provider
+  EXTENSION_CONFIG?: string;
 
   DEBUG?: boolean;
 
