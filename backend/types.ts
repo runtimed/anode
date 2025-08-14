@@ -25,6 +25,9 @@ import type {
 export type Env = {
   DEPLOYMENT_ENV: string;
 
+  // Service provider configuration
+  SERVICE_PROVIDER?: string; // "local" | "anaconda"
+
   // Bindings from the original sync worker configuration
   WEBSOCKET_SERVER: DurableObjectNamespace;
   DB: D1Database;
@@ -34,7 +37,7 @@ export type Env = {
   AUTH_ISSUER: string;
 
   // New binding for the preview worker to serve the frontend application
-  ASSETS: Fetcher;
+  ASSETS?: Fetcher;
 
   // Bindings for the artifact service, as per artifact-service-design.md
   ARTIFACT_BUCKET: R2Bucket;
@@ -48,6 +51,9 @@ export type Env = {
 
   // Whether to enable the local_oidc routes
   ALLOW_LOCAL_AUTH?: string;
+
+  // Extension configuration for Anaconda provider
+  EXTENSION_CONFIG?: string;
 
   DEBUG?: boolean;
 
@@ -83,4 +89,93 @@ export type {
   FormData,
   IncomingRequestCfProperties,
 };
+// Error handling types to replace @runtimed/extensions
+export enum ErrorType {
+  Unknown = "unknown",
+  MissingAuthToken = "missing_token",
+  AuthTokenInvalid = "invalid_token",
+  AuthTokenWrongSignature = "wrong_signature",
+  AuthTokenExpired = "expired_token",
+  AccessDenied = "access_denied",
+  NotFound = "not_found",
+  ServerMisconfigured = "server_misconfigured",
+  InvalidRequest = "invalid_request",
+  CapabilityNotAvailable = "capability_not_available",
+}
+
+type StatusCode = 200 | 201 | 204 | 400 | 401 | 403 | 404 | 500;
+
+type ErrorOptions = {
+  message?: string;
+  responsePayload?: Record<string, unknown>;
+  debugPayload?: Record<string, unknown>;
+  cause?: unknown;
+};
+
+export type ErrorPayload = {
+  type: ErrorType;
+  message: string;
+  data: Record<string, unknown>;
+  debug?: {
+    stack?: string;
+    underlying?: {
+      message: string;
+      stack?: string;
+    };
+  } & Record<string, unknown>;
+};
+
+export class RuntError extends Error {
+  public originalCause?: unknown;
+
+  constructor(
+    public type: ErrorType,
+    private options: ErrorOptions = {}
+  ) {
+    super(options.message ?? `RuntError: ${type}`);
+    // Store cause manually for compatibility
+    if (options.cause) {
+      this.originalCause = options.cause;
+    }
+  }
+
+  get statusCode(): StatusCode {
+    const StatusCodeMapping: Record<ErrorType, StatusCode> = {
+      [ErrorType.InvalidRequest]: 400,
+      [ErrorType.CapabilityNotAvailable]: 400,
+      [ErrorType.MissingAuthToken]: 401,
+      [ErrorType.AuthTokenInvalid]: 401,
+      [ErrorType.AuthTokenExpired]: 401,
+      [ErrorType.AuthTokenWrongSignature]: 401,
+      [ErrorType.AccessDenied]: 403,
+      [ErrorType.NotFound]: 404,
+      [ErrorType.ServerMisconfigured]: 500,
+      [ErrorType.Unknown]: 500,
+    };
+    return StatusCodeMapping[this.type];
+  }
+
+  public getPayload(debug: boolean): ErrorPayload {
+    const underlying =
+      this.originalCause instanceof Error
+        ? {
+            message: this.originalCause.message,
+            stack: this.originalCause.stack,
+          }
+        : undefined;
+    return {
+      type: this.type,
+      message: this.message,
+      data: this.options.responsePayload ?? {},
+      debug: debug
+        ? {
+            stack: this.stack,
+            underlying,
+            ...this.options.debugPayload,
+          }
+        : undefined,
+    };
+  }
+}
+
 export { workerGlobals };

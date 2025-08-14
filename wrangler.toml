@@ -40,6 +40,7 @@ bucket_name = "anode-artifacts-dev"
 # will pick up variables from the `.env` file. Ensure they match.
 AUTH_ISSUER = "https://auth.stage.anaconda.com/api/auth"
 DEPLOYMENT_ENV = "development"
+SERVICE_PROVIDER = "local"
 EXTENSION_CONFIG = "{}"
 
 VITE_LIVESTORE_SYNC_URL = "/livestore"
@@ -97,10 +98,11 @@ bucket_name = "anode-artifacts-prod"
 [env.production.vars]
 # Worker runtime variables
 DEPLOYMENT_ENV = "production"
+SERVICE_PROVIDER = "anaconda"
 ARTIFACT_STORAGE = "r2"
 ARTIFACT_THRESHOLD = "16384"
 AUTH_ISSUER = "https://auth.anaconda.com/api/auth"
-EXTENSION_CONFIG='{"apiKeyUrl": "https://anaconda.com/api/iam/api-keys", "userinfoUrl": "https://auth.anaconda.com/api/auth/sessions/whoami"}'
+EXTENSION_CONFIG = '{"apiKeyUrl": "https://anaconda.com/api/iam/api-keys", "userinfoUrl": "https://auth.anaconda.com/api/auth/sessions/whoami"}'
 # Vite build-time variables
 VITE_LIVESTORE_SYNC_URL = "/livestore"
 VITE_AUTH_URI = "https://auth.anaconda.com/api/auth"
@@ -136,10 +138,11 @@ preview_bucket_name = "anode-artifacts-preview"
 [env.preview.vars]
 # Worker runtime variables
 DEPLOYMENT_ENV = "preview"
+SERVICE_PROVIDER = "anaconda"
 ARTIFACT_STORAGE = "r2"
 ARTIFACT_THRESHOLD = "16384"
 AUTH_ISSUER = "https://auth.anaconda.com/api/auth"
-EXTENSION_CONFIG='{"apiKeyUrl": "https://anaconda.com/api/iam/api-keys", "userinfoUrl": "https://auth.anaconda.com/api/auth/sessions/whoami"}'
+EXTENSION_CONFIG = '{"apiKeyUrl": "https://anaconda.com/api/iam/api-keys", "userinfoUrl": "https://auth.anaconda.com/api/auth/sessions/whoami"}'
 # Vite build-time variables
 VITE_LIVESTORE_SYNC_URL = "/livestore"
 VITE_RUNTIME_COMMAND = "pnpm run dev:runtime"

@@ -20,29 +20,6 @@ vi.mock("../backend/auth", () => ({
 }));
 
 // Mock all extension-related imports to avoid module issues
-vi.mock("@runtimed/extensions", () => ({
-  RuntError: class MockRuntError extends Error {
-    constructor(
-      public type: string,
-      options?: { message?: string }
-    ) {
-      super(options?.message || "Mock error");
-      this.name = "MockRuntError";
-    }
-    statusCode = 400;
-  },
-}));
-
-vi.mock("../backend/local_extension/api_key_provider", () => ({
-  default: {
-    createApiKey: vi.fn(),
-    listApiKeys: vi.fn(),
-    getApiKey: vi.fn(),
-    deleteApiKey: vi.fn(),
-    revokeApiKey: vi.fn(),
-    capabilities: new Set(),
-  },
-}));
 
 describe("Hono API Routes", () => {
   let mockEnv: Env;
@@ -86,6 +63,8 @@ describe("Hono API Routes", () => {
           has_auth_token: true,
           has_auth_issuer: false,
           deployment_env: "development",
+          service_provider: "local",
+          using_local_provider: true,
         },
       });
     });
@@ -109,6 +88,7 @@ describe("Hono API Routes", () => {
         success: true,
         message: "Authentication successful",
         tokenType: "Service Token",
+        authMethod: "Standard Auth",
         timestamp: expect.any(String),
       });
     });

@@ -1,6 +1,6 @@
 {
   "permissions": {
-    "allow": ["WebSearch"],
+    "allow": ["WebSearch", "WebFetch(domain:app.runt.run)"],
     "deny": [],
     "ask": []
   }

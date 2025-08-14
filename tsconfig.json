@@ -14,11 +14,7 @@
     "jsx": "react-jsx",
     "baseUrl": ".",
     "paths": {
-      "@/*": ["./src/*"],
-      "@runtimed/extension_impl": [
-        "./REPLACE_ME_WITH_EXTENSION_PATH",
-        "./backend/local_extension/index.ts"
-      ]
+      "@/*": ["./src/*"]
     },
     "strict": true,
     "noUnusedLocals": true,

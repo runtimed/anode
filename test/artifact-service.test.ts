@@ -19,31 +19,6 @@ vi.mock("../backend/auth", () => ({
   validateAuthPayload: vi.fn().mockResolvedValue({ user: { id: "test-user" } }),
 }));
 
-// Mock all extension-related imports to avoid module issues
-vi.mock("@runtimed/extensions", () => ({
-  RuntError: class MockRuntError extends Error {
-    constructor(
-      public type: string,
-      options?: { message?: string }
-    ) {
-      super(options?.message || "Mock error");
-      this.name = "MockRuntError";
-    }
-    statusCode = 400;
-  },
-}));
-
-vi.mock("../backend/local_extension/api_key_provider", () => ({
-  default: {
-    createApiKey: vi.fn(),
-    listApiKeys: vi.fn(),
-    getApiKey: vi.fn(),
-    deleteApiKey: vi.fn(),
-    revokeApiKey: vi.fn(),
-    capabilities: new Set(),
-  },
-}));
-
 describe("Artifact Service (Hono Implementation)", () => {
   let mockEnv: Env;
   let mockR2Bucket: {

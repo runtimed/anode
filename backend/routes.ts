@@ -2,12 +2,70 @@ import { Hono } from "hono";
 import { v4 as uuidv4 } from "uuid";
 import { authMiddleware, type AuthContext } from "./middleware.ts";
 import { type Env } from "./types.ts";
-import apiKeyProvider from "./local_extension/api_key_provider.ts";
 import {
-  ApiKeyCapabilities,
-  CreateApiKeyRequest,
-} from "@runtimed/extensions/providers/api_key";
-import { RuntError } from "@runtimed/extensions";
+  createApiKeyRouter,
+  D1Driver,
+  type CreateApiKeyData,
+  type ApiKeyRouterOptions,
+} from "@japikey/cloudflare";
+import { validateAuthPayload } from "./auth.ts";
+
+// Import API key provider factory
+import {
+  createApiKeyProvider,
+  isUsingLocalProvider,
+} from "./providers/index.ts";
+
+// Helper functions for japikey integration
+const getUserIdFromRequest = async (
+  request: any,
+  _env: Env
+): Promise<string> => {
+  const authToken =
+    request.headers.get("Authorization")?.replace("Bearer ", "") ||
+    request.headers.get("x-auth-token");
+
+  if (!authToken) {
+    throw new Error("Missing auth token");
+  }
+
+  const validatedUser = await validateAuthPayload({ authToken }, _env);
+  return validatedUser.id;
+};
+
+const parseCreateApiKeyRequest = async (
+  request: any,
+  _env: Env
+): Promise<CreateApiKeyData> => {
+  const body = await request.json();
+
+  // Validate required fields
+  if (!Array.isArray(body.scopes) || body.scopes.length === 0) {
+    throw new Error("scopes is required and must be a non-empty array");
+  }
+
+  if (!body.expiresAt) {
+    throw new Error("expiresAt is required");
+  }
+
+  if (typeof body.userGenerated !== "boolean") {
+    throw new Error("userGenerated is required");
+  }
+
+  return {
+    expiresAt: new Date(body.expiresAt),
+    claims: {
+      scopes: body.scopes,
+      resources: body.resources || null,
+    },
+    databaseMetadata: {
+      scopes: body.scopes,
+      resources: body.resources || null,
+      name: body.name || "Unnamed Key",
+      userGenerated: body.userGenerated,
+    },
+  };
+};
 
 const api = new Hono<{ Bindings: Env; Variables: AuthContext }>();
 
@@ -22,6 +80,8 @@ api.get("/health", (c) => {
       has_auth_token: Boolean(c.env.AUTH_TOKEN),
       has_auth_issuer: Boolean(c.env.AUTH_ISSUER),
       deployment_env: c.env.DEPLOYMENT_ENV,
+      service_provider: c.env.SERVICE_PROVIDER || "local",
+      using_local_provider: isUsingLocalProvider(c.env),
     },
   });
 });
@@ -45,23 +105,51 @@ api.post("/debug/auth", async (c) => {
       );
     }
 
-    // Test authentication using the existing auth system
-    const { validateAuthPayload } = await import("./auth.ts");
-
+    // Test authentication - check API key first, then fallback to existing auth
     try {
-      await validateAuthPayload({ authToken }, c.env);
+      let tokenType = "Service Token";
+      let authMethod = "Unknown";
+
+      // Check if this is an API key first
+      const apiKeyProvider = createApiKeyProvider(c.env);
+
+      if (apiKeyProvider.isApiKey(authToken)) {
+        // Validate using API key provider
+        const result = await apiKeyProvider.validateApiKey(authToken);
+        if (result.valid === false) {
+          throw new Error(result.error);
+        }
+        tokenType = "API Key";
+        authMethod = "API Key Provider";
+      } else {
+        // Fall back to existing auth logic (OIDC JWT or service token)
+        const { validateAuthPayload } = await import("./auth.ts");
+        await validateAuthPayload({ authToken }, c.env);
+        tokenType = authToken.startsWith("eyJ") ? "OIDC JWT" : "Service Token";
+        authMethod = "Standard Auth";
+      }
+
       return c.json({
         success: true,
         message: "Authentication successful",
-        tokenType: authToken.startsWith("eyJ") ? "OIDC JWT" : "Service Token",
+        tokenType,
+        authMethod,
         timestamp: new Date().toISOString(),
       });
     } catch (authError: any) {
+      // Determine token type for error reporting
+      let tokenType = "Service Token";
+      if (authToken.startsWith("eyJ")) {
+        // Check if it might be an API key JWT
+        const apiKeyProvider = createApiKeyProvider(c.env);
+        tokenType = apiKeyProvider.isApiKey(authToken) ? "API Key" : "OIDC JWT";
+      }
+
       return c.json(
         {
           error: "AUTHENTICATION_FAILED",
           message: authError.message,
-          tokenType: authToken.startsWith("eyJ") ? "OIDC JWT" : "Service Token",
+          tokenType,
           timestamp: new Date().toISOString(),
           hasAuthToken: Boolean(c.env.AUTH_TOKEN),
           hasAuthIssuer: Boolean(c.env.AUTH_ISSUER),
@@ -81,192 +169,82 @@ api.post("/debug/auth", async (c) => {
   }
 });
 
-// API Key routes - all require authentication
-api.post("/api-keys", authMiddleware, async (c) => {
-  try {
-    const body = (await c.req.json()) as CreateApiKeyRequest;
+// API Key routes using official japikey implementation - only available with local provider
+const createJapikeyApiKeyRoutes = async (env: Env) => {
+  const db = new D1Driver(env.DB);
+  await db.ensureTable(); // Initialize the database table
 
-    // Validate request
-    if (
-      !Array.isArray(body.scopes) ||
-      body.scopes.length === 0 ||
-      body.scopes.some((scope) => typeof scope !== "string")
-    ) {
-      return c.json(
-        {
-          error: "INVALID_REQUEST",
-          message: "scopes is invalid",
-        },
-        400
-      );
-    }
+  const options: ApiKeyRouterOptions<Env> = {
+    getUserId: getUserIdFromRequest,
+    parseCreateApiKeyRequest,
+    issuer: new URL(`http://localhost:8787/api-keys`),
+    aud: "api-keys",
+    db,
+    routePrefix: "/api/api-keys", // Match the actual URL path
+  };
 
-    const context = {
-      env: c.env,
-      user: { id: c.get("userId") },
-      passport: c.get("passport"),
-    };
+  return createApiKeyRouter(options);
+};
 
-    // TODO: Fix type compatibility for context parameter
-    const result = await apiKeyProvider.createApiKey(context as any, body);
-    return c.json(result);
-  } catch (error: any) {
-    if (error instanceof RuntError) {
-      // TODO: Fix type compatibility between RuntError.statusCode and Hono status codes
-      return c.json(
-        { error: error.type, message: error.message },
-        error.statusCode as any
-      );
-    }
+// Mount the official japikey routes - handle all API key operations
+api.all("/api-keys", async (c) => {
+  // Check service provider at request time
+  if (!isUsingLocalProvider(c.env)) {
     return c.json(
-      { error: "INTERNAL_ERROR", message: "Failed to create API key" },
-      500
+      {
+        error: "API key management not available",
+        message:
+          "API key management is handled by the configured service provider",
+      },
+      404
     );
   }
+
+  const japikeyRouter = await createJapikeyApiKeyRoutes(c.env);
+  // Convert Hono request to Cloudflare Worker request format
+  const cfRequest = c.req.raw as any;
+  const response = await japikeyRouter.fetch(cfRequest, c.env, c.executionCtx);
+
+  // Convert response body
+  const body = response.body ? await response.text() : "";
+
+  // Set headers
+  for (const [key, value] of response.headers.entries()) {
+    c.header(key, value);
+  }
+
+  // Return using Hono context methods
+  return c.text(body, response.status as 200 | 400 | 401 | 403 | 404 | 500);
 });
 
-api.get("/api-keys", authMiddleware, async (c) => {
-  try {
-    const limit = parseInt(c.req.query("limit") || "100");
-    const offset = parseInt(c.req.query("offset") || "0");
-
-    const context = {
-      env: c.env,
-      user: { id: c.get("userId") },
-      passport: c.get("passport"),
-    };
-
-    // TODO: Fix type compatibility for context parameter
-    const result = await apiKeyProvider.listApiKeys(context as any, {
-      limit,
-      offset,
-    });
-    return c.json(result);
-  } catch (error: any) {
-    if (error instanceof RuntError) {
-      // TODO: Fix type compatibility between RuntError.statusCode and Hono status codes
-      return c.json(
-        { error: error.type, message: error.message },
-        error.statusCode as any
-      );
-    }
+api.all("/api-keys/*", async (c) => {
+  // Check service provider at request time
+  if (!isUsingLocalProvider(c.env)) {
     return c.json(
-      { error: "INTERNAL_ERROR", message: "Failed to list API keys" },
-      500
+      {
+        error: "API key management not available",
+        message:
+          "API key management is handled by the configured service provider",
+      },
+      404
     );
   }
-});
 
-api.get("/api-keys/:id", authMiddleware, async (c) => {
-  try {
-    const keyId = c.req.param("id");
-    if (!keyId) {
-      return c.json(
-        { error: "INVALID_REQUEST", message: "API key ID is required" },
-        400
-      );
-    }
+  const japikeyRouter = await createJapikeyApiKeyRoutes(c.env);
+  // Convert Hono request to Cloudflare Worker request format
+  const cfRequest = c.req.raw as any;
+  const response = await japikeyRouter.fetch(cfRequest, c.env, c.executionCtx);
 
-    const context = {
-      env: c.env,
-      user: { id: c.get("userId") },
-      passport: c.get("passport"),
-    };
+  // Convert response body
+  const body = response.body ? await response.text() : "";
 
-    // TODO: Fix type compatibility for context parameter
-    const result = await apiKeyProvider.getApiKey(context as any, keyId);
-    return c.json(result);
-  } catch (error: any) {
-    if (error instanceof RuntError) {
-      // TODO: Fix type compatibility between RuntError.statusCode and Hono status codes
-      return c.json(
-        { error: error.type, message: error.message },
-        error.statusCode as any
-      );
-    }
-    return c.json(
-      { error: "INTERNAL_ERROR", message: "Failed to get API key" },
-      500
-    );
+  // Set headers
+  for (const [key, value] of response.headers.entries()) {
+    c.header(key, value);
   }
-});
 
-api.delete("/api-keys/:id", authMiddleware, async (c) => {
-  try {
-    const keyId = c.req.param("id");
-    if (!keyId) {
-      return c.json(
-        { error: "INVALID_REQUEST", message: "API key ID is required" },
-        400
-      );
-    }
-
-    const context = {
-      env: c.env,
-      user: { id: c.get("userId") },
-      passport: c.get("passport"),
-    };
-
-    // TODO: Fix type compatibility for context parameter
-    await apiKeyProvider.deleteApiKey(context as any, keyId);
-    return c.json({ success: true });
-  } catch (error: any) {
-    if (error instanceof RuntError) {
-      // TODO: Fix type compatibility between RuntError.statusCode and Hono status codes
-      return c.json(
-        { error: error.type, message: error.message },
-        error.statusCode as any
-      );
-    }
-    return c.json(
-      { error: "INTERNAL_ERROR", message: "Failed to delete API key" },
-      500
-    );
-  }
-});
-
-api.patch("/api-keys/:id", authMiddleware, async (c) => {
-  try {
-    const keyId = c.req.param("id");
-    if (!keyId) {
-      return c.json(
-        { error: "INVALID_REQUEST", message: "API key ID is required" },
-        400
-      );
-    }
-
-    if (!apiKeyProvider.capabilities.has(ApiKeyCapabilities.Revoke)) {
-      return c.json(
-        {
-          error: "CAPABILITY_NOT_AVAILABLE",
-          message: "Revoke capability is not supported",
-        },
-        501
-      );
-    }
-
-    const context = {
-      env: c.env,
-      user: { id: c.get("userId") },
-      passport: c.get("passport"),
-    };
-
-    // TODO: Fix type compatibility for context parameter
-    await apiKeyProvider.revokeApiKey(context as any, keyId);
-    return c.json({ success: true, message: "API key revoked successfully" });
-  } catch (error: any) {
-    if (error instanceof RuntError) {
-      // TODO: Fix type compatibility between RuntError.statusCode and Hono status codes
-      return c.json(
-        { error: error.type, message: error.message },
-        error.statusCode as any
-      );
-    }
-    return c.json(
-      { error: "INTERNAL_ERROR", message: "Failed to revoke API key" },
-      500
-    );
-  }
+  // Return using Hono context methods
+  return c.text(body, response.status as 200 | 400 | 401 | 403 | 404 | 500);
 });
 
 // Artifact routes - Auth applied per route - uploads need auth, downloads are public

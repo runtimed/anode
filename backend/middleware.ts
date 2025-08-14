@@ -1,6 +1,12 @@
 import { createMiddleware } from "hono/factory";
 import { validateAuthPayload, type Passport } from "./auth.ts";
 import { type Env } from "./types.ts";
+import {
+  shouldAuthenticate,
+  authenticate,
+  createGetJWKS,
+} from "@japikey/authenticate";
+import { D1Driver } from "@japikey/cloudflare";
 
 export interface AuthContext {
   passport?: Passport;
@@ -25,16 +31,49 @@ export const authMiddleware = createMiddleware<{
       );
     }
 
-    const validatedUser = await validateAuthPayload({ authToken }, c.env);
+    let passport: Passport;
+    let userId: string;
 
-    // Create passport-like object for compatibility
-    const passport = {
-      user: validatedUser,
-      jwt: { runtime: false }, // Default for HTTP requests
-    };
+    // Check if this is an API key first
+    const baseIssuer = new URL("http://localhost:8787/api-keys");
+
+    if (shouldAuthenticate(authToken, baseIssuer)) {
+      console.log("🔑 Authenticating with API key");
+      // Validate using official japikey authenticate
+      const db = new D1Driver(c.env.DB);
+      await db.ensureTable(); // Initialize the database table
+      const getJWKS = createGetJWKS(baseIssuer);
+
+      const payload = await authenticate(authToken, {
+        baseIssuer,
+        getJWKS,
+      });
+
+      // Convert japikey payload to our passport format
+      passport = {
+        user: {
+          id: payload.sub as string,
+          email: (payload as any).email || "api-key@example.com",
+          name: "API Key User",
+          isAnonymous: false,
+        },
+        jwt: payload,
+      };
+      userId = payload.sub as string;
+    } else {
+      // Fall back to existing auth logic (OIDC JWT or service token)
+      const validatedUser = await validateAuthPayload({ authToken }, c.env);
+
+      // Create passport-like object for compatibility
+      passport = {
+        user: validatedUser,
+        jwt: { runtime: false }, // Default for HTTP requests
+      };
+      userId = validatedUser.id;
+    }
 
     c.set("passport", passport);
-    c.set("userId", validatedUser.id);
+    c.set("userId", userId);
     c.set("isRuntime", false); // HTTP requests are typically not runtime
 
     await next();
@@ -62,17 +101,53 @@ export const optionalAuthMiddleware = createMiddleware<{
       c.req.header("x-auth-token");
 
     if (authToken) {
-      const validatedUser = await validateAuthPayload({ authToken }, c.env);
+      try {
+        let passport: Passport;
+        let userId: string;
 
-      // Create passport-like object for compatibility
-      const passport = {
-        user: validatedUser,
-        jwt: { runtime: false }, // Default for HTTP requests
-      };
+        // Check if this is an API key first
+        const baseIssuer = new URL("http://localhost:8787/api-keys");
 
-      c.set("passport", passport);
-      c.set("userId", validatedUser.id);
-      c.set("isRuntime", false); // HTTP requests are typically not runtime
+        if (shouldAuthenticate(authToken, baseIssuer)) {
+          // Validate using official japikey authenticate
+          const db = new D1Driver(c.env.DB);
+          await db.ensureTable(); // Initialize the database table
+          const getJWKS = createGetJWKS(baseIssuer);
+
+          const payload = await authenticate(authToken, {
+            baseIssuer,
+            getJWKS,
+          });
+
+          // Convert japikey payload to our passport format
+          passport = {
+            user: {
+              id: payload.sub as string,
+              email: (payload as any).email || "api-key@example.com",
+              name: "API Key User",
+              isAnonymous: false,
+            },
+            jwt: payload,
+          };
+          userId = payload.sub as string;
+        } else {
+          // Fall back to existing auth logic (OIDC JWT or service token)
+          const validatedUser = await validateAuthPayload({ authToken }, c.env);
+
+          // Create passport-like object for compatibility
+          passport = {
+            user: validatedUser,
+            jwt: { runtime: false }, // Default for HTTP requests
+          };
+          userId = validatedUser.id;
+        }
+
+        c.set("passport", passport);
+        c.set("userId", userId);
+        c.set("isRuntime", false); // HTTP requests are typically not runtime
+      } catch (error) {
+        console.warn("Optional auth failed:", error);
+      }
     }
   } catch (error) {
     console.warn("Optional auth failed:", error);

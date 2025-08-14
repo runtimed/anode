@@ -4,14 +4,39 @@ import { WebSocketServer } from "./sync.ts";
 import originalHandler from "./entry.ts";
 import { type Env } from "./types.ts";
 import { type AuthContext } from "./middleware.ts";
+import { RuntError, ErrorType } from "./types.ts";
 import apiRoutes from "./routes.ts";
 import localOidcRoutes from "./local-oidc-routes.ts";
+import { createJWKSRouter, D1Driver } from "@japikey/cloudflare";
 
 // Re-export the Durable Object class for the Workers runtime
 export { WebSocketServer };
 
 // Create a simple Hono app for middleware
 const app = new Hono<{ Bindings: Env; Variables: AuthContext }>();
+
+// Global error handling middleware
+app.onError(async (error, c) => {
+  let runtError: RuntError;
+  if (error instanceof RuntError) {
+    runtError = error;
+  } else {
+    runtError = new RuntError(ErrorType.Unknown, { cause: error as Error });
+  }
+
+  if (runtError.statusCode === 500) {
+    console.error(
+      "500 error for request",
+      c.req.url,
+      JSON.stringify(runtError.getPayload(true), null, 2)
+    );
+  }
+
+  return c.json(
+    runtError.getPayload(c.env.DEBUG ?? false),
+    runtError.statusCode as any
+  );
+});
 
 // Global CORS middleware
 app.use(
@@ -62,8 +87,112 @@ app.route("/api", apiRoutes);
 // Mount local OIDC routes (development only)
 app.route("/local_oidc", localOidcRoutes);
 
-// Catch-all route that delegates to original handler
+// JWKS endpoint using official japikey implementation
+app.all("/api-keys/*", async (c) => {
+  const url = new URL(c.req.url);
+
+  // Check if this is a JWKS request
+  if (url.pathname.includes("/.well-known/jwks.json")) {
+    const db = new D1Driver(c.env.DB);
+    await db.ensureTable(); // Initialize the database table
+
+    const jwksRouter = createJWKSRouter({
+      baseIssuer: new URL("http://localhost:8787/api-keys"),
+      db,
+      maxAgeSeconds: 300, // 5 minutes cache
+    });
+
+    // Handle test environment where executionCtx might not be available
+    let ctx: any = {};
+    try {
+      ctx = c.executionCtx;
+    } catch {
+      // In test environment, executionCtx throws an error, use empty object
+      ctx = {};
+    }
+
+    // Convert Hono request to Cloudflare Worker request format
+    const cfRequest = c.req.raw as any;
+    const response = await jwksRouter.fetch(cfRequest, c.env, ctx);
+
+    // Convert response body
+    const body = response.body ? await response.text() : "";
+
+    // Set headers
+    for (const [key, value] of response.headers.entries()) {
+      c.header(key, value);
+    }
+
+    // Return using Hono context methods
+    return c.text(body, response.status as 200 | 400 | 401 | 403 | 404 | 500);
+  }
+
+  // For non-JWKS requests, continue to next handler
+  return c.text("Not Found", 404);
+});
+
+// Static asset serving - try to serve from ASSETS binding first (production/preview)
 app.all("*", async (c) => {
+  const url = new URL(c.req.url);
+
+  // Check if this looks like a static asset request (not an API route)
+  const isStaticAssetRequest =
+    !url.pathname.startsWith("/api") &&
+    !url.pathname.startsWith("/local_oidc") &&
+    !url.pathname.startsWith("/api-keys");
+
+  if (isStaticAssetRequest && c.env.ASSETS) {
+    try {
+      console.log(`Attempting to serve static asset: ${url.pathname}`);
+
+      // Handle root path by trying index.html
+      let assetPath = url.pathname;
+      if (assetPath === "/" || assetPath === "") {
+        assetPath = "/index.html";
+        console.log("Root path detected, trying /index.html");
+      }
+
+      // Create a new request with the potentially modified path
+      const assetUrl = new URL(assetPath, url.origin);
+      const assetRequest = new Request(assetUrl.toString(), {
+        method: c.req.method,
+        headers: c.req.raw.headers,
+      });
+
+      // Try to fetch from Cloudflare static assets (production/preview)
+      const assetResponse = await c.env.ASSETS.fetch(assetRequest as any);
+      console.log(
+        `Asset response status for ${assetPath}: ${assetResponse.status}`
+      );
+
+      if (assetResponse.status !== 404) {
+        return assetResponse;
+      }
+
+      // If requesting root and index.html failed, try original path
+      if (url.pathname === "/" && assetPath === "/index.html") {
+        console.log("index.html failed, trying original root path");
+        const originalResponse = await c.env.ASSETS.fetch(c.req.raw as any);
+        if (originalResponse.status !== 404) {
+          return originalResponse;
+        }
+      }
+
+      console.log("Asset not found, falling through to original handler");
+      // If 404, fall through to original handler
+    } catch (error) {
+      console.warn("Failed to fetch static asset from ASSETS binding:", error);
+      // Fall through to original handler
+    }
+  } else if (isStaticAssetRequest && !c.env.ASSETS) {
+    // Local development - ASSETS binding not available, delegate to original handler
+    // (Vite dev server handles static assets locally)
+    console.debug(
+      "Static asset request in local dev, delegating to original handler"
+    );
+  }
+
+  // Fall through to original handler for API routes or when assets fail/unavailable
   // Convert to original Cloudflare Worker format (type incompatibility requires as any)
   const request = c.req.raw as any;
   const env = c.env;
