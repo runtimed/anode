@@ -49,9 +49,10 @@ jobs:
         working-directory: iframe-outputs/worker
         run: pnpm install --frozen-lockfile
 
-      - name: Deploy worker to Preview
+      - name: Deploy worker to Preview (dry-run)
         working-directory: iframe-outputs/worker
-        run: pnpm run deploy:preview
-        env:
-          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: pnpm run deploy:preview-dry-run
+
+      - name: Deploy worker to Production (dry-run)
+        working-directory: iframe-outputs/worker
+        run: pnpm run deploy:production-dry-run
