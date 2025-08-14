@@ -79,6 +79,10 @@ export default defineConfig({
         __dirname,
         "./packages/pyodide-runtime-agent/src"
       ),
+      "@runtimed/extension_impl": path.resolve(
+        __dirname,
+        "./backend/local_extension/index"
+      ),
     },
     extensions: [".ts", ".tsx", ".js", ".jsx", ".json"],
   },

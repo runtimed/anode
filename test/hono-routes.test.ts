@@ -109,6 +109,7 @@ describe("Hono API Routes", () => {
         success: true,
         message: "Authentication successful",
         tokenType: "Service Token",
+        authMethod: "Standard Auth",
         timestamp: expect.any(String),
       });
     });

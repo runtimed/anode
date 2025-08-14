@@ -102,11 +102,33 @@ app.all("/api-keys/*", async (c) => {
       maxAgeSeconds: 300, // 5 minutes cache
     });
 
-    return jwksRouter.fetch(c.req.raw, c.env);
+    // Handle test environment where executionCtx might not be available
+    let ctx: any = {};
+    try {
+      ctx = c.executionCtx;
+    } catch {
+      // In test environment, executionCtx throws an error, use empty object
+      ctx = {};
+    }
+
+    // Convert Hono request to Cloudflare Worker request format
+    const cfRequest = c.req.raw as any;
+    const response = await jwksRouter.fetch(cfRequest, c.env, ctx);
+
+    // Convert response body
+    const body = response.body ? await response.text() : "";
+
+    // Set headers
+    for (const [key, value] of response.headers.entries()) {
+      c.header(key, value);
+    }
+
+    // Return using Hono context methods
+    return c.text(body, response.status as 200 | 400 | 401 | 403 | 404 | 500);
   }
 
   // For non-JWKS requests, continue to next handler
-  return new Response("Not Found", { status: 404 });
+  return c.text("Not Found", 404);
 });
 
 // Catch-all route that delegates to original handler

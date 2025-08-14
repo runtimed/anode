@@ -10,10 +10,14 @@ import {
 } from "@japikey/cloudflare";
 import { validateAuthPayload } from "./auth.ts";
 
+// Import API key provider for authentication checks
+import backendExtension from "@runtimed/extension_impl";
+const { apiKey: apiKeyProvider } = backendExtension;
+
 // Helper functions for japikey integration
 const getUserIdFromRequest = async (
   request: any,
-  env: Env
+  _env: Env
 ): Promise<string> => {
   const authToken =
     request.headers.get("Authorization")?.replace("Bearer ", "") ||
@@ -23,13 +27,13 @@ const getUserIdFromRequest = async (
     throw new Error("Missing auth token");
   }
 
-  const validatedUser = await validateAuthPayload({ authToken }, env);
+  const validatedUser = await validateAuthPayload({ authToken }, _env);
   return validatedUser.id;
 };
 
 const parseCreateApiKeyRequest = async (
   request: any,
-  env: Env
+  _env: Env
 ): Promise<CreateApiKeyData> => {
   const body = await request.json();
 
@@ -108,6 +112,7 @@ api.post("/debug/auth", async (c) => {
         env: c.env,
         request: null as any, // Not used by the provider
         ctx: {} as any, // Not used by the provider
+        passport: null, // Required by ProviderContext interface
       };
 
       if (apiKeyProvider.isApiKey(apiKeyContext)) {
@@ -140,6 +145,7 @@ api.post("/debug/auth", async (c) => {
           env: c.env,
           request: null as any,
           ctx: {} as any,
+          passport: null, // Required by ProviderContext interface
         };
         tokenType = apiKeyProvider.isApiKey(apiKeyContext)
           ? "API Key"
@@ -190,12 +196,38 @@ const createJapikeyApiKeyRoutes = async (env: Env) => {
 // Mount the official japikey routes - handle all API key operations
 api.all("/api-keys", async (c) => {
   const japikeyRouter = await createJapikeyApiKeyRoutes(c.env);
-  return japikeyRouter.fetch(c.req.raw, c.env);
+  // Convert Hono request to Cloudflare Worker request format
+  const cfRequest = c.req.raw as any;
+  const response = await japikeyRouter.fetch(cfRequest, c.env, c.executionCtx);
+
+  // Convert response body
+  const body = response.body ? await response.text() : "";
+
+  // Set headers
+  for (const [key, value] of response.headers.entries()) {
+    c.header(key, value);
+  }
+
+  // Return using Hono context methods
+  return c.text(body, response.status as 200 | 400 | 401 | 403 | 404 | 500);
 });
 
 api.all("/api-keys/*", async (c) => {
   const japikeyRouter = await createJapikeyApiKeyRoutes(c.env);
-  return japikeyRouter.fetch(c.req.raw, c.env);
+  // Convert Hono request to Cloudflare Worker request format
+  const cfRequest = c.req.raw as any;
+  const response = await japikeyRouter.fetch(cfRequest, c.env, c.executionCtx);
+
+  // Convert response body
+  const body = response.body ? await response.text() : "";
+
+  // Set headers
+  for (const [key, value] of response.headers.entries()) {
+    c.header(key, value);
+  }
+
+  // Return using Hono context methods
+  return c.text(body, response.status as 200 | 400 | 401 | 403 | 404 | 500);
 });
 
 // Artifact routes - Auth applied per route - uploads need auth, downloads are public
