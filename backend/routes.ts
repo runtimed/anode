@@ -7,7 +7,116 @@ import {
   ApiKeyCapabilities,
   CreateApiKeyRequest,
 } from "@runtimed/extensions/providers/api_key";
-import { RuntError } from "@runtimed/extensions";
+import {
+  RuntError,
+  ErrorType,
+  AuthenticatedProviderContext,
+} from "@runtimed/extensions";
+import { ListApiKeysRequest } from "@runtimed/extensions/providers/api_key";
+
+// Validation functions for API key requests
+const validateCreateApiKeyRequest = (
+  body: unknown
+): body is CreateApiKeyRequest => {
+  if (typeof body !== "object" || body === null) {
+    throw new RuntError(ErrorType.InvalidRequest, {
+      message: "Request body must be an object",
+    });
+  }
+
+  const request = body as Record<string, unknown>;
+
+  if (
+    !Array.isArray(request.scopes) ||
+    request.scopes.length === 0 ||
+    request.scopes.some((scope) => typeof scope !== "string")
+  ) {
+    throw new RuntError(ErrorType.InvalidRequest, {
+      message: "scopes is invalid",
+    });
+  }
+
+  if (request.resources !== undefined) {
+    if (
+      !Array.isArray(request.resources) ||
+      request.resources.some(
+        (resource) =>
+          typeof resource?.id !== "string" || typeof resource?.type !== "string"
+      )
+    ) {
+      throw new RuntError(ErrorType.InvalidRequest, {
+        message: "resources is invalid",
+      });
+    }
+
+    if (
+      !apiKeyProvider.capabilities.has(ApiKeyCapabilities.CreateWithResources)
+    ) {
+      throw new RuntError(ErrorType.CapabilityNotAvailable, {
+        message: "Creating api keys with resources is not supported",
+      });
+    }
+  }
+
+  if (typeof request.expiresAt !== "string") {
+    throw new RuntError(ErrorType.InvalidRequest, {
+      message: "expiresAt is invalid",
+    });
+  }
+  try {
+    new Date(request.expiresAt);
+  } catch (error) {
+    throw new RuntError(ErrorType.InvalidRequest, {
+      message: "expiresAt is invalid",
+      cause: error as Error,
+    });
+  }
+
+  if (request.name !== undefined && typeof request.name !== "string") {
+    throw new RuntError(ErrorType.InvalidRequest, {
+      message: "name is invalid",
+    });
+  }
+
+  if (typeof request.userGenerated !== "boolean") {
+    throw new RuntError(ErrorType.InvalidRequest, {
+      message: "userGenerated is invalid",
+    });
+  }
+  return true;
+};
+
+const validateRevokeApiKeyRequest = (
+  body: unknown
+): body is { revoked: boolean } => {
+  if (typeof body !== "object" || body === null) {
+    throw new RuntError(ErrorType.InvalidRequest, {
+      message: "Request body must be an object",
+    });
+  }
+  const request = body as Record<string, unknown>;
+
+  if (typeof request.revoked !== "boolean" || request.revoked !== true) {
+    throw new RuntError(ErrorType.InvalidRequest, {
+      message: "invalid revoked value",
+    });
+  }
+  return true;
+};
+
+const createAuthenticatedContext = (
+  _userId: string,
+  passport: any,
+  env: Env
+): AuthenticatedProviderContext => {
+  return {
+    request: null as any, // Not used by the provider
+    env,
+    ctx: {} as any, // Not used by the provider
+    bearerToken: "", // Not needed for this context
+    passport,
+  };
+};
 
 const api = new Hono<{ Bindings: Env; Variables: AuthContext }>();
 
@@ -83,190 +192,135 @@ api.post("/debug/auth", async (c) => {
 
 // API Key routes - all require authentication
 api.post("/api-keys", authMiddleware, async (c) => {
-  try {
-    const body = (await c.req.json()) as CreateApiKeyRequest;
+  const body = await c.req.json();
 
-    // Validate request
-    if (
-      !Array.isArray(body.scopes) ||
-      body.scopes.length === 0 ||
-      body.scopes.some((scope) => typeof scope !== "string")
-    ) {
-      return c.json(
-        {
-          error: "INVALID_REQUEST",
-          message: "scopes is invalid",
-        },
-        400
-      );
-    }
+  // Comprehensive validation
+  validateCreateApiKeyRequest(body);
 
-    const context = {
-      env: c.env,
-      user: { id: c.get("userId") },
-      passport: c.get("passport"),
-    };
+  const userId = c.get("userId");
+  const passport = c.get("passport");
 
-    // TODO: Fix type compatibility for context parameter
-    const result = await apiKeyProvider.createApiKey(context as any, body);
-    return c.json(result);
-  } catch (error: any) {
-    if (error instanceof RuntError) {
-      // TODO: Fix type compatibility between RuntError.statusCode and Hono status codes
-      return c.json(
-        { error: error.type, message: error.message },
-        error.statusCode as any
-      );
-    }
-    return c.json(
-      { error: "INTERNAL_ERROR", message: "Failed to create API key" },
-      500
-    );
+  if (!userId || !passport) {
+    throw new RuntError(ErrorType.MissingAuthToken, {
+      message: "Authentication required",
+    });
   }
+
+  const context = createAuthenticatedContext(userId, passport, c.env);
+  const result = await apiKeyProvider.createApiKey(
+    context,
+    body as CreateApiKeyRequest
+  );
+  return c.json(result);
 });
 
 api.get("/api-keys", authMiddleware, async (c) => {
+  const limitStr = c.req.query("limit");
+  const offsetStr = c.req.query("offset");
+  const options: ListApiKeysRequest = {};
+
+  // Parse pagination parameters
   try {
-    const limit = parseInt(c.req.query("limit") || "100");
-    const offset = parseInt(c.req.query("offset") || "0");
-
-    const context = {
-      env: c.env,
-      user: { id: c.get("userId") },
-      passport: c.get("passport"),
-    };
-
-    // TODO: Fix type compatibility for context parameter
-    const result = await apiKeyProvider.listApiKeys(context as any, {
-      limit,
-      offset,
-    });
-    return c.json(result);
-  } catch (error: any) {
-    if (error instanceof RuntError) {
-      // TODO: Fix type compatibility between RuntError.statusCode and Hono status codes
-      return c.json(
-        { error: error.type, message: error.message },
-        error.statusCode as any
-      );
+    if (limitStr) {
+      options.limit = parseInt(limitStr);
     }
-    return c.json(
-      { error: "INTERNAL_ERROR", message: "Failed to list API keys" },
-      500
-    );
+    if (offsetStr) {
+      options.offset = parseInt(offsetStr);
+    }
+  } catch (error) {
+    throw new RuntError(ErrorType.InvalidRequest, {
+      message: "Invalid pagination parameters",
+      cause: error as Error,
+    });
   }
+
+  const userId = c.get("userId");
+  const passport = c.get("passport");
+
+  if (!userId || !passport) {
+    throw new RuntError(ErrorType.MissingAuthToken, {
+      message: "Authentication required",
+    });
+  }
+
+  const context = createAuthenticatedContext(userId, passport, c.env);
+  const result = await apiKeyProvider.listApiKeys(context, options);
+  return c.json(result);
 });
 
 api.get("/api-keys/:id", authMiddleware, async (c) => {
-  try {
-    const keyId = c.req.param("id");
-    if (!keyId) {
-      return c.json(
-        { error: "INVALID_REQUEST", message: "API key ID is required" },
-        400
-      );
-    }
-
-    const context = {
-      env: c.env,
-      user: { id: c.get("userId") },
-      passport: c.get("passport"),
-    };
-
-    // TODO: Fix type compatibility for context parameter
-    const result = await apiKeyProvider.getApiKey(context as any, keyId);
-    return c.json(result);
-  } catch (error: any) {
-    if (error instanceof RuntError) {
-      // TODO: Fix type compatibility between RuntError.statusCode and Hono status codes
-      return c.json(
-        { error: error.type, message: error.message },
-        error.statusCode as any
-      );
-    }
-    return c.json(
-      { error: "INTERNAL_ERROR", message: "Failed to get API key" },
-      500
-    );
+  const keyId = c.req.param("id");
+  if (!keyId) {
+    throw new RuntError(ErrorType.InvalidRequest, {
+      message: "API key ID is required",
+    });
   }
+
+  const userId = c.get("userId");
+  const passport = c.get("passport");
+
+  if (!userId || !passport) {
+    throw new RuntError(ErrorType.MissingAuthToken, {
+      message: "Authentication required",
+    });
+  }
+
+  const context = createAuthenticatedContext(userId, passport, c.env);
+  const result = await apiKeyProvider.getApiKey(context, keyId);
+  return c.json(result);
 });
 
 api.delete("/api-keys/:id", authMiddleware, async (c) => {
-  try {
-    const keyId = c.req.param("id");
-    if (!keyId) {
-      return c.json(
-        { error: "INVALID_REQUEST", message: "API key ID is required" },
-        400
-      );
-    }
-
-    const context = {
-      env: c.env,
-      user: { id: c.get("userId") },
-      passport: c.get("passport"),
-    };
-
-    // TODO: Fix type compatibility for context parameter
-    await apiKeyProvider.deleteApiKey(context as any, keyId);
-    return c.json({ success: true });
-  } catch (error: any) {
-    if (error instanceof RuntError) {
-      // TODO: Fix type compatibility between RuntError.statusCode and Hono status codes
-      return c.json(
-        { error: error.type, message: error.message },
-        error.statusCode as any
-      );
-    }
-    return c.json(
-      { error: "INTERNAL_ERROR", message: "Failed to delete API key" },
-      500
-    );
+  const keyId = c.req.param("id");
+  if (!keyId) {
+    throw new RuntError(ErrorType.InvalidRequest, {
+      message: "API key ID is required",
+    });
   }
+
+  const userId = c.get("userId");
+  const passport = c.get("passport");
+
+  if (!userId || !passport) {
+    throw new RuntError(ErrorType.MissingAuthToken, {
+      message: "Authentication required",
+    });
+  }
+
+  const context = createAuthenticatedContext(userId, passport, c.env);
+  await apiKeyProvider.deleteApiKey(context, keyId);
+  return new Response(null, { status: 204 });
 });
 
 api.patch("/api-keys/:id", authMiddleware, async (c) => {
-  try {
-    const keyId = c.req.param("id");
-    if (!keyId) {
-      return c.json(
-        { error: "INVALID_REQUEST", message: "API key ID is required" },
-        400
-      );
-    }
-
-    if (!apiKeyProvider.capabilities.has(ApiKeyCapabilities.Revoke)) {
-      return c.json(
-        {
-          error: "CAPABILITY_NOT_AVAILABLE",
-          message: "Revoke capability is not supported",
-        },
-        501
-      );
-    }
-
-    const context = {
-      env: c.env,
-      user: { id: c.get("userId") },
-      passport: c.get("passport"),
-    };
-
-    // TODO: Fix type compatibility for context parameter
-    await apiKeyProvider.revokeApiKey(context as any, keyId);
-    return c.json({ success: true, message: "API key revoked successfully" });
-  } catch (error: any) {
-    if (error instanceof RuntError) {
-      // TODO: Fix type compatibility between RuntError.statusCode and Hono status codes
-      return c.json(
-        { error: error.type, message: error.message },
-        error.statusCode as any
-      );
-    }
-    return c.json(
-      { error: "INTERNAL_ERROR", message: "Failed to revoke API key" },
-      500
-    );
+  const keyId = c.req.param("id");
+  if (!keyId) {
+    throw new RuntError(ErrorType.InvalidRequest, {
+      message: "API key ID is required",
+    });
   }
+
+  if (!apiKeyProvider.capabilities.has(ApiKeyCapabilities.Revoke)) {
+    throw new RuntError(ErrorType.CapabilityNotAvailable, {
+      message: "Revoke capability is not supported",
+    });
+  }
+
+  const body = await c.req.json();
+  validateRevokeApiKeyRequest(body);
+
+  const userId = c.get("userId");
+  const passport = c.get("passport");
+
+  if (!userId || !passport) {
+    throw new RuntError(ErrorType.MissingAuthToken, {
+      message: "Authentication required",
+    });
+  }
+
+  const context = createAuthenticatedContext(userId, passport, c.env);
+  await apiKeyProvider.revokeApiKey(context, keyId);
+  return new Response(null, { status: 204 });
 });
 
 // Artifact routes - Auth applied per route - uploads need auth, downloads are public

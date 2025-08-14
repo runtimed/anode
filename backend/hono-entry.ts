@@ -4,6 +4,7 @@ import { WebSocketServer } from "./sync.ts";
 import originalHandler from "./entry.ts";
 import { type Env } from "./types.ts";
 import { type AuthContext } from "./middleware.ts";
+import { RuntError, ErrorType } from "@runtimed/extensions";
 import apiRoutes from "./routes.ts";
 import localOidcRoutes from "./local-oidc-routes.ts";
 
@@ -12,6 +13,29 @@ export { WebSocketServer };
 
 // Create a simple Hono app for middleware
 const app = new Hono<{ Bindings: Env; Variables: AuthContext }>();
+
+// Global error handling middleware
+app.onError(async (error, c) => {
+  let runtError: RuntError;
+  if (error instanceof RuntError) {
+    runtError = error;
+  } else {
+    runtError = new RuntError(ErrorType.Unknown, { cause: error as Error });
+  }
+
+  if (runtError.statusCode === 500) {
+    console.error(
+      "500 error for request",
+      c.req.url,
+      JSON.stringify(runtError.getPayload(true), null, 2)
+    );
+  }
+
+  return c.json(
+    runtError.getPayload(c.env.DEBUG ?? false),
+    runtError.statusCode as any
+  );
+});
 
 // Global CORS middleware
 app.use(
