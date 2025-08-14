@@ -147,7 +147,7 @@ export class AnacondaApiKeyProvider implements ApiKeyProvider {
       for (const scope of whoami.passport.scopes) {
         try {
           scopes.push(scopeMapping.fromExternal(scope, "anaconda"));
-        } catch (error) {
+        } catch {
           console.warn(`Unknown Anaconda scope: ${scope}`);
         }
       }
@@ -355,7 +355,7 @@ export class AnacondaApiKeyProvider implements ApiKeyProvider {
     for (const scope of anacondaResponse.scopes) {
       try {
         scopes.push(scopeMapping.fromExternal(scope, "anaconda"));
-      } catch (error) {
+      } catch {
         console.warn(`Unknown Anaconda scope during conversion: ${scope}`);
       }
     }

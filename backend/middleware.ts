@@ -51,7 +51,7 @@ export const authMiddleware = createMiddleware<{
         };
         userId = validatedUser.id;
       }
-    } catch (apiError) {
+    } catch {
       // If API key provider fails, try standard auth as fallback
       const validatedUser = await validateAuthPayload({ authToken }, c.env);
 
@@ -119,7 +119,7 @@ export const optionalAuthMiddleware = createMiddleware<{
             };
             userId = validatedUser.id;
           }
-        } catch (apiError) {
+        } catch {
           // If API key provider fails, try standard auth as fallback
           const validatedUser = await validateAuthPayload({ authToken }, c.env);
 

@@ -83,7 +83,7 @@ api.post("/debug/auth", async (c) => {
             : "Service Token";
           authMethod = "Standard Auth";
         }
-      } catch (providerError) {
+      } catch {
         // If API key provider fails, try standard auth
         await validateAuthPayload({ authToken }, c.env);
         tokenType = authToken.startsWith("eyJ") ? "OIDC JWT" : "Service Token";
