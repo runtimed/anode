@@ -133,7 +133,7 @@ const handler: SimpleHandler = {
               );
             }
 
-            // For runtime agents, prevent user impersonation
+            // For service runtime agents (using AUTH_TOKEN), prevent user impersonation
             if (validatedUser.id === "runtime-agent") {
               // A runtime agent's clientId should NOT look like a real user's ID.
               // OIDC user IDs are typically numeric strings.
@@ -146,6 +146,13 @@ const handler: SimpleHandler = {
                   `RUNTIME_IMPERSONATION_ATTEMPT: Runtime agent cannot use a numeric clientId ('${clientId}') that could be a user ID.`
                 );
               }
+            } else if (payload?.runtime === true) {
+              // For API key authenticated runtime agents, allow runtime ID as clientId
+              // These are user-attributed runtime agents using their own API keys
+              console.log("✅ API key authenticated runtime agent:", {
+                userId: validatedUser.id,
+                runtimeClientId: clientId,
+              });
             } else {
               // For regular users, the clientId must match their user ID
               if (clientId !== validatedUser.id) {
