@@ -1,6 +1,10 @@
 import * as jose from "jose";
 import { type Env } from "../types.ts";
-import type { ApiKeyValidationResult } from "./index.ts";
+import type {
+  ApiKeyProvider,
+  ApiKeyValidationResult,
+  UserInfo,
+} from "./types.ts";
 
 type AnacondaWhoamiResponse = {
   passport: {
@@ -24,7 +28,7 @@ type ExtensionConfig = {
 /**
  * Anaconda API key provider for production/preview environments
  */
-export class AnacondaApiKeyProvider {
+export class AnacondaApiKeyProvider implements ApiKeyProvider {
   private config: ExtensionConfig;
 
   constructor(env: Env) {
@@ -111,12 +115,14 @@ export class AnacondaApiKeyProvider {
   /**
    * Get user information for debug purposes
    */
-  async getUserInfo(result: ApiKeyValidationResult & { valid: true }) {
+  async getUserInfo(
+    result: ApiKeyValidationResult & { valid: true }
+  ): Promise<UserInfo> {
     return {
       id: result.userId,
-      email: result.email,
-      givenName: result.givenName,
-      familyName: result.familyName,
+      email: result.email || "unknown@anaconda.com",
+      givenName: result.givenName || "Unknown",
+      familyName: result.familyName || "User",
       scopes: result.scopes,
     };
   }

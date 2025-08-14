@@ -1,24 +1,14 @@
 import { LocalApiKeyProvider } from "./local.ts";
 import { AnacondaApiKeyProvider } from "./anaconda.ts";
 import { type Env } from "../types.ts";
+import type {
+  ApiKeyProvider,
+  ApiKeyValidationResult,
+  UserInfo,
+} from "./types.ts";
 
-// Common API key validation result type
-export type ApiKeyValidationResult =
-  | {
-      valid: true;
-      userId: string;
-      scopes: string[];
-      keyId: string;
-      email?: string;
-      givenName?: string;
-      familyName?: string;
-    }
-  | {
-      valid: false;
-      error: string;
-    };
-
-export type ApiKeyProvider = LocalApiKeyProvider | AnacondaApiKeyProvider;
+// Re-export types
+export type { ApiKeyProvider, ApiKeyValidationResult, UserInfo };
 
 /**
  * Factory function to create the appropriate API key provider based on environment

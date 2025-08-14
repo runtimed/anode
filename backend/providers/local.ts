@@ -1,11 +1,15 @@
 import * as jose from "jose";
-import type { ApiKeyValidationResult } from "./index.ts";
+import type {
+  ApiKeyProvider,
+  ApiKeyValidationResult,
+  UserInfo,
+} from "./types.ts";
 
 /**
  * Local API key provider for development environments
  * Uses japikey for actual key management and validation
  */
-export class LocalApiKeyProvider {
+export class LocalApiKeyProvider implements ApiKeyProvider {
   constructor() {}
 
   /**
@@ -77,7 +81,9 @@ export class LocalApiKeyProvider {
   /**
    * Get user information for debug purposes
    */
-  async getUserInfo(result: ApiKeyValidationResult & { valid: true }) {
+  async getUserInfo(
+    result: ApiKeyValidationResult & { valid: true }
+  ): Promise<UserInfo> {
     return {
       id: result.userId,
       email: `${result.userId}@local.dev`,
