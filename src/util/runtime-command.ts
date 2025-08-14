@@ -11,9 +11,15 @@ export function generateRuntimeCommand(
 ): string {
   const baseRuntimeCommand =
     customCommand ||
-    'deno run --allow-all --env-file=.env "jsr:@runt/pyodide-runtime-agent@^0.7.3"';
+    'deno run --allow-all --env-file=.env "../runt/packages/pyodide-runtime-agent/src/mod.ts"';
 
-  return `NOTEBOOK_ID=${notebookId} RUNT_API_KEY=your-key ${baseRuntimeCommand}`;
+  // Convert VITE_LIVESTORE_SYNC_URL to WebSocket URL
+  const syncPath = import.meta.env.VITE_LIVESTORE_SYNC_URL || "/livestore";
+  const wsUrl = syncPath.startsWith("ws")
+    ? syncPath
+    : `wss://${typeof window !== "undefined" ? window.location.host : "localhost"}${syncPath}`;
+
+  return `NOTEBOOK_ID=${notebookId} LIVESTORE_SYNC_URL=${wsUrl} ${baseRuntimeCommand}`;
 }
 
 /**

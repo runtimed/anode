@@ -31,8 +31,7 @@ export const RuntimeHelper: React.FC<RuntimeHelperProps> = ({
   const runtimeCommand = getRuntimeCommand(currentNotebookId);
 
   const copyRuntimeCommand = useCallback(() => {
-    const commandWithApiKey = `RUNT_API_KEY=your-key ${runtimeCommand}`;
-    navigator.clipboard.writeText(commandWithApiKey);
+    navigator.clipboard.writeText(runtimeCommand);
     // Could add a toast notification here
   }, [runtimeCommand]);
 
@@ -74,11 +73,8 @@ export const RuntimeHelper: React.FC<RuntimeHelperProps> = ({
         {!hasActiveRuntime && (
           <>
             <p className="text-muted-foreground mb-3 text-sm">
-              Need an API key? Get one from your{" "}
-              <button className="text-blue-600 underline hover:text-blue-800">
-                profile settings
-              </button>
-              .
+              Make sure you have RUNT_API_KEY set in your environment. Get one
+              from your profile settings →
             </p>
             <p className="text-muted-foreground mb-3 text-sm">
               Run this command in your terminal to start a runtime for notebook{" "}
@@ -86,9 +82,7 @@ export const RuntimeHelper: React.FC<RuntimeHelperProps> = ({
               :
             </p>
             <div className="flex items-center gap-2 rounded bg-slate-900 p-3 font-mono text-sm text-slate-100">
-              <span className="flex-1">
-                RUNT_API_KEY=your-key {runtimeCommand}
-              </span>
+              <span className="flex-1">{runtimeCommand}</span>
               <Button
                 variant="ghost"
                 size="sm"
@@ -99,9 +93,9 @@ export const RuntimeHelper: React.FC<RuntimeHelperProps> = ({
               </Button>
             </div>
             <p className="text-muted-foreground mt-2 text-xs">
-              Note: Each notebook requires its own runtime instance. Set your
-              API key as RUNT_API_KEY environment variable. The runtime will
-              connect automatically once started.
+              Note: Each notebook requires its own runtime instance. Make sure
+              RUNT_API_KEY is set in your environment. The runtime will connect
+              automatically once started.
             </p>
           </>
         )}

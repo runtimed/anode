@@ -10,6 +10,8 @@ import {
 } from "./types";
 
 import { validateAuthPayload, validateProductionEnvironment } from "./auth";
+import { createApiKeyProvider } from "./providers/api-key-factory.ts";
+import { createProviderContext } from "./api-key-provider.ts";
 
 export class WebSocketServer extends makeDurableObject({
   onPush: async (message) => {
@@ -95,7 +97,33 @@ const handler: SimpleHandler = {
 
           try {
             // Step 1: Authenticate the user token
-            const validatedUser = await validateAuthPayload(payload, env);
+            let validatedUser;
+
+            // First try API key authentication
+            try {
+              const apiKeyProvider = createApiKeyProvider(env);
+              const providerContext = createProviderContext(
+                env,
+                payload.authToken
+              );
+
+              if (apiKeyProvider.isApiKey(providerContext)) {
+                // Validate using API key provider
+                const passport =
+                  await apiKeyProvider.validateApiKey(providerContext);
+                validatedUser = passport.user;
+                console.log("✅ Authenticated via API key:", {
+                  userId: validatedUser.id,
+                  email: validatedUser.email,
+                });
+              } else {
+                // Fall back to existing auth logic (OIDC JWT or service token)
+                validatedUser = await validateAuthPayload(payload, env);
+              }
+            } catch {
+              // If API key provider fails, try standard auth as fallback
+              validatedUser = await validateAuthPayload(payload, env);
+            }
 
             // Step 2: Validate the client ID against the authenticated user
             const clientId = payload?.clientId;

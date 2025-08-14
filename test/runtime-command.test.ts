@@ -10,7 +10,7 @@ describe("Runtime Command Generation", () => {
     const runtimeCommand = generateRuntimeCommand(notebookId);
 
     expect(runtimeCommand).toBe(
-      'NOTEBOOK_ID=test-notebook-123 RUNT_API_KEY=your-key deno run --allow-all --env-file=.env "jsr:@runt/pyodide-runtime-agent@^0.7.3"'
+      'NOTEBOOK_ID=test-notebook-123 LIVESTORE_SYNC_URL=ws://localhost:8787 deno run --allow-all --env-file=.env "../runt/packages/pyodide-runtime-agent/src/mod.ts"'
     );
   });
 
@@ -32,7 +32,7 @@ describe("Runtime Command Generation", () => {
     const runtimeCommand = generateRuntimeCommand(notebookId, customCommand);
 
     expect(runtimeCommand).toBe(
-      "NOTEBOOK_ID=test-notebook-456 RUNT_API_KEY=your-key python -m my_custom_runtime"
+      "NOTEBOOK_ID=test-notebook-456 LIVESTORE_SYNC_URL=ws://localhost:8787 python -m my_custom_runtime"
     );
   });
 
@@ -42,7 +42,7 @@ describe("Runtime Command Generation", () => {
     const runtimeCommand = generateRuntimeCommand(notebookId, devCommand);
 
     expect(runtimeCommand).toBe(
-      "NOTEBOOK_ID=dev-notebook-789 RUNT_API_KEY=your-key pnpm dev:runtime"
+      "NOTEBOOK_ID=dev-notebook-789 LIVESTORE_SYNC_URL=ws://localhost:8787 pnpm dev:runtime"
     );
   });
 
@@ -51,7 +51,7 @@ describe("Runtime Command Generation", () => {
     const runtimeCommand = generateRuntimeCommand(notebookId);
 
     expect(runtimeCommand).toBe(
-      'NOTEBOOK_ID=notebook-with-dashes_and_underscores.123 RUNT_API_KEY=your-key deno run --allow-all --env-file=.env "jsr:@runt/pyodide-runtime-agent@^0.7.3"'
+      'NOTEBOOK_ID=notebook-with-dashes_and_underscores.123 LIVESTORE_SYNC_URL=ws://localhost:8787 deno run --allow-all --env-file=.env "../runt/packages/pyodide-runtime-agent/src/mod.ts"'
     );
   });
 
@@ -71,7 +71,7 @@ describe("Runtime Command Generation", () => {
     const runtimeCommand = generateRuntimeCommand(notebookId, customCommand);
 
     expect(runtimeCommand).toMatch(
-      /^NOTEBOOK_ID=[\w-]+ RUNT_API_KEY=your-key /
+      /^NOTEBOOK_ID=[\w-]+ LIVESTORE_SYNC_URL=ws:\/\/localhost:8787 /
     );
     expect(runtimeCommand).toContain("my-runtime --flag=value");
   });
