@@ -138,7 +138,16 @@ const ApiKeyItem: React.FC<{
               <ShieldOff className="mr-1 h-3 w-3" />
               Revoke
             </Button>
-            {/* Delete functionality temporarily disabled for local provider */}
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={handleDelete}
+              disabled={actionLoading === "delete"}
+              className="text-destructive hover:text-destructive h-6 text-xs"
+            >
+              <Trash2 className="mr-1 h-3 w-3" />
+              Delete
+            </Button>
           </div>
         )}
       </div>

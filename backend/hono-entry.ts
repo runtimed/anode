@@ -8,6 +8,7 @@ import { RuntError, ErrorType } from "./types.ts";
 import apiRoutes from "./routes.ts";
 import localOidcRoutes from "./local-oidc-routes.ts";
 import { createJWKSRouter, D1Driver } from "@japikey/cloudflare";
+import { isUsingLocalProvider } from "./providers/api-key-factory.ts";
 
 // Re-export the Durable Object class for the Workers runtime
 export { WebSocketServer };
@@ -88,8 +89,12 @@ app.route("/api", apiRoutes);
 // Mount local OIDC routes (development only)
 app.route("/local_oidc", localOidcRoutes);
 
-// API Keys endpoint using official japikey implementation
+// API Keys endpoint using official japikey implementation (local provider only)
 app.all("/api-keys/*", async (c) => {
+  // Only mount this endpoint for local provider
+  if (!isUsingLocalProvider(c.env)) {
+    return c.json({ error: "Not Found" }, 404);
+  }
   const url = new URL(c.req.url);
 
   console.log("🔍 /api-keys/* handler called", {
@@ -117,7 +122,7 @@ app.all("/api-keys/*", async (c) => {
     router = createApiKeyRouter({
       getUserId: async () => "local-user", // Will be overridden by actual auth
       parseCreateApiKeyRequest: async (req) => {
-        const body = await req.json();
+        const body = (await req.json()) as any;
         return {
           expiresAt: new Date(body.expiresAt),
           claims: {
