@@ -32,7 +32,7 @@ import {
 } from "@japikey/japikey";
 import { D1Driver } from "@japikey/cloudflare";
 
-const getBaseIssuer = (context: ProviderContext): URL => {
+export const getBaseIssuer = (context: ProviderContext): URL => {
   const issuer = context.env.AUTH_ISSUER;
   const match = issuer.match(/^http:\/\/localhost:(\d+)\/local_oidc$/);
   if (!match) {
@@ -43,7 +43,7 @@ const getBaseIssuer = (context: ProviderContext): URL => {
       },
     });
   }
-  return new URL(`http://localhost:${match[1]}/api-keys/`);
+  return new URL(`http://localhost:${match[1]}/api-keys`);
 };
 
 const claimToMaybeString = (item: unknown): string | undefined => {

@@ -86,6 +86,62 @@ app.route("/api", apiRoutes);
 // Mount local OIDC routes (development only)
 app.route("/local_oidc", localOidcRoutes);
 
+// JWKS endpoint for API key validation - must be at /api-keys/:id/.well-known/jwks.json
+app.get("/api-keys/:id/.well-known/jwks.json", async (c) => {
+  try {
+    const keyId = c.req.param("id");
+
+    if (!keyId) {
+      return c.json(
+        {
+          error: "Bad Request",
+          message: "Key ID is required",
+        },
+        400
+      );
+    }
+
+    // Get the specific API key's public key directly from D1
+    const result = await c.env.DB.prepare(
+      "SELECT kid, jwk FROM japikeys WHERE kid = ? AND revoked = 0"
+    )
+      .bind(keyId)
+      .first();
+
+    if (!result) {
+      return c.json(
+        {
+          error: "Not Found",
+          message: "API key not found or revoked",
+        },
+        404
+      );
+    }
+
+    const jwks = {
+      keys: [
+        {
+          ...JSON.parse(result.jwk as string),
+          kid: result.kid,
+          use: "sig",
+          alg: "RS256",
+        },
+      ],
+    };
+
+    return c.json(jwks);
+  } catch (error) {
+    console.error("❌ JWKS endpoint error:", error);
+    return c.json(
+      {
+        error: "Internal Server Error",
+        message: "Failed to retrieve public key",
+      },
+      500
+    );
+  }
+});
+
 // Catch-all route that delegates to original handler
 app.all("*", async (c) => {
   // Convert to original Cloudflare Worker format (type incompatibility requires as any)

@@ -361,60 +361,9 @@ api.patch("/api-keys/:id", authMiddleware, async (c) => {
 });
 
 // JWKS endpoint for individual API key validation - no auth required (public keys)
-api.get("/api-keys/:id/.well-known/jwks.json", async (c) => {
-  try {
-    const keyId = c.req.param("id");
-
-    if (!keyId) {
-      return c.json(
-        {
-          error: "Bad Request",
-          message: "Key ID is required",
-        },
-        400
-      );
-    }
-
-    // Get the specific API key's public key directly from D1
-    const result = await c.env.DB.prepare(
-      "SELECT kid, jwk FROM japikeys WHERE kid = ? AND revoked = 0"
-    )
-      .bind(keyId)
-      .first();
-
-    if (!result) {
-      return c.json(
-        {
-          error: "Not Found",
-          message: "API key not found or revoked",
-        },
-        404
-      );
-    }
-
-    const jwks = {
-      keys: [
-        {
-          ...JSON.parse(result.jwk as string),
-          kid: result.kid,
-          use: "sig",
-          alg: "RS256",
-        },
-      ],
-    };
-
-    return c.json(jwks);
-  } catch (error) {
-    console.error("❌ JWKS endpoint error:", error);
-    return c.json(
-      {
-        error: "Internal Server Error",
-        message: "Failed to retrieve public key",
-      },
-      500
-    );
-  }
-});
+// Note: This route needs to be accessible at /api-keys/:id/.well-known/jwks.json (not /api/api-keys/...)
+// Moving this to be handled by the main hono app, not the api router
+// This route has been moved to hono-entry.ts to be accessible at /api-keys/:id/.well-known/jwks.json
 
 // Artifact routes - Auth applied per route - uploads need auth, downloads are public
 
