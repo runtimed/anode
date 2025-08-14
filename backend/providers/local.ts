@@ -4,6 +4,7 @@ import type {
   ApiKeyValidationResult,
   UserInfo,
 } from "./types.ts";
+import { RuntError, ErrorType } from "../types.ts";
 
 /**
  * Local API key provider for development environments

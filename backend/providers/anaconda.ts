@@ -1,5 +1,6 @@
 import * as jose from "jose";
 import { type Env } from "../types.ts";
+import { RuntError, ErrorType } from "../types.ts";
 import type {
   ApiKeyProvider,
   ApiKeyValidationResult,
@@ -33,21 +34,26 @@ export class AnacondaApiKeyProvider implements ApiKeyProvider {
 
   constructor(env: Env) {
     if (!env.EXTENSION_CONFIG) {
-      throw new Error(
-        "EXTENSION_CONFIG environment variable is required for Anaconda provider"
-      );
+      throw new RuntError(ErrorType.ServerMisconfigured, {
+        message:
+          "EXTENSION_CONFIG environment variable is required for Anaconda provider",
+      });
     }
 
     try {
       this.config = JSON.parse(env.EXTENSION_CONFIG) as ExtensionConfig;
-    } catch {
-      throw new Error("Invalid EXTENSION_CONFIG JSON");
+    } catch (error) {
+      throw new RuntError(ErrorType.ServerMisconfigured, {
+        message: "Invalid EXTENSION_CONFIG JSON",
+        cause: error as Error,
+      });
     }
 
     if (!this.config.apiKeyUrl || !this.config.userinfoUrl) {
-      throw new Error(
-        "EXTENSION_CONFIG missing required fields: apiKeyUrl, userinfoUrl"
-      );
+      throw new RuntError(ErrorType.ServerMisconfigured, {
+        message:
+          "EXTENSION_CONFIG missing required fields: apiKeyUrl, userinfoUrl",
+      });
     }
   }
 
@@ -68,23 +74,16 @@ export class AnacondaApiKeyProvider implements ApiKeyProvider {
    */
   async validateApiKey(token: string): Promise<ApiKeyValidationResult> {
     try {
-      const response = await fetch(this.config.userinfoUrl, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-
-      if (!response.ok) {
-        if (response.status === 401) {
-          return { valid: false, error: "Invalid or expired API key" };
+      const whoami: AnacondaWhoamiResponse = await fetch(
+        this.config.userinfoUrl,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
         }
-        if (response.status === 403) {
-          return { valid: false, error: "Access denied" };
-        }
-        return { valid: false, error: "API key validation failed" };
-      }
-
-      const whoami: AnacondaWhoamiResponse = await response.json();
+      )
+        .catch(this.createFailureHandler(this.config.userinfoUrl))
+        .then(this.handleAnacondaResponse<AnacondaWhoamiResponse>);
 
       if (whoami.passport.source !== "api_key") {
         return { valid: false, error: "Non-API key token used" };
@@ -106,8 +105,20 @@ export class AnacondaApiKeyProvider implements ApiKeyProvider {
         givenName: whoami.passport.profile.first_name,
         familyName: whoami.passport.profile.last_name,
       };
-    } catch (err) {
-      console.error("Anaconda API key validation error:", err);
+    } catch (error) {
+      if (error instanceof RuntError) {
+        // Convert RuntError to validation result
+        if (error.type === ErrorType.AuthTokenInvalid) {
+          return { valid: false, error: "Invalid or expired API key" };
+        }
+        if (error.type === ErrorType.AccessDenied) {
+          return { valid: false, error: "Access denied" };
+        }
+        if (error.type === ErrorType.NotFound) {
+          return { valid: false, error: "API key not found" };
+        }
+      }
+      console.error("Anaconda API key validation error:", error);
       return { valid: false, error: "Failed to validate API key" };
     }
   }
@@ -125,6 +136,98 @@ export class AnacondaApiKeyProvider implements ApiKeyProvider {
       familyName: result.familyName || "User",
       scopes: result.scopes,
     };
+  }
+
+  /**
+   * Create failure handler for fetch operations
+   */
+  private createFailureHandler(url: string) {
+    return (err: unknown) => {
+      throw new RuntError(ErrorType.Unknown, {
+        message: `Failed to fetch from ${url}`,
+        cause: err as Error,
+      });
+    };
+  }
+
+  /**
+   * Handle Anaconda API responses with proper error mapping
+   */
+  private async handleAnacondaResponse<T>(response: Response): Promise<T> {
+    let body: string;
+    try {
+      body = await response.text();
+    } catch (error) {
+      throw new RuntError(ErrorType.Unknown, {
+        message: `Failed to get the body from ${response.url}`,
+        cause: error as Error,
+      });
+    }
+
+    if (response.status === 400) {
+      throw new RuntError(ErrorType.InvalidRequest, {
+        message: "Invalid request",
+        responsePayload: {
+          upstreamCode: response.status,
+        },
+        debugPayload: {
+          upstreamBody: body,
+        },
+      });
+    }
+    if (response.status === 401) {
+      throw new RuntError(ErrorType.AuthTokenInvalid, {
+        responsePayload: {
+          upstreamCode: response.status,
+        },
+        debugPayload: {
+          upstreamBody: body,
+        },
+      });
+    }
+    if (response.status === 403) {
+      throw new RuntError(ErrorType.AccessDenied, {
+        responsePayload: {
+          upstreamCode: response.status,
+        },
+        debugPayload: {
+          upstreamBody: body,
+        },
+      });
+    }
+    if (response.status === 404) {
+      throw new RuntError(ErrorType.NotFound, {
+        responsePayload: {
+          upstreamCode: response.status,
+        },
+        debugPayload: {
+          upstreamBody: body,
+        },
+      });
+    }
+    if (!response.ok) {
+      throw new RuntError(ErrorType.Unknown, {
+        responsePayload: {
+          upstreamCode: response.status,
+        },
+        debugPayload: {
+          upstreamBody: body,
+        },
+      });
+    }
+    if (response.status === 204) {
+      return undefined as T;
+    }
+    try {
+      return JSON.parse(body) as T;
+    } catch (error) {
+      throw new RuntError(ErrorType.Unknown, {
+        message: "Invalid JSON response",
+        responsePayload: {
+          upstreamCode: response.status,
+        },
+      });
+    }
   }
 
   /**

@@ -4,7 +4,7 @@ import { WebSocketServer } from "./sync.ts";
 import originalHandler from "./entry.ts";
 import { type Env } from "./types.ts";
 import { type AuthContext } from "./middleware.ts";
-import { RuntError, ErrorType } from "@runtimed/extensions";
+import { RuntError, ErrorType } from "./types.ts";
 import apiRoutes from "./routes.ts";
 import localOidcRoutes from "./local-oidc-routes.ts";
 import { createJWKSRouter, D1Driver } from "@japikey/cloudflare";
