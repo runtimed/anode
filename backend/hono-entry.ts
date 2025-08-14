@@ -143,11 +143,42 @@ app.all("*", async (c) => {
 
   if (isStaticAssetRequest && c.env.ASSETS) {
     try {
+      console.log(`Attempting to serve static asset: ${url.pathname}`);
+
+      // Handle root path by trying index.html
+      let assetPath = url.pathname;
+      if (assetPath === "/" || assetPath === "") {
+        assetPath = "/index.html";
+        console.log("Root path detected, trying /index.html");
+      }
+
+      // Create a new request with the potentially modified path
+      const assetUrl = new URL(assetPath, url.origin);
+      const assetRequest = new Request(assetUrl.toString(), {
+        method: c.req.method,
+        headers: c.req.raw.headers,
+      });
+
       // Try to fetch from Cloudflare static assets (production/preview)
-      const assetResponse = await c.env.ASSETS.fetch(c.req.raw as any);
+      const assetResponse = await c.env.ASSETS.fetch(assetRequest as any);
+      console.log(
+        `Asset response status for ${assetPath}: ${assetResponse.status}`
+      );
+
       if (assetResponse.status !== 404) {
         return assetResponse;
       }
+
+      // If requesting root and index.html failed, try original path
+      if (url.pathname === "/" && assetPath === "/index.html") {
+        console.log("index.html failed, trying original root path");
+        const originalResponse = await c.env.ASSETS.fetch(c.req.raw as any);
+        if (originalResponse.status !== 404) {
+          return originalResponse;
+        }
+      }
+
+      console.log("Asset not found, falling through to original handler");
       // If 404, fall through to original handler
     } catch (error) {
       console.warn("Failed to fetch static asset from ASSETS binding:", error);
