@@ -252,11 +252,7 @@ describe("Hono Entry Integration", () => {
       await honoEntry.request("/api/health", {}, mockEnv);
 
       expect(consoleSpy).toHaveBeenCalledWith(
-        "🔍 Hono middleware:",
-        expect.objectContaining({
-          method: "GET",
-          pathname: "/api/health",
-        })
+        expect.stringMatching(/^GET \/api\/health 200 \d+ms$/)
       );
 
       consoleSpy.mockRestore();

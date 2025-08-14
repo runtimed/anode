@@ -13,7 +13,7 @@ export function generateRuntimeCommand(
     customCommand ||
     'deno run --allow-all --env-file=.env "jsr:@runt/pyodide-runtime-agent@^0.7.3"';
 
-  return `NOTEBOOK_ID=${notebookId} ${baseRuntimeCommand}`;
+  return `NOTEBOOK_ID=${notebookId} RUNT_API_KEY=your-key ${baseRuntimeCommand}`;
 }
 
 /**

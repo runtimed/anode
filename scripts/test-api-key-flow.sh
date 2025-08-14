@@ -84,7 +84,7 @@ create_api_key() {
         -H "Authorization: Bearer $ACCESS_TOKEN" \
         -d "{
             \"name\": \"Demo API Key - $TIMESTAMP\",
-            \"scopes\": [\"runtime:execute\", \"runtime:read\"],
+            \"scopes\": [\"runt:execute\", \"runt:read\"],
             \"expiresAt\": \"2025-12-31T23:59:59.000Z\",
             \"userGenerated\": true
         }")
@@ -227,7 +227,7 @@ print_summary() {
     echo "   ✅ JWKS public key verification"
     echo ""
     echo "🔑 API Key Details:"
-    echo "   - Scopes: runtime:execute, runtime:read"
+    echo "   - Scopes: runt:execute, runt:read"
     echo "   - Expires: 2025-12-31"
     echo "   - User-generated: true"
     echo "   - Authentication: JWT-based with signature verification"
