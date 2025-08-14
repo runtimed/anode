@@ -7,31 +7,39 @@ import { useEffect, useRef, useState } from "react";
 const allowedToIframeEvents = ["update-outputs"] as const;
 const allowedFromIframeEvents = ["iframe-height", "iframe-loaded"] as const;
 
-type ToIframeEventType = (typeof allowedToIframeEvents)[number];
-type FromIframeEventType = (typeof allowedFromIframeEvents)[number];
+type ToIframeEventName = (typeof allowedToIframeEvents)[number];
+type FromIframeEventName = (typeof allowedFromIframeEvents)[number];
 
 // Type guard helpers to ensure event types are valid
-function isValidToIframeEventType(type: string): type is ToIframeEventType {
-  return allowedToIframeEvents.includes(type as ToIframeEventType);
+function isValidToIframeEventType(type: string): type is ToIframeEventName {
+  return allowedToIframeEvents.includes(type as ToIframeEventName);
 }
 
-function isValidFromIframeEventType(type: string): type is FromIframeEventType {
-  return allowedFromIframeEvents.includes(type as FromIframeEventType);
+function isValidFromIframeEventType(type: string): type is FromIframeEventName {
+  return allowedFromIframeEvents.includes(type as FromIframeEventName);
 }
 
 export type ToIframeEvent = {
-  type: ToIframeEventType;
+  type: "update-outputs";
   outputs: OutputData[];
 };
 
+type Expect<T extends true> = T;
+type Extends<T, U> = T extends U ? true : false;
+
 export type FromIframeEvent =
-  | {
-      type: "iframe-loaded";
-    }
-  | {
-      type: "iframe-height";
-      height: number;
-    };
+  | { type: "iframe-loaded" }
+  | { type: "iframe-height"; height: number };
+
+// Errors if `ToIframeEvent` is wrong
+type _TestToIframeEvent = Expect<
+  Extends<ToIframeEvent["type"], ToIframeEventName>
+>;
+
+// Errors if `FromIframeEvent` is wrong
+type TestFromIframeEventTypeAssertion = Expect<
+  Extends<FromIframeEvent["type"], FromIframeEventName>
+>;
 
 export function sendFromIframe(event: FromIframeEvent) {
   if (!isValidFromIframeEventType(event.type)) {
