@@ -135,6 +135,26 @@ app.all("/api-keys/*", async (c) => {
 app.all("*", async (c) => {
   const url = new URL(c.req.url);
 
+  // Handle WebSocket/livestore requests first - delegate directly to original handler
+  if (
+    url.pathname.startsWith("/livestore") ||
+    url.pathname.startsWith("/websocket")
+  ) {
+    const request = c.req.raw as any;
+    const env = c.env;
+
+    // Handle test environment where executionCtx might not be available
+    let ctx: any = {};
+    try {
+      ctx = c.executionCtx;
+    } catch {
+      ctx = {};
+    }
+
+    const response = await (originalHandler as any).fetch(request, env, ctx);
+    return response as any;
+  }
+
   // For static assets in production/preview, try ASSETS binding
   if (c.env.ASSETS) {
     // For SPA routing, serve index.html for routes without file extensions
