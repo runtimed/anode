@@ -52,12 +52,13 @@ All endpoints are available at `/api/api-keys` and follow RESTful conventions.
 **Authentication**: OAuth token required (API keys cannot create other API keys)
 
 **Request Body**:
+
 ```json
 {
   "scopes": ["runt:read", "runt:execute"],
   "resources": [
     {
-      "id": "notebook-123", 
+      "id": "notebook-123",
       "type": "notebook"
     }
   ],
@@ -68,6 +69,7 @@ All endpoints are available at `/api/api-keys` and follow RESTful conventions.
 ```
 
 **Response**:
+
 ```json
 {
   "api_key": "eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9..."
@@ -80,6 +82,7 @@ All endpoints are available at `/api/api-keys` and follow RESTful conventions.
 **Authentication**: OAuth token or API key
 
 **Response**:
+
 ```json
 {
   "id": "550e8400-e29b-41d4-a716-446655440000",
@@ -100,6 +103,7 @@ All endpoints are available at `/api/api-keys` and follow RESTful conventions.
 **Query Parameters**: `limit`, `offset` (for pagination)
 
 **Response**:
+
 ```json
 [
   {
@@ -120,6 +124,7 @@ All endpoints are available at `/api/api-keys` and follow RESTful conventions.
 **Authentication**: OAuth token or API key
 
 **Request Body**:
+
 ```json
 {
   "revoked": true
@@ -147,9 +152,9 @@ The system supports the following scopes:
 Internal scopes are mapped to provider-specific scopes:
 
 | Internal Scope | Anaconda Scope |
-|---------------|----------------|
-| `runt:read`   | `cloud:read`   |
-| `runt:execute`| `cloud:write`  |
+| -------------- | -------------- |
+| `runt:read`    | `cloud:read`   |
+| `runt:execute` | `cloud:write`  |
 
 ## Authentication Flow
 
@@ -176,7 +181,7 @@ All errors follow a consistent JSON structure:
 {
   "error": {
     "type": "invalid_request",
-    "message": "Human-readable error message", 
+    "message": "Human-readable error message",
     "data": {
       "additional": "context"
     },
@@ -208,6 +213,7 @@ All errors follow a consistent JSON structure:
 - Synthetic user IDs for local development
 
 **Capabilities**:
+
 - ✅ Create, Read, Update, Delete
 - ❌ Revoke (not supported by japikey)
 
@@ -219,6 +225,7 @@ All errors follow a consistent JSON structure:
 - Limited by Anaconda API capabilities
 
 **Capabilities**:
+
 - ✅ Create, Read, Delete
 - ❌ Revoke (not supported by Anaconda)
 - ❌ Update (not supported by Anaconda)
@@ -239,6 +246,7 @@ API_KEY_SCOPES='["runt:read"]' ./scripts/test-api-keys.sh "your-token"
 ```
 
 The script tests the complete lifecycle:
+
 1. Authentication validation
 2. API key creation
 3. Key listing and retrieval
@@ -251,6 +259,7 @@ The script tests the complete lifecycle:
 ### Local Development Setup
 
 1. Set up the development environment:
+
    ```bash
    pnpm install
    cp .env.example .env
@@ -258,12 +267,14 @@ The script tests the complete lifecycle:
    ```
 
 2. Configure for local provider:
+
    ```bash
    # In .dev.vars
    SERVICE_PROVIDER=local
    ```
 
 3. Start the development server:
+
    ```bash
    pnpm dev
    ```
@@ -278,12 +289,14 @@ The script tests the complete lifecycle:
 ### Production Deployment
 
 1. Configure environment variables:
+
    ```bash
    SERVICE_PROVIDER=anaconda
    EXTENSION_CONFIG='{"apiKeyUrl":"https://api.anaconda.com/v2/api-keys","userinfoUrl":"https://api.anaconda.com/v2/whoami"}'
    ```
 
 2. Deploy to Cloudflare:
+
    ```bash
    pnpm deploy
    ```
