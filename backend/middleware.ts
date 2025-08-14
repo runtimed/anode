@@ -1,6 +1,7 @@
 import { createMiddleware } from "hono/factory";
 import { validateAuthPayload, type Passport } from "./auth.ts";
 import { type Env } from "./types.ts";
+import apiKeyProvider from "./local_extension/api_key_provider.ts";
 
 export interface AuthContext {
   passport?: Passport;
@@ -25,16 +26,36 @@ export const authMiddleware = createMiddleware<{
       );
     }
 
-    const validatedUser = await validateAuthPayload({ authToken }, c.env);
+    let passport: Passport;
+    let userId: string;
 
-    // Create passport-like object for compatibility
-    const passport = {
-      user: validatedUser,
-      jwt: { runtime: false }, // Default for HTTP requests
+    // Check if this is an API key first
+    const apiKeyContext = {
+      bearerToken: authToken,
+      env: c.env,
+      request: null as any, // Not used by the provider
+      ctx: {} as any, // Not used by the provider
     };
 
+    if (apiKeyProvider.isApiKey(apiKeyContext)) {
+      console.log("🔑 Authenticating with API key");
+      // Validate using API key provider
+      passport = await apiKeyProvider.validateApiKey(apiKeyContext);
+      userId = passport.user.id;
+    } else {
+      // Fall back to existing auth logic (OIDC JWT or service token)
+      const validatedUser = await validateAuthPayload({ authToken }, c.env);
+
+      // Create passport-like object for compatibility
+      passport = {
+        user: validatedUser,
+        jwt: { runtime: false }, // Default for HTTP requests
+      };
+      userId = validatedUser.id;
+    }
+
     c.set("passport", passport);
-    c.set("userId", validatedUser.id);
+    c.set("userId", userId);
     c.set("isRuntime", false); // HTTP requests are typically not runtime
 
     await next();
@@ -62,17 +83,40 @@ export const optionalAuthMiddleware = createMiddleware<{
       c.req.header("x-auth-token");
 
     if (authToken) {
-      const validatedUser = await validateAuthPayload({ authToken }, c.env);
+      try {
+        let passport: Passport;
+        let userId: string;
 
-      // Create passport-like object for compatibility
-      const passport = {
-        user: validatedUser,
-        jwt: { runtime: false }, // Default for HTTP requests
-      };
+        // Check if this is an API key first
+        const apiKeyContext = {
+          bearerToken: authToken,
+          env: c.env,
+          request: null as any, // Not used by the provider
+          ctx: {} as any, // Not used by the provider
+        };
 
-      c.set("passport", passport);
-      c.set("userId", validatedUser.id);
-      c.set("isRuntime", false); // HTTP requests are typically not runtime
+        if (apiKeyProvider.isApiKey(apiKeyContext)) {
+          // Validate using API key provider
+          passport = await apiKeyProvider.validateApiKey(apiKeyContext);
+          userId = passport.user.id;
+        } else {
+          // Fall back to existing auth logic (OIDC JWT or service token)
+          const validatedUser = await validateAuthPayload({ authToken }, c.env);
+
+          // Create passport-like object for compatibility
+          passport = {
+            user: validatedUser,
+            jwt: { runtime: false }, // Default for HTTP requests
+          };
+          userId = validatedUser.id;
+        }
+
+        c.set("passport", passport);
+        c.set("userId", userId);
+        c.set("isRuntime", false); // HTTP requests are typically not runtime
+      } catch (error) {
+        console.warn("Optional auth failed:", error);
+      }
     }
   } catch (error) {
     console.warn("Optional auth failed:", error);

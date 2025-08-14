@@ -43,7 +43,7 @@ const getBaseIssuer = (context: ProviderContext): URL => {
       },
     });
   }
-  return new URL(`http://localhost:${match[1]}/api-keys`);
+  return new URL(`http://localhost:${match[1]}/api-keys/`);
 };
 
 const claimToMaybeString = (item: unknown): string | undefined => {
@@ -153,6 +153,7 @@ const provider: ApiKeyProvider = {
       const claims: JWTPayload = {
         scopes: request.scopes,
         resources: request.resources,
+        email: context.passport.user.email,
       };
       const options: CreateApiKeyOptions = {
         sub: context.passport.user.id,

@@ -154,23 +154,60 @@ api.post("/debug/auth", async (c) => {
       );
     }
 
-    // Test authentication using the existing auth system
-    const { validateAuthPayload } = await import("./auth.ts");
-
+    // Test authentication - check API key first, then fallback to existing auth
     try {
-      await validateAuthPayload({ authToken }, c.env);
+      let tokenType = "Service Token";
+      let authMethod = "Unknown";
+
+      // Check if this is an API key first
+      const apiKeyContext = {
+        bearerToken: authToken,
+        env: c.env,
+        request: null as any, // Not used by the provider
+        ctx: {} as any, // Not used by the provider
+      };
+
+      if (apiKeyProvider.isApiKey(apiKeyContext)) {
+        // Validate using API key provider
+        await apiKeyProvider.validateApiKey(apiKeyContext);
+        tokenType = "API Key";
+        authMethod = "API Key Provider";
+      } else {
+        // Fall back to existing auth logic (OIDC JWT or service token)
+        const { validateAuthPayload } = await import("./auth.ts");
+        await validateAuthPayload({ authToken }, c.env);
+        tokenType = authToken.startsWith("eyJ") ? "OIDC JWT" : "Service Token";
+        authMethod = "Standard Auth";
+      }
+
       return c.json({
         success: true,
         message: "Authentication successful",
-        tokenType: authToken.startsWith("eyJ") ? "OIDC JWT" : "Service Token",
+        tokenType,
+        authMethod,
         timestamp: new Date().toISOString(),
       });
     } catch (authError: any) {
+      // Determine token type for error reporting
+      let tokenType = "Service Token";
+      if (authToken.startsWith("eyJ")) {
+        // Check if it might be an API key JWT
+        const apiKeyContext = {
+          bearerToken: authToken,
+          env: c.env,
+          request: null as any,
+          ctx: {} as any,
+        };
+        tokenType = apiKeyProvider.isApiKey(apiKeyContext)
+          ? "API Key"
+          : "OIDC JWT";
+      }
+
       return c.json(
         {
           error: "AUTHENTICATION_FAILED",
           message: authError.message,
-          tokenType: authToken.startsWith("eyJ") ? "OIDC JWT" : "Service Token",
+          tokenType,
           timestamp: new Date().toISOString(),
           hasAuthToken: Boolean(c.env.AUTH_TOKEN),
           hasAuthIssuer: Boolean(c.env.AUTH_ISSUER),
@@ -321,6 +358,62 @@ api.patch("/api-keys/:id", authMiddleware, async (c) => {
   const context = createAuthenticatedContext(userId, passport, c.env);
   await apiKeyProvider.revokeApiKey(context, keyId);
   return new Response(null, { status: 204 });
+});
+
+// JWKS endpoint for individual API key validation - no auth required (public keys)
+api.get("/api-keys/:id/.well-known/jwks.json", async (c) => {
+  try {
+    const keyId = c.req.param("id");
+
+    if (!keyId) {
+      return c.json(
+        {
+          error: "Bad Request",
+          message: "Key ID is required",
+        },
+        400
+      );
+    }
+
+    // Get the specific API key's public key directly from D1
+    const result = await c.env.DB.prepare(
+      "SELECT kid, jwk FROM japikeys WHERE kid = ? AND revoked = 0"
+    )
+      .bind(keyId)
+      .first();
+
+    if (!result) {
+      return c.json(
+        {
+          error: "Not Found",
+          message: "API key not found or revoked",
+        },
+        404
+      );
+    }
+
+    const jwks = {
+      keys: [
+        {
+          ...JSON.parse(result.jwk as string),
+          kid: result.kid,
+          use: "sig",
+          alg: "RS256",
+        },
+      ],
+    };
+
+    return c.json(jwks);
+  } catch (error) {
+    console.error("❌ JWKS endpoint error:", error);
+    return c.json(
+      {
+        error: "Internal Server Error",
+        message: "Failed to retrieve public key",
+      },
+      500
+    );
+  }
 });
 
 // Artifact routes - Auth applied per route - uploads need auth, downloads are public
