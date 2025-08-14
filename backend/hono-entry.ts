@@ -49,9 +49,20 @@ app.use(
   })
 );
 
-// Logging middleware
+// Request logging middleware for Cloudflare
 app.use("*", async (c, next) => {
+  const start = Date.now();
+  const method = c.req.method;
+  const url = new URL(c.req.url);
+  const path = url.pathname;
+
   await next();
+
+  const duration = Date.now() - start;
+  const status = c.res.status;
+
+  // Log format optimized for Cloudflare Workers logs
+  console.log(`${method} ${path} ${status} ${duration}ms`);
 });
 
 // Environment-based security check middleware for local OIDC
