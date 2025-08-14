@@ -131,8 +131,37 @@ app.all("/api-keys/*", async (c) => {
   return c.text("Not Found", 404);
 });
 
-// Catch-all route that delegates to original handler
+// Static asset serving - try to serve from ASSETS binding first (production/preview)
 app.all("*", async (c) => {
+  const url = new URL(c.req.url);
+
+  // Check if this looks like a static asset request (not an API route)
+  const isStaticAssetRequest =
+    !url.pathname.startsWith("/api") &&
+    !url.pathname.startsWith("/local_oidc") &&
+    !url.pathname.startsWith("/api-keys");
+
+  if (isStaticAssetRequest && c.env.ASSETS) {
+    try {
+      // Try to fetch from Cloudflare static assets (production/preview)
+      const assetResponse = await c.env.ASSETS.fetch(c.req.raw as any);
+      if (assetResponse.status !== 404) {
+        return assetResponse;
+      }
+      // If 404, fall through to original handler
+    } catch (error) {
+      console.warn("Failed to fetch static asset from ASSETS binding:", error);
+      // Fall through to original handler
+    }
+  } else if (isStaticAssetRequest && !c.env.ASSETS) {
+    // Local development - ASSETS binding not available, delegate to original handler
+    // (Vite dev server handles static assets locally)
+    console.debug(
+      "Static asset request in local dev, delegating to original handler"
+    );
+  }
+
+  // Fall through to original handler for API routes or when assets fail/unavailable
   // Convert to original Cloudflare Worker format (type incompatibility requires as any)
   const request = c.req.raw as any;
   const env = c.env;

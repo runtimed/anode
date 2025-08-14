@@ -37,7 +37,7 @@ export type Env = {
   AUTH_ISSUER: string;
 
   // New binding for the preview worker to serve the frontend application
-  ASSETS: Fetcher;
+  ASSETS?: Fetcher;
 
   // Bindings for the artifact service, as per artifact-service-design.md
   ARTIFACT_BUCKET: R2Bucket;
