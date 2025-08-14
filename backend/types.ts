@@ -126,11 +126,17 @@ export type ErrorPayload = {
 };
 
 export class RuntError extends Error {
+  public originalCause?: unknown;
+
   constructor(
     public type: ErrorType,
     private options: ErrorOptions = {}
   ) {
-    super(options.message ?? `RuntError: ${type}`, { cause: options.cause });
+    super(options.message ?? `RuntError: ${type}`);
+    // Store cause manually for compatibility
+    if (options.cause) {
+      this.originalCause = options.cause;
+    }
   }
 
   get statusCode(): StatusCode {
@@ -151,10 +157,10 @@ export class RuntError extends Error {
 
   public getPayload(debug: boolean): ErrorPayload {
     const underlying =
-      this.cause instanceof Error
+      this.originalCause instanceof Error
         ? {
-            message: this.cause.message,
-            stack: this.cause.stack,
+            message: this.originalCause.message,
+            stack: this.originalCause.stack,
           }
         : undefined;
     return {
