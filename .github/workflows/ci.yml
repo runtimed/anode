@@ -63,8 +63,8 @@ jobs:
       - name: Run tests
         run: pnpm test --run
 
-      - name: Validate preview sync worker
-        run: pnpm build:sync:preview:anaconda
+      - name: Validate preview worker build
+        run: pnpm wrangler deploy --dry-run --env preview
 
-      - name: Validate production sync worker
-        run: pnpm build:sync:production:anaconda
+      - name: Validate production worker build
+        run: pnpm wrangler deploy --dry-run --env production
