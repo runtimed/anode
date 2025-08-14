@@ -10,6 +10,8 @@ import {
 } from "./types";
 
 import { validateAuthPayload, validateProductionEnvironment } from "./auth";
+import { createApiKeyProvider } from "./providers/api-key-factory.ts";
+import { createProviderContext } from "./api-key-provider.ts";
 
 export class WebSocketServer extends makeDurableObject({
   onPush: async (message) => {
@@ -95,7 +97,33 @@ const handler: SimpleHandler = {
 
           try {
             // Step 1: Authenticate the user token
-            const validatedUser = await validateAuthPayload(payload, env);
+            let validatedUser;
+
+            // First try API key authentication
+            try {
+              const apiKeyProvider = createApiKeyProvider(env);
+              const providerContext = createProviderContext(
+                env,
+                payload.authToken
+              );
+
+              if (apiKeyProvider.isApiKey(providerContext)) {
+                // Validate using API key provider
+                const passport =
+                  await apiKeyProvider.validateApiKey(providerContext);
+                validatedUser = passport.user;
+                console.log("✅ Authenticated via API key:", {
+                  userId: validatedUser.id,
+                  email: validatedUser.email,
+                });
+              } else {
+                // Fall back to existing auth logic (OIDC JWT or service token)
+                validatedUser = await validateAuthPayload(payload, env);
+              }
+            } catch {
+              // If API key provider fails, try standard auth as fallback
+              validatedUser = await validateAuthPayload(payload, env);
+            }
 
             // Step 2: Validate the client ID against the authenticated user
             const clientId = payload?.clientId;
@@ -105,7 +133,7 @@ const handler: SimpleHandler = {
               );
             }
 
-            // For runtime agents, prevent user impersonation
+            // For service runtime agents (using AUTH_TOKEN), prevent user impersonation
             if (validatedUser.id === "runtime-agent") {
               // A runtime agent's clientId should NOT look like a real user's ID.
               // OIDC user IDs are typically numeric strings.
@@ -118,6 +146,13 @@ const handler: SimpleHandler = {
                   `RUNTIME_IMPERSONATION_ATTEMPT: Runtime agent cannot use a numeric clientId ('${clientId}') that could be a user ID.`
                 );
               }
+            } else if (payload?.runtime === true) {
+              // For API key authenticated runtime agents, allow runtime ID as clientId
+              // These are user-attributed runtime agents using their own API keys
+              console.log("✅ API key authenticated runtime agent:", {
+                userId: validatedUser.id,
+                runtimeClientId: clientId,
+              });
             } else {
               // For regular users, the clientId must match their user ID
               if (clientId !== validatedUser.id) {
