@@ -131,69 +131,42 @@ app.all("/api-keys/*", async (c) => {
   return c.text("Not Found", 404);
 });
 
-// Static asset serving - try to serve from ASSETS binding first (production/preview)
+// Catch-all handler - serve static assets or delegate to original handler
 app.all("*", async (c) => {
   const url = new URL(c.req.url);
 
-  // Check if this looks like a static asset request (not an API route)
-  const isStaticAssetRequest =
-    !url.pathname.startsWith("/api") &&
-    !url.pathname.startsWith("/local_oidc") &&
-    !url.pathname.startsWith("/api-keys");
+  // For static assets in production/preview, try ASSETS binding
+  if (c.env.ASSETS) {
+    // For SPA routing, serve index.html for routes without file extensions
+    const hasFileExtension =
+      url.pathname.includes(".") && !url.pathname.endsWith("/");
 
-  if (isStaticAssetRequest && c.env.ASSETS) {
-    try {
-      console.log(`Attempting to serve static asset: ${url.pathname}`);
-
-      // Handle root path by trying index.html
-      let assetPath = url.pathname;
-      if (assetPath === "/" || assetPath === "") {
-        assetPath = "/index.html";
-        console.log("Root path detected, trying /index.html");
-      }
-
-      // Create a new request with the potentially modified path
-      const assetUrl = new URL(assetPath, url.origin);
-      const assetRequest = new Request(assetUrl.toString(), {
+    let assetRequest;
+    if (hasFileExtension || url.pathname === "/") {
+      // Direct asset request or root path
+      assetRequest = c.req.raw;
+    } else {
+      // SPA route - serve index.html
+      const indexUrl = new URL("/", url.origin);
+      assetRequest = new Request(indexUrl.toString(), {
         method: c.req.method,
         headers: c.req.raw.headers,
       });
+    }
 
-      // Try to fetch from Cloudflare static assets (production/preview)
+    try {
       const assetResponse = await c.env.ASSETS.fetch(assetRequest as any);
-      console.log(
-        `Asset response status for ${assetPath}: ${assetResponse.status}`
-      );
 
-      if (assetResponse.status !== 404) {
+      if (assetResponse.status < 400) {
         return assetResponse;
       }
-
-      // If requesting root and index.html failed, try original path
-      if (url.pathname === "/" && assetPath === "/index.html") {
-        console.log("index.html failed, trying original root path");
-        const originalResponse = await c.env.ASSETS.fetch(c.req.raw as any);
-        if (originalResponse.status !== 404) {
-          return originalResponse;
-        }
-      }
-
-      console.log("Asset not found, falling through to original handler");
-      // If 404, fall through to original handler
     } catch (error) {
-      console.warn("Failed to fetch static asset from ASSETS binding:", error);
-      // Fall through to original handler
+      console.warn("ASSETS fetch failed:", error);
     }
-  } else if (isStaticAssetRequest && !c.env.ASSETS) {
-    // Local development - ASSETS binding not available, delegate to original handler
-    // (Vite dev server handles static assets locally)
-    console.debug(
-      "Static asset request in local dev, delegating to original handler"
-    );
   }
 
-  // Fall through to original handler for API routes or when assets fail/unavailable
-  // Convert to original Cloudflare Worker format (type incompatibility requires as any)
+  // Fallback to original handler for API routes or when ASSETS fails
+
   const request = c.req.raw as any;
   const env = c.env;
 
@@ -202,11 +175,9 @@ app.all("*", async (c) => {
   try {
     ctx = c.executionCtx;
   } catch {
-    // In test environment, executionCtx throws an error, use empty object
     ctx = {};
   }
 
-  // Delegate to original handler (requires as any for type compatibility)
   const response = await (originalHandler as any).fetch(request, env, ctx);
   return response as any;
 });
