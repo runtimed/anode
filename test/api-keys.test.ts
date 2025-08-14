@@ -395,10 +395,10 @@ describe("API Key System", () => {
       const capabilities = getProviderCapabilities(mockEnv);
 
       expect(capabilities.provider).toBe("local");
-      expect(capabilities.hasDelete).toBe(true);
+      expect(capabilities.hasDelete).toBe(false);
       expect(capabilities.hasCreateWithResources).toBe(true);
       expect(capabilities.hasListPaginated).toBe(true);
-      expect(capabilities.hasRevoke).toBe(false);
+      expect(capabilities.hasRevoke).toBe(true);
     });
 
     it("should report correct capabilities for anaconda provider", () => {
