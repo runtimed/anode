@@ -11,7 +11,10 @@ import {
 import { validateAuthPayload } from "./auth.ts";
 
 // Import API key provider factory
-import { createApiKeyProvider } from "./providers/index.ts";
+import {
+  createApiKeyProvider,
+  isUsingLocalProvider,
+} from "./providers/index.ts";
 
 // Helper functions for japikey integration
 const getUserIdFromRequest = async (
@@ -77,6 +80,8 @@ api.get("/health", (c) => {
       has_auth_token: Boolean(c.env.AUTH_TOKEN),
       has_auth_issuer: Boolean(c.env.AUTH_ISSUER),
       deployment_env: c.env.DEPLOYMENT_ENV,
+      service_provider: c.env.SERVICE_PROVIDER || "local",
+      using_local_provider: isUsingLocalProvider(c.env),
     },
   });
 });
@@ -164,7 +169,7 @@ api.post("/debug/auth", async (c) => {
   }
 });
 
-// API Key routes using official japikey implementation
+// API Key routes using official japikey implementation - only available with local provider
 const createJapikeyApiKeyRoutes = async (env: Env) => {
   const db = new D1Driver(env.DB);
   await db.ensureTable(); // Initialize the database table
@@ -183,6 +188,18 @@ const createJapikeyApiKeyRoutes = async (env: Env) => {
 
 // Mount the official japikey routes - handle all API key operations
 api.all("/api-keys", async (c) => {
+  // Check service provider at request time
+  if (!isUsingLocalProvider(c.env)) {
+    return c.json(
+      {
+        error: "API key management not available",
+        message:
+          "API key management is handled by the configured service provider",
+      },
+      404
+    );
+  }
+
   const japikeyRouter = await createJapikeyApiKeyRoutes(c.env);
   // Convert Hono request to Cloudflare Worker request format
   const cfRequest = c.req.raw as any;
@@ -201,6 +218,18 @@ api.all("/api-keys", async (c) => {
 });
 
 api.all("/api-keys/*", async (c) => {
+  // Check service provider at request time
+  if (!isUsingLocalProvider(c.env)) {
+    return c.json(
+      {
+        error: "API key management not available",
+        message:
+          "API key management is handled by the configured service provider",
+      },
+      404
+    );
+  }
+
   const japikeyRouter = await createJapikeyApiKeyRoutes(c.env);
   // Convert Hono request to Cloudflare Worker request format
   const cfRequest = c.req.raw as any;
