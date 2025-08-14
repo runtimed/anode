@@ -41,5 +41,7 @@ export interface ApiKeyProvider {
   /**
    * Get user information for debug/display purposes
    */
-  getUserInfo(result: ApiKeyValidationResult & { valid: true }): Promise<UserInfo>;
+  getUserInfo(
+    result: ApiKeyValidationResult & { valid: true }
+  ): Promise<UserInfo>;
 }
