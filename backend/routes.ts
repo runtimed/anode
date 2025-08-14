@@ -2,119 +2,62 @@ import { Hono } from "hono";
 import { v4 as uuidv4 } from "uuid";
 import { authMiddleware, type AuthContext } from "./middleware.ts";
 import { type Env } from "./types.ts";
-import apiKeyProvider from "./local_extension/api_key_provider.ts";
 import {
-  ApiKeyCapabilities,
-  CreateApiKeyRequest,
-} from "@runtimed/extensions/providers/api_key";
-import {
-  RuntError,
-  ErrorType,
-  AuthenticatedProviderContext,
-} from "@runtimed/extensions";
-import { ListApiKeysRequest } from "@runtimed/extensions/providers/api_key";
+  createApiKeyRouter,
+  D1Driver,
+  type CreateApiKeyData,
+  type ApiKeyRouterOptions,
+} from "@japikey/cloudflare";
+import { validateAuthPayload } from "./auth.ts";
 
-// Validation functions for API key requests
-const validateCreateApiKeyRequest = (
-  body: unknown
-): body is CreateApiKeyRequest => {
-  if (typeof body !== "object" || body === null) {
-    throw new RuntError(ErrorType.InvalidRequest, {
-      message: "Request body must be an object",
-    });
-  }
-
-  const request = body as Record<string, unknown>;
-
-  if (
-    !Array.isArray(request.scopes) ||
-    request.scopes.length === 0 ||
-    request.scopes.some((scope) => typeof scope !== "string")
-  ) {
-    throw new RuntError(ErrorType.InvalidRequest, {
-      message: "scopes is invalid",
-    });
-  }
-
-  if (request.resources !== undefined) {
-    if (
-      !Array.isArray(request.resources) ||
-      request.resources.some(
-        (resource) =>
-          typeof resource?.id !== "string" || typeof resource?.type !== "string"
-      )
-    ) {
-      throw new RuntError(ErrorType.InvalidRequest, {
-        message: "resources is invalid",
-      });
-    }
-
-    if (
-      !apiKeyProvider.capabilities.has(ApiKeyCapabilities.CreateWithResources)
-    ) {
-      throw new RuntError(ErrorType.CapabilityNotAvailable, {
-        message: "Creating api keys with resources is not supported",
-      });
-    }
-  }
-
-  if (typeof request.expiresAt !== "string") {
-    throw new RuntError(ErrorType.InvalidRequest, {
-      message: "expiresAt is invalid",
-    });
-  }
-  try {
-    new Date(request.expiresAt);
-  } catch (error) {
-    throw new RuntError(ErrorType.InvalidRequest, {
-      message: "expiresAt is invalid",
-      cause: error as Error,
-    });
-  }
-
-  if (request.name !== undefined && typeof request.name !== "string") {
-    throw new RuntError(ErrorType.InvalidRequest, {
-      message: "name is invalid",
-    });
-  }
-
-  if (typeof request.userGenerated !== "boolean") {
-    throw new RuntError(ErrorType.InvalidRequest, {
-      message: "userGenerated is invalid",
-    });
-  }
-  return true;
-};
-
-const validateRevokeApiKeyRequest = (
-  body: unknown
-): body is { revoked: boolean } => {
-  if (typeof body !== "object" || body === null) {
-    throw new RuntError(ErrorType.InvalidRequest, {
-      message: "Request body must be an object",
-    });
-  }
-  const request = body as Record<string, unknown>;
-
-  if (typeof request.revoked !== "boolean" || request.revoked !== true) {
-    throw new RuntError(ErrorType.InvalidRequest, {
-      message: "invalid revoked value",
-    });
-  }
-  return true;
-};
-
-const createAuthenticatedContext = (
-  _userId: string,
-  passport: any,
+// Helper functions for japikey integration
+const getUserIdFromRequest = async (
+  request: any,
   env: Env
-): AuthenticatedProviderContext => {
+): Promise<string> => {
+  const authToken =
+    request.headers.get("Authorization")?.replace("Bearer ", "") ||
+    request.headers.get("x-auth-token");
+
+  if (!authToken) {
+    throw new Error("Missing auth token");
+  }
+
+  const validatedUser = await validateAuthPayload({ authToken }, env);
+  return validatedUser.id;
+};
+
+const parseCreateApiKeyRequest = async (
+  request: any,
+  env: Env
+): Promise<CreateApiKeyData> => {
+  const body = await request.json();
+
+  // Validate required fields
+  if (!Array.isArray(body.scopes) || body.scopes.length === 0) {
+    throw new Error("scopes is required and must be a non-empty array");
+  }
+
+  if (!body.expiresAt) {
+    throw new Error("expiresAt is required");
+  }
+
+  if (typeof body.userGenerated !== "boolean") {
+    throw new Error("userGenerated is required");
+  }
+
   return {
-    request: null as any, // Not used by the provider
-    env,
-    ctx: {} as any, // Not used by the provider
-    bearerToken: "", // Not needed for this context
-    passport,
+    expiresAt: new Date(body.expiresAt),
+    claims: {
+      scopes: body.scopes,
+      resources: body.resources || null,
+    },
+    databaseMetadata: {
+      scopes: body.scopes,
+      resources: body.resources || null,
+      name: body.name || "Unnamed Key",
+      userGenerated: body.userGenerated,
+    },
   };
 };
 
@@ -227,143 +170,33 @@ api.post("/debug/auth", async (c) => {
   }
 });
 
-// API Key routes - all require authentication
-api.post("/api-keys", authMiddleware, async (c) => {
-  const body = await c.req.json();
+// API Key routes using official japikey implementation
+const createJapikeyApiKeyRoutes = async (env: Env) => {
+  const db = new D1Driver(env.DB);
+  await db.ensureTable(); // Initialize the database table
 
-  // Comprehensive validation
-  validateCreateApiKeyRequest(body);
+  const options: ApiKeyRouterOptions<Env> = {
+    getUserId: getUserIdFromRequest,
+    parseCreateApiKeyRequest,
+    issuer: new URL(`http://localhost:8787/api-keys`),
+    aud: "api-keys",
+    db,
+    routePrefix: "/api/api-keys", // Match the actual URL path
+  };
 
-  const userId = c.get("userId");
-  const passport = c.get("passport");
+  return createApiKeyRouter(options);
+};
 
-  if (!userId || !passport) {
-    throw new RuntError(ErrorType.MissingAuthToken, {
-      message: "Authentication required",
-    });
-  }
-
-  const context = createAuthenticatedContext(userId, passport, c.env);
-  const result = await apiKeyProvider.createApiKey(
-    context,
-    body as CreateApiKeyRequest
-  );
-  return c.json(result);
+// Mount the official japikey routes - handle all API key operations
+api.all("/api-keys", async (c) => {
+  const japikeyRouter = await createJapikeyApiKeyRoutes(c.env);
+  return japikeyRouter.fetch(c.req.raw, c.env);
 });
 
-api.get("/api-keys", authMiddleware, async (c) => {
-  const limitStr = c.req.query("limit");
-  const offsetStr = c.req.query("offset");
-  const options: ListApiKeysRequest = {};
-
-  // Parse pagination parameters
-  try {
-    if (limitStr) {
-      options.limit = parseInt(limitStr);
-    }
-    if (offsetStr) {
-      options.offset = parseInt(offsetStr);
-    }
-  } catch (error) {
-    throw new RuntError(ErrorType.InvalidRequest, {
-      message: "Invalid pagination parameters",
-      cause: error as Error,
-    });
-  }
-
-  const userId = c.get("userId");
-  const passport = c.get("passport");
-
-  if (!userId || !passport) {
-    throw new RuntError(ErrorType.MissingAuthToken, {
-      message: "Authentication required",
-    });
-  }
-
-  const context = createAuthenticatedContext(userId, passport, c.env);
-  const result = await apiKeyProvider.listApiKeys(context, options);
-  return c.json(result);
+api.all("/api-keys/*", async (c) => {
+  const japikeyRouter = await createJapikeyApiKeyRoutes(c.env);
+  return japikeyRouter.fetch(c.req.raw, c.env);
 });
-
-api.get("/api-keys/:id", authMiddleware, async (c) => {
-  const keyId = c.req.param("id");
-  if (!keyId) {
-    throw new RuntError(ErrorType.InvalidRequest, {
-      message: "API key ID is required",
-    });
-  }
-
-  const userId = c.get("userId");
-  const passport = c.get("passport");
-
-  if (!userId || !passport) {
-    throw new RuntError(ErrorType.MissingAuthToken, {
-      message: "Authentication required",
-    });
-  }
-
-  const context = createAuthenticatedContext(userId, passport, c.env);
-  const result = await apiKeyProvider.getApiKey(context, keyId);
-  return c.json(result);
-});
-
-api.delete("/api-keys/:id", authMiddleware, async (c) => {
-  const keyId = c.req.param("id");
-  if (!keyId) {
-    throw new RuntError(ErrorType.InvalidRequest, {
-      message: "API key ID is required",
-    });
-  }
-
-  const userId = c.get("userId");
-  const passport = c.get("passport");
-
-  if (!userId || !passport) {
-    throw new RuntError(ErrorType.MissingAuthToken, {
-      message: "Authentication required",
-    });
-  }
-
-  const context = createAuthenticatedContext(userId, passport, c.env);
-  await apiKeyProvider.deleteApiKey(context, keyId);
-  return new Response(null, { status: 204 });
-});
-
-api.patch("/api-keys/:id", authMiddleware, async (c) => {
-  const keyId = c.req.param("id");
-  if (!keyId) {
-    throw new RuntError(ErrorType.InvalidRequest, {
-      message: "API key ID is required",
-    });
-  }
-
-  if (!apiKeyProvider.capabilities.has(ApiKeyCapabilities.Revoke)) {
-    throw new RuntError(ErrorType.CapabilityNotAvailable, {
-      message: "Revoke capability is not supported",
-    });
-  }
-
-  const body = await c.req.json();
-  validateRevokeApiKeyRequest(body);
-
-  const userId = c.get("userId");
-  const passport = c.get("passport");
-
-  if (!userId || !passport) {
-    throw new RuntError(ErrorType.MissingAuthToken, {
-      message: "Authentication required",
-    });
-  }
-
-  const context = createAuthenticatedContext(userId, passport, c.env);
-  await apiKeyProvider.revokeApiKey(context, keyId);
-  return new Response(null, { status: 204 });
-});
-
-// JWKS endpoint for individual API key validation - no auth required (public keys)
-// Note: This route needs to be accessible at /api-keys/:id/.well-known/jwks.json (not /api/api-keys/...)
-// Moving this to be handled by the main hono app, not the api router
-// This route has been moved to hono-entry.ts to be accessible at /api-keys/:id/.well-known/jwks.json
 
 // Artifact routes - Auth applied per route - uploads need auth, downloads are public
 

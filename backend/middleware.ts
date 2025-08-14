@@ -1,7 +1,12 @@
 import { createMiddleware } from "hono/factory";
 import { validateAuthPayload, type Passport } from "./auth.ts";
 import { type Env } from "./types.ts";
-import apiKeyProvider from "./local_extension/api_key_provider.ts";
+import {
+  shouldAuthenticate,
+  authenticate,
+  createGetJWKS,
+} from "@japikey/authenticate";
+import { D1Driver } from "@japikey/cloudflare";
 
 export interface AuthContext {
   passport?: Passport;
@@ -30,18 +35,31 @@ export const authMiddleware = createMiddleware<{
     let userId: string;
 
     // Check if this is an API key first
-    const apiKeyContext = {
-      bearerToken: authToken,
-      env: c.env,
-      request: null as any, // Not used by the provider
-      ctx: {} as any, // Not used by the provider
-    };
+    const baseIssuer = new URL("http://localhost:8787/api-keys");
 
-    if (apiKeyProvider.isApiKey(apiKeyContext)) {
+    if (shouldAuthenticate(authToken, baseIssuer)) {
       console.log("🔑 Authenticating with API key");
-      // Validate using API key provider
-      passport = await apiKeyProvider.validateApiKey(apiKeyContext);
-      userId = passport.user.id;
+      // Validate using official japikey authenticate
+      const db = new D1Driver(c.env.DB);
+      await db.ensureTable(); // Initialize the database table
+      const getJWKS = createGetJWKS(baseIssuer);
+
+      const payload = await authenticate(authToken, {
+        baseIssuer,
+        getJWKS,
+      });
+
+      // Convert japikey payload to our passport format
+      passport = {
+        user: {
+          id: payload.sub as string,
+          email: (payload as any).email || "api-key@example.com",
+          name: "API Key User",
+          isAnonymous: false,
+        },
+        jwt: payload,
+      };
+      userId = payload.sub as string;
     } else {
       // Fall back to existing auth logic (OIDC JWT or service token)
       const validatedUser = await validateAuthPayload({ authToken }, c.env);
@@ -88,17 +106,30 @@ export const optionalAuthMiddleware = createMiddleware<{
         let userId: string;
 
         // Check if this is an API key first
-        const apiKeyContext = {
-          bearerToken: authToken,
-          env: c.env,
-          request: null as any, // Not used by the provider
-          ctx: {} as any, // Not used by the provider
-        };
+        const baseIssuer = new URL("http://localhost:8787/api-keys");
 
-        if (apiKeyProvider.isApiKey(apiKeyContext)) {
-          // Validate using API key provider
-          passport = await apiKeyProvider.validateApiKey(apiKeyContext);
-          userId = passport.user.id;
+        if (shouldAuthenticate(authToken, baseIssuer)) {
+          // Validate using official japikey authenticate
+          const db = new D1Driver(c.env.DB);
+          await db.ensureTable(); // Initialize the database table
+          const getJWKS = createGetJWKS(baseIssuer);
+
+          const payload = await authenticate(authToken, {
+            baseIssuer,
+            getJWKS,
+          });
+
+          // Convert japikey payload to our passport format
+          passport = {
+            user: {
+              id: payload.sub as string,
+              email: (payload as any).email || "api-key@example.com",
+              name: "API Key User",
+              isAnonymous: false,
+            },
+            jwt: payload,
+          };
+          userId = payload.sub as string;
         } else {
           // Fall back to existing auth logic (OIDC JWT or service token)
           const validatedUser = await validateAuthPayload({ authToken }, c.env);

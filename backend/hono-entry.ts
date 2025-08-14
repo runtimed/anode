@@ -7,6 +7,7 @@ import { type AuthContext } from "./middleware.ts";
 import { RuntError, ErrorType } from "@runtimed/extensions";
 import apiRoutes from "./routes.ts";
 import localOidcRoutes from "./local-oidc-routes.ts";
+import { createJWKSRouter, D1Driver } from "@japikey/cloudflare";
 
 // Re-export the Durable Object class for the Workers runtime
 export { WebSocketServer };
@@ -86,60 +87,26 @@ app.route("/api", apiRoutes);
 // Mount local OIDC routes (development only)
 app.route("/local_oidc", localOidcRoutes);
 
-// JWKS endpoint for API key validation - must be at /api-keys/:id/.well-known/jwks.json
-app.get("/api-keys/:id/.well-known/jwks.json", async (c) => {
-  try {
-    const keyId = c.req.param("id");
+// JWKS endpoint using official japikey implementation
+app.all("/api-keys/*", async (c) => {
+  const url = new URL(c.req.url);
 
-    if (!keyId) {
-      return c.json(
-        {
-          error: "Bad Request",
-          message: "Key ID is required",
-        },
-        400
-      );
-    }
+  // Check if this is a JWKS request
+  if (url.pathname.includes("/.well-known/jwks.json")) {
+    const db = new D1Driver(c.env.DB);
+    await db.ensureTable(); // Initialize the database table
 
-    // Get the specific API key's public key directly from D1
-    const result = await c.env.DB.prepare(
-      "SELECT kid, jwk FROM japikeys WHERE kid = ? AND revoked = 0"
-    )
-      .bind(keyId)
-      .first();
+    const jwksRouter = createJWKSRouter({
+      baseIssuer: new URL("http://localhost:8787/api-keys"),
+      db,
+      maxAgeSeconds: 300, // 5 minutes cache
+    });
 
-    if (!result) {
-      return c.json(
-        {
-          error: "Not Found",
-          message: "API key not found or revoked",
-        },
-        404
-      );
-    }
-
-    const jwks = {
-      keys: [
-        {
-          ...JSON.parse(result.jwk as string),
-          kid: result.kid,
-          use: "sig",
-          alg: "RS256",
-        },
-      ],
-    };
-
-    return c.json(jwks);
-  } catch (error) {
-    console.error("❌ JWKS endpoint error:", error);
-    return c.json(
-      {
-        error: "Internal Server Error",
-        message: "Failed to retrieve public key",
-      },
-      500
-    );
+    return jwksRouter.fetch(c.req.raw, c.env);
   }
+
+  // For non-JWKS requests, continue to next handler
+  return new Response("Not Found", { status: 404 });
 });
 
 // Catch-all route that delegates to original handler
