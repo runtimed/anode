@@ -40,6 +40,22 @@ api.get("/health", (c) => {
   });
 });
 
+// Me endpoint - returns authenticated user info
+api.get("/me", authMiddleware, (c) => {
+  const passport = c.get("passport");
+  if (!passport) {
+    return c.json({ error: "Authentication failed" }, 401);
+  }
+  return c.json({
+    id: passport.user.id,
+    email: passport.user.email,
+    name: passport.user.name,
+    givenName: passport.user.givenName,
+    familyName: passport.user.familyName,
+    isAnonymous: passport.user.isAnonymous,
+  });
+});
+
 // Debug auth endpoint - no auth middleware, handles auth internally
 api.post("/debug/auth", async (c) => {
   console.log("🔧 Debug auth endpoint called");
