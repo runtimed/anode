@@ -113,6 +113,7 @@ VITE_IFRAME_OUTPUT_URI = "https://runtusercontent.com"
 VITE_RUNTIME_COMMAND = "pnpm run dev:runtime"
 
 # Preview Environment (all-in-one worker)
+# Uses Workers build integration: pnpm build --mode preview + pnpm exec wrangler deploy --env preview
 [env.preview]
 name = "anode-docworker-preview"
 main = "./backend/hono-entry.ts"
