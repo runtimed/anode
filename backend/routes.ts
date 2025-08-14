@@ -2,75 +2,24 @@ import { Hono } from "hono";
 import { v4 as uuidv4 } from "uuid";
 import { authMiddleware, type AuthContext } from "./middleware.ts";
 import { type Env } from "./types.ts";
-import {
-  createApiKeyRouter,
-  D1Driver,
-  type CreateApiKeyData,
-  type ApiKeyRouterOptions,
-} from "@japikey/cloudflare";
 import { validateAuthPayload } from "./auth.ts";
 
-// Import API key provider factory
+// Import unified API key routes
+import apiKeyRoutes from "./api-key-routes.ts";
 import {
   createApiKeyProvider,
   isUsingLocalProvider,
-} from "./providers/index.ts";
-
-// Helper functions for japikey integration
-const getUserIdFromRequest = async (
-  request: any,
-  _env: Env
-): Promise<string> => {
-  const authToken =
-    request.headers.get("Authorization")?.replace("Bearer ", "") ||
-    request.headers.get("x-auth-token");
-
-  if (!authToken) {
-    throw new Error("Missing auth token");
-  }
-
-  const validatedUser = await validateAuthPayload({ authToken }, _env);
-  return validatedUser.id;
-};
-
-const parseCreateApiKeyRequest = async (
-  request: any,
-  _env: Env
-): Promise<CreateApiKeyData> => {
-  const body = await request.json();
-
-  // Validate required fields
-  if (!Array.isArray(body.scopes) || body.scopes.length === 0) {
-    throw new Error("scopes is required and must be a non-empty array");
-  }
-
-  if (!body.expiresAt) {
-    throw new Error("expiresAt is required");
-  }
-
-  if (typeof body.userGenerated !== "boolean") {
-    throw new Error("userGenerated is required");
-  }
-
-  return {
-    expiresAt: new Date(body.expiresAt),
-    claims: {
-      scopes: body.scopes,
-      resources: body.resources || null,
-    },
-    databaseMetadata: {
-      scopes: body.scopes,
-      resources: body.resources || null,
-      name: body.name || "Unnamed Key",
-      userGenerated: body.userGenerated,
-    },
-  };
-};
+  getProviderName,
+  validateProviderConfig,
+} from "./providers/api-key-factory.ts";
 
 const api = new Hono<{ Bindings: Env; Variables: AuthContext }>();
 
 // Health endpoint - no auth required
 api.get("/health", (c) => {
+  // Validate provider configuration
+  const providerValidation = validateProviderConfig(c.env);
+
   return c.json({
     status: "healthy",
     deployment_env: c.env.DEPLOYMENT_ENV,
@@ -82,6 +31,11 @@ api.get("/health", (c) => {
       deployment_env: c.env.DEPLOYMENT_ENV,
       service_provider: c.env.SERVICE_PROVIDER || "local",
       using_local_provider: isUsingLocalProvider(c.env),
+    },
+    api_keys: {
+      provider: providerValidation.provider,
+      provider_valid: providerValidation.valid,
+      provider_errors: providerValidation.errors,
     },
   });
 });
@@ -107,26 +61,33 @@ api.post("/debug/auth", async (c) => {
 
     // Test authentication - check API key first, then fallback to existing auth
     try {
+      // Test authentication - check API key first, then fallback to existing auth
       let tokenType = "Service Token";
       let authMethod = "Unknown";
 
       // Check if this is an API key first
-      const apiKeyProvider = createApiKeyProvider(c.env);
+      try {
+        const apiKeyProvider = createApiKeyProvider(c.env);
+        const providerContext = { env: c.env, bearerToken: authToken };
 
-      if (apiKeyProvider.isApiKey(authToken)) {
-        // Validate using API key provider
-        const result = await apiKeyProvider.validateApiKey(authToken);
-        if (result.valid === false) {
-          throw new Error(result.error);
+        if (apiKeyProvider.isApiKey(providerContext)) {
+          // Validate using API key provider
+          await apiKeyProvider.validateApiKey(providerContext);
+          tokenType = "API Key";
+          authMethod = `${getProviderName(c.env)} API Key Provider`;
+        } else {
+          // Fall back to existing auth logic (OIDC JWT or service token)
+          await validateAuthPayload({ authToken }, c.env);
+          tokenType = authToken.startsWith("eyJ")
+            ? "OIDC JWT"
+            : "Service Token";
+          authMethod = "Standard Auth";
         }
-        tokenType = "API Key";
-        authMethod = "API Key Provider";
-      } else {
-        // Fall back to existing auth logic (OIDC JWT or service token)
-        const { validateAuthPayload } = await import("./auth.ts");
+      } catch {
+        // If API key provider fails, try standard auth
         await validateAuthPayload({ authToken }, c.env);
         tokenType = authToken.startsWith("eyJ") ? "OIDC JWT" : "Service Token";
-        authMethod = "Standard Auth";
+        authMethod = "Standard Auth (API Key Provider Failed)";
       }
 
       return c.json({
@@ -134,15 +95,22 @@ api.post("/debug/auth", async (c) => {
         message: "Authentication successful",
         tokenType,
         authMethod,
+        provider: getProviderName(c.env),
         timestamp: new Date().toISOString(),
       });
     } catch (authError: any) {
       // Determine token type for error reporting
       let tokenType = "Service Token";
       if (authToken.startsWith("eyJ")) {
-        // Check if it might be an API key JWT
-        const apiKeyProvider = createApiKeyProvider(c.env);
-        tokenType = apiKeyProvider.isApiKey(authToken) ? "API Key" : "OIDC JWT";
+        try {
+          const apiKeyProvider = createApiKeyProvider(c.env);
+          const providerContext = { env: c.env, bearerToken: authToken };
+          tokenType = apiKeyProvider.isApiKey(providerContext)
+            ? "API Key"
+            : "OIDC JWT";
+        } catch {
+          tokenType = "OIDC JWT";
+        }
       }
 
       return c.json(
@@ -150,6 +118,7 @@ api.post("/debug/auth", async (c) => {
           error: "AUTHENTICATION_FAILED",
           message: authError.message,
           tokenType,
+          provider: getProviderName(c.env),
           timestamp: new Date().toISOString(),
           hasAuthToken: Boolean(c.env.AUTH_TOKEN),
           hasAuthIssuer: Boolean(c.env.AUTH_ISSUER),
@@ -169,83 +138,8 @@ api.post("/debug/auth", async (c) => {
   }
 });
 
-// API Key routes using official japikey implementation - only available with local provider
-const createJapikeyApiKeyRoutes = async (env: Env) => {
-  const db = new D1Driver(env.DB);
-  await db.ensureTable(); // Initialize the database table
-
-  const options: ApiKeyRouterOptions<Env> = {
-    getUserId: getUserIdFromRequest,
-    parseCreateApiKeyRequest,
-    issuer: new URL(`http://localhost:8787/api-keys`),
-    aud: "api-keys",
-    db,
-    routePrefix: "/api/api-keys", // Match the actual URL path
-  };
-
-  return createApiKeyRouter(options);
-};
-
-// Mount the official japikey routes - handle all API key operations
-api.all("/api-keys", async (c) => {
-  // Check service provider at request time
-  if (!isUsingLocalProvider(c.env)) {
-    return c.json(
-      {
-        error: "API key management not available",
-        message:
-          "API key management is handled by the configured service provider",
-      },
-      404
-    );
-  }
-
-  const japikeyRouter = await createJapikeyApiKeyRoutes(c.env);
-  // Convert Hono request to Cloudflare Worker request format
-  const cfRequest = c.req.raw as any;
-  const response = await japikeyRouter.fetch(cfRequest, c.env, c.executionCtx);
-
-  // Convert response body
-  const body = response.body ? await response.text() : "";
-
-  // Set headers
-  for (const [key, value] of response.headers.entries()) {
-    c.header(key, value);
-  }
-
-  // Return using Hono context methods
-  return c.text(body, response.status as 200 | 400 | 401 | 403 | 404 | 500);
-});
-
-api.all("/api-keys/*", async (c) => {
-  // Check service provider at request time
-  if (!isUsingLocalProvider(c.env)) {
-    return c.json(
-      {
-        error: "API key management not available",
-        message:
-          "API key management is handled by the configured service provider",
-      },
-      404
-    );
-  }
-
-  const japikeyRouter = await createJapikeyApiKeyRoutes(c.env);
-  // Convert Hono request to Cloudflare Worker request format
-  const cfRequest = c.req.raw as any;
-  const response = await japikeyRouter.fetch(cfRequest, c.env, c.executionCtx);
-
-  // Convert response body
-  const body = response.body ? await response.text() : "";
-
-  // Set headers
-  for (const [key, value] of response.headers.entries()) {
-    c.header(key, value);
-  }
-
-  // Return using Hono context methods
-  return c.text(body, response.status as 200 | 400 | 401 | 403 | 404 | 500);
-});
+// Mount unified API key routes
+api.route("/api-keys", apiKeyRoutes);
 
 // Artifact routes - Auth applied per route - uploads need auth, downloads are public
 

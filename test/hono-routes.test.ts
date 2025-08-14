@@ -66,6 +66,11 @@ describe("Hono API Routes", () => {
           service_provider: "local",
           using_local_provider: true,
         },
+        api_keys: {
+          provider: "local",
+          provider_valid: false,
+          provider_errors: ["DB binding is required for local provider"],
+        },
       });
     });
   });
@@ -89,6 +94,7 @@ describe("Hono API Routes", () => {
         message: "Authentication successful",
         tokenType: "Service Token",
         authMethod: "Standard Auth",
+        provider: "local",
         timestamp: expect.any(String),
       });
     });
