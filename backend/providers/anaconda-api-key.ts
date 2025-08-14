@@ -125,6 +125,7 @@ export class AnacondaApiKeyProvider implements ApiKeyProvider {
         this.config.userinfoUrl,
         {
           headers: {
+            "User-Agent": "anode/1.0 (https://app.runt.run)",
             Authorization: `Bearer ${context.bearerToken}`,
           },
         }
@@ -193,16 +194,19 @@ export class AnacondaApiKeyProvider implements ApiKeyProvider {
       expires_at: request.expiresAt,
     };
 
+    const requestHeaders = {
+      "Content-Type": "application/json",
+      "User-Agent": "anode/1.0 (https://app.runt.run)",
+      Authorization: `Bearer ${context.bearerToken}`,
+    };
+
     try {
       const result: AnacondaCreateApiKeyResponse = await fetch(
         this.config.apiKeyUrl,
         {
           method: "POST",
           body: JSON.stringify(requestBody),
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${context.bearerToken}`,
-          },
+          headers: requestHeaders,
         }
       )
         .catch(createFailureHandler(this.config.apiKeyUrl))
@@ -233,6 +237,7 @@ export class AnacondaApiKeyProvider implements ApiKeyProvider {
         this.config.apiKeyUrl,
         {
           headers: {
+            "User-Agent": "anode/1.0 (https://app.runt.run)",
             Authorization: `Bearer ${context.bearerToken}`,
           },
         }
@@ -273,6 +278,7 @@ export class AnacondaApiKeyProvider implements ApiKeyProvider {
         this.config.apiKeyUrl,
         {
           headers: {
+            "User-Agent": "anode/1.0 (https://app.runt.run)",
             Authorization: `Bearer ${context.bearerToken}`,
           },
         }
@@ -315,6 +321,7 @@ export class AnacondaApiKeyProvider implements ApiKeyProvider {
       await fetch(`${this.config.apiKeyUrl}/${id}`, {
         method: "DELETE",
         headers: {
+          "User-Agent": "anode/1.0 (https://app.runt.run)",
           Authorization: `Bearer ${context.bearerToken}`,
         },
       })
