@@ -220,7 +220,7 @@ export class AnacondaApiKeyProvider implements ApiKeyProvider {
     }
     try {
       return JSON.parse(body) as T;
-    } catch (error) {
+    } catch {
       throw new RuntError(ErrorType.Unknown, {
         message: "Invalid JSON response",
         responsePayload: {
