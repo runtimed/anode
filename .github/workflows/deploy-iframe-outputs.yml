@@ -1,11 +1,8 @@
-name: Deploy Iframe Outputs (Preview)
+name: Deploy Iframe Outputs (Preview - Dry Run)
 
 on:
-  push:
-    branches: [main]
   pull_request:
     branches: [main]
-  workflow_dispatch:
 
 jobs:
   deploy-iframe-outputs:
