@@ -135,28 +135,16 @@ app.all("/api-keys/*", async (c) => {
 app.all("*", async (c) => {
   const url = new URL(c.req.url);
 
-  console.log(`🔍 Catch-all handler for: ${url.pathname}`);
-  console.log(`🔧 Environment: ${c.env.DEPLOYMENT_ENV}`);
-  console.log(`📁 ASSETS binding available: ${!!c.env.ASSETS}`);
-
   // For static assets in production/preview, try ASSETS binding
   if (c.env.ASSETS) {
-    console.log(`📄 Trying to serve from ASSETS: ${url.pathname}`);
-
     // For SPA routing, serve index.html for routes without file extensions
     const hasFileExtension =
       url.pathname.includes(".") && !url.pathname.endsWith("/");
 
-    console.log(
-      `🔍 Path analysis: hasFileExtension=${hasFileExtension}, pathname=${url.pathname}`
-    );
-
     let assetRequest;
-    let requestDescription;
     if (hasFileExtension || url.pathname === "/") {
       // Direct asset request or root path
       assetRequest = c.req.raw;
-      requestDescription = `direct request for ${url.pathname}`;
     } else {
       // SPA route - serve index.html
       const indexUrl = new URL("/", url.origin);
@@ -164,48 +152,20 @@ app.all("*", async (c) => {
         method: c.req.method,
         headers: c.req.raw.headers,
       });
-      requestDescription = `SPA route ${url.pathname} -> serving index.html`;
     }
-    console.log(`📋 Asset request strategy: ${requestDescription}`);
 
     try {
-      console.log(`🚀 Fetching from ASSETS binding...`);
       const assetResponse = await c.env.ASSETS.fetch(assetRequest as any);
-      console.log(
-        `✅ ASSETS response: ${assetResponse.status} ${assetResponse.statusText} for ${url.pathname}`
-      );
-      console.log(
-        `📊 Response headers:`,
-        Object.fromEntries(assetResponse.headers.entries())
-      );
 
       if (assetResponse.status < 400) {
-        console.log(`🎉 Serving successful asset response`);
         return assetResponse;
-      } else {
-        console.log(`❌ Asset not found or error: ${assetResponse.status}`);
-        // Try to read response body for debugging
-        try {
-          const responseText = await assetResponse.text();
-          console.log(`📄 Response body:`, responseText.substring(0, 200));
-        } catch (e) {
-          console.log(`⚠️ Could not read response body:`, e);
-        }
       }
     } catch (error) {
-      console.error("💥 ASSETS fetch failed:", error);
-      console.error("Error details:", {
-        name: error instanceof Error ? error.name : "Unknown",
-        message: error instanceof Error ? error.message : String(error),
-        stack: error instanceof Error ? error.stack : undefined,
-      });
+      console.warn("ASSETS fetch failed:", error);
     }
-  } else {
-    console.log(`⚠️ No ASSETS binding available, skipping asset serving`);
   }
 
   // Fallback to original handler for API routes or when ASSETS fails
-  console.log(`🔄 Delegating to original handler: ${url.pathname}`);
 
   const request = c.req.raw as any;
   const env = c.env;
