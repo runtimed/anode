@@ -8,7 +8,6 @@ import tailwindcss from "@tailwindcss/vite";
 import { defineConfig, loadEnv } from "vite";
 import { injectLoadingScreen } from "./vite-plugins/inject-loading-screen.js";
 import { envValidationPlugin } from "./vite-plugins/env-validation.js";
-import extensionOverrides from "./extension_overrides";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -99,7 +98,6 @@ export default defineConfig(({ mode }) => {
     resolve: {
       alias: {
         "@": path.resolve(__dirname, "./src"),
-        ...extensionOverrides,
       },
     },
     optimizeDeps: {

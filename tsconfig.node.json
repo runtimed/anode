@@ -10,7 +10,6 @@
   "include": [
     "vite.config.ts",
     "vite.wrangler_config.ts",
-    "extension_overrides.ts",
     "vite-plugins/**/*.ts",
     "iframe-outputs/vite.config.ts"
   ]
