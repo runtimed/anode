@@ -36,7 +36,6 @@ export const authMiddleware = createMiddleware<{
       const providerContext = createProviderContext(c.env, authToken);
 
       if (apiKeyProvider.isApiKey(providerContext)) {
-        console.log("🔑 Authenticating with API key");
         // Validate using API key provider
         passport = await apiKeyProvider.validateApiKey(providerContext);
         userId = passport.user.id;

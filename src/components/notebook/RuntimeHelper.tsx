@@ -31,7 +31,8 @@ export const RuntimeHelper: React.FC<RuntimeHelperProps> = ({
   const runtimeCommand = getRuntimeCommand(currentNotebookId);
 
   const copyRuntimeCommand = useCallback(() => {
-    navigator.clipboard.writeText(runtimeCommand);
+    const commandWithApiKey = `RUNT_API_KEY=your-key ${runtimeCommand}`;
+    navigator.clipboard.writeText(commandWithApiKey);
     // Could add a toast notification here
   }, [runtimeCommand]);
 
@@ -73,12 +74,21 @@ export const RuntimeHelper: React.FC<RuntimeHelperProps> = ({
         {!hasActiveRuntime && (
           <>
             <p className="text-muted-foreground mb-3 text-sm">
+              Need an API key? Get one from your{" "}
+              <button className="text-blue-600 underline hover:text-blue-800">
+                profile settings
+              </button>
+              .
+            </p>
+            <p className="text-muted-foreground mb-3 text-sm">
               Run this command in your terminal to start a runtime for notebook{" "}
               <code className="bg-muted rounded px-1">{currentNotebookId}</code>
               :
             </p>
             <div className="flex items-center gap-2 rounded bg-slate-900 p-3 font-mono text-sm text-slate-100">
-              <span className="flex-1">{runtimeCommand}</span>
+              <span className="flex-1">
+                RUNT_API_KEY=your-key {runtimeCommand}
+              </span>
               <Button
                 variant="ghost"
                 size="sm"
@@ -89,8 +99,9 @@ export const RuntimeHelper: React.FC<RuntimeHelperProps> = ({
               </Button>
             </div>
             <p className="text-muted-foreground mt-2 text-xs">
-              Note: Each notebook requires its own runtime instance. The runtime
-              will connect automatically once started.
+              Note: Each notebook requires its own runtime instance. Set your
+              API key as RUNT_API_KEY environment variable. The runtime will
+              connect automatically once started.
             </p>
           </>
         )}

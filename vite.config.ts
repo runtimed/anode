@@ -92,6 +92,12 @@ export default defineConfig(({ mode }) => {
         ? parseInt(env.ANODE_DEV_SERVER_PORT)
         : 5173,
       strictPort: true,
+      proxy: {
+        "/api": {
+          target: "http://localhost:8787",
+          changeOrigin: true,
+        },
+      },
     },
     cacheDir: "node_modules/.vite-main",
     worker: { format: "es" },

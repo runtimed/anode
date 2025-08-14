@@ -82,53 +82,87 @@ app.use("/local_oidc/*", async (c, next) => {
 });
 
 // Mount API routes (health, debug, artifacts, API keys)
+console.log("🚀 Mounting API routes at /api");
 app.route("/api", apiRoutes);
 
 // Mount local OIDC routes (development only)
 app.route("/local_oidc", localOidcRoutes);
 
-// JWKS endpoint using official japikey implementation
+// API Keys endpoint using official japikey implementation
 app.all("/api-keys/*", async (c) => {
   const url = new URL(c.req.url);
 
-  // Check if this is a JWKS request
-  if (url.pathname.includes("/.well-known/jwks.json")) {
-    const db = new D1Driver(c.env.DB);
-    await db.ensureTable(); // Initialize the database table
+  console.log("🔍 /api-keys/* handler called", {
+    method: c.req.method,
+    url: c.req.url,
+    pathname: url.pathname,
+    isJWKS: url.pathname.includes("/.well-known/jwks.json"),
+  });
 
-    const jwksRouter = createJWKSRouter({
+  const db = new D1Driver(c.env.DB);
+  await db.ensureTable(); // Initialize the database table
+
+  let router;
+
+  // Create appropriate router based on request type
+  if (url.pathname.includes("/.well-known/jwks.json")) {
+    router = createJWKSRouter({
       baseIssuer: new URL("http://localhost:8787/api-keys"),
       db,
       maxAgeSeconds: 300, // 5 minutes cache
     });
-
-    // Handle test environment where executionCtx might not be available
-    let ctx: any = {};
-    try {
-      ctx = c.executionCtx;
-    } catch {
-      // In test environment, executionCtx throws an error, use empty object
-      ctx = {};
-    }
-
-    // Convert Hono request to Cloudflare Worker request format
-    const cfRequest = c.req.raw as any;
-    const response = await jwksRouter.fetch(cfRequest, c.env, ctx);
-
-    // Convert response body
-    const body = response.body ? await response.text() : "";
-
-    // Set headers
-    for (const [key, value] of response.headers.entries()) {
-      c.header(key, value);
-    }
-
-    // Return using Hono context methods
-    return c.text(body, response.status as 200 | 400 | 401 | 403 | 404 | 500);
+  } else {
+    // For API key CRUD operations, create full API key router
+    const { createApiKeyRouter } = await import("@japikey/cloudflare");
+    router = createApiKeyRouter({
+      getUserId: async () => "local-user", // Will be overridden by actual auth
+      parseCreateApiKeyRequest: async (req) => {
+        const body = await req.json();
+        return {
+          expiresAt: new Date(body.expiresAt),
+          claims: {
+            scopes: body.scopes,
+            resources: body.resources || null,
+          },
+          databaseMetadata: {
+            scopes: body.scopes,
+            resources: body.resources || null,
+            name: body.name || "Unnamed Key",
+            userGenerated: body.userGenerated || false,
+            userId: "local-user", // Will be overridden
+          },
+        };
+      },
+      issuer: new URL("http://localhost:8787/api-keys"),
+      aud: "api-keys",
+      db,
+      routePrefix: "/api-keys",
+    });
   }
 
-  // For non-JWKS requests, continue to next handler
-  return c.text("Not Found", 404);
+  // Handle test environment where executionCtx might not be available
+  let ctx: any = {};
+  try {
+    ctx = c.executionCtx;
+  } catch {
+    // In test environment, executionCtx throws an error, use empty object
+    ctx = {};
+  }
+
+  // Convert Hono request to Cloudflare Worker request format
+  const cfRequest = c.req.raw as any;
+  const response = await router.fetch(cfRequest, c.env, ctx);
+
+  // Convert response body
+  const body = response.body ? await response.text() : "";
+
+  // Set headers
+  for (const [key, value] of response.headers.entries()) {
+    c.header(key, value);
+  }
+
+  // Return using Hono context methods
+  return c.text(body, response.status as 200 | 400 | 401 | 403 | 404 | 500);
 });
 
 // Catch-all handler - serve static assets or delegate to original handler

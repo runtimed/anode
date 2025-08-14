@@ -60,12 +60,24 @@ const oauthOnlyMiddleware = async (c: any, next: any) => {
  * POST /api-keys - Create new API key (OAuth only)
  */
 apiKeyRoutes.post("/", oauthOnlyMiddleware, async (c) => {
-  console.log("🔑 Creating new API key");
+  console.log("🔑 API key routes: POST / called", {
+    method: c.req.method,
+    url: c.req.url,
+    pathname: new URL(c.req.url).pathname,
+    hasAuth: Boolean(c.req.header("Authorization")),
+  });
 
   const passport = c.get("passport");
   const authToken = c.req.header("Authorization")?.replace("Bearer ", "");
 
+  console.log("🎫 Authentication check", {
+    hasPassport: Boolean(passport),
+    hasAuthToken: Boolean(authToken),
+    userId: passport?.user?.id,
+  });
+
   if (!passport || !authToken) {
+    console.log("❌ Authentication failed - missing passport or token");
     return c.json(
       {
         error: "Unauthorized",
@@ -77,7 +89,14 @@ apiKeyRoutes.post("/", oauthOnlyMiddleware, async (c) => {
 
   try {
     // Parse and validate request body
+    console.log("📝 Parsing request body...");
     const body = await c.req.json();
+    console.log("📋 Request body parsed", {
+      hasName: Boolean(body.name),
+      scopes: body.scopes,
+      hasExpiresAt: Boolean(body.expiresAt),
+      userGenerated: body.userGenerated,
+    });
     const request: CreateApiKeyRequest = validateCreateApiKeyRequest(body);
 
     // Create provider and context

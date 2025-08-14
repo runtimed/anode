@@ -1,10 +1,19 @@
 import * as jose from "jose";
 import {
-  createApiKeyRouter,
-  D1Driver,
-  type CreateApiKeyData,
-  type ApiKeyRouterOptions,
-} from "@japikey/cloudflare";
+  shouldAuthenticate,
+  authenticate,
+  createGetJWKS,
+} from "@japikey/authenticate";
+import {
+  CreateApiKeyOptions,
+  CreateApiKeyResult,
+  MalformedTokenError,
+  createApiKey,
+  SigningError,
+  type ApiKeyRow,
+} from "@japikey/japikey";
+import { D1Driver } from "@japikey/cloudflare";
+
 import type {
   ApiKeyProvider,
   ProviderContext,
@@ -13,28 +22,64 @@ import type {
   ApiKey,
   ListApiKeysRequest,
   Scope,
+  Resource,
 } from "../api-key-provider.ts";
 import { ApiKeyCapabilities } from "../api-key-provider.ts";
 import { RuntError, ErrorType, type Env } from "../types.ts";
 import { type Passport, type ValidatedUser } from "../auth.ts";
 
+const getBaseIssuer = (context: ProviderContext): URL => {
+  const issuer = context.env.AUTH_ISSUER;
+  const match = issuer.match(/^http:\/\/localhost:(\d+)\/local_oidc$/);
+  if (!match) {
+    throw new RuntError(ErrorType.ServerMisconfigured, {
+      message: "Cannot determine the api key issuer from the AUTH_ISSUER",
+      debugPayload: {
+        issuer,
+      },
+    });
+  }
+  return new URL(`http://localhost:${match[1]}/api-keys`);
+};
+
+const claimToMaybeString = (item: unknown): string | undefined => {
+  if (typeof item === "string") {
+    return item;
+  }
+  return undefined;
+};
+
+const convertRowToApiKey = (row: ApiKeyRow): ApiKey => {
+  const key: ApiKey = {
+    id: row.kid,
+    userId: row.user_id,
+    revoked: row.revoked,
+    scopes: row.metadata.scopes as Scope[],
+    expiresAt: row.metadata.expiresAt as string,
+    userGenerated: row.metadata.userGenerated as boolean,
+    name: row.metadata.name as string,
+  };
+  if (row.metadata.resources) {
+    key.resources = row.metadata.resources as Resource[];
+  }
+  return key;
+};
+
 /**
  * Local API key provider for development environments
- * Uses japikey for actual key management and validation
+ * Uses japikey libraries directly for key management and validation
  */
 export class LocalApiKeyProvider implements ApiKeyProvider {
   public capabilities = new Set([
-    ApiKeyCapabilities.Delete,
+    ApiKeyCapabilities.Revoke,
     ApiKeyCapabilities.CreateWithResources,
     ApiKeyCapabilities.ListKeysPaginated,
   ]);
 
   private db: D1Driver;
-  private baseIssuer: URL;
 
   constructor(env: Env) {
     this.db = new D1Driver(env.DB);
-    this.baseIssuer = new URL("http://localhost:8787/api-keys");
   }
 
   async ensureInitialized(): Promise<void> {
@@ -48,22 +93,8 @@ export class LocalApiKeyProvider implements ApiKeyProvider {
     if (!context.bearerToken) {
       return false;
     }
-
-    try {
-      const unverified = jose.decodeJwt(context.bearerToken);
-      // japikey tokens have specific structure - check for key ID in subject and audience
-      return Boolean(
-        unverified.sub &&
-          unverified.iss &&
-          unverified.aud === "api-keys" &&
-          typeof unverified.sub === "string" &&
-          unverified.sub.match(
-            /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
-          ) // UUID format
-      );
-    } catch {
-      return false;
-    }
+    const baseIssuer = getBaseIssuer(context);
+    return shouldAuthenticate(context.bearerToken, baseIssuer);
   }
 
   /**
@@ -74,70 +105,49 @@ export class LocalApiKeyProvider implements ApiKeyProvider {
       throw new RuntError(ErrorType.MissingAuthToken);
     }
 
-    await this.ensureInitialized();
+    const baseIssuer = getBaseIssuer(context);
+    const getJWKS = createGetJWKS(baseIssuer);
+    let payload: jose.JWTPayload;
 
     try {
-      const unverified = jose.decodeJwt(context.bearerToken);
-
-      if (!unverified.sub || !unverified.iss || unverified.aud !== "api-keys") {
-        throw new RuntError(ErrorType.AuthTokenInvalid, {
-          message: "Invalid API key format",
-          debugPayload: { decodedToken: unverified },
-        });
-      }
-
-      // Extract key ID from subject
-      const keyId = unverified.sub as string;
-
-      // Get JWKS URL from issuer
-      const jwksUrl = `${unverified.iss}/${keyId}/.well-known/jwks.json`;
-
-      try {
-        // Fetch JWKS and verify signature
-        const JWKS = jose.createRemoteJWKSet(new URL(jwksUrl));
-        const { payload } = await jose.jwtVerify(context.bearerToken, JWKS, {
-          issuer: unverified.iss as string,
-          audience: "api-keys",
-        });
-
-        // Extract scopes and other data from payload
-        const userId = `local-${keyId}`; // Synthetic user ID for local development
-
-        const user: ValidatedUser = {
-          id: userId,
-          email: `${userId}@local.dev`,
-          name: "Local API Key User",
-          givenName: "Local",
-          familyName: "User",
-          isAnonymous: false,
-        };
-
-        return {
-          user,
-          jwt: payload,
-        };
-      } catch (verificationError) {
-        if (verificationError instanceof jose.errors.JWTExpired) {
-          throw new RuntError(ErrorType.AuthTokenExpired, {
-            message: "API key expired",
-            debugPayload: { keyId },
-          });
-        }
-        throw new RuntError(ErrorType.AuthTokenInvalid, {
-          message: "API key verification failed",
-          debugPayload: { keyId },
-          cause: verificationError as Error,
-        });
-      }
+      payload = await authenticate(context.bearerToken, {
+        baseIssuer,
+        getJWKS,
+      });
     } catch (error) {
-      if (error instanceof RuntError) {
-        throw error;
+      if (error instanceof MalformedTokenError) {
+        throw new RuntError(ErrorType.AuthTokenInvalid, { cause: error });
       }
       throw new RuntError(ErrorType.AuthTokenInvalid, {
-        message: "Failed to parse API key",
         cause: error as Error,
       });
     }
+
+    if (typeof payload.sub !== "string" || !payload.sub) {
+      throw new RuntError(ErrorType.AuthTokenInvalid, {
+        message: "The sub claim is required",
+      });
+    }
+
+    if (typeof payload.email !== "string" || !payload.email) {
+      throw new RuntError(ErrorType.AuthTokenInvalid, {
+        message: "The email claim is required",
+      });
+    }
+
+    const user: ValidatedUser = {
+      id: payload.sub,
+      email: payload.email,
+      name: claimToMaybeString(payload.name) || payload.email,
+      givenName: claimToMaybeString(payload.given_name),
+      familyName: claimToMaybeString(payload.family_name),
+      isAnonymous: false,
+    };
+
+    return {
+      user,
+      jwt: payload,
+    };
   }
 
   /**
@@ -147,74 +157,86 @@ export class LocalApiKeyProvider implements ApiKeyProvider {
     context: AuthenticatedProviderContext,
     request: CreateApiKeyRequest
   ): Promise<string> {
+    console.log("🔑 LocalApiKeyProvider.createApiKey called", {
+      userId: context.passport.user.id,
+      scopes: request.scopes,
+      expiresAt: request.expiresAt,
+      name: request.name,
+    });
+
     await this.ensureInitialized();
 
-    // Map internal scopes to what japikey expects
-    const mappedScopes = request.scopes.map((scope) => scope as string);
-
-    const createData: CreateApiKeyData = {
-      expiresAt: new Date(request.expiresAt),
-      claims: {
-        scopes: mappedScopes,
-        resources: request.resources || null,
-      },
-      databaseMetadata: {
-        scopes: mappedScopes,
-        resources: request.resources || null,
-        name: request.name || "Unnamed Key",
-        userGenerated: request.userGenerated,
-        userId: context.passport.user.id,
-      },
-    };
-
+    let result: CreateApiKeyResult;
     try {
-      // Use japikey to create the key
-      const options: ApiKeyRouterOptions<Env> = {
-        getUserId: async () => context.passport.user.id,
-        parseCreateApiKeyRequest: async () => createData,
-        issuer: this.baseIssuer,
+      const claims: jose.JWTPayload = {
+        scopes: request.scopes,
+        resources: request.resources,
+        email: context.passport.user.email,
+      };
+      const options: CreateApiKeyOptions = {
+        sub: context.passport.user.id,
+        iss: getBaseIssuer(context),
         aud: "api-keys",
-        db: this.db,
-        routePrefix: "/api/api-keys",
+        expiresAt: new Date(request.expiresAt),
       };
 
-      const router = createApiKeyRouter(options);
+      console.log("🔗 Creating API key with japikey.createApiKey", {
+        sub: options.sub,
+        iss: options.iss.toString(),
+        aud: options.aud,
+        expiresAt: options.expiresAt.toISOString(),
+      });
 
-      // Create a mock request for japikey
-      const mockRequest = new Request(`${this.baseIssuer}/`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${context.bearerToken}`,
-        },
-        body: JSON.stringify(request),
-      }) as any;
+      result = await createApiKey(claims, options);
 
-      const response = await router.fetch(mockRequest, context.env, {
-        waitUntil: () => {},
-        passThroughOnException: () => {},
-      } as any);
-
-      if (!response.ok) {
-        const errorText = await response.text();
-        throw new RuntError(ErrorType.Unknown, {
-          message: "Failed to create API key",
-          responsePayload: { upstreamCode: response.status },
-          debugPayload: { upstreamBody: errorText },
+      console.log("✅ API key created, inserting into database", {
+        kid: result.kid,
+        hasJWT: Boolean(result.jwt),
+        hasJWK: Boolean(result.jwk),
+      });
+    } catch (error) {
+      console.log("❌ Failed to create API key", {
+        error: error instanceof Error ? error.message : error,
+      });
+      if (error instanceof SigningError) {
+        throw new RuntError(ErrorType.InvalidRequest, {
+          message: "Failed to create the api key",
+          cause: error,
+          debugPayload: {
+            request,
+          },
         });
       }
+      throw new RuntError(ErrorType.Unknown, { cause: error as Error });
+    }
 
-      const result = (await response.json()) as any;
-      return result.api_key || result;
+    try {
+      await this.db.insertApiKey({
+        kid: result.kid,
+        user_id: context.passport.user.id,
+        revoked: false,
+        jwk: result.jwk,
+        metadata: {
+          scopes: request.scopes,
+          resources: request.resources,
+          expiresAt: request.expiresAt,
+          name: request.name,
+          userGenerated: request.userGenerated,
+        },
+      });
+
+      console.log("✅ API key inserted into database successfully");
     } catch (error) {
-      if (error instanceof RuntError) {
-        throw error;
-      }
+      console.log("❌ Failed to insert API key into database", {
+        error: error instanceof Error ? error.message : error,
+      });
       throw new RuntError(ErrorType.Unknown, {
-        message: "Failed to create API key",
+        message: "Failed to insert the api key into the database",
         cause: error as Error,
       });
     }
+
+    return result.jwt;
   }
 
   /**
@@ -226,50 +248,24 @@ export class LocalApiKeyProvider implements ApiKeyProvider {
   ): Promise<ApiKey> {
     await this.ensureInitialized();
 
+    let row: ApiKeyRow | null;
     try {
-      // Query the japikey database directly
-      const result = await this.db.getApiKey(id);
-
-      if (!result) {
-        throw new RuntError(ErrorType.NotFound, {
-          message: "API key not found",
-          debugPayload: { keyId: id },
-        });
-      }
-
-      // Verify ownership
-      const metadata = result.metadata as any;
-      if (metadata?.userId !== context.passport.user.id) {
-        throw new RuntError(ErrorType.AccessDenied, {
-          message: "API key does not belong to authenticated user",
-          debugPayload: { keyId: id, userId: context.passport.user.id },
-        });
-      }
-
-      // Convert database result to ApiKey format
-      const apiKey: ApiKey = {
-        id,
-        userId: context.passport.user.id,
-        scopes: (metadata?.scopes || []).map((scope: string) => scope as Scope),
-        resources: metadata?.resources || undefined,
-        expiresAt:
-          (result as any).expiresAt?.toISOString() || new Date().toISOString(),
-        name: metadata?.name || undefined,
-        userGenerated: metadata?.userGenerated || false,
-        revoked: false, // japikey doesn't have revocation concept
-      };
-
-      return apiKey;
+      row = await this.db.getApiKey(id);
     } catch (error) {
-      if (error instanceof RuntError) {
-        throw error;
-      }
       throw new RuntError(ErrorType.Unknown, {
-        message: "Failed to get API key",
+        message: "Failed to get the api key from the database",
         cause: error as Error,
-        debugPayload: { keyId: id },
       });
     }
+
+    if (!row || row.user_id !== context.passport.user.id) {
+      throw new RuntError(ErrorType.NotFound, {
+        message: "Api key not found",
+        debugPayload: { keyId: id, userId: context.passport.user.id },
+      });
+    }
+
+    return convertRowToApiKey(row);
   }
 
   /**
@@ -281,107 +277,64 @@ export class LocalApiKeyProvider implements ApiKeyProvider {
   ): Promise<ApiKey[]> {
     await this.ensureInitialized();
 
+    let rows: ApiKeyRow[];
     try {
-      // Query the japikey database for user's keys
-      // Note: D1Driver doesn't have a listApiKeys method, so we'll use a direct query
-      const stmt = (this.db as any).db.prepare(`
-        SELECT id, metadata, expiresAt FROM api_keys
-        WHERE JSON_EXTRACT(metadata, '$.userId') = ?
-        ORDER BY id DESC
-        LIMIT ? OFFSET ?
-      `);
-      const results = await stmt
-        .bind(
-          context.passport.user.id,
-          request.limit || 50,
-          request.offset || 0
-        )
-        .all();
-
-      const apiKeys: ApiKey[] = (results.results || []).map((result: any) => {
-        const metadata = JSON.parse(result.metadata || "{}");
-        return {
-          id: result.id,
-          userId: context.passport.user.id,
-          scopes: (metadata?.scopes || []).map(
-            (scope: string) => scope as Scope
-          ),
-          resources: metadata?.resources || undefined,
-          expiresAt: result.expiresAt || new Date().toISOString(),
-          name: metadata?.name || undefined,
-          userGenerated: metadata?.userGenerated || false,
-          revoked: false, // japikey doesn't have revocation concept
-        };
-      });
-
-      return apiKeys;
+      rows = await this.db.findApiKeys(
+        context.passport.user.id,
+        request.limit,
+        request.offset
+      );
     } catch (error) {
       throw new RuntError(ErrorType.Unknown, {
-        message: "Failed to list API keys",
+        message: "Failed to get the api keys from the database",
         cause: error as Error,
       });
     }
+
+    return rows.map(convertRowToApiKey);
   }
 
   /**
-   * Revoke an API key (not supported by japikey)
+   * Revoke an API key
    */
   async revokeApiKey(
-    _context: AuthenticatedProviderContext,
-    _id: string
-  ): Promise<void> {
-    throw new RuntError(ErrorType.CapabilityNotAvailable, {
-      message: "Revoke capability is not supported by local provider",
-    });
-  }
-
-  /**
-   * Delete an API key
-   */
-  async deleteApiKey(
     context: AuthenticatedProviderContext,
     id: string
   ): Promise<void> {
     await this.ensureInitialized();
 
     try {
-      // First verify the key exists and belongs to the user
-      await this.getApiKey(context, id);
-
-      // Delete from japikey database
-      const stmt = (this.db as any).db.prepare(
-        "DELETE FROM api_keys WHERE id = ?"
-      );
-      const result = await stmt.bind(id).run();
-
-      if (!result.success || result.changes === 0) {
-        throw new RuntError(ErrorType.NotFound, {
-          message: "API key not found or already deleted",
-          debugPayload: { keyId: id },
-        });
-      }
+      await this.db.revokeApiKey({
+        user_id: context.passport.user.id,
+        kid: id,
+      });
     } catch (error) {
-      if (error instanceof RuntError) {
-        throw error;
-      }
       throw new RuntError(ErrorType.Unknown, {
-        message: "Failed to delete API key",
+        message: "Failed to revoke the api key",
         cause: error as Error,
-        debugPayload: { keyId: id },
       });
     }
   }
 
   /**
+   * Delete an API key (not supported)
+   */
+  async deleteApiKey(
+    _context: AuthenticatedProviderContext,
+    _id: string
+  ): Promise<void> {
+    throw new RuntError(ErrorType.CapabilityNotAvailable, {
+      message: "delete capability is not supported",
+    });
+  }
+
+  /**
    * Optional override handler for custom routes
-   * Delegates to japikey router for all API key operations
    */
   async overrideHandler(
     _context: ProviderContext
   ): Promise<false | import("@cloudflare/workers-types").Response> {
-    // For local provider, we handle all operations through japikey
-    // This method is called by the main API handler to check if the provider
-    // wants to handle the request directly
-    return false; // Let the main handler process the request
+    // Let the main handler process the request
+    return false;
   }
 }
