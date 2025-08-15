@@ -39,7 +39,7 @@ const getBaseIssuer = (context: ProviderContext): URL => {
       },
     });
   }
-  return new URL(`http://localhost:${match[1]}/api-keys`);
+  return new URL(`http://localhost:${match[1]}/api/api-keys`);
 };
 
 const claimToMaybeString = (item: unknown): string | undefined => {
