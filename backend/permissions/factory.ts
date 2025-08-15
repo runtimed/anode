@@ -125,17 +125,3 @@ export function validatePermissionsProviderConfig(env: Env): {
     errors,
   };
 }
-
-/**
- * Initialize provider and handle any async setup
- */
-export async function initializePermissionsProvider(
-  env: Env
-): Promise<PermissionsProvider> {
-  const provider = createPermissionsProvider(env);
-
-  // Perform any async initialization if needed
-  // LocalPermissionsProvider doesn't need async init currently
-
-  return provider;
-}
