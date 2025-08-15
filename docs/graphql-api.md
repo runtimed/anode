@@ -21,41 +21,45 @@ Authorization: Bearer <your_api_key>
 ### Types
 
 #### Runbook
+
 ```graphql
 type Runbook {
-  ulid: ID!                    # Unique ULID identifier
-  title: String                # Human-readable title
-  vanityName: String           # URL-friendly name (reserved)
-  owner: User!                 # Runbook owner
-  collaborators: [User!]!      # Users with write access
+  ulid: ID! # Unique ULID identifier
+  title: String # Human-readable title
+  vanityName: String # URL-friendly name (reserved)
+  owner: User! # Runbook owner
+  collaborators: [User!]! # Users with write access
   myPermission: PermissionLevel! # Current user's permission
-  createdAt: String!           # ISO timestamp
-  updatedAt: String!           # ISO timestamp
+  createdAt: String! # ISO timestamp
+  updatedAt: String! # ISO timestamp
 }
 ```
 
 #### User
+
 ```graphql
 type User {
-  id: ID!           # Unique user identifier
-  email: String!    # User email address
-  name: String      # Display name
+  id: ID! # Unique user identifier
+  email: String! # User email address
+  name: String # Display name
   givenName: String # First name
   familyName: String # Last name
 }
 ```
 
 #### PermissionLevel
+
 ```graphql
 enum PermissionLevel {
-  OWNER   # Full control (create, edit, share, delete)
-  WRITER  # Edit content and execute code
+  OWNER # Full control (create, edit, share, delete)
+  WRITER # Edit content and execute code
 }
 ```
 
 ### Queries
 
 #### Get Current User
+
 ```graphql
 query {
   me {
@@ -67,17 +71,21 @@ query {
 ```
 
 #### List Runbooks
+
 ```graphql
 query {
   runbooks(
-    owned: Boolean      # Filter to owned runbooks
-    shared: Boolean     # Filter to shared runbooks
-    limit: Int         # Pagination limit (default: 50)
-    offset: Int        # Pagination offset (default: 0)
+    owned: Boolean # Filter to owned runbooks
+    shared: Boolean # Filter to shared runbooks
+    limit: Int # Pagination limit (default: 50)
+    offset: Int # Pagination offset (default: 0)
   ) {
     ulid
     title
-    owner { id email }
+    owner {
+      id
+      email
+    }
     myPermission
     createdAt
   }
@@ -85,13 +93,21 @@ query {
 ```
 
 #### Get Specific Runbook
+
 ```graphql
 query {
   runbook(ulid: "01K2Q9V9A5GFDX61XF2FS1W6B4") {
     ulid
     title
-    owner { id email name }
-    collaborators { id email }
+    owner {
+      id
+      email
+      name
+    }
+    collaborators {
+      id
+      email
+    }
     myPermission
     createdAt
     updatedAt
@@ -102,18 +118,22 @@ query {
 ### Mutations
 
 #### Create Runbook
+
 ```graphql
 mutation {
   createRunbook(input: { title: "My New Runbook" }) {
     ulid
     title
-    owner { id }
+    owner {
+      id
+    }
     createdAt
   }
 }
 ```
 
 #### Update Runbook
+
 ```graphql
 mutation {
   updateRunbook(
@@ -128,26 +148,27 @@ mutation {
 ```
 
 #### Share Runbook
+
 ```graphql
 mutation {
-  shareRunbook(input: {
-    runbookUlid: "01K2Q9V9A5GFDX61XF2FS1W6B4"
-    userId: "user-123"
-  })
+  shareRunbook(
+    input: { runbookUlid: "01K2Q9V9A5GFDX61XF2FS1W6B4", userId: "user-123" }
+  )
 }
 ```
 
 #### Remove Access
+
 ```graphql
 mutation {
-  unshareRunbook(input: {
-    runbookUlid: "01K2Q9V9A5GFDX61XF2FS1W6B4"
-    userId: "user-123"
-  })
+  unshareRunbook(
+    input: { runbookUlid: "01K2Q9V9A5GFDX61XF2FS1W6B4", userId: "user-123" }
+  )
 }
 ```
 
 #### Delete Runbook
+
 ```graphql
 mutation {
   deleteRunbook(ulid: "01K2Q9V9A5GFDX61XF2FS1W6B4")
@@ -169,6 +190,7 @@ curl -X POST http://localhost:8787/graphql \
 ```
 
 Response:
+
 ```json
 {
   "data": {
@@ -194,6 +216,7 @@ curl -X POST http://localhost:8787/graphql \
 ```
 
 Response:
+
 ```json
 {
   "data": {
@@ -211,6 +234,7 @@ Response:
 ## Error Handling
 
 ### Authentication Errors
+
 ```json
 {
   "errors": [
@@ -223,12 +247,13 @@ Response:
 ```
 
 ### Permission Errors
+
 ```json
 {
   "errors": [
     {
       "message": "Only the owner can delete a runbook",
-      "locations": [{"line": 1, "column": 12}],
+      "locations": [{ "line": 1, "column": 12 }],
       "path": ["deleteRunbook"]
     }
   ]
@@ -236,12 +261,13 @@ Response:
 ```
 
 ### Not Found Errors
+
 ```json
 {
   "errors": [
     {
       "message": "Runbook not found or access denied",
-      "locations": [{"line": 1, "column": 9}],
+      "locations": [{ "line": 1, "column": 9 }],
       "path": ["runbook"]
     }
   ]
@@ -285,7 +311,8 @@ query {
 ## Development
 
 For local development, the GraphQL endpoint is available at:
-- **Backend**: `http://localhost:8787/graphql` 
+
+- **Backend**: `http://localhost:8787/graphql`
 - **GraphiQL**: Available when `NODE_ENV=development`
 
 Use the `RUNT_API_KEY` from your `.env` file for authentication during development.

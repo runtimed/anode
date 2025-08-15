@@ -10,27 +10,42 @@ Originally I was going to make `/api/r` endpoints and realized it would be far e
 # Create runbook
 mutation {
   createRunbook(input: { title: "Analysis Notebook" }) {
-    ulid title createdAt
+    ulid
+    title
+    createdAt
   }
 }
 
 # List my runbooks
 query {
   runbooks(owned: true) {
-    ulid title myPermission
+    ulid
+    title
+    myPermission
   }
 }
 
 # Get specific runbook
 query {
   runbook(ulid: "01K2Q9V9A5GFDX61XF2FS1W6B4") {
-    ulid title owner { id email } collaborators { id email }
+    ulid
+    title
+    owner {
+      id
+      email
+    }
+    collaborators {
+      id
+      email
+    }
   }
 }
 
 # Share runbook
 mutation {
-  shareRunbook(input: { runbookUlid: "01K2Q9V9A5GFDX61XF2FS1W6B4", userId: "user-123" })
+  shareRunbook(
+    input: { runbookUlid: "01K2Q9V9A5GFDX61XF2FS1W6B4", userId: "user-123" }
+  )
 }
 ```
 
@@ -44,7 +59,19 @@ source .env && curl -X POST http://localhost:8787/graphql \
 ```
 
 ```json
-{"data":{"createRunbook":{"ulid":"01K2Q9V9A5GFDX61XF2FS1W6B4","title":"My Second Runbook","createdAt":"2025-08-15T16:43:43.813Z","owner":{"id":"a2dca944-0023-5374-8a6a-0ae9060431a0","email":"a2dca944-0023-5374-8a6a-0ae9060431a0@example.com"}}}}
+{
+  "data": {
+    "createRunbook": {
+      "ulid": "01K2Q9V9A5GFDX61XF2FS1W6B4",
+      "title": "My Second Runbook",
+      "createdAt": "2025-08-15T16:43:43.813Z",
+      "owner": {
+        "id": "a2dca944-0023-5374-8a6a-0ae9060431a0",
+        "email": "a2dca944-0023-5374-8a6a-0ae9060431a0@example.com"
+      }
+    }
+  }
+}
 ```
 
 ## Architecture
@@ -87,15 +114,19 @@ Following the existing API key provider pattern, permissions are abstracted thro
 ```typescript
 // Step 1: Get accessible runbook IDs from permissions provider
 const accessibleRunbookIds = await permissionsProvider.listAccessibleResources(
-  user.id, 
+  user.id,
   "runbook"
 );
 
 // Step 2: Query D1 for those specific runbooks
-const result = await DB.prepare(`
+const result = await DB.prepare(
+  `
   SELECT * FROM runbooks 
   WHERE ulid IN (${placeholders})
-`).bind(...accessibleRunbookIds).all();
+`
+)
+  .bind(...accessibleRunbookIds)
+  .all();
 ```
 
 This pattern works with both local D1 permissions and remote SpiceDB because we avoid cross-system JOINs.
@@ -109,6 +140,7 @@ This pattern works with both local D1 permissions and remote SpiceDB because we 
 ### URL Structure
 
 **Planned**: `/r/{ulid}/{vanity-name}` where vanity-name is URL dressing
+
 - `/r/{ulid}` uniquely identifies the notebook
 - Vanity name auto-generated from title for prettier URLs
 - Conflicts don't matter - ULID is canonical
@@ -135,7 +167,12 @@ enum PermissionLevel {
 }
 
 type Query {
-  runbooks(owned: Boolean, shared: Boolean, limit: Int, offset: Int): [Runbook!]!
+  runbooks(
+    owned: Boolean
+    shared: Boolean
+    limit: Int
+    offset: Int
+  ): [Runbook!]!
   runbook(ulid: ID!): Runbook
   me: User!
 }
@@ -152,8 +189,9 @@ type Mutation {
 ## Implementation Status
 
 ### ✅ Complete
+
 - D1 migration with runbooks and permissions tables
-- GraphQL server with Yoga v5 integration 
+- GraphQL server with Yoga v5 integration
 - Authentication via existing API key system
 - ULID generation for time-sortable IDs
 - Local permissions provider with D1 backend
@@ -163,6 +201,7 @@ type Mutation {
 - **Permissions-first architecture** - SpiceDB compatible query pattern
 
 ### 🚧 Tested & Working
+
 - User authentication via API keys
 - Runbook creation and listing
 - Individual runbook queries
@@ -170,6 +209,7 @@ type Mutation {
 - Permission level resolution
 
 ### 📋 Next Steps
+
 1. **Frontend Integration**: `/r/{ulid}` URL routing in React app
 2. **LiveStore Permissions**: Integrate permission checks into `validatePayload()`
 3. **Vanity URL Generation**: Implement title → slug conversion
@@ -190,7 +230,7 @@ The GraphQL-first approach provides the flexibility needed for complex queries w
 ## Key Benefits
 
 1. **GraphQL Flexibility**: Complex filtering, sorting, pagination built-in
-2. **Provider Pattern**: Clean abstraction for different permission backends  
+2. **Provider Pattern**: Clean abstraction for different permission backends
 3. **ULID Benefits**: Time-sortable, URL-safe, globally unique identifiers
 4. **Legacy Compatibility**: Existing `/?notebook=` URLs continue working
 5. **Type Safety**: Full TypeScript integration with schema-first approach
