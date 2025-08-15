@@ -26,25 +26,22 @@ export function createGraphQLServer() {
       credentials: true,
     },
 
-    // GraphQL playground in development
-    graphiql: () => ({
+    // GraphQL playground in all environments
+    graphiql: {
       title: "Runt GraphQL API",
-      // Allow introspection in development for schema explorer
       defaultQuery: `
-        # Welcome to the Runt GraphQL API
+        # Welcome to Runt GraphQL API
         # Add your Authorization header in the Headers tab below
 
         query {
-          runbooks {
-            title
-            ulid
-          }
           me {
+            id
+            email
             name
           }
         }
       `,
-    }),
+    },
 
     // Context function - called for each request
     context: async (context) => {
