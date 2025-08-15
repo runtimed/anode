@@ -72,16 +72,21 @@ export const resolvers = {
         return [];
       }
 
-      // Permissions-first approach: Query permissions provider first, then D1
-      // This pattern works with both local D1 permissions and remote SpiceDB
-      // because we can't JOIN across different data stores
+      // Query permissions provider first, then D1. It would be _faster_ to
+      // do it all in one query for the local provider, but we want consistency
+      // with the deployed service. Instead we do this in two steps because
+      // we can't JOIN across different data stores.
+      //
+      // Approach largely influenced by
+      // [AuthZed's approach to Protecting a List Endpoint](https://authzed.com/docs/spicedb/modeling/protecting-a-list-endpoint)
+      // Currently we use the LookupResources filtering approach. We may need
+      // to switch to CheckBulkPermissions to filter the results in the future, or
+      // AuthZed's Materialized views.
 
       try {
-        // Step 1: Get accessible runbook IDs from permissions provider
         let accessibleRunbookIds: string[];
 
         if (owned && !shared) {
-          // Only owned runbooks
           accessibleRunbookIds =
             await permissionsProvider.listAccessibleResources(
               user.id,
@@ -89,7 +94,6 @@ export const resolvers = {
               ["owner"]
             );
         } else if (shared && !owned) {
-          // Only shared runbooks (not owned)
           const allAccessible =
             await permissionsProvider.listAccessibleResources(
               user.id,
@@ -116,7 +120,6 @@ export const resolvers = {
           return [];
         }
 
-        // Step 2: Query D1 for those specific runbooks
         const placeholders = accessibleRunbookIds.map(() => "?").join(",");
         const query = `
           SELECT ulid, owner_id, vanity_name, title, created_at, updated_at
@@ -151,7 +154,6 @@ export const resolvers = {
       }
 
       try {
-        // Check if user has access to this runbook
         const permissionResult = await permissionsProvider.checkPermission(
           user.id,
           runbookUlid
@@ -160,7 +162,6 @@ export const resolvers = {
           throw new GraphQLError("Runbook not found or access denied");
         }
 
-        // Fetch runbook data
         const runbook = await DB.prepare(
           "SELECT * FROM runbooks WHERE ulid = ?"
         )
@@ -218,7 +219,6 @@ export const resolvers = {
           throw new GraphQLError("Failed to create runbook");
         }
 
-        // Return the created runbook
         const runbook = await DB.prepare(
           "SELECT * FROM runbooks WHERE ulid = ?"
         )
@@ -247,7 +247,6 @@ export const resolvers = {
       }
 
       try {
-        // Check if user is owner (only owners can update metadata)
         const isOwner = await permissionsProvider.isOwner(user.id, runbookUlid);
         if (!isOwner) {
           throw new GraphQLError("Only the owner can update runbook metadata");
@@ -391,11 +390,9 @@ export const resolvers = {
     },
   },
 
-  // Field resolvers for Runbook type
   Runbook: {
     async owner(parent: RunbookRow, _args: unknown, _context: GraphQLContext) {
-      // For now, we'll construct a minimal user object from the owner_id
-      // In the future, this could query a users table or external service
+      // TODO: User retrieval
       return {
         id: parent.owner_id,
         email: `${parent.owner_id}@example.com`, // Placeholder
@@ -420,7 +417,7 @@ export const resolvers = {
           .bind(parent.ulid)
           .all<{ user_id: string }>();
 
-        // Convert to User objects (placeholder implementation)
+        // TODO: User retrieval
         return writers.results.map((writer) => ({
           id: writer.user_id,
           email: `${writer.user_id}@example.com`, // Placeholder
