@@ -3,7 +3,7 @@ import { cors } from "hono/cors";
 import { WebSocketServer } from "./sync.ts";
 import originalHandler from "./entry.ts";
 import { type Env } from "./types.ts";
-import { type AuthContext } from "./middleware.ts";
+import { type AuthContext, authMiddleware } from "./middleware.ts";
 import { RuntError, ErrorType } from "./types.ts";
 import apiRoutes from "./routes.ts";
 import localOidcRoutes from "./local-oidc-routes.ts";
@@ -95,7 +95,7 @@ app.route("/api", apiRoutes);
 app.route("/local_oidc", localOidcRoutes);
 
 // API Keys endpoint using official japikey implementation (local provider only)
-app.all("/api-keys/*", async (c) => {
+app.all("/api-keys/*", authMiddleware, async (c) => {
   // Only mount this endpoint for local provider
   if (!isUsingLocalProvider(c.env)) {
     return c.json({ error: "Not Found" }, 404);
@@ -117,8 +117,14 @@ app.all("/api-keys/*", async (c) => {
   } else {
     // For API key CRUD operations, create full API key router
     const { createApiKeyRouter } = await import("@japikey/cloudflare");
+    // Get authenticated user from middleware
+    const passport = c.get("passport");
+    if (!passport?.user?.id) {
+      return c.json({ error: "Unauthorized" }, 401);
+    }
+
     router = createApiKeyRouter({
-      getUserId: async () => "local-user", // Will be overridden by actual auth
+      getUserId: async () => passport.user.id,
       parseCreateApiKeyRequest: async (req) => {
         const body = (await req.json()) as any;
         return {
@@ -132,7 +138,7 @@ app.all("/api-keys/*", async (c) => {
             resources: body.resources || null,
             name: body.name || "Unnamed Key",
             userGenerated: body.userGenerated || false,
-            userId: "local-user", // Will be overridden
+            userId: passport.user.id,
           },
         };
       },
