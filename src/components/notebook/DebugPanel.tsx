@@ -91,7 +91,7 @@ const DebugPanel: React.FC = () => {
       </a>
 
       <div className="space-y-4 p-4">
-        <DebugPin />
+        <DebugVersion />
         {/* Available Tables */}
         <div>
           <h4 className="text-muted-foreground mb-2 text-xs font-medium tracking-wide uppercase">
@@ -305,7 +305,8 @@ const DebugPanel: React.FC = () => {
   );
 };
 
-function DebugPin() {
+function DebugVersion() {
+  const { store } = useStore();
   const debugVersion = useQuery(
     queryDb(
       tables.debug.select("version").first({
@@ -315,9 +316,25 @@ function DebugPin() {
       })
     )
   );
-  return (
-    <div className="font-mono text-xs">Debug Pin Version: {debugVersion}</div>
-  );
+
+  const setDebugVersion = () => {
+    store.commit(events.debug1({ id: "debug-id-1" }));
+  };
+
+  if (debugVersion === "unknown") {
+    return (
+      <Button
+        variant="outline"
+        size="sm"
+        className="w-full text-xs"
+        onClick={setDebugVersion}
+      >
+        Set Debug Version
+      </Button>
+    );
+  }
+
+  return <div className="font-mono text-xs">Debug Version: {debugVersion}</div>;
 }
 
 export { DebugPanel };
