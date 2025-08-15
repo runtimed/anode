@@ -2,12 +2,16 @@ import { ulid } from "ulid";
 import { GraphQLError } from "graphql";
 import type { ValidatedUser } from "../auth.ts";
 import type { PermissionsProvider } from "../permissions/types.ts";
-
+import {
+  UserRegistry,
+  type UserRegistry as UserRegistryType,
+} from "../users/user-registry.ts";
 import type { Env } from "../types.ts";
 
 export interface GraphQLContext extends Env {
   user: ValidatedUser | null;
   permissionsProvider: PermissionsProvider;
+  userRegistry: UserRegistryType;
 }
 
 interface RunbookRow {
@@ -391,13 +395,20 @@ export const resolvers = {
   },
 
   Runbook: {
-    async owner(parent: RunbookRow, _args: unknown, _context: GraphQLContext) {
-      // TODO: User retrieval
-      return {
-        id: parent.owner_id,
-        email: `${parent.owner_id}@example.com`, // Placeholder
-        name: `User ${parent.owner_id}`, // Placeholder
-      };
+    async owner(parent: RunbookRow, _args: unknown, context: GraphQLContext) {
+      const { userRegistry } = context;
+
+      try {
+        const userRecord = await userRegistry.getUserById(parent.owner_id);
+        if (userRecord) {
+          return UserRegistry.toGraphQLUser(userRecord);
+        } else {
+          return UserRegistry.createFallbackUser(parent.owner_id);
+        }
+      } catch (error) {
+        console.error("Failed to fetch owner:", error);
+        return UserRegistry.createFallbackUser(parent.owner_id);
+      }
     },
 
     async collaborators(
@@ -405,7 +416,7 @@ export const resolvers = {
       _args: unknown,
       context: GraphQLContext
     ) {
-      const { DB } = context;
+      const { DB, userRegistry } = context;
 
       try {
         const writers = await DB.prepare(
@@ -417,12 +428,23 @@ export const resolvers = {
           .bind(parent.ulid)
           .all<{ user_id: string }>();
 
-        // TODO: User retrieval
-        return writers.results.map((writer) => ({
-          id: writer.user_id,
-          email: `${writer.user_id}@example.com`, // Placeholder
-          name: `User ${writer.user_id}`, // Placeholder
-        }));
+        if (writers.results.length === 0) {
+          return [];
+        }
+
+        // Get user data for all writers
+        const userIds = writers.results.map((w) => w.user_id);
+        const userMap = await userRegistry.getUsersByIds(userIds);
+
+        // Convert to GraphQL User objects
+        return userIds.map((userId) => {
+          const userRecord = userMap.get(userId);
+          if (userRecord) {
+            return UserRegistry.toGraphQLUser(userRecord);
+          } else {
+            return UserRegistry.createFallbackUser(userId);
+          }
+        });
       } catch (error) {
         console.error("Failed to fetch collaborators:", error);
         return [];
