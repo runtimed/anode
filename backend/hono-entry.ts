@@ -94,54 +94,35 @@ app.route("/api", apiRoutes);
 // Mount local OIDC routes (development only)
 app.route("/local_oidc", localOidcRoutes);
 
-// API Keys endpoint using official japikey implementation (local provider only)
+// JWKS endpoint for API key verification (local provider only)
 app.all("/api-keys/*", async (c) => {
   // Only mount this endpoint for local provider
   if (!isUsingLocalProvider(c.env)) {
     return c.json({ error: "Not Found" }, 404);
   }
+
   const url = new URL(c.req.url);
+
+  // Only handle JWKS requests - CRUD operations are handled by /api/api-keys
+  if (!url.pathname.includes("/.well-known/jwks.json")) {
+    return c.json(
+      {
+        error: "Not Found",
+        message:
+          "This endpoint only serves JWKS. Use /api/api-keys for key management.",
+      },
+      404
+    );
+  }
 
   const db = new D1Driver(c.env.DB);
   await db.ensureTable(); // Initialize the database table
 
-  let router;
-
-  // Create appropriate router based on request type
-  if (url.pathname.includes("/.well-known/jwks.json")) {
-    router = createJWKSRouter({
-      baseIssuer: new URL("http://localhost:8787/api-keys"),
-      db,
-      maxAgeSeconds: 300, // 5 minutes cache
-    });
-  } else {
-    // For API key CRUD operations, create full API key router
-    const { createApiKeyRouter } = await import("@japikey/cloudflare");
-    router = createApiKeyRouter({
-      getUserId: async () => "local-user", // Will be overridden by actual auth
-      parseCreateApiKeyRequest: async (req) => {
-        const body = (await req.json()) as any;
-        return {
-          expiresAt: new Date(body.expiresAt),
-          claims: {
-            scopes: body.scopes,
-            resources: body.resources || null,
-          },
-          databaseMetadata: {
-            scopes: body.scopes,
-            resources: body.resources || null,
-            name: body.name || "Unnamed Key",
-            userGenerated: body.userGenerated || false,
-            userId: "local-user", // Will be overridden
-          },
-        };
-      },
-      issuer: new URL("http://localhost:8787/api-keys"),
-      aud: "api-keys",
-      db,
-      routePrefix: "/api-keys",
-    });
-  }
+  const jwksRouter = createJWKSRouter({
+    baseIssuer: new URL("http://localhost:8787/api-keys"),
+    db,
+    maxAgeSeconds: 300, // 5 minutes cache
+  });
 
   // Handle test environment where executionCtx might not be available
   let ctx: any = {};
@@ -154,7 +135,7 @@ app.all("/api-keys/*", async (c) => {
 
   // Convert Hono request to Cloudflare Worker request format
   const cfRequest = c.req.raw as any;
-  const response = await router.fetch(cfRequest, c.env, ctx);
+  const response = await jwksRouter.fetch(cfRequest, c.env, ctx);
 
   // Convert response body
   const body = response.body ? await response.text() : "";

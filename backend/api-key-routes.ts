@@ -11,6 +11,7 @@ import {
   type ListApiKeysRequest,
 } from "./api-key-provider.ts";
 import { RuntError, ErrorType } from "./types.ts";
+import * as jose from "jose";
 
 // Create Hono app for API key routes
 const apiKeyRoutes = new Hono<{ Bindings: Env; Variables: AuthContext }>();
@@ -86,7 +87,11 @@ apiKeyRoutes.post("/", oauthOnlyMiddleware, async (c) => {
     // Create the API key
     const apiKey = await provider.createApiKey(context, request);
 
-    return c.json({ api_key: apiKey });
+    // Extract kid from JWT header
+    const header = jose.decodeProtectedHeader(apiKey);
+    const kid = header.kid || null;
+
+    return c.json({ api_key: apiKey, kid });
   } catch (error) {
     if (error instanceof RuntError) {
       return c.json(
