@@ -95,7 +95,7 @@ app.route("/api", apiRoutes);
 app.route("/local_oidc", localOidcRoutes);
 
 // API Keys endpoint using official japikey implementation (local provider only)
-app.all("/api-keys/*", authMiddleware, async (c) => {
+app.all("/api-keys/*", async (c) => {
   // Only mount this endpoint for local provider
   if (!isUsingLocalProvider(c.env)) {
     return c.json({ error: "Not Found" }, 404);
@@ -109,19 +109,22 @@ app.all("/api-keys/*", authMiddleware, async (c) => {
 
   // Create appropriate router based on request type
   if (url.pathname.includes("/.well-known/jwks.json")) {
+    // JWKS endpoint - public access for JWT validation
     router = createJWKSRouter({
       baseIssuer: new URL("http://localhost:8787/api-keys"),
       db,
       maxAgeSeconds: 300, // 5 minutes cache
     });
   } else {
-    // For API key CRUD operations, create full API key router
-    const { createApiKeyRouter } = await import("@japikey/cloudflare");
-    // Get authenticated user from middleware
+    // For API key CRUD operations, require authentication
+    await authMiddleware(c, async () => {});
+
     const passport = c.get("passport");
     if (!passport?.user?.id) {
       return c.json({ error: "Unauthorized" }, 401);
     }
+
+    const { createApiKeyRouter } = await import("@japikey/cloudflare");
 
     router = createApiKeyRouter({
       getUserId: async () => passport.user.id,
