@@ -12,6 +12,7 @@ import {
 import { validateAuthPayload, validateProductionEnvironment } from "./auth";
 import { createApiKeyProvider } from "./providers/api-key-factory.ts";
 import { createProviderContext } from "./api-key-provider.ts";
+import { createGraphQLServer } from "./graphql/server.ts";
 
 export class WebSocketServer extends makeDurableObject({
   onPush: async (message) => {
@@ -74,6 +75,17 @@ const handler: SimpleHandler = {
           "Access-Control-Max-Age": "86400",
         },
       });
+    }
+
+    // Handle GraphQL endpoint
+    if (url.pathname === "/graphql") {
+      console.log("📊 Routing to GraphQL server");
+
+      const yoga = createGraphQLServer();
+      // Cast to standard web API types for GraphQL Yoga compatibility
+      const standardRequest = request as unknown as Request;
+      const response = await yoga.fetch(standardRequest, env);
+      return response as unknown as WorkerResponse;
     }
 
     // Handle API routes (WebSocket and LiveStore sync)
