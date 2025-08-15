@@ -94,87 +94,103 @@ app.route("/api", apiRoutes);
 // Mount local OIDC routes (development only)
 app.route("/local_oidc", localOidcRoutes);
 
-// API Keys endpoint using official japikey implementation (local provider only)
+// API Keys endpoint using D1Driver with Express-style organization (local provider only)
 app.all("/api-keys/*", async (c) => {
   // Only mount this endpoint for local provider
   if (!isUsingLocalProvider(c.env)) {
     return c.json({ error: "Not Found" }, 404);
   }
+
   const url = new URL(c.req.url);
-
   const db = new D1Driver(c.env.DB);
-  await db.ensureTable(); // Initialize the database table
+  await db.ensureTable();
 
-  let router;
-
-  // Create appropriate router based on request type
+  // Handle JWKS endpoint (public access for JWT validation)
   if (url.pathname.includes("/.well-known/jwks.json")) {
-    // JWKS endpoint - public access for JWT validation
-    router = createJWKSRouter({
+    const jwksRouter = createJWKSRouter({
       baseIssuer: new URL("http://localhost:8787/api-keys"),
       db,
-      maxAgeSeconds: 300, // 5 minutes cache
+      maxAgeSeconds: 300,
     });
-  } else {
-    // For API key CRUD operations, require authentication
-    await authMiddleware(c, async () => {});
 
-    const passport = c.get("passport");
-    if (!passport?.user?.id) {
-      return c.json({ error: "Unauthorized" }, 401);
+    // Handle test environment where executionCtx might not be available
+    let ctx: any = {};
+    try {
+      ctx = c.executionCtx;
+    } catch {
+      // In test environment, use empty object
+      ctx = {};
     }
 
-    const { createApiKeyRouter } = await import("@japikey/cloudflare");
+    const response = await jwksRouter.fetch(c.req.raw as any, c.env, ctx);
+    const body = response.body ? await response.text() : "";
 
-    router = createApiKeyRouter({
-      getUserId: async () => passport.user.id,
-      parseCreateApiKeyRequest: async (req) => {
-        const body = (await req.json()) as any;
-        return {
-          expiresAt: new Date(body.expiresAt),
-          claims: {
-            scopes: body.scopes,
-            resources: body.resources || null,
-          },
-          databaseMetadata: {
-            scopes: body.scopes,
-            resources: body.resources || null,
-            name: body.name || "Unnamed Key",
-            userGenerated: body.userGenerated || false,
-            userId: passport.user.id,
-          },
-        };
-      },
-      issuer: new URL("http://localhost:8787/api-keys"),
-      aud: "api-keys",
-      db,
-      routePrefix: "/api-keys",
-    });
+    for (const [key, value] of response.headers.entries()) {
+      c.header(key, value);
+    }
+
+    return c.text(body, response.status as any);
   }
+
+  // Handle API key CRUD operations (requires authentication)
+  await authMiddleware(c, async () => {});
+  const passport = c.get("passport");
+
+  if (!passport?.user?.id) {
+    return c.json({ error: "Unauthorized" }, 401);
+  }
+
+  // Express-style helper functions for cleaner organization
+  const getUserId = async (): Promise<string> => {
+    return passport.user.id;
+  };
+
+  const parseCreateApiKeyRequest = async (req: any) => {
+    const body = (await req.json()) as any;
+    return {
+      expiresAt: new Date(body.expiresAt),
+      claims: {
+        scopes: body.scopes || [],
+        resources: body.resources || null,
+      },
+      databaseMetadata: {
+        scopes: body.scopes || [],
+        resources: body.resources || null,
+        name: body.name || "Unnamed Key",
+        userGenerated: body.userGenerated || false,
+        userId: passport.user.id,
+      },
+    };
+  };
+
+  // Use Cloudflare router with clean configuration
+  const { createApiKeyRouter } = await import("@japikey/cloudflare");
+  const apiKeyRouter = createApiKeyRouter({
+    getUserId,
+    parseCreateApiKeyRequest,
+    issuer: new URL("http://localhost:8787/api-keys"),
+    aud: "api-keys",
+    db,
+    routePrefix: "/api-keys",
+  });
 
   // Handle test environment where executionCtx might not be available
   let ctx: any = {};
   try {
     ctx = c.executionCtx;
   } catch {
-    // In test environment, executionCtx throws an error, use empty object
+    // In test environment, use empty object
     ctx = {};
   }
 
-  // Convert Hono request to Cloudflare Worker request format
-  const cfRequest = c.req.raw as any;
-  const response = await router.fetch(cfRequest, c.env, ctx);
-
-  // Convert response body
+  const response = await apiKeyRouter.fetch(c.req.raw as any, c.env, ctx);
   const body = response.body ? await response.text() : "";
 
-  // Set headers
   for (const [key, value] of response.headers.entries()) {
     c.header(key, value);
   }
 
-  // Return using Hono context methods
-  return c.text(body, response.status as 200 | 400 | 401 | 403 | 404 | 500);
+  return c.text(body, response.status as any);
 });
 
 // Catch-all handler - serve static assets or delegate to original handler
