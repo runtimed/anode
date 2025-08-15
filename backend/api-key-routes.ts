@@ -1,7 +1,10 @@
 import { Hono } from "hono";
 import { type Env } from "./types.ts";
 import { authMiddleware, type AuthContext } from "./middleware.ts";
-import { createApiKeyProvider } from "./providers/api-key-factory.ts";
+import {
+  createApiKeyProvider,
+  isUsingLocalProvider,
+} from "./providers/api-key-factory.ts";
 import {
   validateCreateApiKeyRequest,
   createProviderContext,
@@ -11,6 +14,8 @@ import {
   type ListApiKeysRequest,
 } from "./api-key-provider.ts";
 import { RuntError, ErrorType } from "./types.ts";
+import { D1Driver } from "@japikey/cloudflare";
+import { JSONWebKeySet } from "jose";
 
 // Create Hono app for API key routes
 const apiKeyRoutes = new Hono<{ Bindings: Env; Variables: AuthContext }>();
@@ -53,8 +58,31 @@ const oauthOnlyMiddleware = async (c: any, next: any) => {
   await next();
 };
 
+apiKeyRoutes.get("/:kid/.well-known/jwks.json", async (c) => {
+  if (!isUsingLocalProvider(c.env)) {
+    throw new RuntError(ErrorType.NotFound, {
+      message: "The JWKS endpoint is not available for this provider",
+    });
+  }
+
+  const db = new D1Driver(c.env.DB);
+  await db.ensureTable();
+  const kid = c.req.param("kid");
+  const row = await db.getApiKey(kid);
+  if (!row || row.revoked) {
+    throw new RuntError(ErrorType.NotFound, {
+      message: "API key not found",
+      debugPayload: { kid, row },
+    });
+  }
+  const jwks: JSONWebKeySet = {
+    keys: [row.jwk],
+  };
+  return c.json(jwks);
+});
+
 /**
- * POST /api-keys - Create new API key (OAuth only)
+ * POST /api/api-keys - Create new API key (OAuth only)
  */
 apiKeyRoutes.post("/", oauthOnlyMiddleware, async (c) => {
   const passport = c.get("passport");
