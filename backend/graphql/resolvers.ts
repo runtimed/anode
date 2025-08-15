@@ -6,7 +6,7 @@ import type { PermissionsProvider } from "../permissions/types.ts";
 import type { Env } from "../types.ts";
 
 export interface GraphQLContext extends Env {
-  user: ValidatedUser;
+  user: ValidatedUser | null;
   permissionsProvider: PermissionsProvider;
 }
 
@@ -67,6 +67,10 @@ export const resolvers = {
     ) {
       const { user, DB, permissionsProvider } = context;
       const { owned, shared, limit = 50, offset = 0 } = args;
+
+      if (!user) {
+        return [];
+      }
 
       // Permissions-first approach: Query permissions provider first, then D1
       // This pattern works with both local D1 permissions and remote SpiceDB
@@ -142,6 +146,10 @@ export const resolvers = {
       const { user, DB, permissionsProvider } = context;
       const { ulid: runbookUlid } = args;
 
+      if (!user) {
+        throw new GraphQLError("Authentication required");
+      }
+
       try {
         // Check if user has access to this runbook
         const permissionResult = await permissionsProvider.checkPermission(
@@ -173,6 +181,9 @@ export const resolvers = {
     },
 
     me(_parent: unknown, _args: unknown, context: GraphQLContext) {
+      if (!context.user) {
+        throw new GraphQLError("Authentication required");
+      }
       return context.user;
     },
   },
@@ -185,6 +196,10 @@ export const resolvers = {
     ) {
       const { user, DB } = context;
       const { input } = args;
+
+      if (!user) {
+        throw new GraphQLError("Authentication required");
+      }
 
       try {
         const runbookUlid = ulid();
@@ -226,6 +241,10 @@ export const resolvers = {
     ) {
       const { user, DB, permissionsProvider } = context;
       const { ulid: runbookUlid, input } = args;
+
+      if (!user) {
+        throw new GraphQLError("Authentication required");
+      }
 
       try {
         // Check if user is owner (only owners can update metadata)
@@ -288,6 +307,10 @@ export const resolvers = {
       const { user, DB, permissionsProvider } = context;
       const { ulid: runbookUlid } = args;
 
+      if (!user) {
+        throw new GraphQLError("Authentication required");
+      }
+
       try {
         // Check if user is owner
         const isOwner = await permissionsProvider.isOwner(user.id, runbookUlid);
@@ -321,6 +344,10 @@ export const resolvers = {
       const { user, permissionsProvider } = context;
       const { input } = args;
 
+      if (!user) {
+        throw new GraphQLError("Authentication required");
+      }
+
       try {
         await permissionsProvider.grantPermission({
           runbookId: input.runbookUlid,
@@ -343,6 +370,10 @@ export const resolvers = {
     ) {
       const { user, permissionsProvider } = context;
       const { input } = args;
+
+      if (!user) {
+        throw new GraphQLError("Authentication required");
+      }
 
       try {
         await permissionsProvider.revokePermission({
@@ -407,6 +438,10 @@ export const resolvers = {
       context: GraphQLContext
     ) {
       const { user, permissionsProvider } = context;
+
+      if (!user) {
+        return "WRITER"; // Safe fallback for introspection
+      }
 
       try {
         const result = await permissionsProvider.checkPermission(

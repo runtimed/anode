@@ -1,10 +1,12 @@
 import { LocalPermissionsProvider } from "./local-permissions.ts";
+import { NoPermissionsProvider } from "./no-permissions.ts";
 // import { AnacondaPermissionsProvider } from "./anaconda-permissions.ts"; // TODO: Implement
 import type { PermissionsProvider } from "./types.ts";
 import { RuntError, ErrorType, type Env } from "../types.ts";
 
 // Re-export providers and types for convenience
 export { LocalPermissionsProvider } from "./local-permissions.ts";
+export { NoPermissionsProvider } from "./no-permissions.ts";
 // export { AnacondaPermissionsProvider } from "./anaconda-permissions.ts"; // TODO: Implement
 export type { PermissionsProvider } from "./types.ts";
 
@@ -21,19 +23,9 @@ export function createPermissionsProvider(env: Env): PermissionsProvider {
         message:
           "Anaconda permissions provider not yet implemented - use SpiceDB endpoints",
       });
-    // try {
-    //   return new AnacondaPermissionsProvider(env);
-    // } catch (error) {
-    //   throw new RuntError(ErrorType.ServerMisconfigured, {
-    //     message: "Failed to initialize Anaconda permissions provider",
-    //     cause: error as Error,
-    //   });
-    // }
 
     case "local":
-    case undefined:
-    case "":
-      // Default to local for development
+      // Local development with D1 database
       try {
         return new LocalPermissionsProvider(env.DB);
       } catch (error) {
@@ -43,18 +35,25 @@ export function createPermissionsProvider(env: Env): PermissionsProvider {
         });
       }
 
+    case "none":
+      // Explicitly disabled permissions (for introspection, testing, etc.)
+      console.log("Using NoPermissionsProvider (explicitly disabled)");
+      return new NoPermissionsProvider();
+
+    case undefined:
+    case "":
+      // Unspecified service provider is an error - must be explicit
+      throw new RuntError(ErrorType.ServerMisconfigured, {
+        message:
+          "SERVICE_PROVIDER must be explicitly set to 'local', 'anaconda', or 'none'",
+      });
+
     default:
+      // Unknown service provider - warn but provide no permissions for safety
       console.warn(
-        `Unknown SERVICE_PROVIDER: ${serviceProvider}, falling back to local`
+        `Unknown SERVICE_PROVIDER: ${serviceProvider}, using NoPermissionsProvider for safety`
       );
-      try {
-        return new LocalPermissionsProvider(env.DB);
-      } catch (error) {
-        throw new RuntError(ErrorType.ServerMisconfigured, {
-          message: "Failed to initialize fallback local permissions provider",
-          cause: error as Error,
-        });
-      }
+      return new NoPermissionsProvider();
   }
 }
 
@@ -76,7 +75,21 @@ export function isUsingLocalProvider(env: Env): boolean {
  * Get provider name for logging/debugging
  */
 export function getProviderName(env: Env): string {
-  return isUsingAnacondaProvider(env) ? "anaconda" : "local";
+  const serviceProvider = env.SERVICE_PROVIDER?.toLowerCase();
+
+  switch (serviceProvider) {
+    case "anaconda":
+      return "anaconda";
+    case "local":
+      return "local";
+    case "none":
+      return "none";
+    case undefined:
+    case "":
+      return "unspecified";
+    default:
+      return "unknown";
+  }
 }
 
 /**
@@ -93,11 +106,17 @@ export function validatePermissionsProviderConfig(env: Env): {
   if (provider === "anaconda") {
     // TODO: Add anaconda-specific validation when implemented
     errors.push("Anaconda permissions provider not yet implemented");
-  } else {
+  } else if (provider === "local") {
     // Local provider validation
     if (!env.DB) {
       errors.push("DB binding is required for local permissions provider");
     }
+  } else if (provider === "none") {
+    // NoPermissionsProvider - no validation needed
+  } else if (provider === "unspecified") {
+    errors.push("SERVICE_PROVIDER must be explicitly set");
+  } else if (provider === "unknown") {
+    errors.push(`Unknown SERVICE_PROVIDER: ${env.SERVICE_PROVIDER}`);
   }
 
   return {

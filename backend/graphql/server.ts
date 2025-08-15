@@ -4,12 +4,10 @@ import { resolvers, type GraphQLContext } from "./resolvers.ts";
 import { validateAuthPayload, type ValidatedUser } from "../auth.ts";
 import { createApiKeyProvider } from "../providers/api-key-factory.ts";
 import { createProviderContext } from "../api-key-provider.ts";
-import {
-  createPermissionsProvider,
-  type PermissionsProvider,
-} from "../permissions/factory.ts";
+import { createPermissionsProvider } from "../permissions/factory.ts";
+import { NoPermissionsProvider } from "../permissions/no-permissions.ts";
 import type { Env } from "../types.ts";
-import { GraphQLError } from "graphql";
+import { GraphQLError, parse, visit } from "graphql";
 
 /**
  * Create and configure the GraphQL server
@@ -28,18 +26,88 @@ export function createGraphQLServer() {
     },
 
     // GraphQL playground in development
-    graphiql: {
-      // Only enable GraphiQL in development environments
-      title: "Anode GraphQL API",
-    },
+    graphiql: () => ({
+      title: "Runt GraphQL API",
+      // Allow introspection in development for schema explorer
+      defaultQuery: `
+        # Welcome to the Runt GraphQL API
+        # Add your Authorization header in the Headers tab below
+
+        query {
+          runbooks {
+            title
+            ulid
+          }
+          me {
+            name
+          }
+        }
+      `,
+    }),
 
     // Context function - called for each request
     context: async (context) => {
       const env = context as Env;
 
       try {
-        // Extract authorization header
         const request = context.request;
+
+        // Check if this is a PURE introspection query (for GraphiQL schema explorer)
+        let isPureIntrospectionQuery = false;
+        if (request.method === "POST" || request.method === "GET") {
+          try {
+            let query = "";
+            if (request.method === "POST") {
+              const body = await request.clone().json();
+              query = body.query || "";
+            } else {
+              // GET request with query parameter
+              const url = new URL(request.url);
+              query = url.searchParams.get("query") || "";
+            }
+
+            // Parse the GraphQL query to check if it's purely introspection
+            if (query.trim()) {
+              const ast = parse(query);
+              let hasNonIntrospectionField = false;
+              let hasIntrospectionField = false;
+
+              visit(ast, {
+                Field: (node) => {
+                  const fieldName = node.name.value;
+                  if (fieldName.startsWith("__")) {
+                    hasIntrospectionField = true;
+                  } else {
+                    hasNonIntrospectionField = true;
+                  }
+                },
+              });
+
+              // Only allow if it has introspection fields AND no non-introspection fields
+              isPureIntrospectionQuery =
+                hasIntrospectionField && !hasNonIntrospectionField;
+            }
+          } catch {
+            // If we can't parse the query, assume it's not safe introspection
+            isPureIntrospectionQuery = false;
+          }
+        }
+
+        // Allow PURE introspection queries without authentication in development
+        if (isPureIntrospectionQuery && env.DEPLOYMENT_ENV === "development") {
+          console.log("🔍 Allowing introspection query without authentication");
+
+          // Return context with no user and no-op permissions provider
+          const noPermissionsProvider = new NoPermissionsProvider();
+
+          return {
+            ...env,
+            user: null,
+            permissionsProvider: noPermissionsProvider,
+          };
+        }
+
+        // Extract authorization header for regular queries
         const authHeader = request.headers.get("Authorization");
 
         if (!authHeader || !authHeader.toLowerCase().startsWith("bearer ")) {
@@ -92,27 +160,7 @@ export function createGraphQLServer() {
         });
       }
     },
-
-    // Error handling is handled by default GraphQL Yoga error handling
-
-    // Custom logging can be added via plugins if needed
   });
 
   return yoga;
-}
-
-/**
- * Create GraphQL context with authentication and permissions
- * @deprecated - Authentication is now handled internally in the server context function
- */
-export function createGraphQLContext(
-  env: Env,
-  user: ValidatedUser,
-  permissionsProvider: PermissionsProvider
-): GraphQLContext {
-  return {
-    ...env,
-    user,
-    permissionsProvider,
-  };
 }
