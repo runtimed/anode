@@ -19,10 +19,18 @@ export function createPermissionsProvider(env: Env): PermissionsProvider {
   switch (serviceProvider) {
     case "anaconda":
       // TODO: Implement AnacondaPermissionsProvider
-      throw new RuntError(ErrorType.ServerMisconfigured, {
-        message:
-          "Anaconda permissions provider not yet implemented - use SpiceDB endpoints",
-      });
+      // For now, fall back to local permissions provider
+      console.warn(
+        "AnacondaPermissionsProvider not yet implemented, falling back to LocalPermissionsProvider"
+      );
+      try {
+        return new LocalPermissionsProvider(env.DB);
+      } catch (error) {
+        throw new RuntError(ErrorType.ServerMisconfigured, {
+          message: "Failed to initialize fallback local permissions provider",
+          cause: error as Error,
+        });
+      }
 
     case "local":
       // Local development with D1 database
