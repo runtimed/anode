@@ -80,6 +80,7 @@ export const typeDefs = /* GraphQL */ `
   enum PermissionLevel {
     OWNER
     WRITER
+    NONE
   }
 
   """

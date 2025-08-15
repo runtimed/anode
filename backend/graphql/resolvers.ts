@@ -437,7 +437,7 @@ export const resolvers = {
       const { user, permissionsProvider } = context;
 
       if (!user) {
-        return "WRITER"; // Safe fallback for introspection
+        return "NONE"; // No user context
       }
 
       try {
@@ -446,13 +446,13 @@ export const resolvers = {
           parent.ulid
         );
         if (!result.hasAccess) {
-          throw new GraphQLError("Access denied");
+          return "NONE"; // No access to this runbook
         }
 
         return result.level?.toUpperCase() || "WRITER";
       } catch (error) {
         console.error("Failed to check permission:", error);
-        return "WRITER"; // Safe fallback
+        return "NONE"; // Permission check failed
       }
     },
 
