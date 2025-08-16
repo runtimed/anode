@@ -6,7 +6,6 @@ import { createApiKeyProvider } from "../providers/api-key-factory.ts";
 import { createProviderContext } from "../api-key-provider.ts";
 import { createPermissionsProvider } from "../permissions/factory.ts";
 import { NoPermissionsProvider } from "../permissions/no-permissions.ts";
-import { UserRegistry } from "../users/user-registry.ts";
 import type { Env } from "../types.ts";
 import { GraphQLError, parse, visit } from "graphql";
 
@@ -97,13 +96,11 @@ export function createGraphQLServer() {
 
           // Return context with no user and no-op permissions provider
           const noPermissionsProvider = new NoPermissionsProvider();
-          const userRegistry = new UserRegistry(env.DB);
 
           return {
             ...env,
             user: null,
             permissionsProvider: noPermissionsProvider,
-            userRegistry,
           };
         }
 
@@ -141,21 +138,14 @@ export function createGraphQLServer() {
           validatedUser = await validateAuthPayload({ authToken }, env);
         }
 
-        // Create permissions provider and user registry
+        // Create permissions provider
         const permissionsProvider = createPermissionsProvider(env);
-        const userRegistry = new UserRegistry(env.DB);
-
-        // Upsert user record (only for OAuth tokens with full user data)
-        if (!validatedUser.isAnonymous && validatedUser.name) {
-          await userRegistry.upsertUser(validatedUser);
-        }
 
         // Return full GraphQL context
         const graphqlContext: GraphQLContext = {
           ...env,
           user: validatedUser,
           permissionsProvider,
-          userRegistry,
         };
 
         return graphqlContext;

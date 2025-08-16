@@ -3,15 +3,16 @@ import { GraphQLError } from "graphql";
 import type { ValidatedUser } from "../auth.ts";
 import type { PermissionsProvider } from "../permissions/types.ts";
 import {
-  UserRegistry,
-  type UserRegistry as UserRegistryType,
-} from "../users/user-registry.ts";
+  getUserById,
+  getUsersByIds,
+  toGraphQLPublicUser,
+  createFallbackUser,
+} from "../users/utils.ts";
 import type { Env } from "../types.ts";
 
 export interface GraphQLContext extends Env {
   user: ValidatedUser | null;
   permissionsProvider: PermissionsProvider;
-  userRegistry: UserRegistryType;
 }
 
 interface RunbookRow {
@@ -396,18 +397,18 @@ export const resolvers = {
 
   Runbook: {
     async owner(parent: RunbookRow, _args: unknown, context: GraphQLContext) {
-      const { userRegistry } = context;
+      const { DB } = context;
 
       try {
-        const userRecord = await userRegistry.getUserById(parent.owner_id);
+        const userRecord = await getUserById(DB, parent.owner_id);
         if (userRecord) {
-          return UserRegistry.toGraphQLUser(userRecord);
+          return toGraphQLPublicUser(userRecord);
         } else {
-          return UserRegistry.createFallbackUser(parent.owner_id);
+          return createFallbackUser(parent.owner_id);
         }
       } catch (error) {
         console.error("Failed to fetch owner:", error);
-        return UserRegistry.createFallbackUser(parent.owner_id);
+        return createFallbackUser(parent.owner_id);
       }
     },
 
@@ -416,7 +417,7 @@ export const resolvers = {
       _args: unknown,
       context: GraphQLContext
     ) {
-      const { DB, userRegistry } = context;
+      const { DB } = context;
 
       try {
         const writers = await DB.prepare(
@@ -434,15 +435,15 @@ export const resolvers = {
 
         // Get user data for all writers
         const userIds = writers.results.map((w) => w.user_id);
-        const userMap = await userRegistry.getUsersByIds(userIds);
+        const userMap = await getUsersByIds(DB, userIds);
 
-        // Convert to GraphQL User objects
+        // Convert to GraphQL User objects (public data only)
         return userIds.map((userId) => {
           const userRecord = userMap.get(userId);
           if (userRecord) {
-            return UserRegistry.toGraphQLUser(userRecord);
+            return toGraphQLPublicUser(userRecord);
           } else {
-            return UserRegistry.createFallbackUser(userId);
+            return createFallbackUser(userId);
           }
         });
       } catch (error) {
@@ -483,11 +484,17 @@ export const resolvers = {
     updatedAt: (parent: RunbookRow) => parent.updated_at,
   },
 
-  // User field resolvers
+  // Public User field resolvers (no email)
   User: {
+    id: (parent: any) => parent.id,
+    givenName: (parent: any) => parent.givenName || null,
+    familyName: (parent: any) => parent.familyName || null,
+  },
+
+  // Private User field resolvers (includes email for own profile)
+  PrivateUser: {
     id: (parent: ValidatedUser) => parent.id,
     email: (parent: ValidatedUser) => parent.email,
-    name: (parent: ValidatedUser) => parent.name || null,
     givenName: (parent: ValidatedUser) => parent.givenName || null,
     familyName: (parent: ValidatedUser) => parent.familyName || null,
   },

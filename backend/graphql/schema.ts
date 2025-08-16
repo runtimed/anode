@@ -45,7 +45,8 @@ export const typeDefs = /* GraphQL */ `
   }
 
   """
-  User information
+  Public user information (safe for sharing in runbook contexts)
+  Does not include email to prevent privacy leaks
   """
   type User {
     """
@@ -54,14 +55,30 @@ export const typeDefs = /* GraphQL */ `
     id: ID!
 
     """
-    User's email address
+    User's given name
     """
-    email: String!
+    givenName: String
 
     """
-    User's display name
+    User's family name
     """
-    name: String
+    familyName: String
+  }
+
+  """
+  Private user information (only for current user's own profile)
+  Includes sensitive data like email address
+  """
+  type PrivateUser {
+    """
+    Unique user identifier
+    """
+    id: ID!
+
+    """
+    User's email address (private)
+    """
+    email: String!
 
     """
     User's given name
@@ -165,9 +182,9 @@ export const typeDefs = /* GraphQL */ `
     runbook(ulid: ID!): Runbook
 
     """
-    Get the current authenticated user
+    Get the current authenticated user (includes private data like email)
     """
-    me: User!
+    me: PrivateUser!
   }
 
   type Mutation {

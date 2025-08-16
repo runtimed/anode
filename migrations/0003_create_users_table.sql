@@ -3,8 +3,7 @@
 CREATE TABLE users (
   id TEXT PRIMARY KEY,
   email TEXT NOT NULL,
-  username TEXT,
-  name TEXT,
+
   given_name TEXT,
   family_name TEXT,
   first_seen_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -14,6 +13,3 @@ CREATE TABLE users (
 
 -- Index for email lookups
 CREATE INDEX idx_users_email ON users(email);
-
--- Index for username lookups
-CREATE INDEX idx_users_username ON users(username);
