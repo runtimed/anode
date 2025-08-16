@@ -23,30 +23,6 @@ interface AuthPayload {
   runtime?: boolean;
 }
 
-export function validateProductionEnvironment(env: Env): void {
-  if (env.DEPLOYMENT_ENV === "production") {
-    if (env.ALLOW_LOCAL_AUTH === "true") {
-      throw new Error(
-        "STARTUP_ERROR: ALLOW_LOCAL_AUTH cannot be enabled in production environments"
-      );
-    }
-    if (!env.AUTH_ISSUER) {
-      throw new Error(
-        "STARTUP_ERROR: AUTH_ISSUER is required when DEPLOYMENT_ENV is production"
-      );
-    }
-    console.log("✅ Production environment validation passed");
-  } else {
-    if (env.AUTH_ISSUER) {
-      console.log("✅ Development environment passed using JWT validation");
-    } else {
-      throw new Error(
-        "STARTUP_ERROR: AUTH_ISSUER must be set when DEPLOYMENT_ENV is development"
-      );
-    }
-  }
-}
-
 export function extractBearerToken(request: WorkerRequest): string | null {
   const authHeader = request.headers.get("Authorization");
   if (!authHeader || !authHeader.toLowerCase().startsWith("bearer ")) {

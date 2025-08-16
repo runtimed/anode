@@ -138,6 +138,11 @@ export default {
         }
       );
     }
+    if (!env.AUTH_ISSUER) {
+      throw new Error(
+        "STARTUP_ERROR: AUTH_ISSUER is required when DEPLOYMENT_ENV is production"
+      );
+    }
 
     // CORS preflight handling
     if (request.method === "OPTIONS") {
@@ -152,7 +157,6 @@ export default {
       });
     }
 
-    // Route 1: GraphQL → Native Yoga handler
     if (pathname.startsWith("/graphql")) {
       console.log("🚀 Routing to GraphQL Yoga");
       try {
@@ -174,14 +178,20 @@ export default {
       }
     }
 
-    // Route 2: LiveStore/WebSocket → Sync handler
     if (
       pathname.startsWith("/livestore") ||
       pathname.startsWith("/websocket") ||
       request.headers.get("upgrade") === "websocket"
     ) {
-      console.log("🔄 Routing to LiveStore/WebSocket (sync handler)");
-      return syncHandler.fetch(request as any, env, ctx);
+      console.log(
+        "🔄 Routing to LiveStore/WebSocket (sync handler) on",
+        request.url
+      );
+      return syncHandler.fetch(
+        request as unknown as Request,
+        env,
+        ctx
+      ) as unknown as WorkerResponse;
     }
 
     // Route 3: API routes → Hono app
@@ -201,10 +211,6 @@ export default {
       }
     }
 
-    // Route 4: Static assets → ASSETS binding or original handler
-    console.log("📄 Routing to static assets");
-
-    // Try ASSETS binding first (for production/preview)
     if (env.ASSETS) {
       try {
         const hasFileExtension =
@@ -226,7 +232,6 @@ export default {
         const assetResponse = await env.ASSETS.fetch(assetRequest as any);
 
         if (assetResponse.status < 400) {
-          console.log("✅ ASSETS response:", assetResponse.status);
           return assetResponse;
         }
       } catch (error) {
