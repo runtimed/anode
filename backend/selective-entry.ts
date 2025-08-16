@@ -1,5 +1,3 @@
-import { createSchema, createYoga } from "graphql-yoga";
-import { GraphQLError } from "graphql";
 import { Hono } from "hono";
 import { cors } from "hono/cors";
 import { WebSocketServer } from "./sync.ts";
@@ -15,13 +13,7 @@ import { type AuthContext } from "./middleware.ts";
 import { RuntError, ErrorType } from "./types.ts";
 import apiRoutes from "./routes.ts";
 import localOidcRoutes from "./local-oidc-routes.ts";
-import { validateAuthPayload, type ValidatedUser } from "./auth.ts";
-
-// GraphQL Context type
-interface GraphQLContext {
-  auth?: ValidatedUser;
-  env?: Env;
-}
+import { yoga } from "./graphql.ts";
 
 // Re-export the Durable Object class for the Workers runtime
 export { WebSocketServer };
@@ -30,122 +22,7 @@ export { WebSocketServer };
 // GraphQL Yoga Setup (Native Worker)
 // ============================================================================
 
-const yoga = createYoga({
-  schema: createSchema({
-    typeDefs: /* GraphQL */ `
-      type Query {
-        hello: String!
-        me: User
-        notebooks: [Notebook!]!
-      }
-
-      type User {
-        id: String!
-        email: String
-        name: String
-      }
-
-      type Notebook {
-        id: String!
-        title: String
-        createdAt: String!
-      }
-
-      type Mutation {
-        createNotebook(title: String!): Notebook!
-      }
-    `,
-    resolvers: {
-      Query: {
-        hello: () => "Hello from Anode GraphQL!",
-        me: (_, __, context: GraphQLContext) => {
-          if (!context.auth) {
-            throw new GraphQLError("Authentication required", {
-              extensions: { code: "UNAUTHENTICATED" },
-            });
-          }
-          return context.auth;
-        },
-        notebooks: (_, __, context: GraphQLContext) => {
-          if (!context.auth) {
-            throw new GraphQLError("Authentication required", {
-              extensions: { code: "UNAUTHENTICATED" },
-            });
-          }
-          // Placeholder - would query actual notebooks
-          return [
-            {
-              id: "notebook-1",
-              title: "My First Notebook",
-              createdAt: new Date().toISOString(),
-            },
-          ];
-        },
-      },
-      Mutation: {
-        createNotebook: (_, { title }, context: GraphQLContext) => {
-          if (!context.auth) {
-            throw new GraphQLError("Authentication required", {
-              extensions: { code: "UNAUTHENTICATED" },
-            });
-          }
-          // Placeholder - would create actual notebook
-          return {
-            id: `notebook-${Date.now()}`,
-            title,
-            createdAt: new Date().toISOString(),
-          };
-        },
-      },
-    },
-  }),
-  // Enable CORS for GraphQL
-  cors: {
-    origin: "*",
-    credentials: true,
-  },
-  // Error handling configuration
-  maskedErrors: false, // Show detailed errors in development
-  formatError: (err) => {
-    // Log the error for debugging
-    console.error("GraphQL Error:", err);
-
-    // Return standardized error format
-    return {
-      message: err.message,
-      locations: err.locations,
-      path: err.path,
-      extensions: {
-        code: err.extensions?.code || "INTERNAL_SERVER_ERROR",
-        timestamp: new Date().toISOString(),
-        ...err.extensions,
-      },
-    };
-  },
-  // Custom context with auth
-  context: async ({ request, env }: any): Promise<GraphQLContext> => {
-    // Extract auth from request
-    let auth: ValidatedUser | undefined = undefined;
-    try {
-      const authToken =
-        request.headers.get("Authorization")?.replace("Bearer ", "") ||
-        request.headers.get("X-Auth-Token");
-
-      if (authToken && env) {
-        const validatedUser = await validateAuthPayload(
-          { authToken },
-          env as Env
-        );
-        auth = validatedUser;
-      }
-    } catch (error) {
-      console.warn("GraphQL auth extraction failed:", error);
-      // Don't fail the request, just proceed without auth
-    }
-
-    return { auth, env: env as Env };
-  },
-});
+// GraphQL setup imported from separate file
 
 // ============================================================================
 // Hono App Setup (for existing routes)
