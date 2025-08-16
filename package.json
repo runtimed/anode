@@ -84,6 +84,8 @@
     "date-fns": "^4.1.0",
     "effect": "3.15.5",
     "fractional-indexing": "^3.2.0",
+    "graphql": "^16.11.0",
+    "graphql-yoga": "^5.15.1",
     "hono": "^4.9.1",
     "jose": "^6.0.12",
     "js-cookie": "^3.0.5",
