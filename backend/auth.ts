@@ -1,5 +1,6 @@
 import * as jose from "jose";
 import { type Env, type WorkerRequest } from "./types";
+import type { D1Database } from "@cloudflare/workers-types";
 
 export type ValidatedUser = {
   id: string;
@@ -36,11 +37,9 @@ export function validateProductionEnvironment(env: Env): void {
   } else {
     if (env.AUTH_ISSUER) {
       console.log("✅ Development environment passed using JWT validation");
-    } else if (env.AUTH_TOKEN && env.AUTH_TOKEN.length > 0) {
-      console.log("✅ Development environment passed using AUTH_TOKEN");
     } else {
       throw new Error(
-        "STARTUP_ERROR: AUTH_ISSUER or AUTH_TOKEN must be set when DEPLOYMENT_ENV is development"
+        "STARTUP_ERROR: AUTH_ISSUER must be set when DEPLOYMENT_ENV is development"
       );
     }
   }
@@ -110,90 +109,17 @@ export async function parseToken(
   return { jwt, user };
 }
 
-export function determineAuthType(
-  payload: AuthPayload,
-  env: Env
-): "access_token" | "auth_token" {
-  try {
-    jose.decodeJwt(payload.authToken);
-    return "access_token";
-  } catch {
-    // Not a valid JWT, try auth token
-  }
-  const allowAuthToken =
-    env.AUTH_TOKEN && (payload.runtime || env.DEPLOYMENT_ENV !== "production");
-  if (!allowAuthToken) {
-    throw new Error("INVALID_AUTH_TOKEN: Unknown authorization method");
-  }
-  return "auth_token";
-}
-
 export async function validateAuthPayload(
   payload: AuthPayload,
   env: Env
 ): Promise<ValidatedUser> {
-  const authType = determineAuthType(payload, env);
-  if (authType === "access_token") {
-    return await validateOAuthToken(payload, env);
-  }
-  return validateHardcodedAuthToken(payload, env);
-}
-
-async function validateHardcodedAuthToken(
-  payload: AuthPayload,
-  env: Env
-): Promise<ValidatedUser> {
-  // We don't have crypto.subtle.timingSafeEqual available everywere (such as tests)
-  // and we need some way of doing constant-time evaluation of secrets
-  // Since we are already using jwts elsewhere, we can re-use the crypto algorithms here
-  // to do the same thing
-  // The algorithm is straightforward: Generate two jwts signed with the two secrets.
-  // If we can verify the jwt with both secrets, then the secrets must be the same
-  // Or if not the same, then computationally impractical to find a hash collision
-  // TL;DR: This function is a very roundabout way of checking if env.AUTH_TOKEN === payload.authToken
-  const jwtBuilder = new jose.SignJWT({
-    sub: "example-user",
-  }).setProtectedHeader({
-    alg: "HS256",
-  });
-  const expectedSecret = new TextEncoder().encode(env.AUTH_TOKEN);
-  const actualSecret = new TextEncoder().encode(payload.authToken);
-  const jwt = await jwtBuilder.sign(expectedSecret);
-
-  try {
-    await jose.jwtVerify(jwt, expectedSecret, {
-      algorithms: ["HS256"],
-    });
-  } catch {
-    // This should work because we're just verifying the JWT we just created, with the same secret
-    throw new Error(
-      "INVALID_AUTH_TOKEN: Unexpected error validating the AUTH_TOKEN"
-    );
+  const user = await validateOAuthToken(payload, env);
+  // Upsert user to registry for all endpoints (GraphQL, LiveStore, REST, etc.)
+  if (!user.isAnonymous && env.DB) {
+    await upsertUser(env.DB, user);
   }
 
-  try {
-    await jose.jwtVerify(jwt, actualSecret, {
-      algorithms: ["HS256"],
-    });
-  } catch {
-    throw new Error("INVALID_AUTH_TOKEN: Authentication failed");
-  }
-
-  if (payload.runtime) {
-    console.log("✅ Authenticated runtime agent with service token");
-    return {
-      id: "runtime-agent",
-      name: "Runtime Agent",
-      email: "runtime-agent@example.com",
-      isAnonymous: false,
-    };
-  }
-  return {
-    id: "local-dev-user",
-    email: "local@example.com",
-    name: "Local Development User",
-    isAnonymous: true,
-  };
+  return user;
 }
 
 async function validateOAuthToken(
@@ -231,3 +157,80 @@ const getDisplayName = (jwt: jose.JWTPayload): string => {
 
   return name;
 };
+
+/**
+ * Upsert a user record from authentication data
+ * Updates existing users or creates new ones
+ */
+async function upsertUser(db: D1Database, user: ValidatedUser): Promise<void> {
+  try {
+    const now = new Date().toISOString();
+
+    // Check if user exists
+    const existing = await db
+      .prepare("SELECT id, first_seen_at FROM users WHERE id = ?")
+      .bind(user.id)
+      .first<{ id: string; first_seen_at: string }>();
+
+    if (existing) {
+      // Update existing user
+      const updates: string[] = [];
+      const bindings: unknown[] = [];
+
+      // Always update email (in case it changed)
+      updates.push("email = ?");
+      bindings.push(user.email);
+
+      if (user.givenName) {
+        updates.push("given_name = ?");
+        bindings.push(user.givenName);
+      }
+
+      if (user.familyName) {
+        updates.push("family_name = ?");
+        bindings.push(user.familyName);
+      }
+
+      updates.push("last_seen_at = ?", "updated_at = ?");
+      bindings.push(now, now, user.id);
+
+      await db
+        .prepare(
+          `
+          UPDATE users
+          SET ${updates.join(", ")}
+          WHERE id = ?
+        `
+        )
+        .bind(...bindings)
+        .run();
+    } else {
+      // Create new user
+      await db
+        .prepare(
+          `
+          INSERT INTO users (
+            id, email, given_name, family_name,
+            first_seen_at, last_seen_at, updated_at
+          ) VALUES (?, ?, ?, ?, ?, ?, ?)
+        `
+        )
+        .bind(
+          user.id,
+          user.email,
+          user.givenName || null,
+          user.familyName || null,
+          now,
+          now,
+          now
+        )
+        .run();
+    }
+  } catch (error) {
+    console.error("Failed to upsert user:", {
+      userId: user.id,
+      error: error instanceof Error ? error.message : "Unknown error",
+    });
+    // Don't throw - authentication should still succeed even if user registry fails
+  }
+}

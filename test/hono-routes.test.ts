@@ -39,7 +39,6 @@ describe("Hono API Routes", () => {
 
     mockEnv = {
       DEPLOYMENT_ENV: "development",
-      AUTH_TOKEN: "test-token",
       ARTIFACT_BUCKET: mockR2Bucket as any,
     } as Env;
 
@@ -60,7 +59,6 @@ describe("Hono API Routes", () => {
         timestamp: expect.any(String),
         framework: "hono",
         config: {
-          has_auth_token: true,
           has_auth_issuer: false,
           deployment_env: "development",
           service_provider: "local",
@@ -71,51 +69,6 @@ describe("Hono API Routes", () => {
           provider_valid: false,
           provider_errors: ["DB binding is required for local provider"],
         },
-      });
-    });
-  });
-
-  describe("Debug Auth Endpoint", () => {
-    it("should validate auth token successfully", async () => {
-      const res = await app.request(
-        "/api/debug/auth",
-        {
-          method: "POST",
-          body: JSON.stringify({ authToken: "test-token" }),
-          headers: { "Content-Type": "application/json" },
-        },
-        mockEnv
-      );
-
-      const result = await res.json();
-      expect(res.status).toBe(200);
-      expect(result).toEqual({
-        success: true,
-        message: "Authentication successful",
-        tokenType: "Service Token",
-        authMethod: "Standard Auth (API Key Provider Failed)",
-        provider: "local",
-        timestamp: expect.any(String),
-      });
-    });
-
-    it("should reject missing auth token", async () => {
-      const res = await app.request(
-        "/api/debug/auth",
-        {
-          method: "POST",
-          body: JSON.stringify({}),
-          headers: { "Content-Type": "application/json" },
-        },
-        mockEnv
-      );
-
-      const result = await res.json();
-      expect(res.status).toBe(400);
-      expect(result).toEqual({
-        error: "MISSING_AUTH_TOKEN",
-        message: "No authToken provided in request body",
-        timestamp: expect.any(String),
       });
     });
   });
@@ -227,22 +180,6 @@ describe("Hono API Routes", () => {
 
       expect(res.status).toBe(405);
       expect(result.error).toBe("Method Not Allowed");
-    });
-
-    it("should handle malformed JSON in debug/auth", async () => {
-      const res = await app.request(
-        "/api/debug/auth",
-        {
-          method: "POST",
-          body: "invalid-json",
-          headers: { "Content-Type": "application/json" },
-        },
-        mockEnv
-      );
-
-      const result = await res.json();
-      expect(res.status).toBe(400);
-      expect(result.error).toBe("INVALID_REQUEST");
     });
   });
 });

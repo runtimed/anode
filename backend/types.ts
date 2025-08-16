@@ -33,7 +33,6 @@ export type Env = {
   DB: D1Database;
 
   // Secrets
-  AUTH_TOKEN: string;
   AUTH_ISSUER: string;
 
   // New binding for the preview worker to serve the frontend application

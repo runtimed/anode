@@ -88,16 +88,6 @@ pnpm wrangler deploy --env preview
 **Production deploys to**: `https://app.runt.run`
 **Preview deploys to**: `https://preview.runt.run`
 
-**Required secrets:**
-
-```bash
-# Production secrets
-echo "your-secure-token" | pnpm wrangler secret put AUTH_TOKEN --env production
-
-# Preview secrets
-echo "your-preview-token" | pnpm wrangler secret put AUTH_TOKEN --env preview
-```
-
 ## Environment Variables
 
 ### Unified Worker Environment Variables
@@ -109,7 +99,6 @@ Set in `wrangler.toml`:
 - `EXTENSION_CONFIG`: A JSON encoded string of extra data to pass into the backend extension
 - `ARTIFACT_STORAGE`: `"r2"`
 - `ARTIFACT_THRESHOLD`: `"16384"` (16KB threshold for artifact storage)
-- `AUTH_TOKEN`: Set via secrets (see above)
 
 ### Web Client Build Variables
 
@@ -230,16 +219,6 @@ pnpm wrangler r2 bucket create anode-artifacts-prod
 pnpm wrangler r2 bucket create anode-artifacts-preview
 ```
 
-### Set Required Secrets
-
-```bash
-# Production secrets
-echo "your-secure-token" | pnpm wrangler secret put AUTH_TOKEN --env production
-
-# Preview secrets
-echo "your-preview-token" | pnpm wrangler secret put AUTH_TOKEN --env preview
-```
-
 ## Troubleshooting
 
 ### Deployment Issues
@@ -258,7 +237,6 @@ echo "your-preview-token" | pnpm wrangler secret put AUTH_TOKEN --env preview
 | ------------------------- | ---------------------------------------------------- |
 | Large outputs not storing | Check R2 bucket configuration and ARTIFACT_THRESHOLD |
 | Artifact fetch failures   | Verify R2 bucket permissions and CORS settings       |
-| Upload authentication     | Ensure AUTH_TOKEN is set correctly                   |
 
 ### WebSocket Connection Issues
 
@@ -271,14 +249,6 @@ If you see WebSocket connection errors:
 ### CORS Issues
 
 The unified worker handles CORS automatically since it serves both frontend and backend from the same origin.
-
-### Authentication Issues
-
-Ensure `AUTH_TOKEN` secret is set on the Worker:
-
-```bash
-echo "your-secure-token" | pnpm wrangler secret put AUTH_TOKEN --env production
-```
 
 ### Development Server Issues
 

@@ -2,14 +2,11 @@ import { Hono } from "hono";
 import { v4 as uuidv4 } from "uuid";
 import { authMiddleware, type AuthContext } from "./middleware.ts";
 import { type Env } from "./types.ts";
-import { validateAuthPayload } from "./auth.ts";
 
 // Import unified API key routes
 import apiKeyRoutes from "./api-key-routes.ts";
 import {
-  createApiKeyProvider,
   isUsingLocalProvider,
-  getProviderName,
   validateProviderConfig,
 } from "./providers/api-key-factory.ts";
 
@@ -26,7 +23,6 @@ api.get("/health", (c) => {
     timestamp: new Date().toISOString(),
     framework: "hono",
     config: {
-      has_auth_token: Boolean(c.env.AUTH_TOKEN),
       has_auth_issuer: Boolean(c.env.AUTH_ISSUER),
       deployment_env: c.env.DEPLOYMENT_ENV,
       service_provider: c.env.SERVICE_PROVIDER || "local",
@@ -54,104 +50,6 @@ api.get("/me", authMiddleware, (c) => {
     familyName: passport.user.familyName,
     isAnonymous: passport.user.isAnonymous,
   });
-});
-
-// Debug auth endpoint - no auth middleware, handles auth internally
-api.post("/debug/auth", async (c) => {
-  console.log("🔧 Debug auth endpoint called");
-
-  try {
-    const body = (await c.req.json()) as { authToken?: string };
-    const authToken = body.authToken;
-
-    if (!authToken) {
-      return c.json(
-        {
-          error: "MISSING_AUTH_TOKEN",
-          message: "No authToken provided in request body",
-          timestamp: new Date().toISOString(),
-        },
-        400
-      );
-    }
-
-    // Test authentication - check API key first, then fallback to existing auth
-    try {
-      // Test authentication - check API key first, then fallback to existing auth
-      let tokenType = "Service Token";
-      let authMethod = "Unknown";
-
-      // Check if this is an API key first
-      try {
-        const apiKeyProvider = createApiKeyProvider(c.env);
-        const providerContext = { env: c.env, bearerToken: authToken };
-
-        if (apiKeyProvider.isApiKey(providerContext)) {
-          // Validate using API key provider
-          await apiKeyProvider.validateApiKey(providerContext);
-          tokenType = "API Key";
-          authMethod = `${getProviderName(c.env)} API Key Provider`;
-        } else {
-          // Fall back to existing auth logic (OIDC JWT or service token)
-          await validateAuthPayload({ authToken }, c.env);
-          tokenType = authToken.startsWith("eyJ")
-            ? "OIDC JWT"
-            : "Service Token";
-          authMethod = "Standard Auth";
-        }
-      } catch {
-        // If API key provider fails, try standard auth
-        await validateAuthPayload({ authToken }, c.env);
-        tokenType = authToken.startsWith("eyJ") ? "OIDC JWT" : "Service Token";
-        authMethod = "Standard Auth (API Key Provider Failed)";
-      }
-
-      return c.json({
-        success: true,
-        message: "Authentication successful",
-        tokenType,
-        authMethod,
-        provider: getProviderName(c.env),
-        timestamp: new Date().toISOString(),
-      });
-    } catch (authError: any) {
-      // Determine token type for error reporting
-      let tokenType = "Service Token";
-      if (authToken.startsWith("eyJ")) {
-        try {
-          const apiKeyProvider = createApiKeyProvider(c.env);
-          const providerContext = { env: c.env, bearerToken: authToken };
-          tokenType = apiKeyProvider.isApiKey(providerContext)
-            ? "API Key"
-            : "OIDC JWT";
-        } catch {
-          tokenType = "OIDC JWT";
-        }
-      }
-
-      return c.json(
-        {
-          error: "AUTHENTICATION_FAILED",
-          message: authError.message,
-          tokenType,
-          provider: getProviderName(c.env),
-          timestamp: new Date().toISOString(),
-          hasAuthToken: Boolean(c.env.AUTH_TOKEN),
-          hasAuthIssuer: Boolean(c.env.AUTH_ISSUER),
-        },
-        401
-      );
-    }
-  } catch {
-    return c.json(
-      {
-        error: "INVALID_REQUEST",
-        message: "Invalid JSON in request body",
-        timestamp: new Date().toISOString(),
-      },
-      400
-    );
-  }
 });
 
 // Mount unified API key routes

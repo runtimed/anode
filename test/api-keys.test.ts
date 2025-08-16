@@ -36,7 +36,6 @@ const mockEnv = {
   SERVICE_PROVIDER: "local",
   DEPLOYMENT_ENV: "development",
   AUTH_ISSUER: "http://localhost:8787/local_oidc",
-  AUTH_TOKEN: "test-auth-token",
   ALLOW_LOCAL_AUTH: "true",
   DB: {
     prepare: vi.fn(),

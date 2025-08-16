@@ -10,7 +10,6 @@ beforeAll(async () => {
   // Set test environment variables
   process.env.NODE_ENV = "test";
   process.env.LIVESTORE_SYNC_URL = "ws://localhost:8787";
-  process.env.AUTH_TOKEN = "test-token";
   process.env.VITE_AUTH_URI = "https://auth.example.com";
   process.env.VITE_AUTH_CLIENT_ID = "test-client-id";
   process.env.VITE_AUTH_REDIRECT_URI = "http://localhost:3000/callback";

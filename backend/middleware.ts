@@ -40,7 +40,7 @@ export const authMiddleware = createMiddleware<{
         passport = await apiKeyProvider.validateApiKey(providerContext);
         userId = passport.user.id;
       } else {
-        // Fall back to existing auth logic (OIDC JWT or service token)
+        // Fall back to existing auth logic (OIDC JWT)
         const validatedUser = await validateAuthPayload({ authToken }, c.env);
 
         // Create passport-like object for compatibility
@@ -105,7 +105,7 @@ export const optionalAuthMiddleware = createMiddleware<{
             passport = await apiKeyProvider.validateApiKey(providerContext);
             userId = passport.user.id;
           } else {
-            // Fall back to existing auth logic (OIDC JWT or service token)
+            // Fall back to existing auth logic (OIDC JWT)
             const validatedUser = await validateAuthPayload(
               { authToken },
               c.env
