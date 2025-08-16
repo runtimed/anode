@@ -151,12 +151,14 @@ describe("Selective Entry Authentication Integration", () => {
   });
 
   describe("GraphQL Endpoint Authentication", () => {
-    it("should allow hello query without authentication", async () => {
+    it("should allow introspection query without authentication", async () => {
       const response = await selectiveEntry.fetch(
         new Request("http://localhost:8787/graphql", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ query: "{ hello }" }),
+          body: JSON.stringify({
+            query: "{ __schema { queryType { name } } }",
+          }),
         }),
         mockEnv,
         {} as any
@@ -164,7 +166,7 @@ describe("Selective Entry Authentication Integration", () => {
 
       expect(response.status).toBe(200);
       const result = await response.json();
-      expect(result.data.hello).toBe("Hello from Anode GraphQL!");
+      expect(result.data.__schema.queryType.name).toBe("Query");
     });
 
     it("should return user info with valid token", async () => {
