@@ -1,10 +1,6 @@
 import { describe, expect, it, beforeEach, afterEach, vi } from "vitest";
 import { SignJWT } from "jose";
-import {
-  validateAuthPayload,
-  validateProductionEnvironment,
-  type ValidatedUser,
-} from "../backend/auth";
+import { validateAuthPayload, type ValidatedUser } from "../backend/auth";
 import type { Env } from "../backend/types";
 
 describe("validateProductionEnvironment", () => {
