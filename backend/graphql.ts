@@ -3,13 +3,11 @@ import { GraphQLError } from "graphql";
 import { type ValidatedUser, extractAndValidateUser } from "./auth.ts";
 import { type Env } from "./types.ts";
 
-// GraphQL Context type
-interface GraphQLContext {
+type ServerContext = {
   auth: ValidatedUser | null;
-  env?: Env;
-}
+} & Env;
 
-export const yoga = createYoga({
+export const yoga = createYoga<ServerContext>({
   schema: createSchema({
     typeDefs: /* GraphQL */ `
       type Query {
@@ -24,7 +22,7 @@ export const yoga = createYoga({
     `,
     resolvers: {
       Query: {
-        me: (_, __, context: GraphQLContext) => {
+        me: (_, __, context) => {
           if (!context.auth) {
             throw new GraphQLError("Authentication required", {
               extensions: { code: "UNAUTHENTICATED" },
@@ -35,42 +33,17 @@ export const yoga = createYoga({
       },
     },
   }),
-  // Enable CORS for GraphQL
   cors: {
     origin: "*",
     credentials: true,
   },
-  // Error handling configuration
-  maskedErrors: false, // Show detailed errors in development
-  // Custom context with auth
-  context: async (context): Promise<GraphQLContext> => {
-    // Access env directly from context parameter (passed as second arg to yoga.fetch)
-    const env = context as unknown as Env;
+  maskedErrors: false,
+  context: async (context) => {
     const request = context.request;
-    // Extract auth from request
     let auth: ValidatedUser | null = null;
 
-    console.log("GraphQL context: extracting auth...");
+    auth = await extractAndValidateUser(request, context);
 
-    try {
-      // Use centralized auth utility
-      auth = await extractAndValidateUser(request, env as Env);
-
-      if (auth) {
-        console.log("✅ GraphQL authenticated:", {
-          userId: auth.id,
-          email: auth.email,
-        });
-      } else {
-        console.log("GraphQL: No valid authentication found");
-      }
-    } catch (error) {
-      console.error("GraphQL auth extraction failed:", {
-        error: error instanceof Error ? error.message : String(error),
-        stack: error instanceof Error ? error.stack : undefined,
-      });
-    }
-
-    return { auth, env: env as Env };
+    return { auth, env: context };
   },
 });

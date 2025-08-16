@@ -156,7 +156,7 @@ export default {
     if (pathname.startsWith("/graphql")) {
       console.log("🚀 Routing to GraphQL Yoga");
       try {
-        const response = await yoga.fetch(request as any, env);
+        const response = await yoga.fetch(request as unknown as Request, env);
         console.log("✅ GraphQL response:", response.status);
         return response as unknown as WorkerResponse;
       } catch (error) {
