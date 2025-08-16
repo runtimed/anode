@@ -111,100 +111,17 @@ export async function parseToken(
   return { jwt, user };
 }
 
-export function determineAuthType(
-  payload: AuthPayload,
-  env: Env
-): "access_token" | "auth_token" {
-  try {
-    jose.decodeJwt(payload.authToken);
-    return "access_token";
-  } catch {
-    // Not a valid JWT, try auth token
-  }
-  const allowAuthToken =
-    env.AUTH_TOKEN && (payload.runtime || env.DEPLOYMENT_ENV !== "production");
-  if (!allowAuthToken) {
-    throw new Error("INVALID_AUTH_TOKEN: Unknown authorization method");
-  }
-  return "auth_token";
-}
-
 export async function validateAuthPayload(
   payload: AuthPayload,
   env: Env
 ): Promise<ValidatedUser> {
-  const authType = determineAuthType(payload, env);
-  let user: ValidatedUser;
-
-  if (authType === "access_token") {
-    user = await validateOAuthToken(payload, env);
-  } else {
-    user = await validateHardcodedAuthToken(payload, env);
-  }
-
+  const user = await validateOAuthToken(payload, env);
   // Upsert user to registry for all endpoints (GraphQL, LiveStore, REST, etc.)
   if (!user.isAnonymous && env.DB) {
     await upsertUser(env.DB, user);
   }
 
   return user;
-}
-
-async function validateHardcodedAuthToken(
-  payload: AuthPayload,
-  env: Env
-): Promise<ValidatedUser> {
-  // We don't have crypto.subtle.timingSafeEqual available everywere (such as tests)
-  // and we need some way of doing constant-time evaluation of secrets
-  // Since we are already using jwts elsewhere, we can re-use the crypto algorithms here
-  // to do the same thing
-  // The algorithm is straightforward: Generate two jwts signed with the two secrets.
-  // If we can verify the jwt with both secrets, then the secrets must be the same
-  // Or if not the same, then computationally impractical to find a hash collision
-  // TL;DR: This function is a very roundabout way of checking if env.AUTH_TOKEN === payload.authToken
-  const jwtBuilder = new jose.SignJWT({
-    sub: "example-user",
-  }).setProtectedHeader({
-    alg: "HS256",
-  });
-  const expectedSecret = new TextEncoder().encode(env.AUTH_TOKEN);
-  const actualSecret = new TextEncoder().encode(payload.authToken);
-  const jwt = await jwtBuilder.sign(expectedSecret);
-
-  try {
-    await jose.jwtVerify(jwt, expectedSecret, {
-      algorithms: ["HS256"],
-    });
-  } catch {
-    // This should work because we're just verifying the JWT we just created, with the same secret
-    throw new Error(
-      "INVALID_AUTH_TOKEN: Unexpected error validating the AUTH_TOKEN"
-    );
-  }
-
-  try {
-    await jose.jwtVerify(jwt, actualSecret, {
-      algorithms: ["HS256"],
-    });
-  } catch {
-    throw new Error("INVALID_AUTH_TOKEN: Authentication failed");
-  }
-
-  if (payload.runtime) {
-    console.log("✅ Authenticated runtime agent with service token");
-    return {
-      id: "runtime-agent",
-      name: "Runtime Agent",
-      email: "runtime-agent@example.com",
-      isAnonymous: false,
-    };
-  }
-  return {
-    id: "local-dev-user",
-    email: "local@example.com",
-    name: "Local Development User",
-    isAnonymous: true,
-  };
 }
 
 async function validateOAuthToken(
