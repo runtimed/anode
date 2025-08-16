@@ -73,18 +73,13 @@ export default {
           } else {
             // For regular users, the clientId must match their user ID
             if (clientId !== validatedUser.id) {
-              // For anonymous/local-dev users, we allow a generic clientId
-              if (validatedUser.isAnonymous && clientId === "anonymous-user") {
-                // This is an acceptable state for anonymous users
-              } else {
-                console.error("🚫 ClientId attribution mismatch:", {
-                  payloadClientId: clientId,
-                  authenticatedUserId: validatedUser.id,
-                });
-                throw new Error(
-                  `CLIENT_ID_MISMATCH: Provided clientId '${clientId}' does not match authenticated user '${validatedUser.id}'.`
-                );
-              }
+              console.error("🚫 ClientId attribution mismatch:", {
+                payloadClientId: clientId,
+                authenticatedUserId: validatedUser.id,
+              });
+              throw new Error(
+                `CLIENT_ID_MISMATCH: Provided clientId '${clientId}' does not match authenticated user '${validatedUser.id}'.`
+              );
             }
           }
 
