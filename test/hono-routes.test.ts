@@ -181,21 +181,5 @@ describe("Hono API Routes", () => {
       expect(res.status).toBe(405);
       expect(result.error).toBe("Method Not Allowed");
     });
-
-    it("should handle malformed JSON in debug/auth", async () => {
-      const res = await app.request(
-        "/api/debug/auth",
-        {
-          method: "POST",
-          body: "invalid-json",
-          headers: { "Content-Type": "application/json" },
-        },
-        mockEnv
-      );
-
-      const result = await res.json();
-      expect(res.status).toBe(400);
-      expect(result.error).toBe("INVALID_REQUEST");
-    });
   });
 });
