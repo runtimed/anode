@@ -171,7 +171,7 @@ When a request includes a bearer token:
 
 1. Check if token appears to be an API key (based on JWT structure)
 2. If yes, validate using the appropriate API key provider
-3. If no, fall back to OAuth/service token validation
+3. If no, fall back to OAuth validation
 
 ## Error Handling
 

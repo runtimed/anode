@@ -117,7 +117,7 @@ const handler: SimpleHandler = {
                   email: validatedUser.email,
                 });
               } else {
-                // Fall back to existing auth logic (OIDC JWT or service token)
+                // Fall back to existing auth logic (OIDC JWT)
                 validatedUser = await validateAuthPayload(payload, env);
               }
             } catch {
