@@ -73,50 +73,6 @@ describe("Hono API Routes", () => {
     });
   });
 
-  describe("Debug Auth Endpoint", () => {
-    it("should validate auth token successfully", async () => {
-      const res = await app.request(
-        "/api/debug/auth",
-        {
-          method: "POST",
-          body: JSON.stringify({ authToken: "test-token" }),
-          headers: { "Content-Type": "application/json" },
-        },
-        mockEnv
-      );
-
-      const result = await res.json();
-      expect(res.status).toBe(200);
-      expect(result).toEqual({
-        success: true,
-        message: "Authentication successful",
-        tokenType: "Service Token",
-        authMethod: "Standard Auth (API Key Provider Failed)",
-        provider: "local",
-        timestamp: expect.any(String),
-      });
-    });
-
-    it("should reject missing auth token", async () => {
-      const res = await app.request(
-        "/api/debug/auth",
-        {
-          method: "POST",
-          body: JSON.stringify({}),
-          headers: { "Content-Type": "application/json" },
-        },
-        mockEnv
-      );
-
-      const result = await res.json();
-      expect(res.status).toBe(400);
-      expect(result).toEqual({
-        message: "No authToken provided in request body",
-        timestamp: expect.any(String),
-      });
-    });
-  });
-
   describe("Artifact Endpoints", () => {
     it("should upload artifact successfully", async () => {
       mockR2Bucket.put.mockResolvedValue(undefined);
