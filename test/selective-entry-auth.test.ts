@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { describe, it, expect, beforeEach, vi } from "vitest";
 import * as jose from "jose";
 import selectiveEntry from "../backend/selective-entry";

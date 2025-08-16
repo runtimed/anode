@@ -47,7 +47,7 @@ export const yoga = createYoga({
   // Custom context with auth
   context: async (context): Promise<GraphQLContext> => {
     // Access env directly from context parameter (passed as second arg to yoga.fetch)
-    const env = context as Env;
+    const env = context as unknown as Env;
     const request = context.request;
     // Extract auth from request
     let auth: ValidatedUser | undefined = undefined;
