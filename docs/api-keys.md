@@ -48,7 +48,7 @@ All endpoints are available at `/api/api-keys` and follow RESTful conventions.
 
 ### Create API Key
 
-**Endpoint**: `POST /api/api-keys`  
+**Endpoint**: `POST /api/api-keys`
 **Authentication**: OAuth token required (API keys cannot create other API keys)
 
 **Request Body**:
@@ -78,7 +78,7 @@ All endpoints are available at `/api/api-keys` and follow RESTful conventions.
 
 ### Get API Key
 
-**Endpoint**: `GET /api/api-keys/{id}`  
+**Endpoint**: `GET /api/api-keys/{id}`
 **Authentication**: OAuth token or API key
 
 **Response**:
@@ -98,8 +98,8 @@ All endpoints are available at `/api/api-keys` and follow RESTful conventions.
 
 ### List API Keys
 
-**Endpoint**: `GET /api/api-keys`  
-**Authentication**: OAuth token or API key  
+**Endpoint**: `GET /api/api-keys`
+**Authentication**: OAuth token or API key
 **Query Parameters**: `limit`, `offset` (for pagination)
 
 **Response**:
@@ -120,7 +120,7 @@ All endpoints are available at `/api/api-keys` and follow RESTful conventions.
 
 ### Revoke API Key (if supported)
 
-**Endpoint**: `PATCH /api/api-keys/{id}`  
+**Endpoint**: `PATCH /api/api-keys/{id}`
 **Authentication**: OAuth token or API key
 
 **Request Body**:
@@ -135,7 +135,7 @@ All endpoints are available at `/api/api-keys` and follow RESTful conventions.
 
 ### Delete API Key
 
-**Endpoint**: `DELETE /api/api-keys/{id}`  
+**Endpoint**: `DELETE /api/api-keys/{id}`
 **Authentication**: OAuth token or API key
 
 **Response**: `204 No Content`
@@ -350,9 +350,8 @@ The script tests the complete lifecycle:
 ### Debugging
 
 1. Check the health endpoint: `GET /api/health`
-2. Test authentication: `POST /api/debug/auth`
-3. Enable debug mode: `DEBUG=true`
-4. Check provider configuration in health response
+2. Enable debug mode: `DEBUG=true`
+3. Check provider configuration in health response
 
 ## Future Enhancements
 
