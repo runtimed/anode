@@ -1,4 +1,5 @@
 import { createSchema, createYoga } from "graphql-yoga";
+import { GraphQLError } from "graphql";
 import { Hono } from "hono";
 import { cors } from "hono/cors";
 import { WebSocketServer } from "./sync.ts";
@@ -59,13 +60,17 @@ const yoga = createYoga({
         hello: () => "Hello from Anode GraphQL!",
         me: (_, __, context: GraphQLContext) => {
           if (!context.auth) {
-            throw new Error("Authentication required");
+            throw new GraphQLError("Authentication required", {
+              extensions: { code: "UNAUTHENTICATED" },
+            });
           }
           return context.auth;
         },
         notebooks: (_, __, context: GraphQLContext) => {
           if (!context.auth) {
-            throw new Error("Authentication required");
+            throw new GraphQLError("Authentication required", {
+              extensions: { code: "UNAUTHENTICATED" },
+            });
           }
           // Placeholder - would query actual notebooks
           return [
@@ -80,7 +85,9 @@ const yoga = createYoga({
       Mutation: {
         createNotebook: (_, { title }, context: GraphQLContext) => {
           if (!context.auth) {
-            throw new Error("Authentication required");
+            throw new GraphQLError("Authentication required", {
+              extensions: { code: "UNAUTHENTICATED" },
+            });
           }
           // Placeholder - would create actual notebook
           return {
@@ -96,6 +103,24 @@ const yoga = createYoga({
   cors: {
     origin: "*",
     credentials: true,
+  },
+  // Error handling configuration
+  maskedErrors: false, // Show detailed errors in development
+  formatError: (err) => {
+    // Log the error for debugging
+    console.error("GraphQL Error:", err);
+
+    // Return standardized error format
+    return {
+      message: err.message,
+      locations: err.locations,
+      path: err.path,
+      extensions: {
+        code: err.extensions?.code || "INTERNAL_SERVER_ERROR",
+        timestamp: new Date().toISOString(),
+        ...err.extensions,
+      },
+    };
   },
   // Custom context with auth
   context: async ({ request, env }: any): Promise<GraphQLContext> => {

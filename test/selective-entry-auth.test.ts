@@ -200,7 +200,10 @@ describe("Selective Entry Authentication Integration", () => {
 
       expect(response.status).toBe(200);
       const result = await response.json();
+      expect(result.errors).toHaveLength(1);
       expect(result.errors[0].message).toBe("Authentication required");
+      expect(result.errors[0].extensions.code).toBe("UNAUTHENTICATED");
+      expect(result.errors[0].extensions).toHaveProperty("timestamp");
     });
   });
 
