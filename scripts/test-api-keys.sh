@@ -230,9 +230,8 @@ fi
 
 # Test the API key by using it for authentication
 log_step "Testing API key authentication"
-api_key_auth_response=$(curl -s -w "\n%{http_code}" -X POST "$BASE_URL/api/debug/auth" \
-  -H "Content-Type: application/json" \
-  -d "{\"authToken\": \"$api_key_jwt\"}")
+api_key_auth_response=$(curl -s -w "\n%{http_code}" -X GET "$BASE_URL/api/api-keys" \
+  -H "Authorization: Bearer $api_key_jwt")
 
 api_key_auth_code=$(echo "$api_key_auth_response" | tail -n1)
 api_key_auth_body=$(echo "$api_key_auth_response" | sed '$d')
@@ -315,9 +314,8 @@ fi
 
 # Test that the deleted API key no longer works
 log_step "Testing deleted API key authentication (should fail)"
-deleted_key_auth_response=$(curl -s -w "\n%{http_code}" -X POST "$BASE_URL/api/debug/auth" \
-  -H "Content-Type: application/json" \
-  -d "{\"authToken\": \"$api_key_jwt\"}")
+deleted_key_auth_response=$(curl -s -w "\n%{http_code}" -X GET "$BASE_URL/api/api-keys" \
+  -H "Authorization: Bearer $api_key_jwt")
 
 deleted_key_auth_code=$(echo "$deleted_key_auth_response" | tail -n1)
 deleted_key_auth_body=$(echo "$deleted_key_auth_response" | sed '$d')
