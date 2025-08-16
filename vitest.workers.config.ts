@@ -19,22 +19,13 @@ export default defineWorkersConfig({
         wrangler: {
           configPath: "./wrangler.toml",
         },
-        // Miniflare configuration matching our project
+        // Simplified miniflare configuration
         miniflare: {
           compatibilityDate: "2025-05-08",
           compatibilityFlags: ["nodejs_compat"],
           // Load our selective-entry worker for testing
           main: "./backend/selective-entry.ts",
-          // Use local simulations for testing
-          d1Databases: ["DB"],
-          r2Buckets: ["ARTIFACT_BUCKET"],
-          durableObjects: {
-            WEBSOCKET_SERVER: {
-              className: "WebSocketServer",
-              scriptPath: "./backend/sync.ts",
-            },
-          },
-          // Test environment variables
+          // Basic bindings for testing
           bindings: {
             DEPLOYMENT_ENV: "test",
             ALLOW_LOCAL_AUTH: "true",
