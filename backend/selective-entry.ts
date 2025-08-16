@@ -286,7 +286,6 @@ export default {
     if (
       pathname.startsWith("/api/") ||
       pathname === "/health" ||
-      pathname.startsWith("/debug/") ||
       (allowLocalAuth && pathname.startsWith("/local_oidc"))
     ) {
       console.log("🛠️  Routing to Hono API");
