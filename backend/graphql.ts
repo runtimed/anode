@@ -1,8 +1,6 @@
 import { createSchema, createYoga } from "graphql-yoga";
 import { GraphQLError } from "graphql";
-import { validateAuthPayload, type ValidatedUser } from "./auth.ts";
-import { createApiKeyProvider } from "./providers/api-key-factory.ts";
-import { createProviderContext } from "./api-key-provider.ts";
+import { type ValidatedUser, extractAndValidateUser } from "./auth.ts";
 import { type Env } from "./types.ts";
 
 // GraphQL Context type
@@ -55,74 +53,17 @@ export const yoga = createYoga({
     console.log("GraphQL context: extracting auth...");
 
     try {
-      const authHeader = request.headers.get("Authorization");
-      const xAuthHeader = request.headers.get("X-Auth-Token");
+      // Use centralized auth utility
+      auth = (await extractAndValidateUser(request, env as Env)) || undefined;
 
-      console.log("GraphQL auth headers:", {
-        hasAuthHeader: !!authHeader,
-        hasXAuthHeader: !!xAuthHeader,
-        authHeaderPrefix: authHeader?.substring(0, 20) + "...",
-      });
-
-      const authToken = authHeader?.replace("Bearer ", "") || xAuthHeader;
-
-      if (!authToken) {
-        console.log("GraphQL: No auth token found in headers");
-        return { auth: undefined, env: env as Env };
+      if (auth) {
+        console.log("✅ GraphQL authenticated:", {
+          userId: auth.id,
+          email: auth.email,
+        });
+      } else {
+        console.log("GraphQL: No valid authentication found");
       }
-
-      if (!env) {
-        console.log("GraphQL: No env provided to context");
-        return { auth: undefined, env: env as Env };
-      }
-
-      console.log("GraphQL: Validating auth token...");
-
-      // Debug: Decode JWT to see issuer before validation
-      try {
-        const parts = authToken.split(".");
-        if (parts.length === 3) {
-          const payload = JSON.parse(atob(parts[1]));
-          console.log("GraphQL: JWT payload info:", {
-            iss: payload.iss,
-            expectedIssuer: (env as Env).AUTH_ISSUER,
-            sub: payload.sub,
-            exp: payload.exp,
-            iat: payload.iat,
-          });
-        }
-      } catch (decodeError) {
-        console.log("GraphQL: Could not decode JWT:", decodeError);
-      }
-
-      let validatedUser: ValidatedUser;
-
-      // Try API key authentication first
-      try {
-        const apiKeyProvider = createApiKeyProvider(env as Env);
-        const providerContext = createProviderContext(env as Env, authToken);
-
-        if (apiKeyProvider.isApiKey(providerContext)) {
-          const passport = await apiKeyProvider.validateApiKey(providerContext);
-          validatedUser = passport.user;
-          console.log("✅ GraphQL authenticated via API key:", {
-            userId: validatedUser.id,
-            email: validatedUser.email,
-          });
-        } else {
-          // Fall back to existing auth logic (OIDC JWT or service token)
-          validatedUser = await validateAuthPayload({ authToken }, env as Env);
-        }
-      } catch {
-        // If API key provider fails, try standard auth as fallback
-        validatedUser = await validateAuthPayload({ authToken }, env as Env);
-      }
-
-      auth = validatedUser;
-      console.log("GraphQL: Auth validation successful:", {
-        userId: auth.id,
-        email: auth.email,
-      });
     } catch (error) {
       console.error("GraphQL auth extraction failed:", {
         error: error instanceof Error ? error.message : String(error),

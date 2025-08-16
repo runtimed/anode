@@ -1,7 +1,7 @@
 import { Hono } from "hono";
 import { cors } from "hono/cors";
 import { WebSocketServer } from "./sync.ts";
-import originalHandler from "./entry.ts";
+import syncHandler from "./sync.ts";
 import {
   workerGlobals,
   type Env,
@@ -174,14 +174,14 @@ export default {
       }
     }
 
-    // Route 2: LiveStore/WebSocket → Original handler
+    // Route 2: LiveStore/WebSocket → Sync handler
     if (
       pathname.startsWith("/livestore") ||
       pathname.startsWith("/websocket") ||
       request.headers.get("upgrade") === "websocket"
     ) {
-      console.log("🔄 Routing to LiveStore/WebSocket (original handler)");
-      return originalHandler.fetch!(request as any, env, ctx);
+      console.log("🔄 Routing to LiveStore/WebSocket (sync handler)");
+      return syncHandler.fetch(request as any, env, ctx);
     }
 
     // Route 3: API routes → Hono app
@@ -234,8 +234,59 @@ export default {
       }
     }
 
-    // Fallback to original handler
-    console.log("🔄 Falling back to original handler");
-    return originalHandler.fetch!(request as any, env, ctx);
+    // Fallback: Development page when ASSETS not available
+    console.log("📄 Fallback - serving development page");
+
+    if (!env.ASSETS) {
+      return new workerGlobals.Response(
+        `
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Anode Local Development</title>
+  <style>
+    body { font-family: system-ui; margin: 40px; line-height: 1.6; }
+    .code { background: #f5f5f5; padding: 2px 6px; border-radius: 3px; font-family: monospace; }
+  </style>
+</head>
+<body>
+  <h1>Anode Backend Worker</h1>
+  <p>The backend API is running at <span class="code">${url.origin}</span></p>
+  <p>For the web client, run <span class="code">pnpm dev</span> in a separate terminal.</p>
+  <h2>Available Endpoints:</h2>
+  <ul>
+    <li><a href="/health">GET /health</a> - Health check</li>
+    <li><a href="/graphql">POST /graphql</a> - GraphQL API</li>
+    <li><span class="code">WS /livestore</span> - LiveStore sync</li>
+  </ul>
+  ${!allowLocalAuth ? '<p><em>Local OIDC endpoints are disabled. Set ALLOW_LOCAL_AUTH="true" to enable them.</em></p>' : ""}
+</body>
+</html>
+        `.trim(),
+        {
+          status: 200,
+          headers: {
+            "Content-Type": "text/html",
+            "Access-Control-Allow-Origin": "*",
+          },
+        }
+      );
+    }
+
+    // If ASSETS exists but we got here, return 404
+    return new workerGlobals.Response(
+      JSON.stringify({
+        error: "Not Found",
+        message: `Path ${pathname} not found`,
+        timestamp: new Date().toISOString(),
+      }),
+      {
+        status: 404,
+        headers: {
+          "Content-Type": "application/json",
+          "Access-Control-Allow-Origin": "*",
+        },
+      }
+    );
   },
 };

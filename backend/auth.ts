@@ -1,6 +1,8 @@
 import * as jose from "jose";
 import { type Env, type WorkerRequest } from "./types";
 import type { D1Database } from "@cloudflare/workers-types";
+import { createApiKeyProvider } from "./providers/api-key-factory.ts";
+import { createProviderContext } from "./api-key-provider.ts";
 
 export type ValidatedUser = {
   id: string;
@@ -233,4 +235,70 @@ async function upsertUser(db: D1Database, user: ValidatedUser): Promise<void> {
     });
     // Don't throw - authentication should still succeed even if user registry fails
   }
+}
+
+/**
+ * Extract auth token from various request sources
+ * Supports both Authorization: Bearer and X-Auth-Token headers
+ */
+export function extractAuthToken(request: Request): string | null {
+  // Try Authorization: Bearer first
+  const authHeader = request.headers.get("Authorization");
+  if (authHeader?.startsWith("Bearer ")) {
+    return authHeader.replace("Bearer ", "");
+  }
+
+  // Fallback to X-Auth-Token header
+  const tokenHeader = request.headers.get("X-Auth-Token");
+  if (tokenHeader) {
+    return tokenHeader;
+  }
+
+  return null;
+}
+
+/**
+ * Centralized user validation supporting both API keys and OIDC tokens
+ * Returns ValidatedUser on success, null on failure (no throwing)
+ */
+export async function getValidatedUser(
+  authToken: string | null | undefined,
+  env: Env
+): Promise<ValidatedUser | null> {
+  if (!authToken) {
+    return null;
+  }
+
+  try {
+    // Try API key authentication first
+    const apiKeyProvider = createApiKeyProvider(env);
+    const providerContext = createProviderContext(env, authToken);
+
+    if (apiKeyProvider.isApiKey(providerContext)) {
+      const passport = await apiKeyProvider.validateApiKey(providerContext);
+      return passport.user;
+    }
+
+    // Fallback to OIDC/service token validation
+    return await validateAuthPayload({ authToken }, env);
+  } catch (error) {
+    // Auth failed - return null instead of throwing
+    console.debug(
+      "Auth validation failed:",
+      error instanceof Error ? error.message : String(error)
+    );
+    return null;
+  }
+}
+
+/**
+ * Extract and validate user in one step
+ * Convenience function combining extractAuthToken + getValidatedUser
+ */
+export async function extractAndValidateUser(
+  request: Request,
+  env: Env
+): Promise<ValidatedUser | null> {
+  const authToken = extractAuthToken(request);
+  return await getValidatedUser(authToken, env);
 }
