@@ -106,32 +106,6 @@ if [[ ! "$ACCESS_TOKEN" =~ ^eyJ ]]; then
     log_warning "Access token doesn't look like a JWT (should start with 'eyJ')"
 fi
 
-# Test authentication first
-log_step "Testing authentication"
-log_debug "Making request to: $BASE_URL/api/debug/auth"
-
-auth_response=$(curl -s -w "\n%{http_code}" -X POST "$BASE_URL/api/debug/auth" \
-  -H "Content-Type: application/json" \
-  -d "{\"authToken\": \"$ACCESS_TOKEN\"}" 2>/dev/null)
-
-if [ $? -ne 0 ]; then
-    log_error "Failed to connect to $BASE_URL"
-    exit 1
-fi
-
-log_debug "Raw auth response: $auth_response"
-
-auth_code=$(echo "$auth_response" | tail -n1)
-auth_body=$(echo "$auth_response" | sed '$d')
-
-if [ "$auth_code" -ne 200 ]; then
-    log_error "Authentication test failed (HTTP $auth_code)"
-    json_pretty "$auth_body"
-    exit 1
-fi
-
-log_success "Authentication successful"
-
 # Create new API key
 log_step "Creating new API key"
 log_debug "Making request to: $BASE_URL/api/api-keys"
