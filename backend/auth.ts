@@ -262,7 +262,7 @@ export function extractAuthToken(request: Request): string | null {
  * Returns ValidatedUser on success, null on failure (no throwing)
  */
 export async function getValidatedUser(
-  authToken: string | null | undefined,
+  authToken: string | null,
   env: Env
 ): Promise<ValidatedUser | null> {
   if (!authToken) {

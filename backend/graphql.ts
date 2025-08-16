@@ -5,7 +5,7 @@ import { type Env } from "./types.ts";
 
 // GraphQL Context type
 interface GraphQLContext {
-  auth?: ValidatedUser;
+  auth: ValidatedUser | null;
   env?: Env;
 }
 
@@ -48,13 +48,13 @@ export const yoga = createYoga({
     const env = context as unknown as Env;
     const request = context.request;
     // Extract auth from request
-    let auth: ValidatedUser | undefined = undefined;
+    let auth: ValidatedUser | null = null;
 
     console.log("GraphQL context: extracting auth...");
 
     try {
       // Use centralized auth utility
-      auth = (await extractAndValidateUser(request, env as Env)) || undefined;
+      auth = await extractAndValidateUser(request, env as Env);
 
       if (auth) {
         console.log("✅ GraphQL authenticated:", {
@@ -69,7 +69,6 @@ export const yoga = createYoga({
         error: error instanceof Error ? error.message : String(error),
         stack: error instanceof Error ? error.stack : undefined,
       });
-      // Don't fail the request, just proceed without auth
     }
 
     return { auth, env: env as Env };
