@@ -14,11 +14,6 @@ export const typeDefs = /* GraphQL */ `
     title: String
 
     """
-    URL-friendly vanity name (reserved for future use)
-    """
-    vanityName: String
-
-    """
     User who owns this runbook
     """
     owner: User!

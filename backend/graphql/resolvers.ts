@@ -18,7 +18,6 @@ export interface GraphQLContext extends Env {
 interface RunbookRow {
   ulid: string;
   owner_id: string;
-  vanity_name: string | null;
   title: string | null;
   created_at: string;
   updated_at: string;
@@ -127,7 +126,7 @@ export const resolvers = {
 
         const placeholders = accessibleRunbookIds.map(() => "?").join(",");
         const query = `
-          SELECT ulid, owner_id, vanity_name, title, created_at, updated_at
+          SELECT ulid, owner_id, title, created_at, updated_at
           FROM runbooks
           WHERE ulid IN (${placeholders})
           ORDER BY updated_at DESC

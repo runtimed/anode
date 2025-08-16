@@ -1,13 +1,5 @@
 import { makeDurableObject, makeWorker } from "@livestore/sync-cf/cf-worker";
-import {
-  workerGlobals,
-  type Env,
-  type WorkerRequest,
-  type WorkerResponse,
-  type ExecutionContext,
-  type SimpleHandler,
-  IncomingRequestCfProperties,
-} from "./types";
+import { type Env, type ExecutionContext } from "./types";
 
 import { validateAuthPayload, validateProductionEnvironment } from "./auth";
 import { createApiKeyProvider } from "./providers/api-key-factory.ts";
@@ -23,18 +15,18 @@ export class WebSocketServer extends makeDurableObject({
   },
 }) {}
 
-const handler: SimpleHandler = {
+export default {
   fetch: async (
-    request: WorkerRequest<unknown, IncomingRequestCfProperties<unknown>>,
+    request: Request,
     env: Env,
     ctx: ExecutionContext
-  ): Promise<WorkerResponse> => {
+  ): Promise<Response> => {
     // Validate environment on first request
     try {
       validateProductionEnvironment(env);
     } catch (error: any) {
       console.error("💥 Startup validation failed:", error.message);
-      return new workerGlobals.Response(
+      return new Response(
         JSON.stringify({
           error: "STARTUP_VALIDATION_FAILED",
           message: error.message,
@@ -66,7 +58,7 @@ const handler: SimpleHandler = {
     // Handle CORS preflight for all requests
     if (request.method === "OPTIONS") {
       console.log("✅ Handling CORS preflight request");
-      return new workerGlobals.Response(null, {
+      return new Response(null, {
         status: 204,
         headers: {
           "Access-Control-Allow-Origin": "*",
@@ -83,9 +75,8 @@ const handler: SimpleHandler = {
 
       const yoga = createGraphQLServer();
       // Cast to standard web API types for GraphQL Yoga compatibility
-      const standardRequest = request as unknown as Request;
-      const response = await yoga.fetch(standardRequest, env);
-      return response as unknown as WorkerResponse;
+      // const standardRequest = request as unknown as Request;
+      return await yoga.fetch(request, env);
     }
 
     // Handle API routes (WebSocket and LiveStore sync)
@@ -99,7 +90,7 @@ const handler: SimpleHandler = {
         searchParams: url.searchParams.toString(),
       });
 
-      const worker: SimpleHandler = makeWorker({
+      const worker = makeWorker({
         validatePayload: async (payload: any) => {
           console.log("🔐 Validating payload:", {
             hasAuthToken: !!payload?.authToken,
@@ -204,7 +195,7 @@ const handler: SimpleHandler = {
           }
         },
         enableCORS: true,
-      }) as unknown as SimpleHandler; // This is another problem with the global cloudflare types mismatching. Once this is fixed, we can remove this cast
+      }); // This is another problem with the global cloudflare types mismatching. Once this is fixed, we can remove this cast
 
       try {
         const response = await worker.fetch(request, env, ctx);
@@ -235,7 +226,7 @@ const handler: SimpleHandler = {
 
     console.log("❌ Request not handled, returning 404:", url.pathname);
     // Return 404 for non-API routes (web client now served by Pages)
-    return new workerGlobals.Response("Not Found", {
+    return new Response("Not Found", {
       status: 404,
       headers: {
         "Access-Control-Allow-Origin": "*",
@@ -245,5 +236,3 @@ const handler: SimpleHandler = {
     });
   },
 };
-
-export default handler;

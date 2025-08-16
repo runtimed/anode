@@ -3,7 +3,6 @@
 CREATE TABLE runbooks (
   ulid TEXT PRIMARY KEY,
   owner_id TEXT NOT NULL,
-  vanity_name TEXT, -- Reserved for future URL slugs
   title TEXT,
   created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
   updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
