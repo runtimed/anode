@@ -1,5 +1,6 @@
 import * as jose from "jose";
 import { type Env, type WorkerRequest } from "./types";
+import type { D1Database } from "@cloudflare/workers-types";
 
 export type ValidatedUser = {
   id: string;
@@ -133,10 +134,20 @@ export async function validateAuthPayload(
   env: Env
 ): Promise<ValidatedUser> {
   const authType = determineAuthType(payload, env);
+  let user: ValidatedUser;
+
   if (authType === "access_token") {
-    return await validateOAuthToken(payload, env);
+    user = await validateOAuthToken(payload, env);
+  } else {
+    user = await validateHardcodedAuthToken(payload, env);
   }
-  return validateHardcodedAuthToken(payload, env);
+
+  // Upsert user to registry for all endpoints (GraphQL, LiveStore, REST, etc.)
+  if (!user.isAnonymous && env.DB) {
+    await upsertUser(env.DB, user);
+  }
+
+  return user;
 }
 
 async function validateHardcodedAuthToken(
@@ -231,3 +242,80 @@ const getDisplayName = (jwt: jose.JWTPayload): string => {
 
   return name;
 };
+
+/**
+ * Upsert a user record from authentication data
+ * Updates existing users or creates new ones
+ */
+async function upsertUser(db: D1Database, user: ValidatedUser): Promise<void> {
+  try {
+    const now = new Date().toISOString();
+
+    // Check if user exists
+    const existing = await db
+      .prepare("SELECT id, first_seen_at FROM users WHERE id = ?")
+      .bind(user.id)
+      .first<{ id: string; first_seen_at: string }>();
+
+    if (existing) {
+      // Update existing user
+      const updates: string[] = [];
+      const bindings: unknown[] = [];
+
+      // Always update email (in case it changed)
+      updates.push("email = ?");
+      bindings.push(user.email);
+
+      if (user.givenName) {
+        updates.push("given_name = ?");
+        bindings.push(user.givenName);
+      }
+
+      if (user.familyName) {
+        updates.push("family_name = ?");
+        bindings.push(user.familyName);
+      }
+
+      updates.push("last_seen_at = ?", "updated_at = ?");
+      bindings.push(now, now, user.id);
+
+      await db
+        .prepare(
+          `
+          UPDATE users
+          SET ${updates.join(", ")}
+          WHERE id = ?
+        `
+        )
+        .bind(...bindings)
+        .run();
+    } else {
+      // Create new user
+      await db
+        .prepare(
+          `
+          INSERT INTO users (
+            id, email, given_name, family_name,
+            first_seen_at, last_seen_at, updated_at
+          ) VALUES (?, ?, ?, ?, ?, ?, ?)
+        `
+        )
+        .bind(
+          user.id,
+          user.email,
+          user.givenName || null,
+          user.familyName || null,
+          now,
+          now,
+          now
+        )
+        .run();
+    }
+  } catch (error) {
+    console.error("Failed to upsert user:", {
+      userId: user.id,
+      error: error instanceof Error ? error.message : "Unknown error",
+    });
+    // Don't throw - authentication should still succeed even if user registry fails
+  }
+}

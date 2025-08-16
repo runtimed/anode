@@ -97,6 +97,10 @@ export default defineConfig(({ mode }) => {
           target: "http://localhost:8787",
           changeOrigin: true,
         },
+        "/graphql": {
+          target: "http://localhost:8787",
+          changeOrigin: true,
+        },
       },
     },
     cacheDir: "node_modules/.vite-main",

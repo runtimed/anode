@@ -64,6 +64,7 @@ const handler: ExportedHandler<Env> = {
       url.pathname === "/health" ||
       url.pathname.startsWith("/debug/") ||
       url.pathname === "/websocket" ||
+      url.pathname === "/graphql" ||
       (allowLocalAuth && url.pathname.startsWith("/local_oidc"));
 
     console.log("🎯 Route decision:", {
