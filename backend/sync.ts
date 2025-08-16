@@ -5,6 +5,7 @@ import {
 import { type Env, type ExecutionContext } from "./types";
 
 import { getValidatedUser } from "./auth";
+import { Schema } from "@livestore/livestore";
 
 export class WebSocketServer extends makeDurableObject({
   onPush: async (message) => {
@@ -14,6 +15,14 @@ export class WebSocketServer extends makeDurableObject({
     console.log("onPull", message);
   },
 }) {}
+
+const SyncPayloadSchema = Schema.Struct({
+  authToken: Schema.String,
+  clientId: Schema.String,
+  runtime: Schema.optional(Schema.Boolean),
+});
+
+const decodePayload = Schema.decodeUnknownSync(SyncPayloadSchema);
 
 export default {
   fetch: async (request: Request, env: Env, ctx: ExecutionContext) => {
@@ -29,29 +38,18 @@ export default {
     }
 
     return handleWebSocket(request, env, ctx, {
-      validatePayload: async (payload: any) => {
-        console.log("🔐 Validating payload:", {
-          hasAuthToken: !!payload?.authToken,
-          isRuntime: payload?.runtime === true,
-          clientId: payload?.clientId,
-        });
-
+      validatePayload: async (rawPayload) => {
         try {
-          let validatedUser = await getValidatedUser(payload?.authToken, env);
+          const payload = decodePayload(rawPayload);
+          let validatedUser = await getValidatedUser(payload.authToken, env);
 
           if (!validatedUser) {
             throw new Error("User must be authenticated");
           }
 
-          // Step 2: Validate the client ID against the authenticated user
-          const clientId = payload?.clientId;
-          if (!clientId) {
-            throw new Error(
-              "CLIENT_ID_MISSING: No clientId provided in syncPayload."
-            );
-          }
+          const clientId = payload.clientId;
 
-          // TODO: Revisit this flow to determine if the runtime agent will have both a
+          // TODO: Revisit this flow to determine if the runtime agent should have both a
           //       User ID (via their API key) and an identifier for the runtime agent
           if (validatedUser.id === "runtime-agent") {
             // A runtime agent's clientId should NOT look like a real user's ID.
@@ -95,13 +93,6 @@ export default {
           // to verify that the `clientId` on incoming events matches the `clientId`
           // that was validated with this initial connection payload. A malicious
           // client could pass this check and then send events with a different clientId.
-
-          console.log("✅ Payload validation successful:", {
-            userId: validatedUser.id,
-            clientId: clientId,
-            isAnonymous: validatedUser.isAnonymous,
-            email: validatedUser.email,
-          });
         } catch (error: any) {
           console.error("🚫 Authentication failed:", error.message);
           throw error; // Reject the WebSocket connection
