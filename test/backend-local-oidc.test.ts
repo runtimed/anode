@@ -11,7 +11,6 @@ import {
 function createMockEnv(pem: string, customFetch?: typeof fetch): Env {
   return {
     DEPLOYMENT_ENV: "development",
-    AUTH_TOKEN: "test-token",
     AUTH_ISSUER: "http://localhost:8787/local_oidc",
     WEBSOCKET_SERVER: {} as any,
     DB: {

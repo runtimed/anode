@@ -37,11 +37,9 @@ export function validateProductionEnvironment(env: Env): void {
   } else {
     if (env.AUTH_ISSUER) {
       console.log("✅ Development environment passed using JWT validation");
-    } else if (env.AUTH_TOKEN && env.AUTH_TOKEN.length > 0) {
-      console.log("✅ Development environment passed using AUTH_TOKEN");
     } else {
       throw new Error(
-        "STARTUP_ERROR: AUTH_ISSUER or AUTH_TOKEN must be set when DEPLOYMENT_ENV is development"
+        "STARTUP_ERROR: AUTH_ISSUER must be set when DEPLOYMENT_ENV is development"
       );
     }
   }

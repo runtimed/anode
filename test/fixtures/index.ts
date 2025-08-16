@@ -201,14 +201,12 @@ export const testEnvironments = {
     NOTEBOOK_ID: "test-notebook",
     RUNTIME_ID: "test-runtime",
     LIVESTORE_SYNC_URL: "ws://localhost:8787",
-    AUTH_TOKEN: "test-token",
   },
   withSession: {
     NOTEBOOK_ID: "test-notebook",
     RUNTIME_ID: "test-runtime",
     SESSION_ID: "test-session",
     LIVESTORE_SYNC_URL: "ws://localhost:8787",
-    AUTH_TOKEN: "test-token",
   },
 };
 

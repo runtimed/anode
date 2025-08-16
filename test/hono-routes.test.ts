@@ -39,7 +39,6 @@ describe("Hono API Routes", () => {
 
     mockEnv = {
       DEPLOYMENT_ENV: "development",
-      AUTH_TOKEN: "test-token",
       ARTIFACT_BUCKET: mockR2Bucket as any,
     } as Env;
 
@@ -60,7 +59,6 @@ describe("Hono API Routes", () => {
         timestamp: expect.any(String),
         framework: "hono",
         config: {
-          has_auth_token: true,
           has_auth_issuer: false,
           deployment_env: "development",
           service_provider: "local",
@@ -113,7 +111,6 @@ describe("Hono API Routes", () => {
       const result = await res.json();
       expect(res.status).toBe(400);
       expect(result).toEqual({
-        error: "MISSING_AUTH_TOKEN",
         message: "No authToken provided in request body",
         timestamp: expect.any(String),
       });

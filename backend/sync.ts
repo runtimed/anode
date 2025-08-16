@@ -133,7 +133,8 @@ const handler: SimpleHandler = {
               );
             }
 
-            // For service runtime agents (using AUTH_TOKEN), prevent user impersonation
+            // TODO: Revisit this flow to determine if the runtime agent will have both a
+            //       User ID (via their API key) and an identifier for the runtime agent
             if (validatedUser.id === "runtime-agent") {
               // A runtime agent's clientId should NOT look like a real user's ID.
               // OIDC user IDs are typically numeric strings.

@@ -37,7 +37,6 @@ describe("Artifact Service (Hono Implementation)", () => {
 
     mockEnv = {
       DEPLOYMENT_ENV: "development",
-      AUTH_TOKEN: "test-token",
       ARTIFACT_BUCKET: mockR2Bucket as any,
     } as Env;
 

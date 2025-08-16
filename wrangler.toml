@@ -5,7 +5,7 @@
 # 2. Update database_id below with the real ID from step 1
 # 3. Optionally change the worker name
 # 4. Deploy: pnpm wrangler deploy --env production
-# 5. Set secrets: pnpm wrangler secret put AUTH_TOKEN --env production
+# 5. Set secrets: pnpm wrangler secret put {SECRET_NAME} --env production
 
 # Default environment (local development for the all-in-one worker)
 name = "anode-docworker"
@@ -151,15 +151,3 @@ VITE_AUTH_URI = "https://auth.anaconda.com/api/auth"
 VITE_AUTH_CLIENT_ID = "6a038ed5-eea7-4c7c-9b65-8e6068a0c84f"
 VITE_AUTH_REDIRECT_URI = "https://preview.runt.run/oidc"
 VITE_IFRAME_OUTPUT_URI = "https://preview.runtusercontent.com"
-
-
-# ---
-# Secrets Management Notes
-# ---
-# Secrets must be set per environment via: `pnpm wrangler secret put <NAME> --env <ENV>`
-#
-# Example for production:
-# pnpm wrangler secret put AUTH_TOKEN --env production
-#
-# Example for preview:
-# pnpm wrangler secret put AUTH_TOKEN --env preview

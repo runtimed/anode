@@ -73,7 +73,7 @@ get_token() {
         echo "1. Visit app.runt.run and log in"
         echo "2. Open browser dev tools (F12)"
         echo "3. Go to Application/Storage -> Local Storage -> app.runt.run"
-        echo "4. Look for 'auth_token', 'access_token', or similar"
+        echo "4. Look for 'access_token', or similar"
         echo ""
         echo "Enter your token (or Ctrl+C to exit):"
         read -r token

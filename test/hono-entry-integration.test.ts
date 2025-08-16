@@ -38,7 +38,6 @@ describe("Hono Entry Integration", () => {
     mockEnv = {
       DEPLOYMENT_ENV: "development",
       ALLOW_LOCAL_AUTH: "true",
-      AUTH_TOKEN: "test-token",
       AUTH_ISSUER: "http://localhost:5173/local_oidc",
     } as Env;
 
