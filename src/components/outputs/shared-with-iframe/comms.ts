@@ -133,18 +133,7 @@ export function useIframeCommsChild() {
     }
 
     // Send height on load
-    // sendHeight();
-
-    // Send height after a short delay to ensure content is rendered
-    // setTimeout(sendHeight, 0);
-
-    // Send height when content changes (for dynamic content)
-    const observer = new MutationObserver(sendHeight);
-    observer.observe(document.body, {
-      childList: false,
-      subtree: false,
-      attributes: true,
-    });
+    sendHeight();
 
     // Handle incoming content updates
     window.addEventListener("message", (event: MessageEvent<ToIframeEvent>) => {
@@ -153,7 +142,7 @@ export function useIframeCommsChild() {
       if (data && data.type === "update-outputs") {
         console.log("update-outputs", data.outputs);
         setOutputs(data.outputs || []);
-        // setTimeout(sendHeight, 50);
+        setTimeout(sendHeight, 50);
       }
     });
 
@@ -162,7 +151,7 @@ export function useIframeCommsChild() {
     resizeObserver.observe(document.documentElement); // or document.body, or your content container
 
     // Capture-phase load listener to catch <img>, <video>, <iframe> loads
-    // document.addEventListener("load", sendHeight, true);
+    document.addEventListener("load", sendHeight, true);
 
     // Fonts can also change height when they finish loading
     if ("fonts" in document) {
@@ -177,7 +166,6 @@ export function useIframeCommsChild() {
     }
 
     return () => {
-      observer.disconnect();
       resizeObserver.disconnect();
       document.removeEventListener("load", sendHeight, true);
     };
