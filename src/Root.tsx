@@ -53,9 +53,9 @@ import { ErrorBoundary } from "react-error-boundary";
 import { Toaster } from "./components/ui/sonner.js";
 
 // Lazy load runbook components
-const RunbookList = React.lazy(() =>
-  import("./components/runbooks/RunbookList.js").then((m) => ({
-    default: m.RunbookList,
+const RunbookDashboard = React.lazy(() =>
+  import("./components/runbooks/RunbookDashboard.js").then((m) => ({
+    default: m.RunbookDashboard,
   }))
 );
 const RunbookViewer = React.lazy(() =>
@@ -376,7 +376,7 @@ export const App: React.FC = () => {
                     />
                   }
                 >
-                  <RunbookList />
+                  <RunbookDashboard />
                 </Suspense>
               </GraphQLClientProvider>
             </AuthGuard>
