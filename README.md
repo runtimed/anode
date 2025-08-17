@@ -237,7 +237,7 @@ Anode supports **Groq** as a first-class AI provider alongside OpenAI and Ollama
 
    ```bash
    GROQ_API_KEY=your_groq_api_key_here
-   LIVESTORE_SYNC_URL=ws://localhost:8787/livestore
+   LIVESTORE_SYNC_URL=ws://localhost:8787
    ```
 
 3. **Start Services**:
