@@ -367,8 +367,28 @@ export const RunbookDashboard: React.FC<RunbookDashboardProps> = () => {
 
           {!fetching && filteredRunbooks.length > 0 && (
             <div className="space-y-8">
-              {/* Recent Scratch Work Section (for scratch filter) */}
-              {activeFilter === "scratch" &&
+              {/* Search Results Section (prioritized when searching) */}
+              {searchQuery.trim() && (
+                <section>
+                  <div className="mb-4 flex items-center">
+                    <Users className="mr-2 h-5 w-5 text-gray-500" />
+                    <h2 className="text-lg font-semibold text-gray-900">
+                      Search Results
+                    </h2>
+                    <Badge variant="secondary" className="ml-2">
+                      {filteredRunbooks.length}
+                    </Badge>
+                  </div>
+                  <RunbookGrid
+                    runbooks={filteredRunbooks}
+                    viewMode={viewMode}
+                  />
+                </section>
+              )}
+
+              {/* Recent Scratch Work Section (for scratch filter when not searching) */}
+              {!searchQuery.trim() &&
+                activeFilter === "scratch" &&
                 recentScratchRunbooks.length > 0 && (
                   <section>
                     <div className="mb-4 flex items-center">
@@ -387,53 +407,53 @@ export const RunbookDashboard: React.FC<RunbookDashboardProps> = () => {
                   </section>
                 )}
 
-              {/* Named Runbooks Section (for named filter or when showing all named) */}
-              {activeFilter === "named" && namedRunbooks.length > 0 && (
-                <section>
-                  <div className="mb-4 flex items-center">
-                    <Tag className="mr-2 h-5 w-5 text-gray-500" />
-                    <h2 className="text-lg font-semibold text-gray-900">
-                      My Runbooks
-                    </h2>
-                    <Badge variant="secondary" className="ml-2">
-                      {namedRunbooks.length}
-                    </Badge>
-                  </div>
-                  <RunbookGrid runbooks={namedRunbooks} viewMode={viewMode} />
-                </section>
-              )}
+              {/* Named Runbooks Section (for named filter when not searching) */}
+              {!searchQuery.trim() &&
+                activeFilter === "named" &&
+                namedRunbooks.length > 0 && (
+                  <section>
+                    <div className="mb-4 flex items-center">
+                      <Tag className="mr-2 h-5 w-5 text-gray-500" />
+                      <h2 className="text-lg font-semibold text-gray-900">
+                        My Runbooks
+                      </h2>
+                      <Badge variant="secondary" className="ml-2">
+                        {namedRunbooks.length}
+                      </Badge>
+                    </div>
+                    <RunbookGrid runbooks={namedRunbooks} viewMode={viewMode} />
+                  </section>
+                )}
 
-              {/* All Results (for shared filter, search, or fallback) */}
-              {activeFilter === "shared" ||
-              searchQuery.trim() ||
-              (activeFilter === "scratch" &&
-                !recentScratchRunbooks.length &&
-                filteredRunbooks.length > 0) ||
-              (activeFilter === "named" &&
-                !namedRunbooks.length &&
-                filteredRunbooks.length > 0) ? (
-                <section>
-                  <div className="mb-4 flex items-center">
-                    <Users className="mr-2 h-5 w-5 text-gray-500" />
-                    <h2 className="text-lg font-semibold text-gray-900">
-                      {searchQuery.trim()
-                        ? "Search Results"
-                        : activeFilter === "shared"
+              {/* All Results (for shared filter or fallback when not searching) */}
+              {!searchQuery.trim() &&
+                (activeFilter === "shared" ||
+                  (activeFilter === "scratch" &&
+                    !recentScratchRunbooks.length &&
+                    filteredRunbooks.length > 0) ||
+                  (activeFilter === "named" &&
+                    !namedRunbooks.length &&
+                    filteredRunbooks.length > 0)) && (
+                  <section>
+                    <div className="mb-4 flex items-center">
+                      <Users className="mr-2 h-5 w-5 text-gray-500" />
+                      <h2 className="text-lg font-semibold text-gray-900">
+                        {activeFilter === "shared"
                           ? "Shared with Me"
                           : activeFilter === "scratch"
                             ? "All Scratch Work"
                             : "All My Runbooks"}
-                    </h2>
-                    <Badge variant="secondary" className="ml-2">
-                      {filteredRunbooks.length}
-                    </Badge>
-                  </div>
-                  <RunbookGrid
-                    runbooks={filteredRunbooks}
-                    viewMode={viewMode}
-                  />
-                </section>
-              ) : null}
+                      </h2>
+                      <Badge variant="secondary" className="ml-2">
+                        {filteredRunbooks.length}
+                      </Badge>
+                    </div>
+                    <RunbookGrid
+                      runbooks={filteredRunbooks}
+                      viewMode={viewMode}
+                    />
+                  </section>
+                )}
             </div>
           )}
         </div>
