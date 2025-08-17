@@ -58,6 +58,11 @@ const RunbookList = React.lazy(() =>
     default: m.RunbookList,
   }))
 );
+const RunbookViewer = React.lazy(() =>
+  import("./components/runbooks/RunbookViewer.js").then((m) => ({
+    default: m.RunbookViewer,
+  }))
+);
 
 interface NotebookAppProps {}
 
@@ -337,6 +342,25 @@ export const App: React.FC = () => {
             >
               <AuthorizePage />
             </Suspense>
+          }
+        />
+        <Route
+          path="/r/:ulid/*"
+          element={
+            <AuthGuard>
+              <GraphQLClientProvider>
+                <Suspense
+                  fallback={
+                    <LoadingState
+                      variant="fullscreen"
+                      message="Loading runbook..."
+                    />
+                  }
+                >
+                  <RunbookViewer />
+                </Suspense>
+              </GraphQLClientProvider>
+            </AuthGuard>
           }
         />
         <Route

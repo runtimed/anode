@@ -1,6 +1,7 @@
 import React, { useState, useMemo } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Plus, Users, Clock, User } from "lucide-react";
+import { getRunbookVanityUrl } from "../../util/url-utils";
 import { useQuery, useMutation } from "../../lib/graphql-client";
 import {
   LIST_RUNBOOKS,
@@ -11,23 +12,14 @@ import {
 import { Button } from "../ui/button";
 import { Card, CardHeader, CardTitle, CardContent } from "../ui/card";
 import { Badge } from "../ui/badge";
-import { Input } from "../ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../ui/tabs";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "../ui/dialog";
 import { LoadingState } from "../loading/LoadingState";
 
 interface RunbookListProps {}
 
 export const RunbookList: React.FC<RunbookListProps> = () => {
   const [filter, setFilter] = useState<"all" | "owned" | "shared">("all");
-  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
-  const [newRunbookTitle, setNewRunbookTitle] = useState("");
+  const navigate = useNavigate();
 
   // Query runbooks based on current filter
   const [{ data, fetching, error }] = useQuery({
@@ -49,12 +41,9 @@ export const RunbookList: React.FC<RunbookListProps> = () => {
 
   const runbooks = data?.runbooks || [];
 
-  const handleCreateRunbook = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!newRunbookTitle.trim()) return;
-
+  const handleCreateRunbook = async () => {
     const input: CreateRunbookInput = {
-      title: newRunbookTitle.trim(),
+      title: "Untitled Runbook",
     };
 
     try {
@@ -62,10 +51,9 @@ export const RunbookList: React.FC<RunbookListProps> = () => {
       if (result.error) {
         console.error("Failed to create runbook:", result.error);
         // TODO: Show error toast
-      } else {
-        setNewRunbookTitle("");
-        setIsCreateDialogOpen(false);
-        // TODO: Show success toast
+      } else if (result.data?.createRunbook) {
+        // Redirect to the new runbook
+        navigate(`/r/${result.data.createRunbook.ulid}`);
       }
     } catch (err) {
       console.error("Failed to create runbook:", err);
@@ -117,49 +105,10 @@ export const RunbookList: React.FC<RunbookListProps> = () => {
           </p>
         </div>
 
-        <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
-          <DialogTrigger asChild>
-            <Button>
-              <Plus className="mr-2 h-4 w-4" />
-              New Runbook
-            </Button>
-          </DialogTrigger>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Create New Runbook</DialogTitle>
-            </DialogHeader>
-            <form onSubmit={handleCreateRunbook} className="space-y-4">
-              <div>
-                <label
-                  htmlFor="title"
-                  className="mb-2 block text-sm font-medium"
-                >
-                  Title
-                </label>
-                <Input
-                  id="title"
-                  type="text"
-                  placeholder="Enter runbook title..."
-                  value={newRunbookTitle}
-                  onChange={(e) => setNewRunbookTitle(e.target.value)}
-                  required
-                />
-              </div>
-              <div className="flex justify-end gap-2">
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => setIsCreateDialogOpen(false)}
-                >
-                  Cancel
-                </Button>
-                <Button type="submit" disabled={!newRunbookTitle.trim()}>
-                  Create Runbook
-                </Button>
-              </div>
-            </form>
-          </DialogContent>
-        </Dialog>
+        <Button onClick={handleCreateRunbook}>
+          <Plus className="mr-2 h-4 w-4" />
+          New Runbook
+        </Button>
       </div>
 
       {/* Filter Tabs */}
@@ -191,7 +140,7 @@ export const RunbookList: React.FC<RunbookListProps> = () => {
                   : "Ask a colleague to share a runbook with you."}
               </p>
               {(filter === "owned" || filter === "all") && (
-                <Button onClick={() => setIsCreateDialogOpen(true)}>
+                <Button onClick={handleCreateRunbook}>
                   <Plus className="mr-2 h-4 w-4" />
                   Create Your First Runbook
                 </Button>
@@ -204,7 +153,7 @@ export const RunbookList: React.FC<RunbookListProps> = () => {
               {runbooks.map((runbook: Runbook) => (
                 <Link
                   key={runbook.ulid}
-                  to={`/r/${runbook.ulid}`}
+                  to={getRunbookVanityUrl(runbook.ulid, runbook.title)}
                   className="block transition-transform hover:scale-[1.02]"
                 >
                   <Card className="h-full transition-shadow hover:shadow-lg">
