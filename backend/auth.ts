@@ -214,11 +214,9 @@ async function upsertUser(db: D1Database, user: ValidatedUser): Promise<void> {
 }
 
 /**
- * Extract auth token from various request sources
- * Supports both Authorization: Bearer and X-Auth-Token headers
+ * Extract auth token from Authorization header
  */
 export function extractAuthToken(request: Request): string | null {
-  // Try Authorization: Bearer first
   const authHeader = request.headers.get("Authorization");
   if (authHeader?.startsWith("Bearer ")) {
     return authHeader.replace("Bearer ", "");
