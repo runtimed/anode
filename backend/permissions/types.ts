@@ -42,6 +42,22 @@ export type RevokePermissionInput = {
 
 /**
  * Interface that all permissions providers must implement
+ *
+ * Design Philosophy:
+ * This interface separates authorization concerns from data concerns, following
+ * patterns from AuthZed's approach to protecting list endpoints.
+ * See: https://authzed.com/docs/spicedb/modeling/protecting-a-list-endpoint
+ *
+ * We use a two-step approach:
+ * 1. Query permissions provider first (listAccessibleResources/checkPermission)
+ * 2. Then query D1 database with filtered resource IDs
+ *
+ * While it would be faster to do this in one query for the local provider,
+ * we maintain consistency with the deployed service where permissions and data
+ * are in separate stores and cannot be JOINed.
+ *
+ * Currently using the LookupResources filtering approach. We may need to
+ * switch to CheckBulkPermissions for filtering results in the future.
  */
 export interface PermissionsProvider {
   /**
