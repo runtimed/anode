@@ -45,6 +45,9 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
   debugMode = false,
   onDebugToggle,
 }) => {
+  // eslint-disable-next-line react-compiler/react-compiler
+  "use no memo";
+
   const { store } = useStore();
   const {
     user: { sub: userId },
