@@ -21,6 +21,9 @@ export const RunbookViewer: React.FC = () => {
   const [isEditingTitle, setIsEditingTitle] = useState(false);
   const [editTitle, setEditTitle] = useState("");
 
+  // Get initial runbook data from router state (if navigated from creation)
+  const initialRunbook = location.state?.initialRunbook as Runbook | undefined;
+
   // Query runbook data
   const [{ data, fetching, error }, refetch] = useQuery({
     query: GET_RUNBOOK,
@@ -31,18 +34,23 @@ export const RunbookViewer: React.FC = () => {
   // Update runbook mutation
   const [, updateRunbook] = useMutation(UPDATE_RUNBOOK);
 
-  const runbook: Runbook | null = data?.runbook || null;
+  const runbook: Runbook | null = data?.runbook || initialRunbook || null;
 
-  // Redirect to canonical vanity URL if needed
+  // Redirect to canonical vanity URL when title changes or on initial load
   useEffect(() => {
-    if (
-      runbook &&
-      !hasCorrectVanityUrl(location.pathname, runbook.ulid, runbook.title)
-    ) {
+    if (!runbook || fetching) return;
+
+    const needsCanonical = !hasCorrectVanityUrl(
+      location.pathname,
+      runbook.ulid,
+      runbook.title
+    );
+
+    if (needsCanonical) {
       const canonicalUrl = getRunbookVanityUrl(runbook.ulid, runbook.title);
       navigate(canonicalUrl, { replace: true });
     }
-  }, [runbook, location.pathname, navigate]);
+  }, [runbook?.title, runbook?.ulid]);
 
   const handleStartEditTitle = () => {
     setEditTitle(runbook?.title || "");
@@ -63,15 +71,8 @@ export const RunbookViewer: React.FC = () => {
         // TODO: Show error toast
       } else if (result.data?.updateRunbook) {
         setIsEditingTitle(false);
-        // Refetch to update cache
+        // Refetch to update cache - canonicalization effect will handle URL update
         refetch();
-        // Update URL to reflect new title
-        const updatedRunbook = result.data.updateRunbook;
-        const newUrl = getRunbookVanityUrl(
-          updatedRunbook.ulid,
-          updatedRunbook.title
-        );
-        navigate(newUrl, { replace: true });
         // TODO: Show success toast
       }
     } catch (err) {
@@ -106,7 +107,7 @@ export const RunbookViewer: React.FC = () => {
     }
   };
 
-  if (fetching) {
+  if (fetching && !initialRunbook) {
     return <LoadingState variant="fullscreen" message="Loading runbook..." />;
   }
 

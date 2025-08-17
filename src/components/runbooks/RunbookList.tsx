@@ -52,8 +52,11 @@ export const RunbookList: React.FC<RunbookListProps> = () => {
         console.error("Failed to create runbook:", result.error);
         // TODO: Show error toast
       } else if (result.data?.createRunbook) {
-        // Redirect to the new runbook
-        navigate(`/r/${result.data.createRunbook.ulid}`);
+        // Redirect to the new runbook with initial data to prevent flicker
+        const runbook = result.data.createRunbook;
+        navigate(getRunbookVanityUrl(runbook.ulid, runbook.title), {
+          state: { initialRunbook: runbook },
+        });
       }
     } catch (err) {
       console.error("Failed to create runbook:", err);
