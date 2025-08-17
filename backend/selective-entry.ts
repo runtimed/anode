@@ -15,22 +15,12 @@ import apiRoutes from "./routes.ts";
 import localOidcRoutes from "./local-oidc-routes.ts";
 import { yoga } from "./graphql.ts";
 
-// Re-export the Durable Object class for the Workers runtime
+// NOTE: This export is necessary at the root entry point for the Workers
+// runtime for Durable Object usage
 export { WebSocketServer };
-
-// ============================================================================
-// GraphQL Yoga Setup (Native Worker)
-// ============================================================================
-
-// GraphQL setup imported from separate file
-
-// ============================================================================
-// Hono App Setup (for existing routes)
-// ============================================================================
 
 const honoApp = new Hono<{ Bindings: Env; Variables: AuthContext }>();
 
-// Global error handling middleware
 honoApp.onError(async (error, c) => {
   let runtError: RuntError;
   if (error instanceof RuntError) {

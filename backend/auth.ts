@@ -224,12 +224,6 @@ export function extractAuthToken(request: Request): string | null {
     return authHeader.replace("Bearer ", "");
   }
 
-  // Fallback to X-Auth-Token header
-  const tokenHeader = request.headers.get("X-Auth-Token");
-  if (tokenHeader) {
-    return tokenHeader;
-  }
-
   return null;
 }
 

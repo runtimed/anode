@@ -200,7 +200,6 @@ async function getJwks(env: Env): Promise<JWKS> {
   };
 }
 
-// Create Hono app for local OIDC routes
 const localOidcRoutes = new Hono<{ Bindings: Env }>();
 
 // OpenID Connect Configuration endpoint
