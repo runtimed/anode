@@ -13,6 +13,7 @@ import {
   removeStaticLoadingScreen,
   isLoadingScreenVisible,
 } from "./util/domUpdates.js";
+import { GraphQLClientProvider } from "./lib/graphql-client.js";
 
 // Dynamic import for FPSMeter - development tool only
 const FPSMeter = React.lazy(() =>
@@ -50,6 +51,13 @@ import { getCurrentNotebookId, getStoreId } from "./util/store-id.js";
 import { useAuth } from "./components/auth/AuthProvider.js";
 import { ErrorBoundary } from "react-error-boundary";
 import { Toaster } from "./components/ui/sonner.js";
+
+// Lazy load runbook components
+const RunbookList = React.lazy(() =>
+  import("./components/runbooks/RunbookList.js").then((m) => ({
+    default: m.RunbookList,
+  }))
+);
 
 interface NotebookAppProps {}
 
@@ -329,6 +337,25 @@ export const App: React.FC = () => {
             >
               <AuthorizePage />
             </Suspense>
+          }
+        />
+        <Route
+          path="/r"
+          element={
+            <AuthGuard>
+              <GraphQLClientProvider>
+                <Suspense
+                  fallback={
+                    <LoadingState
+                      variant="fullscreen"
+                      message="Loading runbooks..."
+                    />
+                  }
+                >
+                  <RunbookList />
+                </Suspense>
+              </GraphQLClientProvider>
+            </AuthGuard>
           }
         />
         <Route
