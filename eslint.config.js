@@ -19,6 +19,7 @@ export default [
       // Reduce noise from globals - TypeScript handles these
       "no-undef": "off",
       "no-unused-vars": "off",
+      // https://typescript-eslint.io/rules/no-unused-vars/#what-benefits-does-this-rule-have-over-typescript
       "@typescript-eslint/no-unused-vars": [
         "error",
         {
