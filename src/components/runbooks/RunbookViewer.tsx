@@ -50,7 +50,14 @@ export const RunbookViewer: React.FC = () => {
       const canonicalUrl = getRunbookVanityUrl(runbook.ulid, runbook.title);
       navigate(canonicalUrl, { replace: true });
     }
-  }, [runbook?.title, runbook?.ulid, location.pathname, navigate]);
+  }, [
+    runbook?.title,
+    runbook?.ulid,
+    location.pathname,
+    navigate,
+    fetching,
+    runbook,
+  ]);
 
   const handleStartEditTitle = () => {
     setEditTitle(runbook?.title || "");
