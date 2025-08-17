@@ -3,6 +3,7 @@
 
 import { OutputData } from "@/schema";
 import { useEffect, useRef, useState } from "react";
+import type { Expect, Extends } from "@/lib/type-utils";
 
 // ---
 // NOTE: source of truth here. Updates here propogate down
@@ -28,9 +29,6 @@ export type ToIframeEvent = {
   type: "update-outputs";
   outputs: OutputData[];
 };
-
-type Expect<T extends true> = T;
-type Extends<T, U> = T extends U ? true : false;
 
 export type FromIframeEvent =
   | { type: "iframe-loaded" }
