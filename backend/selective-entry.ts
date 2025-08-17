@@ -13,7 +13,7 @@ import { type AuthContext } from "./middleware.ts";
 import { RuntError, ErrorType } from "./types.ts";
 import apiRoutes from "./routes.ts";
 import localOidcRoutes from "./local-oidc-routes.ts";
-import { yoga } from "./graphql.ts";
+import { yoga } from "./graphql/server.ts";
 
 // NOTE: This export is necessary at the root entry point for the Workers
 // runtime for Durable Object usage
