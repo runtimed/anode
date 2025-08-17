@@ -9,7 +9,7 @@
 
 # Default environment (local development for the all-in-one worker)
 name = "anode-docworker"
-main = "./backend/hono-entry.ts"
+main = "./backend/selective-entry.ts"
 compatibility_date = "2025-05-08"
 compatibility_flags = ["nodejs_compat"]
 
@@ -49,6 +49,7 @@ VITE_AUTH_URI = "https://auth.stage.anaconda.com/api/auth"
 VITE_AUTH_CLIENT_ID = "b7296d39-c1eb-49f4-b9a1-f36e6d5b8b6d"
 VITE_AUTH_REDIRECT_URI = "http://localhost:5173/oidc"
 
+
 # ---
 # Deployed Environments
 # ---
@@ -76,7 +77,7 @@ GOOGLE_CLIENT_ID = "94663405566-1go7jlpd2ar9u9urbfirmtjv1bm0tcis.apps.googleuser
 # New Production Environment (all-in-one worker)
 [env.production]
 name = "anode-main-prod"
-main = "./backend/hono-entry.ts"
+main = "./backend/selective-entry.ts"
 routes = [{ pattern = "app.runt.run", custom_domain = true }]
 [env.production.assets]
 directory = "./dist"
@@ -116,7 +117,7 @@ VITE_RUNTIME_COMMAND = "pnpm run dev:runtime"
 # Uses Workers build integration: pnpm build --mode preview + pnpm exec wrangler deploy --env preview
 [env.preview]
 name = "anode-docworker-preview"
-main = "./backend/hono-entry.ts"
+main = "./backend/selective-entry.ts"
 routes = [{ pattern = "preview.runt.run", custom_domain = true }]
 [env.preview.assets]
 directory = "./dist"

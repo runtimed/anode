@@ -238,7 +238,12 @@ export default [
     },
   },
   {
-    files: ["vite.config.ts", "vitest.config.ts", "schema.ts"],
+    files: [
+      "vite.config.ts",
+      "vitest.config.ts",
+      "schema.ts",
+      "vitest.workers.config.ts",
+    ],
     languageOptions: {
       globals: {
         // Node.js globals for config files

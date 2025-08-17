@@ -1,6 +1,8 @@
 import * as jose from "jose";
 import { type Env, type WorkerRequest } from "./types";
 import type { D1Database } from "@cloudflare/workers-types";
+import { createApiKeyProvider } from "./providers/api-key-factory.ts";
+import { createProviderContext } from "./api-key-provider.ts";
 
 export type ValidatedUser = {
   id: string;
@@ -19,30 +21,6 @@ export type Passport = {
 interface AuthPayload {
   authToken: string;
   runtime?: boolean;
-}
-
-export function validateProductionEnvironment(env: Env): void {
-  if (env.DEPLOYMENT_ENV === "production") {
-    if (env.ALLOW_LOCAL_AUTH === "true") {
-      throw new Error(
-        "STARTUP_ERROR: ALLOW_LOCAL_AUTH cannot be enabled in production environments"
-      );
-    }
-    if (!env.AUTH_ISSUER) {
-      throw new Error(
-        "STARTUP_ERROR: AUTH_ISSUER is required when DEPLOYMENT_ENV is production"
-      );
-    }
-    console.log("✅ Production environment validation passed");
-  } else {
-    if (env.AUTH_ISSUER) {
-      console.log("✅ Development environment passed using JWT validation");
-    } else {
-      throw new Error(
-        "STARTUP_ERROR: AUTH_ISSUER must be set when DEPLOYMENT_ENV is development"
-      );
-    }
-  }
 }
 
 export function extractBearerToken(request: WorkerRequest): string | null {
@@ -233,4 +211,62 @@ async function upsertUser(db: D1Database, user: ValidatedUser): Promise<void> {
     });
     // Don't throw - authentication should still succeed even if user registry fails
   }
+}
+
+/**
+ * Extract auth token from Authorization header
+ */
+export function extractAuthToken(request: Request): string | null {
+  const authHeader = request.headers.get("Authorization");
+  if (authHeader?.startsWith("Bearer ")) {
+    return authHeader.replace("Bearer ", "");
+  }
+
+  return null;
+}
+
+/**
+ * Centralized user validation supporting both API keys and OIDC tokens
+ * Returns ValidatedUser on success, null on failure (no throwing)
+ */
+export async function getValidatedUser(
+  authToken: string | null,
+  env: Env
+): Promise<ValidatedUser | null> {
+  if (!authToken) {
+    return null;
+  }
+
+  try {
+    // Try API key authentication first
+    const apiKeyProvider = createApiKeyProvider(env);
+    const providerContext = createProviderContext(env, authToken);
+
+    if (apiKeyProvider.isApiKey(providerContext)) {
+      const passport = await apiKeyProvider.validateApiKey(providerContext);
+      return passport.user;
+    }
+
+    // Fallback to OIDC/service token validation
+    return await validateAuthPayload({ authToken }, env);
+  } catch (error) {
+    // Auth failed - return null instead of throwing
+    console.debug(
+      "Auth validation failed:",
+      error instanceof Error ? error.message : String(error)
+    );
+    return null;
+  }
+}
+
+/**
+ * Extract and validate user in one step
+ * Convenience function combining extractAuthToken + getValidatedUser
+ */
+export async function extractAndValidateUser(
+  request: Request,
+  env: Env
+): Promise<ValidatedUser | null> {
+  const authToken = extractAuthToken(request);
+  return await getValidatedUser(authToken, env);
 }

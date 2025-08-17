@@ -17,7 +17,6 @@ import { RuntError, ErrorType } from "./types.ts";
 import { D1Driver } from "@japikey/cloudflare";
 import { JSONWebKeySet } from "jose";
 
-// Create Hono app for API key routes
 const apiKeyRoutes = new Hono<{ Bindings: Env; Variables: AuthContext }>();
 
 /**
