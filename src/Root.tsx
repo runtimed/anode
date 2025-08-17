@@ -13,6 +13,7 @@ import {
   removeStaticLoadingScreen,
   isLoadingScreenVisible,
 } from "./util/domUpdates.js";
+import { GraphQLClientProvider } from "./lib/graphql-client.js";
 
 // Dynamic import for FPSMeter - development tool only
 const FPSMeter = React.lazy(() =>
@@ -50,6 +51,18 @@ import { getCurrentNotebookId, getStoreId } from "./util/store-id.js";
 import { useAuth } from "./components/auth/AuthProvider.js";
 import { ErrorBoundary } from "react-error-boundary";
 import { Toaster } from "./components/ui/sonner.js";
+
+// Lazy load runbook components
+const RunbookDashboard = React.lazy(() =>
+  import("./components/runbooks/RunbookDashboard.js").then((m) => ({
+    default: m.RunbookDashboard,
+  }))
+);
+const RunbookViewer = React.lazy(() =>
+  import("./components/runbooks/RunbookViewer.tsx").then((m) => ({
+    default: m.RunbookViewer,
+  }))
+);
 
 interface NotebookAppProps {}
 
@@ -329,6 +342,44 @@ export const App: React.FC = () => {
             >
               <AuthorizePage />
             </Suspense>
+          }
+        />
+        <Route
+          path="/r/:ulid/*"
+          element={
+            <AuthGuard>
+              <GraphQLClientProvider>
+                <Suspense
+                  fallback={
+                    <LoadingState
+                      variant="fullscreen"
+                      message="Loading runbook..."
+                    />
+                  }
+                >
+                  <RunbookViewer />
+                </Suspense>
+              </GraphQLClientProvider>
+            </AuthGuard>
+          }
+        />
+        <Route
+          path="/r"
+          element={
+            <AuthGuard>
+              <GraphQLClientProvider>
+                <Suspense
+                  fallback={
+                    <LoadingState
+                      variant="fullscreen"
+                      message="Loading runbooks..."
+                    />
+                  }
+                >
+                  <RunbookDashboard />
+                </Suspense>
+              </GraphQLClientProvider>
+            </AuthGuard>
           }
         />
         <Route
