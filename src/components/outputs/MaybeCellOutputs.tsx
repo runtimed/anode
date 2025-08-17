@@ -98,7 +98,8 @@ export const IframeOutput: React.FC<IframeOutputProps> = ({
       width="100%"
       height={debouncedIframeHeight}
       style={style}
-      sandbox="allow-scripts allow-same-origin"
+      allow="accelerometer; autoplay; gyroscope; magnetometer; xr-spatial-tracking; clipboard-write"
+      sandbox="allow-downloads allow-forms allow-pointer-lock allow-popups allow-popups-to-escape-sandbox allow-same-origin allow-scripts allow-storage-access-by-user-activation allow-modals"
     />
   );
 };
