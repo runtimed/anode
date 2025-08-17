@@ -1,12 +1,21 @@
-import { SignJWT, jwtVerify, createRemoteJWKSet } from "jose";
-import { JWTPayload, decodeJwt } from "jose";
-import { Env } from "./types";
+import * as jose from "jose";
+import { type Env, type WorkerRequest } from "./types";
+import type { D1Database } from "@cloudflare/workers-types";
+import { createApiKeyProvider } from "./providers/api-key-factory.ts";
+import { createProviderContext } from "./api-key-provider.ts";
 
 export type ValidatedUser = {
   id: string;
-  email?: string;
+  email: string;
   name?: string;
+  givenName?: string;
+  familyName?: string;
   isAnonymous: boolean;
+};
+
+export type Passport = {
+  jwt: jose.JWTPayload;
+  user: ValidatedUser;
 };
 
 interface AuthPayload {
@@ -14,148 +23,92 @@ interface AuthPayload {
   runtime?: boolean;
 }
 
-export function validateProductionEnvironment(env: Env): void {
-  if (env.DEPLOYMENT_ENV === "production") {
-    if (!env.AUTH_ISSUER) {
-      throw new Error(
-        "STARTUP_ERROR: AUTH_ISSUER is required when DEPLOYMENT_ENV is production"
-      );
-    }
-    console.log("✅ Production environment validation passed");
-  } else {
-    if (env.AUTH_ISSUER) {
-      console.log("✅ Development environment passed using JWT validation");
-    } else if (env.AUTH_TOKEN && env.AUTH_TOKEN.length > 0) {
-      console.log("✅ Development environment passed using AUTH_TOKEN");
-    } else {
-      throw new Error(
-        "STARTUP_ERROR: AUTH_ISSUER or AUTH_TOKEN must be set when DEPLOYMENT_ENV is development"
-      );
-    }
+export function extractBearerToken(request: WorkerRequest): string | null {
+  const authHeader = request.headers.get("Authorization");
+  if (!authHeader || !authHeader.toLowerCase().startsWith("bearer ")) {
+    return null;
   }
+  return authHeader.substring(7);
 }
 
-export function determineAuthType(
-  payload: AuthPayload,
-  env: Env
-): "access_token" | "auth_token" {
-  try {
-    decodeJwt(payload.authToken);
-    return "access_token";
-  } catch {}
-  const allowAuthToken =
-    env.AUTH_TOKEN && (payload.runtime || env.DEPLOYMENT_ENV !== "production");
-  if (!allowAuthToken) {
-    throw new Error("INVALID_AUTH_TOKEN: Unknown authorization method");
+export function getPassport(
+  request: WorkerRequest,
+  env: Env,
+  verify?: jose.JWTVerifyOptions
+): Promise<Passport> {
+  const token = extractBearerToken(request);
+  if (!token) {
+    throw new jose.errors.JWTInvalid("Missing Authorization header");
   }
-  return "auth_token";
+  return parseToken(token, env, verify);
+}
+
+export async function parseToken(
+  token: string,
+  env: Env,
+  verify?: jose.JWTVerifyOptions
+): Promise<Passport> {
+  const decoded = jose.decodeJwt(token);
+  if (decoded.iss !== env.AUTH_ISSUER) {
+    throw new jose.errors.JWTInvalid("Invalid issuer");
+  }
+  const jwks = jose.createRemoteJWKSet(
+    new URL(`${env.AUTH_ISSUER}/.well-known/jwks.json`),
+    { [jose.customFetch]: env.customFetch }
+  );
+  const { payload: jwt } = await jose.jwtVerify(token, jwks, {
+    algorithms: ["RS256"],
+    issuer: env.AUTH_ISSUER,
+    ...verify,
+  });
+  const { sub, email } = jwt;
+  if (!(typeof sub === "string") || !sub) {
+    throw new jose.errors.JWTInvalid("Invalid sub claim");
+  }
+
+  if (!(typeof email === "string") || !sub) {
+    throw new jose.errors.JWTInvalid("Invalid email claim");
+  }
+
+  const name = getDisplayName(jwt);
+  const givenName =
+    typeof jwt.given_name === "string" ? jwt.given_name : undefined;
+  const familyName =
+    typeof jwt.family_name === "string" ? jwt.family_name : undefined;
+
+  const user: ValidatedUser = {
+    id: sub,
+    email,
+    name,
+    givenName,
+    familyName,
+    isAnonymous: false,
+  };
+  return { jwt, user };
 }
 
 export async function validateAuthPayload(
   payload: AuthPayload,
   env: Env
 ): Promise<ValidatedUser> {
-  const authType = determineAuthType(payload, env);
-  if (authType === "access_token") {
-    return await validateOAuthToken(payload, env);
-  }
-  return validateHardcodedAuthToken(payload, env);
-}
-
-async function validateHardcodedAuthToken(
-  payload: AuthPayload,
-  env: Env
-): Promise<ValidatedUser> {
-  // We don't have crypto.subtle.timingSafeEqual available everywere (such as tests)
-  // and we need some way of doing constant-time evaluation of secrets
-  // Since we are already using jwts elsewhere, we can re-use the crypto algorithms here
-  // to do the same thing
-  // The algorithm is straightforward: Generate two jwts signed with the two secrets.
-  // If we can verify the jwt with both secrets, then the secrets must be the same
-  // Or if not the same, then computationally impractical to find a hash collision
-  // TL;DR: This function is a very roundabout way of checking if env.AUTH_TOKEN === payload.authToken
-  const jwtBuilder = new SignJWT({ sub: "example-user" }).setProtectedHeader({
-    alg: "HS256",
-  });
-  const expectedSecret = new TextEncoder().encode(env.AUTH_TOKEN);
-  const actualSecret = new TextEncoder().encode(payload.authToken);
-  const jwt = await jwtBuilder.sign(expectedSecret);
-
-  try {
-    await jwtVerify(jwt, expectedSecret, {
-      algorithms: ["HS256"],
-    });
-  } catch (error) {
-    // This should work because we're just verifying the JWT we just created, with the same secret
-    throw new Error(
-      "INVALID_AUTH_TOKEN: Unexpected error validating the AUTH_TOKEN"
-    );
+  const user = await validateOAuthToken(payload, env);
+  // Upsert user to registry for all endpoints (GraphQL, LiveStore, REST, etc.)
+  if (!user.isAnonymous && env.DB) {
+    await upsertUser(env.DB, user);
   }
 
-  try {
-    await jwtVerify(jwt, actualSecret, {
-      algorithms: ["HS256"],
-    });
-  } catch (error) {
-    throw new Error("INVALID_AUTH_TOKEN: Authentication failed");
-  }
-
-  if (payload.runtime) {
-    console.log("✅ Authenticated runtime agent with service token");
-    return {
-      id: "runtime-agent",
-      name: "Runtime Agent",
-      isAnonymous: false,
-    };
-  }
-  return {
-    id: "local-dev-user",
-    email: "local@example.com",
-    name: "Local Development User",
-    isAnonymous: true,
-  };
+  return user;
 }
 
 async function validateOAuthToken(
   payload: AuthPayload,
   env: Env
 ): Promise<ValidatedUser> {
-  const JWKS = createRemoteJWKSet(
-    new URL(`${env.AUTH_ISSUER}/.well-known/jwks.json`)
-  );
-
-  let jwt: JWTPayload;
-  try {
-    const resp = await jwtVerify(payload.authToken, JWKS, {
-      algorithms: ["RS256"],
-      issuer: env.AUTH_ISSUER,
-    });
-    jwt = resp.payload;
-  } catch (error) {
-    const errorMessage =
-      error instanceof Error ? error.message : "Unknown error";
-    throw new Error(`VALIDATE_JWT_ERROR: ${errorMessage}`);
-  }
-
-  const { sub } = jwt;
-  if (!(typeof sub === "string")) {
-    throw new Error("INVALID_JWT_TOKEN: JWT missing sub claim");
-  }
-
-  const email = typeof jwt.email === "string" ? jwt.email : undefined;
-  const name = getDisplayName(jwt);
-
-  const user: ValidatedUser = {
-    id: sub,
-    email,
-    name,
-    isAnonymous: false,
-  };
-  console.log("🔑 Validated user", user);
+  const { user } = await parseToken(payload.authToken, env);
   return user;
 }
 
-const getDisplayName = (jwt: JWTPayload): string => {
+const getDisplayName = (jwt: jose.JWTPayload): string => {
   if (typeof jwt.name === "string") {
     return jwt.name;
   }
@@ -182,3 +135,138 @@ const getDisplayName = (jwt: JWTPayload): string => {
 
   return name;
 };
+
+/**
+ * Upsert a user record from authentication data
+ * Updates existing users or creates new ones
+ */
+async function upsertUser(db: D1Database, user: ValidatedUser): Promise<void> {
+  try {
+    const now = new Date().toISOString();
+
+    // Check if user exists
+    const existing = await db
+      .prepare("SELECT id, first_seen_at FROM users WHERE id = ?")
+      .bind(user.id)
+      .first<{ id: string; first_seen_at: string }>();
+
+    if (existing) {
+      // Update existing user
+      const updates: string[] = [];
+      const bindings: unknown[] = [];
+
+      // Always update email (in case it changed)
+      updates.push("email = ?");
+      bindings.push(user.email);
+
+      if (user.givenName) {
+        updates.push("given_name = ?");
+        bindings.push(user.givenName);
+      }
+
+      if (user.familyName) {
+        updates.push("family_name = ?");
+        bindings.push(user.familyName);
+      }
+
+      updates.push("last_seen_at = ?", "updated_at = ?");
+      bindings.push(now, now, user.id);
+
+      await db
+        .prepare(
+          `
+          UPDATE users
+          SET ${updates.join(", ")}
+          WHERE id = ?
+        `
+        )
+        .bind(...bindings)
+        .run();
+    } else {
+      // Create new user
+      await db
+        .prepare(
+          `
+          INSERT INTO users (
+            id, email, given_name, family_name,
+            first_seen_at, last_seen_at, updated_at
+          ) VALUES (?, ?, ?, ?, ?, ?, ?)
+        `
+        )
+        .bind(
+          user.id,
+          user.email,
+          user.givenName || null,
+          user.familyName || null,
+          now,
+          now,
+          now
+        )
+        .run();
+    }
+  } catch (error) {
+    console.error("Failed to upsert user:", {
+      userId: user.id,
+      error: error instanceof Error ? error.message : "Unknown error",
+    });
+    // Don't throw - authentication should still succeed even if user registry fails
+  }
+}
+
+/**
+ * Extract auth token from Authorization header
+ */
+export function extractAuthToken(request: Request): string | null {
+  const authHeader = request.headers.get("Authorization");
+  if (authHeader?.startsWith("Bearer ")) {
+    return authHeader.replace("Bearer ", "");
+  }
+
+  return null;
+}
+
+/**
+ * Centralized user validation supporting both API keys and OIDC tokens
+ * Returns ValidatedUser on success, null on failure (no throwing)
+ */
+export async function getValidatedUser(
+  authToken: string | null,
+  env: Env
+): Promise<ValidatedUser | null> {
+  if (!authToken) {
+    return null;
+  }
+
+  try {
+    // Try API key authentication first
+    const apiKeyProvider = createApiKeyProvider(env);
+    const providerContext = createProviderContext(env, authToken);
+
+    if (apiKeyProvider.isApiKey(providerContext)) {
+      const passport = await apiKeyProvider.validateApiKey(providerContext);
+      return passport.user;
+    }
+
+    // Fallback to OIDC/service token validation
+    return await validateAuthPayload({ authToken }, env);
+  } catch (error) {
+    // Auth failed - return null instead of throwing
+    console.debug(
+      "Auth validation failed:",
+      error instanceof Error ? error.message : String(error)
+    );
+    return null;
+  }
+}
+
+/**
+ * Extract and validate user in one step
+ * Convenience function combining extractAuthToken + getValidatedUser
+ */
+export async function extractAndValidateUser(
+  request: Request,
+  env: Env
+): Promise<ValidatedUser | null> {
+  const authToken = extractAuthToken(request);
+  return await getValidatedUser(authToken, env);
+}

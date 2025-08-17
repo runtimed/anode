@@ -1,110 +1,41 @@
-import { tables } from "@runt/schema";
-import React from "react";
-
-import { AiCell } from "./AiCell.js";
-import { CodeCell } from "./CodeCell.js";
-import { MarkdownCell } from "./MarkdownCell.js";
-import { SqlCell } from "./SqlCell.js";
-
+import { queries } from "@/schema";
+import React, { memo } from "react";
 import { ErrorBoundary } from "react-error-boundary";
-
-type CellType = typeof tables.cells.Type;
+import { useQuery } from "@livestore/react";
+import { ExecutableCell } from "./ExecutableCell.js";
+import { MarkdownCell } from "./MarkdownCell.js";
 
 interface CellProps {
-  cell: CellType;
-  onDeleteCell: () => void;
-  onMoveUp: () => void;
-  onMoveDown: () => void;
-  onFocusNext?: () => void;
-  onFocusPrevious?: () => void;
-  autoFocus?: boolean;
-  onFocus?: () => void;
-  contextSelectionMode?: boolean;
+  cellId: string;
+  isFocused: boolean;
+  contextSelectionMode: boolean;
 }
 
-export const Cell: React.FC<CellProps> = ({
-  cell,
-  onDeleteCell,
-  onMoveUp,
-  onMoveDown,
-  onFocusNext,
-  onFocusPrevious,
-  autoFocus = false,
-  onFocus,
-  contextSelectionMode = false,
-}) => {
-  // Route to specialized cell components
-  if (cell.cellType === "code") {
+export const Cell: React.FC<CellProps> = memo(
+  ({ cellId, isFocused, contextSelectionMode }) => {
+    const cell = useQuery(queries.cellQuery.byId(cellId));
+
+    if (!cell) {
+      console.warn("Asked to render a cell that does not exist");
+      return null;
+    }
+
     return (
-      <ErrorBoundary fallback={<div>Error rendering code cell</div>}>
-        <CodeCell
-          cell={cell}
-          onDeleteCell={onDeleteCell}
-          onMoveUp={onMoveUp}
-          onMoveDown={onMoveDown}
-          onFocusNext={onFocusNext}
-          onFocusPrevious={onFocusPrevious}
-          autoFocus={autoFocus}
-          onFocus={onFocus}
-          contextSelectionMode={contextSelectionMode}
-        />
+      <ErrorBoundary fallback={<div>Error rendering cell</div>}>
+        {cell.cellType === "markdown" ? (
+          <MarkdownCell
+            cell={cell}
+            autoFocus={isFocused}
+            contextSelectionMode={contextSelectionMode}
+          />
+        ) : (
+          <ExecutableCell
+            cell={cell}
+            autoFocus={isFocused}
+            contextSelectionMode={contextSelectionMode}
+          />
+        )}
       </ErrorBoundary>
     );
   }
-
-  if (cell.cellType === "sql") {
-    return (
-      <ErrorBoundary fallback={<div>Error rendering SQL cell</div>}>
-        <SqlCell
-          cell={cell}
-          onDeleteCell={onDeleteCell}
-          onMoveUp={onMoveUp}
-          onMoveDown={onMoveDown}
-          onFocusNext={onFocusNext}
-          onFocusPrevious={onFocusPrevious}
-          autoFocus={autoFocus}
-          onFocus={onFocus}
-          contextSelectionMode={contextSelectionMode}
-        />
-      </ErrorBoundary>
-    );
-  }
-
-  if (cell.cellType === "ai") {
-    return (
-      <ErrorBoundary fallback={<div>Error rendering AI cell</div>}>
-        <AiCell
-          cell={cell}
-          onDeleteCell={onDeleteCell}
-          onMoveUp={onMoveUp}
-          onMoveDown={onMoveDown}
-          onFocusNext={onFocusNext}
-          onFocusPrevious={onFocusPrevious}
-          autoFocus={autoFocus}
-          onFocus={onFocus}
-          contextSelectionMode={contextSelectionMode}
-        />
-      </ErrorBoundary>
-    );
-  }
-
-  if (cell.cellType === "markdown") {
-    return (
-      <ErrorBoundary fallback={<div>Error rendering markdown cell</div>}>
-        <MarkdownCell
-          cell={cell}
-          onDeleteCell={onDeleteCell}
-          onMoveUp={onMoveUp}
-          onMoveDown={onMoveDown}
-          onFocusNext={onFocusNext}
-          onFocusPrevious={onFocusPrevious}
-          autoFocus={autoFocus}
-          onFocus={onFocus}
-          contextSelectionMode={contextSelectionMode}
-        />
-      </ErrorBoundary>
-    );
-  }
-
-  throw new Error(`Unknown cell type: ${cell.cellType}`);
-};
+);

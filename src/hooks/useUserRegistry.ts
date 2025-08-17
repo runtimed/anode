@@ -1,7 +1,7 @@
 import { useCallback, useMemo } from "react";
 import { useQuery } from "@livestore/react";
 import { queryDb } from "@livestore/livestore";
-import { tables } from "@runt/schema";
+import { tables } from "@/schema";
 
 import { generateInitials, generateColor } from "../util/avatar.js";
 import {
@@ -107,6 +107,12 @@ export const useUserRegistry = () => {
     [presence, getUserInfo]
   );
 
+  // Memoize presentUsers to prevent reference instability
+  const presentUsers = useMemo(
+    () => presence.map((p) => getUserInfo(p.userId)),
+    [presence, getUserInfo]
+  );
+
   return {
     getUserInfo,
     getDisplayName,
@@ -114,7 +120,7 @@ export const useUserRegistry = () => {
     getUserColor,
     getUsersOnCell,
     // Provide the list of users currently present
-    presentUsers: presence.map((p) => getUserInfo(p.userId)),
+    presentUsers,
     // Provide the full registry for other UI uses
     registry: userRegistry,
   };

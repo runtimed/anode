@@ -1,15 +1,19 @@
 # This is an example file for local Worker development.
 # Copy this file to .dev.vars and fill in the values.
 # This file SHOULD NOT contain real production secrets.
+AUTH_ISSUER="http://localhost:8787/local_oidc"
 
-AUTH_TOKEN="insecure-token-change-me"
-
-AUTH_ISSUER="https://auth.stage.anaconda.com/api/auth"
+# Local authentication control
+# Set to "true" to enable local OIDC endpoints for development
+# Defaults to "false" if not set
+# WARNING: ALLOW_LOCAL_AUTH must NEVER be enabled in production environments.
+# The backend will reject startup if DEPLOYMENT_ENV=production and ALLOW_LOCAL_AUTH=true
+ALLOW_LOCAL_AUTH="true"
 
 # Note: The auth system supports two modes:
 # 1. Development mode: Uses AUTH_TOKEN (hardcoded secret string)
 # 2. Production mode: Uses AUTH_ISSUER (OIDC provider URL)
-# 
+#
 # In production mode, the frontend should be configured with:
 # - VITE_AUTH_ISSUER: The OIDC issuer URL
 # - VITE_CLIENT_ID: Your OAuth client ID

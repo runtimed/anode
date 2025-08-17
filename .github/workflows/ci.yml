@@ -60,8 +60,11 @@ jobs:
         env:
           VITE_LIVESTORE_SYNC_URL: wss://anode-docworker.rgbkrk.workers.dev/api
 
-      - name: Validate sync worker
-        run: pnpm build:sync
-
       - name: Run tests
         run: pnpm test --run
+
+      - name: Validate preview worker build
+        run: pnpm wrangler deploy --dry-run --env preview
+
+      - name: Validate production worker build
+        run: pnpm wrangler deploy --dry-run --env production

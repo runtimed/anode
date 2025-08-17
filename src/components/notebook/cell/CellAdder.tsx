@@ -1,26 +1,22 @@
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { Bot, Code, Database, FileText, Plus } from "lucide-react";
+import { useAddCell } from "@/hooks/useAddCell.js";
 
 export function CellAdder({
-  onAddCell,
   position,
   className,
 }: {
-  onAddCell: (
-    cellId?: string,
-    cellType?: "code" | "markdown" | "sql" | "ai",
-    position?: "before" | "after"
-  ) => void;
   position: "before" | "after";
   className?: string;
 }) {
+  const { addCell } = useAddCell();
   return (
     <div className={cn("flex justify-center gap-2", className)}>
       <Button
         variant="outline"
         size="sm"
-        onClick={() => onAddCell(undefined, "code", position)}
+        onClick={() => addCell(undefined, "code", position)}
         className="flex items-center gap-1.5"
       >
         <Plus className="h-3 w-3" />
@@ -30,7 +26,7 @@ export function CellAdder({
       <Button
         variant="outline"
         size="sm"
-        onClick={() => onAddCell(undefined, "markdown", position)}
+        onClick={() => addCell(undefined, "markdown", position)}
         color="yellow"
       >
         <Plus className="h-3 w-3" />
@@ -40,7 +36,7 @@ export function CellAdder({
       <Button
         variant="outline"
         size="sm"
-        onClick={() => onAddCell(undefined, "sql", position)}
+        onClick={() => addCell(undefined, "sql", position)}
         color="blue"
       >
         <Plus className="h-3 w-3" />
@@ -50,7 +46,7 @@ export function CellAdder({
       <Button
         variant="outline"
         size="sm"
-        onClick={() => onAddCell(undefined, "ai", position)}
+        onClick={() => addCell(undefined, "ai", position)}
         color="purple"
       >
         <Plus className="h-3 w-3" />

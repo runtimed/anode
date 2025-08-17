@@ -1,20 +1,18 @@
 import { Button } from "@/components/ui/button";
-import { CellData } from "@runt/schema";
+import { CellReference } from "@/schema";
 import { Plus } from "lucide-react";
+import { useAddCell } from "@/hooks/useAddCell.js";
+import { memo } from "react";
 
-export function CellBetweener({
+export const CellBetweener = memo(function CellBetweener({
   cell,
-  onAddCell,
   position = "after",
 }: {
-  cell: CellData;
-  onAddCell: (
-    cellId?: string,
-    cellType?: "code" | "markdown" | "sql" | "ai",
-    position?: "before" | "after"
-  ) => void;
+  cell: CellReference;
   position: "before" | "after";
 }) {
+  const { addCell } = useAddCell();
+
   return (
     <div className="group relative flex h-6 w-full items-center justify-center">
       <div className="absolute -left-[13px] z-10 flex h-px w-full items-center bg-transparent has-hover:bg-neutral-500">
@@ -23,7 +21,7 @@ export function CellBetweener({
           size="xs"
           className="bg-background text-gray-300 hover:bg-black hover:text-white"
           onClick={() =>
-            onAddCell(
+            addCell(
               cell.id,
               cell.cellType === "raw" ? "code" : cell.cellType,
               position
@@ -35,4 +33,4 @@ export function CellBetweener({
       </div>
     </div>
   );
-}
+});

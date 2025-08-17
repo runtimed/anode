@@ -180,7 +180,7 @@ pnpm use-runt prod
 Should update package.json to:
 
 ```json
-"@runt/schema": "jsr:^0.8.0"
+"@runt/schema": "jsr:^0.9.0"
 ```
 
 **Testing PR Changes (GitHub Reference)**:
@@ -248,13 +248,19 @@ Anode supports **Groq** as a first-class AI provider alongside OpenAI and Ollama
    pnpm dev
    ```
 
-5. **Start Runtime**: Get the runtime command from the notebook UI, then:
+5. **Start Iframe server**:
+
+   ```bash
+   pnpm dev:iframe
+   ```
+
+6. **Start Runtime**: Get the runtime command from the notebook UI, then:
 
    ```bash
    NOTEBOOK_ID=notebook-groq-$(date +%s) pnpm dev:runtime
    ```
 
-6. **Access**: Visit `http://localhost:5173` and create/open a notebook
+7. **Access**: Visit `http://localhost:5173` and create/open a notebook
 
 ### Features
 
@@ -282,8 +288,8 @@ Python runtime and AI features are handled by the separate [@runt packages](http
 | Type errors               | TypeScript catches invalid queries at compile time - check column names     |
 | Execution not working     | Check @runt runtime setup - see https://github.com/runtimed/runt            |
 | Dev server crashes        | Restart with `pnpm dev` - .env file changes are ignored to prevent crashes  |
-| Stale state               | Run `pnpm reset-storage`                                                    |
-| Build errors              | Run `pnpm build` to check for TypeScript issues                             |
+| Build errors              | Run `pnpm type-check` to check for TypeScript issues                        |
+| Wrangler issues in logs   | Run `rm -rf .wrangler`. 🚨 IMPORTANT: you will also lose your notebooks     |
 
 ## Why Anode Works
 

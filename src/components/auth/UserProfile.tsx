@@ -3,8 +3,10 @@ import { useAuth, UserInfo } from "./AuthProvider.js";
 import { useUserRegistry } from "../../hooks/useUserRegistry.js";
 import { AvatarWithDetails } from "../ui/AvatarWithDetails.js";
 import { useStore, useQuery } from "@livestore/react";
-import { events, tables } from "@runt/schema";
+import { events, tables } from "@/schema";
 import { queryDb } from "@livestore/livestore";
+import { Key } from "lucide-react";
+import { ApiKeysDialog } from "./ApiKeysDialog.js";
 
 interface UserProfileProps {
   className?: string;
@@ -34,15 +36,15 @@ const getDisplayName = (user: UserInfo): string => {
 
 const useSyncUserToLiveStore = () => {
   const { store } = useStore();
-  const { isLocalMode, user } = useAuth();
+  const { user } = useAuth();
   const { picture, sub } = user;
-  const userId = isLocalMode ? "never-match" : sub;
+  const userId = sub;
   const displayName = getDisplayName(user);
   const existingActor = useQuery(
     queryDb(tables.actors.select().where({ id: userId }))
   );
 
-  const needsInsertion = !isLocalMode && existingActor.length === 0;
+  const needsInsertion = existingActor.length === 0;
 
   useEffect(() => {
     if (needsInsertion) {
@@ -63,6 +65,7 @@ export const UserProfile: React.FC<UserProfileProps> = ({ className = "" }) => {
   useSyncUserToLiveStore();
   const { getUserInitials } = useUserRegistry();
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [isApiKeysDialogOpen, setIsApiKeysDialogOpen] = useState(false);
 
   const displayName = getDisplayName(user);
 
@@ -73,6 +76,11 @@ export const UserProfile: React.FC<UserProfileProps> = ({ className = "" }) => {
     } catch (error) {
       console.error("Sign out failed:", error);
     }
+  };
+
+  const handleApiKeysClick = () => {
+    setIsDropdownOpen(false);
+    setIsApiKeysDialogOpen(true);
   };
 
   return (
@@ -124,6 +132,14 @@ export const UserProfile: React.FC<UserProfileProps> = ({ className = "" }) => {
               </div>
 
               <button
+                onClick={handleApiKeysClick}
+                className="flex w-full items-center gap-2 px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 focus:bg-gray-100 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                <Key className="h-4 w-4" />
+                API Keys
+              </button>
+
+              <button
                 onClick={handleSignOut}
                 className="block w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 focus:bg-gray-100 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50"
               >
@@ -133,6 +149,11 @@ export const UserProfile: React.FC<UserProfileProps> = ({ className = "" }) => {
           </div>
         </>
       )}
+
+      <ApiKeysDialog
+        open={isApiKeysDialogOpen}
+        onOpenChange={setIsApiKeysDialogOpen}
+      />
     </div>
   );
 };

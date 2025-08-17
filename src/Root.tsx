@@ -13,6 +13,7 @@ import {
   removeStaticLoadingScreen,
   isLoadingScreenVisible,
 } from "./util/domUpdates.js";
+import { GraphQLClientProvider } from "./lib/graphql-client.js";
 
 // Dynamic import for FPSMeter - development tool only
 const FPSMeter = React.lazy(() =>
@@ -38,6 +39,10 @@ import { AuthGuard } from "./components/auth/AuthGuard.js";
 const AuthRedirect = React.lazy(
   () => import("./components/auth/AuthRedirect.js")
 );
+const AuthorizePage = React.lazy(
+  () => import("./components/auth/AuthorizePage.js")
+);
+
 import { AuthProvider } from "./components/auth/AuthProvider.js";
 
 import LiveStoreWorker from "./livestore.worker?worker";
@@ -45,6 +50,19 @@ import { schema } from "./schema.js";
 import { getCurrentNotebookId, getStoreId } from "./util/store-id.js";
 import { useAuth } from "./components/auth/AuthProvider.js";
 import { ErrorBoundary } from "react-error-boundary";
+import { Toaster } from "./components/ui/sonner.js";
+
+// Lazy load runbook components
+const RunbookDashboard = React.lazy(() =>
+  import("./components/runbooks/RunbookDashboard.js").then((m) => ({
+    default: m.RunbookDashboard,
+  }))
+);
+const RunbookViewer = React.lazy(() =>
+  import("./components/runbooks/RunbookViewer.tsx").then((m) => ({
+    default: m.RunbookViewer,
+  }))
+);
 
 interface NotebookAppProps {}
 
@@ -268,7 +286,7 @@ export const App: React.FC = () => {
     const checkInterval = setInterval(() => {
       if (isLoadingScreenVisible()) {
         // Check if React has rendered content
-        const rootElement = document.getElementById("root");
+        const rootElement = document.getElementById("react-app");
         const hasContent = rootElement && rootElement.children.length > 0;
 
         if (hasContent) {
@@ -312,6 +330,59 @@ export const App: React.FC = () => {
           }
         />
         <Route
+          path="/local_oidc/authorize"
+          element={
+            <Suspense
+              fallback={
+                <LoadingState
+                  variant="fullscreen"
+                  message="Preparing the rabbit hole..."
+                />
+              }
+            >
+              <AuthorizePage />
+            </Suspense>
+          }
+        />
+        <Route
+          path="/r/:ulid/*"
+          element={
+            <AuthGuard>
+              <GraphQLClientProvider>
+                <Suspense
+                  fallback={
+                    <LoadingState
+                      variant="fullscreen"
+                      message="Loading runbook..."
+                    />
+                  }
+                >
+                  <RunbookViewer />
+                </Suspense>
+              </GraphQLClientProvider>
+            </AuthGuard>
+          }
+        />
+        <Route
+          path="/r"
+          element={
+            <AuthGuard>
+              <GraphQLClientProvider>
+                <Suspense
+                  fallback={
+                    <LoadingState
+                      variant="fullscreen"
+                      message="Loading runbooks..."
+                    />
+                  }
+                >
+                  <RunbookDashboard />
+                </Suspense>
+              </GraphQLClientProvider>
+            </AuthGuard>
+          }
+        />
+        <Route
           path="/*"
           element={
             <AuthGuard>
@@ -320,6 +391,7 @@ export const App: React.FC = () => {
           }
         />
       </Routes>
+      <Toaster />
     </AuthProvider>
   );
 };

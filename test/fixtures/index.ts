@@ -11,6 +11,7 @@ export const mockCellData = {
   source: 'print("Hello, World!")',
   cellType: "code" as const,
   position: 0,
+  createdBy: "test-user",
 };
 
 export const mockRuntimeSession = {
@@ -82,13 +83,12 @@ export const mockEvents = {
     },
   },
   cellCreated: {
-    name: "v1.CellCreated",
+    name: "v2.CellCreated",
     args: {
       id: mockCellData.id,
-      notebookId: mockCellData.notebookId,
-      source: mockCellData.source,
+      fractionalIndex: "a0",
       cellType: mockCellData.cellType,
-      position: mockCellData.position,
+      createdBy: mockCellData.createdBy,
     },
   },
   executionRequested: {
@@ -201,14 +201,12 @@ export const testEnvironments = {
     NOTEBOOK_ID: "test-notebook",
     RUNTIME_ID: "test-runtime",
     LIVESTORE_SYNC_URL: "ws://localhost:8787",
-    AUTH_TOKEN: "test-token",
   },
   withSession: {
     NOTEBOOK_ID: "test-notebook",
     RUNTIME_ID: "test-runtime",
     SESSION_ID: "test-session",
     LIVESTORE_SYNC_URL: "ws://localhost:8787",
-    AUTH_TOKEN: "test-token",
   },
 };
 

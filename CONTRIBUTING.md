@@ -82,7 +82,7 @@ The `@runt/schema` package provides shared types and events between Anode and Ru
 ### Production (JSR Package)
 
 ```json
-"@runt/schema": "jsr:^0.8.0"
+"@runt/schema": "jsr:^0.9.0"
 ```
 
 Use this for stable releases and production deployments.
@@ -130,11 +130,7 @@ We use a unified Cloudflare Worker architecture that serves both the web client 
 
 The deployment process builds the web client and deploys the all-in-one worker to Cloudflare.
 
-**Note**: Before deploying, you must configure the required secrets (like `AUTH_TOKEN`, etc.) for the target environment using the `wrangler secret put` command. For example:
-
-```bash
-pnpm wrangler secret put AUTH_TOKEN --env production
-```
+**Note**: Before deploying, you must configure the required secrets for the target environment using the `wrangler secret put` command.
 
 See [DEPLOYMENT.md](./DEPLOYMENT.md) for detailed deployment instructions.
 

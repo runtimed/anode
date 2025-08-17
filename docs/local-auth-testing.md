@@ -18,11 +18,8 @@ First, set up a `.env.production` file with the following variables:
 ```
 VITE_LIVESTORE_SYNC_URL=wss://anode-docworker.rgbkrk.workers.dev/api
 
-# Disable auth token (not used in production with OIDC OAuth)
-VITE_AUTH_TOKEN=
-
 # You can change this to any runtime agent command, so long as it has access to its own auth token
-VITE_RUNTIME_COMMAND="deno run --allow-all --env-file=.env jsr:@runt/pyodide-runtime-agent@^0.8.0"
+VITE_RUNTIME_COMMAND="deno run --allow-all --env-file=.env jsr:@runt/pyodide-runtime-agent@^0.9.0"
 ```
 
 Run the development server with production environment variables (using `.env.production`):
@@ -77,17 +74,6 @@ The production OIDC issuer must have `http://localhost:5173` configured in:
 
 - **Authorized JavaScript origins**.
 - **Authorized redirect URIs** (if applicable).
-
-## Fallback Mode
-
-If you cannot configure production OAuth locally:
-
-```bash
-# In .env.local
-VITE_AUTH_TOKEN="local-dev-token"
-```
-
-This bypasses OIDC auth entirely but will not allow you to test session management improvements.
 
 ## Commands Summary
 

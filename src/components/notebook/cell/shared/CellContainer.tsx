@@ -1,4 +1,4 @@
-import { tables } from "@runt/schema";
+import { tables } from "@/schema";
 import { forwardRef, ReactNode } from "react";
 import "./PresenceIndicators.css";
 
@@ -28,6 +28,7 @@ export const CellContainer = forwardRef<HTMLDivElement, CellContainerProps>(
     return (
       <div
         ref={ref}
+        data-cell-id={cell.id}
         className={`cell-container group relative pt-2 transition-all duration-200 ${
           autoFocus && !contextSelectionMode
             ? focusBgColor

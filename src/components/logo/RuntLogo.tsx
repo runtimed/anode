@@ -14,6 +14,8 @@ interface RuntLogoProps {
   animation?: string;
   /** Unique filter ID to avoid conflicts when multiple logos are on the same page */
   filterId?: string;
+  /** Variant of the logo - 'circle' for background circle, 'portal' for black hole */
+  variant?: "circle" | "portal";
 }
 
 /**
@@ -31,12 +33,54 @@ export const RuntLogo: React.FC<RuntLogoProps> = ({
   className = "",
   animation = "",
   filterId,
+  variant = "circle",
 }) => {
   const isAnimated = animated && energized;
 
   return (
     <div className={`relative ${size} ${animation} ${className}`}>
-      <PixelatedCircle className="absolute inset-0" filterId={filterId} />
+      {variant === "circle" ? (
+        <PixelatedCircle className="absolute inset-0" filterId={filterId} />
+      ) : (
+        <div
+          className="absolute"
+          style={{
+            left: "37%",
+            top: "63%",
+            width: "119%",
+            height: "119%",
+            transform: "translate(-50%, -50%)",
+          }}
+        >
+          <svg
+            width="100%"
+            height="100%"
+            viewBox="0 0 200 200"
+            style={{ transformOrigin: "center center" }}
+          >
+            <defs>
+              <filter id={filterId || "pixelate-portal"}>
+                <feMorphology
+                  operator="erode"
+                  radius="2"
+                  in="SourceGraphic"
+                  result="morphed"
+                />
+                <feComponentTransfer in="morphed">
+                  <feFuncA type="discrete" tableValues="0 1" />
+                </feComponentTransfer>
+              </filter>
+            </defs>
+            <circle
+              cx="100"
+              cy="100"
+              r="95"
+              fill="#000000"
+              filter={`url(#${filterId || "pixelate-portal"})`}
+            />
+          </svg>
+        </div>
+      )}
 
       <img
         src="/shadow.png"

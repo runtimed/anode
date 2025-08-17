@@ -1,171 +1,184 @@
 import { cn } from "@/lib/utils";
 import { KeyBinding } from "@codemirror/view";
-import * as Dialog from "@radix-ui/react-dialog";
-import { tables } from "@runt/schema";
+import { SupportedLanguage } from "@/types/misc.js";
 import { Maximize2, Minimize2 } from "lucide-react";
-import { useState } from "react";
+import {
+  useState,
+  useEffect,
+  useRef,
+  forwardRef,
+  useImperativeHandle,
+} from "react";
 import { Button } from "@/components/ui/button";
-import { CodeMirrorEditor } from "@/components/notebook/codemirror/CodeMirrorEditor";
+import {
+  CodeMirrorEditor,
+  CodeMirrorEditorRef,
+} from "@/components/notebook/codemirror/CodeMirrorEditor";
 import { ErrorBoundary } from "react-error-boundary";
 
 const ErrorFallback = () => {
   return <div>Error rendering editor</div>;
 };
 
-export function Editor({
-  localSource,
-  handleSourceChange,
-  handleFocus,
-  onBlur,
-  cell,
-  autoFocus,
-  keyMap,
-}: {
+export interface EditorRef {
+  focus: () => void;
+  setCursorPosition: (position: "start" | "end") => void;
+  getEditor: () => any;
+}
+
+interface EditorProps {
   localSource: string;
   handleSourceChange: (source: string) => void;
   onBlur: () => void;
   handleFocus: () => void;
-  cell: typeof tables.cells.Type;
+  language?: SupportedLanguage;
+  placeholder?: string;
+  enableLineWrapping?: boolean;
   autoFocus: boolean;
   keyMap: KeyBinding[];
-}) {
-  const [isMaximized, setIsMaximized] = useState(false);
+}
 
-  if (!isMaximized) {
-    return (
-      <div className={cn("relative min-h-[1.5rem]")}>
-        <ErrorBoundary FallbackComponent={ErrorFallback}>
-          <CodeMirrorEditor
-            className="text-base sm:text-sm"
-            language={languageFromCellType(cell.cellType)}
-            placeholder={placeholderFromCellType(cell.cellType)}
-            value={localSource}
-            onValueChange={handleSourceChange}
-            autoFocus={autoFocus}
-            onFocus={handleFocus}
-            keyMap={keyMap}
-            onBlur={onBlur}
-            enableLineWrapping={cell.cellType === "markdown"}
-          />
-        </ErrorBoundary>
-        <MaxMinButton
-          className="absolute top-1 right-1 sm:hidden"
-          isMaximized={isMaximized}
-          setIsMaximized={setIsMaximized}
-        />
-      </div>
+export const Editor = forwardRef<EditorRef, EditorProps>(
+  (
+    {
+      localSource,
+      handleSourceChange,
+      handleFocus,
+      onBlur,
+      language,
+      placeholder,
+      enableLineWrapping,
+      autoFocus,
+      keyMap,
+    },
+    ref
+  ) => {
+    const [isMaximized, setIsMaximized] = useState(false);
+    const normalEditorRef = useRef<CodeMirrorEditorRef>(null);
+    const maximizedEditorRef = useRef<CodeMirrorEditorRef>(null);
+
+    // Expose methods via ref - forward to the active editor
+    useImperativeHandle(
+      ref,
+      () => ({
+        focus: () => {
+          const activeEditor = isMaximized
+            ? maximizedEditorRef.current
+            : normalEditorRef.current;
+          activeEditor?.focus();
+        },
+        setCursorPosition: (position: "start" | "end") => {
+          const activeEditor = isMaximized
+            ? maximizedEditorRef.current
+            : normalEditorRef.current;
+          activeEditor?.setCursorPosition(position);
+        },
+        getEditor: () => {
+          const activeEditor = isMaximized
+            ? maximizedEditorRef.current
+            : normalEditorRef.current;
+          return activeEditor?.getEditor();
+        },
+      }),
+      [isMaximized]
     );
-  }
 
-  return (
-    <>
-      <Dialog.Root defaultOpen={true} onOpenChange={setIsMaximized}>
-        <div className={cn("relative min-h-[1.5rem]")}>
-          {/* Duplicate editor for dialog to prevent layout shift */}
+    // Handle escape key to close maximized editor
+    useEffect(() => {
+      const handleEscape = (e: KeyboardEvent) => {
+        if (e.key === "Escape" && isMaximized) {
+          setIsMaximized(false);
+        }
+      };
+
+      if (isMaximized) {
+        document.addEventListener("keydown", handleEscape);
+        return () => document.removeEventListener("keydown", handleEscape);
+      }
+    }, [isMaximized]);
+
+    // Handle clicking outside to close maximized editor
+    const handleBackdropClick = (e: React.MouseEvent) => {
+      if (e.target === e.currentTarget) {
+        setIsMaximized(false);
+      }
+    };
+
+    return (
+      <>
+        {/* Normal editor container */}
+        <div
+          className={cn("relative min-h-[1.5rem]", isMaximized && "opacity-20")}
+        >
           <ErrorBoundary FallbackComponent={ErrorFallback}>
             <CodeMirrorEditor
+              ref={normalEditorRef}
+              key="editor"
               className="text-base sm:text-sm"
-              language={languageFromCellType(cell.cellType)}
-              placeholder={placeholderFromCellType(cell.cellType)}
+              language={language}
+              placeholder={placeholder}
               value={localSource}
-              enableLineWrapping={cell.cellType === "markdown"}
+              onValueChange={handleSourceChange}
+              autoFocus={autoFocus && !isMaximized}
+              onFocus={handleFocus}
+              keyMap={keyMap}
+              onBlur={onBlur}
+              enableLineWrapping={enableLineWrapping}
             />
           </ErrorBoundary>
-          <MaxMinButton
-            className="absolute top-1 right-1 sm:hidden"
-            isMaximized={isMaximized}
-            setIsMaximized={setIsMaximized}
-          />
-        </div>
-        <Dialog.Portal>
-          <Dialog.Overlay
-            className="fixed inset-0 z-50 bg-black/20 backdrop-blur-sm"
-            onClick={() => setIsMaximized(false)}
-          />
-          <Dialog.Content
-            className={cn(
-              "animate-in fade-in slide-in-from-top-5 fixed top-0 z-50 w-full duration-200 outline-none"
-            )}
-            onOpenAutoFocus={(e) => e.preventDefault()}
-            onInteractOutside={() => setIsMaximized(false)}
-            onEscapeKeyDown={() => setIsMaximized(false)}
+          <Button
+            variant="ghost"
+            size="sm"
+            className="absolute top-1 right-1 h-6 w-6 p-1 sm:hidden"
+            onClick={() => setIsMaximized(true)}
+            aria-label="Maximize editor"
           >
-            <Dialog.Title className="sr-only">Editor</Dialog.Title>
-            <ErrorBoundary FallbackComponent={ErrorFallback}>
-              <CodeMirrorEditor
-                className="bg-background relative text-base sm:text-sm"
-                maxHeight="100svh"
-                language={languageFromCellType(cell.cellType)}
-                placeholder={placeholderFromCellType(cell.cellType)}
-                value={localSource}
-                onValueChange={handleSourceChange}
-                autoFocus={true}
-                onFocus={handleFocus}
-                onBlur={onBlur}
-                enableLineWrapping={cell.cellType === "markdown"}
-              />
-            </ErrorBoundary>
-            <MaxMinButton
-              className="top-1 right-1"
-              isMaximized={isMaximized}
-              setIsMaximized={setIsMaximized}
-            />
-          </Dialog.Content>
-        </Dialog.Portal>
-      </Dialog.Root>
-    </>
-  );
-}
+            <Maximize2 className="h-3 w-3" />
+          </Button>
+        </div>
 
-function MaxMinButton({
-  className,
-  isMaximized,
-  setIsMaximized,
-}: {
-  className?: string;
-  isMaximized: boolean;
-  setIsMaximized: (isMaximized: boolean) => void;
-}) {
-  return (
-    <Button
-      variant="ghost"
-      size="sm"
-      className={cn(className, "absolute top-1 right-1 h-6 w-6 p-1")}
-      onClick={() => setIsMaximized(!isMaximized)}
-      aria-label={isMaximized ? "Minimize editor" : "Maximize editor"}
-    >
-      {isMaximized ? (
-        <Minimize2 className="h-3 w-3" />
-      ) : (
-        <Maximize2 className="h-3 w-3" />
-      )}
-    </Button>
-  );
-}
-
-function languageFromCellType(
-  cellType: (typeof tables.cells.Type)["cellType"]
-) {
-  if (cellType === "code") {
-    // TODO: Pull from runtime agent session and/or notebook
-    return "python";
-  } else if (cellType === "markdown") {
-    return "markdown";
-  } else if (cellType === "ai") {
-    return "markdown";
+        {/* Maximized editor overlay */}
+        {isMaximized && (
+          <div
+            className="fixed inset-0 z-50 bg-black/20 backdrop-blur-sm"
+            onClick={handleBackdropClick}
+          >
+            <div
+              className="bg-background absolute inset-0"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <ErrorBoundary FallbackComponent={ErrorFallback}>
+                <CodeMirrorEditor
+                  ref={maximizedEditorRef}
+                  key="maximized-editor"
+                  className="bg-background h-full text-base sm:text-sm"
+                  maxHeight="100vh"
+                  language={language}
+                  placeholder={placeholder}
+                  value={localSource}
+                  onValueChange={handleSourceChange}
+                  autoFocus={true}
+                  onFocus={handleFocus}
+                  keyMap={keyMap}
+                  onBlur={onBlur}
+                  enableLineWrapping={enableLineWrapping}
+                />
+              </ErrorBoundary>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="absolute top-1 right-1 h-6 w-6 p-1"
+                onClick={() => setIsMaximized(false)}
+                aria-label="Minimize editor"
+              >
+                <Minimize2 className="h-3 w-3" />
+              </Button>
+            </div>
+          </div>
+        )}
+      </>
+    );
   }
-  return undefined;
-}
+);
 
-function placeholderFromCellType(
-  cellType: (typeof tables.cells.Type)["cellType"]
-) {
-  if (cellType === "code") {
-    return "Enter your code here...";
-  } else if (cellType === "markdown") {
-    return "Enter markdown...";
-  } else if (cellType === "ai") {
-    return "Ask me anything about your notebook, data, or analysis...";
-  }
-  return "Enter raw text...";
-}
+Editor.displayName = "Editor";

@@ -1,6 +1,9 @@
 import React, { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { LogIn, ExternalLink } from "lucide-react";
 import { getOpenIdService, RedirectUrls } from "../../services/openid";
+import { redirectHelper } from "./redirect-url-helper";
+import psl from "psl";
 
 // DEV MODE: Design testing states
 const DESIGN_TEST_MODE = {
@@ -16,15 +19,42 @@ interface LoginPromptProps {
   onButtonHover?: (hovered: boolean) => void;
 }
 
+function getAuthProviderName(url: URL | null | undefined): string | null {
+  if (!url) {
+    return null;
+  }
+  const hostname = url.hostname;
+
+  const parsed = psl.parse(hostname);
+
+  // Check if parsing failed (returned ErrorResult)
+  if ("error" in parsed) {
+    return null;
+  }
+
+  // Now we know it's a ParsedDomain
+  if (!parsed.domain) {
+    return null;
+  }
+
+  const domainParts = parsed.domain.split(".");
+  const mainPart = domainParts[0];
+
+  return mainPart.charAt(0).toUpperCase() + mainPart.slice(1);
+}
+
 const LoginPrompt: React.FC<LoginPromptProps> = ({
   error,
   setError,
   onButtonHover,
 }) => {
   const openIdService = getOpenIdService();
+  const navigate = useNavigate();
   const [redirectUrls, setRedirectUrls] = useState<RedirectUrls | null>(null);
   const [action, setAction] = useState<"login" | "registration" | null>(null);
   const [loading, setLoading] = useState(false);
+
+  const providerName = getAuthProviderName(redirectUrls?.loginUrl);
 
   useEffect(() => {
     // Skip real auth service in design test mode
@@ -51,13 +81,22 @@ const LoginPrompt: React.FC<LoginPromptProps> = ({
         setRedirectUrls(urls);
       },
       error: (error) => {
-        setError(error.message);
+        if (
+          error.message.includes("unexpected response content-type") &&
+          providerName === null
+        ) {
+          setError(
+            "ALLOW_LOCAL_AUTH not enabled, or you should check that AUTH_ISSUER is set in your .dev.vars file"
+          );
+        } else {
+          setError(error.message);
+        }
         setLoading(false);
       },
     });
 
     return () => subscription.unsubscribe();
-  }, [openIdService, error, setError]);
+  }, [openIdService, error, setError, providerName]);
 
   useEffect(() => {
     if (action && redirectUrls) {
@@ -73,9 +112,28 @@ const LoginPrompt: React.FC<LoginPromptProps> = ({
           : redirectUrls.registrationUrl;
       setAction(null);
       setLoading(false);
-      window.location.href = url.toString();
+
+      redirectHelper.saveNotebookId();
+
+      // Check if it's an internal route (local auth) or external URL
+      const currentOrigin = window.location.origin;
+      const targetOrigin = url.origin;
+
+      if (currentOrigin === targetOrigin) {
+        // Internal route - use React Router for smooth transition
+        navigate(url.pathname + url.search);
+      } else {
+        // External URL - use window.location for full page navigation
+        if ("startViewTransition" in document) {
+          document.startViewTransition(() => {
+            window.location.href = url.toString();
+          });
+        } else {
+          window.location.href = url.toString();
+        }
+      }
     }
-  }, [action, redirectUrls]);
+  }, [action, redirectUrls, navigate]);
 
   const handler = (action: "login" | "registration") => {
     // In design test mode, just simulate loading
@@ -99,6 +157,8 @@ const LoginPrompt: React.FC<LoginPromptProps> = ({
     }
   };
 
+  const signinText = providerName ? `Sign In with ${providerName}` : "Sign In";
+
   return (
     <div className="auth-wrapper mx-auto flex max-w-[400px] flex-col items-center space-y-8">
       {/* Primary action button */}
@@ -115,7 +175,7 @@ const LoginPrompt: React.FC<LoginPromptProps> = ({
             <div className="h-5 w-5 animate-spin rounded-full border-2 border-white/20 border-t-white" />
           ) : (
             <>
-              <span>Sign In with Anaconda</span>
+              <span>{signinText}</span>
               <LogIn className="h-5 w-5 transition-transform group-hover:translate-x-0.5" />
             </>
           )}
@@ -139,8 +199,17 @@ const LoginPrompt: React.FC<LoginPromptProps> = ({
           data-qa-id="registration-button"
           disabled={loading}
         >
-          <span>Create your account</span>
-          <ExternalLink className="h-4 w-4 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+          {loading && action === "registration" ? (
+            <>
+              <div className="border-primary/20 border-t-primary h-4 w-4 animate-spin rounded-full border-2" />
+              <span>Creating account...</span>
+            </>
+          ) : (
+            <>
+              <span>Create your account</span>
+              <ExternalLink className="h-4 w-4 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+            </>
+          )}
         </button>
       </div>
     </div>

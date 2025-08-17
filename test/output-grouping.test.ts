@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { groupConsecutiveStreamOutputs } from "../src/util/output-grouping.js";
-import { OutputData } from "@runt/schema";
+import { OutputData } from "../src/schema";
 
 // Helper to create minimal test objects with only the fields the function uses
 function createTerminalOutput(
@@ -38,12 +38,12 @@ function createMultimediaOutput(
     streamName: null,
     executionCount: outputType === "multimedia_result" ? 1 : null,
     displayId: outputType === "multimedia_display" ? null : null,
-    data: "test data",
+    data: { "text/plain": { data: "test data", type: "inline" } },
     artifactId: null,
     mimeType: "text/plain",
     metadata: null,
-    representations: { "text/plain": "test data" },
-  } as OutputData;
+    representations: null,
+  } as any as OutputData;
 }
 
 describe("groupConsecutiveStreamOutputs", () => {

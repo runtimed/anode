@@ -45,10 +45,10 @@ describe("Edge Cases and Stress Tests", () => {
         cells.push(cellId);
 
         store.commit(
-          events.cellCreated({
+          events.cellCreated2({
             id: cellId,
             cellType: "code",
-            position: i,
+            fractionalIndex: `a${i.toString(36)}`,
             createdBy: "stress-test",
           })
         );
@@ -90,10 +90,10 @@ describe("Edge Cases and Stress Tests", () => {
         queueIds.push(queueId);
 
         store.commit(
-          events.cellCreated({
+          events.cellCreated2({
             id: cellId,
             cellType: "code",
-            position: i,
+            fractionalIndex: `a${i.toString(36)}`,
             createdBy: "stress-test",
           })
         );
@@ -174,46 +174,46 @@ describe("Edge Cases and Stress Tests", () => {
       const cellId = "position-test-cell";
 
       store.commit(
-        events.cellCreated({
+        events.cellCreated2({
           id: cellId,
           cellType: "code",
-          position: 0,
+          fractionalIndex: "a0",
           createdBy: "test-user",
         })
       );
 
-      // Test moving to very large position
+      // Test moving to very large fractional index
       store.commit(
-        events.cellMoved({
+        events.cellMoved2({
           id: cellId,
-          newPosition: Number.MAX_SAFE_INTEGER,
+          fractionalIndex: "zzzzz",
         })
       );
 
       let cell = store.query(tables.cells.select().where({ id: cellId }))[0];
-      expect(cell.position).toBe(Number.MAX_SAFE_INTEGER);
+      expect(cell.fractionalIndex).toBe("zzzzz");
 
-      // Test moving to negative position
+      // Test moving to very small fractional index
       store.commit(
-        events.cellMoved({
+        events.cellMoved2({
           id: cellId,
-          newPosition: -1000,
+          fractionalIndex: "a",
         })
       );
 
       cell = store.query(tables.cells.select().where({ id: cellId }))[0];
-      expect(cell.position).toBe(-1000);
+      expect(cell.fractionalIndex).toBe("a");
 
-      // Test moving to zero
+      // Test moving to middle position
       store.commit(
-        events.cellMoved({
+        events.cellMoved2({
           id: cellId,
-          newPosition: 0,
+          fractionalIndex: "m0",
         })
       );
 
       cell = store.query(tables.cells.select().where({ id: cellId }))[0];
-      expect(cell.position).toBe(0);
+      expect(cell.fractionalIndex).toBe("m0");
     });
 
     it("should handle very large output data", async () => {
@@ -221,10 +221,10 @@ describe("Edge Cases and Stress Tests", () => {
       const outputId = "large-output";
 
       store.commit(
-        events.cellCreated({
+        events.cellCreated2({
           id: cellId,
           cellType: "code",
-          position: 0,
+          fractionalIndex: "a0",
           createdBy: "test-user",
         })
       );
@@ -290,10 +290,10 @@ describe("Edge Cases and Stress Tests", () => {
 
         // Test in cell creation
         store.commit(
-          events.cellCreated({
+          events.cellCreated2({
             id: cellId,
             cellType: "code",
-            position: i,
+            fractionalIndex: `a${i.toString(36)}`,
             createdBy: testString,
           })
         );
@@ -426,10 +426,10 @@ describe("Edge Cases and Stress Tests", () => {
         const queueId = `agg-queue-${i}`;
 
         store.commit(
-          events.cellCreated({
+          events.cellCreated2({
             id: cellId,
             cellType: i % 2 === 0 ? "code" : "markdown",
-            position: i,
+            fractionalIndex: `a${i.toString(36)}`,
             createdBy: "test-user",
           })
         );
@@ -460,11 +460,13 @@ describe("Edge Cases and Stress Tests", () => {
 
       // Test ordering
       const cellsByPosition = store.query(
-        tables.cells.select().orderBy("position", "asc")
+        tables.cells.select().orderBy("fractionalIndex", "asc")
       );
       expect(cellsByPosition).toHaveLength(cellCount);
-      expect(cellsByPosition[0].position).toBe(0);
-      expect(cellsByPosition[cellCount - 1].position).toBe(cellCount - 1);
+      expect(cellsByPosition[0].fractionalIndex).toBe("a0");
+      expect(cellsByPosition[cellCount - 1].fractionalIndex).toBe(
+        `a${(cellCount - 1).toString(36)}`
+      );
 
       const queueByStatus = store.query(
         tables.executionQueue.select().orderBy("id", "desc")
@@ -481,10 +483,10 @@ describe("Edge Cases and Stress Tests", () => {
       const queueId = "error-queue";
 
       store.commit(
-        events.cellCreated({
+        events.cellCreated2({
           id: cellId,
           cellType: "code",
-          position: 0,
+          fractionalIndex: "a0",
           createdBy: "test-user",
         })
       );
@@ -553,10 +555,10 @@ describe("Edge Cases and Stress Tests", () => {
       const queueId = "termination-queue";
 
       store.commit(
-        events.cellCreated({
+        events.cellCreated2({
           id: cellId,
           cellType: "code",
-          position: 0,
+          fractionalIndex: "a0",
           createdBy: "test-user",
         })
       );
@@ -623,10 +625,10 @@ describe("Edge Cases and Stress Tests", () => {
       const outputCount = 100;
 
       store.commit(
-        events.cellCreated({
+        events.cellCreated2({
           id: cellId,
           cellType: "code",
-          position: 0,
+          fractionalIndex: "a0",
           createdBy: "test-user",
         })
       );
@@ -699,10 +701,10 @@ describe("Edge Cases and Stress Tests", () => {
       // Create maximum cells
       for (let i = 0; i < maxCells; i++) {
         store.commit(
-          events.cellCreated({
+          events.cellCreated2({
             id: `max-cell-${i}`,
             cellType: i % 3 === 0 ? "code" : i % 3 === 1 ? "markdown" : "raw",
-            position: i,
+            fractionalIndex: `a${i.toString(36)}`,
             createdBy: "test-user",
           })
         );
@@ -727,16 +729,22 @@ describe("Edge Cases and Stress Tests", () => {
       expect(notebookTitle).toBe("Large Notebook Test");
       expect(cells).toHaveLength(maxCells);
 
-      // Test querying specific ranges
-      const firstHundred = store.query(
-        tables.cells
-          .select()
-          .where({ position: { op: "<", value: 100 } })
-          .orderBy("position", "asc")
+      // Test basic ordering and existence
+      const orderedCells = store.query(
+        tables.cells.select().orderBy("fractionalIndex", "asc")
       );
-      expect(firstHundred).toHaveLength(100);
-      expect(firstHundred[0].position).toBe(0);
-      expect(firstHundred[99].position).toBe(99);
+
+      // Verify all cells are properly ordered by fractional index
+      expect(orderedCells).toHaveLength(maxCells);
+      expect(orderedCells[0].fractionalIndex).toBe("a0");
+      expect(orderedCells[0].id).toBe("max-cell-0");
+
+      // Check that fractional indices are in ascending order
+      for (let i = 1; i < Math.min(100, orderedCells.length); i++) {
+        expect(
+          orderedCells[i].fractionalIndex > orderedCells[i - 1].fractionalIndex
+        ).toBe(true);
+      }
 
       // Test querying by type
       const codeCells = store.query(
@@ -756,10 +764,10 @@ describe("Edge Cases and Stress Tests", () => {
         const cellId = `order-cell-${i}`;
         cellIds.push(cellId);
         store.commit(
-          events.cellCreated({
+          events.cellCreated2({
             id: cellId,
             cellType: "code",
-            position: i,
+            fractionalIndex: `a${i.toString(36)}`,
             createdBy: "test-user",
           })
         );
@@ -774,20 +782,20 @@ describe("Edge Cases and Stress Tests", () => {
 
         for (let i = 0; i < cellCount; i++) {
           store.commit(
-            events.cellMoved({
+            events.cellMoved2({
               id: cellIds[i],
-              newPosition: shuffledPositions[i],
+              fractionalIndex: `b${shuffledPositions[i].toString(36)}`,
             })
           );
         }
 
-        // Verify no duplicate positions
+        // Verify no duplicate fractional indices
         const cells = store.query(tables.cells.select());
-        const positions = cells
-          .map((c: any) => c.position)
-          .sort((a: number, b: number) => a - b);
-        const uniquePositions = [...new Set(positions)];
-        expect(uniquePositions).toHaveLength(cellCount);
+        const fractionalIndices = cells
+          .map((c: any) => c.fractionalIndex)
+          .sort();
+        const uniqueIndices = [...new Set(fractionalIndices)];
+        expect(uniqueIndices).toHaveLength(cellCount);
       }
     });
 
@@ -796,10 +804,10 @@ describe("Edge Cases and Stress Tests", () => {
       const queueId = "state-transition-queue";
 
       store.commit(
-        events.cellCreated({
+        events.cellCreated2({
           id: cellId,
           cellType: "code",
-          position: 0,
+          fractionalIndex: "a0",
           createdBy: "test-user",
         })
       );

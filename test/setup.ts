@@ -1,6 +1,7 @@
 import { afterAll, afterEach, beforeAll, beforeEach, vi } from "vitest";
 import { Effect, TestContext } from "effect";
 import "@testing-library/jest-dom";
+import "@testing-library/jest-dom/vitest";
 
 // Global test setup
 beforeAll(async () => {
@@ -9,7 +10,6 @@ beforeAll(async () => {
   // Set test environment variables
   process.env.NODE_ENV = "test";
   process.env.LIVESTORE_SYNC_URL = "ws://localhost:8787";
-  process.env.AUTH_TOKEN = "test-token";
   process.env.VITE_AUTH_URI = "https://auth.example.com";
   process.env.VITE_AUTH_CLIENT_ID = "test-client-id";
   process.env.VITE_AUTH_REDIRECT_URI = "http://localhost:3000/callback";
@@ -140,9 +140,12 @@ export const expectError = async <T>(
     await promise;
     throw new Error("Expected promise to reject, but it resolved");
   } catch (error) {
-    if (expectedMessage && !error.message.includes(expectedMessage)) {
+    if (
+      expectedMessage &&
+      !(error as Error).message.includes(expectedMessage)
+    ) {
       throw new Error(
-        `Expected error message to contain "${expectedMessage}", but got: ${error.message}`
+        `Expected error message to contain "${expectedMessage}", but got: ${(error as Error).message}`
       );
     }
     return error;

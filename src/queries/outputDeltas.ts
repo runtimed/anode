@@ -1,5 +1,9 @@
-import { tables } from "@runt/schema";
+import { OutputData, tables } from "@/schema";
 import { queryDb } from "@livestore/livestore";
+import { getFinalContent } from "@runt/schema";
+
+// TODO: code here is duplicated from `runt/packages/schema/queries/outputDeltas.ts`
+// Reconcile it in the future
 
 interface OutputDelta {
   id: string;
@@ -11,44 +15,29 @@ interface OutputDelta {
 /**
  * Query deltas for a given output ID, sorted by sequence number
  */
-export const outputDeltasQuery = (outputId: string) =>
+export const outputsDeltasQuery = (outputIds: readonly string[]) =>
   queryDb(
     tables.outputDeltas
       .select()
-      .where({ outputId })
+      .where({ outputId: { op: "IN", value: outputIds } })
       .orderBy("sequenceNumber", "asc"),
-    { deps: [outputId], label: "outputDeltas" }
+    { deps: outputIds, label: "outputDeltas" }
   );
 
-/**
- * Apply deltas to original content in sequence order
- */
-export const applyDeltas = (
-  originalContent: string,
-  deltas: readonly OutputDelta[]
-): string => {
-  if (deltas.length === 0) {
-    return originalContent;
-  }
-
-  return deltas.reduce((acc, delta) => {
-    return acc + delta.delta;
-  }, originalContent);
-};
-
-/**
- * Get final content with deltas applied
- */
-export const getFinalContent = (
-  originalContent: string,
-  deltas: readonly OutputDelta[]
-): { content: string; hasDeltas: boolean; deltaCount: number } => {
-  const hasDeltas = deltas.length > 0;
-  const content = applyDeltas(originalContent, deltas);
-
-  return {
-    content,
-    hasDeltas,
-    deltaCount: deltas.length,
-  };
-};
+export function processDeltas(
+  outputs: OutputData[],
+  outputDeltas: readonly OutputDelta[]
+) {
+  return outputs.map((output) => {
+    if (output.outputType === "markdown") {
+      const outputDeltasFiltered = outputDeltas.filter(
+        (delta) => delta.outputId === output.id
+      );
+      return {
+        ...output,
+        data: getFinalContent(output.data || "", outputDeltasFiltered).content,
+      };
+    }
+    return output;
+  });
+}

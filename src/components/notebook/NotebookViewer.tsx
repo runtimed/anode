@@ -1,11 +1,13 @@
+// import { toast } from "sonner";
 import { queryDb } from "@livestore/livestore";
 import { useQuery, useStore } from "@livestore/react";
-import { CellData, events, tables } from "@runt/schema";
-import React, { Suspense, useCallback } from "react";
+import { tables, queries } from "@/schema";
+
+import React, { Suspense } from "react";
 import { ErrorBoundary } from "react-error-boundary";
 
 import { NotebookTitle } from "./NotebookTitle.js";
-import { VirtualizedCellList } from "./VirtualizedCellList.js";
+import { CellList } from "./CellList.js";
 
 import { Avatar } from "@/components/ui/Avatar.js";
 import { Button } from "@/components/ui/button";
@@ -14,11 +16,13 @@ import { useAuth } from "@/components/auth/AuthProvider.js";
 import { useUserRegistry } from "@/hooks/useUserRegistry.js";
 
 import { getClientColor, getClientTypeInfo } from "@/services/userTypes.js";
-import { getDefaultAiModel, useAvailableAiModels } from "@/util/ai-models.js";
-import { Bug, BugOff, Filter, Terminal, X } from "lucide-react";
+
+import { Bug, BugOff, Filter, X } from "lucide-react";
 import { UserProfile } from "../auth/UserProfile.js";
-import { RuntimeHealthIndicator } from "./RuntimeHealthIndicator.js";
+import { RuntimeHealthIndicatorButton } from "./RuntimeHealthIndicatorButton.js";
 import { RuntimeHelper } from "./RuntimeHelper.js";
+import { focusedCellSignal$, hasManuallyFocused$ } from "./signals/focus.js";
+import { contextSelectionMode$ } from "./signals/ai-context.js";
 
 // Lazy import DebugPanel only in development
 const LazyDebugPanel = React.lazy(() =>
@@ -27,11 +31,9 @@ const LazyDebugPanel = React.lazy(() =>
   }))
 );
 
-// Import prefetch utilities
-import { prefetchOutputsAdaptive } from "@/util/prefetch.js";
 import { CellAdder } from "./cell/CellAdder.js";
 import { EmptyStateCellAdder } from "./EmptyStateCellAdder.js";
-import { MobileOmnibar } from "./MobileOmnibar.js";
+import { GitCommitHash } from "./GitCommitHash.js";
 
 interface NotebookViewerProps {
   notebookId: string;
@@ -48,252 +50,37 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
     user: { sub: userId },
   } = useAuth();
   const { presentUsers, getUserInfo, getUserColor } = useUserRegistry();
-  const { models } = useAvailableAiModels();
+  const cellReferences = useQuery(queries.cellsWithIndices$);
 
-  const cells = useQuery(
-    queryDb(tables.cells.select().orderBy("position", "asc"))
-  );
-  const lastUsedAiModel =
-    useQuery(
-      queryDb(
-        tables.notebookMetadata
-          .select()
-          .where({ key: "lastUsedAiModel" })
-          .limit(1)
-      )
-    )[0] || null;
-  const lastUsedAiProvider =
-    useQuery(
-      queryDb(
-        tables.notebookMetadata
-          .select()
-          .where({ key: "lastUsedAiProvider" })
-          .limit(1)
-      )
-    )[0] || null;
-  const metadata = useQuery(queryDb(tables.notebookMetadata.select()));
   const runtimeSessions = useQuery(
     queryDb(tables.runtimeSessions.select().where({ isActive: true }))
   );
 
   const [showRuntimeHelper, setShowRuntimeHelper] = React.useState(false);
-  const [focusedCellId, setFocusedCellId] = React.useState<string | null>(null);
-  const [contextSelectionMode, setContextSelectionMode] = React.useState(false);
-  const hasEverFocusedRef = React.useRef(false);
 
-  // Prefetch output components adaptively based on connection speed
-  React.useEffect(() => {
-    prefetchOutputsAdaptive();
-  }, []);
-
-  const addCell = useCallback(
-    (
-      cellId?: string,
-      cellType: "code" | "markdown" | "sql" | "ai" = "code",
-      position: "before" | "after" = "after"
-    ) => {
-      const newCellId = `cell-${Date.now()}-${Math.random()
-        .toString(36)
-        .slice(2)}`;
-
-      let newPosition: number;
-      if (cellId) {
-        // Find the current cell and insert after it
-        const currentCell = cells.find((c: CellData) => c.id === cellId);
-        if (currentCell) {
-          if (position === "before") {
-            newPosition = currentCell.position;
-          } else {
-            newPosition = currentCell.position + 1;
-          }
-          // Shift all subsequent cells down by 1
-          const cellsToShift = cells.filter(
-            (c: CellData) => c.position >= newPosition
-          );
-          cellsToShift.forEach((cell: CellData) => {
-            store.commit(
-              events.cellMoved({
-                id: cell.id,
-                newPosition: cell.position + 1,
-              })
-            );
-          });
-        } else {
-          // Fallback: add at end
-          newPosition =
-            Math.max(...cells.map((c: CellData) => c.position), -1) + 1;
-        }
-      } else {
-        // Add at end
-        newPosition =
-          Math.max(...cells.map((c: CellData) => c.position), -1) + 1;
-      }
-
-      // Get default AI model if creating an AI cell
-      let aiProvider, aiModel;
-      if (cellType === "ai") {
-        const defaultModel = getDefaultAiModel(
-          models,
-          lastUsedAiProvider?.value,
-          lastUsedAiModel?.value
-        );
-        if (defaultModel) {
-          aiProvider = defaultModel.provider;
-          aiModel = defaultModel.model;
-        }
-      }
-
-      store.commit(
-        events.cellCreated({
-          id: newCellId,
-          position: newPosition,
-          cellType,
-          createdBy: userId,
-          actorId: userId,
-        })
-      );
-
-      // Set default AI model for AI cells based on last used model
-      if (cellType === "ai" && aiProvider && aiModel) {
-        store.commit(
-          events.aiSettingsChanged({
-            cellId: newCellId,
-            provider: aiProvider,
-            model: aiModel,
-            settings: {
-              temperature: 0.7,
-              maxTokens: 1000,
-            },
-          })
-        );
-      }
-
-      // Prefetch output components when user creates cells
-      prefetchOutputsAdaptive();
-
-      // Focus the new cell after creation
-      setTimeout(() => setFocusedCellId(newCellId), 0);
-    },
-    [cells, store, userId, models, lastUsedAiModel, lastUsedAiProvider]
-  );
-
-  const deleteCell = useCallback(
-    (cellId: string) => {
-      store.commit(
-        events.cellDeleted({
-          id: cellId,
-          actorId: userId,
-        })
-      );
-    },
-    [store, userId]
-  );
-
-  const moveCell = useCallback(
-    (cellId: string, direction: "up" | "down") => {
-      const currentCell = cells.find((c: CellData) => c.id === cellId);
-      if (!currentCell) return;
-
-      const currentIndex = cells.findIndex((c: CellData) => c.id === cellId);
-
-      if (direction === "up" && currentIndex > 0) {
-        const targetCell = cells[currentIndex - 1];
-        if (targetCell) {
-          // Swap positions
-          store.commit(
-            events.cellMoved({
-              id: cellId,
-              newPosition: targetCell.position,
-              actorId: userId,
-            })
-          );
-          store.commit(
-            events.cellMoved({
-              id: targetCell.id,
-              newPosition: currentCell.position,
-              actorId: userId,
-            })
-          );
-        }
-      } else if (direction === "down" && currentIndex < cells.length - 1) {
-        const targetCell = cells[currentIndex + 1];
-        if (targetCell) {
-          // Swap positions
-          store.commit(
-            events.cellMoved({
-              id: cellId,
-              newPosition: targetCell.position,
-              actorId: userId,
-            })
-          );
-          store.commit(
-            events.cellMoved({
-              id: targetCell.id,
-              newPosition: currentCell.position,
-              actorId: userId,
-            })
-          );
-        }
-      }
-    },
-    [cells, store, userId]
-  );
-
-  const focusCell = useCallback((cellId: string) => {
-    setFocusedCellId(cellId);
-    hasEverFocusedRef.current = true;
-  }, []);
-
-  const focusNextCell = useCallback(
-    (currentCellId: string) => {
-      const currentIndex = cells.findIndex(
-        (c: CellData) => c.id === currentCellId
-      );
-
-      if (currentIndex < cells.length - 1) {
-        const nextCell = cells[currentIndex + 1];
-        setFocusedCellId(nextCell.id);
-      } else {
-        // At the last cell, create a new one with same cell type (but never raw)
-        const currentCell = cells[currentIndex];
-        const newCellType =
-          currentCell.cellType === "raw" ? "code" : currentCell.cellType;
-        addCell(currentCellId, newCellType);
-      }
-    },
-    [cells, addCell]
-  );
-
-  const focusPreviousCell = useCallback(
-    (currentCellId: string) => {
-      const currentIndex = cells.findIndex(
-        (c: CellData) => c.id === currentCellId
-      );
-
-      if (currentIndex > 0) {
-        const previousCell = cells[currentIndex - 1];
-        setFocusedCellId(previousCell.id);
-      }
-    },
-    [cells]
-  );
+  const focusedCellId = useQuery(focusedCellSignal$);
+  const contextSelectionMode = useQuery(contextSelectionMode$);
+  const hasManuallyFocused = useQuery(hasManuallyFocused$);
 
   // Reset focus when focused cell changes or is removed
   React.useEffect(() => {
-    if (focusedCellId && !cells.find((c: CellData) => c.id === focusedCellId)) {
-      setFocusedCellId(null);
+    if (focusedCellId && !cellReferences.find((c) => c.id === focusedCellId)) {
+      store.setSignal(focusedCellSignal$, null);
     }
-  }, [focusedCellId, cells]);
+  }, [focusedCellId, cellReferences, store]);
 
   // Focus first cell when notebook loads and has cells (but not after deletion)
   React.useEffect(() => {
-    if (!focusedCellId && cells.length > 0 && !hasEverFocusedRef.current) {
-      setFocusedCellId(cells[0].id);
-      hasEverFocusedRef.current = true;
+    if (!focusedCellId && cellReferences.length > 0 && !hasManuallyFocused) {
+      store.setSignal(focusedCellSignal$, cellReferences[0].id);
+      store.setSignal(hasManuallyFocused$, true);
     }
-  }, [focusedCellId, cells]);
+  }, [focusedCellId, cellReferences, store, hasManuallyFocused]);
 
   // cells are already sorted by position from the database query
+
+  const otherUsers = presentUsers.filter((user) => user.id !== userId);
+  const LIMIT = 5;
 
   return (
     <div className="bg-background min-h-screen">
@@ -335,54 +122,59 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
             </a>
           </div>
 
-          <div className="flex items-center gap-2">
-            <div className="flex -space-x-2">
-              {presentUsers
-                .filter((user) => user.id !== userId)
-                .map((user) => {
-                  const userInfo = getUserInfo(user.id);
-                  const clientInfo = getClientTypeInfo(user.id);
-                  const IconComponent = clientInfo.icon;
+          <div className="group/users flex items-center gap-2">
+            <div className="flex -space-x-2 group-hover/users:space-x-1">
+              {otherUsers.slice(0, LIMIT).map((user) => {
+                const userInfo = getUserInfo(user.id);
+                const clientInfo = getClientTypeInfo(user.id);
+                const IconComponent = clientInfo.icon;
 
-                  return (
-                    <div
-                      key={user.id}
-                      className="shrink-0 overflow-hidden rounded-full border-2"
-                      style={{
-                        borderColor: getClientColor(user.id, getUserColor),
-                      }}
-                      title={
-                        clientInfo.type === "user"
-                          ? (userInfo?.name ?? "Unknown User")
-                          : clientInfo.name
-                      }
-                    >
-                      {IconComponent ? (
-                        <div
-                          className={`flex size-8 items-center justify-center rounded-full ${clientInfo.backgroundColor}`}
-                        >
-                          <IconComponent
-                            className={`size-4 ${clientInfo.textColor}`}
-                          />
-                        </div>
-                      ) : userInfo?.picture ? (
-                        <img
-                          src={userInfo.picture}
-                          alt={userInfo.name ?? "User"}
-                          className="h-8 w-8 rounded-full bg-gray-300"
+                return (
+                  <div
+                    key={user.id}
+                    className="shrink-0 overflow-hidden rounded-full border-2 transition-[margin]"
+                    style={{
+                      borderColor: getClientColor(user.id, getUserColor),
+                    }}
+                    title={
+                      clientInfo.type === "user"
+                        ? (userInfo?.name ?? "Unknown User")
+                        : clientInfo.name
+                    }
+                  >
+                    {IconComponent ? (
+                      <div
+                        className={`flex size-8 items-center justify-center rounded-full ${clientInfo.backgroundColor}`}
+                      >
+                        <IconComponent
+                          className={`size-4 ${clientInfo.textColor}`}
                         />
-                      ) : (
-                        <Avatar
-                          initials={
-                            userInfo?.name?.charAt(0).toUpperCase() ?? "?"
-                          }
-                          backgroundColor={getUserColor(user.id)}
-                        />
-                      )}
-                    </div>
-                  );
-                })}
+                      </div>
+                    ) : userInfo?.picture ? (
+                      <img
+                        src={userInfo.picture}
+                        alt={userInfo.name ?? "User"}
+                        className="h-8 w-8 rounded-full bg-gray-300"
+                      />
+                    ) : (
+                      <Avatar
+                        initials={
+                          userInfo?.name?.charAt(0).toUpperCase() ?? "?"
+                        }
+                        backgroundColor={getUserColor(user.id)}
+                      />
+                    )}
+                  </div>
+                );
+              })}
             </div>
+            {otherUsers.length > LIMIT && (
+              <div className="flex items-center gap-1">
+                <span className="text-muted-foreground text-xs">
+                  +{otherUsers.length - LIMIT}
+                </span>
+              </div>
+            )}
 
             {import.meta.env.DEV && onDebugToggle && (
               <Button
@@ -423,24 +215,19 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
                 </div>
 
                 <div className="flex flex-shrink-0 items-center gap-1 sm:gap-2">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setShowRuntimeHelper(!showRuntimeHelper)}
-                    className="flex items-center gap-1 sm:gap-2"
-                  >
-                    <Terminal className="h-3 w-3 sm:h-4 sm:w-4" />
-                    <span className="hidden text-xs capitalize sm:block sm:text-sm">
-                      {metadata.find((m) => m.key === "runtimeType")?.value ??
-                        "unknown"}
-                    </span>
-                    <RuntimeHealthIndicator />
-                  </Button>
+                  <RuntimeHealthIndicatorButton
+                    onToggleClick={() =>
+                      setShowRuntimeHelper(!showRuntimeHelper)
+                    }
+                  />
                   <Button
                     variant={contextSelectionMode ? "default" : "outline"}
                     size="sm"
                     onClick={() =>
-                      setContextSelectionMode(!contextSelectionMode)
+                      store.setSignal(
+                        contextSelectionMode$,
+                        !contextSelectionMode
+                      )
                     }
                     className="flex items-center gap-1 sm:gap-2"
                   >
@@ -468,7 +255,7 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
             className={`w-full px-0 py-3 pb-24 ${debugMode ? "px-4" : "sm:mx-auto sm:max-w-4xl sm:p-4 sm:pb-4"}`}
           >
             {/* Keyboard Shortcuts Help - Desktop only */}
-            {cells.length > 0 && (
+            {cellReferences.length > 0 && (
               <div className="mb-6 hidden sm:block">
                 <div className="bg-muted/30 rounded-md px-4 py-2">
                   <div className="text-muted-foreground flex items-center justify-center gap-6 text-xs">
@@ -496,29 +283,17 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
             )}
 
             {/* Cells */}
-            {cells.length === 0 ? (
-              <EmptyStateCellAdder onAddCell={addCell} />
+            {cellReferences.length === 0 ? (
+              <EmptyStateCellAdder />
             ) : (
               <>
                 <ErrorBoundary fallback={<div>Error rendering cell list</div>}>
-                  <VirtualizedCellList
-                    cells={cells}
-                    focusedCellId={focusedCellId}
-                    onAddCell={addCell}
-                    onDeleteCell={deleteCell}
-                    onMoveUp={(cellId) => moveCell(cellId, "up")}
-                    onMoveDown={(cellId) => moveCell(cellId, "down")}
-                    onFocusNext={focusNextCell}
-                    onFocusPrevious={focusPreviousCell}
-                    onFocus={focusCell}
-                    contextSelectionMode={contextSelectionMode}
-                    threshold={50}
-                  />
+                  <CellList cellReferences={cellReferences} />
                 </ErrorBoundary>
                 {/* Add Cell Buttons */}
                 <div className="border-border/30 mt-6 border-t px-4 pt-4 sm:mt-8 sm:px-0 sm:pt-6">
                   <div className="space-y-3 text-center">
-                    <CellAdder onAddCell={addCell} position="after" />
+                    <CellAdder position="after" />
                     <div className="text-muted-foreground mt-2 hidden text-xs sm:block">
                       Add a new cell
                     </div>
@@ -543,9 +318,11 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
             </ErrorBoundary>
           </Suspense>
         )}
-
-        {/* Mobile Omnibar - sticky at bottom on mobile */}
-        <MobileOmnibar />
+      </div>
+      <div className="h-[70vh]"></div>
+      {/* Build info footer */}
+      <div className="mt-8 flex justify-center border-t px-4 py-2 text-center">
+        <GitCommitHash />
       </div>
     </div>
   );

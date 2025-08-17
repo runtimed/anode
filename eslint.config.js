@@ -208,7 +208,42 @@ export default [
     },
   },
   {
-    files: ["vite.config.ts", "vitest.config.ts", "schema.ts"],
+    files: ["vite-plugins/**/*.{js,ts}"],
+    languageOptions: {
+      parser: tsparser,
+      ecmaVersion: 2022,
+      sourceType: "module",
+      globals: {
+        // Node.js globals for Vite plugins
+        process: "readonly",
+        Buffer: "readonly",
+        __dirname: "readonly",
+        __filename: "readonly",
+        global: "readonly",
+        module: "readonly",
+        require: "readonly",
+        exports: "readonly",
+        console: "readonly",
+      },
+      parserOptions: {
+        project: "./tsconfig.node.json",
+      },
+    },
+    plugins: {
+      "@typescript-eslint": tseslint,
+    },
+    rules: {
+      "no-undef": "off", // TypeScript handles this
+      "no-unused-vars": "off", // TypeScript handles this
+    },
+  },
+  {
+    files: [
+      "vite.config.ts",
+      "vitest.config.ts",
+      "schema.ts",
+      "vitest.workers.config.ts",
+    ],
     languageOptions: {
       globals: {
         // Node.js globals for config files
@@ -220,6 +255,7 @@ export default [
         module: "readonly",
         require: "readonly",
         exports: "readonly",
+        console: "readonly",
       },
     },
     rules: {
@@ -235,6 +271,54 @@ export default [
     },
   },
   {
-    ignores: ["dist/**", "node_modules/**", "*.d.ts"],
+    files: [
+      "backend/**/*.{js,jsx,ts,tsx}",
+      "iframe-outputs/**/*.{js,jsx,ts,tsx}",
+    ],
+    languageOptions: {
+      parser: tsparser,
+      ecmaVersion: 2022,
+      sourceType: "module",
+      globals: {
+        // Cloudflare Workers globals
+        Request: "readonly",
+        Response: "readonly",
+        Headers: "readonly",
+        URL: "readonly",
+        fetch: "readonly",
+        crypto: "readonly",
+        console: "readonly",
+        TextEncoder: "readonly",
+        TextDecoder: "readonly",
+        addEventListener: "readonly",
+        removeEventListener: "readonly",
+        dispatchEvent: "readonly",
+        // Cloudflare specific
+        ExecutionContext: "readonly",
+        DurableObjectNamespace: "readonly",
+        DurableObject: "readonly",
+        R2Bucket: "readonly",
+        D1Database: "readonly",
+        Fetcher: "readonly",
+      },
+      parserOptions: {
+        project: null, // Don't use project references for Worker files
+      },
+    },
+    plugins: {
+      "@typescript-eslint": tseslint,
+    },
+    rules: {
+      "no-undef": "off", // TypeScript handles this
+      "no-unused-vars": "off", // TypeScript handles this
+      "@typescript-eslint/no-explicit-any": "off", // Allow any in backend code
+      "@typescript-eslint/no-unused-vars": [
+        "error",
+        { argsIgnorePattern: "^_" },
+      ],
+    },
+  },
+  {
+    ignores: ["dist/**", "node_modules/**", "*.d.ts", "scripts/**"],
   },
 ];

@@ -46,6 +46,6 @@ function getStageText(stage: LoadingStage): string {
     case "ready":
       return "Loading Notebook...";
     default:
-      return "Loading...";
+      return `In ${stage}...`;
   }
 }

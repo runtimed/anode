@@ -65,7 +65,7 @@ These scripts handle the build process and use the correct environment configura
 **1. Build the Web Client**
 
 ```bash
-# Build for production
+# Build for our deployed production environment
 pnpm build:production
 
 # Or build for preview
@@ -88,16 +88,6 @@ pnpm wrangler deploy --env preview
 **Production deploys to**: `https://app.runt.run`
 **Preview deploys to**: `https://preview.runt.run`
 
-**Required secrets:**
-
-```bash
-# Production secrets
-echo "your-secure-token" | pnpm wrangler secret put AUTH_TOKEN --env production
-
-# Preview secrets
-echo "your-preview-token" | pnpm wrangler secret put AUTH_TOKEN --env preview
-```
-
 ## Environment Variables
 
 ### Unified Worker Environment Variables
@@ -106,9 +96,9 @@ Set in `wrangler.toml`:
 
 - `DEPLOYMENT_ENV`: `"production"`
 - `AUTH_ISSUER`: Your OIDC issuer URL (e.g., `https://your-auth-provider.com`)
+- `EXTENSION_CONFIG`: A JSON encoded string of extra data to pass into the backend extension
 - `ARTIFACT_STORAGE`: `"r2"`
 - `ARTIFACT_THRESHOLD`: `"16384"` (16KB threshold for artifact storage)
-- `AUTH_TOKEN`: Set via secrets (see above)
 
 ### Web Client Build Variables
 
@@ -121,7 +111,6 @@ Web client environment variables are built into the static assets at build time:
 Key variables:
 
 - `VITE_LIVESTORE_SYNC_URL`: URL of the sync worker
-- `VITE_AUTH_TOKEN`: Authentication token for the sync backend
 
 ## Local Development
 
@@ -230,16 +219,6 @@ pnpm wrangler r2 bucket create anode-artifacts-prod
 pnpm wrangler r2 bucket create anode-artifacts-preview
 ```
 
-### Set Required Secrets
-
-```bash
-# Production secrets
-echo "your-secure-token" | pnpm wrangler secret put AUTH_TOKEN --env production
-
-# Preview secrets
-echo "your-preview-token" | pnpm wrangler secret put AUTH_TOKEN --env preview
-```
-
 ## Troubleshooting
 
 ### Deployment Issues
@@ -258,7 +237,6 @@ echo "your-preview-token" | pnpm wrangler secret put AUTH_TOKEN --env preview
 | ------------------------- | ---------------------------------------------------- |
 | Large outputs not storing | Check R2 bucket configuration and ARTIFACT_THRESHOLD |
 | Artifact fetch failures   | Verify R2 bucket permissions and CORS settings       |
-| Upload authentication     | Ensure AUTH_TOKEN is set correctly                   |
 
 ### WebSocket Connection Issues
 
@@ -271,14 +249,6 @@ If you see WebSocket connection errors:
 ### CORS Issues
 
 The unified worker handles CORS automatically since it serves both frontend and backend from the same origin.
-
-### Authentication Issues
-
-Ensure `AUTH_TOKEN` secret is set on the Worker:
-
-```bash
-echo "your-secure-token" | pnpm wrangler secret put AUTH_TOKEN --env production
-```
 
 ### Development Server Issues
 
@@ -295,3 +265,47 @@ If the development server crashes:
 - **Local Development**: http://localhost:5173
 
 The unified architecture serves both frontend and backend from a single URL, simplifying deployment and eliminating CORS issues.
+
+## Iframe Outputs Service
+
+Anode uses a separate domain (`runtusercontent.com`) to securely render user-generated HTML and SVG content in iframes. This provides security isolation from the main application domain.
+
+### Deploy Iframe Outputs
+
+The iframe outputs service is a simple Cloudflare Worker that serves the iframe content handler with appropriate security headers.
+
+**Quick deployment:**
+
+```bash
+# Deploy to production (runtusercontent.com)
+./scripts/deploy-iframe-outputs.sh production
+
+# Deploy to preview (preview.runtusercontent.com)
+./scripts/deploy-iframe-outputs.sh preview
+```
+
+**Manual deployment:**
+
+```bash
+cd iframe-outputs
+pnpm deploy:production  # or deploy:preview
+```
+
+### Iframe Service URLs
+
+- **Production**: https://runtusercontent.com
+- **Preview**: https://preview.runtusercontent.com
+- **Local Development**: http://localhost:8000
+
+### Environment Configuration
+
+The main application must have `VITE_IFRAME_OUTPUT_URI` set to the appropriate iframe service URL:
+
+- In `wrangler.toml` for the main worker environments
+- In `.env` files for local development
+
+This is already configured in the provided `wrangler.toml` for production and preview environments.
+
+### DNS Setup
+
+Ensure DNS for `runtusercontent.com` and its subdomains are configured in Cloudflare to point to the deployed workers.

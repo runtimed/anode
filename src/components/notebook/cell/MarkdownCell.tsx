@@ -1,8 +1,10 @@
 import { useCellContent } from "@/hooks/useCellContent.js";
 import { useCellKeyboardNavigation } from "@/hooks/useCellKeyboardNavigation.js";
-import { useCellOutputs } from "@/hooks/useCellOutputs.js";
+import { useEditorRegistry } from "@/hooks/useEditorRegistry.js";
+import { useDeleteCell } from "@/hooks/useDeleteCell.js";
+import { useAddCell } from "@/hooks/useAddCell.js";
 import { useStore } from "@livestore/react";
-import { events, tables } from "@runt/schema";
+import { events, tables, queries } from "@/schema";
 import React, {
   useCallback,
   useEffect,
@@ -21,43 +23,43 @@ import { useClickAway } from "react-use";
 import { CellContainer } from "./shared/CellContainer.js";
 import { CellControls } from "./shared/CellControls.js";
 import { CellTypeSelector } from "./shared/CellTypeSelector.js";
-import { Editor } from "./shared/Editor.js";
+import { Editor, EditorRef } from "./shared/Editor.js";
 import { PresenceBookmarks } from "./shared/PresenceBookmarks.js";
+import { focusedCellSignal$, hasManuallyFocused$ } from "../signals/focus.js";
 
 type CellType = typeof tables.cells.Type;
 
 interface MarkdownCellProps {
   cell: CellType;
-  onDeleteCell: () => void;
-  onMoveUp: () => void;
-  onMoveDown: () => void;
-  onFocusNext?: () => void;
-  onFocusPrevious?: () => void;
   autoFocus?: boolean;
-  onFocus?: () => void;
   contextSelectionMode?: boolean;
 }
 
 const MarkdownRenderer = React.lazy(() =>
-  import("@/components/outputs/MarkdownRenderer.js").then((m) => ({
-    default: m.MarkdownRenderer,
-  }))
+  import("@/components/outputs/shared-with-iframe/MarkdownRenderer.js").then(
+    (m) => ({
+      default: m.MarkdownRenderer,
+    })
+  )
 );
 
 export const MarkdownCell: React.FC<MarkdownCellProps> = ({
   cell,
-  onDeleteCell,
-  onMoveUp,
-  onMoveDown,
-  onFocusNext,
-  onFocusPrevious,
   autoFocus = false,
-  onFocus,
   contextSelectionMode = false,
 }) => {
   const editButtonRef = useRef<HTMLButtonElement>(null);
   const cellContainerRef = useRef<HTMLDivElement>(null);
 
+  const { store } = useStore();
+  const {
+    registerEditor,
+    unregisterEditor,
+    focusCell: registryFocusCell,
+  } = useEditorRegistry();
+
+  const { handleDeleteCell } = useDeleteCell(cell.id);
+  const { addCell } = useAddCell();
   // Use shared content management hook
   const { localSource, setLocalSource, updateSource, handleSourceChange } =
     useCellContent({
@@ -73,7 +75,6 @@ export const MarkdownCell: React.FC<MarkdownCellProps> = ({
   });
 
   // All hooks must be called at the top level before any conditional returns
-  const { store } = useStore();
   const {
     user: { sub: userId },
   } = useAuth();
@@ -89,15 +90,6 @@ export const MarkdownCell: React.FC<MarkdownCellProps> = ({
   const usersOnCell = getUsersOnCell(cell.id).filter(
     (user) => user.id !== userId
   );
-
-  // Use shared outputs hook with markdown-specific configuration
-  const { hasOutputs } = useCellOutputs({
-    cellId: cell.id,
-    groupConsecutiveStreams: true,
-    enableErrorOutput: true,
-    enableTerminalOutput: true,
-    mobileStyle: "default",
-  });
 
   const changeCellType = useCallback(
     (newType: "code" | "markdown" | "sql" | "ai") => {
@@ -133,22 +125,55 @@ export const MarkdownCell: React.FC<MarkdownCellProps> = ({
   }, [cell.id, cell.aiContextVisible, store, userId]);
 
   const clearCellOutputs = useCallback(async () => {
-    if (hasOutputs) {
-      store.commit(
-        events.cellOutputsCleared({
-          cellId: cell.id,
-          wait: false,
-          clearedBy: userId,
-        })
-      );
-    }
-  }, [cell.id, store, hasOutputs, userId]);
+    store.commit(
+      events.cellOutputsCleared({
+        cellId: cell.id,
+        wait: false,
+        clearedBy: userId,
+      })
+    );
+  }, [cell.id, store, userId]);
+
+  // Create navigation handlers using the registry
+  const onFocusNext = useCallback(
+    (cursorPosition: "start" | "end" = "start") => {
+      const cellReferences = store.query(queries.cellsWithIndices$);
+      const currentIndex = cellReferences.findIndex((c) => c.id === cell.id);
+
+      if (currentIndex < cellReferences.length - 1) {
+        const nextCell = cellReferences[currentIndex + 1];
+        store.setSignal(focusedCellSignal$, nextCell.id);
+        registryFocusCell(nextCell.id, cursorPosition);
+      } else {
+        // At the last cell, create a new one with same cell type (but never raw)
+        const currentCell = cellReferences[currentIndex];
+        const newCellType =
+          currentCell.cellType === "raw" ? "code" : currentCell.cellType;
+        addCell(cell.id, newCellType);
+      }
+    },
+    [cell.id, store, registryFocusCell, addCell]
+  );
+
+  const onFocusPrevious = useCallback(
+    (cursorPosition: "start" | "end" = "end") => {
+      const cellReferences = store.query(queries.cellsWithIndices$);
+      const currentIndex = cellReferences.findIndex((c) => c.id === cell.id);
+
+      if (currentIndex > 0) {
+        const previousCell = cellReferences[currentIndex - 1];
+        store.setSignal(focusedCellSignal$, previousCell.id);
+        registryFocusCell(previousCell.id, cursorPosition);
+      }
+    },
+    [cell.id, store, registryFocusCell]
+  );
 
   // Use shared keyboard navigation hook
   const { keyMap, handleKeyDown } = useCellKeyboardNavigation({
     onFocusNext,
     onFocusPrevious,
-    onDeleteCell,
+    onDeleteCell: () => handleDeleteCell("keyboard"),
     onUpdateSource: updateSource,
   });
 
@@ -189,8 +214,26 @@ export const MarkdownCell: React.FC<MarkdownCellProps> = ({
   ]);
 
   const handleFocus = useCallback(() => {
-    onFocus?.();
-  }, [onFocus]);
+    store.setSignal(focusedCellSignal$, cell.id);
+    store.setSignal(hasManuallyFocused$, true);
+  }, [store, cell.id]);
+
+  // Handle editor registration for navigation
+  const handleEditorReady = useCallback(
+    (editorRef: EditorRef) => {
+      if (editorRef) {
+        registerEditor(cell.id, editorRef);
+      }
+    },
+    [cell.id, registerEditor]
+  );
+
+  // Cleanup editor registration on unmount
+  React.useEffect(() => {
+    return () => {
+      unregisterEditor(cell.id);
+    };
+  }, [cell.id, unregisterEditor]);
 
   const focusColor = "bg-amber-500/40";
   const focusBgColor = "bg-amber-50/20";
@@ -201,7 +244,7 @@ export const MarkdownCell: React.FC<MarkdownCellProps> = ({
       cell={cell}
       autoFocus={autoFocus}
       contextSelectionMode={contextSelectionMode}
-      onFocus={onFocus}
+      onFocus={handleFocus}
       focusColor={focusColor}
       focusBgColor={focusBgColor}
     >
@@ -241,11 +284,9 @@ export const MarkdownCell: React.FC<MarkdownCellProps> = ({
           sourceVisible={cell.sourceVisible}
           aiContextVisible={cell.aiContextVisible}
           contextSelectionMode={contextSelectionMode}
-          onMoveUp={onMoveUp}
-          onMoveDown={onMoveDown}
-          onDeleteCell={onDeleteCell}
+          onDeleteCell={() => handleDeleteCell("click")}
           onClearOutputs={clearCellOutputs}
-          hasOutputs={hasOutputs}
+          hasOutputs={true}
           toggleSourceVisibility={toggleSourceVisibility}
           toggleAiContextVisibility={toggleAiContextVisibility}
         />
@@ -258,13 +299,16 @@ export const MarkdownCell: React.FC<MarkdownCellProps> = ({
           <div className="cell-content bg-white py-1 pl-4 transition-colors">
             <ErrorBoundary fallback={<div>Error rendering editor</div>}>
               <Editor
+                ref={handleEditorReady}
                 localSource={localSource}
                 handleSourceChange={handleSourceChange}
+                onBlur={updateSource}
                 handleFocus={handleFocus}
-                cell={cell}
+                language="markdown"
+                placeholder="Write markdown..."
+                enableLineWrapping={true}
                 autoFocus={autoFocus}
                 keyMap={extendedKeyMap}
-                onBlur={updateSource}
               />
             </ErrorBoundary>
           </div>

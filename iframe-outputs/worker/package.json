@@ -1,0 +1,31 @@
+{
+  "name": "anode-iframe-outputs",
+  "version": "0.2.0",
+  "private": true,
+  "description": "Isolated iframe content server for Anode user-generated outputs",
+  "type": "module",
+  "engines": {
+    "node": ">=23.0.0",
+    "pnpm": ">=10.9.0"
+  },
+  "scripts": {
+    "deploy": "wrangler deploy --env production",
+    "deploy:production": "wrangler deploy --env production",
+    "deploy:preview": "wrangler deploy --env preview",
+    "logs": "wrangler tail --env production",
+    "logs:preview": "wrangler tail --env preview"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^4.20250106.0",
+    "typescript": "^5.8.3",
+    "wrangler": "4.25.0"
+  },
+  "keywords": [
+    "iframe",
+    "sandbox",
+    "user-content",
+    "cloudflare-worker"
+  ],
+  "author": "Runt Team",
+  "license": "MIT"
+}

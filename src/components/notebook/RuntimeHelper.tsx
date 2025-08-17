@@ -2,7 +2,7 @@ import React, { useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { useRuntimeHealth } from "@/hooks/useRuntimeHealth.js";
 import { useStore } from "@livestore/react";
-import { events } from "@runt/schema";
+import { events } from "@/schema";
 import { useAuth } from "@/components/auth/AuthProvider.js";
 import { getRuntimeCommand } from "@/util/runtime-command.js";
 import { getCurrentNotebookId } from "@/util/store-id.js";
@@ -24,7 +24,7 @@ export const RuntimeHelper: React.FC<RuntimeHelperProps> = ({
   const {
     user: { sub: userId },
   } = useAuth();
-  const { activeRuntime, hasActiveRuntime, runningExecutions } =
+  const { activeRuntime, hasActiveRuntime, runningExecutions, runtimeHealth } =
     useRuntimeHealth();
 
   const currentNotebookId = getCurrentNotebookId();
@@ -49,7 +49,8 @@ export const RuntimeHelper: React.FC<RuntimeHelperProps> = ({
     }
   }, [runningExecutions, store, userId]);
 
-  if (!showRuntimeHelper) return null;
+  // Open panel by default when runtime not healthy
+  if (!showRuntimeHelper && runtimeHealth === "healthy") return null;
 
   return (
     <div className="bg-card border-t">
@@ -72,6 +73,10 @@ export const RuntimeHelper: React.FC<RuntimeHelperProps> = ({
         {!hasActiveRuntime && (
           <>
             <p className="text-muted-foreground mb-3 text-sm">
+              Make sure you have RUNT_API_KEY set in your environment. Get one
+              from your profile settings →
+            </p>
+            <p className="text-muted-foreground mb-3 text-sm">
               Run this command in your terminal to start a runtime for notebook{" "}
               <code className="bg-muted rounded px-1">{currentNotebookId}</code>
               :
@@ -88,8 +93,9 @@ export const RuntimeHelper: React.FC<RuntimeHelperProps> = ({
               </Button>
             </div>
             <p className="text-muted-foreground mt-2 text-xs">
-              Note: Each notebook requires its own runtime instance. The runtime
-              will connect automatically once started.
+              Note: Each notebook requires its own runtime instance. Make sure
+              RUNT_API_KEY is set in your environment. The runtime will connect
+              automatically once started.
             </p>
           </>
         )}
