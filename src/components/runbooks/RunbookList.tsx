@@ -12,8 +12,10 @@ import {
 import { Button } from "../ui/button";
 import { Card, CardHeader, CardTitle, CardContent } from "../ui/card";
 import { Badge } from "../ui/badge";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "../ui/tabs";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "../ui/tabs.js";
 import { LoadingState } from "../loading/LoadingState";
+
+type FilterType = "all" | "owned" | "shared";
 
 interface RunbookListProps {}
 
@@ -115,7 +117,10 @@ export const RunbookList: React.FC<RunbookListProps> = () => {
       </div>
 
       {/* Filter Tabs */}
-      <Tabs value={filter} onValueChange={(value) => setFilter(value as any)}>
+      <Tabs
+        value={filter}
+        onValueChange={(value: string) => setFilter(value as FilterType)}
+      >
         <TabsList className="mb-6">
           <TabsTrigger value="all">All Runbooks</TabsTrigger>
           <TabsTrigger value="owned">Owned</TabsTrigger>

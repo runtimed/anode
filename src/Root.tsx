@@ -59,7 +59,7 @@ const RunbookDashboard = React.lazy(() =>
   }))
 );
 const RunbookViewer = React.lazy(() =>
-  import("./components/runbooks/RunbookViewer.js").then((m) => ({
+  import("./components/runbooks/RunbookViewer.tsx").then((m) => ({
     default: m.RunbookViewer,
   }))
 );

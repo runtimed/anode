@@ -53,7 +53,7 @@ export function getRunbookVanityUrl(
  * Supports: /r/{ulid}, /r/{ulid}/, /r/{ulid}/{vanity}
  */
 export function extractRunbookUlid(path: string): string | null {
-  const match = path.match(/^\/r\/([^\/]+)/);
+  const match = path.match(/^\/r\/([^/]+)/);
   return match ? match[1] : null;
 }
 
@@ -67,8 +67,8 @@ export function hasCorrectVanityUrl(
   title?: string | null
 ): boolean {
   const expectedUrl = getRunbookVanityUrl(ulid, title);
-  const expectedPath = expectedUrl.replace(/^\/r\/[^\/]+/, ""); // Get just the vanity part
-  const currentVanityPath = currentPath.replace(/^\/r\/[^\/]+/, "");
+  const expectedPath = expectedUrl.replace(/^\/r\/[^/]+/, ""); // Get just the vanity part
+  const currentVanityPath = currentPath.replace(/^\/r\/[^/]+/, "");
 
   // If no title, both should be empty
   if (!title?.trim()) {

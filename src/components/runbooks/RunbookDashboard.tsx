@@ -31,7 +31,7 @@ import {
   DropdownMenuTrigger,
 } from "../ui/dropdown-menu";
 import { LoadingState } from "../loading/LoadingState";
-import { RunbookCard } from "./RunbookCard";
+import { RunbookCard } from "./RunbookCard.js";
 
 type ViewMode = "grid" | "table";
 type FilterType = "scratch" | "named" | "shared";
@@ -53,7 +53,7 @@ export const RunbookDashboard: React.FC<RunbookDashboardProps> = () => {
   // Create runbook mutation
   const [, createRunbook] = useMutation(CREATE_RUNBOOK);
 
-  const allRunbooks = data?.runbooks || [];
+  const allRunbooks = useMemo(() => data?.runbooks || [], [data?.runbooks]);
 
   // Filter and group runbooks
   const { filteredRunbooks, recentScratchRunbooks, namedRunbooks } =
