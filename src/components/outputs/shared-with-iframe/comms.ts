@@ -37,12 +37,12 @@ export type FromIframeEvent =
   | { type: "iframe-height"; height: number };
 
 // Errors if `ToIframeEvent` is wrong
-type _TestToIframeEvent = Expect<
+type _TestToIframeEventAssertion = Expect<
   Extends<ToIframeEvent["type"], ToIframeEventName>
 >;
 
 // Errors if `FromIframeEvent` is wrong
-type TestFromIframeEventTypeAssertion = Expect<
+type _TestFromIframeEventTypeAssertion = Expect<
   Extends<FromIframeEvent["type"], FromIframeEventName>
 >;
 
