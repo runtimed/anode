@@ -1,6 +1,15 @@
 import React, { useState, useEffect } from "react";
 import { useParams, Link, useLocation, useNavigate } from "react-router-dom";
-import { ArrowLeft, Users, Clock, User, Edit2, Check, X } from "lucide-react";
+import {
+  ArrowLeft,
+  Users,
+  Clock,
+  User,
+  Edit2,
+  Check,
+  X,
+  Share2,
+} from "lucide-react";
 import { getRunbookVanityUrl, hasCorrectVanityUrl } from "../../util/url-utils";
 import { useQuery, useMutation } from "../../lib/graphql-client";
 import {
@@ -13,6 +22,7 @@ import { Button } from "../ui/button";
 import { Input } from "../ui/input";
 import { Badge } from "../ui/badge";
 import { LoadingState } from "../loading/LoadingState";
+import { SharingModal } from "./SharingModal";
 
 export const RunbookViewer: React.FC = () => {
   const { ulid } = useParams<{ ulid: string }>();
@@ -20,6 +30,7 @@ export const RunbookViewer: React.FC = () => {
   const navigate = useNavigate();
   const [isEditingTitle, setIsEditingTitle] = useState(false);
   const [editTitle, setEditTitle] = useState("");
+  const [isSharingModalOpen, setIsSharingModalOpen] = useState(false);
 
   // Get initial runbook data from router state (if navigated from creation)
   const initialRunbook = location.state?.initialRunbook as Runbook | undefined;
@@ -206,10 +217,24 @@ export const RunbookViewer: React.FC = () => {
               </div>
             </div>
 
-            {/* Permission badge */}
-            <Badge variant={getPermissionBadgeVariant(runbook.myPermission)}>
-              {runbook.myPermission.toLowerCase()}
-            </Badge>
+            <div className="flex items-center gap-2">
+              {/* Share button */}
+              {canEdit && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setIsSharingModalOpen(true)}
+                >
+                  <Share2 className="mr-2 h-4 w-4" />
+                  Share
+                </Button>
+              )}
+
+              {/* Permission badge */}
+              <Badge variant={getPermissionBadgeVariant(runbook.myPermission)}>
+                {runbook.myPermission.toLowerCase()}
+              </Badge>
+            </div>
           </div>
 
           {/* Metadata */}
@@ -269,6 +294,14 @@ export const RunbookViewer: React.FC = () => {
           </p>
         </div>
       </div>
+
+      {/* Sharing Modal */}
+      <SharingModal
+        runbook={runbook}
+        isOpen={isSharingModalOpen}
+        onClose={() => setIsSharingModalOpen(false)}
+        onUpdate={() => refetch()}
+      />
     </div>
   );
 };

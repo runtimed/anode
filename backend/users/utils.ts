@@ -58,6 +58,42 @@ export async function getUserById(
 }
 
 /**
+ * Get public user data by email (excludes private data for privacy)
+ * Returns null if user not found
+ */
+export async function getUserByEmail(
+  db: D1Database,
+  email: string
+): Promise<PublicUserData | null> {
+  try {
+    const user = await db
+      .prepare("SELECT id, given_name, family_name FROM users WHERE email = ?")
+      .bind(email)
+      .first<{
+        id: string;
+        given_name: string | null;
+        family_name: string | null;
+      }>();
+
+    if (!user) {
+      return null;
+    }
+
+    return {
+      id: user.id,
+      givenName: user.given_name,
+      familyName: user.family_name,
+    };
+  } catch (error) {
+    console.error("Failed to get user by email:", {
+      email,
+      error: error instanceof Error ? error.message : "Unknown error",
+    });
+    return null;
+  }
+}
+
+/**
  * Get multiple users by IDs (public data only)
  * Returns map of userId -> PublicUserData
  */
