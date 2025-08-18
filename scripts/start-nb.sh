@@ -5,7 +5,7 @@ if [ -f ".env" ]; then
 fi
 
 # 🚨 IMPORTANT: We're overriding the runtime command here to avoid it breaking by accident
-export VITE_RUNTIME_COMMAND="deno run --allow-all --unstable-broadcast-channel --env-file=../anode/.env ../runt/packages/pyodide-runtime-agent/src/mod.ts"
+export VITE_RUNTIME_COMMAND="deno run --allow-all --env-file=../anode/.env ../runt/packages/pyodide-runtime-agent/src/mod.ts"
 export DEV_PORT=${ANODE_DEV_SERVER_PORT:-5173}
 export NOTEBOOK_ID=$(date +%s)-$(openssl rand -hex 4)
 
@@ -13,7 +13,7 @@ URL="http://localhost:$DEV_PORT/?notebook=$NOTEBOOK_ID"
 
 echo "ANODE_OPEN_INCOGNITO: $ANODE_OPEN_INCOGNITO"
 
-RUNTIME_CMD="NOTEBOOK_ID=${NOTEBOOK_ID} ${VITE_RUNTIME_COMMAND}"
+RUNTIME_CMD="NOTEBOOK_ID=${NOTEBOOK_ID} LIVESTORE_SYNC_URL=ws://localhost:8787 ${VITE_RUNTIME_COMMAND}"
 
 echo ""
 echo "=============================================="

@@ -71,12 +71,10 @@ export function addParentMessageListener(
   cb: (event: MessageEvent<FromIframeEvent>) => void
 ) {
   window.addEventListener("message", (event) => {
-    if (event.source !== window.parent) {
-      console.error("Invalid event source", event);
+    if (event.origin !== import.meta.env.VITE_IFRAME_OUTPUT_URI) {
       return;
     }
     if (!isValidFromIframeEventType(event.data.type)) {
-      console.error("Invalid event type", event.data);
       return;
     }
     cb(event);
@@ -98,7 +96,6 @@ export function addIframeMessageListener(
       return;
     }
     if (!isValidToIframeEventType(event.data.type)) {
-      console.error("Invalid event type", event.data);
       return;
     }
     cb(event);
@@ -196,10 +193,10 @@ export function useIframeCommsChild() {
     }
 
     // Send height on load
-    // sendHeight();
+    sendHeight();
 
     // Send height after a short delay to ensure content is rendered
-    // setTimeout(sendHeight, 0);
+    setTimeout(sendHeight, 0);
 
     // Send height when content changes (for dynamic content)
     const observer = new MutationObserver(sendHeight);
@@ -225,7 +222,7 @@ export function useIframeCommsChild() {
     resizeObserver.observe(document.documentElement); // or document.body, or your content container
 
     // Capture-phase load listener to catch <img>, <video>, <iframe> loads
-    // document.addEventListener("load", sendHeight, true);
+    document.addEventListener("load", sendHeight, true);
 
     // Fonts can also change height when they finish loading
     if ("fonts" in document) {
