@@ -213,6 +213,15 @@ const LiveStoreApp: React.FC<{
     accessToken,
   } = useAuth();
 
+  const syncPayloadRef = useRef<{ authToken: string; clientId: string }>({
+    authToken: accessToken,
+    clientId,
+  });
+
+  useEffect(() => {
+    syncPayloadRef.current.authToken = accessToken;
+  }, [accessToken]);
+
   const adapter = makePersistedAdapter({
     storage: { type: "opfs" },
     worker: LiveStoreWorker,
@@ -232,7 +241,7 @@ const LiveStoreApp: React.FC<{
       }}
       batchUpdates={batchUpdates}
       storeId={storeId}
-      syncPayload={{ authToken: accessToken, clientId }}
+      syncPayload={syncPayloadRef.current}
     >
       <LiveStoreReadyDetector onReady={onLiveStoreReady} />
       <NotebookApp />
