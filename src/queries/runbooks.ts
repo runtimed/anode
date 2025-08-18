@@ -58,6 +58,17 @@ export const GET_ME = gql`
   }
 `;
 
+// Query to look up a user by email
+export const USER_BY_EMAIL = gql`
+  query UserByEmail($email: String!) {
+    userByEmail(email: $email) {
+      id
+      givenName
+      familyName
+    }
+  }
+`;
+
 // Mutation to create a new runbook
 export const CREATE_RUNBOOK = gql`
   ${RUNBOOK_FRAGMENT}

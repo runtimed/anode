@@ -180,6 +180,11 @@ export const typeDefs = /* GraphQL */ `
     Get the current authenticated user (includes private data like email)
     """
     me: PrivateUser!
+
+    """
+    Look up a user by their email address (returns public profile only)
+    """
+    userByEmail(email: String!): User
   }
 
   type Mutation {

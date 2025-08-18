@@ -5,6 +5,7 @@ import type { PermissionsProvider } from "../permissions/types.ts";
 import {
   getUserById,
   getUsersByIds,
+  getUserByEmail,
   toGraphQLPublicUser,
   createFallbackUser,
 } from "../users/utils.ts";
@@ -190,6 +191,30 @@ export const resolvers = {
         throw new GraphQLError("Authentication required");
       }
       return context.user;
+    },
+
+    async userByEmail(
+      _parent: unknown,
+      args: { email: string },
+      context: GraphQLContext
+    ) {
+      const { user, DB } = context;
+      const { email } = args;
+
+      if (!user) {
+        throw new GraphQLError("Authentication required");
+      }
+
+      try {
+        const userRecord = await getUserByEmail(DB, email);
+        if (userRecord) {
+          return toGraphQLPublicUser(userRecord);
+        }
+        return null;
+      } catch (error) {
+        console.error("Failed to fetch user by email:", error);
+        return null;
+      }
     },
   },
 

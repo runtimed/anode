@@ -32,6 +32,7 @@ import {
 } from "../ui/dropdown-menu";
 import { LoadingState } from "../loading/LoadingState";
 import { RunbookCard } from "./RunbookCard.js";
+import { SimpleUserProfile } from "./SimpleUserProfile.js";
 
 type ViewMode = "grid" | "table";
 type FilterType = "scratch" | "named" | "shared";
@@ -45,7 +46,7 @@ export const RunbookDashboard: React.FC<RunbookDashboardProps> = () => {
   const [viewMode, setViewMode] = useState<ViewMode>("grid");
 
   // Query all runbooks
-  const [{ data, fetching, error }] = useQuery({
+  const [{ data, fetching, error }, refetch] = useQuery({
     query: LIST_RUNBOOKS,
     variables: {},
   });
@@ -111,21 +112,37 @@ export const RunbookDashboard: React.FC<RunbookDashboardProps> = () => {
       };
     }, [allRunbooks, activeFilter, searchQuery]);
 
-  // Smart default: show "named" unless user only has scratch runbooks
+  // Check if user has named runbooks
+  const hasNamedRunbooks = useMemo(() => {
+    return allRunbooks.some(
+      (r: Runbook) =>
+        r.myPermission === "OWNER" && r.title && !r.title.startsWith("Untitled")
+    );
+  }, [allRunbooks]);
+
+  // Set smart default filter when data first loads
+  const hasRunbooks = allRunbooks.length > 0;
   React.useEffect(() => {
-    if (allRunbooks.length > 0 && activeFilter === "named") {
-      const hasNamedRunbooks = allRunbooks.some(
+    if (hasRunbooks && activeFilter === "named") {
+      const hasScratchRunbooks = allRunbooks.some(
         (r: Runbook) =>
           r.myPermission === "OWNER" &&
-          r.title &&
-          !r.title.startsWith("Untitled")
+          (!r.title || r.title.startsWith("Untitled"))
+      );
+      const hasSharedRunbooks = allRunbooks.some(
+        (r: Runbook) => r.myPermission === "WRITER"
       );
 
-      if (!hasNamedRunbooks) {
+      // Smart default: named > scratch > shared
+      if (hasNamedRunbooks) {
+        // Stay on named
+      } else if (hasScratchRunbooks) {
         setActiveFilter("scratch");
+      } else if (hasSharedRunbooks) {
+        setActiveFilter("shared");
       }
     }
-  }, [allRunbooks, activeFilter]);
+  }, [hasRunbooks, activeFilter, hasNamedRunbooks, allRunbooks]);
 
   const handleCreateRunbook = async () => {
     const input: CreateRunbookInput = {
@@ -177,29 +194,31 @@ export const RunbookDashboard: React.FC<RunbookDashboardProps> = () => {
               Filters
             </h3>
             <div className="space-y-1">
-              <button
-                onClick={() => setActiveFilter("named")}
-                className={`w-full rounded-md px-3 py-2 text-left text-sm transition-colors ${
-                  activeFilter === "named"
-                    ? "bg-blue-50 text-blue-700"
-                    : "text-gray-700 hover:bg-gray-50"
-                }`}
-              >
-                <div className="flex items-center">
-                  <User className="mr-2 h-4 w-4" />
-                  My Runbooks
-                  <Badge variant="secondary" className="ml-auto">
-                    {
-                      allRunbooks.filter(
-                        (r: Runbook) =>
-                          r.myPermission === "OWNER" &&
-                          r.title &&
-                          !r.title.startsWith("Untitled")
-                      ).length
-                    }
-                  </Badge>
-                </div>
-              </button>
+              {hasNamedRunbooks && (
+                <button
+                  onClick={() => setActiveFilter("named")}
+                  className={`w-full rounded-md px-3 py-2 text-left text-sm transition-colors ${
+                    activeFilter === "named"
+                      ? "bg-blue-50 text-blue-700"
+                      : "text-gray-700 hover:bg-gray-50"
+                  }`}
+                >
+                  <div className="flex items-center">
+                    <User className="mr-2 h-4 w-4" />
+                    My Runbooks
+                    <Badge variant="secondary" className="ml-auto">
+                      {
+                        allRunbooks.filter(
+                          (r: Runbook) =>
+                            r.myPermission === "OWNER" &&
+                            r.title &&
+                            !r.title.startsWith("Untitled")
+                        ).length
+                      }
+                    </Badge>
+                  </div>
+                </button>
+              )}
               <button
                 onClick={() => setActiveFilter("scratch")}
                 className={`w-full rounded-md px-3 py-2 text-left text-sm transition-colors ${
@@ -323,6 +342,9 @@ export const RunbookDashboard: React.FC<RunbookDashboardProps> = () => {
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
+
+              {/* User Profile */}
+              <SimpleUserProfile />
             </div>
           </div>
         </div>
@@ -382,6 +404,7 @@ export const RunbookDashboard: React.FC<RunbookDashboardProps> = () => {
                   <RunbookGrid
                     runbooks={filteredRunbooks}
                     viewMode={viewMode}
+                    onUpdate={() => refetch()}
                   />
                 </section>
               )}
@@ -403,6 +426,7 @@ export const RunbookDashboard: React.FC<RunbookDashboardProps> = () => {
                     <RunbookGrid
                       runbooks={recentScratchRunbooks}
                       viewMode={viewMode}
+                      onUpdate={() => refetch()}
                     />
                   </section>
                 )}
@@ -421,7 +445,11 @@ export const RunbookDashboard: React.FC<RunbookDashboardProps> = () => {
                         {namedRunbooks.length}
                       </Badge>
                     </div>
-                    <RunbookGrid runbooks={namedRunbooks} viewMode={viewMode} />
+                    <RunbookGrid
+                      runbooks={namedRunbooks}
+                      viewMode={viewMode}
+                      onUpdate={() => refetch()}
+                    />
                   </section>
                 )}
 
@@ -451,6 +479,7 @@ export const RunbookDashboard: React.FC<RunbookDashboardProps> = () => {
                     <RunbookGrid
                       runbooks={filteredRunbooks}
                       viewMode={viewMode}
+                      onUpdate={() => refetch()}
                     />
                   </section>
                 )}
@@ -466,14 +495,23 @@ export const RunbookDashboard: React.FC<RunbookDashboardProps> = () => {
 interface RunbookGridProps {
   runbooks: Runbook[];
   viewMode: ViewMode;
+  onUpdate?: () => void;
 }
 
-const RunbookGrid: React.FC<RunbookGridProps> = ({ runbooks, viewMode }) => {
+const RunbookGrid: React.FC<RunbookGridProps> = ({
+  runbooks,
+  viewMode,
+  onUpdate,
+}) => {
   if (viewMode === "grid") {
     return (
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
         {runbooks.map((runbook) => (
-          <RunbookCard key={runbook.ulid} runbook={runbook} />
+          <RunbookCard
+            key={runbook.ulid}
+            runbook={runbook}
+            onUpdate={onUpdate}
+          />
         ))}
       </div>
     );
