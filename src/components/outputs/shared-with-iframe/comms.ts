@@ -185,7 +185,6 @@ export function useIframeCommsChild() {
     function sendHeight() {
       const BUFFER = 1; // Add a small buffer to prevent scrollbars
       const height = document.body.scrollHeight;
-      console.log("sending height 2", height);
       sendFromIframe({
         type: "iframe-height",
         height: height + BUFFER,
