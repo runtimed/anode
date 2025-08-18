@@ -51,6 +51,7 @@ import { getCurrentNotebookId, getStoreId } from "./util/store-id.js";
 import { useAuth } from "./components/auth/AuthProvider.js";
 import { ErrorBoundary } from "react-error-boundary";
 import { Toaster } from "./components/ui/sonner.js";
+import { BootStatus } from "@livestore/livestore";
 
 // Lazy load runbook components
 const RunbookDashboard = React.lazy(() =>
@@ -167,6 +168,12 @@ const AnimatedLiveStoreApp: React.FC = () => {
   );
 };
 
+function loading(_status: BootStatus) {
+  // Let our overlay handle loading
+  // console.debug(`LiveStore Loading status: ${JSON.stringify(_status)}`);
+  return <></>;
+}
+
 // Component to detect when LiveStore is ready
 const LiveStoreReadyDetector: React.FC<{ onReady?: () => void }> = ({
   onReady,
@@ -234,11 +241,7 @@ const LiveStoreApp: React.FC<{
     <LiveStoreProvider
       schema={schema}
       adapter={adapter}
-      renderLoading={(_status) => {
-        // Let our overlay handle loading
-        // console.debug(`LiveStore Loading status: ${JSON.stringify(_status)}`);
-        return <></>;
-      }}
+      renderLoading={loading}
       batchUpdates={batchUpdates}
       storeId={storeId}
       syncPayload={syncPayloadRef.current}
