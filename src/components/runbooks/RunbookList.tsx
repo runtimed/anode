@@ -2,10 +2,9 @@ import React, { useState, useMemo } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Plus, Users, Clock, User } from "lucide-react";
 import { getRunbookVanityUrl } from "../../util/url-utils";
-import { useQuery, useMutation } from "../../lib/graphql-client";
 import {
-  LIST_RUNBOOKS,
-  CREATE_RUNBOOK,
+  useListRunbooksQuery,
+  useCreateRunbookMutation,
   type Runbook,
   type CreateRunbookInput,
 } from "../../queries/runbooks";
@@ -23,9 +22,8 @@ export const RunbookList: React.FC<RunbookListProps> = () => {
   const [filter, setFilter] = useState<"all" | "owned" | "shared">("all");
   const navigate = useNavigate();
 
-  // Query runbooks based on current filter
-  const [{ data, fetching, error }] = useQuery({
-    query: LIST_RUNBOOKS,
+  // Query runbooks based on current filter using type-safe hook
+  const [{ data, fetching, error }] = useListRunbooksQuery({
     variables: useMemo(() => {
       switch (filter) {
         case "owned":
@@ -38,8 +36,8 @@ export const RunbookList: React.FC<RunbookListProps> = () => {
     }, [filter]),
   });
 
-  // Create runbook mutation
-  const [, createRunbook] = useMutation(CREATE_RUNBOOK);
+  // Create runbook mutation using type-safe hook
+  const [, createRunbook] = useCreateRunbookMutation();
 
   const runbooks = data?.runbooks || [];
 

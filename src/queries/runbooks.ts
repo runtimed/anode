@@ -1,3 +1,45 @@
+// Re-export generated types and hooks for convenience
+export type {
+  Runbook,
+  User,
+  PrivateUser,
+  CreateRunbookInput,
+  UpdateRunbookInput,
+  ShareRunbookInput,
+  UnshareRunbookInput,
+  PermissionLevel,
+  ListRunbooksQuery,
+  ListRunbooksQueryVariables,
+  GetRunbookQuery,
+  GetRunbookQueryVariables,
+  GetMeQuery,
+  GetMeQueryVariables,
+  CreateRunbookMutation,
+  CreateRunbookMutationVariables,
+  UpdateRunbookMutation,
+  UpdateRunbookMutationVariables,
+  DeleteRunbookMutation,
+  DeleteRunbookMutationVariables,
+  ShareRunbookMutation,
+  ShareRunbookMutationVariables,
+  UnshareRunbookMutation,
+  UnshareRunbookMutationVariables,
+} from "../generated/graphql";
+
+// Re-export generated hooks
+export {
+  useListRunbooksQuery,
+  useGetRunbookQuery,
+  useGetMeQuery,
+  useCreateRunbookMutation,
+  useUpdateRunbookMutation,
+  useDeleteRunbookMutation,
+  useShareRunbookMutation,
+  useUnshareRunbookMutation,
+} from "../generated/graphql";
+
+// Legacy exports for backward compatibility
+// These will be removed once all components are migrated
 import { gql } from "urql";
 
 // Fragment for runbook fields
@@ -98,42 +140,3 @@ export const UNSHARE_RUNBOOK = gql`
     unshareRunbook(input: $input)
   }
 `;
-
-// Type definitions for TypeScript
-export interface User {
-  id: string;
-  givenName?: string;
-  familyName?: string;
-}
-
-export interface PrivateUser extends User {
-  email: string;
-}
-
-export interface Runbook {
-  ulid: string;
-  title: string;
-  myPermission: "OWNER" | "WRITER" | "NONE";
-  createdAt: string;
-  updatedAt: string;
-  owner: User;
-  collaborators: User[];
-}
-
-export interface CreateRunbookInput {
-  title: string;
-}
-
-export interface UpdateRunbookInput {
-  title?: string;
-}
-
-export interface ShareRunbookInput {
-  runbookUlid: string;
-  userId: string;
-}
-
-export interface UnshareRunbookInput {
-  runbookUlid: string;
-  userId: string;
-}

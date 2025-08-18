@@ -24,7 +24,7 @@
     "build:production": "./scripts/optimize-build.sh && vite build --mode production",
     "build:production:fast": "vite build --mode production",
     "deploy:preview": "CLOUDFLARE_ENV=preview pnpm wrangler d1 migrations apply DB --env preview --remote && pnpm wrangler deploy --env preview",
-    "deploy:production": "CLOUDFLARE_ENV=production pnpm wrangler d1 migrations apply DB --env production --remote && pnpm wrangler deploy",
+    "deploy:production": "CLOUDFLARE_ENV=production pnpm wrangler d1 migrations apply DB --env production --remote && pnpm wrangler deploy --env production",
     "preview": "vite preview",
     "clean": "rm -rf dist node_modules/.vite node_modules/.vite-main node_modules/.vite-wrangler",
     "clean:cache": "rm -rf dist node_modules/.vite node_modules/.vite-main node_modules/.vite-wrangler node_modules/.pnpm-store ~/.pnpm-cache",
@@ -43,6 +43,8 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "check": "pnpm type-check && pnpm lint && pnpm format:check",
+    "codegen": "graphql-codegen",
+    "codegen:watch": "graphql-codegen --watch",
     "start": "echo 'Use `pnpm dev` to run the integrated server (frontend + backend). Legacy `dev:sync` script removed - now using Cloudflare Vite plugin.'"
   },
   "dependencies": {
@@ -117,6 +119,10 @@
     "@cloudflare/workers-types": "^4.20250813.0",
     "@effect/vitest": "0.23.7",
     "@eslint/js": "^9.30.1",
+    "@graphql-codegen/cli": "^5.0.7",
+    "@graphql-codegen/typescript": "^4.1.6",
+    "@graphql-codegen/typescript-operations": "^4.6.1",
+    "@graphql-codegen/typescript-urql": "^4.0.1",
     "@livestore/adapter-node": "^0.3.1",
     "@livestore/devtools-vite": "^0.3.1",
     "@tailwindcss/cli": "^4.1.10",
