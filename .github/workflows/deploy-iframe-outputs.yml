@@ -8,6 +8,8 @@ jobs:
   deploy-iframe-outputs:
     name: Build and Deploy Iframe Outputs (Preview)
     runs-on: ubuntu-latest
+    environment:
+      name: preview
     concurrency:
       group: preview-deploy-${{ github.ref }}
       cancel-in-progress: true
