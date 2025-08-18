@@ -76,7 +76,7 @@ const AuthorizePage: React.FC = () => {
         setError("Invalid redirect_uri: must be same hostname");
         return;
       }
-    } catch (error) {
+    } catch (_error) {
       setError("Invalid redirect_uri format");
       return;
     }
