@@ -1,4 +1,4 @@
-name: Deploy Iframe Outputs (Preview - Dry Run)
+name: Deploy Iframe Outputs (Preview)
 
 on:
   pull_request:
