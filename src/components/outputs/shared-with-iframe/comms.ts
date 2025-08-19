@@ -3,25 +3,52 @@
 
 import { OutputData } from "@/schema";
 import { useEffect, useRef, useState } from "react";
+import type { Expect, Extends } from "@/lib/type-utils";
 
-type UpdateOutputsEvent = {
+// ---
+// NOTE: source of truth here. Updates here propogate down
+
+const allowedToIframeEvents = ["update-outputs"] as const;
+const allowedFromIframeEvents = ["iframe-height", "iframe-loaded"] as const;
+
+// ---
+
+type ToIframeEventName = (typeof allowedToIframeEvents)[number];
+type FromIframeEventName = (typeof allowedFromIframeEvents)[number];
+
+// Type guard helpers to ensure event types are valid
+function isValidToIframeEventType(type: string): type is ToIframeEventName {
+  return allowedToIframeEvents.includes(type as ToIframeEventName);
+}
+
+function isValidFromIframeEventType(type: string): type is FromIframeEventName {
+  return allowedFromIframeEvents.includes(type as FromIframeEventName);
+}
+
+export type ToIframeEvent = {
   type: "update-outputs";
   outputs: OutputData[];
 };
 
-type IframeLoadedEvent = {
-  type: "iframe-loaded";
-};
+export type FromIframeEvent =
+  | { type: "iframe-loaded" }
+  | { type: "iframe-height"; height: number };
 
-type IframeHeightEvent = {
-  type: "iframe-height";
-  height: number;
-};
+// Errors if `ToIframeEvent` is wrong
+type _TestToIframeEventAssertion = Expect<
+  Extends<ToIframeEvent["type"], ToIframeEventName>
+>;
 
-export type ToIframeEvent = UpdateOutputsEvent;
-export type FromIframeEvent = IframeHeightEvent | IframeLoadedEvent;
+// Errors if `FromIframeEvent` is wrong
+type _TestFromIframeEventTypeAssertion = Expect<
+  Extends<FromIframeEvent["type"], FromIframeEventName>
+>;
 
 export function sendFromIframe(event: FromIframeEvent) {
+  if (!isValidFromIframeEventType(event.type)) {
+    console.error("Invalid event type", event);
+    return;
+  }
   window.parent.postMessage(event, "*");
 }
 
@@ -30,6 +57,10 @@ export function sendToIframe(
   data: ToIframeEvent
 ) {
   if (iframeElement.contentWindow) {
+    if (!isValidToIframeEventType(data.type)) {
+      console.error("Invalid event type", data);
+      return;
+    }
     iframeElement.contentWindow.postMessage(data, "*");
   } else {
     console.error("Iframe element is not loaded");
@@ -39,11 +70,40 @@ export function sendToIframe(
 export function addParentMessageListener(
   cb: (event: MessageEvent<FromIframeEvent>) => void
 ) {
-  window.addEventListener("message", cb);
+  window.addEventListener("message", (event) => {
+    if (event.origin !== import.meta.env.VITE_IFRAME_OUTPUT_URI) {
+      return;
+    }
+    if (!isValidFromIframeEventType(event.data.type)) {
+      return;
+    }
+    cb(event);
+  });
 }
 
 export function removeParentMessageListener(
   cb: (event: MessageEvent<FromIframeEvent>) => void
+) {
+  window.removeEventListener("message", cb);
+}
+
+export function addIframeMessageListener(
+  cb: (event: MessageEvent<ToIframeEvent>) => void
+) {
+  window.addEventListener("message", (event) => {
+    if (event.source !== window.parent) {
+      console.error("Invalid event source", event);
+      return;
+    }
+    if (!isValidToIframeEventType(event.data.type)) {
+      return;
+    }
+    cb(event);
+  });
+}
+
+export function removeIframeMessageListener(
+  cb: (event: MessageEvent<ToIframeEvent>) => void
 ) {
   window.removeEventListener("message", cb);
 }
@@ -125,7 +185,6 @@ export function useIframeCommsChild() {
     function sendHeight() {
       const BUFFER = 1; // Add a small buffer to prevent scrollbars
       const height = document.body.scrollHeight;
-      console.log("sending height 2", height);
       sendFromIframe({
         type: "iframe-height",
         height: height + BUFFER,
@@ -133,10 +192,10 @@ export function useIframeCommsChild() {
     }
 
     // Send height on load
-    // sendHeight();
+    sendHeight();
 
     // Send height after a short delay to ensure content is rendered
-    // setTimeout(sendHeight, 0);
+    setTimeout(sendHeight, 0);
 
     // Send height when content changes (for dynamic content)
     const observer = new MutationObserver(sendHeight);
@@ -147,22 +206,22 @@ export function useIframeCommsChild() {
     });
 
     // Handle incoming content updates
-    window.addEventListener("message", (event: MessageEvent<ToIframeEvent>) => {
+
+    const listener = (event: MessageEvent<ToIframeEvent>) => {
       console.log("received message", event.data);
       const data = event.data;
-      if (data && data.type === "update-outputs") {
-        console.log("update-outputs", data.outputs);
-        setOutputs(data.outputs || []);
-        // setTimeout(sendHeight, 50);
-      }
-    });
+      console.log("update-outputs", data.outputs);
+      setOutputs(data.outputs || []);
+    };
+
+    addIframeMessageListener(listener);
 
     // After the MutationObserver setup
     const resizeObserver = new ResizeObserver(sendHeight);
     resizeObserver.observe(document.documentElement); // or document.body, or your content container
 
     // Capture-phase load listener to catch <img>, <video>, <iframe> loads
-    // document.addEventListener("load", sendHeight, true);
+    document.addEventListener("load", sendHeight, true);
 
     // Fonts can also change height when they finish loading
     if ("fonts" in document) {
@@ -177,6 +236,7 @@ export function useIframeCommsChild() {
     }
 
     return () => {
+      removeIframeMessageListener(listener);
       observer.disconnect();
       resizeObserver.disconnect();
       document.removeEventListener("load", sendHeight, true);
