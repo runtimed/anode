@@ -12,7 +12,7 @@ jobs:
       name: preview
     concurrency:
       group: preview-deploy-${{ github.ref }}
-      cancel-in-progress: false
+      cancel-in-progress: true
 
     steps:
       - name: Checkout code
@@ -63,27 +63,27 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Apply database migrations (Preview)
-        run: pnpm wrangler d1 migrations apply DB --env preview --remote --verbose
+        run: pnpm wrangler d1 migrations apply DB --env preview --remote
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
 
       - name: Deploy base app to Preview
-        run: pnpm wrangler deploy --env preview --verbose
+        run: pnpm wrangler deploy --env preview
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
 
       - name: Deploy iframe worker to Preview
         working-directory: iframe-outputs/worker
-        run: pnpm run deploy:preview --verbose
+        run: pnpm run deploy:preview
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
 
       - name: Deploy base app to Production (dry-run)
-        run: pnpm wrangler deploy --env production --dry-run --verbose
+        run: pnpm wrangler deploy --env production --dry-run
 
       - name: Deploy iframe worker to Production (dry-run)
         working-directory: iframe-outputs/worker
-        run: pnpm run deploy:production-dry-run --verbose
+        run: pnpm run deploy:production-dry-run
