@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { getOpenIdService } from "../../services/openid";
+import { useAuth } from "./AuthProvider";
 import { Button } from "../ui/button";
 import {
   Card,
@@ -22,6 +23,7 @@ const AuthRedirect: React.FC = () => {
   const [error, setError] = useState<Error | null>(null);
   const [isDirectAccess, setIsDirectAccess] = useState(false);
   const navigate = useNavigate();
+  const { refreshAuthState } = useAuth();
 
   useEffect(() => {
     // Remove the static loading screen so our component UI is visible
@@ -42,6 +44,8 @@ const AuthRedirect: React.FC = () => {
     // Legitimate OIDC callback - process it
     const subscription = openIdService.handleRedirect().subscribe({
       complete: () => {
+        // Refresh auth state with new user info before navigation
+        refreshAuthState();
         redirectHelper.navigateToSavedNotebook(navigate);
       },
       error: (error) => {
@@ -54,7 +58,7 @@ const AuthRedirect: React.FC = () => {
         subscription.unsubscribe();
       }
     };
-  }, [openIdService, navigate]);
+  }, [openIdService, navigate, refreshAuthState]);
 
   // Direct access case - show informative message
   if (isDirectAccess) {

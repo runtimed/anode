@@ -16,7 +16,7 @@ export const AuthGuard: React.FC<AuthGuardProps> = ({ children, fallback }) => {
   const isLoading = !authState.valid && authState.loading;
   const error =
     !authState.valid && authState.error ? authState.error.message : undefined;
-  const [authExpiredError, setAuthExpiredError] = useState<string | null>(null);
+
   const [loginError, setLoginError] = useState<string | null>(null);
   const [isButtonHovered, setIsButtonHovered] = useState(false);
 
@@ -26,18 +26,6 @@ export const AuthGuard: React.FC<AuthGuardProps> = ({ children, fallback }) => {
       updateLoadingStage("checking-auth");
     }
   }, [isLoading]);
-
-  // Listen for authentication errors from LiveStore
-  useEffect(() => {
-    const handleMessage = (event: MessageEvent) => {
-      if (event.data?.type === "AUTH_ERROR") {
-        setAuthExpiredError(event.data.message);
-      }
-    };
-
-    window.addEventListener("message", handleMessage);
-    return () => window.removeEventListener("message", handleMessage);
-  }, []);
 
   // Auth loading state
   if (isLoading) {
@@ -52,33 +40,15 @@ export const AuthGuard: React.FC<AuthGuardProps> = ({ children, fallback }) => {
   }
 
   // Auth error state
-  if ((error && !isAuthenticated) || authExpiredError) {
+  if (error && !isAuthenticated) {
     return (
       <div className="bg-background flex min-h-screen items-center justify-center">
         <div className="max-w-md text-center">
           <div className="text-foreground mb-2 text-lg font-semibold">
             Authentication Required
           </div>
-          <div className="mb-4 text-sm text-red-600">
-            {authExpiredError || error}
-          </div>
-          {authExpiredError && (
-            <div className="text-muted-foreground mb-4 text-xs">
-              Your session has expired. Please sign in again to continue.
-            </div>
-          )}
+          <div className="mb-4 text-sm text-red-600">{error}</div>
           <LoginPrompt error={loginError} setError={setLoginError} />
-          {authExpiredError && (
-            <button
-              onClick={() => {
-                setAuthExpiredError(null);
-                window.location.reload();
-              }}
-              className="mt-2 rounded-md bg-gray-200 px-4 py-2 text-sm hover:bg-gray-300"
-            >
-              Reload Page
-            </button>
-          )}
         </div>
       </div>
     );

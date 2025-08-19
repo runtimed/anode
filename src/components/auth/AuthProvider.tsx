@@ -1,9 +1,13 @@
 import React, { createContext, useContext, useEffect, useState } from "react";
-import { getOpenIdService, UserInfo } from "../../services/openid";
+import {
+  getOpenIdService,
+  UserInfo,
+  LocalStorageKey,
+} from "../../services/openid";
 export type { UserInfo } from "../../services/openid";
 
 type AuthState =
-  | { valid: true; token: string; user: UserInfo }
+  | { valid: true; user: UserInfo }
   | { valid: false; loading: boolean; error?: Error };
 
 type AuthContextType = {
@@ -11,6 +15,7 @@ type AuthContextType = {
   get user(): UserInfo | null;
   get accessToken(): string | null;
   signOut: () => void;
+  refreshAuthState: () => void;
 };
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -45,27 +50,30 @@ export function AuthProvider({ children }: AuthProviderProps) {
   });
 
   useEffect(() => {
-    // OpenID mode - use the service
+    // Check initial authentication state - only once, no reactive updates
     const openIdService = getOpenIdService();
-    const subscription = openIdService.getUser().subscribe({
-      next: (user) => {
-        if (user) {
-          setAuthState({
-            valid: true,
-            token: user.accessToken,
-            user: user.claims,
-          });
-        } else {
-          setAuthState({ valid: false, loading: false });
-        }
-      },
-      error: (error) => {
-        console.error("Error getting access token:", error);
-        setAuthState({ valid: false, loading: false, error });
-      },
+    const tokens = openIdService.getFromLocalStorage<{
+      accessToken: string;
+      refreshToken: string;
+      expiresAt: number;
+      claims: UserInfo;
+    }>(LocalStorageKey.Tokens);
+
+    if (tokens && tokens.claims) {
+      setAuthState({
+        valid: true,
+        user: tokens.claims,
+      });
+    } else {
+      setAuthState({ valid: false, loading: false });
+    }
+
+    // Listen only for reset events (login/logout), not token refresh
+    const resetSubscription = openIdService.resetSubject$.subscribe(() => {
+      setAuthState({ valid: false, loading: false });
     });
 
-    return () => subscription.unsubscribe();
+    return () => resetSubscription.unsubscribe();
   }, []);
 
   useEffect(() => {
@@ -83,7 +91,35 @@ export function AuthProvider({ children }: AuthProviderProps) {
   };
 
   const getAccessToken = (): string | null => {
-    return authState.valid ? authState.token : null;
+    // Get current token directly from storage, not from state
+    const openIdService = getOpenIdService();
+    const tokens = openIdService.getFromLocalStorage<{
+      accessToken: string;
+      refreshToken: string;
+      expiresAt: number;
+      claims: UserInfo;
+    }>(LocalStorageKey.Tokens);
+    return tokens?.accessToken || null;
+  };
+
+  const refreshAuthState = () => {
+    // Re-check authentication state after login
+    const openIdService = getOpenIdService();
+    const tokens = openIdService.getFromLocalStorage<{
+      accessToken: string;
+      refreshToken: string;
+      expiresAt: number;
+      claims: UserInfo;
+    }>(LocalStorageKey.Tokens);
+
+    if (tokens && tokens.claims) {
+      setAuthState({
+        valid: true,
+        user: tokens.claims,
+      });
+    } else {
+      setAuthState({ valid: false, loading: false });
+    }
   };
 
   const signOut = () => {
@@ -94,6 +130,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const value: AuthContextType = {
     authState,
     signOut,
+    refreshAuthState,
     get user() {
       return getUser();
     },
