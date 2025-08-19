@@ -21,6 +21,7 @@ import {
   interval,
   tap,
   throwError,
+  firstValueFrom,
 } from "rxjs";
 
 export type UserInfo = {
@@ -110,7 +111,7 @@ export function getOpenIdService(): OpenIdService {
 export class OpenIdService {
   private config$: Observable<Configuration> | null = null;
   private authorizationSecrets$: Observable<RequestState> | null = null;
-  private resetSubject$ = new Subject<void>();
+  public resetSubject$ = new Subject<void>();
   private tokenChangeSubject$ = new Subject<LocalStorageKey>();
   private client = openidClient;
   private tokens$: Observable<Tokens | null> | null = null;
@@ -178,23 +179,79 @@ export class OpenIdService {
   }
 
   public keepFresh(): Observable<void> {
-    // We want to keep the access token valid, so we don't hit any auth issues
-    // This is a simple solution to accomplish this, just by triggering the tokenChangeSubject
-    // every minute. As a side effect, this re-triggers getTokens()
-    // (Note if we just mapped/called getTokens, it wouldn't do anything since
-    // the source stream is $this.tokenChangeSubject
-    // Consider this observable for refactorin in the future, but this is a
-    // simple, easily verifiable solution.
+    // Check token freshness every minute and refresh independently
     if (!this.freshness$) {
       this.freshness$ = interval(60 * 1000).pipe(
-        map(() => {}),
         tap(() => {
-          this.tokenChangeSubject$.next(LocalStorageKey.Tokens);
+          // Check and refresh tokens independently without reactive chain
+          this.refreshTokensIfNeeded();
         }),
+        map(() => {}),
         shareReplay(1)
       );
     }
     return this.freshness$;
+  }
+
+  private async refreshTokensIfNeeded(): Promise<void> {
+    try {
+      const tokens = this.getFromLocalStorage<Tokens>(LocalStorageKey.Tokens);
+      if (!tokens) {
+        return;
+      }
+
+      const now = Math.floor(Date.now() / 1000);
+      const timeUntilExpiry = tokens.expiresAt - now;
+      const shouldRefresh = timeUntilExpiry <= 60; // 1 minute threshold
+
+      if (!shouldRefresh) {
+        return;
+      }
+
+      // Refresh tokens directly without triggering reactive chain
+      const config = await firstValueFrom(this.getConfig());
+      const response = await this.client.refreshTokenGrant(
+        config,
+        tokens.refreshToken,
+        {
+          scopes: OPENID_SCOPES,
+        }
+      );
+
+      if (!response.refresh_token) {
+        throw new Error("No refresh token returned from server");
+      }
+
+      let claims: UserInfo;
+      if (response.claims()) {
+        claims = convertToUserInfo(response);
+      } else {
+        // Re-use existing claims if no id_token returned
+        const jwt = decodeJwt(response.access_token);
+        if (
+          typeof jwt.sub !== "string" ||
+          !jwt.sub ||
+          jwt.sub !== tokens.claims.sub
+        ) {
+          throw new Error("Missing id_token and mismatch with previous claims");
+        }
+        claims = tokens.claims;
+      }
+
+      const expiresAt = computeExpiresAt(response.expires_in);
+      const refreshedTokens: Tokens = {
+        accessToken: response.access_token,
+        refreshToken: response.refresh_token,
+        expiresAt,
+        claims,
+      };
+
+      // Update localStorage and notify reactive chain for REST API calls
+      this.syncToLocalStorage(LocalStorageKey.Tokens, refreshedTokens);
+    } catch (error) {
+      console.error("Background token refresh failed:", error);
+      // Don't clear tokens on background refresh failure - let normal flow handle it
+    }
   }
 
   public reset(): void {
@@ -245,6 +302,7 @@ export class OpenIdService {
       const oldTokens = this.getFromLocalStorage<Tokens>(
         LocalStorageKey.Tokens
       );
+
       this.refreshedToken$ = this.getConfig().pipe(
         switchMap((config) =>
           from(
@@ -429,7 +487,7 @@ export class OpenIdService {
     this.tokenChangeSubject$.next(key);
   }
 
-  private getFromLocalStorage<T>(key: LocalStorageKey): T | null {
+  public getFromLocalStorage<T>(key: LocalStorageKey): T | null {
     const value = localStorage.getItem(key);
     return value ? JSON.parse(value) : null;
   }

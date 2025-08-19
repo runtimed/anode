@@ -3,6 +3,7 @@ import LiveStoreSharedWorker from "@livestore/adapter-web/shared-worker?sharedwo
 import { LiveStoreProvider } from "@livestore/react";
 
 import React, { useEffect, useState, useRef, Suspense } from "react";
+
 import {
   LoadingState,
   MinimalLoading,
@@ -230,18 +231,29 @@ const LiveStoreApp: React.FC<{
   // Get authenticated user info to set clientId
   const {
     user: { sub: clientId },
-    accessToken,
   } = useAuthenticatedUser();
 
-  const syncPayloadRef = useRef<{ authToken: string; clientId: string }>({
-    authToken: accessToken,
+  // Create completely static sync payload that never changes reference
+  // Token access happens through getter, preventing LiveStore restarts
+  const syncPayload = useRef({
+    get authToken() {
+      // Get current token directly from localStorage without any reactive dependencies
+      try {
+        const tokenString = localStorage.getItem("openid_tokens");
+        const tokens = tokenString ? JSON.parse(tokenString) : null;
+        return tokens?.accessToken || "";
+      } catch (error) {
+        console.warn("Failed to get auth token for sync:", error);
+        return "";
+      }
+    },
     clientId,
   });
 
+  // Update clientId if user changes, but keep same object reference
   useEffect(() => {
-    syncPayloadRef.current.authToken = accessToken;
-    syncPayloadRef.current.clientId = clientId;
-  }, [accessToken, clientId]);
+    syncPayload.current.clientId = clientId;
+  }, [clientId]);
 
   const adapter = makePersistedAdapter({
     storage: { type: "opfs" },
@@ -258,53 +270,13 @@ const LiveStoreApp: React.FC<{
       renderLoading={loading}
       batchUpdates={batchUpdates}
       storeId={storeId}
-      syncPayload={syncPayloadRef.current}
+      syncPayload={syncPayload.current}
     >
       <LiveStoreReadyDetector onReady={onLiveStoreReady} />
       <NotebookApp />
     </LiveStoreProvider>
   );
 };
-
-// Set up authentication error handling
-if (typeof Worker !== "undefined") {
-  // Listen for messages from the LiveStore worker
-  const handleWorkerMessage = (event: MessageEvent) => {
-    if (event.data?.type === "AUTH_ERROR") {
-      console.error("Authentication error from LiveStore:", event.data.message);
-
-      // Show user-friendly message
-      const message =
-        "Your session has expired. The page will reload to sign you in again.";
-      alert(message);
-    }
-
-    if (event.data?.type === "FORCE_RELOAD") {
-      console.warn("Forcing page reload due to authentication failure");
-
-      // Clear any cached auth state
-      try {
-        localStorage.removeItem("openid_tokens");
-        localStorage.removeItem("openid_request_state");
-      } catch (e) {
-        console.warn("Failed to clear auth tokens:", e);
-      }
-
-      // Add reset parameter to clear LiveStore state
-      const url = new URL(window.location.href);
-      url.searchParams.set("reset", "auth-expired");
-
-      // Force reload with reset parameter
-      window.location.href = url.toString();
-    }
-  };
-
-  // Add global listener for worker messages
-  if (typeof window !== "undefined") {
-    // This will catch messages from both regular and shared workers
-    addEventListener("message", handleWorkerMessage);
-  }
-}
 
 export const App: React.FC = () => {
   // Safety net: Auto-remove loading screen if no component has handled it
