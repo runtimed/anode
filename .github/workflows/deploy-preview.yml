@@ -1,12 +1,12 @@
-name: Deploy Iframe Outputs (Preview)
+name: Deploy Preview (Base App + Iframe Outputs)
 
 on:
   pull_request:
     branches: [main]
 
 jobs:
-  deploy-iframe-outputs:
-    name: Build and Deploy Iframe Outputs (Preview)
+  deploy-preview:
+    name: Build and Deploy Preview
     runs-on: ubuntu-latest
     environment:
       name: preview
@@ -41,23 +41,43 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-pnpm-store-
 
-      - name: Install dependencies (root)
+      - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Build iframe assets
+      - name: Build base app (preview mode)
+        run: pnpm build --mode preview
+        env:
+          VITE_AUTH_CLIENT_ID: ${{ vars.VITE_AUTH_CLIENT_ID }}
+          VITE_AUTH_REDIRECT_URI: ${{ vars.VITE_AUTH_REDIRECT_URI }}
+          VITE_AUTH_URI: ${{ vars.VITE_AUTH_URI }}
+          VITE_IFRAME_OUTPUT_URI: ${{ vars.VITE_IFRAME_OUTPUT_URI }}
+          VITE_LIVESTORE_SYNC_URL: ${{ vars.VITE_LIVESTORE_SYNC_URL }}
+          VITE_RUNTIME_COMMAND: ${{ vars.VITE_RUNTIME_COMMAND }}
+          VITE_GIT_COMMIT_HASH: ${{ github.sha }}
+
+      - name: Build iframe outputs
         run: pnpm run build:iframe
 
-      - name: Install worker dependencies
+      - name: Install iframe worker dependencies
         working-directory: iframe-outputs/worker
         run: pnpm install --frozen-lockfile
 
-      - name: Deploy worker to Preview
+      - name: Deploy base app to Preview
+        run: pnpm deploy:preview
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+
+      - name: Deploy iframe worker to Preview
         working-directory: iframe-outputs/worker
         run: pnpm run deploy:preview
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
 
-      - name: Deploy worker to Production (dry-run)
+      - name: Deploy base app to Production (dry-run)
+        run: pnpm deploy:production-dry-run
+
+      - name: Deploy iframe worker to Production (dry-run)
         working-directory: iframe-outputs/worker
         run: pnpm run deploy:production-dry-run
