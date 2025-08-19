@@ -39,7 +39,7 @@ export const AuthGuard: React.FC<AuthGuardProps> = ({ children, fallback }) => {
     return () => window.removeEventListener("message", handleMessage);
   }, []);
 
-  // Show loading state
+  // Auth loading state
   if (isLoading) {
     return (
       <LoadingState
@@ -51,7 +51,7 @@ export const AuthGuard: React.FC<AuthGuardProps> = ({ children, fallback }) => {
     );
   }
 
-  // Show error state if authentication failed or auth expired
+  // Auth error state
   if ((error && !isAuthenticated) || authExpiredError) {
     return (
       <div className="bg-background flex min-h-screen items-center justify-center">
@@ -84,7 +84,7 @@ export const AuthGuard: React.FC<AuthGuardProps> = ({ children, fallback }) => {
     );
   }
 
-  // Show sign-in form if not authenticated
+  // Login form
   if (!isAuthenticated) {
     return (
       fallback || (
@@ -123,6 +123,6 @@ export const AuthGuard: React.FC<AuthGuardProps> = ({ children, fallback }) => {
     );
   }
 
-  // Show authenticated content
+  // Render authenticated content
   return <>{children}</>;
 };

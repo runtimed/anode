@@ -46,6 +46,7 @@ const AuthorizePage = React.lazy(
 import {
   AuthProvider,
   useAuthenticatedUser,
+  useAuth,
 } from "./components/auth/AuthProvider.js";
 
 import LiveStoreWorker from "./livestore.worker?worker";
@@ -115,11 +116,20 @@ const NotebookApp: React.FC<NotebookAppProps> = () => {
 
 // Animation wrapper with minimum loading time and animation completion
 const AnimatedLiveStoreApp: React.FC = () => {
+  const { authState } = useAuth();
   const [isLoading, setIsLoading] = useState(true);
+  const [shouldShowAnimation, setShouldShowAnimation] = useState(false);
 
   const [liveStoreReady, setLiveStoreReady] = useState(false);
   const [portalAnimationComplete, setPortalAnimationComplete] = useState(false);
   const [portalReady, setPortalReady] = useState(false);
+
+  // Show loading animation only after auth confirmation
+  useEffect(() => {
+    if (authState.valid) {
+      setShouldShowAnimation(true);
+    }
+  }, [authState.valid]);
 
   // Update static loading screen stage when LiveStore is ready
   useEffect(() => {
@@ -153,8 +163,8 @@ const AnimatedLiveStoreApp: React.FC = () => {
 
   return (
     <>
-      {/* Loading screen overlay - fixed position to prevent layout shift */}
-      {isLoading && (
+      {/* Loading screen overlay */}
+      {shouldShowAnimation && isLoading && (
         <div className="fixed inset-0 z-50 overflow-hidden">
           <Suspense fallback={<div className="min-h-screen bg-white" />}>
             <NotebookLoadingScreen
