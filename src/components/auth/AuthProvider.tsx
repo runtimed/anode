@@ -8,8 +8,8 @@ type AuthState =
 
 type AuthContextType = {
   authState: AuthState;
-  get user(): UserInfo;
-  get accessToken(): string;
+  get user(): UserInfo | null;
+  get accessToken(): string | null;
   signOut: () => void;
 };
 
@@ -21,6 +21,17 @@ export function useAuth() {
     throw new Error("useAuth must be used within an AuthProvider");
   }
   return context;
+}
+
+export function useAuthenticatedUser(): {
+  user: UserInfo;
+  accessToken: string;
+} {
+  const { user, accessToken } = useAuth();
+  if (!user || !accessToken) {
+    throw new Error("useAuthenticatedUser can only be used inside AuthGuard");
+  }
+  return { user, accessToken };
 }
 
 interface AuthProviderProps {
@@ -67,18 +78,12 @@ export function AuthProvider({ children }: AuthProviderProps) {
     return () => subscription.unsubscribe();
   }, []);
 
-  const getUser = (): UserInfo => {
-    if (!authState.valid) {
-      throw new Error("User is not authenticated");
-    }
-    return authState.user;
+  const getUser = (): UserInfo | null => {
+    return authState.valid ? authState.user : null;
   };
 
-  const getAccessToken = (): string => {
-    if (!authState.valid) {
-      throw new Error("User is not authenticated");
-    }
-    return authState.token;
+  const getAccessToken = (): string | null => {
+    return authState.valid ? authState.token : null;
   };
 
   const signOut = () => {

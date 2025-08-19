@@ -1,6 +1,6 @@
 import { useCallback } from "react";
 import { useStore } from "@livestore/react";
-import { useAuth } from "@/components/auth/AuthProvider.js";
+import { useAuthenticatedUser } from "../components/auth/AuthProvider.js";
 import { useEditorRegistry } from "@/hooks/useEditorRegistry.js";
 import { events, queries } from "@/schema";
 import { focusedCellSignal$ } from "@/components/notebook/signals/focus.js";
@@ -9,7 +9,7 @@ export const useDeleteCell = (cellId: string) => {
   const { store } = useStore();
   const {
     user: { sub: userId },
-  } = useAuth();
+  } = useAuthenticatedUser();
   const { focusCell: registryFocusCell } = useEditorRegistry();
 
   const handleDeleteCell = useCallback(

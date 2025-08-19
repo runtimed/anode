@@ -43,12 +43,15 @@ const AuthorizePage = React.lazy(
   () => import("./components/auth/AuthorizePage.js")
 );
 
-import { AuthProvider } from "./components/auth/AuthProvider.js";
+import {
+  AuthProvider,
+  useAuthenticatedUser,
+} from "./components/auth/AuthProvider.js";
 
 import LiveStoreWorker from "./livestore.worker?worker";
 import { schema } from "./schema.js";
 import { getCurrentNotebookId, getStoreId } from "./util/store-id.js";
-import { useAuth } from "./components/auth/AuthProvider.js";
+
 import { ErrorBoundary } from "react-error-boundary";
 import { Toaster } from "./components/ui/sonner.js";
 import { BootStatus } from "@livestore/livestore";
@@ -218,7 +221,7 @@ const LiveStoreApp: React.FC<{
   const {
     user: { sub: clientId },
     accessToken,
-  } = useAuth();
+  } = useAuthenticatedUser();
 
   const syncPayloadRef = useRef<{ authToken: string; clientId: string }>({
     authToken: accessToken,

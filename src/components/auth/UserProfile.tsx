@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { useAuth, UserInfo } from "./AuthProvider.js";
+import { useAuth, useAuthenticatedUser, UserInfo } from "./AuthProvider.js";
 import { useUserRegistry } from "../../hooks/useUserRegistry.js";
 import { AvatarWithDetails } from "../ui/AvatarWithDetails.js";
 import { useStore, useQuery } from "@livestore/react";
@@ -36,7 +36,7 @@ const getDisplayName = (user: UserInfo): string => {
 
 const useSyncUserToLiveStore = () => {
   const { store } = useStore();
-  const { user } = useAuth();
+  const { user } = useAuthenticatedUser();
   const { picture, sub } = user;
   const userId = sub;
   const displayName = getDisplayName(user);
@@ -61,7 +61,8 @@ const useSyncUserToLiveStore = () => {
 };
 
 export const UserProfile: React.FC<UserProfileProps> = ({ className = "" }) => {
-  const { signOut, user } = useAuth();
+  const { signOut } = useAuth();
+  const { user } = useAuthenticatedUser();
   useSyncUserToLiveStore();
   const { getUserInitials } = useUserRegistry();
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);

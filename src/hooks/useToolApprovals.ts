@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useStore, useQuery } from "@livestore/react";
 import { queryDb } from "@livestore/livestore";
 import { events, tables } from "@/schema";
-import { useAuth } from "@/components/auth/AuthProvider.js";
+import { useAuthenticatedUser } from "../components/auth/AuthProvider.js";
 
 export type ToolApprovalRequest = {
   toolCallId: string;
@@ -18,8 +18,7 @@ interface UseToolApprovalsOptions {
 
 export const useToolApprovals = (options: UseToolApprovalsOptions = {}) => {
   const { store } = useStore();
-  const { user } = useAuth();
-  const currentUser = user;
+  const { user: currentUser } = useAuthenticatedUser();
   const [pendingApprovals, setPendingApprovals] = useState<
     ToolApprovalRequest[]
   >([]);

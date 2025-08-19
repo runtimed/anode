@@ -1,6 +1,6 @@
 import { useCallback } from "react";
 import { useStore, useQuery } from "@livestore/react";
-import { useAuth } from "@/components/auth/AuthProvider.js";
+import { useAuthenticatedUser } from "../components/auth/AuthProvider.js";
 import { useAvailableAiModels } from "@/util/ai-models.js";
 import { events, queries, createCellBetween } from "@/schema";
 import { focusedCellSignal$ } from "@/components/notebook/signals/focus.js";
@@ -14,7 +14,7 @@ export const useAddCell = () => {
   const { store } = useStore();
   const {
     user: { sub: userId },
-  } = useAuth();
+  } = useAuthenticatedUser();
   const { models } = useAvailableAiModels();
   const cellReferences = useQuery(queries.cellsWithIndices$);
   const lastUsedAiModel = useQuery(lastUsedAiModel$);

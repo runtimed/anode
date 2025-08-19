@@ -3,13 +3,13 @@ import { queryDb } from "@livestore/livestore";
 import { tables } from "@/schema";
 import { useCallback } from "react";
 
-import { useAuth } from "@/components/auth/AuthProvider.js";
+import { useAuthenticatedUser } from "../components/auth/AuthProvider.js";
 import { useUserRegistry } from "./useUserRegistry.js";
 
 export const useCellPresence = (cellId: string) => {
   const {
     user: { sub: userId },
-  } = useAuth();
+  } = useAuthenticatedUser();
   const { getUserInfo } = useUserRegistry();
 
   // Query users present on this specific cell, excluding current user
@@ -36,7 +36,7 @@ export const useCellPresence = (cellId: string) => {
 export const useMultiCellPresence = () => {
   const {
     user: { sub: userId },
-  } = useAuth();
+  } = useAuthenticatedUser();
   const { getUserInfo } = useUserRegistry();
 
   // Query all presence data excluding current user
