@@ -1,4 +1,4 @@
-import { useAuth } from "@/components/auth/AuthProvider.js";
+import { useAuthenticatedUser } from "../../auth/AuthProvider.js";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { useCellContent } from "@/hooks/useCellContent.js";
@@ -86,7 +86,7 @@ export const ExecutableCell: React.FC<ExecutableCellProps> = ({
 
   const {
     user: { sub: userId },
-  } = useAuth();
+  } = useAuthenticatedUser();
   const { getUsersOnCell, getUserColor } = useUserRegistry();
 
   // Get users present on this cell (excluding current user)

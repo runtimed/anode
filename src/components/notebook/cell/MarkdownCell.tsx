@@ -15,7 +15,7 @@ import React, {
 } from "react";
 
 import { Button } from "@/components/ui/button.js";
-import { useAuth } from "@/components/auth/AuthProvider.js";
+import { useAuthenticatedUser } from "../../auth/AuthProvider.js";
 import { useUserRegistry } from "@/hooks/useUserRegistry.js";
 import { Edit3, Eye } from "lucide-react";
 import { ErrorBoundary } from "react-error-boundary";
@@ -77,7 +77,7 @@ export const MarkdownCell: React.FC<MarkdownCellProps> = ({
   // All hooks must be called at the top level before any conditional returns
   const {
     user: { sub: userId },
-  } = useAuth();
+  } = useAuthenticatedUser();
   const { getUsersOnCell, getUserColor } = useUserRegistry();
   const [isEditing, setIsEditing] = useState(autoFocus);
 

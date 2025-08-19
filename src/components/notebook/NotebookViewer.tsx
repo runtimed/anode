@@ -12,7 +12,7 @@ import { CellList } from "./CellList.js";
 import { Avatar } from "@/components/ui/Avatar.js";
 import { Button } from "@/components/ui/button";
 
-import { useAuth } from "@/components/auth/AuthProvider.js";
+import { useAuthenticatedUser } from "../auth/AuthProvider.js";
 import { useUserRegistry } from "@/hooks/useUserRegistry.js";
 
 import { getClientColor, getClientTypeInfo } from "@/services/userTypes.js";
@@ -51,7 +51,7 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
   const { store } = useStore();
   const {
     user: { sub: userId },
-  } = useAuth();
+  } = useAuthenticatedUser();
   const { presentUsers, getUserInfo, getUserColor } = useUserRegistry();
   const cellReferences = useQuery(queries.cellsWithIndices$);
 
