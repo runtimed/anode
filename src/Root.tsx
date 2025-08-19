@@ -227,7 +227,8 @@ const LiveStoreApp: React.FC<{
 
   useEffect(() => {
     syncPayloadRef.current.authToken = accessToken;
-  }, [accessToken]);
+    syncPayloadRef.current.clientId = clientId;
+  }, [accessToken, clientId]);
 
   const adapter = makePersistedAdapter({
     storage: { type: "opfs" },
