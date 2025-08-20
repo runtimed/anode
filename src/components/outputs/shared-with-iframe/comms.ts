@@ -1,4 +1,4 @@
-// NOTE: code here is shared between the iframe and the parent page.
+// 🚨 IMPORTANT: code here is shared between the iframe and the parent page.
 // It's done to colocate types to ensure typesafety across the two bundles.
 
 import { OutputData } from "@/schema";
@@ -61,7 +61,9 @@ export function sendToIframe(
       console.error("Invalid event type", data);
       return;
     }
-    iframeElement.contentWindow.postMessage(data, "*");
+    const targetOrigin = new URL(import.meta.env.VITE_IFRAME_OUTPUT_URI).origin;
+    console.log("sending from iframe to origin", targetOrigin);
+    iframeElement.contentWindow.postMessage(data, targetOrigin);
   } else {
     console.error("Iframe element is not loaded");
   }
