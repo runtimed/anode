@@ -1,6 +1,6 @@
-import { ulid } from "ulid";
 import { GraphQLError } from "graphql";
 import type { ValidatedUser } from "../auth.ts";
+import { createNotebookId } from "../utils/notebook-id.ts";
 import type { PermissionsProvider } from "../permissions/types.ts";
 import {
   getUserById,
@@ -232,7 +232,7 @@ export const resolvers = {
       }
 
       try {
-        const runbookUlid = ulid();
+        const runbookUlid = createNotebookId();
         const now = new Date().toISOString();
 
         const result = await DB.prepare(
