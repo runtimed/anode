@@ -70,6 +70,12 @@ const RunbookViewer = React.lazy(() =>
   }))
 );
 
+const NotebookDashboard = React.lazy(() =>
+  import("./components/notebook/NotebookDashboard.tsx").then((m) => ({
+    default: m.NotebookDashboard,
+  }))
+);
+
 interface NotebookAppProps {}
 
 const NotebookApp: React.FC<NotebookAppProps> = () => {
@@ -377,6 +383,23 @@ export const App: React.FC = () => {
                   <RunbookDashboard />
                 </Suspense>
               </GraphQLClientProvider>
+            </AuthGuard>
+          }
+        />
+        <Route
+          path="/nb"
+          element={
+            <AuthGuard>
+              <Suspense
+                fallback={
+                  <LoadingState
+                    variant="fullscreen"
+                    message="Loading notebooks..."
+                  />
+                }
+              >
+                <NotebookDashboard />
+              </Suspense>
             </AuthGuard>
           }
         />

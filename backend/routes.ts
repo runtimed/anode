@@ -2,6 +2,8 @@ import { Hono } from "hono";
 import { v4 as uuidv4 } from "uuid";
 import { authMiddleware, type AuthContext } from "./middleware.ts";
 import { type Env } from "./types.ts";
+import { fetchRequestHandler } from "@trpc/server/adapters/fetch";
+import { appRouter } from "./index.ts";
 
 // Import unified API key routes
 import apiKeyRoutes from "./api-key-routes.ts";
@@ -11,6 +13,16 @@ import {
 } from "./providers/api-key-factory.ts";
 
 const api = new Hono<{ Bindings: Env; Variables: AuthContext }>();
+
+// tRPC endpoint
+api.all("/trpc/*", async (c) => {
+  return fetchRequestHandler({
+    endpoint: "/api/trpc",
+    req: c.req.raw,
+    router: appRouter,
+    createContext: () => ({}),
+  });
+});
 
 // Health endpoint - no auth required
 api.get("/health", (c) => {
