@@ -3,7 +3,7 @@ import { v4 as uuidv4 } from "uuid";
 import { authMiddleware, type AuthContext } from "./middleware.ts";
 import { type Env } from "./types.ts";
 import { fetchRequestHandler } from "@trpc/server/adapters/fetch";
-import { appRouter } from "./index.ts";
+import { appRouter } from "./trpc/index.ts";
 
 // Import unified API key routes
 import apiKeyRoutes from "./api-key-routes.ts";

@@ -1,7 +1,7 @@
 import { QueryClient } from "@tanstack/react-query";
 import { createTRPCClient, httpBatchLink } from "@trpc/client";
 
-import type { AppRouter } from "../../backend/index";
+import type { AppRouter } from "../../backend/trpc/index";
 //     👆 **type-only** import
 
 const endpointLink = httpBatchLink({
