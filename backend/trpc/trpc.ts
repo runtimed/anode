@@ -1,10 +1,11 @@
 import { initTRPC } from "@trpc/server";
+import { Env } from "backend/types";
 
 /**
  * Initialization of tRPC backend
  * Should be done only once per backend!
  */
-const t = initTRPC.create();
+const t = initTRPC.context<{ env: Env }>().create();
 
 /**
  * Export reusable router and procedure helpers

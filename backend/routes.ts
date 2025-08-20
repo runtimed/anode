@@ -15,12 +15,12 @@ import {
 const api = new Hono<{ Bindings: Env; Variables: AuthContext }>();
 
 // tRPC endpoint
-api.all("/trpc/*", async (c) => {
+api.all("/trpc/*", async (ctx) => {
   return fetchRequestHandler({
     endpoint: "/api/trpc",
-    req: c.req.raw,
+    req: ctx.req.raw,
     router: appRouter,
-    createContext: () => ({}),
+    createContext: () => ({ env: ctx.env }),
   });
 });
 
