@@ -7,7 +7,7 @@ on:
 jobs:
   validate-preview:
     name: Validate Preview
-    uses: ./.github/workflows/_deploy-reusable.yml
+    uses: ./.github/workflows/.deploy-reusable.yml
     with:
       environment: "preview"
       build_mode: "preview"
