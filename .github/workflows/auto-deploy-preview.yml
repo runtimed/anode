@@ -7,7 +7,7 @@ on:
 jobs:
   auto-deploy-preview:
     name: Auto Deploy Preview
-    uses: ./.github/workflows/_deploy-reusable.yml
+    uses: ./.github/workflows/.deploy-reusable.yml
     with:
       environment: "preview"
       build_mode: "preview"

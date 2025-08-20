@@ -12,7 +12,7 @@ on:
 jobs:
   deploy-preview:
     name: Deploy Preview Manually
-    uses: ./.github/workflows/_deploy-reusable.yml
+    uses: ./.github/workflows/.deploy-reusable.yml
     with:
       environment: "preview"
       build_mode: "preview"
