@@ -1,14 +1,25 @@
 import { QueryClient } from "@tanstack/react-query";
 import { createTRPCClient, httpBatchLink } from "@trpc/client";
 
+import { getOpenIdService } from "@/services/openid";
+import { createTRPCOptionsProxy } from "@trpc/tanstack-react-query";
+
 import type { AppRouter } from "../../backend/trpc/index";
 //     👆 **type-only** import
 
+const TRPC_ENDPOINT = "/api/trpc";
+
 const endpointLink = httpBatchLink({
-  url: "/api/trpc",
+  url: TRPC_ENDPOINT,
+  headers: () => {
+    const accessToken = getOpenIdService().getTokens()?.accessToken;
+    if (!accessToken) return {};
+    return {
+      Authorization: `Bearer ${accessToken}`, // TODO: use refresh token
+    };
+  },
 });
 
-import { createTRPCOptionsProxy } from "@trpc/tanstack-react-query";
 export const trpcQueryClient = new QueryClient();
 const trpcClient = createTRPCClient<AppRouter>({
   links: [endpointLink],

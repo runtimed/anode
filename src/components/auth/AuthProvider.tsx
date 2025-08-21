@@ -1,9 +1,5 @@
 import React, { createContext, useContext, useEffect, useState } from "react";
-import {
-  getOpenIdService,
-  UserInfo,
-  LocalStorageKey,
-} from "../../services/openid";
+import { getOpenIdService, UserInfo } from "../../services/openid";
 export type { UserInfo } from "../../services/openid";
 
 type AuthState =
@@ -52,12 +48,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
   useEffect(() => {
     // Check initial authentication state - only once, no reactive updates
     const openIdService = getOpenIdService();
-    const tokens = openIdService.getFromLocalStorage<{
-      accessToken: string;
-      refreshToken: string;
-      expiresAt: number;
-      claims: UserInfo;
-    }>(LocalStorageKey.Tokens);
+    const tokens = openIdService.getTokens();
 
     if (tokens && tokens.claims) {
       setAuthState({
@@ -93,24 +84,14 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const getAccessToken = (): string | null => {
     // Get current token directly from storage, not from state
     const openIdService = getOpenIdService();
-    const tokens = openIdService.getFromLocalStorage<{
-      accessToken: string;
-      refreshToken: string;
-      expiresAt: number;
-      claims: UserInfo;
-    }>(LocalStorageKey.Tokens);
+    const tokens = openIdService.getTokens();
     return tokens?.accessToken || null;
   };
 
   const refreshAuthState = () => {
     // Re-check authentication state after login
     const openIdService = getOpenIdService();
-    const tokens = openIdService.getFromLocalStorage<{
-      accessToken: string;
-      refreshToken: string;
-      expiresAt: number;
-      claims: UserInfo;
-    }>(LocalStorageKey.Tokens);
+    const tokens = openIdService.getTokens();
 
     if (tokens && tokens.claims) {
       setAuthState({
