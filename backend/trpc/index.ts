@@ -83,18 +83,18 @@ export const appRouter = router({
           accessibleNotebookIds =
             await permissionsProvider.listAccessibleResources(
               user.id,
-              "runbook",
+              "notebook",
               ["owner"]
             );
         } else if (shared && !owned) {
           const allAccessible =
             await permissionsProvider.listAccessibleResources(
               user.id,
-              "runbook"
+              "notebook"
             );
           const ownedOnly = await permissionsProvider.listAccessibleResources(
             user.id,
-            "runbook",
+            "notebook",
             ["owner"]
           );
           accessibleNotebookIds = allAccessible.filter(
@@ -105,7 +105,7 @@ export const appRouter = router({
           accessibleNotebookIds =
             await permissionsProvider.listAccessibleResources(
               user.id,
-              "runbook"
+              "notebook"
             );
         }
 
@@ -377,7 +377,7 @@ export const appRouter = router({
 
       try {
         await permissionsProvider.grantPermission({
-          runbookId: input.notebookUlid,
+          notebookId: input.notebookUlid,
           userId: input.userId,
           grantedBy: user.id,
         });
@@ -405,7 +405,7 @@ export const appRouter = router({
 
       try {
         await permissionsProvider.revokePermission({
-          runbookId: input.notebookUlid,
+          notebookId: input.notebookUlid,
           userId: input.userId,
           revokedBy: user.id,
         });

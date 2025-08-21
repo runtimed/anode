@@ -1,7 +1,7 @@
 import { initTRPC, TRPCError } from "@trpc/server";
 import { ValidatedUser } from "backend/auth";
 import { Env } from "backend/types";
-import { PermissionsProvider } from "backend/runbook-permissions/types";
+import { PermissionsProvider } from "backend/notebook-permissions/types";
 
 export type TrcpContext = {
   env: Env;

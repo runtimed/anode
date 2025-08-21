@@ -12,7 +12,7 @@ import {
   validateProviderConfig,
 } from "./providers/api-key-factory.ts";
 import { extractAndValidateUser, ValidatedUser } from "./auth.ts";
-import { createPermissionsProvider } from "./runbook-permissions/factory.ts";
+import { createPermissionsProvider } from "./notebook-permissions/factory.ts";
 import { TrcpContext } from "./trpc/trpc.ts";
 
 const api = new Hono<{ Bindings: Env; Variables: AuthContext }>();
