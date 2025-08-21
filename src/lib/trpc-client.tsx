@@ -11,6 +11,7 @@ const TRPC_ENDPOINT = "/api/trpc";
 
 const endpointLink = httpBatchLink({
   url: TRPC_ENDPOINT,
+  // Called for every request. See: https://trpc.io/docs/client/headers
   headers: () => {
     const accessToken = getOpenIdService().getTokens()?.accessToken;
     if (!accessToken) return {};
