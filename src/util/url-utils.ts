@@ -82,9 +82,9 @@ export function extractRunbookUlid(path: string): string | null {
 
 /**
  * Extract ulid from a notebook path (with or without vanity name)
- * Supports: /nb/{ulid}, /nb/{ulid}/, /nb/{ulid}/{vanity}
+ * Supports: /nb/{id}, /nb/{id}/, /nb/{id}/{vanity}
  */
-export function extractNotebookUlid(path: string): string | null {
+export function extractNotebookId(path: string): string | null {
   const match = path.match(/^\/nb\/([^/]+)/);
   return match ? match[1] : null;
 }
