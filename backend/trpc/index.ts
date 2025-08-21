@@ -1,4 +1,3 @@
-import { ulid } from "ulid";
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 import { publicProcedure, authedProcedure, router } from "./trpc";
@@ -10,6 +9,7 @@ import {
   createFallbackUser,
   getPrivateUserById,
 } from "../users/utils.ts";
+import { createNotebookId } from "../utils/notebook-id.ts";
 
 interface NotebookRow {
   id: string;
@@ -137,10 +137,10 @@ export const appRouter = router({
 
   // Get single notebook
   notebook: authedProcedure
-    .input(z.object({ ulid: z.string() }))
+    .input(z.object({ id: z.string() }))
     .query(async (opts) => {
       const { ctx, input } = opts;
-      const { ulid: notebookUlid } = input;
+      const { id: nbId } = input;
       const {
         user,
         env: { DB },
@@ -150,7 +150,7 @@ export const appRouter = router({
       try {
         const permissionResult = await permissionsProvider.checkPermission(
           user.id,
-          notebookUlid
+          nbId
         );
         if (!permissionResult.hasAccess) {
           throw new TRPCError({
@@ -162,7 +162,7 @@ export const appRouter = router({
         const notebook = await DB.prepare(
           "SELECT * FROM notebooks WHERE id = ?"
         )
-          .bind(notebookUlid)
+          .bind(nbId)
           .first<NotebookRow>();
 
         if (!notebook) {
@@ -197,7 +197,7 @@ export const appRouter = router({
       } = ctx;
 
       try {
-        const notebookUlid = ulid();
+        const nbId = createNotebookId();
         const now = new Date().toISOString();
 
         const result = await DB.prepare(
@@ -206,7 +206,7 @@ export const appRouter = router({
           VALUES (?, ?, ?, ?, ?)
         `
         )
-          .bind(notebookUlid, user.id, input.title, now, now)
+          .bind(nbId, user.id, input.title, now, now)
           .run();
 
         if (!result.success) {
@@ -219,7 +219,7 @@ export const appRouter = router({
         const notebook = await DB.prepare(
           "SELECT * FROM notebooks WHERE id = ?"
         )
-          .bind(notebookUlid)
+          .bind(nbId)
           .first<NotebookRow>();
 
         return notebook;
@@ -236,7 +236,7 @@ export const appRouter = router({
   updateNotebook: authedProcedure
     .input(
       z.object({
-        ulid: z.string(),
+        id: z.string(),
         input: z.object({
           title: z.string().optional(),
         }),
@@ -244,7 +244,7 @@ export const appRouter = router({
     )
     .mutation(async (opts) => {
       const { ctx, input } = opts;
-      const { ulid: notebookUlid, input: updateInput } = input;
+      const { id: nbId, input: updateInput } = input;
       const {
         user,
         env: { DB },
@@ -252,10 +252,7 @@ export const appRouter = router({
       } = ctx;
 
       try {
-        const isOwner = await permissionsProvider.isOwner(
-          user.id,
-          notebookUlid
-        );
+        const isOwner = await permissionsProvider.isOwner(user.id, nbId);
         if (!isOwner) {
           throw new TRPCError({
             code: "FORBIDDEN",
@@ -280,7 +277,7 @@ export const appRouter = router({
 
         updates.push("updated_at = ?");
         bindings.push(new Date().toISOString());
-        bindings.push(notebookUlid);
+        bindings.push(nbId);
 
         const result = await DB.prepare(
           `
@@ -303,7 +300,7 @@ export const appRouter = router({
         const notebook = await DB.prepare(
           "SELECT * FROM notebooks WHERE id = ?"
         )
-          .bind(notebookUlid)
+          .bind(nbId)
           .first<NotebookRow>();
 
         return notebook;
@@ -318,10 +315,10 @@ export const appRouter = router({
 
   // Delete notebook
   deleteNotebook: authedProcedure
-    .input(z.object({ ulid: z.string() }))
+    .input(z.object({ nbId: z.string() }))
     .mutation(async (opts) => {
       const { ctx, input } = opts;
-      const { ulid: notebookUlid } = input;
+      const { nbId } = input;
       const {
         user,
         env: { DB },
@@ -330,10 +327,7 @@ export const appRouter = router({
 
       try {
         // Check if user is owner
-        const isOwner = await permissionsProvider.isOwner(
-          user.id,
-          notebookUlid
-        );
+        const isOwner = await permissionsProvider.isOwner(user.id, nbId);
         if (!isOwner) {
           throw new TRPCError({
             code: "FORBIDDEN",
@@ -343,7 +337,7 @@ export const appRouter = router({
 
         // Delete notebook (CASCADE will handle permissions)
         const result = await DB.prepare("DELETE FROM notebooks WHERE id = ?")
-          .bind(notebookUlid)
+          .bind(nbId)
           .run();
 
         if (result.meta.changes === 0) {
@@ -367,7 +361,7 @@ export const appRouter = router({
   shareNotebook: authedProcedure
     .input(
       z.object({
-        notebookUlid: z.string(),
+        nbId: z.string(),
         userId: z.string(),
       })
     )
@@ -377,7 +371,7 @@ export const appRouter = router({
 
       try {
         await permissionsProvider.grantPermission({
-          notebookId: input.notebookUlid,
+          notebookId: input.nbId,
           userId: input.userId,
           grantedBy: user.id,
         });
@@ -395,7 +389,7 @@ export const appRouter = router({
   unshareNotebook: authedProcedure
     .input(
       z.object({
-        notebookUlid: z.string(),
+        nbId: z.string(),
         userId: z.string(),
       })
     )
@@ -405,7 +399,7 @@ export const appRouter = router({
 
       try {
         await permissionsProvider.revokePermission({
-          notebookId: input.notebookUlid,
+          notebookId: input.nbId,
           userId: input.userId,
           revokedBy: user.id,
         });
@@ -421,10 +415,10 @@ export const appRouter = router({
 
   // Get notebook owner
   notebookOwner: authedProcedure
-    .input(z.object({ notebookUlid: z.string() }))
+    .input(z.object({ nbId: z.string() }))
     .query(async (opts) => {
       const { ctx, input } = opts;
-      const { notebookUlid } = input;
+      const { nbId } = input;
       const {
         env: { DB },
       } = ctx;
@@ -433,7 +427,7 @@ export const appRouter = router({
         const notebook = await DB.prepare(
           "SELECT owner_id FROM notebooks WHERE id = ?"
         )
-          .bind(notebookUlid)
+          .bind(nbId)
           .first<{ owner_id: string }>();
 
         if (!notebook) {
@@ -458,10 +452,10 @@ export const appRouter = router({
 
   // Get notebook collaborators
   notebookCollaborators: authedProcedure
-    .input(z.object({ notebookUlid: z.string() }))
+    .input(z.object({ nbId: z.string() }))
     .query(async (opts) => {
       const { ctx, input } = opts;
-      const { notebookUlid } = input;
+      const { nbId } = input;
       const {
         env: { DB },
       } = ctx;
@@ -473,7 +467,7 @@ export const appRouter = router({
           WHERE notebook_id = ? AND permission = 'writer'
         `
         )
-          .bind(notebookUlid)
+          .bind(nbId)
           .all<{ user_id: string }>();
 
         if (writers.results.length === 0) {
@@ -501,17 +495,14 @@ export const appRouter = router({
 
   // Get user's permission level for a notebook
   myNotebookPermission: authedProcedure
-    .input(z.object({ notebookUlid: z.string() }))
+    .input(z.object({ nbId: z.string() }))
     .query(async (opts) => {
       const { ctx, input } = opts;
-      const { notebookUlid } = input;
+      const { nbId } = input;
       const { user, permissionsProvider } = ctx;
 
       try {
-        const result = await permissionsProvider.checkPermission(
-          user.id,
-          notebookUlid
-        );
+        const result = await permissionsProvider.checkPermission(user.id, nbId);
         if (!result.hasAccess) {
           return "NONE";
         }

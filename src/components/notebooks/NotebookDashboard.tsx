@@ -426,7 +426,7 @@ const NotebookDashboardContent: React.FC = () => {
                     </Badge>
                   </div>
                   <NotebookGrid
-                    runbooks={filteredNotebooks}
+                    notebooks={filteredNotebooks}
                     viewMode={viewMode}
                     onUpdate={() => refetch()}
                   />
@@ -448,7 +448,7 @@ const NotebookDashboardContent: React.FC = () => {
                       </Badge>
                     </div>
                     <NotebookGrid
-                      runbooks={recentScratchNotebooks}
+                      notebooks={recentScratchNotebooks}
                       viewMode={viewMode}
                       onUpdate={() => refetch()}
                     />
@@ -470,7 +470,7 @@ const NotebookDashboardContent: React.FC = () => {
                       </Badge>
                     </div>
                     <NotebookGrid
-                      runbooks={namedNotebooks}
+                      notebooks={namedNotebooks}
                       viewMode={viewMode}
                       onUpdate={() => refetch()}
                     />
@@ -501,7 +501,7 @@ const NotebookDashboardContent: React.FC = () => {
                       </Badge>
                     </div>
                     <NotebookGrid
-                      runbooks={filteredNotebooks}
+                      notebooks={filteredNotebooks}
                       viewMode={viewMode}
                       onUpdate={() => refetch()}
                     />
@@ -517,23 +517,23 @@ const NotebookDashboardContent: React.FC = () => {
 
 // Grid/Table component for notebooks
 interface NotebookGridProps {
-  runbooks: any[];
+  notebooks: any[];
   viewMode: ViewMode;
   onUpdate?: () => void;
 }
 
 const NotebookGrid: React.FC<NotebookGridProps> = ({
-  runbooks,
+  notebooks,
   viewMode,
   onUpdate,
 }) => {
   if (viewMode === "grid") {
     return (
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-        {runbooks.map((runbook) => (
+        {notebooks.map((notebook) => (
           <NotebookCard
-            key={runbook.id}
-            runbook={runbook}
+            key={notebook.id}
+            notebook={notebook}
             onUpdate={onUpdate}
           />
         ))}
@@ -559,8 +559,8 @@ const NotebookGrid: React.FC<NotebookGridProps> = ({
             </tr>
           </thead>
           <tbody>
-            {runbooks.map((runbook) => (
-              <NotebookTableRow key={runbook.id} runbook={runbook} />
+            {notebooks.map((notebook) => (
+              <NotebookTableRow key={notebook.id} notebook={notebook} />
             ))}
           </tbody>
         </table>
@@ -571,10 +571,10 @@ const NotebookGrid: React.FC<NotebookGridProps> = ({
 
 // Table row component
 interface NotebookTableRowProps {
-  runbook: any;
+  notebook: any;
 }
 
-const NotebookTableRow: React.FC<NotebookTableRowProps> = ({ runbook }) => {
+const NotebookTableRow: React.FC<NotebookTableRowProps> = ({ notebook }) => {
   const formatDate = (dateString: string) => {
     return new Intl.DateTimeFormat("en-US", {
       month: "short",
@@ -599,23 +599,23 @@ const NotebookTableRow: React.FC<NotebookTableRowProps> = ({ runbook }) => {
     <tr className="border-b transition-colors hover:bg-gray-50">
       <td className="p-4">
         <a
-          href={getNotebookVanityUrl(runbook.id, runbook.title)}
+          href={getNotebookVanityUrl(notebook.id, notebook.title)}
           className="font-medium text-blue-600 hover:text-blue-800"
         >
-          {runbook.title || "Untitled Notebook"}
+          {notebook.title || "Untitled Notebook"}
         </a>
       </td>
       <td className="p-4 text-gray-600">
-        {runbook.owner?.givenName && runbook.owner?.familyName
-          ? `${runbook.owner.givenName} ${runbook.owner.familyName}`
+        {notebook.owner?.givenName && notebook.owner?.familyName
+          ? `${notebook.owner.givenName} ${notebook.owner.familyName}`
           : "Unknown Owner"}
       </td>
       <td className="p-4">
-        <Badge variant={getPermissionBadgeVariant(runbook.myPermission)}>
-          {runbook.myPermission.toLowerCase()}
+        <Badge variant={getPermissionBadgeVariant(notebook.myPermission)}>
+          {notebook.myPermission.toLowerCase()}
         </Badge>
       </td>
-      <td className="p-4 text-gray-600">{formatDate(runbook.updated_at)}</td>
+      <td className="p-4 text-gray-600">{formatDate(notebook.updated_at)}</td>
     </tr>
   );
 };

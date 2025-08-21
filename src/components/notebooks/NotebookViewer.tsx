@@ -34,7 +34,7 @@ interface Notebook {
 }
 
 export const NotebookViewer: React.FC = () => {
-  const { ulid } = useParams<{ ulid: string }>();
+  const { id } = useParams<{ id: string }>();
   const location = useLocation();
   const navigate = useNavigate();
   const [isEditingTitle, setIsEditingTitle] = useState(false);
@@ -53,26 +53,26 @@ export const NotebookViewer: React.FC = () => {
     error,
     refetch,
   } = useQuery({
-    ...trpc.notebook.queryOptions({ ulid: ulid! }),
-    enabled: !!ulid,
+    ...trpc.notebook.queryOptions({ id: id! }),
+    enabled: !!id,
   });
 
   // Get notebook owner
   const { data: owner } = useQuery({
-    ...trpc.notebookOwner.queryOptions({ notebookUlid: ulid! }),
-    enabled: !!ulid,
+    ...trpc.notebookOwner.queryOptions({ nbId: id! }),
+    enabled: !!id,
   });
 
   // Get notebook collaborators
   const { data: collaborators } = useQuery({
-    ...trpc.notebookCollaborators.queryOptions({ notebookUlid: ulid! }),
-    enabled: !!ulid,
+    ...trpc.notebookCollaborators.queryOptions({ nbId: id! }),
+    enabled: !!id,
   });
 
   // Get user's permission level
   const { data: myPermission } = useQuery({
-    ...trpc.myNotebookPermission.queryOptions({ notebookUlid: ulid! }),
-    enabled: !!ulid,
+    ...trpc.myNotebookPermission.queryOptions({ nbId: id! }),
+    enabled: !!id,
   });
 
   // Update notebook mutation
@@ -132,7 +132,7 @@ export const NotebookViewer: React.FC = () => {
 
     try {
       await updateNotebookMutation.mutateAsync({
-        ulid: notebook.id,
+        id: notebook.id,
         input: { title: editTitle.trim() },
       });
       setIsEditingTitle(false);
@@ -347,7 +347,7 @@ export const NotebookViewer: React.FC = () => {
 
       {/* Sharing Modal */}
       <SharingModal
-        runbook={notebook}
+        notebook={notebook}
         isOpen={isSharingModalOpen}
         onClose={() => setIsSharingModalOpen(false)}
         onUpdate={() => refetch()}

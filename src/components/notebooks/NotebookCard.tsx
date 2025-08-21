@@ -14,12 +14,12 @@ import {
 import { SharingModal } from "./SharingModal";
 
 interface NotebookCardProps {
-  runbook: any;
+  notebook: any;
   onUpdate?: () => void;
 }
 
 export const NotebookCard: React.FC<NotebookCardProps> = ({
-  runbook,
+  notebook,
   onUpdate,
 }) => {
   const [isSharingModalOpen, setIsSharingModalOpen] = useState(false);
@@ -43,7 +43,7 @@ export const NotebookCard: React.FC<NotebookCardProps> = ({
     }
   };
 
-  const canEdit = runbook.myPermission === "OWNER";
+  const canEdit = notebook.myPermission === "OWNER";
 
   const handleShare = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -54,21 +54,21 @@ export const NotebookCard: React.FC<NotebookCardProps> = ({
   return (
     <>
       <Link
-        to={getNotebookVanityUrl(runbook.id, runbook.title)}
+        to={getNotebookVanityUrl(notebook.id, notebook.title)}
         className="block transition-transform hover:scale-[1.02]"
       >
         <Card className="h-full transition-shadow hover:shadow-lg">
           <CardHeader className="pb-3">
             <div className="flex items-start justify-between gap-2">
               <CardTitle className="line-clamp-2 min-h-[2.5rem] text-lg">
-                {runbook.title || "Untitled Notebook"}
+                {notebook.title || "Untitled Notebook"}
               </CardTitle>
               <div className="flex shrink-0 items-center gap-1">
                 <Badge
-                  variant={getPermissionBadgeVariant(runbook.myPermission)}
+                  variant={getPermissionBadgeVariant(notebook.myPermission)}
                   className="shrink-0"
                 >
-                  {runbook.myPermission.toLowerCase()}
+                  {notebook.myPermission.toLowerCase()}
                 </Badge>
                 {canEdit && (
                   <DropdownMenu>
@@ -103,19 +103,19 @@ export const NotebookCard: React.FC<NotebookCardProps> = ({
               <div className="flex items-center gap-2">
                 <User className="h-4 w-4 shrink-0" />
                 <span className="truncate">
-                  {runbook.owner?.givenName && runbook.owner?.familyName
-                    ? `${runbook.owner.givenName} ${runbook.owner.familyName}`
+                  {notebook.owner?.givenName && notebook.owner?.familyName
+                    ? `${notebook.owner.givenName} ${notebook.owner.familyName}`
                     : "Unknown Owner"}
                 </span>
               </div>
 
               {/* Collaborators count */}
-              {runbook.collaborators && runbook.collaborators.length > 0 && (
+              {notebook.collaborators && notebook.collaborators.length > 0 && (
                 <div className="flex items-center gap-2">
                   <Users className="h-4 w-4 shrink-0" />
                   <span>
-                    {runbook.collaborators.length}{" "}
-                    {runbook.collaborators.length === 1
+                    {notebook.collaborators.length}{" "}
+                    {notebook.collaborators.length === 1
                       ? "collaborator"
                       : "collaborators"}
                   </span>
@@ -125,7 +125,7 @@ export const NotebookCard: React.FC<NotebookCardProps> = ({
               {/* Last updated */}
               <div className="flex items-center gap-2">
                 <Clock className="h-4 w-4 shrink-0" />
-                <span>Updated {formatDate(runbook.updated_at)}</span>
+                <span>Updated {formatDate(notebook.updated_at)}</span>
               </div>
             </div>
           </CardContent>
@@ -134,7 +134,7 @@ export const NotebookCard: React.FC<NotebookCardProps> = ({
 
       {/* Sharing Modal */}
       <SharingModal
-        runbook={runbook}
+        notebook={notebook}
         isOpen={isSharingModalOpen}
         onClose={() => setIsSharingModalOpen(false)}
         onUpdate={() => onUpdate?.()}

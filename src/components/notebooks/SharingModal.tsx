@@ -14,14 +14,14 @@ import {
 import { Input } from "../ui/input";
 
 interface SharingModalProps {
-  runbook: any;
+  notebook: any;
   isOpen: boolean;
   onClose: () => void;
   onUpdate?: () => void;
 }
 
 export const SharingModal: React.FC<SharingModalProps> = ({
-  runbook,
+  notebook,
   isOpen,
   onClose,
   onUpdate,
@@ -40,12 +40,12 @@ export const SharingModal: React.FC<SharingModalProps> = ({
 
   // Query for notebook owner
   const { data: owner } = useQuery(
-    trpc.notebookOwner.queryOptions({ notebookUlid: runbook.id })
+    trpc.notebookOwner.queryOptions({ nbId: notebook.id })
   );
 
   // Query for notebook collaborators
   const { data: collaborators, refetch: refetchCollaborators } = useQuery(
-    trpc.notebookCollaborators.queryOptions({ notebookUlid: runbook.id })
+    trpc.notebookCollaborators.queryOptions({ nbId: notebook.id })
   );
 
   // Share notebook mutation
@@ -80,7 +80,7 @@ export const SharingModal: React.FC<SharingModalProps> = ({
     setIsSharing(true);
     try {
       await shareMutation.mutateAsync({
-        notebookUlid: runbook.id,
+        nbId: notebook.id,
         userId: foundUser.id,
       });
       setEmail("");
@@ -97,7 +97,7 @@ export const SharingModal: React.FC<SharingModalProps> = ({
   const handleUnshare = async (userId: string) => {
     try {
       await unshareMutation.mutateAsync({
-        notebookUlid: runbook.id,
+        nbId: notebook.id,
         userId,
       });
       refetchCollaborators();
@@ -126,7 +126,7 @@ export const SharingModal: React.FC<SharingModalProps> = ({
         <DialogHeader>
           <DialogTitle>Share Notebook</DialogTitle>
           <DialogDescription>
-            Collaborate on "{runbook.title || "Untitled Notebook"}" with others
+            Collaborate on "{notebook.title || "Untitled Notebook"}" with others
           </DialogDescription>
         </DialogHeader>
 
@@ -218,7 +218,7 @@ export const SharingModal: React.FC<SharingModalProps> = ({
               <div className="flex items-center justify-between rounded border bg-blue-50 p-3">
                 <div>
                   <div className="font-medium">
-                    {formatUserName(runbook.owner)}
+                    {formatUserName(notebook.owner)}
                   </div>
                   <div className="text-xs text-gray-600">Owner</div>
                 </div>
@@ -253,7 +253,7 @@ export const SharingModal: React.FC<SharingModalProps> = ({
                 </div>
               ))}
 
-              {runbook.collaborators.length === 0 && (
+              {notebook.collaborators.length === 0 && (
                 <div className="rounded border-2 border-dashed border-gray-200 p-6 text-center">
                   <div className="text-sm text-gray-500">
                     No collaborators yet

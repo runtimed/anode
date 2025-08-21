@@ -90,7 +90,7 @@ const NotebookListContent: React.FC = () => {
       {notebooks.map((notebook) => (
         <NotebookCard
           key={notebook.id}
-          runbook={notebook}
+          notebook={notebook}
           onUpdate={() => refetch()}
         />
       ))}

@@ -358,7 +358,7 @@ export const App: React.FC = () => {
           }
         />
         <Route
-          path="/r/:ulid/*"
+          path="/r/:id/*"
           element={
             <AuthGuard>
               <GraphQLClientProvider>
@@ -396,7 +396,7 @@ export const App: React.FC = () => {
           }
         />
         <Route
-          path="/nb/:ulid/*"
+          path="/nb/:id/*"
           element={
             <AuthGuard>
               <TrpcProvider>
