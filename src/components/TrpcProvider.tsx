@@ -1,10 +1,29 @@
 import { trpcQueryClient } from "@/lib/trpc-client";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
-import { ReactNode } from "react";
+import { ReactNode, useEffect } from "react";
 
 interface TrpcProviderProps {
   children: ReactNode;
+}
+
+// Global flag to track if TrpcProvider is already mounted
+let isMounted = false;
+
+function useCheckMountedOnlyOnce() {
+  useEffect(() => {
+    if (isMounted) {
+      throw new Error(
+        "TrpcProvider is already mounted on this page. Only one TrpcProvider should be included per page."
+      );
+    }
+
+    isMounted = true;
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 }
 
 /**
@@ -15,6 +34,8 @@ interface TrpcProviderProps {
  *
  */
 export const TrpcProvider = ({ children }: TrpcProviderProps) => {
+  useCheckMountedOnlyOnce();
+
   return (
     <QueryClientProvider client={trpcQueryClient}>
       {children}
