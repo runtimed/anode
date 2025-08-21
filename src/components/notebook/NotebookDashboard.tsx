@@ -1,14 +1,15 @@
-import { trpc, trpcQueryClient } from "@/lib/trpc-client";
+import { trpc } from "@/lib/trpc-client";
+import { TrpcProvider } from "@/components/TrpcProvider";
 import ReactJson from "@microlink/react-json-view";
-import { QueryClientProvider, useQuery } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 
 export const NotebookDashboard = () => {
   return (
     <div>
       NotebookDashboard
-      <QueryClientProvider client={trpcQueryClient}>
+      <TrpcProvider>
         <NotebookDashboardContent />
-      </QueryClientProvider>
+      </TrpcProvider>
     </div>
   );
 };
