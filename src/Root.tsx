@@ -77,7 +77,7 @@ const NotebooksDashboard = React.lazy(() =>
     default: m.NotebookDashboard,
   }))
 );
-const NotebooksViewer = React.lazy(() =>
+const NotebookViewer2 = React.lazy(() =>
   import("./components/notebooks/NotebookViewer.tsx").then((m) => ({
     default: m.NotebookViewer,
   }))
@@ -116,13 +116,15 @@ const NotebookApp: React.FC<NotebookAppProps> = () => {
       )}
       {/* Main Content */}
       <ErrorBoundary fallback={<div>Error loading notebook</div>}>
-        <Suspense fallback={<div className="min-h-screen bg-white" />}>
-          <NotebookViewer
-            notebookId={currentNotebookId}
-            debugMode={debugMode}
-            onDebugToggle={setDebugMode}
-          />
-        </Suspense>
+        <TrpcProvider>
+          <Suspense fallback={<div className="min-h-screen bg-white" />}>
+            <NotebookViewer
+              notebookId={currentNotebookId}
+              debugMode={debugMode}
+              onDebugToggle={setDebugMode}
+            />
+          </Suspense>
+        </TrpcProvider>
       </ErrorBoundary>
     </div>
   );
@@ -406,7 +408,7 @@ export const App: React.FC = () => {
                     />
                   }
                 >
-                  <NotebooksViewer />
+                  <NotebookViewer2 />
                 </Suspense>
               </TrpcProvider>
             </AuthGuard>

@@ -1,151 +1,360 @@
-import React, { useEffect } from "react";
-import { useParams, useLocation } from "react-router-dom";
-import { trpc, trpcQueryClient } from "../../lib/trpc-client";
-import { QueryClientProvider, useQuery } from "@tanstack/react-query";
-import { LoadingState } from "../loading/LoadingState";
-import { Button } from "../ui/button";
-import { ArrowLeft } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import React, { useState, useEffect } from "react";
+import { useParams, Link, useLocation, useNavigate } from "react-router-dom";
+import {
+  ArrowLeft,
+  Users,
+  Clock,
+  User,
+  Edit2,
+  Check,
+  X,
+  Share2,
+} from "lucide-react";
 import {
   getNotebookVanityUrl,
   hasCorrectNotebookVanityUrl,
 } from "../../util/url-utils";
+import { useQuery, useMutation } from "@tanstack/react-query";
+import { trpc } from "../../lib/trpc-client";
+import { Button } from "../ui/button";
+import { Input } from "../ui/input";
+import { Badge } from "../ui/badge";
+import { LoadingState } from "../loading/LoadingState";
+import { SharingModal } from "./SharingModal";
 
-interface NotebookViewerProps {}
+interface Notebook {
+  ulid: string;
+  owner_id: string;
+  title: string | null;
+  created_at: string;
+  updated_at: string;
+  myPermission?: string;
+  owner?: any;
+  collaborators?: any[];
+}
 
-export const NotebookViewer: React.FC<NotebookViewerProps> = () => {
-  return (
-    <div>
-      <QueryClientProvider client={trpcQueryClient}>
-        <NotebookViewerContent />
-      </QueryClientProvider>
-    </div>
-  );
-};
-
-const NotebookViewerContent: React.FC = () => {
+export const NotebookViewer: React.FC = () => {
   const { ulid } = useParams<{ ulid: string }>();
-  const navigate = useNavigate();
   const location = useLocation();
+  const navigate = useNavigate();
+  const [isEditingTitle, setIsEditingTitle] = useState(false);
+  const [editTitle, setEditTitle] = useState("");
+  const [isSharingModalOpen, setIsSharingModalOpen] = useState(false);
 
-  // Query single runbook using tRPC
+  // Get initial notebook data from router state (if navigated from creation)
+  const initialNotebook = location.state?.initialNotebook as
+    | Notebook
+    | undefined;
+
+  // Query notebook data using tRPC
   const {
-    data: runbook,
+    data: notebookData,
     isLoading,
     error,
-  } = useQuery(trpc.runbook.queryOptions({ ulid: ulid! }));
+    refetch,
+  } = useQuery({
+    ...trpc.runbook.queryOptions({ ulid: ulid! }),
+    enabled: !!ulid,
+  });
 
-  // Get user's permission for this runbook
-  const { data: permission } = useQuery(
-    trpc.myRunbookPermission.queryOptions({ runbookUlid: ulid! })
+  // Get user data
+  const { data: userData } = useQuery(trpc.me.queryOptions());
+
+  // Get notebook owner
+  const { data: owner } = useQuery({
+    ...trpc.runbookOwner.queryOptions({ runbookUlid: ulid! }),
+    enabled: !!ulid,
+  });
+
+  // Get notebook collaborators
+  const { data: collaborators } = useQuery({
+    ...trpc.runbookCollaborators.queryOptions({ runbookUlid: ulid! }),
+    enabled: !!ulid,
+  });
+
+  // Get user's permission level
+  const { data: myPermission } = useQuery({
+    ...trpc.myRunbookPermission.queryOptions({ runbookUlid: ulid! }),
+    enabled: !!ulid,
+  });
+
+  // Update notebook mutation
+  const updateNotebookMutation = useMutation(
+    trpc.updateRunbook.mutationOptions()
   );
+
+  // Construct the full notebook object with all the data
+  const notebook: Notebook | null = React.useMemo(() => {
+    if (!notebookData && !initialNotebook) return null;
+
+    const baseNotebook = notebookData || initialNotebook;
+    if (!baseNotebook) return null;
+
+    return {
+      ...baseNotebook,
+      myPermission: myPermission || "NONE",
+      owner: owner || {
+        id: baseNotebook.owner_id,
+        givenName: "",
+        familyName: "",
+      },
+      collaborators: collaborators || [],
+    };
+  }, [notebookData, initialNotebook, myPermission, owner, collaborators]);
 
   // Redirect to canonical vanity URL when title changes or on initial load
   useEffect(() => {
-    if (!runbook || isLoading) return;
+    if (!notebook || isLoading) return;
 
     const needsCanonical = !hasCorrectNotebookVanityUrl(
       location.pathname,
-      runbook.ulid,
-      runbook.title
+      notebook.ulid,
+      notebook.title
     );
 
     if (needsCanonical) {
-      const canonicalUrl = getNotebookVanityUrl(runbook.ulid, runbook.title);
+      const canonicalUrl = getNotebookVanityUrl(notebook.ulid, notebook.title);
       navigate(canonicalUrl, { replace: true });
     }
   }, [
-    runbook?.title,
-    runbook?.ulid,
+    notebook?.title,
+    notebook?.ulid,
     location.pathname,
     navigate,
     isLoading,
-    runbook,
+    notebook,
   ]);
 
-  if (error) {
-    return (
-      <div className="container mx-auto py-8">
-        <div className="text-center">
-          <h1 className="mb-4 text-2xl font-bold text-red-600">
-            Error Loading Notebook
-          </h1>
-          <p className="text-gray-600">{error.message}</p>
-          <Button
-            onClick={() => navigate("/nb")}
-            className="mt-4"
-            variant="outline"
-          >
-            <ArrowLeft className="mr-2 h-4 w-4" />
-            Back to Notebooks
-          </Button>
-        </div>
-      </div>
-    );
+  const handleStartEditTitle = () => {
+    setEditTitle(notebook?.title || "");
+    setIsEditingTitle(true);
+  };
+
+  const handleSaveTitle = async () => {
+    if (!notebook || !editTitle.trim()) return;
+
+    try {
+      await updateNotebookMutation.mutateAsync({
+        ulid: notebook.ulid,
+        input: { title: editTitle.trim() },
+      });
+      setIsEditingTitle(false);
+      // Refetch to update cache - canonicalization effect will handle URL update
+      refetch();
+      // TODO: Show success toast
+    } catch (err) {
+      console.error("Failed to update notebook:", err);
+      // TODO: Show error toast
+    }
+  };
+
+  const handleCancelEdit = () => {
+    setIsEditingTitle(false);
+    setEditTitle("");
+  };
+
+  const formatDate = (dateString: string) => {
+    return new Intl.DateTimeFormat("en-US", {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    }).format(new Date(dateString));
+  };
+
+  const getPermissionBadgeVariant = (permission: string) => {
+    switch (permission) {
+      case "OWNER":
+        return "default";
+      case "WRITER":
+        return "secondary";
+      default:
+        return "outline";
+    }
+  };
+
+  if (isLoading && !initialNotebook) {
+    return <LoadingState variant="fullscreen" message="Loading notebook..." />;
   }
 
-  if (isLoading) {
-    return <LoadingState message="Loading notebook..." />;
-  }
-
-  if (!runbook) {
+  if (error || !notebook) {
     return (
-      <div className="container mx-auto py-8">
+      <div className="container mx-auto px-4 py-8">
         <div className="text-center">
           <h1 className="mb-4 text-2xl font-bold text-red-600">
-            Notebook Not Found
+            {error ? "Error Loading Notebook" : "Notebook Not Found"}
           </h1>
-          <p className="text-gray-600">
-            The notebook you're looking for doesn't exist or you don't have
-            access to it.
+          <p className="mb-6 text-gray-600">
+            {error
+              ? error.message
+              : "The notebook you're looking for doesn't exist or you don't have access to it."}
           </p>
-          <Button
-            onClick={() => navigate("/nb")}
-            className="mt-4"
-            variant="outline"
-          >
-            <ArrowLeft className="mr-2 h-4 w-4" />
-            Back to Notebooks
-          </Button>
+          <Link to="/nb">
+            <Button variant="outline">
+              <ArrowLeft className="mr-2 h-4 w-4" />
+              Back to Notebooks
+            </Button>
+          </Link>
         </div>
       </div>
     );
   }
+
+  const canEdit = notebook.myPermission === "OWNER";
 
   return (
-    <div className="container mx-auto py-8">
-      <div className="mb-6">
-        <Button
-          onClick={() => navigate("/nb")}
-          variant="outline"
-          className="mb-4"
-        >
-          <ArrowLeft className="mr-2 h-4 w-4" />
-          Back to Notebooks
-        </Button>
+    <div className="bg-background min-h-screen">
+      {/* Header */}
+      <div className="border-b bg-white">
+        <div className="container mx-auto px-4 py-4">
+          <div className="flex items-center justify-between gap-4">
+            <div className="flex items-center gap-4">
+              <Link to="/nb">
+                <Button variant="ghost" size="sm">
+                  <ArrowLeft className="h-4 w-4" />
+                </Button>
+              </Link>
 
-        <div className="rounded-lg border bg-white p-6">
-          <h1 className="mb-2 text-2xl font-bold text-gray-900">
-            {runbook.title || "Untitled Notebook"}
-          </h1>
+              {/* Title */}
+              <div className="flex items-center gap-2">
+                {isEditingTitle ? (
+                  <div className="flex items-center gap-2">
+                    <Input
+                      value={editTitle}
+                      onChange={(e) => setEditTitle(e.target.value)}
+                      className="text-lg font-semibold"
+                      placeholder="Notebook title..."
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") handleSaveTitle();
+                        if (e.key === "Escape") handleCancelEdit();
+                      }}
+                      autoFocus
+                    />
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      onClick={handleSaveTitle}
+                      disabled={!editTitle.trim()}
+                    >
+                      <Check className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      onClick={handleCancelEdit}
+                    >
+                      <X className="h-4 w-4" />
+                    </Button>
+                  </div>
+                ) : (
+                  <div className="flex items-center gap-2">
+                    <h1 className="text-xl font-semibold">
+                      {notebook.title || "Untitled Notebook"}
+                    </h1>
+                    {canEdit && (
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={handleStartEditTitle}
+                      >
+                        <Edit2 className="h-4 w-4" />
+                      </Button>
+                    )}
+                  </div>
+                )}
+              </div>
+            </div>
 
-          <div className="mb-4 text-sm text-gray-600">
-            <p>ID: {runbook.ulid}</p>
-            <p>Owner ID: {runbook.owner_id}</p>
-            <p>Created: {new Date(runbook.created_at).toLocaleDateString()}</p>
-            <p>Updated: {new Date(runbook.updated_at).toLocaleDateString()}</p>
-            {permission && <p>Your Permission: {permission}</p>}
+            <div className="flex items-center gap-2">
+              {/* Share button */}
+              {canEdit && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setIsSharingModalOpen(true)}
+                >
+                  <Share2 className="mr-2 h-4 w-4" />
+                  Share
+                </Button>
+              )}
+
+              {/* Permission badge */}
+              <Badge
+                variant={getPermissionBadgeVariant(
+                  notebook.myPermission || "NONE"
+                )}
+              >
+                {(notebook.myPermission || "NONE").toLowerCase()}
+              </Badge>
+            </div>
           </div>
 
-          <div className="text-gray-700">
-            <p>
-              This is a notebook viewer component. The actual notebook content
-              would be displayed here.
-            </p>
-            <p>Currently showing basic metadata from the tRPC endpoint.</p>
+          {/* Metadata */}
+          <div className="mt-4 flex flex-wrap items-center gap-6 text-sm text-gray-600">
+            {/* Owner */}
+            <div className="flex items-center gap-2">
+              <User className="h-4 w-4 shrink-0" />
+              <span>
+                {notebook.owner?.givenName && notebook.owner?.familyName
+                  ? `${notebook.owner.givenName} ${notebook.owner.familyName}`
+                  : "Unknown Owner"}
+              </span>
+            </div>
+
+            {/* Collaborators count */}
+            {notebook.collaborators && notebook.collaborators.length > 0 && (
+              <div className="flex items-center gap-2">
+                <Users className="h-4 w-4 shrink-0" />
+                <span>
+                  {notebook.collaborators.length}{" "}
+                  {notebook.collaborators.length === 1
+                    ? "collaborator"
+                    : "collaborators"}
+                </span>
+              </div>
+            )}
+
+            {/* Created date */}
+            <div className="flex items-center gap-2">
+              <Clock className="h-4 w-4 shrink-0" />
+              <span>Created {formatDate(notebook.created_at)}</span>
+            </div>
+
+            {/* Updated date (if different from created) */}
+            {notebook.updated_at !== notebook.created_at && (
+              <div className="flex items-center gap-2">
+                <Clock className="h-4 w-4 shrink-0" />
+                <span>Updated {formatDate(notebook.updated_at)}</span>
+              </div>
+            )}
           </div>
         </div>
       </div>
+
+      {/* Main content area */}
+      <div className="container mx-auto px-4 py-8">
+        <div className="rounded-lg border bg-white p-8 text-center">
+          <div className="mx-auto mb-4 text-gray-400">
+            <Users className="mx-auto h-16 w-16" />
+          </div>
+          <h3 className="mb-2 text-lg font-medium text-gray-900">
+            Notebook content coming soon
+          </h3>
+          <p className="text-gray-600">
+            This is where the notebook cells and outputs will be displayed. For
+            now, you can edit the notebook title and manage permissions.
+          </p>
+        </div>
+      </div>
+
+      {/* Sharing Modal */}
+      <SharingModal
+        runbook={notebook}
+        isOpen={isSharingModalOpen}
+        onClose={() => setIsSharingModalOpen(false)}
+        onUpdate={() => refetch()}
+      />
     </div>
   );
 };
