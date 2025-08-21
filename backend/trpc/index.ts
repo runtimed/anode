@@ -19,32 +19,6 @@ interface NotebookRow {
   updated_at: string;
 }
 
-// Input schemas
-const CreateNotebookInput = z.object({
-  title: z.string(),
-});
-
-const UpdateNotebookInput = z.object({
-  title: z.string().optional(),
-});
-
-const ShareNotebookInput = z.object({
-  notebookUlid: z.string(),
-  userId: z.string(),
-});
-
-const UnshareNotebookInput = z.object({
-  notebookUlid: z.string(),
-  userId: z.string(),
-});
-
-const NotebooksArgs = z.object({
-  owned: z.boolean().optional(),
-  shared: z.boolean().optional(),
-  limit: z.number().min(1).max(100).default(50),
-  offset: z.number().min(0).default(0),
-});
-
 // Create the tRPC router
 export const appRouter = router({
   // Debug endpoint
@@ -84,69 +58,82 @@ export const appRouter = router({
     }),
 
   // Get notebooks with filtering
-  notebooks: authedProcedure.input(NotebooksArgs).query(async (opts) => {
-    const { ctx, input } = opts;
-    const { owned, shared, limit, offset } = input;
-    const {
-      user,
-      env: { DB },
-      permissionsProvider,
-    } = ctx;
+  notebooks: authedProcedure
+    .input(
+      z.object({
+        owned: z.boolean().optional(),
+        shared: z.boolean().optional(),
+        limit: z.number().min(1).max(100).default(50),
+        offset: z.number().min(0).default(0),
+      })
+    )
+    .query(async (opts) => {
+      const { ctx, input } = opts;
+      const { owned, shared, limit, offset } = input;
+      const {
+        user,
+        env: { DB },
+        permissionsProvider,
+      } = ctx;
 
-    try {
-      let accessibleNotebookIds: string[];
+      try {
+        let accessibleNotebookIds: string[];
 
-      if (owned && !shared) {
-        accessibleNotebookIds =
-          await permissionsProvider.listAccessibleResources(
+        if (owned && !shared) {
+          accessibleNotebookIds =
+            await permissionsProvider.listAccessibleResources(
+              user.id,
+              "runbook",
+              ["owner"]
+            );
+        } else if (shared && !owned) {
+          const allAccessible =
+            await permissionsProvider.listAccessibleResources(
+              user.id,
+              "runbook"
+            );
+          const ownedOnly = await permissionsProvider.listAccessibleResources(
             user.id,
             "runbook",
             ["owner"]
           );
-      } else if (shared && !owned) {
-        const allAccessible = await permissionsProvider.listAccessibleResources(
-          user.id,
-          "runbook"
-        );
-        const ownedOnly = await permissionsProvider.listAccessibleResources(
-          user.id,
-          "runbook",
-          ["owner"]
-        );
-        accessibleNotebookIds = allAccessible.filter(
-          (id) => !ownedOnly.includes(id)
-        );
-      } else {
-        // All accessible notebooks (default case and when both owned and shared are true)
-        accessibleNotebookIds =
-          await permissionsProvider.listAccessibleResources(user.id, "runbook");
+          accessibleNotebookIds = allAccessible.filter(
+            (id) => !ownedOnly.includes(id)
+          );
+        } else {
+          // All accessible notebooks (default case and when both owned and shared are true)
+          accessibleNotebookIds =
+            await permissionsProvider.listAccessibleResources(
+              user.id,
+              "runbook"
+            );
+        }
+
+        if (accessibleNotebookIds.length === 0) {
+          return [];
+        }
+
+        const placeholders = accessibleNotebookIds.map(() => "?").join(",");
+        const query = `
+            SELECT ulid, owner_id, title, created_at, updated_at
+            FROM notebooks
+            WHERE ulid IN (${placeholders})
+            ORDER BY updated_at DESC
+            LIMIT ? OFFSET ?
+          `;
+
+        const result = await DB.prepare(query)
+          .bind(...accessibleNotebookIds, limit, offset)
+          .all<NotebookRow>();
+
+        return result.results;
+      } catch (error) {
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: `Failed to fetch notebooks: ${error instanceof Error ? error.message : "Unknown error"}`,
+        });
       }
-
-      if (accessibleNotebookIds.length === 0) {
-        return [];
-      }
-
-      const placeholders = accessibleNotebookIds.map(() => "?").join(",");
-      const query = `
-          SELECT ulid, owner_id, title, created_at, updated_at
-          FROM notebooks
-          WHERE ulid IN (${placeholders})
-          ORDER BY updated_at DESC
-          LIMIT ? OFFSET ?
-        `;
-
-      const result = await DB.prepare(query)
-        .bind(...accessibleNotebookIds, limit, offset)
-        .all<NotebookRow>();
-
-      return result.results;
-    } catch (error) {
-      throw new TRPCError({
-        code: "INTERNAL_SERVER_ERROR",
-        message: `Failed to fetch notebooks: ${error instanceof Error ? error.message : "Unknown error"}`,
-      });
-    }
-  }),
+    }),
 
   // Get single notebook
   notebook: authedProcedure
@@ -197,7 +184,11 @@ export const appRouter = router({
 
   // Create notebook
   createNotebook: authedProcedure
-    .input(CreateNotebookInput)
+    .input(
+      z.object({
+        title: z.string(),
+      })
+    )
     .mutation(async (opts) => {
       const { ctx, input } = opts;
       const {
@@ -246,7 +237,9 @@ export const appRouter = router({
     .input(
       z.object({
         ulid: z.string(),
-        input: UpdateNotebookInput,
+        input: z.object({
+          title: z.string().optional(),
+        }),
       })
     )
     .mutation(async (opts) => {
@@ -372,7 +365,12 @@ export const appRouter = router({
 
   // Share notebook
   shareNotebook: authedProcedure
-    .input(ShareNotebookInput)
+    .input(
+      z.object({
+        notebookUlid: z.string(),
+        userId: z.string(),
+      })
+    )
     .mutation(async (opts) => {
       const { ctx, input } = opts;
       const { user, permissionsProvider } = ctx;
@@ -395,7 +393,12 @@ export const appRouter = router({
 
   // Unshare notebook
   unshareNotebook: authedProcedure
-    .input(UnshareNotebookInput)
+    .input(
+      z.object({
+        notebookUlid: z.string(),
+        userId: z.string(),
+      })
+    )
     .mutation(async (opts) => {
       const { ctx, input } = opts;
       const { user, permissionsProvider } = ctx;
