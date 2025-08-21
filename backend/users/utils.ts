@@ -186,7 +186,7 @@ export async function getPrivateUserById(
 /**
  * Convert PublicUserData to GraphQL User format
  */
-export function toGraphQLPublicUser(userData: PublicUserData) {
+export function toPublicFacingUser(userData: PublicUserData) {
   return {
     id: userData.id,
     givenName: userData.givenName,

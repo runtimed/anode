@@ -6,7 +6,7 @@ import {
   getUserById,
   getUsersByIds,
   getUserByEmail,
-  toGraphQLPublicUser,
+  toPublicFacingUser,
   createFallbackUser,
 } from "../users/utils.ts";
 import type { Env } from "../types.ts";
@@ -208,7 +208,7 @@ export const resolvers = {
       try {
         const userRecord = await getUserByEmail(DB, email);
         if (userRecord) {
-          return toGraphQLPublicUser(userRecord);
+          return toPublicFacingUser(userRecord);
         }
         return null;
       } catch (error) {
@@ -426,7 +426,7 @@ export const resolvers = {
       try {
         const userRecord = await getUserById(DB, parent.owner_id);
         if (userRecord) {
-          return toGraphQLPublicUser(userRecord);
+          return toPublicFacingUser(userRecord);
         } else {
           return createFallbackUser(parent.owner_id);
         }
@@ -465,7 +465,7 @@ export const resolvers = {
         return userIds.map((userId) => {
           const userRecord = userMap.get(userId);
           if (userRecord) {
-            return toGraphQLPublicUser(userRecord);
+            return toPublicFacingUser(userRecord);
           } else {
             return createFallbackUser(userId);
           }
