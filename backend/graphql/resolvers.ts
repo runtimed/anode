@@ -1,7 +1,7 @@
 import { ulid } from "ulid";
 import { GraphQLError } from "graphql";
 import type { ValidatedUser } from "../auth.ts";
-import type { PermissionsProvider } from "../permissions/types.ts";
+import type { PermissionsProvider } from "../runbook-permissions/types.ts";
 import {
   getUserById,
   getUsersByIds,
