@@ -53,10 +53,10 @@ export function getRunbookVanityUrl(
  * If title is empty or becomes empty after slugification, returns just the ulid path
  */
 export function getNotebookVanityUrl(
-  ulid: string,
+  id: string,
   title?: string | null
 ): string {
-  const basePath = `/nb/${ulid}`;
+  const basePath = `/nb/${id}`;
 
   if (!title?.trim()) {
     return basePath;
@@ -120,10 +120,10 @@ export function hasCorrectVanityUrl(
  */
 export function hasCorrectNotebookVanityUrl(
   currentPath: string,
-  ulid: string,
+  id: string,
   title?: string | null
 ): boolean {
-  const expectedUrl = getNotebookVanityUrl(ulid, title);
+  const expectedUrl = getNotebookVanityUrl(id, title);
   const expectedPath = expectedUrl.replace(/^\/nb\/[^/]+/, ""); // Get just the vanity part
   const currentVanityPath = currentPath.replace(/^\/nb\/[^/]+/, "");
 
