@@ -54,7 +54,7 @@ export const NotebookCard: React.FC<NotebookCardProps> = ({
   return (
     <>
       <Link
-        to={getNotebookVanityUrl(runbook.ulid, runbook.title)}
+        to={getNotebookVanityUrl(runbook.id, runbook.title)}
         className="block transition-transform hover:scale-[1.02]"
       >
         <Card className="h-full transition-shadow hover:shadow-lg">

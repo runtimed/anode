@@ -20,7 +20,7 @@ export class LocalPermissionsProvider implements PermissionsProvider {
     try {
       // First check if user is the owner
       const ownerCheck = await this.db
-        .prepare("SELECT owner_id FROM notebooks WHERE ulid = ?")
+        .prepare("SELECT owner_id FROM notebooks WHERE id = ?")
         .bind(notebookId)
         .first<{ owner_id: string }>();
 
@@ -41,7 +41,7 @@ export class LocalPermissionsProvider implements PermissionsProvider {
       // Check if user has writer permission
       const writerCheck = await this.db
         .prepare(
-          "SELECT permission FROM notebook_permissions WHERE notebook_ulid = ? AND user_id = ?"
+          "SELECT permission FROM notebook_permissions WHERE notebook_id = ? AND user_id = ?"
         )
         .bind(notebookId, userId)
         .first<{ permission: string }>();
@@ -84,9 +84,9 @@ export class LocalPermissionsProvider implements PermissionsProvider {
       await this.db
         .prepare(
           `
-          INSERT INTO notebook_permissions (notebook_ulid, user_id, permission)
+          INSERT INTO notebook_permissions (notebook_id, user_id, permission)
           VALUES (?, ?, 'writer')
-          ON CONFLICT (notebook_ulid, user_id)
+          ON CONFLICT (notebook_id, user_id)
           DO UPDATE SET granted_at = CURRENT_TIMESTAMP
         `
         )
@@ -117,7 +117,7 @@ export class LocalPermissionsProvider implements PermissionsProvider {
     try {
       const result = await this.db
         .prepare(
-          "DELETE FROM notebook_permissions WHERE notebook_ulid = ? AND user_id = ?"
+          "DELETE FROM notebook_permissions WHERE notebook_id = ? AND user_id = ?"
         )
         .bind(notebookId, userId)
         .run();
@@ -138,7 +138,7 @@ export class LocalPermissionsProvider implements PermissionsProvider {
 
       // Get owner
       const owner = await this.db
-        .prepare("SELECT owner_id, created_at FROM notebooks WHERE ulid = ?")
+        .prepare("SELECT owner_id, created_at FROM notebooks WHERE id = ?")
         .bind(notebookId)
         .first<{ owner_id: string; created_at: string }>();
 
@@ -155,7 +155,7 @@ export class LocalPermissionsProvider implements PermissionsProvider {
       // Get writers
       const writers = await this.db
         .prepare(
-          "SELECT user_id, granted_at FROM notebook_permissions WHERE notebook_ulid = ?"
+          "SELECT user_id, granted_at FROM notebook_permissions WHERE notebook_id = ?"
         )
         .bind(notebookId)
         .all<{ user_id: string; granted_at: string }>();
@@ -179,7 +179,7 @@ export class LocalPermissionsProvider implements PermissionsProvider {
   async isOwner(userId: string, notebookId: string): Promise<boolean> {
     try {
       const result = await this.db
-        .prepare("SELECT 1 FROM notebooks WHERE ulid = ? AND owner_id = ?")
+        .prepare("SELECT 1 FROM notebooks WHERE id = ? AND owner_id = ?")
         .bind(notebookId, userId)
         .first();
 
@@ -205,24 +205,24 @@ export class LocalPermissionsProvider implements PermissionsProvider {
       // Always include owned notebooks (owner implies all permissions)
       if (!permissions || permissions.includes("owner")) {
         const ownedNotebooks = await this.db
-          .prepare("SELECT ulid FROM notebooks WHERE owner_id = ?")
+          .prepare("SELECT id FROM notebooks WHERE owner_id = ?")
           .bind(userId)
-          .all<{ ulid: string }>();
+          .all<{ id: string }>();
 
-        accessibleIds.push(...ownedNotebooks.results.map((r) => r.ulid));
+        accessibleIds.push(...ownedNotebooks.results.map((r) => r.id));
       }
 
       // Include notebooks with writer permissions if requested
       if (!permissions || permissions.includes("writer")) {
         const sharedNotebooks = await this.db
           .prepare(
-            "SELECT notebook_ulid FROM notebook_permissions WHERE user_id = ? AND permission = 'writer'"
+            "SELECT notebook_id FROM notebook_permissions WHERE user_id = ? AND permission = 'writer'"
           )
           .bind(userId)
-          .all<{ notebook_ulid: string }>();
+          .all<{ notebook_id: string }>();
 
         accessibleIds.push(
-          ...sharedNotebooks.results.map((r) => r.notebook_ulid)
+          ...sharedNotebooks.results.map((r) => r.notebook_id)
         );
       }
 
@@ -250,25 +250,23 @@ export class LocalPermissionsProvider implements PermissionsProvider {
       const placeholders = resourceIds.map(() => "?").join(",");
       const ownedNotebooks = await this.db
         .prepare(
-          `SELECT ulid FROM notebooks WHERE owner_id = ? AND ulid IN (${placeholders})`
+          `SELECT id FROM notebooks WHERE owner_id = ? AND id IN (${placeholders})`
         )
         .bind(userId, ...resourceIds)
-        .all<{ ulid: string }>();
+        .all<{ id: string }>();
 
-      accessibleIds.push(...ownedNotebooks.results.map((r) => r.ulid));
+      accessibleIds.push(...ownedNotebooks.results.map((r) => r.id));
 
       // Check notebooks with writer permissions
       const sharedNotebooks = await this.db
         .prepare(
-          `SELECT notebook_ulid FROM notebook_permissions
-           WHERE user_id = ? AND permission = 'writer' AND notebook_ulid IN (${placeholders})`
+          `SELECT notebook_id FROM notebook_permissions
+           WHERE user_id = ? AND permission = 'writer' AND notebook_id IN (${placeholders})`
         )
         .bind(userId, ...resourceIds)
-        .all<{ notebook_ulid: string }>();
+        .all<{ notebook_id: string }>();
 
-      accessibleIds.push(
-        ...sharedNotebooks.results.map((r) => r.notebook_ulid)
-      );
+      accessibleIds.push(...sharedNotebooks.results.map((r) => r.notebook_id));
 
       // Remove duplicates and maintain original order
       const uniqueAccessibleIds = [...new Set(accessibleIds)];

@@ -40,12 +40,12 @@ export const SharingModal: React.FC<SharingModalProps> = ({
 
   // Query for notebook owner
   const { data: owner } = useQuery(
-    trpc.notebookOwner.queryOptions({ notebookUlid: runbook.ulid })
+    trpc.notebookOwner.queryOptions({ notebookUlid: runbook.id })
   );
 
   // Query for notebook collaborators
   const { data: collaborators, refetch: refetchCollaborators } = useQuery(
-    trpc.notebookCollaborators.queryOptions({ notebookUlid: runbook.ulid })
+    trpc.notebookCollaborators.queryOptions({ notebookUlid: runbook.id })
   );
 
   // Share notebook mutation
@@ -80,7 +80,7 @@ export const SharingModal: React.FC<SharingModalProps> = ({
     setIsSharing(true);
     try {
       await shareMutation.mutateAsync({
-        notebookUlid: runbook.ulid,
+        notebookUlid: runbook.id,
         userId: foundUser.id,
       });
       setEmail("");
@@ -97,7 +97,7 @@ export const SharingModal: React.FC<SharingModalProps> = ({
   const handleUnshare = async (userId: string) => {
     try {
       await unshareMutation.mutateAsync({
-        notebookUlid: runbook.ulid,
+        notebookUlid: runbook.id,
         userId,
       });
       refetchCollaborators();

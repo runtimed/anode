@@ -12,7 +12,7 @@ import {
 } from "../users/utils.ts";
 
 interface NotebookRow {
-  ulid: string;
+  id: string;
   owner_id: string;
   title: string | null;
   created_at: string;
@@ -115,9 +115,9 @@ export const appRouter = router({
 
         const placeholders = accessibleNotebookIds.map(() => "?").join(",");
         const query = `
-            SELECT ulid, owner_id, title, created_at, updated_at
+            SELECT id, owner_id, title, created_at, updated_at
             FROM notebooks
-            WHERE ulid IN (${placeholders})
+            WHERE id IN (${placeholders})
             ORDER BY updated_at DESC
             LIMIT ? OFFSET ?
           `;
@@ -160,7 +160,7 @@ export const appRouter = router({
         }
 
         const notebook = await DB.prepare(
-          "SELECT * FROM notebooks WHERE ulid = ?"
+          "SELECT * FROM notebooks WHERE id = ?"
         )
           .bind(notebookUlid)
           .first<NotebookRow>();
@@ -202,7 +202,7 @@ export const appRouter = router({
 
         const result = await DB.prepare(
           `
-          INSERT INTO notebooks (ulid, owner_id, title, created_at, updated_at)
+          INSERT INTO notebooks (id, owner_id, title, created_at, updated_at)
           VALUES (?, ?, ?, ?, ?)
         `
         )
@@ -217,7 +217,7 @@ export const appRouter = router({
         }
 
         const notebook = await DB.prepare(
-          "SELECT * FROM notebooks WHERE ulid = ?"
+          "SELECT * FROM notebooks WHERE id = ?"
         )
           .bind(notebookUlid)
           .first<NotebookRow>();
@@ -286,7 +286,7 @@ export const appRouter = router({
           `
           UPDATE notebooks
           SET ${updates.join(", ")}
-          WHERE ulid = ?
+          WHERE id = ?
         `
         )
           .bind(...bindings)
@@ -301,7 +301,7 @@ export const appRouter = router({
 
         // Return updated notebook
         const notebook = await DB.prepare(
-          "SELECT * FROM notebooks WHERE ulid = ?"
+          "SELECT * FROM notebooks WHERE id = ?"
         )
           .bind(notebookUlid)
           .first<NotebookRow>();
@@ -342,7 +342,7 @@ export const appRouter = router({
         }
 
         // Delete notebook (CASCADE will handle permissions)
-        const result = await DB.prepare("DELETE FROM notebooks WHERE ulid = ?")
+        const result = await DB.prepare("DELETE FROM notebooks WHERE id = ?")
           .bind(notebookUlid)
           .run();
 
@@ -431,7 +431,7 @@ export const appRouter = router({
 
       try {
         const notebook = await DB.prepare(
-          "SELECT owner_id FROM notebooks WHERE ulid = ?"
+          "SELECT owner_id FROM notebooks WHERE id = ?"
         )
           .bind(notebookUlid)
           .first<{ owner_id: string }>();
@@ -470,7 +470,7 @@ export const appRouter = router({
         const writers = await DB.prepare(
           `
           SELECT user_id FROM notebook_permissions
-          WHERE notebook_ulid = ? AND permission = 'writer'
+          WHERE notebook_id = ? AND permission = 'writer'
         `
         )
           .bind(notebookUlid)

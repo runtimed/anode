@@ -179,7 +179,7 @@ const NotebookDashboardContent: React.FC = () => {
       const result = await createNotebookMutation.mutateAsync(input);
       if (result) {
         // Redirect to the new notebook with initial data to prevent flicker
-        navigate(getNotebookVanityUrl(result.ulid, result.title), {
+        navigate(getNotebookVanityUrl(result.id, result.title), {
           state: { initialNotebook: result },
         });
       }
@@ -532,7 +532,7 @@ const NotebookGrid: React.FC<NotebookGridProps> = ({
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
         {runbooks.map((runbook) => (
           <NotebookCard
-            key={runbook.ulid}
+            key={runbook.id}
             runbook={runbook}
             onUpdate={onUpdate}
           />
@@ -560,7 +560,7 @@ const NotebookGrid: React.FC<NotebookGridProps> = ({
           </thead>
           <tbody>
             {runbooks.map((runbook) => (
-              <NotebookTableRow key={runbook.ulid} runbook={runbook} />
+              <NotebookTableRow key={runbook.id} runbook={runbook} />
             ))}
           </tbody>
         </table>
@@ -599,7 +599,7 @@ const NotebookTableRow: React.FC<NotebookTableRowProps> = ({ runbook }) => {
     <tr className="border-b transition-colors hover:bg-gray-50">
       <td className="p-4">
         <a
-          href={getNotebookVanityUrl(runbook.ulid, runbook.title)}
+          href={getNotebookVanityUrl(runbook.id, runbook.title)}
           className="font-medium text-blue-600 hover:text-blue-800"
         >
           {runbook.title || "Untitled Notebook"}

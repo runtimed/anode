@@ -23,7 +23,7 @@ import { LoadingState } from "../loading/LoadingState";
 import { SharingModal } from "./SharingModal";
 
 interface Notebook {
-  ulid: string;
+  id: string;
   owner_id: string;
   title: string | null;
   created_at: string;
@@ -105,17 +105,17 @@ export const NotebookViewer: React.FC = () => {
 
     const needsCanonical = !hasCorrectNotebookVanityUrl(
       location.pathname,
-      notebook.ulid,
+      notebook.id,
       notebook.title
     );
 
     if (needsCanonical) {
-      const canonicalUrl = getNotebookVanityUrl(notebook.ulid, notebook.title);
+      const canonicalUrl = getNotebookVanityUrl(notebook.id, notebook.title);
       navigate(canonicalUrl, { replace: true });
     }
   }, [
     notebook?.title,
-    notebook?.ulid,
+    notebook?.id,
     location.pathname,
     navigate,
     isLoading,
@@ -132,7 +132,7 @@ export const NotebookViewer: React.FC = () => {
 
     try {
       await updateNotebookMutation.mutateAsync({
-        ulid: notebook.ulid,
+        ulid: notebook.id,
         input: { title: editTitle.trim() },
       });
       setIsEditingTitle(false);
