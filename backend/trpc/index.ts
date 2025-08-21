@@ -10,14 +10,7 @@ import {
   getPrivateUserById,
 } from "../users/utils.ts";
 import { createNotebookId } from "../utils/notebook-id.ts";
-
-interface NotebookRow {
-  id: string;
-  owner_id: string;
-  title: string | null;
-  created_at: string;
-  updated_at: string;
-}
+import { NotebookPermission, NotebookRow } from "./types.ts";
 
 // Create the tRPC router
 export const appRouter = router({
@@ -496,18 +489,16 @@ export const appRouter = router({
   // Get user's permission level for a notebook
   myNotebookPermission: authedProcedure
     .input(z.object({ nbId: z.string() }))
-    .query(async (opts) => {
+    .query(async (opts): Promise<NotebookPermission> => {
       const { ctx, input } = opts;
       const { nbId } = input;
       const { user, permissionsProvider } = ctx;
 
       try {
         const result = await permissionsProvider.checkPermission(user.id, nbId);
-        if (!result.hasAccess) {
-          return "NONE";
-        }
-
-        return result.level?.toUpperCase() || "WRITER";
+        if (!result.hasAccess) return "NONE";
+        if (!result.level) return "NONE";
+        return result.level?.toUpperCase() as Uppercase<typeof result.level>;
       } catch (error) {
         console.error("Failed to check permission:", error);
         return "NONE";

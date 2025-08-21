@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { LogOut, Settings } from "lucide-react";
-import { useAuth } from "../auth/AuthProvider";
+import { useAuth, UserInfo } from "../auth/AuthProvider";
 import { Button } from "../ui/button";
 import {
   DropdownMenu,
@@ -21,7 +21,7 @@ export const SimpleUserProfile: React.FC<SimpleUserProfileProps> = ({
   const { signOut, user } = useAuth();
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
-  const getDisplayName = (user: any) => {
+  const getDisplayName = (user: UserInfo) => {
     if (!user) return "Unknown User";
 
     const { given_name, family_name, email } = user;
@@ -42,7 +42,7 @@ export const SimpleUserProfile: React.FC<SimpleUserProfileProps> = ({
     return "Unknown User";
   };
 
-  const getUserInitials = (user: any) => {
+  const getUserInitials = (user: UserInfo) => {
     if (!user) return "?";
 
     const { given_name, family_name, email } = user;

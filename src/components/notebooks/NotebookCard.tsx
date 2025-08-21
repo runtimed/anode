@@ -12,9 +12,10 @@ import {
   DropdownMenuTrigger,
 } from "../ui/dropdown-menu";
 import { SharingModal } from "./SharingModal";
+import type { NotebookProcessed } from "./types";
 
 interface NotebookCardProps {
-  notebook: any;
+  notebook: NotebookProcessed;
   onUpdate?: () => void;
 }
 
@@ -65,10 +66,12 @@ export const NotebookCard: React.FC<NotebookCardProps> = ({
               </CardTitle>
               <div className="flex shrink-0 items-center gap-1">
                 <Badge
-                  variant={getPermissionBadgeVariant(notebook.myPermission)}
+                  variant={getPermissionBadgeVariant(
+                    notebook.myPermission || "NONE"
+                  )}
                   className="shrink-0"
                 >
-                  {notebook.myPermission.toLowerCase()}
+                  {(notebook.myPermission || "NONE").toLowerCase()}
                 </Badge>
                 {canEdit && (
                   <DropdownMenu>

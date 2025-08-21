@@ -32,6 +32,7 @@ import {
 } from "../ui/dropdown-menu";
 import { NotebookCard } from "./NotebookCard";
 import { SimpleUserProfile } from "./SimpleUserProfile";
+import type { NotebookProcessed } from "./types";
 
 type ViewMode = "grid" | "table";
 type FilterType = "scratch" | "named" | "shared";
@@ -69,12 +70,15 @@ const NotebookDashboardContent: React.FC = () => {
     if (!notebooksData) return [];
 
     // Add permission information to each notebook
-    return notebooksData.map((notebook) => ({
-      ...notebook,
-      myPermission: notebook.owner_id === userData?.id ? "OWNER" : "WRITER",
-      owner: { id: notebook.owner_id, givenName: "", familyName: "" }, // Placeholder
-      collaborators: [], // Placeholder
-    }));
+    return notebooksData.map(
+      (notebook): NotebookProcessed =>
+        ({
+          ...notebook,
+          myPermission: notebook.owner_id === userData?.id ? "OWNER" : "WRITER",
+          owner: { id: notebook.owner_id, givenName: "", familyName: "" }, // Placeholder
+          collaborators: [], // Placeholder
+        }) as const
+    );
   }, [notebooksData, userData?.id]);
 
   // Filter and group notebooks
@@ -517,7 +521,7 @@ const NotebookDashboardContent: React.FC = () => {
 
 // Grid/Table component for notebooks
 interface NotebookGridProps {
-  notebooks: any[];
+  notebooks: NotebookProcessed[];
   viewMode: ViewMode;
   onUpdate?: () => void;
 }
@@ -571,7 +575,7 @@ const NotebookGrid: React.FC<NotebookGridProps> = ({
 
 // Table row component
 interface NotebookTableRowProps {
-  notebook: any;
+  notebook: NotebookProcessed;
 }
 
 const NotebookTableRow: React.FC<NotebookTableRowProps> = ({ notebook }) => {

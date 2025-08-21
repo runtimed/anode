@@ -32,12 +32,15 @@ const NotebookListContent: React.FC = () => {
     if (!notebooksData) return [];
 
     // Add permission information to each notebook
-    return notebooksData.map((notebook) => ({
-      ...notebook,
-      myPermission: notebook.owner_id === userData?.id ? "OWNER" : "WRITER",
-      owner: { id: notebook.owner_id, givenName: "", familyName: "" }, // Placeholder
-      collaborators: [], // Placeholder
-    }));
+    return notebooksData.map(
+      (notebook) =>
+        ({
+          ...notebook,
+          myPermission: notebook.owner_id === userData?.id ? "OWNER" : "WRITER",
+          owner: { id: notebook.owner_id, givenName: "", familyName: "" }, // Placeholder
+          collaborators: [], // Placeholder
+        }) as const
+    );
   }, [notebooksData, userData?.id]);
 
   if (error) {

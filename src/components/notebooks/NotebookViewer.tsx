@@ -21,17 +21,7 @@ import { Input } from "../ui/input";
 import { Badge } from "../ui/badge";
 import { LoadingState } from "../loading/LoadingState";
 import { SharingModal } from "./SharingModal";
-
-interface Notebook {
-  id: string;
-  owner_id: string;
-  title: string | null;
-  created_at: string;
-  updated_at: string;
-  myPermission?: string;
-  owner?: any;
-  collaborators?: any[];
-}
+import type { NotebookProcessed } from "./types";
 
 export const NotebookViewer: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -43,7 +33,7 @@ export const NotebookViewer: React.FC = () => {
 
   // Get initial notebook data from router state (if navigated from creation)
   const initialNotebook = location.state?.initialNotebook as
-    | Notebook
+    | NotebookProcessed
     | undefined;
 
   // Query notebook data using tRPC
@@ -81,7 +71,7 @@ export const NotebookViewer: React.FC = () => {
   );
 
   // Construct the full notebook object with all the data
-  const notebook: Notebook | null = React.useMemo(() => {
+  const notebook: NotebookProcessed | null = React.useMemo(() => {
     if (!notebookData && !initialNotebook) return null;
 
     const baseNotebook = notebookData || initialNotebook;
@@ -96,7 +86,7 @@ export const NotebookViewer: React.FC = () => {
         familyName: "",
       },
       collaborators: collaborators || [],
-    };
+    } as const;
   }, [notebookData, initialNotebook, myPermission, owner, collaborators]);
 
   // Redirect to canonical vanity URL when title changes or on initial load

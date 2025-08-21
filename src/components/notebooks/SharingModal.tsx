@@ -12,9 +12,10 @@ import {
   DialogTitle,
 } from "../ui/dialog";
 import { Input } from "../ui/input";
+import { NotebookProcessed } from "./types";
 
 interface SharingModalProps {
-  notebook: any;
+  notebook: NotebookProcessed;
   isOpen: boolean;
   onClose: () => void;
   onUpdate?: () => void;
@@ -57,7 +58,7 @@ export const SharingModal: React.FC<SharingModalProps> = ({
   const foundUser = userByEmail;
   const isUserAlreadyCollaborator = useMemo(() => {
     if (!foundUser || !collaborators) return false;
-    return collaborators.some((c: any) => c.id === foundUser.id);
+    return collaborators.some((c) => c.id === foundUser.id);
   }, [foundUser, collaborators]);
 
   const isOwnerTryingToShareWithSelf = useMemo(() => {
@@ -108,11 +109,14 @@ export const SharingModal: React.FC<SharingModalProps> = ({
     }
   };
 
-  const formatUserName = (user: any) => {
+  const formatUserName = (user: {
+    givenName?: string | null;
+    familyName?: string | null;
+  }) => {
     if (user.givenName && user.familyName) {
       return `${user.givenName} ${user.familyName}`;
     }
-    return user.givenName || user.familyName || "Unknown User";
+    return user.givenName || user.familyName;
   };
 
   const handleClose = () => {
@@ -253,7 +257,8 @@ export const SharingModal: React.FC<SharingModalProps> = ({
                 </div>
               ))}
 
-              {notebook.collaborators.length === 0 && (
+              {(!notebook.collaborators ||
+                notebook.collaborators.length === 0) && (
                 <div className="rounded border-2 border-dashed border-gray-200 p-6 text-center">
                   <div className="text-sm text-gray-500">
                     No collaborators yet
