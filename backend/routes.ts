@@ -11,6 +11,9 @@ import {
   isUsingLocalProvider,
   validateProviderConfig,
 } from "./providers/api-key-factory.ts";
+import { extractAndValidateUser, ValidatedUser } from "./auth.ts";
+import { createPermissionsProvider } from "./permissions/factory.ts";
+import { TrcpContext } from "./trpc/trpc.ts";
 
 const api = new Hono<{ Bindings: Env; Variables: AuthContext }>();
 
@@ -20,7 +23,19 @@ api.all("/trpc/*", async (ctx) => {
     endpoint: "/api/trpc",
     req: ctx.req.raw,
     router: appRouter,
-    createContext: () => ({ env: ctx.env }),
+    createContext: async (): Promise<TrcpContext> => {
+      let auth: ValidatedUser | null = null;
+      auth = await extractAndValidateUser(ctx.req.raw, ctx.env);
+
+      // Create permissions provider
+      const permissionsProvider = createPermissionsProvider(ctx.env);
+
+      return {
+        env: ctx.env,
+        user: auth,
+        permissionsProvider,
+      };
+    },
   });
 });
 

@@ -1,4 +1,5 @@
 import { trpc, trpcQueryClient } from "@/lib/trpc-client";
+import ReactJson from "@microlink/react-json-view";
 import { QueryClientProvider, useQuery } from "@tanstack/react-query";
 
 export const NotebookDashboard = () => {
@@ -14,15 +15,17 @@ export const NotebookDashboard = () => {
 
 const NotebookDashboardContent = () => {
   // const trpc = useTRPC(); // use `import { trpc } from './utils/trpc'` if you're using the singleton pattern
-  const { data } = useQuery(trpc.userById.queryOptions("34"));
+  const { data: userData } = useQuery(trpc.user.queryOptions());
 
-  return <div>{data?.givenName}</div>;
+  const { data: contextData } = useQuery(trpc.context.queryOptions());
+
+  const { data: notebooksData } = useQuery(trpc.notebooks.queryOptions());
+
+  console.log("🚨", { contextData });
+
+  return (
+    <div>
+      <ReactJson src={{ userData, contextData, notebooksData }} />
+    </div>
+  );
 };
-
-async function bla() {
-  const user = await trpcQueryClient.getQueryData(trpc.userById.queryKey("34"));
-
-  console.log(user);
-}
-
-bla();

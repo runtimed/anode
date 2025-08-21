@@ -1,11 +1,19 @@
 import { initTRPC } from "@trpc/server";
+import { ValidatedUser } from "backend/auth";
 import { Env } from "backend/types";
+import { PermissionsProvider } from "backend/permissions/types";
+
+export type TrcpContext = {
+  env: Env;
+  user: ValidatedUser | null;
+  permissionsProvider: PermissionsProvider;
+};
 
 /**
  * Initialization of tRPC backend
  * Should be done only once per backend!
  */
-const t = initTRPC.context<{ env: Env }>().create();
+const t = initTRPC.context<TrcpContext>().create();
 
 /**
  * Export reusable router and procedure helpers
