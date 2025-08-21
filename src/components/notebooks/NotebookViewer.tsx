@@ -53,34 +53,31 @@ export const NotebookViewer: React.FC = () => {
     error,
     refetch,
   } = useQuery({
-    ...trpc.runbook.queryOptions({ ulid: ulid! }),
+    ...trpc.notebook.queryOptions({ ulid: ulid! }),
     enabled: !!ulid,
   });
 
-  // Get user data
-  const { data: userData } = useQuery(trpc.me.queryOptions());
-
   // Get notebook owner
   const { data: owner } = useQuery({
-    ...trpc.runbookOwner.queryOptions({ runbookUlid: ulid! }),
+    ...trpc.notebookOwner.queryOptions({ notebookUlid: ulid! }),
     enabled: !!ulid,
   });
 
   // Get notebook collaborators
   const { data: collaborators } = useQuery({
-    ...trpc.runbookCollaborators.queryOptions({ runbookUlid: ulid! }),
+    ...trpc.notebookCollaborators.queryOptions({ notebookUlid: ulid! }),
     enabled: !!ulid,
   });
 
   // Get user's permission level
   const { data: myPermission } = useQuery({
-    ...trpc.myRunbookPermission.queryOptions({ runbookUlid: ulid! }),
+    ...trpc.myNotebookPermission.queryOptions({ notebookUlid: ulid! }),
     enabled: !!ulid,
   });
 
   // Update notebook mutation
   const updateNotebookMutation = useMutation(
-    trpc.updateRunbook.mutationOptions()
+    trpc.updateNotebook.mutationOptions()
   );
 
   // Construct the full notebook object with all the data

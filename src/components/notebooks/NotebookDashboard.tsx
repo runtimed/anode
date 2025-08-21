@@ -54,133 +54,133 @@ const NotebookDashboardContent: React.FC = () => {
   const [activeFilter, setActiveFilter] = useState<FilterType>("named");
   const [viewMode, setViewMode] = useState<ViewMode>("grid");
 
-  // Query all runbooks using tRPC
+  // Query all notebooks using tRPC
   const {
-    data: runbooksData,
+    data: notebooksData,
     isLoading,
     error,
     refetch,
-  } = useQuery(trpc.runbooks.queryOptions({}));
+  } = useQuery(trpc.notebooks.queryOptions({}));
 
   // Get user data
   const { data: userData } = useQuery(trpc.me.queryOptions());
 
-  const allRunbooks = useMemo(() => {
-    if (!runbooksData) return [];
+  const allNotebooks = useMemo(() => {
+    if (!notebooksData) return [];
 
-    // Add permission information to each runbook
-    return runbooksData.map((runbook) => ({
-      ...runbook,
-      myPermission: runbook.owner_id === userData?.id ? "OWNER" : "WRITER",
-      owner: { id: runbook.owner_id, givenName: "", familyName: "" }, // Placeholder
+    // Add permission information to each notebook
+    return notebooksData.map((notebook) => ({
+      ...notebook,
+      myPermission: notebook.owner_id === userData?.id ? "OWNER" : "WRITER",
+      owner: { id: notebook.owner_id, givenName: "", familyName: "" }, // Placeholder
       collaborators: [], // Placeholder
     }));
-  }, [runbooksData, userData?.id]);
+  }, [notebooksData, userData?.id]);
 
-  // Filter and group runbooks
-  const { filteredRunbooks, recentScratchRunbooks, namedRunbooks } =
+  // Filter and group notebooks
+  const { filteredNotebooks, recentScratchNotebooks, namedNotebooks } =
     useMemo(() => {
-      let filtered = allRunbooks;
+      let filtered = allNotebooks;
 
       // Apply filter
       if (activeFilter === "scratch") {
         filtered = filtered.filter(
-          (r) =>
-            r.myPermission === "OWNER" &&
-            (!r.title || r.title.startsWith("Untitled"))
+          (n) =>
+            n.myPermission === "OWNER" &&
+            (!n.title || n.title.startsWith("Untitled"))
         );
       } else if (activeFilter === "named") {
         filtered = filtered.filter(
-          (r) =>
-            r.myPermission === "OWNER" &&
-            r.title &&
-            !r.title.startsWith("Untitled")
+          (n) =>
+            n.myPermission === "OWNER" &&
+            n.title &&
+            !n.title.startsWith("Untitled")
         );
       } else if (activeFilter === "shared") {
-        filtered = filtered.filter((r) => r.myPermission === "WRITER");
+        filtered = filtered.filter((n) => n.myPermission === "WRITER");
       }
 
       // Apply search
       if (searchQuery.trim()) {
         const query = searchQuery.toLowerCase();
-        filtered = filtered.filter((r) =>
-          r.title?.toLowerCase().includes(query)
+        filtered = filtered.filter((n) =>
+          n.title?.toLowerCase().includes(query)
         );
       }
 
-      // Group scratch runbooks by recency (last 7 days) for scratch view
+      // Group scratch notebooks by recency (last 7 days) for scratch view
       const sevenDaysAgo = new Date();
       sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
 
       const recentScratch = filtered.filter(
-        (r) =>
-          new Date(r.updated_at) > sevenDaysAgo &&
-          (!r.title || r.title.startsWith("Untitled"))
+        (n) =>
+          new Date(n.updated_at) > sevenDaysAgo &&
+          (!n.title || n.title.startsWith("Untitled"))
       );
 
-      // All named runbooks (not starting with "Untitled")
-      const named = allRunbooks.filter(
-        (r) =>
-          r.myPermission === "OWNER" &&
-          r.title &&
-          !r.title.startsWith("Untitled")
+      // All named notebooks (not starting with "Untitled")
+      const named = allNotebooks.filter(
+        (n) =>
+          n.myPermission === "OWNER" &&
+          n.title &&
+          !n.title.startsWith("Untitled")
       );
 
       return {
-        filteredRunbooks: filtered,
-        recentScratchRunbooks: recentScratch,
-        namedRunbooks: named,
+        filteredNotebooks: filtered,
+        recentScratchNotebooks: recentScratch,
+        namedNotebooks: named,
       };
-    }, [allRunbooks, activeFilter, searchQuery]);
+    }, [allNotebooks, activeFilter, searchQuery]);
 
-  // Check if user has named runbooks
-  const hasNamedRunbooks = useMemo(() => {
-    return allRunbooks.some(
-      (r) =>
-        r.myPermission === "OWNER" && r.title && !r.title.startsWith("Untitled")
+  // Check if user has named notebooks
+  const hasNamedNotebooks = useMemo(() => {
+    return allNotebooks.some(
+      (n) =>
+        n.myPermission === "OWNER" && n.title && !n.title.startsWith("Untitled")
     );
-  }, [allRunbooks]);
+  }, [allNotebooks]);
 
   // Set smart default filter when data first loads
-  const hasRunbooks = allRunbooks.length > 0;
+  const hasNotebooks = allNotebooks.length > 0;
   React.useEffect(() => {
-    if (hasRunbooks && activeFilter === "named") {
-      const hasScratchRunbooks = allRunbooks.some(
-        (r) =>
-          r.myPermission === "OWNER" &&
-          (!r.title || r.title.startsWith("Untitled"))
+    if (hasNotebooks && activeFilter === "named") {
+      const hasScratchNotebooks = allNotebooks.some(
+        (n) =>
+          n.myPermission === "OWNER" &&
+          (!n.title || n.title.startsWith("Untitled"))
       );
-      const hasSharedRunbooks = allRunbooks.some(
-        (r) => r.myPermission === "WRITER"
+      const hasSharedNotebooks = allNotebooks.some(
+        (n) => n.myPermission === "WRITER"
       );
 
       // Smart default: named > scratch > shared
-      if (hasNamedRunbooks) {
+      if (hasNamedNotebooks) {
         // Stay on named
-      } else if (hasScratchRunbooks) {
+      } else if (hasScratchNotebooks) {
         setActiveFilter("scratch");
-      } else if (hasSharedRunbooks) {
+      } else if (hasSharedNotebooks) {
         setActiveFilter("shared");
       }
     }
-  }, [hasRunbooks, activeFilter, hasNamedRunbooks, allRunbooks]);
+  }, [hasNotebooks, activeFilter, hasNamedNotebooks, allNotebooks]);
 
-  // Create runbook mutation
-  const createRunbookMutation = useMutation(
-    trpc.createRunbook.mutationOptions()
+  // Create notebook mutation
+  const createNotebookMutation = useMutation(
+    trpc.createNotebook.mutationOptions()
   );
 
-  const handleCreateRunbook = async () => {
+  const handleCreateNotebook = async () => {
     const input = {
       title: "Untitled Notebook",
     };
 
     try {
-      const result = await createRunbookMutation.mutateAsync(input);
+      const result = await createNotebookMutation.mutateAsync(input);
       if (result) {
         // Redirect to the new notebook with initial data to prevent flicker
         navigate(getNotebookVanityUrl(result.ulid, result.title), {
-          state: { initialRunbook: result },
+          state: { initialNotebook: result },
         });
       }
     } catch (err) {
@@ -219,7 +219,7 @@ const NotebookDashboardContent: React.FC = () => {
               Filters
             </h3>
             <div className="space-y-1">
-              {hasNamedRunbooks && (
+              {hasNamedNotebooks && (
                 <button
                   onClick={() => setActiveFilter("named")}
                   className={`w-full rounded-md px-3 py-2 text-left text-sm transition-colors ${
@@ -233,11 +233,11 @@ const NotebookDashboardContent: React.FC = () => {
                     My Notebooks
                     <Badge variant="secondary" className="ml-auto">
                       {
-                        allRunbooks.filter(
-                          (r) =>
-                            r.myPermission === "OWNER" &&
-                            r.title &&
-                            !r.title.startsWith("Untitled")
+                        allNotebooks.filter(
+                          (n) =>
+                            n.myPermission === "OWNER" &&
+                            n.title &&
+                            !n.title.startsWith("Untitled")
                         ).length
                       }
                     </Badge>
@@ -257,10 +257,10 @@ const NotebookDashboardContent: React.FC = () => {
                   Scratch Notebooks
                   <Badge variant="secondary" className="ml-auto">
                     {
-                      allRunbooks.filter(
-                        (r) =>
-                          r.myPermission === "OWNER" &&
-                          (!r.title || r.title.startsWith("Untitled"))
+                      allNotebooks.filter(
+                        (n) =>
+                          n.myPermission === "OWNER" &&
+                          (!n.title || n.title.startsWith("Untitled"))
                       ).length
                     }
                   </Badge>
@@ -279,7 +279,7 @@ const NotebookDashboardContent: React.FC = () => {
                   Shared with Me
                   <Badge variant="secondary" className="ml-auto">
                     {
-                      allRunbooks.filter((r) => r.myPermission === "WRITER")
+                      allNotebooks.filter((n) => n.myPermission === "WRITER")
                         .length
                     }
                   </Badge>
@@ -352,7 +352,7 @@ const NotebookDashboardContent: React.FC = () => {
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
-                  <DropdownMenuItem onClick={handleCreateRunbook}>
+                  <DropdownMenuItem onClick={handleCreateNotebook}>
                     <Plus className="mr-2 h-4 w-4" />
                     Blank Notebook
                   </DropdownMenuItem>
@@ -377,7 +377,7 @@ const NotebookDashboardContent: React.FC = () => {
         <div className="flex-1 overflow-auto p-6">
           {isLoading && <LoadingState message="Loading notebooks..." />}
 
-          {!isLoading && filteredRunbooks.length === 0 && (
+          {!isLoading && filteredNotebooks.length === 0 && (
             <div className="py-12 text-center">
               <div className="mb-4 text-gray-400">
                 <Users className="mx-auto h-16 w-16" />
@@ -401,7 +401,7 @@ const NotebookDashboardContent: React.FC = () => {
                       : "No notebooks have been shared with you yet."}
               </p>
               {!searchQuery.trim() && activeFilter !== "shared" && (
-                <Button onClick={handleCreateRunbook}>
+                <Button onClick={handleCreateNotebook}>
                   <Plus className="mr-2 h-4 w-4" />
                   {activeFilter === "scratch"
                     ? "Start Experimenting"
@@ -411,7 +411,7 @@ const NotebookDashboardContent: React.FC = () => {
             </div>
           )}
 
-          {!isLoading && filteredRunbooks.length > 0 && (
+          {!isLoading && filteredNotebooks.length > 0 && (
             <div className="space-y-8">
               {/* Search Results Section (prioritized when searching) */}
               {searchQuery.trim() && (
@@ -422,11 +422,11 @@ const NotebookDashboardContent: React.FC = () => {
                       Search Results
                     </h2>
                     <Badge variant="secondary" className="ml-2">
-                      {filteredRunbooks.length}
+                      {filteredNotebooks.length}
                     </Badge>
                   </div>
                   <NotebookGrid
-                    runbooks={filteredRunbooks}
+                    runbooks={filteredNotebooks}
                     viewMode={viewMode}
                     onUpdate={() => refetch()}
                   />
@@ -436,7 +436,7 @@ const NotebookDashboardContent: React.FC = () => {
               {/* Recent Scratch Work Section (for scratch filter when not searching) */}
               {!searchQuery.trim() &&
                 activeFilter === "scratch" &&
-                recentScratchRunbooks.length > 0 && (
+                recentScratchNotebooks.length > 0 && (
                   <section>
                     <div className="mb-4 flex items-center">
                       <Clock className="mr-2 h-5 w-5 text-gray-500" />
@@ -444,11 +444,11 @@ const NotebookDashboardContent: React.FC = () => {
                         Recent Scratch Work
                       </h2>
                       <Badge variant="secondary" className="ml-2">
-                        {recentScratchRunbooks.length}
+                        {recentScratchNotebooks.length}
                       </Badge>
                     </div>
                     <NotebookGrid
-                      runbooks={recentScratchRunbooks}
+                      runbooks={recentScratchNotebooks}
                       viewMode={viewMode}
                       onUpdate={() => refetch()}
                     />
@@ -458,7 +458,7 @@ const NotebookDashboardContent: React.FC = () => {
               {/* Named Notebooks Section (for named filter when not searching) */}
               {!searchQuery.trim() &&
                 activeFilter === "named" &&
-                namedRunbooks.length > 0 && (
+                namedNotebooks.length > 0 && (
                   <section>
                     <div className="mb-4 flex items-center">
                       <Tag className="mr-2 h-5 w-5 text-gray-500" />
@@ -466,11 +466,11 @@ const NotebookDashboardContent: React.FC = () => {
                         My Notebooks
                       </h2>
                       <Badge variant="secondary" className="ml-2">
-                        {namedRunbooks.length}
+                        {namedNotebooks.length}
                       </Badge>
                     </div>
                     <NotebookGrid
-                      runbooks={namedRunbooks}
+                      runbooks={namedNotebooks}
                       viewMode={viewMode}
                       onUpdate={() => refetch()}
                     />
@@ -481,11 +481,11 @@ const NotebookDashboardContent: React.FC = () => {
               {!searchQuery.trim() &&
                 (activeFilter === "shared" ||
                   (activeFilter === "scratch" &&
-                    !recentScratchRunbooks.length &&
-                    filteredRunbooks.length > 0) ||
+                    !recentScratchNotebooks.length &&
+                    filteredNotebooks.length > 0) ||
                   (activeFilter === "named" &&
-                    !namedRunbooks.length &&
-                    filteredRunbooks.length > 0)) && (
+                    !namedNotebooks.length &&
+                    filteredNotebooks.length > 0)) && (
                   <section>
                     <div className="mb-4 flex items-center">
                       <Users className="mr-2 h-5 w-5 text-gray-500" />
@@ -497,11 +497,11 @@ const NotebookDashboardContent: React.FC = () => {
                             : "All My Notebooks"}
                       </h2>
                       <Badge variant="secondary" className="ml-2">
-                        {filteredRunbooks.length}
+                        {filteredNotebooks.length}
                       </Badge>
                     </div>
                     <NotebookGrid
-                      runbooks={filteredRunbooks}
+                      runbooks={filteredNotebooks}
                       viewMode={viewMode}
                       onUpdate={() => refetch()}
                     />

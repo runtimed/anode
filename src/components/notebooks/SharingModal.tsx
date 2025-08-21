@@ -38,21 +38,21 @@ export const SharingModal: React.FC<SharingModalProps> = ({
     enabled: shouldLookupUser,
   });
 
-  // Query for runbook owner
+  // Query for notebook owner
   const { data: owner } = useQuery(
-    trpc.runbookOwner.queryOptions({ runbookUlid: runbook.ulid })
+    trpc.notebookOwner.queryOptions({ notebookUlid: runbook.ulid })
   );
 
-  // Query for runbook collaborators
+  // Query for notebook collaborators
   const { data: collaborators, refetch: refetchCollaborators } = useQuery(
-    trpc.runbookCollaborators.queryOptions({ runbookUlid: runbook.ulid })
+    trpc.notebookCollaborators.queryOptions({ notebookUlid: runbook.ulid })
   );
 
-  // Share runbook mutation
-  const shareMutation = useMutation(trpc.shareRunbook.mutationOptions());
+  // Share notebook mutation
+  const shareMutation = useMutation(trpc.shareNotebook.mutationOptions());
 
-  // Unshare runbook mutation
-  const unshareMutation = useMutation(trpc.unshareRunbook.mutationOptions());
+  // Unshare notebook mutation
+  const unshareMutation = useMutation(trpc.unshareNotebook.mutationOptions());
 
   const foundUser = userByEmail;
   const isUserAlreadyCollaborator = useMemo(() => {
@@ -80,14 +80,14 @@ export const SharingModal: React.FC<SharingModalProps> = ({
     setIsSharing(true);
     try {
       await shareMutation.mutateAsync({
-        runbookUlid: runbook.ulid,
+        notebookUlid: runbook.ulid,
         userId: foundUser.id,
       });
       setEmail("");
       refetchCollaborators();
       onUpdate?.();
     } catch (error) {
-      console.error("Failed to share runbook:", error);
+      console.error("Failed to share notebook:", error);
       // TODO: Show error toast
     } finally {
       setIsSharing(false);
@@ -97,13 +97,13 @@ export const SharingModal: React.FC<SharingModalProps> = ({
   const handleUnshare = async (userId: string) => {
     try {
       await unshareMutation.mutateAsync({
-        runbookUlid: runbook.ulid,
+        notebookUlid: runbook.ulid,
         userId,
       });
       refetchCollaborators();
       onUpdate?.();
     } catch (error) {
-      console.error("Failed to unshare runbook:", error);
+      console.error("Failed to unshare notebook:", error);
       // TODO: Show error toast
     }
   };
@@ -124,9 +124,9 @@ export const SharingModal: React.FC<SharingModalProps> = ({
     <Dialog open={isOpen} onOpenChange={handleClose}>
       <DialogContent className="max-w-md">
         <DialogHeader>
-          <DialogTitle>Share Runbook</DialogTitle>
+          <DialogTitle>Share Notebook</DialogTitle>
           <DialogDescription>
-            Collaborate on "{runbook.title || "Untitled Runbook"}" with others
+            Collaborate on "{runbook.title || "Untitled Notebook"}" with others
           </DialogDescription>
         </DialogHeader>
 
@@ -169,7 +169,7 @@ export const SharingModal: React.FC<SharingModalProps> = ({
                           <div className="flex items-start gap-2 text-sm text-amber-600">
                             <AlertCircle className="mt-0.5 h-3 w-3 shrink-0" />
                             <span>
-                              You are already the owner of this runbook
+                              You are already the owner of this notebook
                             </span>
                           </div>
                         ) : isUserAlreadyCollaborator ? (

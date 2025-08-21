@@ -17,28 +17,28 @@ export const NotebookList: React.FC<NotebookListProps> = () => {
 };
 
 const NotebookListContent: React.FC = () => {
-  // Query all runbooks using tRPC
+  // Query all notebooks using tRPC
   const {
-    data: runbooksData,
+    data: notebooksData,
     isLoading,
     error,
     refetch,
-  } = useQuery(trpc.runbooks.queryOptions({}));
+  } = useQuery(trpc.notebooks.queryOptions({}));
 
   // Get user data
   const { data: userData } = useQuery(trpc.me.queryOptions());
 
-  const runbooks = React.useMemo(() => {
-    if (!runbooksData) return [];
+  const notebooks = React.useMemo(() => {
+    if (!notebooksData) return [];
 
-    // Add permission information to each runbook
-    return runbooksData.map((runbook) => ({
-      ...runbook,
-      myPermission: runbook.owner_id === userData?.id ? "OWNER" : "WRITER",
-      owner: { id: runbook.owner_id, givenName: "", familyName: "" }, // Placeholder
+    // Add permission information to each notebook
+    return notebooksData.map((notebook) => ({
+      ...notebook,
+      myPermission: notebook.owner_id === userData?.id ? "OWNER" : "WRITER",
+      owner: { id: notebook.owner_id, givenName: "", familyName: "" }, // Placeholder
       collaborators: [], // Placeholder
     }));
-  }, [runbooksData, userData?.id]);
+  }, [notebooksData, userData?.id]);
 
   if (error) {
     return (
@@ -57,7 +57,7 @@ const NotebookListContent: React.FC = () => {
     return <LoadingState message="Loading notebooks..." />;
   }
 
-  if (runbooks.length === 0) {
+  if (notebooks.length === 0) {
     return (
       <div className="py-12 text-center">
         <div className="mb-4 text-gray-400">
@@ -87,10 +87,10 @@ const NotebookListContent: React.FC = () => {
 
   return (
     <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-      {runbooks.map((runbook) => (
+      {notebooks.map((notebook) => (
         <NotebookCard
-          key={runbook.ulid}
-          runbook={runbook}
+          key={notebook.ulid}
+          runbook={notebook}
           onUpdate={() => refetch()}
         />
       ))}
