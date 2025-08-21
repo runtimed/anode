@@ -1,11 +1,15 @@
-import React from "react";
-import { useParams } from "react-router-dom";
+import React, { useEffect } from "react";
+import { useParams, useLocation } from "react-router-dom";
 import { trpc, trpcQueryClient } from "../../lib/trpc-client";
 import { QueryClientProvider, useQuery } from "@tanstack/react-query";
 import { LoadingState } from "../loading/LoadingState";
 import { Button } from "../ui/button";
 import { ArrowLeft } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import {
+  getNotebookVanityUrl,
+  hasCorrectNotebookVanityUrl,
+} from "../../util/url-utils";
 
 interface NotebookViewerProps {}
 
@@ -22,6 +26,7 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = () => {
 const NotebookViewerContent: React.FC = () => {
   const { ulid } = useParams<{ ulid: string }>();
   const navigate = useNavigate();
+  const location = useLocation();
 
   // Query single runbook using tRPC
   const {
@@ -35,6 +40,29 @@ const NotebookViewerContent: React.FC = () => {
     trpc.myRunbookPermission.queryOptions({ runbookUlid: ulid! })
   );
 
+  // Redirect to canonical vanity URL when title changes or on initial load
+  useEffect(() => {
+    if (!runbook || isLoading) return;
+
+    const needsCanonical = !hasCorrectNotebookVanityUrl(
+      location.pathname,
+      runbook.ulid,
+      runbook.title
+    );
+
+    if (needsCanonical) {
+      const canonicalUrl = getNotebookVanityUrl(runbook.ulid, runbook.title);
+      navigate(canonicalUrl, { replace: true });
+    }
+  }, [
+    runbook?.title,
+    runbook?.ulid,
+    location.pathname,
+    navigate,
+    isLoading,
+    runbook,
+  ]);
+
   if (error) {
     return (
       <div className="container mx-auto py-8">
@@ -44,7 +72,7 @@ const NotebookViewerContent: React.FC = () => {
           </h1>
           <p className="text-gray-600">{error.message}</p>
           <Button
-            onClick={() => navigate("/notebooks")}
+            onClick={() => navigate("/nb")}
             className="mt-4"
             variant="outline"
           >
@@ -72,7 +100,7 @@ const NotebookViewerContent: React.FC = () => {
             access to it.
           </p>
           <Button
-            onClick={() => navigate("/notebooks")}
+            onClick={() => navigate("/nb")}
             className="mt-4"
             variant="outline"
           >
@@ -88,7 +116,7 @@ const NotebookViewerContent: React.FC = () => {
     <div className="container mx-auto py-8">
       <div className="mb-6">
         <Button
-          onClick={() => navigate("/notebooks")}
+          onClick={() => navigate("/nb")}
           variant="outline"
           className="mb-4"
         >

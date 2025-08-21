@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
 import { Users, Clock, User, Share2, MoreHorizontal } from "lucide-react";
-import { getRunbookVanityUrl } from "../../util/url-utils";
+import { getNotebookVanityUrl } from "../../util/url-utils";
 import { Card, CardHeader, CardTitle, CardContent } from "../ui/card";
 import { Badge } from "../ui/badge";
 import { Button } from "../ui/button";
@@ -54,7 +54,7 @@ export const NotebookCard: React.FC<NotebookCardProps> = ({
   return (
     <>
       <Link
-        to={getRunbookVanityUrl(runbook.ulid, runbook.title)}
+        to={getNotebookVanityUrl(runbook.ulid, runbook.title)}
         className="block transition-transform hover:scale-[1.02]"
       >
         <Card className="h-full transition-shadow hover:shadow-lg">

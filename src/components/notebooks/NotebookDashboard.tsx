@@ -1,4 +1,8 @@
-import { QueryClientProvider, useQuery } from "@tanstack/react-query";
+import {
+  QueryClientProvider,
+  useQuery,
+  useMutation,
+} from "@tanstack/react-query";
 import {
   ChevronDown,
   Clock,
@@ -14,7 +18,7 @@ import {
 import React, { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { trpc, trpcQueryClient } from "../../lib/trpc-client";
-import { getRunbookVanityUrl } from "../../util/url-utils";
+import { getNotebookVanityUrl } from "../../util/url-utils";
 import { Badge } from "../ui/badge";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
@@ -161,9 +165,28 @@ const NotebookDashboardContent: React.FC = () => {
     }
   }, [hasRunbooks, activeFilter, hasNamedRunbooks, allRunbooks]);
 
+  // Create runbook mutation
+  const createRunbookMutation = useMutation(
+    trpc.createRunbook.mutationOptions()
+  );
+
   const handleCreateRunbook = async () => {
-    // TODO: Implement create runbook functionality
-    console.log("Create runbook clicked");
+    const input = {
+      title: "Untitled Notebook",
+    };
+
+    try {
+      const result = await createRunbookMutation.mutateAsync(input);
+      if (result) {
+        // Redirect to the new notebook with initial data to prevent flicker
+        navigate(getNotebookVanityUrl(result.ulid, result.title), {
+          state: { initialRunbook: result },
+        });
+      }
+    } catch (err) {
+      console.error("Failed to create notebook:", err);
+      // TODO: Show error toast
+    }
   };
 
   if (error) {
@@ -576,7 +599,7 @@ const NotebookTableRow: React.FC<NotebookTableRowProps> = ({ runbook }) => {
     <tr className="border-b transition-colors hover:bg-gray-50">
       <td className="p-4">
         <a
-          href={getRunbookVanityUrl(runbook.ulid, runbook.title)}
+          href={getNotebookVanityUrl(runbook.ulid, runbook.title)}
           className="font-medium text-blue-600 hover:text-blue-800"
         >
           {runbook.title || "Untitled Notebook"}
