@@ -57,6 +57,7 @@ import { getCurrentNotebookId, getStoreId } from "./util/store-id.js";
 import { ErrorBoundary } from "react-error-boundary";
 import { Toaster } from "./components/ui/sonner.js";
 import { BootStatus } from "@livestore/livestore";
+import { TrpcProvider } from "./components/TrpcProvider.tsx";
 
 // Lazy load runbook components
 const RunbookDashboard = React.lazy(() =>
@@ -390,16 +391,18 @@ export const App: React.FC = () => {
           path="/nb"
           element={
             <AuthGuard>
-              <Suspense
-                fallback={
-                  <LoadingState
-                    variant="fullscreen"
-                    message="Loading notebooks..."
-                  />
-                }
-              >
-                <NotebookDashboard />
-              </Suspense>
+              <TrpcProvider>
+                <Suspense
+                  fallback={
+                    <LoadingState
+                      variant="fullscreen"
+                      message="Loading notebooks..."
+                    />
+                  }
+                >
+                  <NotebookDashboard />
+                </Suspense>
+              </TrpcProvider>
             </AuthGuard>
           }
         />
