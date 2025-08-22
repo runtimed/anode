@@ -7,7 +7,7 @@ import { customAlphabet } from "nanoid";
  * Generates a URL-safe notebook ID with 12 characters
  */
 const generateNotebookId = customAlphabet(
-  "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz_-",
+  "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz_",
   12
 );
 
