@@ -22,8 +22,10 @@ import { Badge } from "../ui/badge";
 import { LoadingState } from "../loading/LoadingState";
 import { SharingModal } from "./SharingModal";
 import type { NotebookProcessed } from "./types";
+import { CustomLiveStoreProvider } from "../livestore/CustomLiveStoreProvider";
+import { NotebookContent } from "../notebook/NotebookContent";
 
-export const NotebookViewer: React.FC = () => {
+export const NotebookPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const location = useLocation();
   const navigate = useNavigate();
@@ -190,6 +192,10 @@ export const NotebookViewer: React.FC = () => {
 
   const canEdit = notebook.myPermission === "OWNER";
 
+  if (!id) {
+    return <div>No notebook id</div>;
+  }
+
   return (
     <div className="bg-background min-h-screen">
       {/* Header */}
@@ -319,21 +325,9 @@ export const NotebookViewer: React.FC = () => {
         </div>
       </div>
 
-      {/* Main content area */}
-      <div className="container mx-auto px-4 py-8">
-        <div className="rounded-lg border bg-white p-8 text-center">
-          <div className="mx-auto mb-4 text-gray-400">
-            <Users className="mx-auto h-16 w-16" />
-          </div>
-          <h3 className="mb-2 text-lg font-medium text-gray-900">
-            Notebook content coming soon
-          </h3>
-          <p className="text-gray-600">
-            This is where the notebook cells and outputs will be displayed. For
-            now, you can edit the notebook title and manage permissions.
-          </p>
-        </div>
-      </div>
+      <CustomLiveStoreProvider storeId={id}>
+        <NotebookContent />
+      </CustomLiveStoreProvider>
 
       {/* Sharing Modal */}
       <SharingModal
