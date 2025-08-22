@@ -1,4 +1,4 @@
--- Migration number: 0004 	 2025-01-27T00:00:00.000Z
+-- Migration number: 0004 	 2025-08-22T15:30:54.420Z
 
 CREATE TABLE notebooks (
   id TEXT PRIMARY KEY,
