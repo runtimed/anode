@@ -1,19 +1,18 @@
 // import { toast } from "sonner";
+import { queries, tables } from "@/schema";
 import { queryDb } from "@livestore/livestore";
 import { useQuery, useStore } from "@livestore/react";
-import { tables, queries } from "@/schema";
 
 import React, { Suspense } from "react";
 import { ErrorBoundary } from "react-error-boundary";
 
 import { NotebookTitle } from "./NotebookTitle.js";
-import { CellList } from "./CellList.js";
 
 import { Avatar } from "@/components/ui/Avatar.js";
 import { Button } from "@/components/ui/button";
 
-import { useAuthenticatedUser } from "../auth/AuthProvider.js";
 import { useUserRegistry } from "@/hooks/useUserRegistry.js";
+import { useAuthenticatedUser } from "../auth/AuthProvider.js";
 
 import { getClientColor, getClientTypeInfo } from "@/services/userTypes.js";
 
@@ -21,7 +20,6 @@ import { Bug, BugOff, Filter, X } from "lucide-react";
 import { UserProfile } from "../auth/UserProfile.js";
 import { RuntimeHealthIndicatorButton } from "./RuntimeHealthIndicatorButton.js";
 import { RuntimeHelper } from "./RuntimeHelper.js";
-import { focusedCellSignal$, hasManuallyFocused$ } from "./signals/focus.js";
 import { contextSelectionMode$ } from "./signals/ai-context.js";
 
 // Lazy import DebugPanel only in development
@@ -31,8 +29,6 @@ const LazyDebugPanel = React.lazy(() =>
   }))
 );
 
-import { CellAdder } from "./cell/CellAdder.js";
-import { EmptyStateCellAdder } from "./EmptyStateCellAdder.js";
 import { GitCommitHash } from "./GitCommitHash.js";
 import { NotebookContent } from "./NotebookContent.js";
 

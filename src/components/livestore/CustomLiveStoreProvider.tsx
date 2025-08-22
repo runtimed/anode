@@ -1,5 +1,4 @@
 import { schema } from "@/schema";
-import { getStoreId } from "@/util/store-id.js";
 import { makePersistedAdapter } from "@livestore/adapter-web";
 import LiveStoreSharedWorker from "@livestore/adapter-web/shared-worker?sharedworker";
 import { BootStatus } from "@livestore/livestore";
