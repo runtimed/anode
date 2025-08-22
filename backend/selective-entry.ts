@@ -173,11 +173,11 @@ export default {
       }
     }
 
-    if (pathname.startsWith("/trpc")) {
+    if (pathname.startsWith("/api/trpc")) {
       console.log("🚀 Routing to tRPC");
       try {
         const response = await fetchRequestHandler({
-          endpoint: "/trpc",
+          endpoint: "/api/trpc",
           req: request as unknown as Request,
           router: appRouter,
           createContext: async (): Promise<TrcpContext> => {
