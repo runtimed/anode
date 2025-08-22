@@ -4,19 +4,7 @@ import { QueryClientProvider, useQuery } from "@tanstack/react-query";
 import { NotebookCard } from "./NotebookCard";
 import { LoadingState } from "../loading/LoadingState";
 
-interface NotebookListProps {}
-
-export const NotebookList: React.FC<NotebookListProps> = () => {
-  return (
-    <div>
-      <QueryClientProvider client={trpcQueryClient}>
-        <NotebookListContent />
-      </QueryClientProvider>
-    </div>
-  );
-};
-
-const NotebookListContent: React.FC = () => {
+export const NotebookList: React.FC = () => {
   // Query all notebooks using tRPC
   const {
     data: notebooksData,

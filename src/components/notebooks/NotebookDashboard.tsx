@@ -37,19 +37,7 @@ import type { NotebookProcessed } from "./types";
 type ViewMode = "grid" | "table";
 type FilterType = "scratch" | "named" | "shared";
 
-interface NotebookDashboardProps {}
-
-export const NotebookDashboard: React.FC<NotebookDashboardProps> = () => {
-  return (
-    <div>
-      <QueryClientProvider client={trpcQueryClient}>
-        <NotebookDashboardContent />
-      </QueryClientProvider>
-    </div>
-  );
-};
-
-const NotebookDashboardContent: React.FC = () => {
+export const NotebookDashboard: React.FC = () => {
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState("");
   const [activeFilter, setActiveFilter] = useState<FilterType>("named");
