@@ -2,7 +2,7 @@ import { getCurrentNotebookId } from "@/util/store-id";
 import React, { Suspense } from "react";
 import { ErrorBoundary } from "react-error-boundary";
 import { TrpcProvider } from "./TrpcProvider.tsx";
-import { useDebug } from "@/debug-mode";
+import { useDebug } from "@/debug/debug-context";
 
 // Lazy load notebook components
 const NotebookViewer = React.lazy(() =>
