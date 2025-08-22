@@ -7,6 +7,14 @@ interface TrpcProviderProps {
   children: ReactNode;
 }
 
+// I added mounting check because I've only seen a tRPC provider added above the
+// routing layer, and our approach, and using AI makes it easier to accidentally
+// have two.
+
+// Having two tRPC providers probably won't cause an issues, and it's possible
+// to define two in a codebase and have them point to different endpoints. But
+// we're not doing that so for us it just safer.
+
 // Global flag to track if TrpcProvider is already mounted
 let isMounted = false;
 
