@@ -5,9 +5,14 @@ import { customAlphabet } from "nanoid";
 
 /**
  * Generates a URL-safe notebook ID with 12 characters
+ * No dashes because LiveStore doesn't like them
+ *
+ * Store IDs probably shouldn't include "dashes", primarily because they get
+ * converted to _ in SQLite table names, which then causes conflicts with
+ * LiveStore in very weird ways
  */
 const generateNotebookId = customAlphabet(
-  "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz_-",
+  "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz_",
   12
 );
 

@@ -1,10 +1,5 @@
-import { makePersistedAdapter } from "@livestore/adapter-web";
-import LiveStoreSharedWorker from "@livestore/adapter-web/shared-worker?sharedworker";
-import { LiveStoreProvider } from "@livestore/react";
+import React, { Suspense, useEffect, useState } from "react";
 
-import React, { Suspense, useEffect, useRef, useState } from "react";
-
-import { unstable_batchedUpdates as batchUpdates } from "react-dom";
 import { Route, Routes } from "react-router-dom";
 import { AuthGuard } from "./components/auth/AuthGuard.js";
 import {
@@ -25,12 +20,6 @@ const FPSMeter = React.lazy(() =>
   }))
 );
 
-// Lazy load notebook components
-const NotebookViewer = React.lazy(() =>
-  import("./components/notebook/NotebookViewer.js").then((m) => ({
-    default: m.NotebookViewer,
-  }))
-);
 const NotebookLoadingScreen = React.lazy(() =>
   import("./components/notebook/NotebookLoadingScreen.js").then((m) => ({
     default: m.NotebookLoadingScreen,
@@ -44,20 +33,14 @@ const AuthorizePage = React.lazy(
   () => import("./components/auth/AuthorizePage.js")
 );
 
-import {
-  AuthProvider,
-  useAuth,
-  useAuthenticatedUser,
-} from "./components/auth/AuthProvider.js";
+import { AuthProvider, useAuth } from "./components/auth/AuthProvider.js";
 
-import LiveStoreWorker from "./livestore.worker?worker";
-import { schema } from "./schema.js";
-import { getCurrentNotebookId, getStoreId } from "./util/store-id.js";
-
-import { BootStatus } from "@livestore/livestore";
-import { ErrorBoundary } from "react-error-boundary";
 import { TrpcProvider } from "./components/TrpcProvider.tsx";
 import { Toaster } from "./components/ui/sonner.js";
+import { CustomLiveStoreProvider } from "./components/livestore/CustomLiveStoreProvider.tsx";
+import { NotebookApp } from "./components/NotebookApp.tsx";
+import { useDebug } from "./debug-mode.tsx";
+import { getStoreId } from "./util/store-id.ts";
 
 // Lazy load runbook components
 const RunbookDashboard = React.lazy(() =>
@@ -77,58 +60,11 @@ const NotebooksDashboard = React.lazy(() =>
     default: m.NotebookDashboard,
   }))
 );
-const NotebookViewer2 = React.lazy(() =>
-  import("./components/notebooks/NotebookViewer.tsx").then((m) => ({
-    default: m.NotebookViewer,
+const NotebookPage = React.lazy(() =>
+  import("./components/notebooks/NotebookPage.tsx").then((m) => ({
+    default: m.NotebookPage,
   }))
 );
-
-interface NotebookAppProps {}
-
-const NotebookApp: React.FC<NotebookAppProps> = () => {
-  // In the simplified architecture, we always show the current notebook
-  // The notebook ID comes from the URL and is the same as the store ID
-  const currentNotebookId = getCurrentNotebookId();
-  const [debugMode, setDebugMode] = useState(false);
-  // Note: Auth token updates are handled via error detection and page reload
-  // rather than dynamic sync payload updates, as LiveStore doesn't support
-  // runtime sync payload changes
-
-  return (
-    <div className="bg-background min-h-screen">
-      {/* Debug FPS Meter - fixed position in corner */}
-      {debugMode && import.meta.env.DEV && (
-        <div
-          style={{
-            bottom: 0,
-            right: debugMode ? 400 : 0, // Leave space for debug panel
-            position: "fixed",
-            background: "#333",
-            zIndex: 50,
-          }}
-        >
-          <Suspense
-            fallback={<MinimalLoading message="Loading FPS meter..." />}
-          >
-            <FPSMeter height={40} />
-          </Suspense>
-        </div>
-      )}
-      {/* Main Content */}
-      <ErrorBoundary fallback={<div>Error loading notebook</div>}>
-        <TrpcProvider>
-          <Suspense fallback={<div className="min-h-screen bg-white" />}>
-            <NotebookViewer
-              notebookId={currentNotebookId}
-              debugMode={debugMode}
-              onDebugToggle={setDebugMode}
-            />
-          </Suspense>
-        </TrpcProvider>
-      </ErrorBoundary>
-    </div>
-  );
-};
 
 // Animation wrapper with minimum loading time and animation completion
 const AnimatedLiveStoreApp: React.FC = () => {
@@ -192,108 +128,19 @@ const AnimatedLiveStoreApp: React.FC = () => {
       )}
 
       {/* Main app with LiveStore integration */}
-      <LiveStoreApp onLiveStoreReady={() => setLiveStoreReady(true)} />
+      <CustomLiveStoreProvider
+        storeId={getStoreId()}
+        onLiveStoreReady={() => setLiveStoreReady(true)}
+      >
+        <NotebookApp />
+      </CustomLiveStoreProvider>
     </>
   );
 };
 
-function loading(_status: BootStatus) {
-  // Let our overlay handle loading
-  // console.debug(`LiveStore Loading status: ${JSON.stringify(_status)}`);
-  return <></>;
-}
-
-// Component to detect when LiveStore is ready
-const LiveStoreReadyDetector: React.FC<{ onReady?: () => void }> = ({
-  onReady,
-}) => {
-  const readyRef = useRef(false);
-
-  useEffect(() => {
-    // If this component renders, LiveStore is ready
-    if (!readyRef.current) {
-      readyRef.current = true;
-      onReady?.();
-    }
-  }, [onReady]);
-
-  return null;
-};
-
-// LiveStore setup - moved inside AuthGuard to ensure auth happens first
-const LiveStoreApp: React.FC<{
-  onLiveStoreReady?: () => void;
-}> = ({ onLiveStoreReady }) => {
-  const storeId = getStoreId();
-
-  // Check for reset parameter to handle schema evolution issues
-  const resetPersistence =
-    new URLSearchParams(window.location.search).get("reset") !== null;
-
-  // Clean up URL if reset was requested
-  useEffect(() => {
-    if (resetPersistence) {
-      const searchParams = new URLSearchParams(window.location.search);
-      searchParams.delete("reset");
-      window.history.replaceState(
-        null,
-        "",
-        `${window.location.pathname}?${searchParams.toString()}`
-      );
-    }
-  }, [resetPersistence]);
-
-  // Get authenticated user info to set clientId
-  const {
-    user: { sub: clientId },
-  } = useAuthenticatedUser();
-
-  // Create completely static sync payload that never changes reference
-  // Token access happens through getter, preventing LiveStore restarts
-  const syncPayload = useRef({
-    get authToken() {
-      // Get current token directly from localStorage without any reactive dependencies
-      try {
-        const tokenString = localStorage.getItem("openid_tokens");
-        const tokens = tokenString ? JSON.parse(tokenString) : null;
-        return tokens?.accessToken || "";
-      } catch (error) {
-        console.warn("Failed to get auth token for sync:", error);
-        return "";
-      }
-    },
-    clientId,
-  });
-
-  // Update clientId if user changes, but keep same object reference
-  useEffect(() => {
-    syncPayload.current.clientId = clientId;
-  }, [clientId]);
-
-  const adapter = makePersistedAdapter({
-    storage: { type: "opfs" },
-    worker: LiveStoreWorker,
-    sharedWorker: LiveStoreSharedWorker,
-    resetPersistence,
-    clientId, // This ties the LiveStore client to the authenticated user
-  });
-
-  return (
-    <LiveStoreProvider
-      schema={schema}
-      adapter={adapter}
-      renderLoading={loading}
-      batchUpdates={batchUpdates}
-      storeId={storeId}
-      syncPayload={syncPayload.current}
-    >
-      <LiveStoreReadyDetector onReady={onLiveStoreReady} />
-      <NotebookApp />
-    </LiveStoreProvider>
-  );
-};
-
 export const App: React.FC = () => {
+  const debug = useDebug();
+
   // Safety net: Auto-remove loading screen if no component has handled it
   useEffect(() => {
     const checkInterval = setInterval(() => {
@@ -329,6 +176,24 @@ export const App: React.FC = () => {
 
   return (
     <AuthProvider>
+      {/* Debug FPS Meter - fixed position in corner */}
+      {debug.enabled && import.meta.env.DEV && (
+        <div
+          style={{
+            bottom: 0,
+            right: debug.enabled ? 400 : 0, // Leave space for debug panel
+            position: "fixed",
+            background: "#333",
+            zIndex: 50,
+          }}
+        >
+          <Suspense
+            fallback={<MinimalLoading message="Loading FPS meter..." />}
+          >
+            <FPSMeter height={40} />
+          </Suspense>
+        </div>
+      )}
       <Routes>
         <Route
           path="/oidc"
@@ -408,7 +273,7 @@ export const App: React.FC = () => {
                     />
                   }
                 >
-                  <NotebookViewer2 />
+                  <NotebookPage />
                 </Suspense>
               </TrpcProvider>
             </AuthGuard>
