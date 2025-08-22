@@ -14,6 +14,11 @@ import { RuntError, ErrorType } from "./types.ts";
 import apiRoutes from "./routes.ts";
 import localOidcRoutes from "./local-oidc-routes.ts";
 import { yoga } from "./graphql/server.ts";
+import { fetchRequestHandler } from "@trpc/server/adapters/fetch";
+import { appRouter } from "./trpc/index.ts";
+import { extractAndValidateUser } from "./auth.ts";
+import { createPermissionsProvider } from "./notebook-permissions/factory.ts";
+import { TrcpContext } from "./trpc/trpc.ts";
 
 // NOTE: This export is necessary at the root entry point for the Workers
 // runtime for Durable Object usage
@@ -158,6 +163,46 @@ export default {
         return new workerGlobals.Response(
           JSON.stringify({
             error: "GraphQL processing failed",
+            message: error instanceof Error ? error.message : String(error),
+          }),
+          {
+            status: 500,
+            headers: { "Content-Type": "application/json" },
+          }
+        );
+      }
+    }
+
+    if (pathname.startsWith("/trpc")) {
+      console.log("🚀 Routing to tRPC");
+      try {
+        const response = await fetchRequestHandler({
+          endpoint: "/trpc",
+          req: request as unknown as Request,
+          router: appRouter,
+          createContext: async (): Promise<TrcpContext> => {
+            let auth = await extractAndValidateUser(
+              request as unknown as Request,
+              env
+            );
+
+            // Create permissions provider
+            const permissionsProvider = createPermissionsProvider(env);
+
+            return {
+              env,
+              user: auth,
+              permissionsProvider,
+            };
+          },
+        });
+        console.log("✅ tRPC response:", response.status);
+        return response as unknown as WorkerResponse;
+      } catch (error) {
+        console.error("❌ tRPC error:", error);
+        return new workerGlobals.Response(
+          JSON.stringify({
+            error: "tRPC processing failed",
             message: error instanceof Error ? error.message : String(error),
           }),
           {

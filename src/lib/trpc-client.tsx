@@ -7,7 +7,7 @@ import { createTRPCOptionsProxy } from "@trpc/tanstack-react-query";
 import type { AppRouter } from "../../backend/trpc/index";
 //     👆 **type-only** import
 
-const TRPC_ENDPOINT = "/api/trpc";
+const TRPC_ENDPOINT = "/trpc";
 
 const endpointLink = httpBatchLink({
   url: TRPC_ENDPOINT,

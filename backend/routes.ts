@@ -2,8 +2,6 @@ import { Hono } from "hono";
 import { v4 as uuidv4 } from "uuid";
 import { authMiddleware, type AuthContext } from "./middleware.ts";
 import { type Env } from "./types.ts";
-import { fetchRequestHandler } from "@trpc/server/adapters/fetch";
-import { appRouter } from "./trpc/index.ts";
 
 // Import unified API key routes
 import apiKeyRoutes from "./api-key-routes.ts";
@@ -11,33 +9,8 @@ import {
   isUsingLocalProvider,
   validateProviderConfig,
 } from "./providers/api-key-factory.ts";
-import { extractAndValidateUser, ValidatedUser } from "./auth.ts";
-import { createPermissionsProvider } from "./notebook-permissions/factory.ts";
-import { TrcpContext } from "./trpc/trpc.ts";
 
 const api = new Hono<{ Bindings: Env; Variables: AuthContext }>();
-
-// tRPC endpoint
-api.all("/trpc/*", async (ctx) => {
-  return fetchRequestHandler({
-    endpoint: "/api/trpc",
-    req: ctx.req.raw,
-    router: appRouter,
-    createContext: async (): Promise<TrcpContext> => {
-      let auth: ValidatedUser | null = null;
-      auth = await extractAndValidateUser(ctx.req.raw, ctx.env);
-
-      // Create permissions provider
-      const permissionsProvider = createPermissionsProvider(ctx.env);
-
-      return {
-        env: ctx.env,
-        user: auth,
-        permissionsProvider,
-      };
-    },
-  });
-});
 
 // Health endpoint - no auth required
 api.get("/health", (c) => {
