@@ -451,24 +451,22 @@ export const appRouter = router({
       const { nbId } = input;
       const {
         env: { DB },
+        permissionsProvider,
       } = ctx;
 
       try {
-        const writers = await DB.prepare(
-          `
-          SELECT user_id FROM notebook_permissions
-          WHERE notebook_id = ? AND permission = 'writer'
-        `
-        )
-          .bind(nbId)
-          .all<{ user_id: string }>();
+        // Use the permissions provider to list all users with "writer" permission for this notebook
+        const writers = (
+          await permissionsProvider.listPermissions(nbId)
+        ).filter((u) => u.level === "writer");
 
-        if (writers.results.length === 0) {
+        if (writers.length === 0) {
           return [];
         }
 
+        const userIds = writers.map((w) => w.userId);
+
         // Get user data for all writers
-        const userIds = writers.results.map((w) => w.user_id);
         const userMap = await getUsersByIds(DB, userIds);
 
         // Convert to public User objects
