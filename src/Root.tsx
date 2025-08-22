@@ -358,7 +358,7 @@ export const App: React.FC = () => {
           }
         />
         <Route
-          path="/r/:id/*"
+          path="/r/:ulid/*"
           element={
             <AuthGuard>
               <GraphQLClientProvider>
