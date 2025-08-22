@@ -106,17 +106,20 @@ export const appRouter = router({
           return [];
         }
 
-        const placeholders = accessibleNotebookIds.map(() => "?").join(",");
+        // Trusted ids. Not doing a variable because we could have hundreds of ids.
+        const trustedIdsString = accessibleNotebookIds
+          .map((id) => `'${id.replace(/'/g, "''")}'`)
+          .join(",");
         const query = `
             SELECT id, owner_id, title, created_at, updated_at
             FROM notebooks
-            WHERE id IN (${placeholders})
+            WHERE id IN (${trustedIdsString})
             ORDER BY updated_at DESC
             LIMIT ? OFFSET ?
           `;
 
         const result = await DB.prepare(query)
-          .bind(...accessibleNotebookIds, limit, offset)
+          .bind(limit, offset)
           .all<NotebookRow>();
 
         return result.results;
