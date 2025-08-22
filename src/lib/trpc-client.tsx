@@ -22,6 +22,7 @@ const endpointLink = httpBatchLink({
 });
 
 export const trpcQueryClient = new QueryClient();
+
 const trpcClient = createTRPCClient<AppRouter>({
   links: [endpointLink],
 });
