@@ -1,5 +1,5 @@
 /**
- * Utility functions for generating URL-safe slugs and vanity URLs for runbooks
+ * Utility functions for generating URL-safe slugs and vanity URLs for runbooks and notebooks
  */
 
 /**
@@ -49,11 +49,43 @@ export function getRunbookVanityUrl(
 }
 
 /**
+ * Generate a vanity URL for a notebook
+ * If title is empty or becomes empty after slugification, returns just the ulid path
+ */
+export function getNotebookVanityUrl(
+  id: string,
+  title?: string | null
+): string {
+  const basePath = `/nb/${id}`;
+
+  if (!title?.trim()) {
+    return basePath;
+  }
+
+  const slug = slugify(title);
+
+  if (!slug) {
+    return basePath;
+  }
+
+  return `${basePath}/${slug}`;
+}
+
+/**
  * Extract ulid from a runbook path (with or without vanity name)
  * Supports: /r/{ulid}, /r/{ulid}/, /r/{ulid}/{vanity}
  */
 export function extractRunbookUlid(path: string): string | null {
   const match = path.match(/^\/r\/([^/]+)/);
+  return match ? match[1] : null;
+}
+
+/**
+ * Extract ulid from a notebook path (with or without vanity name)
+ * Supports: /nb/{id}, /nb/{id}/, /nb/{id}/{vanity}
+ */
+export function extractNotebookId(path: string): string | null {
+  const match = path.match(/^\/nb\/([^/]+)/);
   return match ? match[1] : null;
 }
 
@@ -69,6 +101,31 @@ export function hasCorrectVanityUrl(
   const expectedUrl = getRunbookVanityUrl(ulid, title);
   const expectedPath = expectedUrl.replace(/^\/r\/[^/]+/, ""); // Get just the vanity part
   const currentVanityPath = currentPath.replace(/^\/r\/[^/]+/, "");
+
+  // If no title, both should be empty
+  if (!title?.trim()) {
+    return !currentVanityPath || currentVanityPath === "/";
+  }
+
+  // If title exists, check if vanity matches
+  return (
+    currentVanityPath === expectedPath ||
+    currentVanityPath === `${expectedPath}/`
+  );
+}
+
+/**
+ * Check if a notebook URL has the correct vanity name
+ * Used to redirect to canonical URL if needed
+ */
+export function hasCorrectNotebookVanityUrl(
+  currentPath: string,
+  id: string,
+  title?: string | null
+): boolean {
+  const expectedUrl = getNotebookVanityUrl(id, title);
+  const expectedPath = expectedUrl.replace(/^\/nb\/[^/]+/, ""); // Get just the vanity part
+  const currentVanityPath = currentPath.replace(/^\/nb\/[^/]+/, "");
 
   // If no title, both should be empty
   if (!title?.trim()) {

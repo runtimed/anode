@@ -4,7 +4,7 @@ import { type ValidatedUser, extractAndValidateUser } from "../auth.ts";
 import { type Env } from "../types.ts";
 import { typeDefs } from "./schema.ts";
 import { resolvers, type GraphQLContext } from "./resolvers.ts";
-import { createPermissionsProvider } from "../permissions/factory.ts";
+import { createPermissionsProvider } from "../runbook-permissions/factory.ts";
 
 export const yoga = createYoga<GraphQLContext>({
   schema: createSchema({

@@ -160,7 +160,7 @@ export class OpenIdService {
   }
 
   public getUser(): Observable<User | null> {
-    return this.getTokens().pipe(
+    return this._getTokens().pipe(
       map((tokens) =>
         tokens
           ? { accessToken: tokens.accessToken, claims: tokens.claims }
@@ -267,7 +267,7 @@ export class OpenIdService {
     // $tokens will emit `null` due to the localStorage side-effect
   }
 
-  private getTokens(): Observable<Tokens | null> {
+  private _getTokens(): Observable<Tokens | null> {
     if (!this.tokens$) {
       this.tokens$ = this.tokenChangeSubject$.pipe(
         startWith(LocalStorageKey.Tokens), // Trigger initial load
@@ -487,8 +487,12 @@ export class OpenIdService {
     this.tokenChangeSubject$.next(key);
   }
 
-  public getFromLocalStorage<T>(key: LocalStorageKey): T | null {
+  private getFromLocalStorage<T>(key: LocalStorageKey): T | null {
     const value = localStorage.getItem(key);
     return value ? JSON.parse(value) : null;
+  }
+
+  public getTokens(): Tokens | null {
+    return this.getFromLocalStorage<Tokens>(LocalStorageKey.Tokens);
   }
 }

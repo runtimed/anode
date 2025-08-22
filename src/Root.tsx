@@ -2,19 +2,21 @@ import { makePersistedAdapter } from "@livestore/adapter-web";
 import LiveStoreSharedWorker from "@livestore/adapter-web/shared-worker?sharedworker";
 import { LiveStoreProvider } from "@livestore/react";
 
-import React, { useEffect, useState, useRef, Suspense } from "react";
+import React, { Suspense, useEffect, useRef, useState } from "react";
 
+import { unstable_batchedUpdates as batchUpdates } from "react-dom";
+import { Route, Routes } from "react-router-dom";
+import { AuthGuard } from "./components/auth/AuthGuard.js";
 import {
   LoadingState,
   MinimalLoading,
 } from "./components/loading/LoadingState.js";
-import { Routes, Route } from "react-router-dom";
-import {
-  updateLoadingStage,
-  removeStaticLoadingScreen,
-  isLoadingScreenVisible,
-} from "./util/domUpdates.js";
 import { GraphQLClientProvider } from "./lib/graphql-client.js";
+import {
+  isLoadingScreenVisible,
+  removeStaticLoadingScreen,
+  updateLoadingStage,
+} from "./util/domUpdates.js";
 
 // Dynamic import for FPSMeter - development tool only
 const FPSMeter = React.lazy(() =>
@@ -22,7 +24,6 @@ const FPSMeter = React.lazy(() =>
     default: m.FPSMeter,
   }))
 );
-import { unstable_batchedUpdates as batchUpdates } from "react-dom";
 
 // Lazy load notebook components
 const NotebookViewer = React.lazy(() =>
@@ -35,7 +36,6 @@ const NotebookLoadingScreen = React.lazy(() =>
     default: m.NotebookLoadingScreen,
   }))
 );
-import { AuthGuard } from "./components/auth/AuthGuard.js";
 // Lazy load route components
 const AuthRedirect = React.lazy(
   () => import("./components/auth/AuthRedirect.js")
@@ -46,17 +46,18 @@ const AuthorizePage = React.lazy(
 
 import {
   AuthProvider,
-  useAuthenticatedUser,
   useAuth,
+  useAuthenticatedUser,
 } from "./components/auth/AuthProvider.js";
 
 import LiveStoreWorker from "./livestore.worker?worker";
 import { schema } from "./schema.js";
 import { getCurrentNotebookId, getStoreId } from "./util/store-id.js";
 
-import { ErrorBoundary } from "react-error-boundary";
-import { Toaster } from "./components/ui/sonner.js";
 import { BootStatus } from "@livestore/livestore";
+import { ErrorBoundary } from "react-error-boundary";
+import { TrpcProvider } from "./components/TrpcProvider.tsx";
+import { Toaster } from "./components/ui/sonner.js";
 
 // Lazy load runbook components
 const RunbookDashboard = React.lazy(() =>
@@ -67,6 +68,18 @@ const RunbookDashboard = React.lazy(() =>
 const RunbookViewer = React.lazy(() =>
   import("./components/runbooks/RunbookViewer.tsx").then((m) => ({
     default: m.RunbookViewer,
+  }))
+);
+
+// Lazy load notebook components for the new /nb routes
+const NotebooksDashboard = React.lazy(() =>
+  import("./components/notebooks/NotebookDashboard.tsx").then((m) => ({
+    default: m.NotebookDashboard,
+  }))
+);
+const NotebookViewer2 = React.lazy(() =>
+  import("./components/notebooks/NotebookViewer.tsx").then((m) => ({
+    default: m.NotebookViewer,
   }))
 );
 
@@ -103,13 +116,15 @@ const NotebookApp: React.FC<NotebookAppProps> = () => {
       )}
       {/* Main Content */}
       <ErrorBoundary fallback={<div>Error loading notebook</div>}>
-        <Suspense fallback={<div className="min-h-screen bg-white" />}>
-          <NotebookViewer
-            notebookId={currentNotebookId}
-            debugMode={debugMode}
-            onDebugToggle={setDebugMode}
-          />
-        </Suspense>
+        <TrpcProvider>
+          <Suspense fallback={<div className="min-h-screen bg-white" />}>
+            <NotebookViewer
+              notebookId={currentNotebookId}
+              debugMode={debugMode}
+              onDebugToggle={setDebugMode}
+            />
+          </Suspense>
+        </TrpcProvider>
       </ErrorBoundary>
     </div>
   );
@@ -377,6 +392,44 @@ export const App: React.FC = () => {
                   <RunbookDashboard />
                 </Suspense>
               </GraphQLClientProvider>
+            </AuthGuard>
+          }
+        />
+        <Route
+          path="/nb/:id/*"
+          element={
+            <AuthGuard>
+              <TrpcProvider>
+                <Suspense
+                  fallback={
+                    <LoadingState
+                      variant="fullscreen"
+                      message="Loading notebook..."
+                    />
+                  }
+                >
+                  <NotebookViewer2 />
+                </Suspense>
+              </TrpcProvider>
+            </AuthGuard>
+          }
+        />
+        <Route
+          path="/nb"
+          element={
+            <AuthGuard>
+              <TrpcProvider>
+                <Suspense
+                  fallback={
+                    <LoadingState
+                      variant="fullscreen"
+                      message="Loading notebooks..."
+                    />
+                  }
+                >
+                  <NotebooksDashboard />
+                </Suspense>
+              </TrpcProvider>
             </AuthGuard>
           }
         />
