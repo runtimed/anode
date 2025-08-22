@@ -27,7 +27,9 @@ function useCheckMountedOnlyOnce() {
 }
 
 /**
- * 🚨 IMPORTANT: only include once in a page
+ * 🚨 IMPORTANT: only include once in a page.
+ *
+ * Does not handle refreshing token, so make sure to render inside a component that does.
  *
  * This is a wrapper component that provides the trpcQueryClient to the children.
  * It also includes the ReactQueryDevtools for development.
