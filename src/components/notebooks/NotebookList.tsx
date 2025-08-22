@@ -1,8 +1,8 @@
+import { useQuery } from "@tanstack/react-query";
 import React from "react";
-import { trpc, trpcQueryClient } from "../../lib/trpc-client";
-import { QueryClientProvider, useQuery } from "@tanstack/react-query";
-import { NotebookCard } from "./NotebookCard";
+import { trpc } from "../../lib/trpc-client";
 import { LoadingState } from "../loading/LoadingState";
+import { NotebookCard } from "./NotebookCard";
 
 export const NotebookList: React.FC = () => {
   // Query all notebooks using tRPC
