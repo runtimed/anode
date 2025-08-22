@@ -1,4 +1,4 @@
-import React, { Suspense, useEffect, useState } from "react";
+import React, { Suspense, useEffect } from "react";
 
 import { Route, Routes } from "react-router-dom";
 import { AuthGuard } from "./components/auth/AuthGuard.js";
@@ -10,7 +10,6 @@ import { GraphQLClientProvider } from "./lib/graphql-client.js";
 import {
   isLoadingScreenVisible,
   removeStaticLoadingScreen,
-  updateLoadingStage,
 } from "./util/domUpdates.js";
 
 // Dynamic import for FPSMeter - development tool only
@@ -20,24 +19,17 @@ const FPSMeter = React.lazy(() =>
   }))
 );
 
-const NotebookLoadingScreen = React.lazy(() =>
-  import("./components/notebook/NotebookLoadingScreen.js").then((m) => ({
-    default: m.NotebookLoadingScreen,
-  }))
-);
 
 // Direct imports for critical auth components
 import AuthRedirect from "./components/auth/AuthRedirect.js";
 import AuthorizePage from "./components/auth/AuthorizePage.js";
 
-import { AuthProvider, useAuth } from "./components/auth/AuthProvider.js";
+import { AuthProvider } from "./components/auth/AuthProvider.js";
 
 import { TrpcProvider } from "./components/TrpcProvider.tsx";
 import { Toaster } from "./components/ui/sonner.js";
-import { CustomLiveStoreProvider } from "./components/livestore/CustomLiveStoreProvider.tsx";
-import { NotebookApp } from "./components/NotebookApp.tsx";
 import { useDebug } from "./debug-mode.tsx";
-import { getStoreId } from "./util/store-id.ts";
+import { HomePage } from "./HomePage.tsx";
 
 // Lazy load runbook components
 const RunbookDashboard = React.lazy(() =>
@@ -62,78 +54,6 @@ const NotebookPage = React.lazy(() =>
     default: m.NotebookPage,
   }))
 );
-
-// Animation wrapper with minimum loading time and animation completion
-const AnimatedLiveStoreApp: React.FC = () => {
-  const { authState } = useAuth();
-  const [isLoading, setIsLoading] = useState(true);
-  const [shouldShowAnimation, setShouldShowAnimation] = useState(false);
-
-  const [liveStoreReady, setLiveStoreReady] = useState(false);
-  const [portalAnimationComplete, setPortalAnimationComplete] = useState(false);
-  const [portalReady, setPortalReady] = useState(false);
-
-  // Show loading animation only after auth confirmation
-  useEffect(() => {
-    if (authState.valid) {
-      setShouldShowAnimation(true);
-    }
-  }, [authState.valid]);
-
-  // Update static loading screen stage when LiveStore is ready
-  useEffect(() => {
-    if (liveStoreReady) {
-      updateLoadingStage("loading-notebook");
-    }
-  }, [liveStoreReady]);
-
-  // Trigger animation when LiveStore is ready
-  useEffect(() => {
-    if (liveStoreReady && isLoading) {
-      updateLoadingStage("ready");
-
-      // Ensure React has painted before removing static screen
-      requestAnimationFrame(() => {
-        // Double RAF to ensure paint has completed
-        requestAnimationFrame(() => {
-          removeStaticLoadingScreen();
-          setPortalReady(true);
-        });
-      });
-    }
-  }, [liveStoreReady, isLoading]);
-
-  // Complete transition only after portal animation finishes
-  useEffect(() => {
-    if (portalAnimationComplete) {
-      setIsLoading(false);
-    }
-  }, [portalAnimationComplete]);
-
-  return (
-    <>
-      {/* Loading screen overlay */}
-      {shouldShowAnimation && isLoading && (
-        <div className="fixed inset-0 z-50 overflow-hidden">
-          <Suspense fallback={<div className="min-h-screen bg-white" />}>
-            <NotebookLoadingScreen
-              ready={portalReady}
-              onPortalAnimationComplete={() => setPortalAnimationComplete(true)}
-            />
-          </Suspense>
-        </div>
-      )}
-
-      {/* Main app with LiveStore integration */}
-      <CustomLiveStoreProvider
-        storeId={getStoreId()}
-        onLiveStoreReady={() => setLiveStoreReady(true)}
-      >
-        <NotebookApp />
-      </CustomLiveStoreProvider>
-    </>
-  );
-};
 
 export const App: React.FC = () => {
   const debug = useDebug();
@@ -274,7 +194,7 @@ export const App: React.FC = () => {
           path="/*"
           element={
             <AuthGuard>
-              <AnimatedLiveStoreApp />
+              <HomePage />
             </AuthGuard>
           }
         />
