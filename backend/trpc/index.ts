@@ -11,6 +11,7 @@ import {
 } from "../users/utils.ts";
 import { createNotebookId } from "../utils/notebook-id.ts";
 import { NotebookPermission, NotebookRow } from "./types.ts";
+import { getNotebookCollaborators, getNotebooks } from "./db.ts";
 
 // Create the tRPC router
 export const appRouter = router({
@@ -63,69 +64,25 @@ export const appRouter = router({
     .query(async (opts) => {
       const { ctx, input } = opts;
       const { owned, shared, limit, offset } = input;
-      const {
-        user,
-        env: { DB },
-        permissionsProvider,
-      } = ctx;
 
-      try {
-        let accessibleNotebookIds: string[];
+      const notebooks = await getNotebooks(ctx, {
+        owned,
+        shared,
+        limit,
+        offset,
+      });
 
-        if (owned && !shared) {
-          accessibleNotebookIds =
-            await permissionsProvider.listAccessibleResources(
-              user.id,
-              "notebook",
-              ["owner"]
-            );
-        } else if (shared && !owned) {
-          const allAccessible =
-            await permissionsProvider.listAccessibleResources(
-              user.id,
-              "notebook"
-            );
-          const ownedOnly = await permissionsProvider.listAccessibleResources(
-            user.id,
-            "notebook",
-            ["owner"]
-          );
-          accessibleNotebookIds = allAccessible.filter(
-            (id) => !ownedOnly.includes(id)
-          );
-        } else {
-          // All accessible notebooks (default case and when both owned and shared are true)
-          accessibleNotebookIds =
-            await permissionsProvider.listAccessibleResources(
-              user.id,
-              "notebook"
-            );
-        }
+      const notebooksWithCollaborators = await Promise.all(
+        notebooks.map(async (notebook) => ({
+          ...notebook,
+          collaborators: await getNotebookCollaborators(
+            ctx.env.DB,
+            notebook.id
+          ),
+        }))
+      );
 
-        if (accessibleNotebookIds.length === 0) {
-          return [];
-        }
-
-        const placeholders = accessibleNotebookIds.map(() => "?").join(",");
-        const query = `
-            SELECT id, owner_id, title, created_at, updated_at
-            FROM notebooks
-            WHERE id IN (${placeholders})
-            ORDER BY updated_at DESC
-            LIMIT ? OFFSET ?
-          `;
-
-        const result = await DB.prepare(query)
-          .bind(...accessibleNotebookIds, limit, offset)
-          .all<NotebookRow>();
-
-        return result.results;
-      } catch (error) {
-        throw new TRPCError({
-          code: "INTERNAL_SERVER_ERROR",
-          message: `Failed to fetch notebooks: ${error instanceof Error ? error.message : "Unknown error"}`,
-        });
-      }
+      return notebooksWithCollaborators;
     }),
 
   // Get single notebook
