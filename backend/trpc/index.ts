@@ -11,6 +11,7 @@ import {
 } from "../users/utils.ts";
 import { createNotebookId } from "../utils/notebook-id.ts";
 import { NotebookPermission, NotebookRow } from "./types.ts";
+import { getNotebookCollaborators, getNotebooks } from "./db.ts";
 
 // Create the tRPC router
 export const appRouter = router({
@@ -63,89 +64,25 @@ export const appRouter = router({
     .query(async (opts) => {
       const { ctx, input } = opts;
       const { owned, shared, limit, offset } = input;
-      const {
-        user,
-        env: { DB },
-        permissionsProvider,
-      } = ctx;
 
-      try {
-        let accessibleNotebookIds: string[];
+      const notebooks = await getNotebooks(ctx, {
+        owned,
+        shared,
+        limit,
+        offset,
+      });
 
-        if (owned && !shared) {
-          accessibleNotebookIds =
-            await permissionsProvider.listAccessibleResources(
-              user.id,
-              "notebook",
-              ["owner"]
-            );
-        } else if (shared && !owned) {
-          const allAccessible =
-            await permissionsProvider.listAccessibleResources(
-              user.id,
-              "notebook"
-            );
-          const ownedOnly = await permissionsProvider.listAccessibleResources(
-            user.id,
-            "notebook",
-            ["owner"]
-          );
-          accessibleNotebookIds = allAccessible.filter(
-            (id) => !ownedOnly.includes(id)
-          );
-        } else {
-          // All accessible notebooks (default case and when both owned and shared are true)
-          accessibleNotebookIds =
-            await permissionsProvider.listAccessibleResources(
-              user.id,
-              "notebook"
-            );
-        }
+      const notebooksWithCollaborators = await Promise.all(
+        notebooks.map(async (notebook) => ({
+          ...notebook,
+          collaborators: await getNotebookCollaborators(
+            ctx.env.DB,
+            notebook.id
+          ),
+        }))
+      );
 
-        if (accessibleNotebookIds.length === 0) {
-          return [];
-        }
-
-        // Use chunked parameterized queries to avoid SQL injection
-        // Most databases have a limit on the number of parameters in a single query
-        // Chunking at 200 was tested and "too many variables" errors still happened, but 100 is known to work.
-        const CHUNK_SIZE = 100;
-        const chunks = [];
-        for (let i = 0; i < accessibleNotebookIds.length; i += CHUNK_SIZE) {
-          chunks.push(accessibleNotebookIds.slice(i, i + CHUNK_SIZE));
-        }
-
-        const allResults: NotebookRow[] = [];
-
-        for (const chunk of chunks) {
-          const placeholders = chunk.map(() => "?").join(",");
-          const query = `
-              SELECT id, owner_id, title, created_at, updated_at
-              FROM notebooks
-              WHERE id IN (${placeholders})
-              ORDER BY updated_at DESC
-            `;
-
-          const result = await DB.prepare(query)
-            .bind(...chunk)
-            .all<NotebookRow>();
-
-          allResults.push(...result.results);
-        }
-
-        // Sort all results by updated_at DESC and apply pagination
-        allResults.sort(
-          (a, b) =>
-            new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime()
-        );
-
-        return allResults.slice(offset, offset + limit);
-      } catch (error) {
-        throw new TRPCError({
-          code: "INTERNAL_SERVER_ERROR",
-          message: `Failed to fetch notebooks: ${error instanceof Error ? error.message : "Unknown error"}`,
-        });
-      }
+      return notebooksWithCollaborators;
     }),
 
   // Get single notebook
