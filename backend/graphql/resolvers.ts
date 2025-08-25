@@ -77,18 +77,33 @@ export const resolvers = {
         return [];
       }
 
-      // Query permissions provider first, then D1. It would be _faster_ to
-      // do it all in one query for the local provider, but we want consistency
-      // with the deployed service. Instead we do this in two steps because
-      // we can't JOIN across different data stores.
-      //
-      // Approach largely influenced by
-      // [AuthZed's approach to Protecting a List Endpoint](https://authzed.com/docs/spicedb/modeling/protecting-a-list-endpoint)
-      // Currently we use the LookupResources filtering approach. We may need
-      // to switch to CheckBulkPermissions to filter the results in the future, or
-      // AuthZed's Materialized views.
-
       try {
+        // Try efficient single-query approach first (works for local provider)
+        if (permissionsProvider.fetchAccessibleResourcesWithData) {
+          const efficientResult =
+            await permissionsProvider.fetchAccessibleResourcesWithData(
+              user.id,
+              "runbook",
+              { owned, shared, limit, offset }
+            );
+
+          if (efficientResult !== null) {
+            return efficientResult;
+          }
+        }
+
+        // Fall back to two-step approach for external providers
+        // Query permissions provider first, then D1. It would be _faster_ to
+        // do it all in one query for the local provider, but we want consistency
+        // with the deployed service. Instead we do this in two steps because
+        // we can't JOIN across different data stores.
+        //
+        // Approach largely influenced by
+        // [AuthZed's approach to Protecting a List Endpoint](https://authzed.com/docs/spicedb/modeling/protecting-a-list-endpoint)
+        // Currently we use the LookupResources filtering approach. We may need
+        // to switch to CheckBulkPermissions to filter the results in the future, or
+        // AuthZed's Materialized views.
+
         let accessibleRunbookIds: string[];
 
         if (owned && !shared) {
@@ -125,20 +140,34 @@ export const resolvers = {
           return [];
         }
 
-        const placeholders = accessibleRunbookIds.map(() => "?").join(",");
-        const query = `
-          SELECT ulid, owner_id, title, created_at, updated_at
-          FROM runbooks
-          WHERE ulid IN (${placeholders})
-          ORDER BY updated_at DESC
-          LIMIT ? OFFSET ?
-        `;
+        // Use chunked queries to avoid SQL parameter limits
+        const CHUNK_SIZE = 900; // Well under SQLite's ~999 parameter limit
+        const allResults: RunbookRow[] = [];
 
-        const result = await DB.prepare(query)
-          .bind(...accessibleRunbookIds, limit, offset)
-          .all<RunbookRow>();
+        for (let i = 0; i < accessibleRunbookIds.length; i += CHUNK_SIZE) {
+          const chunk = accessibleRunbookIds.slice(i, i + CHUNK_SIZE);
+          const placeholders = chunk.map(() => "?").join(",");
+          const query = `
+            SELECT ulid, owner_id, title, created_at, updated_at
+            FROM runbooks
+            WHERE ulid IN (${placeholders})
+            ORDER BY updated_at DESC
+          `;
 
-        return result.results;
+          const result = await DB.prepare(query)
+            .bind(...chunk)
+            .all<RunbookRow>();
+
+          allResults.push(...result.results);
+        }
+
+        // Sort all results by updated_at DESC and apply pagination
+        allResults.sort(
+          (a, b) =>
+            new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime()
+        );
+
+        return allResults.slice(offset, offset + limit);
       } catch (error) {
         throw new GraphQLError(
           `Failed to fetch runbooks: ${error instanceof Error ? error.message : "Unknown error"}`

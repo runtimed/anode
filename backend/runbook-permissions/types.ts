@@ -106,4 +106,20 @@ export interface PermissionsProvider {
     userId: string,
     resourceIds: string[]
   ): Promise<string[]>;
+
+  /**
+   * Fetch accessible resources with their data in one operation when possible
+   * Falls back to two-step approach for external providers
+   * Returns null if provider doesn't support efficient fetching
+   */
+  fetchAccessibleResourcesWithData?(
+    userId: string,
+    resourceType: "runbook",
+    options: {
+      owned?: boolean;
+      shared?: boolean;
+      limit?: number;
+      offset?: number;
+    }
+  ): Promise<any[] | null>;
 }

@@ -102,29 +102,40 @@ export const appRouter = router({
             );
         }
 
+        // Try efficient single-query approach first (works for local provider)
+        if (permissionsProvider.fetchAccessibleResourcesWithData) {
+          const efficientResult =
+            await permissionsProvider.fetchAccessibleResourcesWithData(
+              user.id,
+              "notebook",
+              { owned, shared, limit, offset }
+            );
+
+          if (efficientResult !== null) {
+            return efficientResult;
+          }
+        }
+
+        // Fall back to two-step approach for external providers
         if (accessibleNotebookIds.length === 0) {
           return [];
         }
 
-        // Use chunked parameterized queries to avoid SQL injection
-        // Most databases have a limit on the number of parameters in a single query
-        // Chunking at 200 was tested and "too many variables" errors still happened, but 100 is known to work.
-        const CHUNK_SIZE = 100;
-        const chunks = [];
-        for (let i = 0; i < accessibleNotebookIds.length; i += CHUNK_SIZE) {
-          chunks.push(accessibleNotebookIds.slice(i, i + CHUNK_SIZE));
-        }
-
+        // Use chunked queries to avoid SQL parameter limits
+        // SQLite has a limit around 999 parameters. Using 900 is well under the limit
+        // and more efficient than smaller chunks like 100.
+        const CHUNK_SIZE = 900;
         const allResults: NotebookRow[] = [];
 
-        for (const chunk of chunks) {
+        for (let i = 0; i < accessibleNotebookIds.length; i += CHUNK_SIZE) {
+          const chunk = accessibleNotebookIds.slice(i, i + CHUNK_SIZE);
           const placeholders = chunk.map(() => "?").join(",");
           const query = `
-              SELECT id, owner_id, title, created_at, updated_at
-              FROM notebooks
-              WHERE id IN (${placeholders})
-              ORDER BY updated_at DESC
-            `;
+            SELECT id, owner_id, title, created_at, updated_at
+            FROM notebooks
+            WHERE id IN (${placeholders})
+            ORDER BY updated_at DESC
+          `;
 
           const result = await DB.prepare(query)
             .bind(...chunk)

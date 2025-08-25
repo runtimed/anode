@@ -56,4 +56,17 @@ export class NoPermissionsProvider implements PermissionsProvider {
   ): Promise<string[]> {
     return [];
   }
+
+  async fetchAccessibleResourcesWithData(
+    _userId: string,
+    _resourceType: "runbook",
+    _options: {
+      owned?: boolean;
+      shared?: boolean;
+      limit?: number;
+      offset?: number;
+    }
+  ): Promise<any[] | null> {
+    return null; // Not supported in introspection context
+  }
 }

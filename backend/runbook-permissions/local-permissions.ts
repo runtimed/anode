@@ -7,6 +7,14 @@ import type {
   UserPermission,
 } from "./types.ts";
 
+interface RunbookRow {
+  ulid: string;
+  owner_id: string;
+  title: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
 /**
  * Local permissions provider using D1 database
  */
@@ -275,6 +283,73 @@ export class LocalPermissionsProvider implements PermissionsProvider {
       throw new Error(
         `Failed to filter accessible resources: ${error instanceof Error ? error.message : "Unknown error"}`
       );
+    }
+  }
+
+  async fetchAccessibleResourcesWithData(
+    userId: string,
+    resourceType: "runbook",
+    options: {
+      owned?: boolean;
+      shared?: boolean;
+      limit?: number;
+      offset?: number;
+    }
+  ): Promise<RunbookRow[] | null> {
+    if (resourceType !== "runbook") {
+      return null;
+    }
+
+    const { owned, shared, limit = 50, offset = 0 } = options;
+
+    try {
+      let query: string;
+      let bindings: any[];
+
+      if (owned && !shared) {
+        // Only owned runbooks
+        query = `
+          SELECT ulid, owner_id, title, created_at, updated_at
+          FROM runbooks
+          WHERE owner_id = ?
+          ORDER BY updated_at DESC
+          LIMIT ? OFFSET ?
+        `;
+        bindings = [userId, limit, offset];
+      } else if (shared && !owned) {
+        // Only shared runbooks (writer permissions)
+        query = `
+          SELECT r.ulid, r.owner_id, r.title, r.created_at, r.updated_at
+          FROM runbooks r
+          INNER JOIN runbook_permissions rp ON r.ulid = rp.runbook_ulid
+          WHERE rp.user_id = ? AND rp.permission = 'writer'
+          ORDER BY r.updated_at DESC
+          LIMIT ? OFFSET ?
+        `;
+        bindings = [userId, limit, offset];
+      } else {
+        // All accessible runbooks (owned + shared)
+        query = `
+          SELECT DISTINCT r.ulid, r.owner_id, r.title, r.created_at, r.updated_at
+          FROM runbooks r
+          LEFT JOIN runbook_permissions rp ON r.ulid = rp.runbook_ulid
+          WHERE r.owner_id = ? OR (rp.user_id = ? AND rp.permission = 'writer')
+          ORDER BY r.updated_at DESC
+          LIMIT ? OFFSET ?
+        `;
+        bindings = [userId, userId, limit, offset];
+      }
+
+      const result = await this.db
+        .prepare(query)
+        .bind(...bindings)
+        .all<RunbookRow>();
+
+      return result.results;
+    } catch (error) {
+      // Fall back to null to indicate the two-step approach should be used
+      console.error("Failed to fetch accessible resources with data:", error);
+      return null;
     }
   }
 }

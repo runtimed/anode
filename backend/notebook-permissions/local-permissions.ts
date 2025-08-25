@@ -7,6 +7,14 @@ import type {
   UserPermission,
 } from "./types.ts";
 
+interface NotebookRow {
+  id: string;
+  owner_id: string;
+  title: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
 /**
  * Local permissions provider using D1 database
  */
@@ -275,6 +283,73 @@ export class LocalPermissionsProvider implements PermissionsProvider {
       throw new Error(
         `Failed to filter accessible resources: ${error instanceof Error ? error.message : "Unknown error"}`
       );
+    }
+  }
+
+  async fetchAccessibleResourcesWithData(
+    userId: string,
+    resourceType: "notebook",
+    options: {
+      owned?: boolean;
+      shared?: boolean;
+      limit?: number;
+      offset?: number;
+    }
+  ): Promise<NotebookRow[] | null> {
+    if (resourceType !== "notebook") {
+      return null;
+    }
+
+    const { owned, shared, limit = 50, offset = 0 } = options;
+
+    try {
+      let query: string;
+      let bindings: any[];
+
+      if (owned && !shared) {
+        // Only owned notebooks
+        query = `
+          SELECT id, owner_id, title, created_at, updated_at
+          FROM notebooks
+          WHERE owner_id = ?
+          ORDER BY updated_at DESC
+          LIMIT ? OFFSET ?
+        `;
+        bindings = [userId, limit, offset];
+      } else if (shared && !owned) {
+        // Only shared notebooks (writer permissions)
+        query = `
+          SELECT n.id, n.owner_id, n.title, n.created_at, n.updated_at
+          FROM notebooks n
+          INNER JOIN notebook_permissions np ON n.id = np.notebook_id
+          WHERE np.user_id = ? AND np.permission = 'writer'
+          ORDER BY n.updated_at DESC
+          LIMIT ? OFFSET ?
+        `;
+        bindings = [userId, limit, offset];
+      } else {
+        // All accessible notebooks (owned + shared)
+        query = `
+          SELECT DISTINCT n.id, n.owner_id, n.title, n.created_at, n.updated_at
+          FROM notebooks n
+          LEFT JOIN notebook_permissions np ON n.id = np.notebook_id
+          WHERE n.owner_id = ? OR (np.user_id = ? AND np.permission = 'writer')
+          ORDER BY n.updated_at DESC
+          LIMIT ? OFFSET ?
+        `;
+        bindings = [userId, userId, limit, offset];
+      }
+
+      const result = await this.db
+        .prepare(query)
+        .bind(...bindings)
+        .all<NotebookRow>();
+
+      return result.results;
+    } catch (error) {
+      // Fall back to null to indicate the two-step approach should be used
+      console.error("Failed to fetch accessible resources with data:", error);
+      return null;
     }
   }
 }
