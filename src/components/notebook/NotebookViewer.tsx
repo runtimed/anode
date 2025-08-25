@@ -16,7 +16,7 @@ import { useAuthenticatedUser } from "../../auth/index.js";
 
 import { getClientColor, getClientTypeInfo } from "@/services/userTypes.js";
 
-import { Bug, BugOff, Filter, X } from "lucide-react";
+import { Filter, X } from "lucide-react";
 import { UserProfile } from "../auth/UserProfile.js";
 import { RuntimeHealthIndicatorButton } from "./RuntimeHealthIndicatorButton.js";
 import { RuntimeHelper } from "./RuntimeHelper.js";
@@ -29,10 +29,10 @@ const LazyDebugPanel = React.lazy(() =>
   }))
 );
 
-import { GitCommitHash } from "./GitCommitHash.js";
-import { NotebookContent } from "./NotebookContent.js";
 import { useDebug } from "@/components/debug/debug-mode.js";
 import { DebugModeToggle } from "../debug/DebugModeToggle.js";
+import { GitCommitHash } from "./GitCommitHash.js";
+import { NotebookContent } from "./NotebookContent.js";
 
 export const NotebookViewer: React.FC = () => {
   // eslint-disable-next-line react-compiler/react-compiler
