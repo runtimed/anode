@@ -142,20 +142,20 @@ export const App: React.FC = () => {
   useEffect(() => {
     const searchParams = new URLSearchParams(window.location.search);
     if (searchParams.has("reset_auth")) {
-      console.log("🔄 Auth reset requested from URL parameter");
+      console.debug("Auth reset requested from URL parameter");
       try {
         const openIdService = getOpenIdService();
         openIdService.reset();
-        console.log("✅ Auth state cleared successfully");
+        console.debug("Auth state cleared successfully");
       } catch (error) {
-        console.error("❌ Failed to reset auth:", error);
+        console.error("Failed to reset auth:", error);
         // Fallback: clear localStorage directly
         try {
           localStorage.removeItem("openid_tokens");
           localStorage.removeItem("openid_request_state");
-          console.log("✅ Fallback auth clear completed");
+          console.debug("Fallback auth clear completed");
         } catch (storageError) {
-          console.error("❌ Fallback auth clear failed:", storageError);
+          console.error("Fallback auth clear failed:", storageError);
         }
       }
 
@@ -169,14 +169,14 @@ export const App: React.FC = () => {
   // Debug auth state changes
   useEffect(() => {
     if (debug.enabled) {
-      console.log("🐛 Debug mode: Auth state monitoring enabled");
+      console.debug("Debug mode: Auth state monitoring enabled");
 
       // Monitor localStorage changes
       const originalSetItem = localStorage.setItem;
       localStorage.setItem = function (key: string, value: string) {
         if (key.startsWith("openid_")) {
-          console.log(
-            "🔑 Auth storage change:",
+          console.debug(
+            "Auth storage change:",
             key,
             typeof value === "string" ? value.substring(0, 50) + "..." : value
           );
@@ -188,7 +188,7 @@ export const App: React.FC = () => {
       const originalRemoveItem = localStorage.removeItem;
       localStorage.removeItem = function (key: string) {
         if (key.startsWith("openid_")) {
-          console.log("🗑️ Auth storage removal:", key);
+          console.debug("Auth storage removal:", key);
         }
         return originalRemoveItem.call(this, key);
       };
