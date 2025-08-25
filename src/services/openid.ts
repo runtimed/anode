@@ -255,35 +255,14 @@ export class OpenIdService {
   }
 
   public reset(): void {
-    try {
-      this.config$ = null;
-      this.authorizationSecrets$ = null;
-      this.refreshedToken$ = null;
-      this.convertedCodes$ = null;
-      this.syncToLocalStorage(LocalStorageKey.RequestState, null);
-      this.syncToLocalStorage(LocalStorageKey.Tokens, null);
-      this.syncToLocalStorage(LocalStorageKey.LocalAuthRegistration, null);
-      this.resetSubject$.next();
-    } catch (error) {
-      console.error("Error during auth reset:", error);
-      // Fallback: try to clear localStorage directly
-      try {
-        localStorage.removeItem(LocalStorageKey.RequestState);
-        localStorage.removeItem(LocalStorageKey.Tokens);
-        localStorage.removeItem(LocalStorageKey.LocalAuthRegistration);
-      } catch (storageError) {
-        console.error(
-          "Failed to clear localStorage during reset fallback:",
-          storageError
-        );
-      }
-      // Still emit reset signal even if cleanup failed
-      try {
-        this.resetSubject$.next();
-      } catch (resetError) {
-        console.error("Failed to emit reset signal:", resetError);
-      }
-    }
+    this.config$ = null;
+    this.authorizationSecrets$ = null;
+    this.refreshedToken$ = null;
+    this.convertedCodes$ = null;
+    this.syncToLocalStorage(LocalStorageKey.RequestState, null);
+    this.syncToLocalStorage(LocalStorageKey.Tokens, null);
+    this.syncToLocalStorage(LocalStorageKey.LocalAuthRegistration, null);
+    this.resetSubject$.next();
     // Note: Do NOT clear the tokens$ observable, because we want people to continue subscribing to it
     // $tokens will emit `null` due to the localStorage side-effect
   }
@@ -500,40 +479,17 @@ export class OpenIdService {
   }
 
   private syncToLocalStorage(key: LocalStorageKey, value: any): void {
-    try {
-      if (value === null || value === undefined) {
-        localStorage.removeItem(key);
-      } else {
-        localStorage.setItem(key, JSON.stringify(value));
-      }
-      this.tokenChangeSubject$.next(key);
-    } catch (error) {
-      console.error(`Failed to sync to localStorage key ${key}:`, error);
-      // Still emit the change event so subscribers know something happened
-      this.tokenChangeSubject$.next(key);
+    if (value === null || value === undefined) {
+      localStorage.removeItem(key);
+    } else {
+      localStorage.setItem(key, JSON.stringify(value));
     }
+    this.tokenChangeSubject$.next(key);
   }
 
   private getFromLocalStorage<T>(key: LocalStorageKey): T | null {
-    try {
-      const value = localStorage.getItem(key);
-      if (!value || value === "null" || value === "undefined") {
-        return null;
-      }
-      return JSON.parse(value);
-    } catch (error) {
-      console.warn(`Failed to parse localStorage key ${key}:`, error);
-      // Clean up corrupted data
-      try {
-        localStorage.removeItem(key);
-      } catch (cleanupError) {
-        console.error(
-          `Failed to clean up corrupted localStorage key ${key}:`,
-          cleanupError
-        );
-      }
-      return null;
-    }
+    const value = localStorage.getItem(key);
+    return value ? JSON.parse(value) : null;
   }
 
   public getTokens(): Tokens | null {
