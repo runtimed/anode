@@ -29,7 +29,7 @@ const NotebookLoadingScreen = React.lazy(() =>
 // Direct imports for critical auth components
 import AuthorizePage from "./components/auth/AuthorizePage.js";
 
-import { AuthProvider, useAuth, hasAuthParams } from "react-oidc-context";
+import { AuthProvider, useAuth } from "react-oidc-context";
 import { createOidcConfig } from "./auth/oidc-config.js";
 import { useSimpleAuth } from "./auth/use-simple-auth.js";
 
