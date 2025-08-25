@@ -37,7 +37,7 @@ import { TrpcProvider } from "./components/TrpcProvider.tsx";
 import { Toaster } from "./components/ui/sonner.js";
 import { CustomLiveStoreProvider } from "./components/livestore/CustomLiveStoreProvider.tsx";
 import { NotebookApp } from "./components/NotebookApp.tsx";
-import { useDebug } from "./debug-mode.tsx";
+import { useDebug } from "./components/debug/debug-mode.tsx";
 import { getStoreId } from "./util/store-id.ts";
 
 // Lazy load runbook components
