@@ -100,12 +100,13 @@ export const CustomLiveStoreProvider: React.FC<
           return "";
         }
 
-        // Check if token is obviously expired (basic check)
+        // Basic token expiration check - conservative approach
         try {
           const payload = JSON.parse(atob(jwtParts[1]));
           const now = Math.floor(Date.now() / 1000);
+
+          // Only reject tokens that are clearly expired (>1 minute ago)
           if (payload.exp && payload.exp < now - 60) {
-            // Token expired more than 1 minute ago
             console.warn("Access token appears to be expired");
             return "";
           }

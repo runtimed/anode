@@ -100,6 +100,48 @@ export function AuthProvider({ children }: AuthProviderProps) {
     return () => subscription.unsubscribe();
   }, []);
 
+  // Proactive token refresh - check every 30 seconds and refresh early
+  useEffect(() => {
+    const proactiveRefreshInterval = setInterval(() => {
+      try {
+        const openIdService = getOpenIdService();
+        const tokens = openIdService.getTokens();
+
+        if (tokens?.accessToken) {
+          // Parse token to check expiration
+          try {
+            const jwtParts = tokens.accessToken.split(".");
+            if (jwtParts.length === 3) {
+              const payload = JSON.parse(atob(jwtParts[1]));
+              const now = Math.floor(Date.now() / 1000);
+              const timeUntilExpiry = payload.exp - now;
+
+              // Refresh if token expires within 2 minutes
+              if (timeUntilExpiry <= 120 && timeUntilExpiry > 0) {
+                console.debug("Proactively refreshing token before expiry");
+                openIdService.keepFresh().subscribe({
+                  next: () =>
+                    console.debug("Proactive token refresh successful"),
+                  error: (error) =>
+                    console.debug("Proactive token refresh failed:", error),
+                });
+              }
+            }
+          } catch (parseError) {
+            console.debug(
+              "Failed to parse token for proactive refresh:",
+              parseError
+            );
+          }
+        }
+      } catch (error) {
+        console.debug("Proactive token refresh check failed:", error);
+      }
+    }, 30000); // Check every 30 seconds
+
+    return () => clearInterval(proactiveRefreshInterval);
+  }, []);
+
   const getUser = (): UserInfo | null => {
     return authState.valid ? authState.user : null;
   };
