@@ -29,11 +29,8 @@ export const createOidcConfig = (): AuthProviderProps => {
     // Persist auth state across browser sessions
     userStore: new WebStorageStateStore({ store: window.localStorage }),
 
-    // Clean up URL after successful auth redirect
-    onSigninCallback: () => {
-      // Navigate to home page, removing auth params from URL
-      window.history.replaceState({}, document.title, window.location.pathname);
-    },
+    // Temporarily remove onSigninCallback to test if it's interfering with state updates
+    // The URL cleanup might be happening before React state updates
 
     // Additional OIDC settings
     response_type: "code",

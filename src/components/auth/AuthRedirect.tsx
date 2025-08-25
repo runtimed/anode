@@ -1,6 +1,6 @@
-import React, { useEffect, useState } from "react";
+import React from "react";
 import { useNavigate } from "react-router-dom";
-import { useAuth } from "react-oidc-context";
+import { useAuth, hasAuthParams } from "react-oidc-context";
 import { Button } from "../ui/button";
 import {
   Card,
@@ -20,41 +20,33 @@ import { redirectHelper } from "./redirect-url-helper";
 const AuthRedirect: React.FC = () => {
   const auth = useAuth();
   const navigate = useNavigate();
-  const [isDirectAccess, setIsDirectAccess] = useState(false);
 
-  useEffect(() => {
-    // Remove the static loading screen so our component UI is visible
+  React.useEffect(() => {
     updateLoadingStage("checking-auth");
     removeStaticLoadingScreen();
-
-    // Check if this is a legitimate OIDC callback
-    const urlParams = new URLSearchParams(window.location.search);
-    const hasCode = urlParams.has("code");
-    const hasState = urlParams.has("state");
-
-    if (!hasCode || !hasState) {
-      // User directly navigated to /oidc without being redirected from auth provider
-      setIsDirectAccess(true);
-      return;
-    }
-
-    // react-oidc-context handles the callback automatically
-    // We just need to wait for the auth state to update
   }, []);
 
-  useEffect(() => {
-    // Handle successful authentication
-    if (auth.isAuthenticated && !auth.isLoading) {
+  React.useEffect(() => {
+    if (auth.isAuthenticated) {
       redirectHelper.navigateToSavedNotebook(navigate);
     }
-  }, [auth.isAuthenticated, auth.isLoading, navigate]);
+  }, [auth.isAuthenticated, navigate]);
 
-  // Direct access case - show informative message
-  if (isDirectAccess) {
+  // Check if this is a legitimate OIDC callback
+  const isCallback = hasAuthParams();
+  console.log("🔐 AuthRedirect: hasAuthParams check", {
+    isCallback,
+    currentUrl: window.location.href,
+    searchParams: Object.fromEntries(
+      new URLSearchParams(window.location.search)
+    ),
+  });
+
+  // Direct access case - no auth params
+  if (!isCallback) {
     return (
       <div className="bg-background flex min-h-screen items-center justify-center p-4">
         <div className="w-full max-w-md text-center">
-          {/* Logo section matching login page */}
           <div className="mb-8 flex items-center justify-center">
             <RuntLogo size="h-24 w-24" filterId="pixelate-direct-access" />
           </div>
@@ -89,12 +81,21 @@ const AuthRedirect: React.FC = () => {
     );
   }
 
-  // Error case - authentication failed
+  // Add auth state debugging
+  console.log("🔐 AuthRedirect: Current auth state", {
+    isAuthenticated: auth.isAuthenticated,
+    isLoading: auth.isLoading,
+    hasError: !!auth.error,
+    error: auth.error?.message,
+    hasUser: !!auth.user,
+    activeNavigator: auth.activeNavigator,
+  });
+
+  // Error case
   if (auth.error) {
     return (
       <div className="bg-background flex min-h-screen items-center justify-center p-4">
         <div className="w-full max-w-md text-center">
-          {/* Logo section */}
           <div className="mb-8 flex items-center justify-center">
             <RuntLogo size="h-24 w-24" filterId="pixelate-auth-error" />
           </div>
@@ -135,11 +136,10 @@ const AuthRedirect: React.FC = () => {
     );
   }
 
-  // Loading state - processing authentication
+  // Loading state - OIDC callback processing
   return (
     <div className="bg-background flex min-h-screen items-center justify-center">
       <div className="space-y-6 text-center">
-        {/* Animated logo */}
         <div className="flex items-center justify-center">
           <RuntLogo
             size="h-20 w-20"
