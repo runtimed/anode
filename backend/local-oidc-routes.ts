@@ -392,34 +392,21 @@ localOidcRoutes.get("/authorize", async (c) => {
     return c.redirect(`${redirectUri}?${successParams}`, 302);
   }
 
-  // Regular authorization flow - generate auth code directly for local development
-  // Use default user data for local OIDC
-  const defaultUserData: UserData = {
-    firstName: "White",
-    lastName: "Rabbit",
-    email: "white.rabbit@runt.run",
-  };
+  // Regular authorization flow - redirect to frontend login form
+  // The frontend AuthorizePage component will handle user registration/login
+  // and then redirect back to this endpoint with the user data
+  const frontendAuthUrl = new URL(
+    "/local_oidc/authorize",
+    "http://localhost:5173"
+  );
 
-  // Store user data for future silent refresh
-  try {
-    await c.env.DB.prepare(
-      `INSERT OR REPLACE INTO settings (key, value) VALUES (?, ?)`
-    )
-      .bind("local-auth-registration", JSON.stringify(defaultUserData))
-      .run();
-  } catch (error) {
-    console.warn("Failed to store user session data:", error);
+  // Preserve all original query parameters for the frontend
+  const originalParams = url.searchParams;
+  for (const [key, value] of originalParams.entries()) {
+    frontendAuthUrl.searchParams.set(key, value);
   }
 
-  // Generate auth code and redirect back to client
-  const authCode = btoa(JSON.stringify(defaultUserData));
-
-  const successParams = new URLSearchParams({
-    code: authCode,
-    ...(state && { state }),
-  });
-
-  return c.redirect(`${redirectUri}?${successParams}`, 302);
+  return c.redirect(frontendAuthUrl.toString(), 302);
 });
 
 export default localOidcRoutes;
