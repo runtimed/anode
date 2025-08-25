@@ -2,23 +2,13 @@ import React, { Suspense, useEffect, useState } from "react";
 
 import { Route, Routes } from "react-router-dom";
 import { AuthGuard } from "./auth/index.js";
-import {
-  LoadingState,
-  MinimalLoading,
-} from "./components/loading/LoadingState.js";
+import { LoadingState } from "./components/loading/LoadingState.js";
 import { GraphQLClientProvider } from "./lib/graphql-client.js";
 import {
   isLoadingScreenVisible,
   removeStaticLoadingScreen,
   updateLoadingStage,
 } from "./util/domUpdates.js";
-
-// Dynamic import for FPSMeter - development tool only
-const FPSMeter = React.lazy(() =>
-  import("@overengineering/fps-meter").then((m) => ({
-    default: m.FPSMeter,
-  }))
-);
 
 const NotebookLoadingScreen = React.lazy(() =>
   import("./components/notebook/NotebookLoadingScreen.js").then((m) => ({
@@ -34,10 +24,8 @@ import { createOidcConfig } from "./auth/oidc-config.js";
 import { useAuth } from "./auth/index.js";
 
 import { TrpcProvider } from "./components/TrpcProvider.tsx";
-import { Toaster } from "./components/ui/sonner.js";
 import { CustomLiveStoreProvider } from "./components/livestore/CustomLiveStoreProvider.tsx";
 import { NotebookApp } from "./components/NotebookApp.tsx";
-import { useDebug } from "./components/debug/debug-mode.tsx";
 import { getStoreId } from "./util/store-id.ts";
 import { OidcCallbackPage } from "./components/auth/OidcCallbackPages.tsx";
 
@@ -138,8 +126,6 @@ const AnimatedLiveStoreApp: React.FC = () => {
 };
 
 export const App: React.FC = () => {
-  const debug = useDebug();
-
   // Safety net: Auto-remove loading screen if no component has handled it
   useEffect(() => {
     const checkInterval = setInterval(() => {
@@ -175,24 +161,6 @@ export const App: React.FC = () => {
 
   return (
     <AuthProvider {...createOidcConfig()}>
-      {/* Debug FPS Meter - fixed position in corner */}
-      {debug.enabled && import.meta.env.DEV && (
-        <div
-          style={{
-            bottom: 0,
-            right: debug.enabled ? 400 : 0, // Leave space for debug panel
-            position: "fixed",
-            background: "#333",
-            zIndex: 50,
-          }}
-        >
-          <Suspense
-            fallback={<MinimalLoading message="Loading FPS meter..." />}
-          >
-            <FPSMeter height={40} />
-          </Suspense>
-        </div>
-      )}
       <Routes>
         <Route path="/oidc" element={<OidcCallbackPage />} />
         <Route path="/local_oidc/authorize" element={<AuthorizePage />} />
@@ -281,7 +249,6 @@ export const App: React.FC = () => {
           }
         />
       </Routes>
-      <Toaster />
     </AuthProvider>
   );
 };

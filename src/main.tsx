@@ -6,6 +6,8 @@ import { BrowserRouter } from "react-router-dom";
 
 import { App } from "./routes.js";
 import { DebugProvider } from "./components/debug/debug-mode.js";
+import { Toaster } from "./components/ui/sonner.js";
+import { FPSMeter } from "./components/debug/FPSMeter.js";
 
 ReactDOM.createRoot(document.getElementById("react-app")!).render(
   <React.StrictMode>
@@ -13,6 +15,8 @@ ReactDOM.createRoot(document.getElementById("react-app")!).render(
       <BrowserRouter>
         <App />
       </BrowserRouter>
+      <FPSMeter />
+      <Toaster />
     </DebugProvider>
   </React.StrictMode>
 );
