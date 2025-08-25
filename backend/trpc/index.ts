@@ -108,6 +108,7 @@ export const appRouter = router({
 
         // Use chunked parameterized queries to avoid SQL injection
         // Most databases have a limit on the number of parameters in a single query
+        // Chunking at 200 was tested and "too many variables" errors still happened, but 100 is known to work.
         const CHUNK_SIZE = 100;
         const chunks = [];
         for (let i = 0; i < accessibleNotebookIds.length; i += CHUNK_SIZE) {
@@ -125,8 +126,6 @@ export const appRouter = router({
               ORDER BY updated_at DESC
             `;
 
-          // console.log("🚨 getting chunk", { query, chunk });
-
           const result = await DB.prepare(query)
             .bind(...chunk)
             .all<NotebookRow>();
@@ -139,8 +138,6 @@ export const appRouter = router({
           (a, b) =>
             new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime()
         );
-
-        console.log("🚨 allResults", { length: allResults.length });
 
         return allResults.slice(offset, offset + limit);
       } catch (error) {
