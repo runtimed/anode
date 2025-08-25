@@ -1,7 +1,7 @@
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { AlertCircle, Mail, Plus, Trash2, User } from "lucide-react";
 import React, { useMemo, useState } from "react";
-import { trpc } from "../../lib/trpc-client";
+import { useTrpc } from "../TrpcProvider";
 import { Badge } from "../ui/badge";
 import { Button } from "../ui/button";
 import {
@@ -29,6 +29,8 @@ export const SharingModal: React.FC<SharingModalProps> = ({
 }) => {
   const [email, setEmail] = useState("");
   const [isSharing, setIsSharing] = useState(false);
+
+  const trpc = useTrpc();
 
   // Only lookup user if email looks valid and not empty
   const shouldLookupUser = email.includes("@") && email.includes(".");

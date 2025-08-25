@@ -27,3 +27,6 @@ yarn.lock
 
 # Logs
 *.log
+
+# Vendored third-party files
+public/oidc-client-ts.min.js

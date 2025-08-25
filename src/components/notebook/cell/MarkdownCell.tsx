@@ -15,7 +15,7 @@ import React, {
 } from "react";
 
 import { Button } from "@/components/ui/button.js";
-import { useAuthenticatedUser } from "../../auth/AuthProvider.js";
+import { useAuthenticatedUser } from "../../../auth/use-simple-auth.js";
 import { useUserRegistry } from "@/hooks/useUserRegistry.js";
 import { Edit3, Eye } from "lucide-react";
 import { ErrorBoundary } from "react-error-boundary";

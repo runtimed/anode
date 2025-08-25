@@ -1,7 +1,6 @@
-import React, { useEffect, useState } from "react";
+import React from "react";
 import { useNavigate } from "react-router-dom";
-import { getOpenIdService } from "../../services/openid";
-import { useAuth } from "./AuthProvider";
+import { useAuth, hasAuthParams } from "react-oidc-context";
 import { Button } from "../ui/button";
 import {
   Card,
@@ -19,53 +18,35 @@ import { RuntLogo } from "../logo";
 import { redirectHelper } from "./redirect-url-helper";
 
 const AuthRedirect: React.FC = () => {
-  const openIdService = getOpenIdService();
-  const [error, setError] = useState<Error | null>(null);
-  const [isDirectAccess, setIsDirectAccess] = useState(false);
+  const auth = useAuth();
   const navigate = useNavigate();
-  const { refreshAuthState } = useAuth();
 
-  useEffect(() => {
-    // Remove the static loading screen so our component UI is visible
+  React.useEffect(() => {
     updateLoadingStage("checking-auth");
     removeStaticLoadingScreen();
+  }, []);
 
-    // Check if this is a legitimate OIDC callback
-    const urlParams = new URLSearchParams(window.location.search);
-    const hasCode = urlParams.has("code");
-    const hasState = urlParams.has("state");
-
-    if (!hasCode || !hasState) {
-      // User directly navigated to /oidc without being redirected from auth provider
-      setIsDirectAccess(true);
-      return;
+  React.useEffect(() => {
+    if (auth.isAuthenticated) {
+      redirectHelper.navigateToSavedNotebook(navigate);
     }
+  }, [auth.isAuthenticated, navigate]);
 
-    // Legitimate OIDC callback - process it
-    const subscription = openIdService.handleRedirect().subscribe({
-      complete: () => {
-        // Refresh auth state with new user info before navigation
-        refreshAuthState();
-        redirectHelper.navigateToSavedNotebook(navigate);
-      },
-      error: (error) => {
-        setError(error);
-      },
-    });
+  // Check if this is a legitimate OIDC callback
+  const isCallback = hasAuthParams();
+  console.log("🔐 AuthRedirect: hasAuthParams check", {
+    isCallback,
+    currentUrl: window.location.href,
+    searchParams: Object.fromEntries(
+      new URLSearchParams(window.location.search)
+    ),
+  });
 
-    return () => {
-      if (subscription) {
-        subscription.unsubscribe();
-      }
-    };
-  }, [openIdService, navigate, refreshAuthState]);
-
-  // Direct access case - show informative message
-  if (isDirectAccess) {
+  // Direct access case - no auth params
+  if (!isCallback) {
     return (
       <div className="bg-background flex min-h-screen items-center justify-center p-4">
         <div className="w-full max-w-md text-center">
-          {/* Logo section matching login page */}
           <div className="mb-8 flex items-center justify-center">
             <RuntLogo size="h-24 w-24" filterId="pixelate-direct-access" />
           </div>
@@ -100,69 +81,29 @@ const AuthRedirect: React.FC = () => {
     );
   }
 
-  // Error case - authentication failed
-  if (error) {
-    // Check if this is a configuration error
-    const isConfigError = error.message?.includes(
-      "Authentication not configured"
-    );
+  // Add auth state debugging
+  console.log("🔐 AuthRedirect: Current auth state", {
+    isAuthenticated: auth.isAuthenticated,
+    isLoading: auth.isLoading,
+    hasError: !!auth.error,
+    error: auth.error?.message,
+    hasUser: !!auth.user,
+    activeNavigator: auth.activeNavigator,
+  });
 
-    // Show developer-friendly message for configuration errors
-    if (isConfigError) {
-      return (
-        <div className="bg-background flex min-h-screen items-center justify-center p-4">
-          <div className="w-full max-w-md text-center">
-            {/* Logo section */}
-            <div className="mb-8 flex items-center justify-center">
-              <RuntLogo size="h-24 w-24" filterId="pixelate-auth-error" />
-            </div>
-
-            <Card className="border-amber-200 bg-amber-50">
-              <CardHeader>
-                <CardTitle className="text-amber-900">
-                  Missing Authentication Config
-                </CardTitle>
-                <CardDescription>
-                  Local development setup required
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="rounded-md bg-white p-3 font-mono text-xs text-amber-800">
-                  <div>Missing environment variables:</div>
-                  <div className="mt-2">VITE_AUTH_URI</div>
-                  <div>VITE_AUTH_CLIENT_ID</div>
-                </div>
-                <p className="text-muted-foreground text-sm">
-                  Check your <code>.env</code> file or see the project README
-                  for setup instructions.
-                </p>
-                <Button
-                  onClick={() => navigate("/", { replace: true })}
-                  variant="outline"
-                  className="w-full"
-                >
-                  <Home className="mr-2 h-4 w-4" />
-                  Home
-                </Button>
-              </CardContent>
-            </Card>
-          </div>
-        </div>
-      );
-    }
-
+  // Error case
+  if (auth.error) {
     return (
       <div className="bg-background flex min-h-screen items-center justify-center p-4">
         <div className="w-full max-w-md text-center">
-          {/* Logo section */}
           <div className="mb-8 flex items-center justify-center">
-            <RuntLogo size="h-24 w-24" filterId="pixelate-config-error" />
+            <RuntLogo size="h-24 w-24" filterId="pixelate-auth-error" />
           </div>
 
           <Card className="border-red-200 bg-red-50">
             <CardHeader>
               <CardTitle className="text-destructive">
-                Oops, Something Went Wrong
+                Authentication Error
               </CardTitle>
               <CardDescription>
                 Something went wrong during authentication
@@ -170,20 +111,14 @@ const AuthRedirect: React.FC = () => {
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="rounded-md bg-white p-3 text-sm text-red-700">
-                {error.message === "invalid response encountered"
-                  ? "The authentication link may have expired or there was an issue with the authentication service. Please try again."
-                  : error.message || `Authentication error: ${error}`}
+                {auth.error.message || "An authentication error occurred"}
               </div>
               <div className="flex flex-col gap-2">
                 <Button
-                  onClick={() => {
-                    // Clear auth state and try again
-                    openIdService.reset();
-                    navigate("/", { replace: true });
-                  }}
+                  onClick={() => auth.signinRedirect()}
                   className="w-full bg-[rgb(8,202,74)] text-white hover:bg-[rgb(7,180,66)]"
                 >
-                  Start Over
+                  Try Again
                 </Button>
                 <Button
                   onClick={() => navigate("/", { replace: true })}
@@ -201,11 +136,10 @@ const AuthRedirect: React.FC = () => {
     );
   }
 
-  // Loading state - processing authentication
+  // Loading state - OIDC callback processing
   return (
     <div className="bg-background flex min-h-screen items-center justify-center">
       <div className="space-y-6 text-center">
-        {/* Animated logo */}
         <div className="flex items-center justify-center">
           <RuntLogo
             size="h-20 w-20"

@@ -1,5 +1,9 @@
 import React, { useEffect, useState } from "react";
-import { useAuth, useAuthenticatedUser, UserInfo } from "./AuthProvider.js";
+import {
+  useSimpleAuth,
+  useAuthenticatedUser,
+  UserInfo,
+} from "../../auth/use-simple-auth.js";
 import { useUserRegistry } from "../../hooks/useUserRegistry.js";
 import { AvatarWithDetails } from "../ui/AvatarWithDetails.js";
 import { useStore, useQuery } from "@livestore/react";
@@ -61,7 +65,7 @@ const useSyncUserToLiveStore = () => {
 };
 
 export const UserProfile: React.FC<UserProfileProps> = ({ className = "" }) => {
-  const { signOut } = useAuth();
+  const { signOut } = useSimpleAuth();
   const { user } = useAuthenticatedUser();
   useSyncUserToLiveStore();
   const { getUserInitials } = useUserRegistry();

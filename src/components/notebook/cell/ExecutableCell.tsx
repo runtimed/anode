@@ -1,4 +1,4 @@
-import { useAuthenticatedUser } from "../../auth/AuthProvider.js";
+import { useAuthenticatedUser } from "../../../auth/use-simple-auth.js";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { useCellContent } from "@/hooks/useCellContent.js";

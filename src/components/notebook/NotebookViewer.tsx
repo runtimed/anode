@@ -12,7 +12,7 @@ import { Avatar } from "@/components/ui/Avatar.js";
 import { Button } from "@/components/ui/button";
 
 import { useUserRegistry } from "@/hooks/useUserRegistry.js";
-import { useAuthenticatedUser } from "../auth/AuthProvider.js";
+import { useAuthenticatedUser } from "../../auth/use-simple-auth.js";
 
 import { getClientColor, getClientTypeInfo } from "@/services/userTypes.js";
 

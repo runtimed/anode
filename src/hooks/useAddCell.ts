@@ -1,6 +1,6 @@
 import { useCallback } from "react";
 import { useStore, useQuery } from "@livestore/react";
-import { useAuthenticatedUser } from "../components/auth/AuthProvider.js";
+import { useAuthenticatedUser } from "../auth/use-simple-auth.js";
 import { useAvailableAiModels } from "@/util/ai-models.js";
 import { events, queries, createCellBetween } from "@/schema";
 import { focusedCellSignal$ } from "@/components/notebook/signals/focus.js";

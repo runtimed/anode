@@ -15,7 +15,7 @@ import {
   hasCorrectNotebookVanityUrl,
 } from "../../util/url-utils";
 import { useQuery, useMutation } from "@tanstack/react-query";
-import { trpc } from "../../lib/trpc-client";
+import { useTrpc } from "../TrpcProvider";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
 import { Badge } from "../ui/badge";
@@ -27,6 +27,7 @@ import { NotebookContent } from "../notebook/NotebookContent";
 
 export const NotebookPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
+  const trpc = useTrpc();
   const location = useLocation();
   const navigate = useNavigate();
   const [isEditingTitle, setIsEditingTitle] = useState(false);

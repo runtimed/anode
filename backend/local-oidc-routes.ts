@@ -172,7 +172,7 @@ async function generateTokens(
   return {
     access_token: accessToken,
     token_type: "Bearer",
-    expires_in: 300,
+    expires_in: 300, // 5 minutes
     refresh_token: refreshToken,
     id_token: accessToken,
     scope: "openid profile email",
@@ -326,6 +326,87 @@ localOidcRoutes.get("/userinfo", async (c) => {
   }
 
   return c.json(jwt);
+});
+
+// Authorization endpoint - handles both regular auth and silent refresh
+localOidcRoutes.get("/authorize", async (c) => {
+  const url = new URL(c.req.url);
+  const params = url.searchParams;
+
+  const responseType = params.get("response_type");
+  const clientId = params.get("client_id");
+  const redirectUri = params.get("redirect_uri");
+
+  const state = params.get("state");
+
+  const prompt = params.get("prompt");
+
+  // Validate required parameters
+  if (!responseType || responseType !== "code") {
+    return c.json({ error: "Invalid response_type" }, 400);
+  }
+
+  if (!clientId || clientId !== "local-anode-client") {
+    return c.json({ error: "Invalid client_id" }, 400);
+  }
+
+  if (!redirectUri) {
+    return c.json({ error: "Missing redirect_uri" }, 400);
+  }
+
+  // Handle silent refresh (prompt=none)
+  if (prompt === "none") {
+    // For silent refresh, check if user has valid session
+    let userData: UserData | null = null;
+
+    try {
+      // Check if there's a stored local auth registration
+      const stored = await c.env.DB.prepare(
+        "SELECT value FROM settings WHERE key = 'local-auth-registration' LIMIT 1"
+      ).first<{ value: string }>();
+
+      if (stored?.value) {
+        userData = JSON.parse(stored.value) as UserData;
+      }
+    } catch (error) {
+      console.warn("Session check failed:", error);
+    }
+
+    if (!userData) {
+      // No session - return error that will trigger normal login flow
+      const errorParams = new URLSearchParams({
+        error: "login_required",
+        error_description: "User authentication required",
+        ...(state && { state }),
+      });
+      return c.redirect(`${redirectUri}?${errorParams}`, 302);
+    }
+
+    // Session exists - generate auth code for silent refresh
+    const authCode = btoa(JSON.stringify(userData));
+
+    const successParams = new URLSearchParams({
+      code: authCode,
+      ...(state && { state }),
+    });
+    return c.redirect(`${redirectUri}?${successParams}`, 302);
+  }
+
+  // Regular authorization flow - redirect to frontend login form
+  // The frontend AuthorizePage component will handle user registration/login
+  // and then redirect back to this endpoint with the user data
+  const frontendAuthUrl = new URL(
+    "/local_oidc/authorize",
+    "http://localhost:5173"
+  );
+
+  // Preserve all original query parameters for the frontend
+  const originalParams = url.searchParams;
+  for (const [key, value] of originalParams.entries()) {
+    frontendAuthUrl.searchParams.set(key, value);
+  }
+
+  return c.redirect(frontendAuthUrl.toString(), 302);
 });
 
 export default localOidcRoutes;
