@@ -11,7 +11,7 @@ interface SimpleAuthGuardProps {
 
 export const SimpleAuthGuard: React.FC<SimpleAuthGuardProps> = ({
   children,
-  fallback
+  fallback,
 }) => {
   const auth = useAuth();
 
@@ -109,7 +109,7 @@ export const SimpleAuthGuard: React.FC<SimpleAuthGuardProps> = ({
             <div>
               <Button
                 onClick={() => auth.signinRedirect()}
-                className="w-full bg-[rgb(8,202,74)] text-white hover:bg-[rgb(7,180,66)] text-lg py-3"
+                className="w-full bg-[rgb(8,202,74)] py-3 text-lg text-white hover:bg-[rgb(7,180,66)]"
               >
                 Sign In
               </Button>
