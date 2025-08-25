@@ -25,15 +25,12 @@ const NotebookLoadingScreen = React.lazy(() =>
     default: m.NotebookLoadingScreen,
   }))
 );
-// Lazy load route components
-const AuthRedirect = React.lazy(
-  () => import("./components/auth/AuthRedirect.js")
-);
-const AuthorizePage = React.lazy(
-  () => import("./components/auth/AuthorizePage.js")
-);
+// Direct imports for critical auth components
+import AuthRedirect from "./components/auth/AuthRedirect.js";
+import AuthorizePage from "./components/auth/AuthorizePage.js";
 
 import { AuthProvider, useAuth } from "./components/auth/AuthProvider.js";
+import { getOpenIdService } from "./services/openid.js";
 
 import { TrpcProvider } from "./components/TrpcProvider.tsx";
 import { Toaster } from "./components/ui/sonner.js";
@@ -141,6 +138,68 @@ const AnimatedLiveStoreApp: React.FC = () => {
 export const App: React.FC = () => {
   const debug = useDebug();
 
+  // Auth recovery: Check for reset auth parameter
+  useEffect(() => {
+    const searchParams = new URLSearchParams(window.location.search);
+    if (searchParams.has("reset_auth")) {
+      console.debug("Auth reset requested from URL parameter");
+      try {
+        const openIdService = getOpenIdService();
+        openIdService.reset();
+        console.debug("Auth state cleared successfully");
+      } catch (error) {
+        console.error("Failed to reset auth:", error);
+        // Fallback: clear localStorage directly
+        try {
+          localStorage.removeItem("openid_tokens");
+          localStorage.removeItem("openid_request_state");
+          console.debug("Fallback auth clear completed");
+        } catch (storageError) {
+          console.error("Fallback auth clear failed:", storageError);
+        }
+      }
+
+      // Clean up URL
+      searchParams.delete("reset_auth");
+      const newUrl = `${window.location.pathname}${searchParams.toString() ? "?" + searchParams.toString() : ""}`;
+      window.history.replaceState(null, "", newUrl);
+    }
+  }, []);
+
+  // Debug auth state changes
+  useEffect(() => {
+    if (debug.enabled) {
+      console.debug("Debug mode: Auth state monitoring enabled");
+
+      // Monitor localStorage changes
+      const originalSetItem = localStorage.setItem;
+      localStorage.setItem = function (key: string, value: string) {
+        if (key.startsWith("openid_")) {
+          console.debug(
+            "Auth storage change:",
+            key,
+            typeof value === "string" ? value.substring(0, 50) + "..." : value
+          );
+        }
+        return originalSetItem.call(this, key, value);
+      };
+
+      // Monitor localStorage removals
+      const originalRemoveItem = localStorage.removeItem;
+      localStorage.removeItem = function (key: string) {
+        if (key.startsWith("openid_")) {
+          console.debug("Auth storage removal:", key);
+        }
+        return originalRemoveItem.call(this, key);
+      };
+
+      return () => {
+        localStorage.setItem = originalSetItem;
+        localStorage.removeItem = originalRemoveItem;
+      };
+    }
+  }, [debug.enabled]);
+
   // Safety net: Auto-remove loading screen if no component has handled it
   useEffect(() => {
     const checkInterval = setInterval(() => {
@@ -195,31 +254,25 @@ export const App: React.FC = () => {
         </div>
       )}
       <Routes>
+        <Route path="/oidc" element={<AuthRedirect />} />
+        <Route path="/local_oidc/authorize" element={<AuthorizePage />} />
         <Route
-          path="/oidc"
+          path="/auth/reset"
           element={
-            <Suspense
-              fallback={
-                <LoadingState variant="fullscreen" message="Redirecting..." />
-              }
-            >
-              <AuthRedirect />
-            </Suspense>
-          }
-        />
-        <Route
-          path="/local_oidc/authorize"
-          element={
-            <Suspense
-              fallback={
-                <LoadingState
-                  variant="fullscreen"
-                  message="Preparing the rabbit hole..."
-                />
-              }
-            >
-              <AuthorizePage />
-            </Suspense>
+            <div className="bg-background flex min-h-screen items-center justify-center p-4">
+              <div className="w-full max-w-md space-y-4 text-center">
+                <h1 className="text-2xl font-semibold">Auth Reset Complete</h1>
+                <p className="text-muted-foreground">
+                  Authentication state has been cleared.
+                </p>
+                <button
+                  onClick={() => (window.location.href = "/")}
+                  className="bg-primary text-primary-foreground hover:bg-primary/90 rounded px-4 py-2"
+                >
+                  Return Home
+                </button>
+              </div>
+            </div>
           }
         />
         <Route

@@ -70,10 +70,65 @@ export const CustomLiveStoreProvider: React.FC<
       // Get current token directly from localStorage without any reactive dependencies
       try {
         const tokenString = localStorage.getItem("openid_tokens");
-        const tokens = tokenString ? JSON.parse(tokenString) : null;
-        return tokens?.accessToken || "";
+
+        if (
+          !tokenString ||
+          tokenString === "null" ||
+          tokenString === "undefined"
+        ) {
+          return "";
+        }
+
+        const tokens = JSON.parse(tokenString);
+
+        // Validate token structure
+        if (!tokens || typeof tokens !== "object") {
+          console.warn("Invalid token structure in localStorage");
+          return "";
+        }
+
+        // Validate access token
+        const { accessToken } = tokens;
+        if (!accessToken || typeof accessToken !== "string") {
+          return "";
+        }
+
+        // Basic JWT structure validation (should have 3 parts)
+        const jwtParts = accessToken.split(".");
+        if (jwtParts.length !== 3) {
+          console.warn("Access token doesn't appear to be a valid JWT");
+          return "";
+        }
+
+        // Basic token expiration check - conservative approach
+        try {
+          const payload = JSON.parse(atob(jwtParts[1]));
+          const now = Math.floor(Date.now() / 1000);
+
+          // Only reject tokens that are clearly expired (>1 minute ago)
+          if (payload.exp && payload.exp < now - 60) {
+            console.warn("Access token appears to be expired");
+            return "";
+          }
+        } catch (jwtError) {
+          // JWT parsing failed, but we'll still try to use the token
+          console.debug(
+            "Could not parse JWT payload, but token might still be valid"
+          );
+        }
+
+        return accessToken;
       } catch (error) {
         console.warn("Failed to get auth token for sync:", error);
+
+        // Try to clear corrupted data
+        try {
+          localStorage.removeItem("openid_tokens");
+          console.debug("Cleared corrupted auth tokens from localStorage");
+        } catch (clearError) {
+          console.error("Failed to clear corrupted tokens:", clearError);
+        }
+
         return "";
       }
     },
