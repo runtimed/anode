@@ -106,23 +106,43 @@ export const appRouter = router({
           return [];
         }
 
-        // Trusted ids. Not doing a variable because we could have hundreds of ids.
-        const trustedIdsString = accessibleNotebookIds
-          .map((id) => `'${id.replace(/'/g, "''")}'`)
-          .join(",");
-        const query = `
-            SELECT id, owner_id, title, created_at, updated_at
-            FROM notebooks
-            WHERE id IN (${trustedIdsString})
-            ORDER BY updated_at DESC
-            LIMIT ? OFFSET ?
-          `;
+        // Use chunked parameterized queries to avoid SQL injection
+        // Most databases have a limit on the number of parameters in a single query
+        const CHUNK_SIZE = 100;
+        const chunks = [];
+        for (let i = 0; i < accessibleNotebookIds.length; i += CHUNK_SIZE) {
+          chunks.push(accessibleNotebookIds.slice(i, i + CHUNK_SIZE));
+        }
 
-        const result = await DB.prepare(query)
-          .bind(limit, offset)
-          .all<NotebookRow>();
+        const allResults: NotebookRow[] = [];
 
-        return result.results;
+        for (const chunk of chunks) {
+          const placeholders = chunk.map(() => "?").join(",");
+          const query = `
+              SELECT id, owner_id, title, created_at, updated_at
+              FROM notebooks
+              WHERE id IN (${placeholders})
+              ORDER BY updated_at DESC
+            `;
+
+          // console.log("🚨 getting chunk", { query, chunk });
+
+          const result = await DB.prepare(query)
+            .bind(...chunk)
+            .all<NotebookRow>();
+
+          allResults.push(...result.results);
+        }
+
+        // Sort all results by updated_at DESC and apply pagination
+        allResults.sort(
+          (a, b) =>
+            new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime()
+        );
+
+        console.log("🚨 allResults", { length: allResults.length });
+
+        return allResults.slice(offset, offset + limit);
       } catch (error) {
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
