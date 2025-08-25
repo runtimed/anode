@@ -103,7 +103,7 @@ function generateOpenIdConfiguration(
     issuer: `${baseUrl}/local_oidc`,
     authorization_endpoint:
       env.LOCAL_OIDC_AUTHORIZATION_ENDPOINT ??
-      `${baseUrl}/local_oidc/authorize`,
+      "http://localhost:5173/local_oidc/authorize",
     jwks_uri: `${baseUrl}/local_oidc/.well-known/jwks.json`,
     token_endpoint: `${baseUrl}/local_oidc/token`,
     userinfo_endpoint: `${baseUrl}/local_oidc/userinfo`,
