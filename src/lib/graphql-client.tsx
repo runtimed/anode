@@ -5,7 +5,7 @@ import {
   createClient,
   fetchExchange,
 } from "urql";
-import { useAuth } from "../components/auth/AuthProvider.js";
+import { useSimpleAuth } from "../auth/use-simple-auth.js";
 
 // GraphQL endpoint - relative to current origin
 const GRAPHQL_ENDPOINT = "/graphql";
@@ -35,7 +35,7 @@ interface GraphQLClientProviderProps {
 export const GraphQLClientProvider: React.FC<GraphQLClientProviderProps> = ({
   children,
 }) => {
-  const { accessToken } = useAuth();
+  const { accessToken } = useSimpleAuth();
 
   const client = useMemo(() => {
     return createClient({

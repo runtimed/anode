@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { useAuth } from "./AuthProvider.js";
+import { useSimpleAuth } from "../../auth/use-simple-auth.js";
 import LoginPrompt from "./LoginPrompt.js";
 import { updateLoadingStage } from "../../util/domUpdates.js";
 import { RuntLogo } from "../logo";
@@ -11,7 +11,7 @@ interface AuthGuardProps {
 }
 
 export const AuthGuard: React.FC<AuthGuardProps> = ({ children, fallback }) => {
-  const { authState } = useAuth();
+  const { authState } = useSimpleAuth();
   const isAuthenticated = authState.valid;
   const isLoading = !authState.valid && authState.loading;
   const error =

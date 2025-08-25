@@ -1,5 +1,5 @@
 import { useState, useCallback } from "react";
-import { useAuth } from "../components/auth/AuthProvider.js";
+import { useSimpleAuth } from "../auth/use-simple-auth.js";
 
 export enum Scope {
   RuntRead = "runt:read",
@@ -33,7 +33,7 @@ export type ListApiKeysRequest = {
 const API_BASE = "/api/api-keys";
 
 export function useApiKeys() {
-  const { accessToken } = useAuth();
+  const { accessToken } = useSimpleAuth();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 

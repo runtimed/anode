@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { useRuntimeHealth } from "@/hooks/useRuntimeHealth.js";
 import { useStore } from "@livestore/react";
 import { events } from "@/schema";
-import { useAuthenticatedUser } from "../auth/AuthProvider.js";
+import { useAuthenticatedUser } from "../../auth/use-simple-auth.js";
 import { getRuntimeCommand } from "@/util/runtime-command.js";
 import { getCurrentNotebookId } from "@/util/store-id.js";
 import { Copy, Square } from "lucide-react";

@@ -5,7 +5,7 @@ import { BootStatus } from "@livestore/livestore";
 import { LiveStoreProvider } from "@livestore/react";
 import React, { useEffect, useRef } from "react";
 import { unstable_batchedUpdates as batchUpdates } from "react-dom";
-import { useAuthenticatedUser } from "../auth/AuthProvider.js";
+import { useAuthenticatedUser } from "../../auth/use-simple-auth.js";
 import LiveStoreWorker from "./livestore.worker?worker";
 
 function loading(_status: BootStatus) {
@@ -58,32 +58,24 @@ export const CustomLiveStoreProvider: React.FC<
     }
   }, [resetPersistence]);
 
-  // Get authenticated user info to set clientId
+  // Get authenticated user info and access token
   const {
     user: { sub: clientId },
+    accessToken,
   } = useAuthenticatedUser();
 
   // Create completely static sync payload that never changes reference
-  // Token access happens through getter, preventing LiveStore restarts
+  // Token and clientId are updated via useEffect to prevent LiveStore restarts
   const syncPayload = useRef({
-    get authToken() {
-      // Get current token directly from localStorage without any reactive dependencies
-      try {
-        const tokenString = localStorage.getItem("openid_tokens");
-        const tokens = tokenString ? JSON.parse(tokenString) : null;
-        return tokens?.accessToken || "";
-      } catch (error) {
-        console.warn("Failed to get auth token for sync:", error);
-        return "";
-      }
-    },
+    authToken: accessToken || "",
     clientId,
   });
 
-  // Update clientId if user changes, but keep same object reference
+  // Update clientId and authToken if they change, but keep same object reference
   useEffect(() => {
     syncPayload.current.clientId = clientId;
-  }, [clientId]);
+    syncPayload.current.authToken = accessToken || "";
+  }, [clientId, accessToken]);
 
   const adapter = makePersistedAdapter({
     storage: { type: "opfs" },

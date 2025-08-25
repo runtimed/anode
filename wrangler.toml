@@ -38,15 +38,15 @@ bucket_name = "anode-artifacts-dev"
 # Environment variables for local development (`wrangler dev`)
 # These are injected into the local worker process. The Vite dev server (`pnpm dev`)
 # will pick up variables from the `.env` file. Ensure they match.
-AUTH_ISSUER = "https://auth.stage.anaconda.com/api/auth"
+AUTH_ISSUER = "http://localhost:8787/local_oidc"
 DEPLOYMENT_ENV = "development"
 SERVICE_PROVIDER = "local"
 EXTENSION_CONFIG = "{}"
 
 VITE_LIVESTORE_SYNC_URL = "/livestore"
 VITE_RUNTIME_COMMAND = "pnpm run dev:runtime"
-VITE_AUTH_URI = "https://auth.stage.anaconda.com/api/auth"
-VITE_AUTH_CLIENT_ID = "b7296d39-c1eb-49f4-b9a1-f36e6d5b8b6d"
+VITE_AUTH_URI = "http://localhost:8787/local_oidc"
+VITE_AUTH_CLIENT_ID = "local-anode-client"
 VITE_AUTH_REDIRECT_URI = "http://localhost:5173/oidc"
 
 

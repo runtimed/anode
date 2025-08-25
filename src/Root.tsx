@@ -1,7 +1,7 @@
 import React, { Suspense, useEffect, useState } from "react";
 
 import { Route, Routes } from "react-router-dom";
-import { AuthGuard } from "./components/auth/AuthGuard.js";
+import { SimpleAuthGuard } from "./auth/SimpleAuthGuard.js";
 import {
   LoadingState,
   MinimalLoading,
@@ -30,7 +30,9 @@ const NotebookLoadingScreen = React.lazy(() =>
 import AuthRedirect from "./components/auth/AuthRedirect.js";
 import AuthorizePage from "./components/auth/AuthorizePage.js";
 
-import { AuthProvider, useAuth } from "./components/auth/AuthProvider.js";
+import { AuthProvider } from "react-oidc-context";
+import { createOidcConfig } from "./auth/oidc-config.js";
+import { useSimpleAuth } from "./auth/use-simple-auth.js";
 
 import { TrpcProvider } from "./components/TrpcProvider.tsx";
 import { Toaster } from "./components/ui/sonner.js";
@@ -65,7 +67,7 @@ const NotebookPage = React.lazy(() =>
 
 // Animation wrapper with minimum loading time and animation completion
 const AnimatedLiveStoreApp: React.FC = () => {
-  const { authState } = useAuth();
+  const { authState } = useSimpleAuth();
   const [isLoading, setIsLoading] = useState(true);
   const [shouldShowAnimation, setShouldShowAnimation] = useState(false);
 
@@ -172,7 +174,7 @@ export const App: React.FC = () => {
   }, []);
 
   return (
-    <AuthProvider>
+    <AuthProvider {...createOidcConfig()}>
       {/* Debug FPS Meter - fixed position in corner */}
       {debug.enabled && import.meta.env.DEV && (
         <div
@@ -197,7 +199,7 @@ export const App: React.FC = () => {
         <Route
           path="/r/:ulid/*"
           element={
-            <AuthGuard>
+            <SimpleAuthGuard>
               <GraphQLClientProvider>
                 <Suspense
                   fallback={
@@ -210,13 +212,13 @@ export const App: React.FC = () => {
                   <RunbookViewer />
                 </Suspense>
               </GraphQLClientProvider>
-            </AuthGuard>
+            </SimpleAuthGuard>
           }
         />
         <Route
           path="/r"
           element={
-            <AuthGuard>
+            <SimpleAuthGuard>
               <GraphQLClientProvider>
                 <Suspense
                   fallback={
@@ -229,13 +231,13 @@ export const App: React.FC = () => {
                   <RunbookDashboard />
                 </Suspense>
               </GraphQLClientProvider>
-            </AuthGuard>
+            </SimpleAuthGuard>
           }
         />
         <Route
           path="/nb/:id/*"
           element={
-            <AuthGuard>
+            <SimpleAuthGuard>
               <TrpcProvider>
                 <Suspense
                   fallback={
@@ -248,13 +250,13 @@ export const App: React.FC = () => {
                   <NotebookPage />
                 </Suspense>
               </TrpcProvider>
-            </AuthGuard>
+            </SimpleAuthGuard>
           }
         />
         <Route
           path="/nb"
           element={
-            <AuthGuard>
+            <SimpleAuthGuard>
               <TrpcProvider>
                 <Suspense
                   fallback={
@@ -267,15 +269,15 @@ export const App: React.FC = () => {
                   <NotebooksDashboard />
                 </Suspense>
               </TrpcProvider>
-            </AuthGuard>
+            </SimpleAuthGuard>
           }
         />
         <Route
           path="/*"
           element={
-            <AuthGuard>
+            <SimpleAuthGuard>
               <AnimatedLiveStoreApp />
-            </AuthGuard>
+            </SimpleAuthGuard>
           }
         />
       </Routes>

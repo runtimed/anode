@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Silent Refresh</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body>
+    <script src="https://unpkg.com/oidc-client-ts@3.3.0/dist/browser/oidc-client-ts.min.js"></script>
+    <script>
+        // Silent refresh callback handler
+        try {
+            new oidc.UserManager({}).signinSilentCallback();
+        } catch (error) {
+            console.error('Silent refresh callback error:', error);
+        }
+    </script>
+</body>
+</html>

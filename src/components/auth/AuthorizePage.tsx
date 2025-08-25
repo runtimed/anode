@@ -81,12 +81,30 @@ const AuthorizePage: React.FC = () => {
       return;
     }
 
-    if (prompt !== "login" && prompt !== "registration") {
+    // Handle standard OIDC prompt parameters from react-oidc-context
+    let normalizedPrompt = prompt;
+    if (
+      prompt === "login" ||
+      prompt === "consent" ||
+      prompt === "select_account"
+    ) {
+      // Standard OIDC login prompts - check if we have existing registration
+      const savedData = localStorage.getItem(LOCAL_STORAGE_KEY);
+      normalizedPrompt = savedData ? "login" : "registration";
+    } else if (prompt === "registration") {
+      normalizedPrompt = "registration";
+    } else if (!prompt) {
+      // No prompt specified - default behavior
+      const savedData = localStorage.getItem(LOCAL_STORAGE_KEY);
+      normalizedPrompt = savedData ? "login" : "registration";
+    } else {
       setError("Invalid prompt parameter. Must be 'login' or 'registration'.");
       return;
     }
 
-    if (prompt === "login") {
+    setPrompt(normalizedPrompt);
+
+    if (normalizedPrompt === "login") {
       const savedData = localStorage.getItem(LOCAL_STORAGE_KEY);
       if (!savedData) {
         setPrompt("registration");

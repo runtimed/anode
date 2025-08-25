@@ -246,6 +246,20 @@ async function handleToken(
     try {
       const tokens = await generateTokens(userData, env);
 
+      // Store user data for silent refresh session tracking
+      if (env.DB) {
+        try {
+          await env.DB.prepare(
+            `INSERT OR REPLACE INTO settings (key, value) VALUES (?, ?)`
+          )
+            .bind("local-auth-registration", JSON.stringify(userData))
+            .run();
+        } catch (error) {
+          console.warn("Failed to store user session data:", error);
+          // Continue anyway - this is just for silent refresh optimization
+        }
+      }
+
       return new workerGlobals.Response(JSON.stringify(tokens), {
         status: 200,
         headers: {
@@ -379,6 +393,106 @@ async function handleJwks(
   }
 }
 
+async function handleAuthorize(
+  request: WorkerRequest,
+  env: Env
+): Promise<WorkerResponse> {
+  const url = new URL(request.url);
+  const params = url.searchParams;
+
+  const responseType = params.get("response_type");
+  const clientId = params.get("client_id");
+  const redirectUri = params.get("redirect_uri");
+  const scope = params.get("scope");
+  const state = params.get("state");
+  const codeChallenge = params.get("code_challenge");
+  const codeChallengeMethod = params.get("code_challenge_method");
+  const prompt = params.get("prompt");
+
+  // Validate required parameters
+  if (!responseType || responseType !== "code") {
+    return new workerGlobals.Response("Invalid response_type", { status: 400 });
+  }
+
+  if (!clientId || clientId !== "local-anode-client") {
+    return new workerGlobals.Response("Invalid client_id", { status: 400 });
+  }
+
+  if (!redirectUri) {
+    return new workerGlobals.Response("Missing redirect_uri", { status: 400 });
+  }
+
+  // Handle silent refresh (prompt=none)
+  if (prompt === "none") {
+    // For silent refresh, check if user has valid session
+    // For local dev, check if localStorage data exists by looking for stored registration
+    let userData: UserData | null = null;
+
+    try {
+      // Check if there's a stored local auth registration
+      // This simulates checking for an active session
+      if (env.DB) {
+        const stored = await env.DB.prepare(
+          "SELECT value FROM settings WHERE key = 'local-auth-registration' LIMIT 1"
+        ).first<{ value: string }>();
+
+        if (stored?.value) {
+          userData = JSON.parse(stored.value) as UserData;
+        }
+      }
+    } catch (error) {
+      // If there's any error checking session, treat as no session
+      console.warn("Session check failed:", error);
+    }
+
+    if (!userData) {
+      // No session - return error that will trigger normal login flow
+      const errorParams = new URLSearchParams({
+        error: "login_required",
+        error_description: "User authentication required",
+        ...(state && { state }),
+      });
+      return workerGlobals.Response.redirect(
+        `${redirectUri}?${errorParams}`,
+        302
+      );
+    }
+
+    // Session exists - generate auth code for silent refresh using stored user data
+    const authCode = btoa(JSON.stringify(userData));
+
+    const successParams = new URLSearchParams({
+      code: authCode,
+      ...(state && { state }),
+    });
+    return workerGlobals.Response.redirect(
+      `${redirectUri}?${successParams}`,
+      302
+    );
+  }
+
+  // Regular authorization flow - redirect to frontend
+  const frontendAuthUrl = new URL(
+    "/local_oidc/authorize",
+    "http://localhost:5173"
+  );
+  frontendAuthUrl.searchParams.set("client_id", clientId);
+  frontendAuthUrl.searchParams.set("redirect_uri", redirectUri);
+  frontendAuthUrl.searchParams.set("response_type", responseType);
+  if (scope) frontendAuthUrl.searchParams.set("scope", scope);
+  if (state) frontendAuthUrl.searchParams.set("state", state);
+  if (codeChallenge)
+    frontendAuthUrl.searchParams.set("code_challenge", codeChallenge);
+  if (codeChallengeMethod)
+    frontendAuthUrl.searchParams.set(
+      "code_challenge_method",
+      codeChallengeMethod
+    );
+  frontendAuthUrl.searchParams.set("prompt", "registration");
+
+  return workerGlobals.Response.redirect(frontendAuthUrl.toString(), 302);
+}
+
 const handler: SimpleHandler = {
   fetch: async (
     request: WorkerRequest,
@@ -408,6 +522,10 @@ const handler: SimpleHandler = {
 
     if (pathname === "/local_oidc/userinfo") {
       return handleUserinfo(request, env);
+    }
+
+    if (pathname === "/local_oidc/authorize") {
+      return handleAuthorize(request, env);
     }
 
     return new workerGlobals.Response("Not Found", { status: 404 });

@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useStore, useQuery } from "@livestore/react";
 import { queryDb } from "@livestore/livestore";
 import { events, tables } from "@/schema";
-import { useAuthenticatedUser } from "../components/auth/AuthProvider.js";
+import { useAuthenticatedUser } from "../auth/use-simple-auth.js";
 
 export type ToolApprovalRequest = {
   toolCallId: string;

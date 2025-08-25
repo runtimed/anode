@@ -103,7 +103,7 @@ function generateOpenIdConfiguration(
     issuer: `${baseUrl}/local_oidc`,
     authorization_endpoint:
       env.LOCAL_OIDC_AUTHORIZATION_ENDPOINT ??
-      "http://localhost:5173/local_oidc/authorize",
+      `${baseUrl}/local_oidc/authorize`,
     jwks_uri: `${baseUrl}/local_oidc/.well-known/jwks.json`,
     token_endpoint: `${baseUrl}/local_oidc/token`,
     userinfo_endpoint: `${baseUrl}/local_oidc/userinfo`,
@@ -172,7 +172,7 @@ async function generateTokens(
   return {
     access_token: accessToken,
     token_type: "Bearer",
-    expires_in: 300,
+    expires_in: 300, // 5 minutes
     refresh_token: refreshToken,
     id_token: accessToken,
     scope: "openid profile email",
@@ -326,6 +326,100 @@ localOidcRoutes.get("/userinfo", async (c) => {
   }
 
   return c.json(jwt);
+});
+
+// Authorization endpoint - handles both regular auth and silent refresh
+localOidcRoutes.get("/authorize", async (c) => {
+  const url = new URL(c.req.url);
+  const params = url.searchParams;
+
+  const responseType = params.get("response_type");
+  const clientId = params.get("client_id");
+  const redirectUri = params.get("redirect_uri");
+
+  const state = params.get("state");
+
+  const prompt = params.get("prompt");
+
+  // Validate required parameters
+  if (!responseType || responseType !== "code") {
+    return c.json({ error: "Invalid response_type" }, 400);
+  }
+
+  if (!clientId || clientId !== "local-anode-client") {
+    return c.json({ error: "Invalid client_id" }, 400);
+  }
+
+  if (!redirectUri) {
+    return c.json({ error: "Missing redirect_uri" }, 400);
+  }
+
+  // Handle silent refresh (prompt=none)
+  if (prompt === "none") {
+    // For silent refresh, check if user has valid session
+    let userData: UserData | null = null;
+
+    try {
+      // Check if there's a stored local auth registration
+      const stored = await c.env.DB.prepare(
+        "SELECT value FROM settings WHERE key = 'local-auth-registration' LIMIT 1"
+      ).first<{ value: string }>();
+
+      if (stored?.value) {
+        userData = JSON.parse(stored.value) as UserData;
+      }
+    } catch (error) {
+      console.warn("Session check failed:", error);
+    }
+
+    if (!userData) {
+      // No session - return error that will trigger normal login flow
+      const errorParams = new URLSearchParams({
+        error: "login_required",
+        error_description: "User authentication required",
+        ...(state && { state }),
+      });
+      return c.redirect(`${redirectUri}?${errorParams}`, 302);
+    }
+
+    // Session exists - generate auth code for silent refresh
+    const authCode = btoa(JSON.stringify(userData));
+
+    const successParams = new URLSearchParams({
+      code: authCode,
+      ...(state && { state }),
+    });
+    return c.redirect(`${redirectUri}?${successParams}`, 302);
+  }
+
+  // Regular authorization flow - generate auth code directly for local development
+  // Use default user data for local OIDC
+  const defaultUserData: UserData = {
+    firstName: "White",
+    lastName: "Rabbit",
+    email: "white.rabbit@runt.run",
+  };
+
+  // Store user data for future silent refresh
+  try {
+    await c.env.DB.prepare(
+      `INSERT OR REPLACE INTO settings (key, value) VALUES (?, ?)`
+    )
+      .bind("local-auth-registration", JSON.stringify(defaultUserData))
+      .run();
+  } catch (error) {
+    console.warn("Failed to store user session data:", error);
+  }
+
+  // Generate auth code and redirect back to client
+  const authCode = btoa(JSON.stringify(defaultUserData));
+
+  const successParams = new URLSearchParams({
+    code: authCode,
+    ...(state && { state }),
+  });
+
+  return c.redirect(`${redirectUri}?${successParams}`, 302);
 });
 
 export default localOidcRoutes;
