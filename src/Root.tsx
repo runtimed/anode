@@ -25,13 +25,10 @@ const NotebookLoadingScreen = React.lazy(() =>
     default: m.NotebookLoadingScreen,
   }))
 );
-// Lazy load route components
-const AuthRedirect = React.lazy(
-  () => import("./components/auth/AuthRedirect.js")
-);
-const AuthorizePage = React.lazy(
-  () => import("./components/auth/AuthorizePage.js")
-);
+
+// Direct imports for critical auth components
+import AuthRedirect from "./components/auth/AuthRedirect.js";
+import AuthorizePage from "./components/auth/AuthorizePage.js";
 
 import { AuthProvider, useAuth } from "./components/auth/AuthProvider.js";
 
@@ -195,33 +192,8 @@ export const App: React.FC = () => {
         </div>
       )}
       <Routes>
-        <Route
-          path="/oidc"
-          element={
-            <Suspense
-              fallback={
-                <LoadingState variant="fullscreen" message="Redirecting..." />
-              }
-            >
-              <AuthRedirect />
-            </Suspense>
-          }
-        />
-        <Route
-          path="/local_oidc/authorize"
-          element={
-            <Suspense
-              fallback={
-                <LoadingState
-                  variant="fullscreen"
-                  message="Preparing the rabbit hole..."
-                />
-              }
-            >
-              <AuthorizePage />
-            </Suspense>
-          }
-        />
+        <Route path="/oidc" element={<AuthRedirect />} />
+        <Route path="/local_oidc/authorize" element={<AuthorizePage />} />
         <Route
           path="/r/:ulid/*"
           element={
