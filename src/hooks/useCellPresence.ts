@@ -3,7 +3,7 @@ import { queryDb } from "@livestore/livestore";
 import { tables } from "@/schema";
 import { useCallback } from "react";
 
-import { useAuthenticatedUser } from "../auth/use-simple-auth.js";
+import { useAuthenticatedUser } from "../auth/index.js";
 import { useUserRegistry } from "./useUserRegistry.js";
 
 export const useCellPresence = (cellId: string) => {

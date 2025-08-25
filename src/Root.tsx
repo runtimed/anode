@@ -1,7 +1,7 @@
 import React, { Suspense, useEffect, useState } from "react";
 
 import { Route, Routes } from "react-router-dom";
-import { SimpleAuthGuard } from "./auth/SimpleAuthGuard.js";
+import { AuthGuard } from "./auth/index.js";
 import {
   LoadingState,
   MinimalLoading,
@@ -29,9 +29,9 @@ const NotebookLoadingScreen = React.lazy(() =>
 // Direct imports for critical auth components
 import AuthorizePage from "./components/auth/AuthorizePage.js";
 
-import { AuthProvider, useAuth } from "react-oidc-context";
+import { AuthProvider, useAuth as useOidcAuth } from "react-oidc-context";
 import { createOidcConfig } from "./auth/oidc-config.js";
-import { useSimpleAuth } from "./auth/use-simple-auth.js";
+import { useAuth } from "./auth/index.js";
 
 import { TrpcProvider } from "./components/TrpcProvider.tsx";
 import { Toaster } from "./components/ui/sonner.js";
@@ -66,7 +66,7 @@ const NotebookPage = React.lazy(() =>
 
 // Animation wrapper with minimum loading time and animation completion
 const AnimatedLiveStoreApp: React.FC = () => {
-  const { authState } = useSimpleAuth();
+  const { isAuthenticated } = useAuth();
   const [isLoading, setIsLoading] = useState(true);
   const [shouldShowAnimation, setShouldShowAnimation] = useState(false);
 
@@ -76,10 +76,10 @@ const AnimatedLiveStoreApp: React.FC = () => {
 
   // Show loading animation only after auth confirmation
   useEffect(() => {
-    if (authState.valid) {
+    if (isAuthenticated) {
       setShouldShowAnimation(true);
     }
-  }, [authState.valid]);
+  }, [isAuthenticated]);
 
   // Update static loading screen stage when LiveStore is ready
   useEffect(() => {
@@ -138,7 +138,7 @@ const AnimatedLiveStoreApp: React.FC = () => {
 
 // Simple OIDC callback page
 const OidcCallbackPage: React.FC = () => {
-  const auth = useAuth();
+  const auth = useOidcAuth();
 
   useEffect(() => {
     if (auth.isAuthenticated) {
@@ -244,7 +244,7 @@ export const App: React.FC = () => {
         <Route
           path="/r/:ulid/*"
           element={
-            <SimpleAuthGuard>
+            <AuthGuard>
               <GraphQLClientProvider>
                 <Suspense
                   fallback={
@@ -257,13 +257,13 @@ export const App: React.FC = () => {
                   <RunbookViewer />
                 </Suspense>
               </GraphQLClientProvider>
-            </SimpleAuthGuard>
+            </AuthGuard>
           }
         />
         <Route
           path="/r"
           element={
-            <SimpleAuthGuard>
+            <AuthGuard>
               <GraphQLClientProvider>
                 <Suspense
                   fallback={
@@ -276,13 +276,13 @@ export const App: React.FC = () => {
                   <RunbookDashboard />
                 </Suspense>
               </GraphQLClientProvider>
-            </SimpleAuthGuard>
+            </AuthGuard>
           }
         />
         <Route
           path="/nb/:id/*"
           element={
-            <SimpleAuthGuard>
+            <AuthGuard>
               <TrpcProvider>
                 <Suspense
                   fallback={
@@ -295,13 +295,13 @@ export const App: React.FC = () => {
                   <NotebookPage />
                 </Suspense>
               </TrpcProvider>
-            </SimpleAuthGuard>
+            </AuthGuard>
           }
         />
         <Route
           path="/nb"
           element={
-            <SimpleAuthGuard>
+            <AuthGuard>
               <TrpcProvider>
                 <Suspense
                   fallback={
@@ -314,15 +314,15 @@ export const App: React.FC = () => {
                   <NotebooksDashboard />
                 </Suspense>
               </TrpcProvider>
-            </SimpleAuthGuard>
+            </AuthGuard>
           }
         />
         <Route
           path="/*"
           element={
-            <SimpleAuthGuard>
+            <AuthGuard>
               <AnimatedLiveStoreApp />
-            </SimpleAuthGuard>
+            </AuthGuard>
           }
         />
       </Routes>

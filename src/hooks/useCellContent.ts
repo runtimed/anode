@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { useStore } from "@livestore/react";
 import { events } from "@/schema";
-import { useAuthenticatedUser } from "../auth/use-simple-auth.js";
+import { useAuthenticatedUser } from "../auth/index.js";
 
 interface CellContentOptions {
   cellId: string;
