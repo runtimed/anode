@@ -1,8 +1,4 @@
-import {
-  QueryClientProvider,
-  useQuery,
-  useMutation,
-} from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import {
   ChevronDown,
   Clock,
@@ -17,7 +13,7 @@ import {
 } from "lucide-react";
 import React, { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { trpc, trpcQueryClient } from "../../lib/trpc-client";
+import { trpc } from "../../lib/trpc-client";
 import { getNotebookVanityUrl } from "../../util/url-utils";
 import { Badge } from "../ui/badge";
 import { Button } from "../ui/button";
@@ -37,19 +33,7 @@ import type { NotebookProcessed } from "./types";
 type ViewMode = "grid" | "table";
 type FilterType = "scratch" | "named" | "shared";
 
-interface NotebookDashboardProps {}
-
-export const NotebookDashboard: React.FC<NotebookDashboardProps> = () => {
-  return (
-    <div>
-      <QueryClientProvider client={trpcQueryClient}>
-        <NotebookDashboardContent />
-      </QueryClientProvider>
-    </div>
-  );
-};
-
-const NotebookDashboardContent: React.FC = () => {
+export const NotebookDashboard: React.FC = () => {
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState("");
   const [activeFilter, setActiveFilter] = useState<FilterType>("named");
