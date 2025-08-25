@@ -1,7 +1,5 @@
 import { QueryClient } from "@tanstack/react-query";
 import { createTRPCClient, httpBatchLink } from "@trpc/client";
-
-import { getOpenIdService } from "@/services/openid";
 import { createTRPCOptionsProxy } from "@trpc/tanstack-react-query";
 
 import type { AppRouter } from "../../backend/trpc/index";
@@ -13,11 +11,23 @@ const endpointLink = httpBatchLink({
   url: TRPC_ENDPOINT,
   // Called for every request. See: https://trpc.io/docs/client/headers
   headers: () => {
-    const accessToken = getOpenIdService().getTokens()?.accessToken;
-    if (!accessToken) return {};
-    return {
-      Authorization: `Bearer ${accessToken}`, // TODO: use refresh token
-    };
+    // Get access token directly from OIDC storage
+    try {
+      const oidcStorage = sessionStorage.getItem(
+        `oidc.user:${import.meta.env.VITE_AUTH_URI}:${import.meta.env.VITE_AUTH_CLIENT_ID}`
+      );
+      if (oidcStorage) {
+        const user = JSON.parse(oidcStorage);
+        if (user?.access_token) {
+          return {
+            Authorization: `Bearer ${user.access_token}`,
+          };
+        }
+      }
+    } catch (error) {
+      console.warn("Failed to get auth token for TRPC:", error);
+    }
+    return {};
   },
 });
 
