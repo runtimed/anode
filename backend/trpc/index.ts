@@ -106,20 +106,40 @@ export const appRouter = router({
           return [];
         }
 
-        const placeholders = accessibleNotebookIds.map(() => "?").join(",");
-        const query = `
-            SELECT id, owner_id, title, created_at, updated_at
-            FROM notebooks
-            WHERE id IN (${placeholders})
-            ORDER BY updated_at DESC
-            LIMIT ? OFFSET ?
-          `;
+        // Use chunked parameterized queries to avoid SQL injection
+        // Most databases have a limit on the number of parameters in a single query
+        // Chunking at 200 was tested and "too many variables" errors still happened, but 100 is known to work.
+        const CHUNK_SIZE = 100;
+        const chunks = [];
+        for (let i = 0; i < accessibleNotebookIds.length; i += CHUNK_SIZE) {
+          chunks.push(accessibleNotebookIds.slice(i, i + CHUNK_SIZE));
+        }
 
-        const result = await DB.prepare(query)
-          .bind(...accessibleNotebookIds, limit, offset)
-          .all<NotebookRow>();
+        const allResults: NotebookRow[] = [];
 
-        return result.results;
+        for (const chunk of chunks) {
+          const placeholders = chunk.map(() => "?").join(",");
+          const query = `
+              SELECT id, owner_id, title, created_at, updated_at
+              FROM notebooks
+              WHERE id IN (${placeholders})
+              ORDER BY updated_at DESC
+            `;
+
+          const result = await DB.prepare(query)
+            .bind(...chunk)
+            .all<NotebookRow>();
+
+          allResults.push(...result.results);
+        }
+
+        // Sort all results by updated_at DESC and apply pagination
+        allResults.sort(
+          (a, b) =>
+            new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime()
+        );
+
+        return allResults.slice(offset, offset + limit);
       } catch (error) {
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
