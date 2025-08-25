@@ -13,7 +13,7 @@ import {
 } from "lucide-react";
 import React, { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { trpc } from "../../lib/trpc-client";
+import { useTrpc } from "../TrpcProvider";
 import { getNotebookVanityUrl } from "../../util/url-utils";
 import { Badge } from "../ui/badge";
 import { Button } from "../ui/button";
@@ -38,6 +38,8 @@ export const NotebookDashboard: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [activeFilter, setActiveFilter] = useState<FilterType>("named");
   const [viewMode, setViewMode] = useState<ViewMode>("grid");
+
+  const trpc = useTrpc();
 
   // Query all notebooks using tRPC
   const {

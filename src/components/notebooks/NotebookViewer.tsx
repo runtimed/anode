@@ -15,7 +15,7 @@ import {
   hasCorrectNotebookVanityUrl,
 } from "../../util/url-utils";
 import { useQuery, useMutation } from "@tanstack/react-query";
-import { trpc } from "../../lib/trpc-client";
+import { useTrpc } from "../TrpcProvider";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
 import { Badge } from "../ui/badge";
@@ -30,6 +30,8 @@ export const NotebookViewer: React.FC = () => {
   const [isEditingTitle, setIsEditingTitle] = useState(false);
   const [editTitle, setEditTitle] = useState("");
   const [isSharingModalOpen, setIsSharingModalOpen] = useState(false);
+
+  const trpc = useTrpc();
 
   // Get initial notebook data from router state (if navigated from creation)
   const initialNotebook = location.state?.initialNotebook as
