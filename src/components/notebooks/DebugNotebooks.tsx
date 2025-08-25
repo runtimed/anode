@@ -1,9 +1,10 @@
-import { trpc } from "@/lib/trpc-client";
-import { Button } from "../ui/button";
 import { useMutation } from "@tanstack/react-query";
 import { nanoid } from "nanoid";
+import { useTrpc } from "../TrpcProvider";
+import { Button } from "../ui/button";
 
 export const DebugNotebooks = () => {
+  const trpc = useTrpc();
   const createNotebookMutation = useMutation(
     trpc.createNotebook.mutationOptions()
   );
