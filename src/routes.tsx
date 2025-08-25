@@ -29,7 +29,7 @@ const NotebookLoadingScreen = React.lazy(() =>
 // Direct imports for critical auth components
 import AuthorizePage from "./components/auth/AuthorizePage.js";
 
-import { AuthProvider, useAuth as useOidcAuth } from "react-oidc-context";
+import { AuthProvider } from "react-oidc-context";
 import { createOidcConfig } from "./auth/oidc-config.js";
 import { useAuth } from "./auth/index.js";
 
@@ -39,6 +39,7 @@ import { CustomLiveStoreProvider } from "./components/livestore/CustomLiveStoreP
 import { NotebookApp } from "./components/NotebookApp.tsx";
 import { useDebug } from "./components/debug/debug-mode.tsx";
 import { getStoreId } from "./util/store-id.ts";
+import { OidcCallbackPage } from "./components/auth/OidcCallbackPages.tsx";
 
 // Lazy load runbook components
 const RunbookDashboard = React.lazy(() =>
@@ -133,52 +134,6 @@ const AnimatedLiveStoreApp: React.FC = () => {
         <NotebookApp />
       </CustomLiveStoreProvider>
     </>
-  );
-};
-
-// Simple OIDC callback page
-const OidcCallbackPage: React.FC = () => {
-  const auth = useOidcAuth();
-
-  useEffect(() => {
-    if (auth.isAuthenticated) {
-      console.log("🔍 OidcCallbackPage: Authenticated, redirecting to home");
-      window.location.href = "/";
-    }
-  }, [auth.isAuthenticated]);
-
-  if (auth.error) {
-    return (
-      <div className="bg-background flex min-h-screen items-center justify-center">
-        <div className="text-center">
-          <div className="text-lg font-semibold text-red-600">
-            Authentication Error
-          </div>
-          <p className="mt-2 text-sm text-gray-600">{auth.error.message}</p>
-          <button
-            onClick={() => (window.location.href = "/")}
-            className="mt-4 rounded bg-gray-200 px-4 py-2 hover:bg-gray-300"
-          >
-            Go Home
-          </button>
-        </div>
-      </div>
-    );
-  }
-
-  return (
-    <div className="bg-background flex min-h-screen items-center justify-center">
-      <div className="space-y-6 text-center">
-        <div>
-          <div className="text-foreground mb-2 text-lg font-semibold">
-            Following the White Rabbit...
-          </div>
-          <p className="text-muted-foreground text-sm">
-            Processing authentication
-          </p>
-        </div>
-      </div>
-    </div>
   );
 };
 
