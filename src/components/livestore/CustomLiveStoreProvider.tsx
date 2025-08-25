@@ -5,7 +5,7 @@ import { BootStatus } from "@livestore/livestore";
 import { LiveStoreProvider } from "@livestore/react";
 import React, { useEffect, useRef } from "react";
 import { unstable_batchedUpdates as batchUpdates } from "react-dom";
-import { useAuthenticatedUser } from "../../auth/use-simple-auth.js";
+import { useAuthenticatedUser } from "../../auth/index.js";
 import LiveStoreWorker from "./livestore.worker?worker";
 
 function loading(_status: BootStatus) {

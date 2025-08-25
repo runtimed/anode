@@ -1,9 +1,10 @@
 import React, { useEffect, useState } from "react";
 import {
-  useSimpleAuth,
+  useAuth,
   useAuthenticatedUser,
-  UserInfo,
-} from "../../auth/use-simple-auth.js";
+  type AuthUser,
+  toBackendUser,
+} from "../../auth/index.js";
 import { useUserRegistry } from "../../hooks/useUserRegistry.js";
 import { AvatarWithDetails } from "../ui/AvatarWithDetails.js";
 import { useStore, useQuery } from "@livestore/react";
@@ -16,32 +17,14 @@ interface UserProfileProps {
   className?: string;
 }
 
-const getDisplayName = (user: UserInfo): string => {
-  let name = user.name;
-  if (!name) {
-    if (user.given_name) {
-      name = user.given_name;
-    }
-
-    // This will be the wrong ordering for certain locales
-    // Find a better way to do this in the future
-    if (user.family_name) {
-      if (name) {
-        name += " ";
-      }
-      name += user.family_name;
-    }
-  }
-  if (!name) {
-    name = user.email;
-  }
-  return name;
+const getDisplayName = (user: AuthUser): string => {
+  return toBackendUser(user).name || user.email;
 };
 
 const useSyncUserToLiveStore = () => {
   const { store } = useStore();
   const { user } = useAuthenticatedUser();
-  const { picture, sub } = user;
+  const { sub } = user;
   const userId = sub;
   const displayName = getDisplayName(user);
   const existingActor = useQuery(
@@ -57,15 +40,15 @@ const useSyncUserToLiveStore = () => {
           id: userId,
           type: "human",
           displayName: displayName,
-          avatar: picture,
+          avatar: undefined,
         })
       );
     }
-  }, [displayName, needsInsertion, picture, store, userId]);
+  }, [displayName, needsInsertion, store, userId]);
 };
 
 export const UserProfile: React.FC<UserProfileProps> = ({ className = "" }) => {
-  const { signOut } = useSimpleAuth();
+  const { signOut } = useAuth();
   const { user } = useAuthenticatedUser();
   useSyncUserToLiveStore();
   const { getUserInitials } = useUserRegistry();
@@ -98,7 +81,7 @@ export const UserProfile: React.FC<UserProfileProps> = ({ className = "" }) => {
           <AvatarWithDetails
             initials={getUserInitials(user.sub)}
             title={displayName}
-            image={user.picture}
+            image={undefined}
             subtitle={user.email}
           />
 

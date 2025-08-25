@@ -1,19 +1,16 @@
 import React from "react";
-import { useAuth } from "react-oidc-context";
+import { useAuth as useOidcAuth } from "react-oidc-context";
 import { LoadingState } from "../components/loading/LoadingState";
 import { Button } from "../components/ui/button";
 import { RuntLogo } from "../components/logo";
 
-interface SimpleAuthGuardProps {
+interface AuthGuardProps {
   children: React.ReactNode;
   fallback?: React.ReactNode;
 }
 
-export const SimpleAuthGuard: React.FC<SimpleAuthGuardProps> = ({
-  children,
-  fallback,
-}) => {
-  const auth = useAuth();
+export const AuthGuard: React.FC<AuthGuardProps> = ({ children, fallback }) => {
+  const auth = useOidcAuth();
 
   // Handle specific navigation states
   switch (auth.activeNavigator) {

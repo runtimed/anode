@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { LogOut, Settings } from "lucide-react";
-import { useSimpleAuth, UserInfo } from "../../auth/use-simple-auth";
+import { useAuth, type AuthUser } from "../../auth/index.js";
 import { Button } from "../ui/button";
 import {
   DropdownMenu,
@@ -18,10 +18,10 @@ interface SimpleUserProfileProps {
 export const SimpleUserProfile: React.FC<SimpleUserProfileProps> = ({
   className = "",
 }) => {
-  const { signOut, user } = useSimpleAuth();
+  const { signOut, user } = useAuth();
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
-  const getDisplayName = (user: UserInfo) => {
+  const getDisplayName = (user: AuthUser): string => {
     if (!user) return "Unknown User";
 
     const { given_name, family_name, email } = user;
@@ -42,7 +42,7 @@ export const SimpleUserProfile: React.FC<SimpleUserProfileProps> = ({
     return "Unknown User";
   };
 
-  const getUserInitials = (user: UserInfo) => {
+  const getUserInitials = (user: AuthUser) => {
     if (!user) return "?";
 
     const { given_name, family_name, email } = user;

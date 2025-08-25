@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { LogOut, Settings } from "lucide-react";
-import { useSimpleAuth } from "../../auth/use-simple-auth.js";
+import { useAuth } from "../../auth/index.js";
 import { Button } from "../ui/button";
 import {
   DropdownMenu,
@@ -18,20 +18,20 @@ interface SimpleUserProfileProps {
 export const SimpleUserProfile: React.FC<SimpleUserProfileProps> = ({
   className = "",
 }) => {
-  const { signOut, user } = useSimpleAuth();
+  const { signOut, user } = useAuth();
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
   const getDisplayName = (user: any) => {
     if (!user) return "Unknown User";
 
-    const { givenName, familyName, email } = user;
+    const { given_name, family_name, email } = user;
 
-    if (givenName && familyName) {
-      return `${givenName} ${familyName}`;
+    if (given_name && family_name) {
+      return `${given_name} ${family_name}`;
     }
 
-    if (givenName) return givenName;
-    if (familyName) return familyName;
+    if (given_name) return given_name;
+    if (family_name) return family_name;
 
     // Fall back to email if no name parts
     if (email) {
