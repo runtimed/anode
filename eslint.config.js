@@ -326,6 +326,7 @@ export default [
       "scripts/**",
       "iframe-outputs/worker/dist/**",
       "iframe-outputs/worker/.wrangler/**",
+      "public/oidc-client-ts.min.js",
     ],
   },
 ];
