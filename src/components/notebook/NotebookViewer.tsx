@@ -24,27 +24,21 @@ import { contextSelectionMode$ } from "./signals/ai-context.js";
 
 // Lazy import DebugPanel only in development
 const LazyDebugPanel = React.lazy(() =>
-  import("./DebugPanel.js").then((module) => ({
+  import("../debug/DebugPanel.js").then((module) => ({
     default: module.DebugPanel,
   }))
 );
 
 import { GitCommitHash } from "./GitCommitHash.js";
 import { NotebookContent } from "./NotebookContent.js";
+import { useDebug } from "@/components/debug/debug-mode.js";
+import { DebugModeToggle } from "../debug/DebugModeToggle.js";
 
-interface NotebookViewerProps {
-  notebookId: string;
-  debugMode?: boolean;
-  onDebugToggle?: (enabled: boolean) => void;
-}
-
-export const NotebookViewer: React.FC<NotebookViewerProps> = ({
-  debugMode = false,
-  onDebugToggle,
-}) => {
+export const NotebookViewer: React.FC = () => {
   // eslint-disable-next-line react-compiler/react-compiler
   "use no memo";
 
+  const debug = useDebug();
   const { store } = useStore();
   const {
     user: { sub: userId },
@@ -70,7 +64,7 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
       {/* Top Navigation Bar */}
       <nav className="bg-card border-b px-3 py-1 sm:px-4 sm:py-2">
         <div
-          className={`flex w-full items-center justify-between ${debugMode ? "sm:mx-auto sm:max-w-none" : "sm:mx-auto sm:max-w-6xl"}`}
+          className={`flex w-full items-center justify-between ${debug.enabled ? "sm:mx-auto sm:max-w-none" : "sm:mx-auto sm:max-w-6xl"}`}
         >
           <div className="flex items-center gap-2 sm:gap-4">
             <div className="relative h-8 w-8 overflow-hidden sm:h-10 sm:w-10">
@@ -158,24 +152,7 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
                 </span>
               </div>
             )}
-
-            {import.meta.env.DEV && onDebugToggle && (
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => onDebugToggle(!debugMode)}
-                className={`h-6 w-6 p-0 transition-opacity ${
-                  debugMode ? "opacity-100" : "opacity-30 hover:opacity-60"
-                }`}
-                title={debugMode ? "Hide debug info" : "Show debug info"}
-              >
-                {debugMode ? (
-                  <Bug className="h-3 w-3" />
-                ) : (
-                  <BugOff className="h-3 w-3" />
-                )}
-              </Button>
-            )}
+            {import.meta.env.DEV && <DebugModeToggle />}
             <ErrorBoundary fallback={<div>Error loading user profile</div>}>
               <UserProfile />
             </ErrorBoundary>
@@ -184,13 +161,15 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
       </nav>
 
       {/* Main Content Area */}
-      <div className={`flex ${debugMode ? "h-[calc(100vh-57px)]" : ""}`}>
+      <div className={`flex ${debug.enabled ? "h-[calc(100vh-57px)]" : ""}`}>
         {/* Notebook Content */}
-        <div className={`${debugMode ? "flex-1 overflow-y-auto" : "w-full"}`}>
+        <div
+          className={`${debug.enabled ? "flex-1 overflow-y-auto" : "w-full"}`}
+        >
           {/* Notebook Header Bar */}
           <div className="bg-muted/20 border-b">
             <div
-              className={`w-full px-3 py-2 ${debugMode ? "px-4 py-3" : "sm:mx-auto sm:max-w-6xl sm:px-4 sm:py-3"}`}
+              className={`w-full px-3 py-2 ${debug.enabled ? "px-4 py-3" : "sm:mx-auto sm:max-w-6xl sm:px-4 sm:py-3"}`}
             >
               <div className="flex items-center justify-between gap-2">
                 <div className="flex min-w-0 flex-1 items-center gap-2 sm:gap-4">
@@ -235,7 +214,7 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
           </div>
 
           <div
-            className={`w-full px-0 py-3 pb-24 ${debugMode ? "px-4" : "sm:mx-auto sm:max-w-4xl sm:p-4 sm:pb-4"}`}
+            className={`w-full px-0 py-3 pb-24 ${debug.enabled ? "px-4" : "sm:mx-auto sm:max-w-4xl sm:p-4 sm:pb-4"}`}
           >
             {/* Keyboard Shortcuts Help - Desktop only */}
             {cellReferences.length > 0 && (
@@ -271,7 +250,7 @@ export const NotebookViewer: React.FC<NotebookViewerProps> = ({
         </div>
 
         {/* Debug Panel */}
-        {import.meta.env.DEV && debugMode && (
+        {import.meta.env.DEV && debug.enabled && (
           <Suspense
             fallback={
               <div className="bg-muted/5 text-muted-foreground w-96 border-l p-4 text-xs">

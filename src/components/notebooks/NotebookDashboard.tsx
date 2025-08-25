@@ -29,6 +29,12 @@ import {
 import { NotebookCard } from "./NotebookCard";
 import { SimpleUserProfile } from "./SimpleUserProfile";
 import type { NotebookProcessed } from "./types";
+import { useDebug } from "@/components/debug/debug-mode";
+import { DebugModeToggle } from "../debug/DebugModeToggle";
+
+const DebugNotebooks = React.lazy(() =>
+  import("./DebugNotebooks").then((mod) => ({ default: mod.DebugNotebooks }))
+);
 
 type ViewMode = "grid" | "table";
 type FilterType = "scratch" | "named" | "shared";
@@ -38,6 +44,7 @@ export const NotebookDashboard: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [activeFilter, setActiveFilter] = useState<FilterType>("named");
   const [viewMode, setViewMode] = useState<ViewMode>("grid");
+  const debug = useDebug();
 
   const trpc = useTrpc();
 
@@ -357,6 +364,9 @@ export const NotebookDashboard: React.FC = () => {
                 </DropdownMenuContent>
               </DropdownMenu>
 
+              {/* Debug Mode Toggle */}
+              {import.meta.env.DEV && <DebugModeToggle />}
+
               {/* User Profile */}
               <SimpleUserProfile />
             </div>
@@ -400,6 +410,8 @@ export const NotebookDashboard: React.FC = () => {
               )}
             </div>
           )}
+
+          {debug.enabled && <DebugNotebooks />}
 
           {!isLoading && filteredNotebooks.length > 0 && (
             <div className="space-y-8">
