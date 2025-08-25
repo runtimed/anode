@@ -40,21 +40,3 @@ export function useTRPCClient() {
     });
   }, [auth.user?.access_token]);
 }
-
-// For backwards compatibility - components that use this will need to be wrapped in TrpcProvider
-export const trpc = {
-  notebooks: {
-    useQuery: () => {
-      throw new Error(
-        "trpc.notebooks.useQuery must be used inside a component wrapped with TrpcProvider. Use useTRPCClient() hook instead."
-      );
-    },
-  },
-  me: {
-    useQuery: () => {
-      throw new Error(
-        "trpc.me.useQuery must be used inside a component wrapped with TrpcProvider. Use useTRPCClient() hook instead."
-      );
-    },
-  },
-};
