@@ -1,33 +1,19 @@
-import React, { Suspense, useEffect, useState } from "react";
-
+// Direct imports for critical auth components
+import React, { Suspense, useEffect } from "react";
+import { AuthProvider } from "react-oidc-context";
 import { Route, Routes } from "react-router-dom";
 import { AuthGuard } from "./auth/index.js";
+import { createOidcConfig } from "./auth/oidc-config.js";
+import { TrpcProvider } from "./components/TrpcProvider.tsx";
+import AuthorizePage from "./components/auth/AuthorizePage.js";
+import { OidcCallbackPage } from "./components/auth/OidcCallbackPages.tsx";
 import { LoadingState } from "./components/loading/LoadingState.js";
 import { GraphQLClientProvider } from "./lib/graphql-client.js";
 import {
   isLoadingScreenVisible,
   removeStaticLoadingScreen,
-  updateLoadingStage,
 } from "./util/domUpdates.js";
-
-const NotebookLoadingScreen = React.lazy(() =>
-  import("./components/notebook/NotebookLoadingScreen.js").then((m) => ({
-    default: m.NotebookLoadingScreen,
-  }))
-);
-
-// Direct imports for critical auth components
-import AuthorizePage from "./components/auth/AuthorizePage.js";
-
-import { AuthProvider } from "react-oidc-context";
-import { createOidcConfig } from "./auth/oidc-config.js";
-import { useAuth } from "./auth/index.js";
-
-import { TrpcProvider } from "./components/TrpcProvider.tsx";
-import { CustomLiveStoreProvider } from "./components/livestore/CustomLiveStoreProvider.tsx";
-import { NotebookApp } from "./components/NotebookApp.tsx";
-import { getStoreId } from "./util/store-id.ts";
-import { OidcCallbackPage } from "./components/auth/OidcCallbackPages.tsx";
+import { HomePage } from "./HomePage.tsx";
 
 // Lazy load runbook components
 const RunbookDashboard = React.lazy(() =>
@@ -52,78 +38,6 @@ const NotebookPage = React.lazy(() =>
     default: m.NotebookPage,
   }))
 );
-
-// Animation wrapper with minimum loading time and animation completion
-const AnimatedLiveStoreApp: React.FC = () => {
-  const { isAuthenticated } = useAuth();
-  const [isLoading, setIsLoading] = useState(true);
-  const [shouldShowAnimation, setShouldShowAnimation] = useState(false);
-
-  const [liveStoreReady, setLiveStoreReady] = useState(false);
-  const [portalAnimationComplete, setPortalAnimationComplete] = useState(false);
-  const [portalReady, setPortalReady] = useState(false);
-
-  // Show loading animation only after auth confirmation
-  useEffect(() => {
-    if (isAuthenticated) {
-      setShouldShowAnimation(true);
-    }
-  }, [isAuthenticated]);
-
-  // Update static loading screen stage when LiveStore is ready
-  useEffect(() => {
-    if (liveStoreReady) {
-      updateLoadingStage("loading-notebook");
-    }
-  }, [liveStoreReady]);
-
-  // Trigger animation when LiveStore is ready
-  useEffect(() => {
-    if (liveStoreReady && isLoading) {
-      updateLoadingStage("ready");
-
-      // Ensure React has painted before removing static screen
-      requestAnimationFrame(() => {
-        // Double RAF to ensure paint has completed
-        requestAnimationFrame(() => {
-          removeStaticLoadingScreen();
-          setPortalReady(true);
-        });
-      });
-    }
-  }, [liveStoreReady, isLoading]);
-
-  // Complete transition only after portal animation finishes
-  useEffect(() => {
-    if (portalAnimationComplete) {
-      setIsLoading(false);
-    }
-  }, [portalAnimationComplete]);
-
-  return (
-    <>
-      {/* Loading screen overlay */}
-      {shouldShowAnimation && isLoading && (
-        <div className="fixed inset-0 z-50 overflow-hidden">
-          <Suspense fallback={<div className="min-h-screen bg-white" />}>
-            <NotebookLoadingScreen
-              ready={portalReady}
-              onPortalAnimationComplete={() => setPortalAnimationComplete(true)}
-            />
-          </Suspense>
-        </div>
-      )}
-
-      {/* Main app with LiveStore integration */}
-      <CustomLiveStoreProvider
-        storeId={getStoreId()}
-        onLiveStoreReady={() => setLiveStoreReady(true)}
-      >
-        <NotebookApp />
-      </CustomLiveStoreProvider>
-    </>
-  );
-};
 
 export const App: React.FC = () => {
   // Safety net: Auto-remove loading screen if no component has handled it
@@ -244,7 +158,7 @@ export const App: React.FC = () => {
           path="/*"
           element={
             <AuthGuard>
-              <AnimatedLiveStoreApp />
+              <HomePage />
             </AuthGuard>
           }
         />
