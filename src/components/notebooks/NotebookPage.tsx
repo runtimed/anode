@@ -257,8 +257,10 @@ export const NotebookPage: React.FC = () => {
           showRuntimeHelper={showRuntimeHelper}
           onClose={() => setShowRuntimeHelper(false)}
         />
-        <KeyboardShortcuts />
-        <NotebookContent />
+        <div className="w-full px-0 py-3 pb-24 sm:mx-auto sm:max-w-4xl sm:p-4 sm:pb-4">
+          <KeyboardShortcuts />
+          <NotebookContent />
+        </div>
       </CustomLiveStoreProvider>
 
       {/* Sharing Modal */}
