@@ -1,39 +1,29 @@
-import React, { useState, useEffect } from "react";
-import { useParams, Link, useLocation, useNavigate } from "react-router-dom";
-import {
-  ArrowLeft,
-  Users,
-  Clock,
-  User,
-  Edit2,
-  Check,
-  X,
-  Share2,
-} from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
+import { ArrowLeft, Clock, Share2, User, Users } from "lucide-react";
+import React, { useEffect, useState } from "react";
+import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
 import {
   getNotebookVanityUrl,
   hasCorrectNotebookVanityUrl,
 } from "../../util/url-utils";
-import { useQuery, useMutation } from "@tanstack/react-query";
-import { useTrpc } from "../TrpcProvider";
-import { Button } from "../ui/button";
-import { Input } from "../ui/input";
-import { Badge } from "../ui/badge";
+import { CustomLiveStoreProvider } from "../livestore/CustomLiveStoreProvider";
 import { LoadingState } from "../loading/LoadingState";
+import { RuntLogoSmall } from "../logo/RuntLogoSmall";
+import { NotebookContent } from "../notebook/NotebookContent";
+import { useTrpc } from "../TrpcProvider";
+import { Badge } from "../ui/badge";
+import { Button } from "../ui/button";
+import { TitleEditor } from "./notebook/TitleEditor";
 import { SharingModal } from "./SharingModal";
 import type { NotebookProcessed } from "./types";
-import { CustomLiveStoreProvider } from "../livestore/CustomLiveStoreProvider";
-import { NotebookContent } from "../notebook/NotebookContent";
-import { RuntLogoSmall } from "../logo/RuntLogoSmall";
 
 export const NotebookPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const trpc = useTrpc();
   const location = useLocation();
   const navigate = useNavigate();
-  const [isEditingTitle, setIsEditingTitle] = useState(false);
-  const [editTitle, setEditTitle] = useState("");
   const [isSharingModalOpen, setIsSharingModalOpen] = useState(false);
+  const [showRuntimeHelper, setShowRuntimeHelper] = React.useState(false);
 
   // Get initial notebook data from router state (if navigated from creation)
   const initialNotebook = location.state?.initialNotebook as
@@ -68,11 +58,6 @@ export const NotebookPage: React.FC = () => {
     ...trpc.myNotebookPermission.queryOptions({ nbId: id! }),
     enabled: !!id,
   });
-
-  // Update notebook mutation
-  const updateNotebookMutation = useMutation(
-    trpc.updateNotebook.mutationOptions()
-  );
 
   // Construct the full notebook object with all the data
   const notebook: NotebookProcessed | null = React.useMemo(() => {
@@ -115,34 +100,6 @@ export const NotebookPage: React.FC = () => {
     isLoading,
     notebook,
   ]);
-
-  const handleStartEditTitle = () => {
-    setEditTitle(notebook?.title || "");
-    setIsEditingTitle(true);
-  };
-
-  const handleSaveTitle = async () => {
-    if (!notebook || !editTitle.trim()) return;
-
-    try {
-      await updateNotebookMutation.mutateAsync({
-        id: notebook.id,
-        input: { title: editTitle.trim() },
-      });
-      setIsEditingTitle(false);
-      // Refetch to update cache - canonicalization effect will handle URL update
-      refetch();
-      // TODO: Show success toast
-    } catch (err) {
-      console.error("Failed to update notebook:", err);
-      // TODO: Show error toast
-    }
-  };
-
-  const handleCancelEdit = () => {
-    setIsEditingTitle(false);
-    setEditTitle("");
-  };
 
   const formatDate = (dateString: string) => {
     return new Intl.DateTimeFormat("en-US", {
@@ -212,54 +169,11 @@ export const NotebookPage: React.FC = () => {
                 <ArrowLeft className="absolute top-1/2 left-1/2 h-4 w-4 -translate-x-1/2 -translate-y-1/2 opacity-0 group-hover/logo:opacity-100" />
               </Link>
 
-              {/* Title */}
-              <div className="flex items-center gap-2">
-                {isEditingTitle ? (
-                  <div className="flex items-center gap-2">
-                    <Input
-                      value={editTitle}
-                      onChange={(e) => setEditTitle(e.target.value)}
-                      className="text-lg font-semibold"
-                      placeholder="Notebook title..."
-                      onKeyDown={(e) => {
-                        if (e.key === "Enter") handleSaveTitle();
-                        if (e.key === "Escape") handleCancelEdit();
-                      }}
-                      autoFocus
-                    />
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      onClick={handleSaveTitle}
-                      disabled={!editTitle.trim()}
-                    >
-                      <Check className="h-4 w-4" />
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      onClick={handleCancelEdit}
-                    >
-                      <X className="h-4 w-4" />
-                    </Button>
-                  </div>
-                ) : (
-                  <div className="flex items-center gap-2">
-                    <h1 className="text-xl font-semibold">
-                      {notebook.title || "Untitled Notebook"}
-                    </h1>
-                    {canEdit && (
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        onClick={handleStartEditTitle}
-                      >
-                        <Edit2 className="h-4 w-4" />
-                      </Button>
-                    )}
-                  </div>
-                )}
-              </div>
+              <TitleEditor
+                notebook={notebook}
+                onTitleSaved={refetch}
+                canEdit={canEdit}
+              />
             </div>
 
             <div className="flex items-center gap-2">
@@ -337,7 +251,7 @@ export const NotebookPage: React.FC = () => {
         notebook={notebook}
         isOpen={isSharingModalOpen}
         onClose={() => setIsSharingModalOpen(false)}
-        onUpdate={() => refetch()}
+        onUpdate={refetch}
       />
     </div>
   );

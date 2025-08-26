@@ -31,9 +31,9 @@ const LazyDebugPanel = React.lazy(() =>
 
 import { useDebug } from "@/components/debug/debug-mode.js";
 import { DebugModeToggle } from "../debug/DebugModeToggle.js";
+import { RuntLogoSmall } from "../logo/RuntLogoSmall.js";
 import { GitCommitHash } from "./GitCommitHash.js";
 import { NotebookContent } from "./NotebookContent.js";
-import { RuntLogoSmall } from "../logo/RuntLogoSmall.js";
 
 export const NotebookViewer: React.FC = () => {
   // eslint-disable-next-line react-compiler/react-compiler
