@@ -45,6 +45,8 @@ export const NotebookViewer: React.FC = () => {
     user: { sub: userId },
   } = useAuthenticatedUser();
   const { presentUsers, getUserInfo, getUserColor } = useUserRegistry();
+
+  // cells are already sorted by position from the database query
   const cellReferences = useQuery(queries.cellsWithIndices$);
 
   const runtimeSessions = useQuery(
@@ -54,8 +56,6 @@ export const NotebookViewer: React.FC = () => {
   const [showRuntimeHelper, setShowRuntimeHelper] = React.useState(false);
 
   const contextSelectionMode = useQuery(contextSelectionMode$);
-
-  // cells are already sorted by position from the database query
 
   const otherUsers = presentUsers.filter((user) => user.id !== userId);
   const LIMIT = 5;
