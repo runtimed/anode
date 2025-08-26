@@ -257,16 +257,19 @@ export const NotebookPage: React.FC = () => {
           storeId={id}
           onLiveStoreReady={() => setLiveStoreReady(true)}
         >
-          <CollaboratorAvatars />
-          <RuntimeHealthIndicatorButton
-            onToggleClick={() => setShowRuntimeHelper(!showRuntimeHelper)}
-          />
-          <RuntimeHelper
-            notebookId={id}
-            showRuntimeHelper={showRuntimeHelper}
-            onClose={() => setShowRuntimeHelper(false)}
-          />
-          <div className="w-full px-0 py-3 pb-24 sm:mx-auto sm:max-w-4xl sm:p-4 sm:pb-4">
+          <div className="container mx-auto px-4">
+            <div className="flex h-12 items-center gap-2">
+              <CollaboratorAvatars />
+              <RuntimeHealthIndicatorButton
+                onToggleClick={() => setShowRuntimeHelper(!showRuntimeHelper)}
+              />
+            </div>
+            <RuntimeHelper
+              notebookId={id}
+              showRuntimeHelper={showRuntimeHelper}
+              onClose={() => setShowRuntimeHelper(false)}
+            />
+
             <KeyboardShortcuts />
             <NotebookContent />
           </div>
