@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { LogOut, Settings } from "lucide-react";
+import { Key, LogOut, Settings } from "lucide-react";
 import { useAuth, type AuthUser } from "../../auth/index.js";
 import { Button } from "../ui/button";
 import {
@@ -10,6 +10,7 @@ import {
   DropdownMenuTrigger,
 } from "../ui/dropdown-menu";
 import { Avatar } from "../ui/Avatar";
+import { ApiKeysDialog } from "../auth/ApiKeysDialog.js";
 
 interface SimpleUserProfileProps {
   className?: string;
@@ -20,6 +21,7 @@ export const SimpleUserProfile: React.FC<SimpleUserProfileProps> = ({
 }) => {
   const { signOut, user } = useAuth();
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [isApiKeysDialogOpen, setIsApiKeysDialogOpen] = useState(false);
 
   const getDisplayName = (user: AuthUser): string => {
     if (!user) return "Unknown User";
@@ -112,6 +114,10 @@ export const SimpleUserProfile: React.FC<SimpleUserProfileProps> = ({
             Settings
             <span className="text-muted-foreground ml-auto text-xs">Soon</span>
           </DropdownMenuItem>
+          <DropdownMenuItem onClick={() => setIsApiKeysDialogOpen(true)}>
+            <Key className="h-4 w-4" />
+            API Keys
+          </DropdownMenuItem>
 
           <DropdownMenuSeparator />
 
@@ -124,6 +130,11 @@ export const SimpleUserProfile: React.FC<SimpleUserProfileProps> = ({
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
+
+      <ApiKeysDialog
+        open={isApiKeysDialogOpen}
+        onOpenChange={setIsApiKeysDialogOpen}
+      />
     </div>
   );
 };

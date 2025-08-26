@@ -11,8 +11,8 @@ import {
   User,
   Users,
 } from "lucide-react";
-import React, { useMemo, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import React, { useMemo } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { useTrpc } from "../TrpcProvider";
 import { getNotebookVanityUrl } from "../../util/url-utils";
 import { Badge } from "../ui/badge";
@@ -31,6 +31,8 @@ import { SimpleUserProfile } from "./SimpleUserProfile";
 import type { NotebookProcessed } from "./types";
 import { useDebug } from "@/components/debug/debug-mode";
 import { DebugModeToggle } from "../debug/DebugModeToggle";
+import { RuntLogoSmall } from "../logo/RuntLogoSmall";
+import { GitCommitHash } from "../notebook/GitCommitHash";
 
 const DebugNotebooks = React.lazy(() =>
   import("./DebugNotebooks").then((mod) => ({ default: mod.DebugNotebooks }))
@@ -41,10 +43,49 @@ type FilterType = "scratch" | "named" | "shared";
 
 export const NotebookDashboard: React.FC = () => {
   const navigate = useNavigate();
-  const [searchQuery, setSearchQuery] = useState("");
-  const [activeFilter, setActiveFilter] = useState<FilterType>("named");
-  const [viewMode, setViewMode] = useState<ViewMode>("grid");
+  const [searchParams, setSearchParams] = useSearchParams();
+  // Get filter, view mode, and search query from URL params
+  const filterParam = searchParams.get("filter");
+  const activeFilter: FilterType =
+    filterParam === "scratch" ||
+    filterParam === "shared" ||
+    filterParam === "named"
+      ? filterParam
+      : "named";
+
+  const searchQuery = searchParams.get("q") || "";
+
+  const viewModeParam = searchParams.get("view");
+  const viewMode: ViewMode = viewModeParam === "table" ? "table" : "grid";
   const debug = useDebug();
+
+  // Function to update view mode in URL params
+  const setViewMode = (mode: ViewMode) => {
+    const newSearchParams = new URLSearchParams(searchParams);
+    newSearchParams.set("view", mode);
+    setSearchParams(newSearchParams, { replace: true });
+  };
+
+  // Function to update active filter in URL params
+  const setActiveFilter = React.useCallback(
+    (filter: FilterType) => {
+      const newSearchParams = new URLSearchParams(searchParams);
+      newSearchParams.set("filter", filter);
+      setSearchParams(newSearchParams, { replace: true });
+    },
+    [searchParams, setSearchParams]
+  );
+
+  // Function to update search query in URL params with debouncing
+  const setSearchQuery = (query: string) => {
+    const newSearchParams = new URLSearchParams(searchParams);
+    if (query.trim()) {
+      newSearchParams.set("q", query);
+    } else {
+      newSearchParams.delete("q");
+    }
+    setSearchParams(newSearchParams, { replace: true });
+  };
 
   const trpc = useTrpc();
 
@@ -164,7 +205,13 @@ export const NotebookDashboard: React.FC = () => {
         setActiveFilter("shared");
       }
     }
-  }, [hasNotebooks, activeFilter, hasNamedNotebooks, allNotebooks]);
+  }, [
+    hasNotebooks,
+    activeFilter,
+    hasNamedNotebooks,
+    allNotebooks,
+    setActiveFilter,
+  ]);
 
   // Create notebook mutation
   const createNotebookMutation = useMutation(
@@ -207,7 +254,8 @@ export const NotebookDashboard: React.FC = () => {
     <div className="flex h-screen bg-gray-50">
       {/* Left Sidebar */}
       <div className="w-64 overflow-y-auto border-r border-gray-200 bg-white">
-        <div className="border-b border-gray-200 p-4">
+        <div className="flex items-center gap-2 border-b border-gray-200 p-4">
+          <RuntLogoSmall />
           <h2 className="font-semibold text-gray-900">Notebooks</h2>
         </div>
 
@@ -515,6 +563,9 @@ export const NotebookDashboard: React.FC = () => {
                 )}
             </div>
           )}
+          <div className="mt-8 flex justify-center border-t px-4 py-2 text-center">
+            <GitCommitHash />
+          </div>
         </div>
       </div>
     </div>

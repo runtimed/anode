@@ -43,13 +43,6 @@ export const getStoreId = () => {
   return newNotebookId;
 };
 
-export const getCurrentNotebookId = () => {
-  if (typeof window === "undefined") return "default-notebook";
-
-  const searchParams = new URLSearchParams(window.location.search);
-  return searchParams.get("notebook") || "default-notebook";
-};
-
 // Helper to navigate to a specific notebook
 export const navigateToNotebook = (notebookId: string) => {
   if (typeof window === "undefined") return;

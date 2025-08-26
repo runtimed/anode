@@ -1,24 +1,24 @@
-import React, { useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { useRuntimeHealth } from "@/hooks/useRuntimeHealth.js";
-import { useStore } from "@livestore/react";
-import { events } from "@/schema";
-import { useAuthenticatedUser } from "../../auth/index.js";
+import { events, tables } from "@/schema";
 import { getRuntimeCommand } from "@/util/runtime-command.js";
-import { getCurrentNotebookId } from "@/util/store-id.js";
+import { queryDb } from "@livestore/livestore";
+import { useQuery, useStore } from "@livestore/react";
 import { Copy, Square } from "lucide-react";
+import React, { useCallback } from "react";
+import { useAuthenticatedUser } from "../../auth/index.js";
 import { RuntimeHealthIndicator } from "./RuntimeHealthIndicator.js";
 
 interface RuntimeHelperProps {
   showRuntimeHelper: boolean;
   onClose: () => void;
-  runtimeSessions: any[];
+  notebookId: string;
 }
 
 export const RuntimeHelper: React.FC<RuntimeHelperProps> = ({
   showRuntimeHelper,
   onClose,
-  runtimeSessions,
+  notebookId,
 }) => {
   const { store } = useStore();
   const {
@@ -27,8 +27,11 @@ export const RuntimeHelper: React.FC<RuntimeHelperProps> = ({
   const { activeRuntime, hasActiveRuntime, runningExecutions, runtimeHealth } =
     useRuntimeHealth();
 
-  const currentNotebookId = getCurrentNotebookId();
-  const runtimeCommand = getRuntimeCommand(currentNotebookId);
+  const runtimeSessions = useQuery(
+    queryDb(tables.runtimeSessions.select().where({ isActive: true }))
+  );
+
+  const runtimeCommand = getRuntimeCommand(notebookId);
 
   const copyRuntimeCommand = useCallback(() => {
     navigator.clipboard.writeText(runtimeCommand);
@@ -78,8 +81,7 @@ export const RuntimeHelper: React.FC<RuntimeHelperProps> = ({
             </p>
             <p className="text-muted-foreground mb-3 text-sm">
               Run this command in your terminal to start a runtime for notebook{" "}
-              <code className="bg-muted rounded px-1">{currentNotebookId}</code>
-              :
+              <code className="bg-muted rounded px-1">{notebookId}</code>:
             </p>
             <div className="flex items-center gap-2 rounded bg-slate-900 p-3 font-mono text-sm text-slate-100">
               <span className="flex-1">{runtimeCommand}</span>

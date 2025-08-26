@@ -1,38 +1,50 @@
-import React, { useState, useEffect } from "react";
-import { useParams, Link, useLocation, useNavigate } from "react-router-dom";
-import {
-  ArrowLeft,
-  Users,
-  Clock,
-  User,
-  Edit2,
-  Check,
-  X,
-  Share2,
-} from "lucide-react";
+import { cn } from "@/lib/utils";
+import { useQuery } from "@tanstack/react-query";
+import { ArrowLeft, Clock, Share2, User, Users } from "lucide-react";
+import React, { Suspense, useEffect, useState } from "react";
+import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
 import {
   getNotebookVanityUrl,
   hasCorrectNotebookVanityUrl,
 } from "../../util/url-utils";
-import { useQuery, useMutation } from "@tanstack/react-query";
-import { useTrpc } from "../TrpcProvider";
-import { Button } from "../ui/button";
-import { Input } from "../ui/input";
-import { Badge } from "../ui/badge";
+import { CollaboratorAvatars } from "../CollaboratorAvatars";
+import { KeyboardShortcuts } from "../KeyboardShortcuts";
+import { CustomLiveStoreProvider } from "../livestore/CustomLiveStoreProvider";
 import { LoadingState } from "../loading/LoadingState";
+import { RuntLogoSmall } from "../logo/RuntLogoSmall";
+import { GitCommitHash } from "../notebook/GitCommitHash";
+import { NotebookContent } from "../notebook/NotebookContent";
+import { RuntimeHealthIndicatorButton } from "../notebook/RuntimeHealthIndicatorButton";
+import { RuntimeHelper } from "../notebook/RuntimeHelper";
+import { DelayedSpinner } from "../outputs/shared-with-iframe/SuspenseSpinner";
+import { useTrpc } from "../TrpcProvider";
+import { Badge } from "../ui/badge";
+import { Button } from "../ui/button";
+import { TitleEditor } from "./notebook/TitleEditor";
 import { SharingModal } from "./SharingModal";
 import type { NotebookProcessed } from "./types";
-import { CustomLiveStoreProvider } from "../livestore/CustomLiveStoreProvider";
-import { NotebookContent } from "../notebook/NotebookContent";
+import { SimpleUserProfile } from "./SimpleUserProfile";
+import { ErrorBoundary } from "react-error-boundary";
+import { useDebug } from "@/components/debug/debug-mode.js";
+import { DebugModeToggle } from "../debug/DebugModeToggle.js";
+import { ContextSelectionModeButton } from "../notebook/ContextSelectionModeButton.js";
+
+// Lazy import DebugPanel only in development
+const LazyDebugPanel = React.lazy(() =>
+  import("../debug/DebugPanel.js").then((module) => ({
+    default: module.DebugPanel,
+  }))
+);
 
 export const NotebookPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const trpc = useTrpc();
   const location = useLocation();
   const navigate = useNavigate();
-  const [isEditingTitle, setIsEditingTitle] = useState(false);
-  const [editTitle, setEditTitle] = useState("");
   const [isSharingModalOpen, setIsSharingModalOpen] = useState(false);
+  const [showRuntimeHelper, setShowRuntimeHelper] = React.useState(false);
+  const [liveStoreReady, setLiveStoreReady] = useState(false);
+  const debug = useDebug();
 
   // Get initial notebook data from router state (if navigated from creation)
   const initialNotebook = location.state?.initialNotebook as
@@ -67,11 +79,6 @@ export const NotebookPage: React.FC = () => {
     ...trpc.myNotebookPermission.queryOptions({ nbId: id! }),
     enabled: !!id,
   });
-
-  // Update notebook mutation
-  const updateNotebookMutation = useMutation(
-    trpc.updateNotebook.mutationOptions()
-  );
 
   // Construct the full notebook object with all the data
   const notebook: NotebookProcessed | null = React.useMemo(() => {
@@ -114,34 +121,6 @@ export const NotebookPage: React.FC = () => {
     isLoading,
     notebook,
   ]);
-
-  const handleStartEditTitle = () => {
-    setEditTitle(notebook?.title || "");
-    setIsEditingTitle(true);
-  };
-
-  const handleSaveTitle = async () => {
-    if (!notebook || !editTitle.trim()) return;
-
-    try {
-      await updateNotebookMutation.mutateAsync({
-        id: notebook.id,
-        input: { title: editTitle.trim() },
-      });
-      setIsEditingTitle(false);
-      // Refetch to update cache - canonicalization effect will handle URL update
-      refetch();
-      // TODO: Show success toast
-    } catch (err) {
-      console.error("Failed to update notebook:", err);
-      // TODO: Show error toast
-    }
-  };
-
-  const handleCancelEdit = () => {
-    setIsEditingTitle(false);
-    setEditTitle("");
-  };
 
   const formatDate = (dateString: string) => {
     return new Intl.DateTimeFormat("en-US", {
@@ -204,60 +183,18 @@ export const NotebookPage: React.FC = () => {
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between gap-4">
             <div className="flex items-center gap-4">
-              <Link to="/nb">
-                <Button variant="ghost" size="sm">
-                  <ArrowLeft className="h-4 w-4" />
-                </Button>
+              <Link to="/nb" className="group/logo relative">
+                <span className="relative transition-opacity group-hover/logo:opacity-20">
+                  <RuntLogoSmall />
+                </span>
+                <ArrowLeft className="absolute top-1/2 left-1/2 h-4 w-4 -translate-x-1/2 -translate-y-1/2 opacity-0 group-hover/logo:opacity-100" />
               </Link>
 
-              {/* Title */}
-              <div className="flex items-center gap-2">
-                {isEditingTitle ? (
-                  <div className="flex items-center gap-2">
-                    <Input
-                      value={editTitle}
-                      onChange={(e) => setEditTitle(e.target.value)}
-                      className="text-lg font-semibold"
-                      placeholder="Notebook title..."
-                      onKeyDown={(e) => {
-                        if (e.key === "Enter") handleSaveTitle();
-                        if (e.key === "Escape") handleCancelEdit();
-                      }}
-                      autoFocus
-                    />
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      onClick={handleSaveTitle}
-                      disabled={!editTitle.trim()}
-                    >
-                      <Check className="h-4 w-4" />
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      onClick={handleCancelEdit}
-                    >
-                      <X className="h-4 w-4" />
-                    </Button>
-                  </div>
-                ) : (
-                  <div className="flex items-center gap-2">
-                    <h1 className="text-xl font-semibold">
-                      {notebook.title || "Untitled Notebook"}
-                    </h1>
-                    {canEdit && (
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        onClick={handleStartEditTitle}
-                      >
-                        <Edit2 className="h-4 w-4" />
-                      </Button>
-                    )}
-                  </div>
-                )}
-              </div>
+              <TitleEditor
+                notebook={notebook}
+                onTitleSaved={refetch}
+                canEdit={canEdit}
+              />
             </div>
 
             <div className="flex items-center gap-2">
@@ -281,6 +218,12 @@ export const NotebookPage: React.FC = () => {
               >
                 {(notebook.myPermission || "NONE").toLowerCase()}
               </Badge>
+
+              {import.meta.env.DEV && <DebugModeToggle />}
+
+              <ErrorBoundary fallback={<div>Error loading user profile</div>}>
+                <SimpleUserProfile />
+              </ErrorBoundary>
             </div>
           </div>
 
@@ -326,17 +269,92 @@ export const NotebookPage: React.FC = () => {
         </div>
       </div>
 
-      <CustomLiveStoreProvider storeId={id}>
-        <NotebookContent />
-      </CustomLiveStoreProvider>
+      <LiveStoreSpinnerContainer liveStoreReady={liveStoreReady}>
+        <CustomLiveStoreProvider
+          storeId={id}
+          onLiveStoreReady={() => setLiveStoreReady(true)}
+        >
+          <div className="flex">
+            <div className="container mx-auto px-4">
+              <div className="flex h-12 items-center gap-2">
+                <CollaboratorAvatars />
+                <div className="flex-1" />
+                <ContextSelectionModeButton />
+                <RuntimeHealthIndicatorButton
+                  onToggleClick={() => setShowRuntimeHelper(!showRuntimeHelper)}
+                />
+              </div>
+              <RuntimeHelper
+                notebookId={id}
+                showRuntimeHelper={showRuntimeHelper}
+                onClose={() => setShowRuntimeHelper(false)}
+              />
 
-      {/* Sharing Modal */}
-      <SharingModal
-        notebook={notebook}
-        isOpen={isSharingModalOpen}
-        onClose={() => setIsSharingModalOpen(false)}
-        onUpdate={() => refetch()}
-      />
+              <KeyboardShortcuts />
+              <NotebookContent />
+            </div>
+
+            {/* Debug Panel */}
+            {import.meta.env.DEV && debug.enabled && (
+              <Suspense
+                fallback={
+                  <div className="bg-muted/5 text-muted-foreground w-96 border-l p-4 text-xs">
+                    Loading debug panel...
+                  </div>
+                }
+              >
+                <ErrorBoundary
+                  fallback={<div>Error rendering debug panel</div>}
+                >
+                  <div className="w-96">
+                    <LazyDebugPanel />
+                  </div>
+                </ErrorBoundary>
+              </Suspense>
+            )}
+          </div>
+        </CustomLiveStoreProvider>
+
+        {/* Sharing Modal */}
+        <SharingModal
+          notebook={notebook}
+          isOpen={isSharingModalOpen}
+          onClose={() => setIsSharingModalOpen(false)}
+          onUpdate={refetch}
+        />
+
+        <div className="h-[70vh]"></div>
+        <div className="mt-8 flex justify-center border-t px-4 py-2 text-center">
+          <GitCommitHash />
+        </div>
+      </LiveStoreSpinnerContainer>
     </div>
   );
 };
+
+function LiveStoreSpinnerContainer({
+  children,
+  liveStoreReady,
+}: {
+  children: React.ReactNode;
+  liveStoreReady: boolean;
+}) {
+  return (
+    // Spinner is relative to this div
+    <div className="relative">
+      {children}
+
+      {/* Loading spinner */}
+      <div
+        className={cn(
+          "pointer-events-none absolute inset-0 z-50 flex items-center justify-center",
+          liveStoreReady ? "opacity-0" : "opacity-100"
+        )}
+      >
+        <div className="bg-background flex items-center justify-center rounded-full">
+          <DelayedSpinner size="lg" />
+        </div>
+      </div>
+    </div>
+  );
+}
