@@ -6,6 +6,11 @@ import type {
   RevokePermissionInput,
   UserPermission,
 } from "./types.ts";
+import {
+  createFallbackUser,
+  getUsersByIds,
+  toPublicFacingUser,
+} from "../users/utils.ts";
 
 interface NotebookRow {
   id: string;
@@ -286,6 +291,36 @@ export class LocalPermissionsProvider implements PermissionsProvider {
     }
   }
 
+  // Helper function to get notebook collaborators
+  private async getNotebookCollaborators(notebookId: string) {
+    const query = `
+      SELECT user_id FROM notebook_permissions
+      WHERE notebook_id = ?
+      AND permission = 'writer'
+    `;
+
+    const writers = await this.db
+      .prepare(query)
+      .bind(notebookId)
+      .all<{ user_id: string }>();
+
+    if (writers.results.length === 0) {
+      return [];
+    }
+
+    const userIds = writers.results.map((w) => w.user_id);
+    const userMap = await getUsersByIds(this.db, userIds);
+
+    return userIds.map((userId) => {
+      const userRecord = userMap.get(userId);
+      if (userRecord) {
+        return toPublicFacingUser(userRecord);
+      } else {
+        return createFallbackUser(userId);
+      }
+    });
+  }
+
   async fetchAccessibleResourcesWithData(
     userId: string,
     resourceType: "notebook",
@@ -345,7 +380,15 @@ export class LocalPermissionsProvider implements PermissionsProvider {
         .bind(...bindings)
         .all<NotebookRow>();
 
-      return result.results;
+      // Add collaborators to each notebook
+      const notebooksWithCollaborators = await Promise.all(
+        result.results.map(async (notebook) => ({
+          ...notebook,
+          collaborators: await this.getNotebookCollaborators(notebook.id),
+        }))
+      );
+
+      return notebooksWithCollaborators;
     } catch (error) {
       // Fall back to null to indicate the two-step approach should be used
       console.error("Failed to fetch accessible resources with data:", error);

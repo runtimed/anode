@@ -1,3 +1,4 @@
+import type { D1Database } from "@cloudflare/workers-types";
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 import { publicProcedure, authedProcedure, router } from "./trpc";
@@ -11,6 +12,36 @@ import {
 } from "../users/utils.ts";
 import { createNotebookId } from "../utils/notebook-id.ts";
 import { NotebookPermission, NotebookRow } from "./types.ts";
+
+// Helper function to get notebook collaborators
+async function getNotebookCollaborators(db: D1Database, notebookId: string) {
+  const query = `
+    SELECT user_id FROM notebook_permissions
+    WHERE notebook_id = ?
+    AND permission = 'writer'
+  `;
+
+  const writers = await db
+    .prepare(query)
+    .bind(notebookId)
+    .all<{ user_id: string }>();
+
+  if (writers.results.length === 0) {
+    return [];
+  }
+
+  const userIds = writers.results.map((w: { user_id: string }) => w.user_id);
+  const userMap = await getUsersByIds(db, userIds);
+
+  return userIds.map((userId: string) => {
+    const userRecord = userMap.get(userId);
+    if (userRecord) {
+      return toPublicFacingUser(userRecord);
+    } else {
+      return createFallbackUser(userId);
+    }
+  });
+}
 
 // Create the tRPC router
 export const appRouter = router({
@@ -150,7 +181,17 @@ export const appRouter = router({
             new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime()
         );
 
-        return allResults.slice(offset, offset + limit);
+        const finalResults = allResults.slice(offset, offset + limit);
+
+        // Add collaborators to each notebook
+        const notebooksWithCollaborators = await Promise.all(
+          finalResults.map(async (notebook) => ({
+            ...notebook,
+            collaborators: await getNotebookCollaborators(DB, notebook.id),
+          }))
+        );
+
+        return notebooksWithCollaborators;
       } catch (error) {
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
