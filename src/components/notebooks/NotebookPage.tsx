@@ -1,7 +1,7 @@
 import { cn } from "@/lib/utils";
 import { useQuery } from "@tanstack/react-query";
 import { ArrowLeft, Clock, Share2, User, Users } from "lucide-react";
-import React, { useEffect, useState } from "react";
+import React, { Suspense, useEffect, useState } from "react";
 import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
 import {
   getNotebookVanityUrl,
@@ -24,6 +24,16 @@ import { TitleEditor } from "./notebook/TitleEditor";
 import { SharingModal } from "./SharingModal";
 import type { NotebookProcessed } from "./types";
 import { SimpleUserProfile } from "./SimpleUserProfile";
+import { ErrorBoundary } from "react-error-boundary";
+import { useDebug } from "@/components/debug/debug-mode.js";
+import { DebugModeToggle } from "../debug/DebugModeToggle.js";
+
+// Lazy import DebugPanel only in development
+const LazyDebugPanel = React.lazy(() =>
+  import("../debug/DebugPanel.js").then((module) => ({
+    default: module.DebugPanel,
+  }))
+);
 
 export const NotebookPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -33,6 +43,7 @@ export const NotebookPage: React.FC = () => {
   const [isSharingModalOpen, setIsSharingModalOpen] = useState(false);
   const [showRuntimeHelper, setShowRuntimeHelper] = React.useState(false);
   const [liveStoreReady, setLiveStoreReady] = useState(false);
+  const debug = useDebug();
 
   // Get initial notebook data from router state (if navigated from creation)
   const initialNotebook = location.state?.initialNotebook as
@@ -206,7 +217,12 @@ export const NotebookPage: React.FC = () => {
               >
                 {(notebook.myPermission || "NONE").toLowerCase()}
               </Badge>
-              <SimpleUserProfile />
+
+              {import.meta.env.DEV && <DebugModeToggle />}
+
+              <ErrorBoundary fallback={<div>Error loading user profile</div>}>
+                <SimpleUserProfile />
+              </ErrorBoundary>
             </div>
           </div>
 
@@ -257,21 +273,42 @@ export const NotebookPage: React.FC = () => {
           storeId={id}
           onLiveStoreReady={() => setLiveStoreReady(true)}
         >
-          <div className="container mx-auto px-4">
-            <div className="flex h-12 items-center gap-2">
-              <CollaboratorAvatars />
-              <RuntimeHealthIndicatorButton
-                onToggleClick={() => setShowRuntimeHelper(!showRuntimeHelper)}
+          <div className="flex">
+            <div className="container mx-auto px-4">
+              <div className="flex h-12 items-center gap-2">
+                <CollaboratorAvatars />
+                <RuntimeHealthIndicatorButton
+                  onToggleClick={() => setShowRuntimeHelper(!showRuntimeHelper)}
+                />
+              </div>
+              <RuntimeHelper
+                notebookId={id}
+                showRuntimeHelper={showRuntimeHelper}
+                onClose={() => setShowRuntimeHelper(false)}
               />
-            </div>
-            <RuntimeHelper
-              notebookId={id}
-              showRuntimeHelper={showRuntimeHelper}
-              onClose={() => setShowRuntimeHelper(false)}
-            />
 
-            <KeyboardShortcuts />
-            <NotebookContent />
+              <KeyboardShortcuts />
+              <NotebookContent />
+            </div>
+
+            {/* Debug Panel */}
+            {import.meta.env.DEV && debug.enabled && (
+              <Suspense
+                fallback={
+                  <div className="bg-muted/5 text-muted-foreground w-96 border-l p-4 text-xs">
+                    Loading debug panel...
+                  </div>
+                }
+              >
+                <ErrorBoundary
+                  fallback={<div>Error rendering debug panel</div>}
+                >
+                  <div className="w-96">
+                    <LazyDebugPanel />
+                  </div>
+                </ErrorBoundary>
+              </Suspense>
+            )}
           </div>
         </CustomLiveStoreProvider>
 
