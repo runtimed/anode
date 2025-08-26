@@ -192,14 +192,10 @@ export default {
     }
 
     if (
-      pathname.startsWith("/livestore") ||
-      pathname.startsWith("/websocket") ||
+      pathname.startsWith("/livestore") &&
       request.headers.get("upgrade") === "websocket"
     ) {
-      console.log(
-        "🔄 Routing to LiveStore/WebSocket (sync handler) on",
-        request.url
-      );
+      console.log("🔄 Routing to LiveStore sync handler on", request.url);
       return syncHandler.fetch(
         request as unknown as Request,
         env,
