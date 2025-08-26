@@ -1,6 +1,7 @@
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { AlertCircle, Mail, Plus, Trash2, User } from "lucide-react";
 import React, { useMemo, useState } from "react";
+import { useDebounce } from "react-use";
 import { useTrpc } from "../TrpcProvider";
 import { Badge } from "../ui/badge";
 import { Button } from "../ui/button";
@@ -28,16 +29,27 @@ export const SharingModal: React.FC<SharingModalProps> = ({
   onUpdate,
 }) => {
   const [email, setEmail] = useState("");
+  const [debouncedEmail, setDebouncedEmail] = useState("");
   const [isSharing, setIsSharing] = useState(false);
 
   const trpc = useTrpc();
 
-  // Only lookup user if email looks valid and not empty
-  const shouldLookupUser = email.includes("@") && email.includes(".");
+  // Debounce the email input with a 500ms delay
+  useDebounce(
+    () => {
+      setDebouncedEmail(email);
+    },
+    200,
+    [email]
+  );
 
-  // Query for user by email
+  // Only lookup user if debounced email looks valid and not empty
+  const shouldLookupUser =
+    debouncedEmail.includes("@") && debouncedEmail.includes(".");
+
+  // Query for user by email using debounced value
   const { data: userByEmail, isFetching: lookingUpUser } = useQuery({
-    ...trpc.userByEmail.queryOptions({ email: email.trim() }),
+    ...trpc.userByEmail.queryOptions({ email: debouncedEmail.trim() }),
     enabled: shouldLookupUser,
   });
 
