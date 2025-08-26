@@ -3,7 +3,7 @@ import { makePersistedAdapter } from "@livestore/adapter-web";
 import LiveStoreSharedWorker from "@livestore/adapter-web/shared-worker?sharedworker";
 import { BootStatus } from "@livestore/livestore";
 import { LiveStoreProvider } from "@livestore/react";
-import React, { useEffect, useRef } from "react";
+import React, { useEffect, useMemo, useRef } from "react";
 import { unstable_batchedUpdates as batchUpdates } from "react-dom";
 import { useAuthenticatedUser } from "../../auth/index.js";
 import LiveStoreWorker from "./livestore.worker?worker";
@@ -77,13 +77,17 @@ export const CustomLiveStoreProvider: React.FC<
     syncPayload.current.authToken = accessToken || "";
   }, [clientId, accessToken]);
 
-  const adapter = makePersistedAdapter({
-    storage: { type: "opfs" },
-    worker: LiveStoreWorker,
-    sharedWorker: LiveStoreSharedWorker,
-    resetPersistence,
-    clientId, // This ties the LiveStore client to the authenticated user
-  });
+  const adapter = useMemo(
+    () =>
+      makePersistedAdapter({
+        storage: { type: "opfs" },
+        worker: LiveStoreWorker,
+        sharedWorker: LiveStoreSharedWorker,
+        resetPersistence,
+        clientId, // This ties the LiveStore client to the authenticated user
+      }),
+    [clientId, resetPersistence]
+  );
 
   return (
     <LiveStoreProvider
