@@ -23,6 +23,7 @@ import { Button } from "../ui/button";
 import { TitleEditor } from "./notebook/TitleEditor";
 import { SharingModal } from "./SharingModal";
 import type { NotebookProcessed } from "./types";
+import { SimpleUserProfile } from "./SimpleUserProfile";
 
 export const NotebookPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -205,6 +206,7 @@ export const NotebookPage: React.FC = () => {
               >
                 {(notebook.myPermission || "NONE").toLowerCase()}
               </Badge>
+              <SimpleUserProfile />
             </div>
           </div>
 
