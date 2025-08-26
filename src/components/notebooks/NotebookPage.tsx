@@ -10,12 +10,14 @@ import { CustomLiveStoreProvider } from "../livestore/CustomLiveStoreProvider";
 import { LoadingState } from "../loading/LoadingState";
 import { RuntLogoSmall } from "../logo/RuntLogoSmall";
 import { NotebookContent } from "../notebook/NotebookContent";
+import { RuntimeHealthIndicatorButton } from "../notebook/RuntimeHealthIndicatorButton";
 import { useTrpc } from "../TrpcProvider";
 import { Badge } from "../ui/badge";
 import { Button } from "../ui/button";
 import { TitleEditor } from "./notebook/TitleEditor";
 import { SharingModal } from "./SharingModal";
 import type { NotebookProcessed } from "./types";
+import { RuntimeHelper } from "../notebook/RuntimeHelper";
 
 export const NotebookPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -243,6 +245,14 @@ export const NotebookPage: React.FC = () => {
       </div>
 
       <CustomLiveStoreProvider storeId={id}>
+        <RuntimeHealthIndicatorButton
+          onToggleClick={() => setShowRuntimeHelper(!showRuntimeHelper)}
+        />
+        <RuntimeHelper
+          notebookId={id}
+          showRuntimeHelper={showRuntimeHelper}
+          onClose={() => setShowRuntimeHelper(false)}
+        />
         <NotebookContent />
       </CustomLiveStoreProvider>
 

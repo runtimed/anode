@@ -1,6 +1,5 @@
 // import { toast } from "sonner";
-import { queries, tables } from "@/schema";
-import { queryDb } from "@livestore/livestore";
+import { queries } from "@/schema";
 import { useQuery, useStore } from "@livestore/react";
 
 import React, { Suspense } from "react";
@@ -48,10 +47,6 @@ export const NotebookViewer: React.FC = () => {
 
   // cells are already sorted by position from the database query
   const cellReferences = useQuery(queries.cellsWithIndices$);
-
-  const runtimeSessions = useQuery(
-    queryDb(tables.runtimeSessions.select().where({ isActive: true }))
-  );
 
   const [showRuntimeHelper, setShowRuntimeHelper] = React.useState(false);
 
@@ -185,9 +180,9 @@ export const NotebookViewer: React.FC = () => {
             </div>
 
             <RuntimeHelper
+              notebookId={store.storeId}
               showRuntimeHelper={showRuntimeHelper}
               onClose={() => setShowRuntimeHelper(false)}
-              runtimeSessions={runtimeSessions as any[]}
             />
           </div>
 
