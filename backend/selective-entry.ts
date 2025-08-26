@@ -13,7 +13,6 @@ import { type AuthContext } from "./middleware.ts";
 import { RuntError, ErrorType } from "./types.ts";
 import apiRoutes from "./routes.ts";
 import localOidcRoutes from "./local-oidc-routes.ts";
-import { yoga } from "./graphql/server.ts";
 import { fetchRequestHandler } from "@trpc/server/adapters/fetch";
 import { appRouter } from "./trpc/index.ts";
 import { extractAndValidateUser } from "./auth.ts";
@@ -152,27 +151,6 @@ export default {
       });
     }
 
-    if (pathname.startsWith("/graphql")) {
-      console.log("🚀 Routing to GraphQL Yoga");
-      try {
-        const response = await yoga.fetch(request as unknown as Request, env);
-        console.log("✅ GraphQL response:", response.status);
-        return response as unknown as WorkerResponse;
-      } catch (error) {
-        console.error("❌ GraphQL error:", error);
-        return new workerGlobals.Response(
-          JSON.stringify({
-            error: "GraphQL processing failed",
-            message: error instanceof Error ? error.message : String(error),
-          }),
-          {
-            status: 500,
-            headers: { "Content-Type": "application/json" },
-          }
-        );
-      }
-    }
-
     if (pathname.startsWith("/api/trpc")) {
       console.log("🚀 Routing to tRPC");
       try {
@@ -296,7 +274,6 @@ export default {
   <h2>Available Endpoints:</h2>
   <ul>
     <li><a href="/health">GET /health</a> - Health check</li>
-    <li><a href="/graphql">POST /graphql</a> - GraphQL API</li>
     <li><span class="code">WS /livestore</span> - LiveStore sync</li>
   </ul>
   ${!allowLocalAuth ? '<p><em>Local OIDC endpoints are disabled. Set ALLOW_LOCAL_AUTH="true" to enable them.</em></p>' : ""}

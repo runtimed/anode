@@ -6,7 +6,7 @@ import {
   LoadingState,
   MinimalLoading,
 } from "./components/loading/LoadingState.js";
-import { GraphQLClientProvider } from "./lib/graphql-client.js";
+
 import {
   isLoadingScreenVisible,
   removeStaticLoadingScreen,
@@ -39,18 +39,6 @@ import { CustomLiveStoreProvider } from "./components/livestore/CustomLiveStoreP
 import { NotebookApp } from "./components/NotebookApp.tsx";
 import { useDebug } from "./components/debug/debug-mode.tsx";
 import { getStoreId } from "./util/store-id.ts";
-
-// Lazy load runbook components
-const RunbookDashboard = React.lazy(() =>
-  import("./components/runbooks/RunbookDashboard.js").then((m) => ({
-    default: m.RunbookDashboard,
-  }))
-);
-const RunbookViewer = React.lazy(() =>
-  import("./components/runbooks/RunbookViewer.tsx").then((m) => ({
-    default: m.RunbookViewer,
-  }))
-);
 
 // Lazy load notebook components for the new /nb routes
 const NotebooksDashboard = React.lazy(() =>
@@ -241,44 +229,7 @@ export const App: React.FC = () => {
       <Routes>
         <Route path="/oidc" element={<OidcCallbackPage />} />
         <Route path="/local_oidc/authorize" element={<AuthorizePage />} />
-        <Route
-          path="/r/:ulid/*"
-          element={
-            <AuthGuard>
-              <GraphQLClientProvider>
-                <Suspense
-                  fallback={
-                    <LoadingState
-                      variant="fullscreen"
-                      message="Loading runbook..."
-                    />
-                  }
-                >
-                  <RunbookViewer />
-                </Suspense>
-              </GraphQLClientProvider>
-            </AuthGuard>
-          }
-        />
-        <Route
-          path="/r"
-          element={
-            <AuthGuard>
-              <GraphQLClientProvider>
-                <Suspense
-                  fallback={
-                    <LoadingState
-                      variant="fullscreen"
-                      message="Loading runbooks..."
-                    />
-                  }
-                >
-                  <RunbookDashboard />
-                </Suspense>
-              </GraphQLClientProvider>
-            </AuthGuard>
-          }
-        />
+
         <Route
           path="/nb/:id/*"
           element={
