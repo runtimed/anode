@@ -238,6 +238,7 @@ export const App: React.FC = () => {
           </Suspense>
         </div>
       )}
+      <div>graphql test</div>
       <Routes>
         <Route path="/oidc" element={<OidcCallbackPage />} />
         <Route path="/local_oidc/authorize" element={<AuthorizePage />} />
