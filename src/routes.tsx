@@ -1,22 +1,22 @@
 import React, { Suspense, useEffect } from "react";
 import { AuthProvider } from "react-oidc-context";
 import { Route, Routes } from "react-router-dom";
-import { AuthGuard } from "./auth/index.js";
-import { createOidcConfig } from "./auth/oidc-config.js";
-import AuthorizePage from "./components/auth/AuthorizePage.js";
-import { LoadingState } from "./components/loading/LoadingState.js";
-import { Toaster } from "./components/ui/sonner.js";
-import { FPSMeter } from "./components/debug/FPSMeter.tsx";
+import { AuthGuard } from "@/auth/index.js";
+import { createOidcConfig } from "@/auth/oidc-config.js";
+import AuthorizePage from "@/pages/AuthorizePage.tsx";
+import { LoadingState } from "@/components/loading/LoadingState.js";
+import { Toaster } from "@/components/ui/sonner.js";
+import { FPSMeter } from "@/components/debug/FPSMeter.tsx";
 import {
   isLoadingScreenVisible,
   removeStaticLoadingScreen,
-} from "./util/domUpdates.js";
+} from "@/util/domUpdates.js";
 
 // Import page components
-import { HomePage } from "./pages/HomePage.tsx";
-import { OidcCallbackPage } from "./pages/OidcCallbackPage.tsx";
-import { NotebooksDashboardPage } from "./pages/NotebooksDashboardPage.tsx";
-import { NotebookPage } from "./pages/NotebookPage.tsx";
+import { HomePage } from "@/pages/HomePage.tsx";
+import { OidcCallbackPage } from "@/pages/OidcCallbackPage.tsx";
+import { NotebooksDashboardPage } from "@/pages/NotebooksDashboardPage.tsx";
+import { NotebookPage } from "@/pages/NotebookPage.tsx";
 
 export const App: React.FC = () => {
   // Safety net: Auto-remove loading screen if no component has handled it

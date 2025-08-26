@@ -1,15 +1,15 @@
 import React, { Suspense, useEffect, useState } from "react";
-import { useAuth } from "../auth/index.js";
-import { CustomLiveStoreProvider } from "../components/livestore/CustomLiveStoreProvider.tsx";
-import { NotebookApp } from "../components/NotebookApp.tsx";
+import { useAuth } from "@/auth/index.js";
+import { CustomLiveStoreProvider } from "@/components/livestore/CustomLiveStoreProvider.tsx";
+import { NotebookApp } from "@/components/NotebookApp.tsx";
 import {
   removeStaticLoadingScreen,
   updateLoadingStage,
-} from "../util/domUpdates.js";
-import { getStoreId } from "../util/store-id.ts";
+} from "@/util/domUpdates.js";
+import { getStoreId } from "@/util/store-id.ts";
 
 const NotebookLoadingScreen = React.lazy(() =>
-  import("../components/notebook/NotebookLoadingScreen.js").then((m) => ({
+  import("@/components/notebook/NotebookLoadingScreen.js").then((m) => ({
     default: m.NotebookLoadingScreen,
   }))
 );

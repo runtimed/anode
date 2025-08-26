@@ -1,15 +1,15 @@
 import React, { useState, useEffect } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
-import { Button } from "../ui/button";
-import { Input } from "../ui/input";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from "../ui/card";
-import { RuntLogo } from "../logo";
+} from "@/components/ui/card";
+import { RuntLogo } from "@/components/logo";
 import { removeStaticLoadingScreen } from "@/util/domUpdates";
 import { useSpring, animated } from "@react-spring/web";
 
