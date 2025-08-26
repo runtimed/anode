@@ -33,6 +33,7 @@ import { useDebug } from "@/components/debug/debug-mode.js";
 import { DebugModeToggle } from "../debug/DebugModeToggle.js";
 import { GitCommitHash } from "./GitCommitHash.js";
 import { NotebookContent } from "./NotebookContent.js";
+import { RuntLogoSmall } from "../logo/RuntLogoSmall.js";
 
 export const NotebookViewer: React.FC = () => {
   // eslint-disable-next-line react-compiler/react-compiler
@@ -67,30 +68,7 @@ export const NotebookViewer: React.FC = () => {
           className={`flex w-full items-center justify-between ${debug.enabled ? "sm:mx-auto sm:max-w-none" : "sm:mx-auto sm:max-w-6xl"}`}
         >
           <div className="flex items-center gap-2 sm:gap-4">
-            <div className="relative h-8 w-8 overflow-hidden sm:h-10 sm:w-10">
-              <img
-                src="/hole.png"
-                alt=""
-                className="pixel-logo absolute inset-0 h-full w-full"
-              />
-
-              <img
-                src="/runes.png"
-                alt=""
-                className="pixel-logo absolute inset-0 h-full w-full"
-              />
-
-              <img
-                src="/bunny-sit.png"
-                alt=""
-                className="pixel-logo absolute inset-0 h-full w-full"
-              />
-              <img
-                src="/bracket.png"
-                alt="Runt"
-                className="pixel-logo absolute inset-0 h-full w-full"
-              />
-            </div>
+            <RuntLogoSmall />
             <a
               href={window.location.origin}
               className="ring-offset-background focus-visible:ring-ring border-input bg-background hover:bg-accent hover:text-accent-foreground inline-flex h-8 items-center justify-center rounded-md border px-2 text-sm font-medium whitespace-nowrap transition-colors focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none disabled:pointer-events-none disabled:opacity-50 sm:h-9 sm:px-3"

@@ -31,6 +31,7 @@ import { SimpleUserProfile } from "./SimpleUserProfile";
 import type { NotebookProcessed } from "./types";
 import { useDebug } from "@/components/debug/debug-mode";
 import { DebugModeToggle } from "../debug/DebugModeToggle";
+import { RuntLogoSmall } from "../logo/RuntLogoSmall";
 
 const DebugNotebooks = React.lazy(() =>
   import("./DebugNotebooks").then((mod) => ({ default: mod.DebugNotebooks }))
@@ -207,7 +208,8 @@ export const NotebookDashboard: React.FC = () => {
     <div className="flex h-screen bg-gray-50">
       {/* Left Sidebar */}
       <div className="w-64 overflow-y-auto border-r border-gray-200 bg-white">
-        <div className="border-b border-gray-200 p-4">
+        <div className="flex items-center gap-2 border-b border-gray-200 p-4">
+          <RuntLogoSmall />
           <h2 className="font-semibold text-gray-900">Notebooks</h2>
         </div>
 
