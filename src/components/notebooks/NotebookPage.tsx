@@ -21,6 +21,7 @@ import { RuntimeHelper } from "../notebook/RuntimeHelper";
 import { CollaboratorAvatars } from "../CollaboratorAvatars";
 import { KeyboardShortcuts } from "../KeyboardShortcuts";
 import { GitCommitHash } from "../notebook/GitCommitHash";
+import { LoadingScreen } from "../loading/LoadingScreen";
 
 export const NotebookPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -29,6 +30,7 @@ export const NotebookPage: React.FC = () => {
   const navigate = useNavigate();
   const [isSharingModalOpen, setIsSharingModalOpen] = useState(false);
   const [showRuntimeHelper, setShowRuntimeHelper] = React.useState(false);
+  const [liveStoreReady, setLiveStoreReady] = useState(false);
 
   // Get initial notebook data from router state (if navigated from creation)
   const initialNotebook = location.state?.initialNotebook as
@@ -247,7 +249,11 @@ export const NotebookPage: React.FC = () => {
         </div>
       </div>
 
-      <CustomLiveStoreProvider storeId={id}>
+      <LoadingScreen liveStoreReady={liveStoreReady} />
+      <CustomLiveStoreProvider
+        storeId={id}
+        onLiveStoreReady={() => setLiveStoreReady(true)}
+      >
         <CollaboratorAvatars />
         <RuntimeHealthIndicatorButton
           onToggleClick={() => setShowRuntimeHelper(!showRuntimeHelper)}
