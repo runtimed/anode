@@ -1,3 +1,4 @@
+import type { D1Database } from "@cloudflare/workers-types";
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 import { publicProcedure, authedProcedure, router } from "./trpc";
@@ -11,6 +12,36 @@ import {
 } from "../users/utils.ts";
 import { createNotebookId } from "../utils/notebook-id.ts";
 import { NotebookPermission, NotebookRow } from "./types.ts";
+
+// Helper function to get notebook collaborators
+async function getNotebookCollaborators(db: D1Database, notebookId: string) {
+  const query = `
+    SELECT user_id FROM notebook_permissions
+    WHERE notebook_id = ?
+    AND permission = 'writer'
+  `;
+
+  const writers = await db
+    .prepare(query)
+    .bind(notebookId)
+    .all<{ user_id: string }>();
+
+  if (writers.results.length === 0) {
+    return [];
+  }
+
+  const userIds = writers.results.map((w: { user_id: string }) => w.user_id);
+  const userMap = await getUsersByIds(db, userIds);
+
+  return userIds.map((userId: string) => {
+    const userRecord = userMap.get(userId);
+    if (userRecord) {
+      return toPublicFacingUser(userRecord);
+    } else {
+      return createFallbackUser(userId);
+    }
+  });
+}
 
 // Create the tRPC router
 export const appRouter = router({
@@ -102,29 +133,40 @@ export const appRouter = router({
             );
         }
 
+        // Try efficient single-query approach first (works for local provider)
+        if (permissionsProvider.fetchAccessibleResourcesWithData) {
+          const efficientResult =
+            await permissionsProvider.fetchAccessibleResourcesWithData(
+              user.id,
+              "notebook",
+              { owned, shared, limit, offset }
+            );
+
+          if (efficientResult !== null) {
+            return efficientResult;
+          }
+        }
+
+        // Fall back to two-step approach for external providers
         if (accessibleNotebookIds.length === 0) {
           return [];
         }
 
-        // Use chunked parameterized queries to avoid SQL injection
-        // Most databases have a limit on the number of parameters in a single query
-        // Chunking at 200 was tested and "too many variables" errors still happened, but 100 is known to work.
-        const CHUNK_SIZE = 100;
-        const chunks = [];
-        for (let i = 0; i < accessibleNotebookIds.length; i += CHUNK_SIZE) {
-          chunks.push(accessibleNotebookIds.slice(i, i + CHUNK_SIZE));
-        }
-
+        // Use chunked queries to avoid SQL parameter limits
+        // SQLite has a limit around 999 parameters. Using 900 is well under the limit
+        // and more efficient than smaller chunks like 100.
+        const CHUNK_SIZE = 900;
         const allResults: NotebookRow[] = [];
 
-        for (const chunk of chunks) {
+        for (let i = 0; i < accessibleNotebookIds.length; i += CHUNK_SIZE) {
+          const chunk = accessibleNotebookIds.slice(i, i + CHUNK_SIZE);
           const placeholders = chunk.map(() => "?").join(",");
           const query = `
-              SELECT id, owner_id, title, created_at, updated_at
-              FROM notebooks
-              WHERE id IN (${placeholders})
-              ORDER BY updated_at DESC
-            `;
+            SELECT id, owner_id, title, created_at, updated_at
+            FROM notebooks
+            WHERE id IN (${placeholders})
+            ORDER BY updated_at DESC
+          `;
 
           const result = await DB.prepare(query)
             .bind(...chunk)
@@ -139,7 +181,17 @@ export const appRouter = router({
             new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime()
         );
 
-        return allResults.slice(offset, offset + limit);
+        const finalResults = allResults.slice(offset, offset + limit);
+
+        // Add collaborators to each notebook
+        const notebooksWithCollaborators = await Promise.all(
+          finalResults.map(async (notebook) => ({
+            ...notebook,
+            collaborators: await getNotebookCollaborators(DB, notebook.id),
+          }))
+        );
+
+        return notebooksWithCollaborators;
       } catch (error) {
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",

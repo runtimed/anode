@@ -68,11 +68,15 @@ export const NotebookDashboard: React.FC = () => {
         ({
           ...notebook,
           myPermission: notebook.owner_id === userData?.id ? "OWNER" : "WRITER",
-          owner: { id: notebook.owner_id, givenName: "", familyName: "" }, // Placeholder
-          collaborators: [], // Placeholder
+          owner: {
+            id: notebook.owner_id,
+            givenName: userData?.givenName || "",
+            familyName: userData?.familyName || "",
+          },
+          collaborators: notebook.collaborators || [],
         }) as const
     );
-  }, [notebooksData, userData?.id]);
+  }, [notebooksData, userData]);
 
   // Filter and group notebooks
   const { filteredNotebooks, recentScratchNotebooks, namedNotebooks } =
