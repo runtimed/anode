@@ -24,6 +24,7 @@ import { SharingModal } from "./SharingModal";
 import type { NotebookProcessed } from "./types";
 import { CustomLiveStoreProvider } from "../livestore/CustomLiveStoreProvider";
 import { NotebookContent } from "../notebook/NotebookContent";
+import { RuntLogoSmall } from "../logo/RuntLogoSmall";
 
 export const NotebookPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -204,10 +205,11 @@ export const NotebookPage: React.FC = () => {
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between gap-4">
             <div className="flex items-center gap-4">
-              <Link to="/nb">
-                <Button variant="ghost" size="sm">
-                  <ArrowLeft className="h-4 w-4" />
-                </Button>
+              <Link to="/nb" className="group/logo relative">
+                <span className="relative transition-opacity group-hover/logo:opacity-20">
+                  <RuntLogoSmall />
+                </span>
+                <ArrowLeft className="absolute top-1/2 left-1/2 h-4 w-4 -translate-x-1/2 -translate-y-1/2 opacity-0 group-hover/logo:opacity-100" />
               </Link>
 
               {/* Title */}
