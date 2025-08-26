@@ -60,7 +60,7 @@ export const NotebookCard: React.FC<NotebookCardProps> = ({
       >
         <Card className="h-full transition-shadow hover:shadow-lg">
           <CardHeader className="pb-3">
-            <div className="flex items-start justify-between gap-2">
+            <div className="flex items-start justify-between gap-2 overflow-hidden">
               <CardTitle className="line-clamp-2 min-h-[2.5rem] text-lg">
                 {notebook.title || "Untitled Notebook"}
               </CardTitle>
