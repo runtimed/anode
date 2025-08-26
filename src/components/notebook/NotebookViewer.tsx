@@ -16,6 +16,7 @@ import { NotebookTitle } from "./NotebookTitle.js";
 import { RuntimeHealthIndicatorButton } from "./RuntimeHealthIndicatorButton.js";
 import { RuntimeHelper } from "./RuntimeHelper.js";
 import { contextSelectionMode$ } from "./signals/ai-context.js";
+import { KeyboardShortcuts } from "../KeyboardShortcuts.js";
 
 // Lazy import DebugPanel only in development
 const LazyDebugPanel = React.lazy(() =>
@@ -122,32 +123,7 @@ export const NotebookViewer: React.FC = () => {
             className={`w-full px-0 py-3 pb-24 ${debug.enabled ? "px-4" : "sm:mx-auto sm:max-w-4xl sm:p-4 sm:pb-4"}`}
           >
             {/* Keyboard Shortcuts Help - Desktop only */}
-            {cellReferences.length > 0 && (
-              <div className="mb-6 hidden sm:block">
-                <div className="bg-muted/30 rounded-md px-4 py-2">
-                  <div className="text-muted-foreground flex items-center justify-center gap-6 text-xs">
-                    <div className="flex items-center gap-1">
-                      <kbd className="bg-background rounded border px-1.5 py-0.5 font-mono text-xs">
-                        ↑↓
-                      </kbd>
-                      <span>Navigate</span>
-                    </div>
-                    <div className="flex items-center gap-1">
-                      <kbd className="bg-background rounded border px-1.5 py-0.5 font-mono text-xs">
-                        ⇧↵
-                      </kbd>
-                      <span>Run & next</span>
-                    </div>
-                    <div className="flex items-center gap-1">
-                      <kbd className="bg-background rounded border px-1.5 py-0.5 font-mono text-xs">
-                        ⌘↵
-                      </kbd>
-                      <span>Run</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            )}
+            {cellReferences.length > 0 && <KeyboardShortcuts />}
 
             {/* Cells */}
             <NotebookContent />

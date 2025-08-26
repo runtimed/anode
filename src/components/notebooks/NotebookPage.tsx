@@ -19,6 +19,7 @@ import { SharingModal } from "./SharingModal";
 import type { NotebookProcessed } from "./types";
 import { RuntimeHelper } from "../notebook/RuntimeHelper";
 import { CollaboratorAvatars } from "../CollaboratorAvatars";
+import { KeyboardShortcuts } from "../KeyboardShortcuts";
 
 export const NotebookPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -255,6 +256,7 @@ export const NotebookPage: React.FC = () => {
           showRuntimeHelper={showRuntimeHelper}
           onClose={() => setShowRuntimeHelper(false)}
         />
+        <KeyboardShortcuts />
         <NotebookContent />
       </CustomLiveStoreProvider>
 
