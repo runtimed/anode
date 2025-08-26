@@ -1,9 +1,7 @@
 // import { toast } from "sonner";
 import { useDebug } from "@/components/debug/debug-mode.js";
-import { Button } from "@/components/ui/button";
 import { queries } from "@/schema";
 import { useQuery, useStore } from "@livestore/react";
-import { Filter, X } from "lucide-react";
 import React, { Suspense } from "react";
 import { ErrorBoundary } from "react-error-boundary";
 import { CollaboratorAvatars } from "../CollaboratorAvatars.js";
@@ -11,12 +9,12 @@ import { DebugModeToggle } from "../debug/DebugModeToggle.js";
 import { KeyboardShortcuts } from "../KeyboardShortcuts.js";
 import { RuntLogoSmall } from "../logo/RuntLogoSmall.js";
 import { SimpleUserProfile } from "../notebooks/SimpleUserProfile.js";
+import { ContextSelectionModeButton } from "./ContextSelectionModeButton.js";
 import { GitCommitHash } from "./GitCommitHash.js";
 import { NotebookContent } from "./NotebookContent.js";
 import { NotebookTitle } from "./NotebookTitle.js";
 import { RuntimeHealthIndicatorButton } from "./RuntimeHealthIndicatorButton.js";
 import { RuntimeHelper } from "./RuntimeHelper.js";
-import { contextSelectionMode$ } from "./signals/ai-context.js";
 
 // Lazy import DebugPanel only in development
 const LazyDebugPanel = React.lazy(() =>
@@ -36,8 +34,6 @@ export const NotebookViewer: React.FC = () => {
   const cellReferences = useQuery(queries.cellsWithIndices$);
 
   const [showRuntimeHelper, setShowRuntimeHelper] = React.useState(false);
-
-  const contextSelectionMode = useQuery(contextSelectionMode$);
 
   return (
     <div className="bg-background min-h-screen">
@@ -88,26 +84,7 @@ export const NotebookViewer: React.FC = () => {
                       setShowRuntimeHelper(!showRuntimeHelper)
                     }
                   />
-                  <Button
-                    variant={contextSelectionMode ? "default" : "outline"}
-                    size="sm"
-                    onClick={() =>
-                      store.setSignal(
-                        contextSelectionMode$,
-                        !contextSelectionMode
-                      )
-                    }
-                    className="flex items-center gap-1 sm:gap-2"
-                  >
-                    {contextSelectionMode ? (
-                      <X className="h-3 w-3 sm:h-4 sm:w-4" />
-                    ) : (
-                      <Filter className="h-3 w-3 sm:h-4 sm:w-4" />
-                    )}
-                    <span className="text-xs sm:text-sm">
-                      {contextSelectionMode ? "Done" : "Context"}
-                    </span>
-                  </Button>
+                  <ContextSelectionModeButton />
                 </div>
               </div>
             </div>

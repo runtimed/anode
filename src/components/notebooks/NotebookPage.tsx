@@ -27,6 +27,7 @@ import { SimpleUserProfile } from "./SimpleUserProfile";
 import { ErrorBoundary } from "react-error-boundary";
 import { useDebug } from "@/components/debug/debug-mode.js";
 import { DebugModeToggle } from "../debug/DebugModeToggle.js";
+import { ContextSelectionModeButton } from "../notebook/ContextSelectionModeButton.js";
 
 // Lazy import DebugPanel only in development
 const LazyDebugPanel = React.lazy(() =>
@@ -277,6 +278,8 @@ export const NotebookPage: React.FC = () => {
             <div className="container mx-auto px-4">
               <div className="flex h-12 items-center gap-2">
                 <CollaboratorAvatars />
+                <div className="flex-1" />
+                <ContextSelectionModeButton />
                 <RuntimeHealthIndicatorButton
                   onToggleClick={() => setShowRuntimeHelper(!showRuntimeHelper)}
                 />
