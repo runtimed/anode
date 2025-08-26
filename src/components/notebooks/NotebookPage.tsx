@@ -1,3 +1,4 @@
+import { cn } from "@/lib/utils";
 import { useQuery } from "@tanstack/react-query";
 import { ArrowLeft, Clock, Share2, User, Users } from "lucide-react";
 import React, { useEffect, useState } from "react";
@@ -6,22 +7,22 @@ import {
   getNotebookVanityUrl,
   hasCorrectNotebookVanityUrl,
 } from "../../util/url-utils";
+import { CollaboratorAvatars } from "../CollaboratorAvatars";
+import { KeyboardShortcuts } from "../KeyboardShortcuts";
 import { CustomLiveStoreProvider } from "../livestore/CustomLiveStoreProvider";
 import { LoadingState } from "../loading/LoadingState";
 import { RuntLogoSmall } from "../logo/RuntLogoSmall";
+import { GitCommitHash } from "../notebook/GitCommitHash";
 import { NotebookContent } from "../notebook/NotebookContent";
 import { RuntimeHealthIndicatorButton } from "../notebook/RuntimeHealthIndicatorButton";
+import { RuntimeHelper } from "../notebook/RuntimeHelper";
+import { DelayedSpinner } from "../outputs/shared-with-iframe/SuspenseSpinner";
 import { useTrpc } from "../TrpcProvider";
 import { Badge } from "../ui/badge";
 import { Button } from "../ui/button";
 import { TitleEditor } from "./notebook/TitleEditor";
 import { SharingModal } from "./SharingModal";
 import type { NotebookProcessed } from "./types";
-import { RuntimeHelper } from "../notebook/RuntimeHelper";
-import { CollaboratorAvatars } from "../CollaboratorAvatars";
-import { KeyboardShortcuts } from "../KeyboardShortcuts";
-import { GitCommitHash } from "../notebook/GitCommitHash";
-import { LoadingScreen } from "../loading/LoadingScreen";
 
 export const NotebookPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -249,39 +250,66 @@ export const NotebookPage: React.FC = () => {
         </div>
       </div>
 
-      <LoadingScreen liveStoreReady={liveStoreReady} />
-      <CustomLiveStoreProvider
-        storeId={id}
-        onLiveStoreReady={() => setLiveStoreReady(true)}
-      >
-        <CollaboratorAvatars />
-        <RuntimeHealthIndicatorButton
-          onToggleClick={() => setShowRuntimeHelper(!showRuntimeHelper)}
+      <LiveStoreSpinnerContainer liveStoreReady={liveStoreReady}>
+        <CustomLiveStoreProvider
+          storeId={id}
+          onLiveStoreReady={() => setLiveStoreReady(true)}
+        >
+          <CollaboratorAvatars />
+          <RuntimeHealthIndicatorButton
+            onToggleClick={() => setShowRuntimeHelper(!showRuntimeHelper)}
+          />
+          <RuntimeHelper
+            notebookId={id}
+            showRuntimeHelper={showRuntimeHelper}
+            onClose={() => setShowRuntimeHelper(false)}
+          />
+          <div className="w-full px-0 py-3 pb-24 sm:mx-auto sm:max-w-4xl sm:p-4 sm:pb-4">
+            <KeyboardShortcuts />
+            <NotebookContent />
+          </div>
+        </CustomLiveStoreProvider>
+
+        {/* Sharing Modal */}
+        <SharingModal
+          notebook={notebook}
+          isOpen={isSharingModalOpen}
+          onClose={() => setIsSharingModalOpen(false)}
+          onUpdate={refetch}
         />
-        <RuntimeHelper
-          notebookId={id}
-          showRuntimeHelper={showRuntimeHelper}
-          onClose={() => setShowRuntimeHelper(false)}
-        />
-        <div className="w-full px-0 py-3 pb-24 sm:mx-auto sm:max-w-4xl sm:p-4 sm:pb-4">
-          <KeyboardShortcuts />
-          <NotebookContent />
+
+        <div className="h-[70vh]"></div>
+        <div className="mt-8 flex justify-center border-t px-4 py-2 text-center">
+          <GitCommitHash />
         </div>
-      </CustomLiveStoreProvider>
-
-      {/* Sharing Modal */}
-      <SharingModal
-        notebook={notebook}
-        isOpen={isSharingModalOpen}
-        onClose={() => setIsSharingModalOpen(false)}
-        onUpdate={refetch}
-      />
-
-      <div className="h-[70vh]"></div>
-
-      <div className="mt-8 flex justify-center border-t px-4 py-2 text-center">
-        <GitCommitHash />
-      </div>
+      </LiveStoreSpinnerContainer>
     </div>
   );
 };
+
+function LiveStoreSpinnerContainer({
+  children,
+  liveStoreReady,
+}: {
+  children: React.ReactNode;
+  liveStoreReady: boolean;
+}) {
+  return (
+    // Spinner is relative to this div
+    <div className="relative">
+      {children}
+
+      {/* Loading spinner */}
+      <div
+        className={cn(
+          "pointer-events-none absolute inset-0 z-50 flex items-center justify-center",
+          liveStoreReady ? "opacity-0" : "opacity-100"
+        )}
+      >
+        <div className="bg-background flex items-center justify-center rounded-full">
+          <DelayedSpinner size="lg" />
+        </div>
+      </div>
+    </div>
+  );
+}
