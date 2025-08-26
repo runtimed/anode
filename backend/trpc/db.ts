@@ -61,9 +61,9 @@ export async function getNotebooks(
     return [];
   }
 
-  // D1 has a limit on the number of parameters in a query (999), so chunk if needed
-  // We'll use a chunk size of 500 to be safe
-  const CHUNK_SIZE = 100;
+  // SQLite has a limit on the number of parameters in a query (999), so chunk if needed
+  // We use a chunk size of 98 to be safe (each chunk adds 2 extra parameters for LIMIT/OFFSET)
+  const CHUNK_SIZE = 98;
   const notebookIdChunks: string[][] = [];
   for (let i = 0; i < accessibleNotebookIds.length; i += CHUNK_SIZE) {
     notebookIdChunks.push(accessibleNotebookIds.slice(i, i + CHUNK_SIZE));
