@@ -18,6 +18,7 @@ import { TitleEditor } from "./notebook/TitleEditor";
 import { SharingModal } from "./SharingModal";
 import type { NotebookProcessed } from "./types";
 import { RuntimeHelper } from "../notebook/RuntimeHelper";
+import { CollaboratorAvatars } from "../CollaboratorAvatars";
 
 export const NotebookPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -245,6 +246,7 @@ export const NotebookPage: React.FC = () => {
       </div>
 
       <CustomLiveStoreProvider storeId={id}>
+        <CollaboratorAvatars />
         <RuntimeHealthIndicatorButton
           onToggleClick={() => setShowRuntimeHelper(!showRuntimeHelper)}
         />

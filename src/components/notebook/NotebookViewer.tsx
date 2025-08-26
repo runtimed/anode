@@ -1,22 +1,18 @@
 // import { toast } from "sonner";
+import { useDebug } from "@/components/debug/debug-mode.js";
+import { Button } from "@/components/ui/button";
 import { queries } from "@/schema";
 import { useQuery, useStore } from "@livestore/react";
-
+import { Filter, X } from "lucide-react";
 import React, { Suspense } from "react";
 import { ErrorBoundary } from "react-error-boundary";
-
-import { NotebookTitle } from "./NotebookTitle.js";
-
-import { Avatar } from "@/components/ui/Avatar.js";
-import { Button } from "@/components/ui/button";
-
-import { useUserRegistry } from "@/hooks/useUserRegistry.js";
-import { useAuthenticatedUser } from "../../auth/index.js";
-
-import { getClientColor, getClientTypeInfo } from "@/services/userTypes.js";
-
-import { Filter, X } from "lucide-react";
 import { UserProfile } from "../auth/UserProfile.js";
+import { CollaboratorAvatars } from "../CollaboratorAvatars.js";
+import { DebugModeToggle } from "../debug/DebugModeToggle.js";
+import { RuntLogoSmall } from "../logo/RuntLogoSmall.js";
+import { GitCommitHash } from "./GitCommitHash.js";
+import { NotebookContent } from "./NotebookContent.js";
+import { NotebookTitle } from "./NotebookTitle.js";
 import { RuntimeHealthIndicatorButton } from "./RuntimeHealthIndicatorButton.js";
 import { RuntimeHelper } from "./RuntimeHelper.js";
 import { contextSelectionMode$ } from "./signals/ai-context.js";
@@ -28,22 +24,12 @@ const LazyDebugPanel = React.lazy(() =>
   }))
 );
 
-import { useDebug } from "@/components/debug/debug-mode.js";
-import { DebugModeToggle } from "../debug/DebugModeToggle.js";
-import { RuntLogoSmall } from "../logo/RuntLogoSmall.js";
-import { GitCommitHash } from "./GitCommitHash.js";
-import { NotebookContent } from "./NotebookContent.js";
-
 export const NotebookViewer: React.FC = () => {
   // eslint-disable-next-line react-compiler/react-compiler
   "use no memo";
 
   const debug = useDebug();
   const { store } = useStore();
-  const {
-    user: { sub: userId },
-  } = useAuthenticatedUser();
-  const { presentUsers, getUserInfo, getUserColor } = useUserRegistry();
 
   // cells are already sorted by position from the database query
   const cellReferences = useQuery(queries.cellsWithIndices$);
@@ -51,9 +37,6 @@ export const NotebookViewer: React.FC = () => {
   const [showRuntimeHelper, setShowRuntimeHelper] = React.useState(false);
 
   const contextSelectionMode = useQuery(contextSelectionMode$);
-
-  const otherUsers = presentUsers.filter((user) => user.id !== userId);
-  const LIMIT = 5;
 
   return (
     <div className="bg-background min-h-screen">
@@ -72,59 +55,8 @@ export const NotebookViewer: React.FC = () => {
             </a>
           </div>
 
-          <div className="group/users flex items-center gap-2">
-            <div className="flex -space-x-2 group-hover/users:space-x-1">
-              {otherUsers.slice(0, LIMIT).map((user) => {
-                const userInfo = getUserInfo(user.id);
-                const clientInfo = getClientTypeInfo(user.id);
-                const IconComponent = clientInfo.icon;
-
-                return (
-                  <div
-                    key={user.id}
-                    className="shrink-0 overflow-hidden rounded-full border-2 transition-[margin]"
-                    style={{
-                      borderColor: getClientColor(user.id, getUserColor),
-                    }}
-                    title={
-                      clientInfo.type === "user"
-                        ? (userInfo?.name ?? "Unknown User")
-                        : clientInfo.name
-                    }
-                  >
-                    {IconComponent ? (
-                      <div
-                        className={`flex size-8 items-center justify-center rounded-full ${clientInfo.backgroundColor}`}
-                      >
-                        <IconComponent
-                          className={`size-4 ${clientInfo.textColor}`}
-                        />
-                      </div>
-                    ) : userInfo?.picture ? (
-                      <img
-                        src={userInfo.picture}
-                        alt={userInfo.name ?? "User"}
-                        className="h-8 w-8 rounded-full bg-gray-300"
-                      />
-                    ) : (
-                      <Avatar
-                        initials={
-                          userInfo?.name?.charAt(0).toUpperCase() ?? "?"
-                        }
-                        backgroundColor={getUserColor(user.id)}
-                      />
-                    )}
-                  </div>
-                );
-              })}
-            </div>
-            {otherUsers.length > LIMIT && (
-              <div className="flex items-center gap-1">
-                <span className="text-muted-foreground text-xs">
-                  +{otherUsers.length - LIMIT}
-                </span>
-              </div>
-            )}
+          <div className="flex items-center gap-2">
+            <CollaboratorAvatars />
             {import.meta.env.DEV && <DebugModeToggle />}
             <ErrorBoundary fallback={<div>Error loading user profile</div>}>
               <UserProfile />
