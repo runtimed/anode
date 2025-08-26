@@ -34,7 +34,7 @@ export const createOidcConfig = (): AuthProviderProps => {
 
     // Additional OIDC settings
     response_type: "code",
-    loadUserInfo: true,
+    loadUserInfo: false,
 
     // Silent refresh configuration
     accessTokenExpiringNotificationTimeInSeconds: 60, // Notify 1 minute before expiry
