@@ -30,10 +30,7 @@ export default {
 
     const pathname = url.pathname;
 
-    if (
-      !pathname.startsWith("/livestore") &&
-      !pathname.startsWith("/websocket")
-    ) {
+    if (!pathname.startsWith("/livestore")) {
       return new Response("Invalid request", { status: 400 });
     }
 
