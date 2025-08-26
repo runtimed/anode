@@ -6,17 +6,17 @@ import { useQuery, useStore } from "@livestore/react";
 import { Filter, X } from "lucide-react";
 import React, { Suspense } from "react";
 import { ErrorBoundary } from "react-error-boundary";
-import { UserProfile } from "../auth/UserProfile.js";
 import { CollaboratorAvatars } from "../CollaboratorAvatars.js";
 import { DebugModeToggle } from "../debug/DebugModeToggle.js";
+import { KeyboardShortcuts } from "../KeyboardShortcuts.js";
 import { RuntLogoSmall } from "../logo/RuntLogoSmall.js";
+import { SimpleUserProfile } from "../notebooks/SimpleUserProfile.js";
 import { GitCommitHash } from "./GitCommitHash.js";
 import { NotebookContent } from "./NotebookContent.js";
 import { NotebookTitle } from "./NotebookTitle.js";
 import { RuntimeHealthIndicatorButton } from "./RuntimeHealthIndicatorButton.js";
 import { RuntimeHelper } from "./RuntimeHelper.js";
 import { contextSelectionMode$ } from "./signals/ai-context.js";
-import { KeyboardShortcuts } from "../KeyboardShortcuts.js";
 
 // Lazy import DebugPanel only in development
 const LazyDebugPanel = React.lazy(() =>
@@ -60,7 +60,7 @@ export const NotebookViewer: React.FC = () => {
             <CollaboratorAvatars />
             {import.meta.env.DEV && <DebugModeToggle />}
             <ErrorBoundary fallback={<div>Error loading user profile</div>}>
-              <UserProfile />
+              <SimpleUserProfile />
             </ErrorBoundary>
           </div>
         </div>
