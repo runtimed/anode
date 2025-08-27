@@ -1,6 +1,6 @@
 import React, { useState } from "react";
-import { Link } from "react-router-dom";
-import { Users, Clock, User, Share2, MoreHorizontal } from "lucide-react";
+import { Link, useNavigate } from "react-router-dom";
+import { Users, Clock, User, Share2, MoreHorizontal, Copy } from "lucide-react";
 import { getNotebookVanityUrl } from "../../util/url-utils";
 import { Card, CardHeader, CardTitle, CardContent } from "../ui/card";
 import { Badge } from "../ui/badge";
@@ -12,6 +12,8 @@ import {
   DropdownMenuTrigger,
 } from "../ui/dropdown-menu";
 import { SharingModal } from "./SharingModal";
+import { useTrpc } from "../TrpcProvider";
+import { useMutation } from "@tanstack/react-query";
 import type { NotebookProcessed } from "./types";
 
 interface NotebookCardProps {
@@ -24,6 +26,13 @@ export const NotebookCard: React.FC<NotebookCardProps> = ({
   onUpdate,
 }) => {
   const [isSharingModalOpen, setIsSharingModalOpen] = useState(false);
+  const navigate = useNavigate();
+  const trpc = useTrpc();
+
+  // Duplicate notebook mutation
+  const duplicateNotebookMutation = useMutation(
+    trpc.duplicateNotebook.mutationOptions()
+  );
   const formatDate = (dateString: string) => {
     return new Intl.DateTimeFormat("en-US", {
       month: "short",
@@ -52,6 +61,30 @@ export const NotebookCard: React.FC<NotebookCardProps> = ({
     setIsSharingModalOpen(true);
   };
 
+  const handleDuplicate = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    try {
+      const duplicatedNotebook = await duplicateNotebookMutation.mutateAsync({
+        nbId: notebook.id,
+      });
+
+      if (duplicatedNotebook) {
+        // Navigate to the new notebook
+        navigate(
+          getNotebookVanityUrl(duplicatedNotebook.id, duplicatedNotebook.title)
+        );
+
+        // Call onUpdate to refresh the notebook list
+        onUpdate?.();
+      }
+    } catch (error) {
+      console.error("Failed to duplicate notebook:", error);
+      // TODO: Show error toast
+    }
+  };
+
   return (
     <>
       <Link
@@ -73,7 +106,7 @@ export const NotebookCard: React.FC<NotebookCardProps> = ({
                 >
                   {(notebook.myPermission || "NONE").toLowerCase()}
                 </Badge>
-                {canEdit && (
+                {(canEdit || notebook.myPermission === "WRITER") && (
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
                       <Button
@@ -89,6 +122,10 @@ export const NotebookCard: React.FC<NotebookCardProps> = ({
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
+                      <DropdownMenuItem onClick={handleDuplicate}>
+                        <Copy className="mr-2 h-4 w-4" />
+                        Duplicate
+                      </DropdownMenuItem>
                       <DropdownMenuItem onClick={handleShare}>
                         <Share2 className="mr-2 h-4 w-4" />
                         Share

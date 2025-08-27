@@ -422,6 +422,86 @@ export const appRouter = router({
       }
     }),
 
+  // Duplicate notebook
+  duplicateNotebook: authedProcedure
+    .input(z.object({ nbId: z.string() }))
+    .mutation(async (opts) => {
+      const { ctx, input } = opts;
+      const { nbId } = input;
+      const {
+        user,
+        env: { DB },
+        permissionsProvider,
+      } = ctx;
+
+      try {
+        // Check if user has read access to the source notebook
+        const hasAccess = await permissionsProvider.checkPermission(user.id, nbId);
+        if (!hasAccess.hasAccess) {
+          throw new TRPCError({
+            code: "FORBIDDEN",
+            message: "You don't have access to this notebook",
+          });
+        }
+
+        // Get the source notebook
+        const sourceNotebook = await DB.prepare(
+          "SELECT * FROM notebooks WHERE id = ?"
+        )
+          .bind(nbId)
+          .first<NotebookRow>();
+
+        if (!sourceNotebook) {
+          throw new TRPCError({
+            code: "NOT_FOUND",
+            message: "Source notebook not found",
+          });
+        }
+
+        // Create new notebook ID
+        const newNbId = createNotebookId();
+        const now = new Date().toISOString();
+
+        // Create the duplicated notebook
+        const result = await DB.prepare(
+          `
+          INSERT INTO notebooks (id, owner_id, title, created_at, updated_at)
+          VALUES (?, ?, ?, ?, ?)
+        `
+        )
+          .bind(
+            newNbId,
+            user.id,
+            sourceNotebook.title ? `${sourceNotebook.title} (Copy)` : "Untitled Notebook (Copy)",
+            now,
+            now
+          )
+          .run();
+
+        if (!result.success) {
+          throw new TRPCError({
+            code: "INTERNAL_SERVER_ERROR",
+            message: "Failed to create duplicated notebook",
+          });
+        }
+
+        // Get the newly created notebook
+        const newNotebook = await DB.prepare(
+          "SELECT * FROM notebooks WHERE id = ?"
+        )
+          .bind(newNbId)
+          .first<NotebookRow>();
+
+        return newNotebook;
+      } catch (error) {
+        if (error instanceof TRPCError) throw error;
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: `Failed to duplicate notebook: ${error instanceof Error ? error.message : "Unknown error"}`,
+        });
+      }
+    }),
+
   // Share notebook
   shareNotebook: authedProcedure
     .input(
