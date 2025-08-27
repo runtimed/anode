@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useAuth as useOidcAuth } from "react-oidc-context";
 import { UserManager } from "oidc-client-ts";
-import { createOidcConfig } from "@/auth/oidc-config";
+import { WebStorageStateStore } from "oidc-client-ts";
 
 // Manual OIDC callback processing page
 export const OidcCallbackPage: React.FC = () => {
@@ -35,9 +35,17 @@ export const OidcCallbackPage: React.FC = () => {
       setProcessedCallback(true);
 
       try {
-        // Create UserManager with same config as AuthProvider
-        const config = createOidcConfig();
-        const userManager = new UserManager(config);
+        // Create UserManager settings directly (compatible with UserManagerSettings)
+        const userManagerSettings = {
+          authority: import.meta.env.VITE_AUTH_URI!,
+          client_id: import.meta.env.VITE_AUTH_CLIENT_ID!,
+          redirect_uri: import.meta.env.VITE_AUTH_REDIRECT_URI!,
+          scope: "openid profile email offline_access",
+          response_type: "code",
+          loadUserInfo: false,
+          userStore: new WebStorageStateStore({ store: window.localStorage }),
+        };
+        const userManager = new UserManager(userManagerSettings);
 
         console.log("🔍 OidcCallbackPage: Calling signinCallback");
         const user = await userManager.signinCallback();
