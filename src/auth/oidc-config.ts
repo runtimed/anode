@@ -29,8 +29,8 @@ export const createOidcConfig = (): AuthProviderProps => {
     // Persist auth state across browser sessions
     userStore: new WebStorageStateStore({ store: window.localStorage }),
 
-    // Temporarily remove onSigninCallback to test if it's interfering with state updates
-    // The URL cleanup might be happening before React state updates
+    // Manual callback processing: onSigninCallback is handled by /oidc route
+    // This provides better control over the authentication flow
 
     // Additional OIDC settings
     response_type: "code",
