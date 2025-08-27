@@ -436,7 +436,10 @@ export const appRouter = router({
 
       try {
         // Check if user has read access to the source notebook
-        const hasAccess = await permissionsProvider.checkPermission(user.id, nbId);
+        const hasAccess = await permissionsProvider.checkPermission(
+          user.id,
+          nbId
+        );
         if (!hasAccess.hasAccess) {
           throw new TRPCError({
             code: "FORBIDDEN",
@@ -472,7 +475,9 @@ export const appRouter = router({
           .bind(
             newNbId,
             user.id,
-            sourceNotebook.title ? `${sourceNotebook.title} (Copy)` : "Untitled Notebook (Copy)",
+            sourceNotebook.title
+              ? `${sourceNotebook.title} (Copy)`
+              : "Untitled Notebook (Copy)",
             now,
             now
           )
@@ -491,6 +496,29 @@ export const appRouter = router({
         )
           .bind(newNbId)
           .first<NotebookRow>();
+
+        // Copy the event log table data
+        const sourceEventLogTable = `eventlog_7_${nbId}`;
+        const targetEventLogTable = `eventlog_7_${newNbId}`;
+
+        // Check if source event log table exists
+        const tableExists = await DB.prepare(
+          "SELECT name FROM sqlite_master WHERE type='table' AND name=?"
+        )
+          .bind(sourceEventLogTable)
+          .first<{ name: string }>();
+
+        if (tableExists) {
+          // Create the target event log table with the same structure as the source
+          await DB.prepare(
+            `CREATE TABLE ${targetEventLogTable} AS SELECT * FROM ${sourceEventLogTable} WHERE 0`
+          ).run();
+
+          // Copy all data from source event log table to target event log table
+          await DB.prepare(
+            `INSERT INTO ${targetEventLogTable} SELECT * FROM ${sourceEventLogTable}`
+          ).run();
+        }
 
         return newNotebook;
       } catch (error) {
