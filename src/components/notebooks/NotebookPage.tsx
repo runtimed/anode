@@ -1,6 +1,6 @@
 import { cn } from "@/lib/utils";
-import { useQuery } from "@tanstack/react-query";
-import { ArrowLeft, Clock, Share2, User, Users } from "lucide-react";
+import { useMutation, useQuery } from "@tanstack/react-query";
+import { ArrowLeft, Clock, Copy, Share2, User, Users } from "lucide-react";
 import React, { Suspense, useEffect, useState } from "react";
 import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
 import {
@@ -45,6 +45,11 @@ export const NotebookPage: React.FC = () => {
   const [showRuntimeHelper, setShowRuntimeHelper] = React.useState(false);
   const [liveStoreReady, setLiveStoreReady] = useState(false);
   const debug = useDebug();
+
+  // Duplicate notebook mutation
+  const duplicateNotebookMutation = useMutation(
+    trpc.duplicateNotebook.mutationOptions()
+  );
 
   // Get initial notebook data from router state (if navigated from creation)
   const initialNotebook = location.state?.initialNotebook as
@@ -143,6 +148,24 @@ export const NotebookPage: React.FC = () => {
     }
   };
 
+  const handleDuplicate = async () => {
+    try {
+      const duplicatedNotebook = await duplicateNotebookMutation.mutateAsync({
+        nbId: notebook!.id,
+      });
+
+      if (duplicatedNotebook) {
+        // Navigate to the new notebook
+        navigate(
+          getNotebookVanityUrl(duplicatedNotebook.id, duplicatedNotebook.title)
+        );
+      }
+    } catch (error) {
+      console.error("Failed to duplicate notebook:", error);
+      // TODO: Show error toast
+    }
+  };
+
   if (isLoading && !initialNotebook) {
     return <LoadingState variant="fullscreen" message="Loading notebook..." />;
   }
@@ -198,6 +221,11 @@ export const NotebookPage: React.FC = () => {
             </div>
 
             <div className="flex items-center gap-2">
+              <Button variant="outline" size="sm" onClick={handleDuplicate}>
+                <Copy className="mr-2 h-4 w-4" />
+                Duplicate
+              </Button>
+
               {/* Share button */}
               {canEdit && (
                 <Button
