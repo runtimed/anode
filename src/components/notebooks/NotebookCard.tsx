@@ -1,6 +1,13 @@
 import React, { useState } from "react";
-import { Link } from "react-router-dom";
-import { Users, Clock, User, Share2, MoreHorizontal } from "lucide-react";
+import { Link, useNavigate } from "react-router-dom";
+import {
+  Users,
+  Clock,
+  User,
+  Share2,
+  MoreHorizontal,
+  Trash2,
+} from "lucide-react";
 import { getNotebookVanityUrl } from "../../util/url-utils";
 import { Card, CardHeader, CardTitle, CardContent } from "../ui/card";
 import { Badge } from "../ui/badge";
@@ -11,8 +18,17 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "../ui/dropdown-menu";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "../ui/dialog";
 import { SharingModal } from "./SharingModal";
 import type { NotebookProcessed } from "./types";
+import { useTrpc } from "../TrpcProvider";
+import { useMutation } from "@tanstack/react-query";
 
 interface NotebookCardProps {
   notebook: NotebookProcessed;
@@ -24,6 +40,13 @@ export const NotebookCard: React.FC<NotebookCardProps> = ({
   onUpdate,
 }) => {
   const [isSharingModalOpen, setIsSharingModalOpen] = useState(false);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const trpc = useTrpc();
+
+  // Delete notebook mutation
+  const deleteNotebookMutation = useMutation(
+    trpc.deleteNotebook.mutationOptions()
+  );
   const formatDate = (dateString: string) => {
     return new Intl.DateTimeFormat("en-US", {
       month: "short",
@@ -50,6 +73,26 @@ export const NotebookCard: React.FC<NotebookCardProps> = ({
     e.preventDefault();
     e.stopPropagation();
     setIsSharingModalOpen(true);
+  };
+  const handleDeleteClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDeleteDialogOpen(true);
+  };
+
+  const handleDeleteConfirm = async () => {
+    try {
+      await deleteNotebookMutation.mutateAsync({
+        nbId: notebook.id,
+      });
+
+      // Call onUpdate to refresh the notebook list
+      onUpdate?.();
+      setIsDeleteDialogOpen(false);
+    } catch (error) {
+      console.error("Failed to delete notebook:", error);
+      // TODO: Show error toast
+    }
   };
 
   return (
@@ -93,6 +136,15 @@ export const NotebookCard: React.FC<NotebookCardProps> = ({
                         <Share2 className="mr-2 h-4 w-4" />
                         Share
                       </DropdownMenuItem>
+                      {canEdit && (
+                        <DropdownMenuItem
+                          onClick={handleDeleteClick}
+                          className="text-red-600 focus:text-red-600"
+                        >
+                          <Trash2 className="mr-2 h-4 w-4" />
+                          Delete
+                        </DropdownMenuItem>
+                      )}
                     </DropdownMenuContent>
                   </DropdownMenu>
                 )}
@@ -142,6 +194,36 @@ export const NotebookCard: React.FC<NotebookCardProps> = ({
         onClose={() => setIsSharingModalOpen(false)}
         onUpdate={() => onUpdate?.()}
       />
+
+      {/* Delete Confirmation Dialog */}
+      <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Delete Notebook</DialogTitle>
+            <DialogDescription>
+              Are you sure you want to delete "
+              {notebook.title || "Untitled Notebook"}"? This action cannot be
+              undone and will permanently remove the notebook and all its
+              contents.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex justify-end gap-2 pt-4">
+            <Button
+              variant="outline"
+              onClick={() => setIsDeleteDialogOpen(false)}
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={handleDeleteConfirm}
+              className="bg-red-600 hover:bg-red-700 focus:ring-red-600"
+              disabled={deleteNotebookMutation.isPending}
+            >
+              {deleteNotebookMutation.isPending ? "Deleting..." : "Delete"}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </>
   );
 };
