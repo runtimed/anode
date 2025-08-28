@@ -181,7 +181,7 @@ export const NotebookPage: React.FC = () => {
       {/* Header */}
       <div className="border-b bg-white">
         <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center justify-between gap-4">
+          <div className="flex flex-wrap-reverse items-center justify-between gap-4">
             <div className="flex items-center gap-4">
               <Link to="/nb" className="group/logo relative">
                 <span className="relative transition-opacity group-hover/logo:opacity-20">
@@ -197,7 +197,8 @@ export const NotebookPage: React.FC = () => {
               />
             </div>
 
-            <div className="flex items-center gap-2">
+            {/* Right side */}
+            <div className="flex flex-grow items-center justify-end gap-2">
               {/* Share button */}
               {canEdit && (
                 <Button
@@ -228,9 +229,9 @@ export const NotebookPage: React.FC = () => {
           </div>
 
           {/* Metadata */}
-          <div className="mt-4 flex flex-wrap items-center gap-6 text-sm text-gray-600">
+          <div className="mt-4 flex items-center gap-6 overflow-x-auto text-sm whitespace-nowrap text-gray-600">
             {/* Owner */}
-            <div className="flex items-center gap-2">
+            <div className="flex shrink-0 items-center gap-2">
               <User className="h-4 w-4 shrink-0" />
               <span>
                 {notebook.owner?.givenName && notebook.owner?.familyName
