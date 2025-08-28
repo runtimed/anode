@@ -4,14 +4,20 @@ import {
   createFallbackUser,
   getPrivateUserById,
   getUserByEmail,
-  getUserById,
   getUsersByIds,
   toPublicFacingUser,
 } from "../users/utils.ts";
 import { createNotebookId } from "../utils/notebook-id.ts";
-import { getNotebooks } from "./db.ts";
+import {
+  getNotebooks,
+  getNotebookById,
+  createNotebook,
+  updateNotebook,
+  deleteNotebook,
+  getNotebookOwner,
+} from "./db.ts";
 import { authedProcedure, publicProcedure, router } from "./trpc";
-import { NotebookPermission, NotebookRow } from "./types.ts";
+import { NotebookPermission } from "./types.ts";
 
 // Create the tRPC router
 export const appRouter = router({
@@ -104,11 +110,7 @@ export const appRouter = router({
           });
         }
 
-        const notebook = await DB.prepare(
-          "SELECT * FROM notebooks WHERE id = ?"
-        )
-          .bind(nbId)
-          .first<NotebookRow>();
+        const notebook = await getNotebookById(DB, nbId);
 
         if (!notebook) {
           throw new TRPCError({
@@ -145,27 +147,22 @@ export const appRouter = router({
         const nbId = createNotebookId();
         const now = new Date().toISOString();
 
-        const result = await DB.prepare(
-          `
-          INSERT INTO notebooks (id, owner_id, title, created_at, updated_at)
-          VALUES (?, ?, ?, ?, ?)
-        `
-        )
-          .bind(nbId, user.id, input.title, now, now)
-          .run();
+        const success = await createNotebook(DB, {
+          id: nbId,
+          ownerId: user.id,
+          title: input.title,
+          createdAt: now,
+          updatedAt: now,
+        });
 
-        if (!result.success) {
+        if (!success) {
           throw new TRPCError({
             code: "INTERNAL_SERVER_ERROR",
             message: "Failed to create notebook",
           });
         }
 
-        const notebook = await DB.prepare(
-          "SELECT * FROM notebooks WHERE id = ?"
-        )
-          .bind(nbId)
-          .first<NotebookRow>();
+        const notebook = await getNotebookById(DB, nbId);
 
         return notebook;
       } catch (error) {
@@ -205,36 +202,19 @@ export const appRouter = router({
           });
         }
 
-        const updates: string[] = [];
-        const bindings: unknown[] = [];
-
-        if (updateInput.title !== undefined) {
-          updates.push("title = ?");
-          bindings.push(updateInput.title);
-        }
-
-        if (updates.length === 0) {
+        if (updateInput.title === undefined) {
           throw new TRPCError({
             code: "BAD_REQUEST",
             message: "No updates provided",
           });
         }
 
-        updates.push("updated_at = ?");
-        bindings.push(new Date().toISOString());
-        bindings.push(nbId);
+        const success = await updateNotebook(DB, nbId, {
+          title: updateInput.title,
+          updatedAt: new Date().toISOString(),
+        });
 
-        const result = await DB.prepare(
-          `
-          UPDATE notebooks
-          SET ${updates.join(", ")}
-          WHERE id = ?
-        `
-        )
-          .bind(...bindings)
-          .run();
-
-        if (result.meta.changes === 0) {
+        if (!success) {
           throw new TRPCError({
             code: "NOT_FOUND",
             message: "Notebook not found or no changes made",
@@ -242,11 +222,7 @@ export const appRouter = router({
         }
 
         // Return updated notebook
-        const notebook = await DB.prepare(
-          "SELECT * FROM notebooks WHERE id = ?"
-        )
-          .bind(nbId)
-          .first<NotebookRow>();
+        const notebook = await getNotebookById(DB, nbId);
 
         return notebook;
       } catch (error) {
@@ -281,11 +257,9 @@ export const appRouter = router({
         }
 
         // Delete notebook (CASCADE will handle permissions)
-        const result = await DB.prepare("DELETE FROM notebooks WHERE id = ?")
-          .bind(nbId)
-          .run();
+        const success = await deleteNotebook(DB, nbId);
 
-        if (result.meta.changes === 0) {
+        if (!success) {
           throw new TRPCError({
             code: "NOT_FOUND",
             message: "Notebook not found",
@@ -369,25 +343,16 @@ export const appRouter = router({
       } = ctx;
 
       try {
-        const notebook = await DB.prepare(
-          "SELECT owner_id FROM notebooks WHERE id = ?"
-        )
-          .bind(nbId)
-          .first<{ owner_id: string }>();
+        const owner = await getNotebookOwner(DB, nbId);
 
-        if (!notebook) {
+        if (!owner) {
           throw new TRPCError({
             code: "NOT_FOUND",
             message: "Notebook not found",
           });
         }
 
-        const userRecord = await getUserById(DB, notebook.owner_id);
-        if (userRecord) {
-          return toPublicFacingUser(userRecord);
-        } else {
-          return createFallbackUser(notebook.owner_id);
-        }
+        return owner;
       } catch (error) {
         if (error instanceof TRPCError) throw error;
         console.error("Failed to fetch owner:", error);

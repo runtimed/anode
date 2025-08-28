@@ -6,6 +6,7 @@ import {
   createFallbackUser,
   getUsersByIds,
   toPublicFacingUser,
+  getUserById,
 } from "backend/users/utils";
 
 export async function getNotebooks(
@@ -146,4 +147,123 @@ async function getNotebookCollaborators(db: D1Database, notebookId: string) {
       return createFallbackUser(userId);
     }
   });
+}
+
+// Get single notebook by ID
+export async function getNotebookById(
+  db: D1Database,
+  notebookId: string
+): Promise<NotebookRow | null> {
+  const notebook = await db
+    .prepare("SELECT * FROM notebooks WHERE id = ?")
+    .bind(notebookId)
+    .first<NotebookRow>();
+
+  return notebook || null;
+}
+
+// Create a new notebook
+export async function createNotebook(
+  db: D1Database,
+  params: {
+    id: string;
+    ownerId: string;
+    title: string;
+    createdAt: string;
+    updatedAt: string;
+  }
+): Promise<boolean> {
+  const { id, ownerId, title, createdAt, updatedAt } = params;
+
+  const result = await db
+    .prepare(
+      `
+      INSERT INTO notebooks (id, owner_id, title, created_at, updated_at)
+      VALUES (?, ?, ?, ?, ?)
+    `
+    )
+    .bind(id, ownerId, title, createdAt, updatedAt)
+    .run();
+
+  return result.success;
+}
+
+// Update notebook metadata
+export async function updateNotebook(
+  db: D1Database,
+  notebookId: string,
+  updates: {
+    title?: string;
+    updatedAt: string;
+  }
+): Promise<boolean> {
+  const { title, updatedAt } = updates;
+  const updateFields: string[] = [];
+  const bindings: unknown[] = [];
+
+  if (title !== undefined) {
+    updateFields.push("title = ?");
+    bindings.push(title);
+  }
+
+  updateFields.push("updated_at = ?");
+  bindings.push(updatedAt);
+  bindings.push(notebookId);
+
+  const result = await db
+    .prepare(
+      `
+      UPDATE notebooks
+      SET ${updateFields.join(", ")}
+      WHERE id = ?
+    `
+    )
+    .bind(...bindings)
+    .run();
+
+  return result.meta.changes > 0;
+}
+
+// Delete notebook
+export async function deleteNotebook(
+  db: D1Database,
+  notebookId: string
+): Promise<boolean> {
+  const result = await db
+    .prepare("DELETE FROM notebooks WHERE id = ?")
+    .bind(notebookId)
+    .run();
+
+  return result.meta.changes > 0;
+}
+
+// Get notebook owner ID
+export async function getNotebookOwnerId(
+  db: D1Database,
+  notebookId: string
+): Promise<string | null> {
+  const notebook = await db
+    .prepare("SELECT owner_id FROM notebooks WHERE id = ?")
+    .bind(notebookId)
+    .first<{ owner_id: string }>();
+
+  return notebook?.owner_id || null;
+}
+
+// Get notebook owner user data
+export async function getNotebookOwner(
+  db: D1Database,
+  notebookId: string
+) {
+  const ownerId = await getNotebookOwnerId(db, notebookId);
+  if (!ownerId) {
+    return null;
+  }
+
+  const userRecord = await getUserById(db, ownerId);
+  if (userRecord) {
+    return toPublicFacingUser(userRecord);
+  } else {
+    return createFallbackUser(ownerId);
+  }
 }
