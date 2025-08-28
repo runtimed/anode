@@ -4,7 +4,6 @@ import { NotebookApp } from "@/components/NotebookApp.tsx";
 import { getStoreId } from "@/util/store-id.ts";
 import React, { useState } from "react";
 
-// Animation wrapper with minimum loading time and animation completion
 export const HomePage: React.FC = () => {
   const [liveStoreReady, setLiveStoreReady] = useState(false);
 
