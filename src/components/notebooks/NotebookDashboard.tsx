@@ -17,6 +17,7 @@ import { useTrpc } from "../TrpcProvider";
 import { getNotebookVanityUrl } from "../../util/url-utils";
 import { Badge } from "../ui/badge";
 import { Button } from "../ui/button";
+import { DateDisplay } from "../ui/DateDisplay";
 import { Input } from "../ui/input";
 
 import { LoadingState } from "../loading/LoadingState";
@@ -648,15 +649,6 @@ const NotebookTableRow: React.FC<NotebookTableRowProps> = ({
   notebook,
   onUpdate,
 }) => {
-  const formatDate = (dateString: string) => {
-    return new Intl.DateTimeFormat("en-US", {
-      month: "short",
-      day: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
-    }).format(new Date(dateString));
-  };
-
   const getPermissionBadgeVariant = (permission: string) => {
     switch (permission) {
       case "OWNER":
@@ -688,7 +680,9 @@ const NotebookTableRow: React.FC<NotebookTableRowProps> = ({
           {notebook.myPermission.toLowerCase()}
         </Badge>
       </td>
-      <td className="p-4 text-gray-600">{formatDate(notebook.updated_at)}</td>
+      <td className="p-4 text-gray-600">
+        <DateDisplay date={notebook.updated_at} format="short" />
+      </td>
       <td className="p-4">
         <NotebookActions notebook={notebook} onUpdate={onUpdate} />
       </td>

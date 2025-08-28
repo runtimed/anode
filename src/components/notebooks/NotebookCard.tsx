@@ -4,6 +4,7 @@ import { Link } from "react-router-dom";
 import { getNotebookVanityUrl } from "../../util/url-utils";
 import { Badge } from "../ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
+import { DateDisplay } from "../ui/DateDisplay";
 import { NotebookActions } from "./NotebookActions";
 import type { NotebookProcessed } from "./types";
 
@@ -16,15 +17,6 @@ export const NotebookCard: React.FC<NotebookCardProps> = ({
   notebook,
   onUpdate,
 }) => {
-  const formatDate = (dateString: string) => {
-    return new Intl.DateTimeFormat("en-US", {
-      month: "short",
-      day: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
-    }).format(new Date(dateString));
-  };
-
   const getPermissionBadgeVariant = (permission: string) => {
     switch (permission) {
       case "OWNER":
@@ -39,7 +31,7 @@ export const NotebookCard: React.FC<NotebookCardProps> = ({
   return (
     <Link
       to={getNotebookVanityUrl(notebook.id, notebook.title)}
-      className="block transition-transform hover:scale-[1.02]"
+      className="block transition-transform"
     >
       <Card className="h-full transition-shadow hover:shadow-lg">
         <CardHeader className="pb-3">
@@ -92,7 +84,10 @@ export const NotebookCard: React.FC<NotebookCardProps> = ({
             {/* Last updated */}
             <div className="flex items-center gap-2">
               <Clock className="h-4 w-4 shrink-0" />
-              <span>Updated {formatDate(notebook.updated_at)}</span>
+              <span>
+                Updated{" "}
+                <DateDisplay date={notebook.updated_at} format="relative" />
+              </span>
             </div>
           </div>
         </CardContent>
