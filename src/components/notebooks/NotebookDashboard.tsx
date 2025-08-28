@@ -34,6 +34,7 @@ import { useDebug } from "@/components/debug/debug-mode";
 import { DebugModeToggle } from "../debug/DebugModeToggle";
 import { RuntLogoSmall } from "../logo/RuntLogoSmall";
 import { GitCommitHash } from "../notebook/GitCommitHash";
+import { trpcQueryClient } from "@/lib/trpc-client";
 
 const DebugNotebooks = React.lazy(() =>
   import("./DebugNotebooks").then((mod) => ({ default: mod.DebugNotebooks }))
@@ -226,6 +227,9 @@ export const NotebookDashboard: React.FC = () => {
 
     try {
       const result = await createNotebookMutation.mutateAsync(input);
+      trpcQueryClient.invalidateQueries({
+        queryKey: trpc.notebooks.queryKey(),
+      });
       if (result) {
         // Redirect to the new notebook with initial data to prevent flicker
         navigate(getNotebookVanityUrl(result.id, result.title), {
