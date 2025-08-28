@@ -1,5 +1,5 @@
 import type { D1Database } from "@cloudflare/workers-types";
-import { NotebookPermissionRow, NotebookRow, TagRow } from "./types";
+import { NotebookPermissionRow, NotebookRow, TagRow, TagColor } from "./types";
 import { PermissionsProvider } from "backend/notebook-permissions/types";
 import { ValidatedUser } from "backend/auth";
 import {
@@ -270,9 +270,10 @@ export async function createTag(
   db: D1Database,
   params: {
     name: string;
+    color?: TagColor;
   }
 ): Promise<TagRow | null> {
-  const { name } = params;
+  const { name, color = "neutral" } = params;
   const id = nanoid();
   const now = new Date().toISOString();
 
@@ -280,17 +281,18 @@ export async function createTag(
     const result = await db
       .prepare(
         `
-        INSERT INTO tags (id, name, created_at, updated_at)
-        VALUES (?, ?, ?, ?)
+        INSERT INTO tags (id, name, color, created_at, updated_at)
+        VALUES (?, ?, ?, ?, ?)
       `
       )
-      .bind(id, name, now, now)
+      .bind(id, name, color, now, now)
       .run();
 
     if (result.success) {
       return {
         id,
         name,
+        color,
         created_at: now,
         updated_at: now,
       };
@@ -308,27 +310,45 @@ export async function createTag(
   }
 }
 
-// Update tag name
+// Update tag name and color
 export async function updateTag(
   db: D1Database,
   tagId: string,
   params: {
-    name: string;
+    name?: string;
+    color?: TagColor;
   }
 ): Promise<boolean> {
-  const { name } = params;
+  const { name, color } = params;
   const now = new Date().toISOString();
+
+  const updateFields: string[] = [];
+  const bindings: unknown[] = [];
+
+  if (name !== undefined) {
+    updateFields.push("name = ?");
+    bindings.push(name);
+  }
+
+  if (color !== undefined) {
+    updateFields.push("color = ?");
+    bindings.push(color);
+  }
+
+  updateFields.push("updated_at = ?");
+  bindings.push(now);
+  bindings.push(tagId);
 
   try {
     const result = await db
       .prepare(
         `
         UPDATE tags
-        SET name = ?, updated_at = ?
+        SET ${updateFields.join(", ")}
         WHERE id = ?
       `
       )
-      .bind(name, now, tagId)
+      .bind(...bindings)
       .run();
 
     return result.meta.changes > 0;
@@ -449,7 +469,7 @@ export async function getNotebookTags(
   notebookId: string
 ): Promise<TagRow[]> {
   const query = `
-    SELECT t.id, t.name, t.created_at, t.updated_at
+    SELECT t.id, t.name, t.color, t.created_at, t.updated_at
     FROM tags t
     INNER JOIN notebook_tags nt ON t.id = nt.tag_id
     WHERE nt.notebook_id = ?

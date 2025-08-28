@@ -6,6 +6,7 @@ import { Badge } from "../ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
 import { DateDisplay } from "../ui/DateDisplay";
 import { NotebookActions } from "./NotebookActions";
+import { getTagColorClasses } from "@/lib/tag-colors";
 import type { NotebookProcessed } from "./types";
 
 interface NotebookCardProps {
@@ -90,7 +91,7 @@ export const NotebookCard: React.FC<NotebookCardProps> = ({
                     <Badge
                       key={tag.id}
                       variant="outline"
-                      className="px-2 py-0.5 text-xs"
+                      className={`px-2 py-0.5 text-xs ${getTagColorClasses(tag.color)}`}
                     >
                       {tag.name}
                     </Badge>

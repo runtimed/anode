@@ -21,9 +21,33 @@ export interface NotebookPermissionRow {
   granted_at: string;
 }
 
+export const TAG_COLORS = [
+  "red",
+  "orange",
+  "amber",
+  "yellow",
+  "lime",
+  "green",
+  "emerald",
+  "teal",
+  "cyan",
+  "sky",
+  "blue",
+  "indigo",
+  "violet",
+  "purple",
+  "fuchsia",
+  "pink",
+  "rose",
+  "neutral",
+] as const;
+
+export type TagColor = (typeof TAG_COLORS)[number];
+
 export interface TagRow {
   id: string;
   name: string;
+  color: TagColor;
   created_at: string;
   updated_at: string;
 }

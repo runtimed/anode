@@ -30,6 +30,8 @@ import {
 import { NotebookActions } from "./NotebookActions";
 import { NotebookCard } from "./NotebookCard";
 import { SimpleUserProfile } from "./SimpleUserProfile";
+import { TagCreationDialog } from "./TagCreationDialog";
+import { getTagColorClasses, getTagDotColorClass } from "@/lib/tag-colors";
 import type { NotebookProcessed } from "./types";
 import { useDebug } from "@/components/debug/debug-mode";
 import { DebugModeToggle } from "../debug/DebugModeToggle";
@@ -360,7 +362,9 @@ export const NotebookDashboard: React.FC = () => {
                     className="w-full rounded-md px-3 py-2 text-left text-sm text-gray-700 transition-colors hover:bg-gray-50"
                   >
                     <div className="flex items-center">
-                      <Tag className="mr-2 h-3 w-3" />
+                      <div
+                        className={`mr-2 h-3 w-3 rounded-full ${getTagDotColorClass(tag.color)}`}
+                      />
                       {tag.name}
                       <Badge variant="secondary" className="ml-auto">
                         {
@@ -376,6 +380,18 @@ export const NotebookDashboard: React.FC = () => {
             ) : (
               <div className="text-sm text-gray-400 italic">No tags yet...</div>
             )}
+
+            {/* Add Tag Button */}
+            <div className="mt-3">
+              <TagCreationDialog
+                onTagCreated={() => {
+                  // Refresh the tags list
+                  trpcQueryClient.invalidateQueries({
+                    queryKey: trpc.tags.queryKey(),
+                  });
+                }}
+              />
+            </div>
           </div>
         </div>
       </div>
@@ -714,7 +730,7 @@ const NotebookTableRow: React.FC<NotebookTableRowProps> = ({
               <Badge
                 key={tag.id}
                 variant="outline"
-                className="px-2 py-0.5 text-xs"
+                className={`px-2 py-0.5 text-xs ${getTagColorClasses(tag.color)}`}
               >
                 {tag.name}
               </Badge>

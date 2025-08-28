@@ -1,9 +1,10 @@
--- Migration number: 0006 	 2025-01-27T00:00:00.000Z
+-- Migration number: 0006 	 2025-08-28T22:51:05.213Z
 
 -- Tags table
 CREATE TABLE tags (
   id TEXT PRIMARY KEY,
   name TEXT NOT NULL UNIQUE,
+  color TEXT NOT NULL DEFAULT 'neutral',
   created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
   updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
 );

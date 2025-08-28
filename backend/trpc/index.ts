@@ -9,22 +9,22 @@ import {
 } from "../users/utils.ts";
 import { createNotebookId } from "../utils/notebook-id.ts";
 import {
-  getNotebooks,
-  getNotebookById,
+  assignTagToNotebook,
   createNotebook,
-  updateNotebook,
-  deleteNotebook,
-  getNotebookOwner,
   createTag,
-  updateTag,
+  deleteNotebook,
   deleteTag,
   getAllTags,
-  assignTagToNotebook,
-  removeTagFromNotebook,
+  getNotebookById,
+  getNotebookOwner,
+  getNotebooks,
   getNotebookTags,
+  removeTagFromNotebook,
+  updateNotebook,
+  updateTag,
 } from "./db.ts";
 import { authedProcedure, publicProcedure, router } from "./trpc";
-import { NotebookPermission } from "./types.ts";
+import { NotebookPermission, TAG_COLORS } from "./types.ts";
 
 // Create the tRPC router
 export const appRouter = router({
@@ -444,16 +444,21 @@ export const appRouter = router({
 
   // Create a new tag
   createTag: authedProcedure
-    .input(z.object({ name: z.string().min(1).max(50) }))
+    .input(
+      z.object({
+        name: z.string().min(1).max(50),
+        color: z.enum(TAG_COLORS).optional(),
+      })
+    )
     .mutation(async (opts) => {
       const { ctx, input } = opts;
-      const { name } = input;
+      const { name, color } = input;
       const {
         env: { DB },
       } = ctx;
 
       try {
-        const tag = await createTag(DB, { name });
+        const tag = await createTag(DB, { name, color });
         if (!tag) {
           throw new TRPCError({
             code: "CONFLICT",

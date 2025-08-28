@@ -1,3 +1,5 @@
+import { TagColor } from "backend/trpc/types";
+
 type NotebookPermission = "OWNER" | "WRITER" | "NONE";
 
 type NotebookUser = {
@@ -15,6 +17,7 @@ type Collaborator = {
 export type Tag = {
   id: string;
   name: string;
+  color: TagColor;
   created_at: string;
   updated_at: string;
 };
