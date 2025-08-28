@@ -39,6 +39,7 @@ export const ColorPicker: React.FC<ColorPickerProps> = ({
     <div className={cn("grid grid-cols-6 gap-2", className)}>
       {TAILWIND_COLORS.map((color) => (
         <button
+          type="button"
           key={color}
           onClick={() => onColorChange(color)}
           className={cn(
