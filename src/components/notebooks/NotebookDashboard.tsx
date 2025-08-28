@@ -26,6 +26,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "../ui/dropdown-menu";
+import { NotebookActions } from "./NotebookActions";
 import { NotebookCard } from "./NotebookCard";
 import { SimpleUserProfile } from "./SimpleUserProfile";
 import type { NotebookProcessed } from "./types";
@@ -33,6 +34,7 @@ import { useDebug } from "@/components/debug/debug-mode";
 import { DebugModeToggle } from "../debug/DebugModeToggle";
 import { RuntLogoSmall } from "../logo/RuntLogoSmall";
 import { GitCommitHash } from "../notebook/GitCommitHash";
+import { trpcQueryClient } from "@/lib/trpc-client";
 
 const DebugNotebooks = React.lazy(() =>
   import("./DebugNotebooks").then((mod) => ({ default: mod.DebugNotebooks }))
@@ -225,6 +227,9 @@ export const NotebookDashboard: React.FC = () => {
 
     try {
       const result = await createNotebookMutation.mutateAsync(input);
+      trpcQueryClient.invalidateQueries({
+        queryKey: trpc.notebooks.queryKey(),
+      });
       if (result) {
         // Redirect to the new notebook with initial data to prevent flicker
         navigate(getNotebookVanityUrl(result.id, result.title), {
@@ -463,7 +468,7 @@ export const NotebookDashboard: React.FC = () => {
             </div>
           )}
 
-          {debug.enabled && <DebugNotebooks />}
+          {debug.enabled && <DebugNotebooks notebooks={filteredNotebooks} />}
 
           {!isLoading && filteredNotebooks.length > 0 && (
             <div className="space-y-8">
@@ -586,7 +591,7 @@ const NotebookGrid: React.FC<NotebookGridProps> = ({
 }) => {
   if (viewMode === "grid") {
     return (
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+      <div className="grid gap-6 lg:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
         {notebooks.map((notebook) => (
           <NotebookCard
             key={notebook.id}
@@ -613,11 +618,18 @@ const NotebookGrid: React.FC<NotebookGridProps> = ({
               <th className="p-4 text-left font-medium text-gray-900">
                 Updated
               </th>
+              <th className="p-4 text-left font-medium text-gray-900">
+                Actions
+              </th>
             </tr>
           </thead>
           <tbody>
             {notebooks.map((notebook) => (
-              <NotebookTableRow key={notebook.id} notebook={notebook} />
+              <NotebookTableRow
+                key={notebook.id}
+                notebook={notebook}
+                onUpdate={onUpdate}
+              />
             ))}
           </tbody>
         </table>
@@ -629,9 +641,13 @@ const NotebookGrid: React.FC<NotebookGridProps> = ({
 // Table row component
 interface NotebookTableRowProps {
   notebook: NotebookProcessed;
+  onUpdate?: () => void;
 }
 
-const NotebookTableRow: React.FC<NotebookTableRowProps> = ({ notebook }) => {
+const NotebookTableRow: React.FC<NotebookTableRowProps> = ({
+  notebook,
+  onUpdate,
+}) => {
   const formatDate = (dateString: string) => {
     return new Intl.DateTimeFormat("en-US", {
       month: "short",
@@ -673,6 +689,9 @@ const NotebookTableRow: React.FC<NotebookTableRowProps> = ({ notebook }) => {
         </Badge>
       </td>
       <td className="p-4 text-gray-600">{formatDate(notebook.updated_at)}</td>
+      <td className="p-4">
+        <NotebookActions notebook={notebook} onUpdate={onUpdate} />
+      </td>
     </tr>
   );
 };
