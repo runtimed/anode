@@ -1,17 +1,21 @@
+import { useDebug } from "@/components/debug/debug-mode.js";
 import { cn } from "@/lib/utils";
 import { useQuery } from "@tanstack/react-query";
-import { ArrowLeft, Clock, Share2, User, Users } from "lucide-react";
+import { ArrowLeft, Share2, User, Users } from "lucide-react";
 import React, { Suspense, useEffect, useState } from "react";
+import { ErrorBoundary } from "react-error-boundary";
 import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
 import {
   getNotebookVanityUrl,
   hasCorrectNotebookVanityUrl,
 } from "../../util/url-utils";
 import { CollaboratorAvatars } from "../CollaboratorAvatars";
+import { DebugModeToggle } from "../debug/DebugModeToggle.js";
 import { KeyboardShortcuts } from "../KeyboardShortcuts";
 import { CustomLiveStoreProvider } from "../livestore/CustomLiveStoreProvider";
 import { LoadingState } from "../loading/LoadingState";
 import { RuntLogoSmall } from "../logo/RuntLogoSmall";
+import { ContextSelectionModeButton } from "../notebook/ContextSelectionModeButton.js";
 import { GitCommitHash } from "../notebook/GitCommitHash";
 import { NotebookContent } from "../notebook/NotebookContent";
 import { RuntimeHealthIndicatorButton } from "../notebook/RuntimeHealthIndicatorButton";
@@ -22,12 +26,8 @@ import { Badge } from "../ui/badge";
 import { Button } from "../ui/button";
 import { TitleEditor } from "./notebook/TitleEditor";
 import { SharingModal } from "./SharingModal";
-import type { NotebookProcessed } from "./types";
 import { SimpleUserProfile } from "./SimpleUserProfile";
-import { ErrorBoundary } from "react-error-boundary";
-import { useDebug } from "@/components/debug/debug-mode.js";
-import { DebugModeToggle } from "../debug/DebugModeToggle.js";
-import { ContextSelectionModeButton } from "../notebook/ContextSelectionModeButton.js";
+import type { NotebookProcessed } from "./types";
 
 // Lazy import DebugPanel only in development
 const LazyDebugPanel = React.lazy(() =>
@@ -121,16 +121,6 @@ export const NotebookPage: React.FC = () => {
     isLoading,
     notebook,
   ]);
-
-  const formatDate = (dateString: string) => {
-    return new Intl.DateTimeFormat("en-US", {
-      year: "numeric",
-      month: "short",
-      day: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
-    }).format(new Date(dateString));
-  };
 
   const getPermissionBadgeVariant = (permission: string) => {
     switch (permission) {
