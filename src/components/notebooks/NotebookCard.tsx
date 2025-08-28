@@ -1,23 +1,19 @@
-import React, { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { useMutation } from "@tanstack/react-query";
 import {
-  Users,
   Clock,
-  User,
-  Share2,
   MoreHorizontal,
+  Share2,
   Trash2,
+  User,
+  Users,
 } from "lucide-react";
+import React, { useState } from "react";
+import { Link } from "react-router-dom";
 import { getNotebookVanityUrl } from "../../util/url-utils";
-import { Card, CardHeader, CardTitle, CardContent } from "../ui/card";
+import { useTrpc } from "../TrpcProvider";
 import { Badge } from "../ui/badge";
 import { Button } from "../ui/button";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "../ui/dropdown-menu";
+import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
 import {
   Dialog,
   DialogContent,
@@ -25,10 +21,14 @@ import {
   DialogHeader,
   DialogTitle,
 } from "../ui/dialog";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "../ui/dropdown-menu";
 import { SharingModal } from "./SharingModal";
 import type { NotebookProcessed } from "./types";
-import { useTrpc } from "../TrpcProvider";
-import { useMutation } from "@tanstack/react-query";
 
 interface NotebookCardProps {
   notebook: NotebookProcessed;
