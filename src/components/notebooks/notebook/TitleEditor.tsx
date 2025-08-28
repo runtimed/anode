@@ -81,7 +81,7 @@ export function TitleEditor({
         </div>
       ) : (
         <div className="flex items-center gap-2">
-          <h1 className="text-xl font-semibold">
+          <h1 className="text-md line-clamp-1 font-semibold md:text-xl">
             {notebook.title || "Untitled Notebook"}
           </h1>
           {canEdit && (

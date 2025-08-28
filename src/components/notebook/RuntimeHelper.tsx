@@ -84,7 +84,7 @@ export const RuntimeHelper: React.FC<RuntimeHelperProps> = ({
               <code className="bg-muted rounded px-1">{notebookId}</code>:
             </p>
             <div className="flex items-center gap-2 rounded bg-slate-900 p-3 font-mono text-sm text-slate-100">
-              <span className="flex-1">{runtimeCommand}</span>
+              <span className="flex-1 overflow-x-auto">{runtimeCommand}</span>
               <Button
                 variant="ghost"
                 size="sm"

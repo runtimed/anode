@@ -1,17 +1,21 @@
+import { useDebug } from "@/components/debug/debug-mode.js";
 import { cn } from "@/lib/utils";
 import { useQuery } from "@tanstack/react-query";
-import { ArrowLeft, Clock, Share2, User, Users } from "lucide-react";
+import { ArrowLeft, Share2, User, Users } from "lucide-react";
 import React, { Suspense, useEffect, useState } from "react";
+import { ErrorBoundary } from "react-error-boundary";
 import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
 import {
   getNotebookVanityUrl,
   hasCorrectNotebookVanityUrl,
 } from "../../util/url-utils";
 import { CollaboratorAvatars } from "../CollaboratorAvatars";
+import { DebugModeToggle } from "../debug/DebugModeToggle.js";
 import { KeyboardShortcuts } from "../KeyboardShortcuts";
 import { CustomLiveStoreProvider } from "../livestore/CustomLiveStoreProvider";
 import { LoadingState } from "../loading/LoadingState";
 import { RuntLogoSmall } from "../logo/RuntLogoSmall";
+import { ContextSelectionModeButton } from "../notebook/ContextSelectionModeButton.js";
 import { GitCommitHash } from "../notebook/GitCommitHash";
 import { NotebookContent } from "../notebook/NotebookContent";
 import { RuntimeHealthIndicatorButton } from "../notebook/RuntimeHealthIndicatorButton";
@@ -22,12 +26,8 @@ import { Badge } from "../ui/badge";
 import { Button } from "../ui/button";
 import { TitleEditor } from "./notebook/TitleEditor";
 import { SharingModal } from "./SharingModal";
-import type { NotebookProcessed } from "./types";
 import { SimpleUserProfile } from "./SimpleUserProfile";
-import { ErrorBoundary } from "react-error-boundary";
-import { useDebug } from "@/components/debug/debug-mode.js";
-import { DebugModeToggle } from "../debug/DebugModeToggle.js";
-import { ContextSelectionModeButton } from "../notebook/ContextSelectionModeButton.js";
+import type { NotebookProcessed } from "./types";
 
 // Lazy import DebugPanel only in development
 const LazyDebugPanel = React.lazy(() =>
@@ -122,16 +122,6 @@ export const NotebookPage: React.FC = () => {
     notebook,
   ]);
 
-  const formatDate = (dateString: string) => {
-    return new Intl.DateTimeFormat("en-US", {
-      year: "numeric",
-      month: "short",
-      day: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
-    }).format(new Date(dateString));
-  };
-
   const getPermissionBadgeVariant = (permission: string) => {
     switch (permission) {
       case "OWNER":
@@ -181,7 +171,7 @@ export const NotebookPage: React.FC = () => {
       {/* Header */}
       <div className="border-b bg-white">
         <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center justify-between gap-4">
+          <div className="flex flex-wrap-reverse items-center justify-between gap-4">
             <div className="flex items-center gap-4">
               <Link to="/nb" className="group/logo relative">
                 <span className="relative transition-opacity group-hover/logo:opacity-20">
@@ -197,7 +187,8 @@ export const NotebookPage: React.FC = () => {
               />
             </div>
 
-            <div className="flex items-center gap-2">
+            {/* Right side */}
+            <div className="flex flex-grow items-center justify-end gap-2">
               {/* Share button */}
               {canEdit && (
                 <Button
@@ -228,9 +219,9 @@ export const NotebookPage: React.FC = () => {
           </div>
 
           {/* Metadata */}
-          <div className="mt-4 flex flex-wrap items-center gap-6 text-sm text-gray-600">
+          <div className="mt-4 flex items-center gap-6 overflow-x-auto text-sm whitespace-nowrap text-gray-600">
             {/* Owner */}
-            <div className="flex items-center gap-2">
+            <div className="flex shrink-0 items-center gap-2">
               <User className="h-4 w-4 shrink-0" />
               <span>
                 {notebook.owner?.givenName && notebook.owner?.familyName
@@ -249,20 +240,6 @@ export const NotebookPage: React.FC = () => {
                     ? "collaborator"
                     : "collaborators"}
                 </span>
-              </div>
-            )}
-
-            {/* Created date */}
-            <div className="flex items-center gap-2">
-              <Clock className="h-4 w-4 shrink-0" />
-              <span>Created {formatDate(notebook.created_at)}</span>
-            </div>
-
-            {/* Updated date (if different from created) */}
-            {notebook.updated_at !== notebook.created_at && (
-              <div className="flex items-center gap-2">
-                <Clock className="h-4 w-4 shrink-0" />
-                <span>Updated {formatDate(notebook.updated_at)}</span>
               </div>
             )}
           </div>
