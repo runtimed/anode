@@ -26,6 +26,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "../ui/dropdown-menu";
+import { NotebookActions } from "./NotebookActions";
 import { NotebookCard } from "./NotebookCard";
 import { SimpleUserProfile } from "./SimpleUserProfile";
 import type { NotebookProcessed } from "./types";
@@ -613,11 +614,18 @@ const NotebookGrid: React.FC<NotebookGridProps> = ({
               <th className="p-4 text-left font-medium text-gray-900">
                 Updated
               </th>
+              <th className="p-4 text-left font-medium text-gray-900">
+                Actions
+              </th>
             </tr>
           </thead>
           <tbody>
             {notebooks.map((notebook) => (
-              <NotebookTableRow key={notebook.id} notebook={notebook} />
+              <NotebookTableRow
+                key={notebook.id}
+                notebook={notebook}
+                onUpdate={onUpdate}
+              />
             ))}
           </tbody>
         </table>
@@ -629,9 +637,13 @@ const NotebookGrid: React.FC<NotebookGridProps> = ({
 // Table row component
 interface NotebookTableRowProps {
   notebook: NotebookProcessed;
+  onUpdate?: () => void;
 }
 
-const NotebookTableRow: React.FC<NotebookTableRowProps> = ({ notebook }) => {
+const NotebookTableRow: React.FC<NotebookTableRowProps> = ({
+  notebook,
+  onUpdate,
+}) => {
   const formatDate = (dateString: string) => {
     return new Intl.DateTimeFormat("en-US", {
       month: "short",
@@ -673,6 +685,9 @@ const NotebookTableRow: React.FC<NotebookTableRowProps> = ({ notebook }) => {
         </Badge>
       </td>
       <td className="p-4 text-gray-600">{formatDate(notebook.updated_at)}</td>
+      <td className="p-4">
+        <NotebookActions notebook={notebook} onUpdate={onUpdate} />
+      </td>
     </tr>
   );
 };
