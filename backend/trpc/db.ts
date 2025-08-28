@@ -1,5 +1,5 @@
 import type { D1Database } from "@cloudflare/workers-types";
-import { NotebookRow } from "./types";
+import { NotebookPermissionRow, NotebookRow } from "./types";
 import { PermissionsProvider } from "backend/notebook-permissions/types";
 import { ValidatedUser } from "backend/auth";
 import {
@@ -129,13 +129,13 @@ async function getNotebookCollaborators(db: D1Database, notebookId: string) {
   const writers = await db
     .prepare(query)
     .bind(notebookId)
-    .all<{ user_id: string }>();
+    .all<Pick<NotebookPermissionRow, "user_id">>();
 
   if (writers.results.length === 0) {
     return [];
   }
 
-  const userIds = writers.results.map((w: { user_id: string }) => w.user_id);
+  const userIds = writers.results.map((w) => w.user_id);
   const userMap = await getUsersByIds(db, userIds);
 
   return userIds.map((userId: string) => {
