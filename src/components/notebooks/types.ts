@@ -12,6 +12,13 @@ type Collaborator = {
   familyName: string | null;
 };
 
+export type Tag = {
+  id: string;
+  name: string;
+  created_at: string;
+  updated_at: string;
+};
+
 export type NotebookProcessed = {
   id: string;
   owner_id: string;
@@ -21,4 +28,5 @@ export type NotebookProcessed = {
   myPermission: NotebookPermission;
   owner: NotebookUser;
   collaborators: readonly Collaborator[];
+  tags?: readonly Tag[];
 };

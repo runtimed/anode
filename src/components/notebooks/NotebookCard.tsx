@@ -1,4 +1,4 @@
-import { Clock, User, Users } from "lucide-react";
+import { Clock, User, Users, Tag } from "lucide-react";
 import React from "react";
 import { Link } from "react-router-dom";
 import { getNotebookVanityUrl } from "../../util/url-utils";
@@ -78,6 +78,29 @@ export const NotebookCard: React.FC<NotebookCardProps> = ({
                     ? "collaborator"
                     : "collaborators"}
                 </span>
+              </div>
+            )}
+
+            {/* Tags */}
+            {notebook.tags && notebook.tags.length > 0 && (
+              <div className="flex items-start gap-2">
+                <Tag className="mt-0.5 h-4 w-4 shrink-0" />
+                <div className="flex flex-wrap gap-1">
+                  {notebook.tags.slice(0, 3).map((tag) => (
+                    <Badge
+                      key={tag.id}
+                      variant="outline"
+                      className="px-2 py-0.5 text-xs"
+                    >
+                      {tag.name}
+                    </Badge>
+                  ))}
+                  {notebook.tags.length > 3 && (
+                    <Badge variant="outline" className="px-2 py-0.5 text-xs">
+                      +{notebook.tags.length - 3} more
+                    </Badge>
+                  )}
+                </div>
               </div>
             )}
 

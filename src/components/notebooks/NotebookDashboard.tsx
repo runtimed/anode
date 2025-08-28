@@ -103,6 +103,9 @@ export const NotebookDashboard: React.FC = () => {
   // Get user data
   const { data: userData } = useQuery(trpc.me.queryOptions());
 
+  // Get all tags
+  const { data: tagsData } = useQuery(trpc.tags.queryOptions());
+
   const allNotebooks = useMemo(() => {
     if (!notebooksData) return [];
 
@@ -343,13 +346,36 @@ export const NotebookDashboard: React.FC = () => {
             </div>
           </div>
 
-          {/* Tags Section - Placeholder for future */}
+          {/* Tags Section */}
           <div>
             <h3 className="mb-3 flex items-center text-sm font-medium text-gray-500">
               <Tag className="mr-2 h-4 w-4" />
               Tags
             </h3>
-            <div className="text-sm text-gray-400 italic">Coming soon...</div>
+            {tagsData && tagsData.length > 0 ? (
+              <div className="space-y-1">
+                {tagsData.map((tag) => (
+                  <button
+                    key={tag.id}
+                    className="w-full rounded-md px-3 py-2 text-left text-sm text-gray-700 transition-colors hover:bg-gray-50"
+                  >
+                    <div className="flex items-center">
+                      <Tag className="mr-2 h-3 w-3" />
+                      {tag.name}
+                      <Badge variant="secondary" className="ml-auto">
+                        {
+                          allNotebooks.filter((n) =>
+                            n.tags?.some((t) => t.id === tag.id)
+                          ).length
+                        }
+                      </Badge>
+                    </div>
+                  </button>
+                ))}
+              </div>
+            ) : (
+              <div className="text-sm text-gray-400 italic">No tags yet...</div>
+            )}
           </div>
         </div>
       </div>
@@ -616,6 +642,7 @@ const NotebookGrid: React.FC<NotebookGridProps> = ({
               <th className="p-4 text-left font-medium text-gray-900">
                 Permission
               </th>
+              <th className="p-4 text-left font-medium text-gray-900">Tags</th>
               <th className="p-4 text-left font-medium text-gray-900">
                 Updated
               </th>
@@ -679,6 +706,28 @@ const NotebookTableRow: React.FC<NotebookTableRowProps> = ({
         <Badge variant={getPermissionBadgeVariant(notebook.myPermission)}>
           {notebook.myPermission.toLowerCase()}
         </Badge>
+      </td>
+      <td className="p-4">
+        {notebook.tags && notebook.tags.length > 0 ? (
+          <div className="flex flex-wrap gap-1">
+            {notebook.tags.slice(0, 2).map((tag) => (
+              <Badge
+                key={tag.id}
+                variant="outline"
+                className="px-2 py-0.5 text-xs"
+              >
+                {tag.name}
+              </Badge>
+            ))}
+            {notebook.tags.length > 2 && (
+              <Badge variant="outline" className="px-2 py-0.5 text-xs">
+                +{notebook.tags.length - 2} more
+              </Badge>
+            )}
+          </div>
+        ) : (
+          <span className="text-sm text-gray-400">No tags</span>
+        )}
       </td>
       <td className="p-4 text-gray-600">
         <DateDisplay date={notebook.updated_at} format="short" />

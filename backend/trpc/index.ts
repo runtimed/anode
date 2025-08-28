@@ -15,6 +15,13 @@ import {
   updateNotebook,
   deleteNotebook,
   getNotebookOwner,
+  createTag,
+  updateTag,
+  deleteTag,
+  getAllTags,
+  assignTagToNotebook,
+  removeTagFromNotebook,
+  getNotebookTags,
 } from "./db.ts";
 import { authedProcedure, publicProcedure, router } from "./trpc";
 import { NotebookPermission } from "./types.ts";
@@ -413,6 +420,212 @@ export const appRouter = router({
       } catch (error) {
         console.error("Failed to check permission:", error);
         return "NONE";
+      }
+    }),
+
+  // Tag-related endpoints
+
+  // Get all tags
+  tags: authedProcedure.query(async (opts) => {
+    const { ctx } = opts;
+    const {
+      env: { DB },
+    } = ctx;
+
+    try {
+      return await getAllTags(DB);
+    } catch (error) {
+      throw new TRPCError({
+        code: "INTERNAL_SERVER_ERROR",
+        message: `Failed to fetch tags: ${error instanceof Error ? error.message : "Unknown error"}`,
+      });
+    }
+  }),
+
+  // Create a new tag
+  createTag: authedProcedure
+    .input(z.object({ name: z.string().min(1).max(50) }))
+    .mutation(async (opts) => {
+      const { ctx, input } = opts;
+      const { name } = input;
+      const {
+        env: { DB },
+      } = ctx;
+
+      try {
+        const tag = await createTag(DB, { name });
+        if (!tag) {
+          throw new TRPCError({
+            code: "CONFLICT",
+            message: "Tag with this name already exists",
+          });
+        }
+        return tag;
+      } catch (error) {
+        if (error instanceof TRPCError) throw error;
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: `Failed to create tag: ${error instanceof Error ? error.message : "Unknown error"}`,
+        });
+      }
+    }),
+
+  // Update tag name
+  updateTag: authedProcedure
+    .input(z.object({ id: z.string(), name: z.string().min(1).max(50) }))
+    .mutation(async (opts) => {
+      const { ctx, input } = opts;
+      const { id, name } = input;
+      const {
+        env: { DB },
+      } = ctx;
+
+      try {
+        const success = await updateTag(DB, id, { name });
+        if (!success) {
+          throw new TRPCError({
+            code: "CONFLICT",
+            message: "Tag with this name already exists",
+          });
+        }
+        return { success: true };
+      } catch (error) {
+        if (error instanceof TRPCError) throw error;
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: `Failed to update tag: ${error instanceof Error ? error.message : "Unknown error"}`,
+        });
+      }
+    }),
+
+  // Delete tag
+  deleteTag: authedProcedure
+    .input(z.object({ id: z.string() }))
+    .mutation(async (opts) => {
+      const { ctx, input } = opts;
+      const { id } = input;
+      const {
+        env: { DB },
+      } = ctx;
+
+      try {
+        const success = await deleteTag(DB, id);
+        if (!success) {
+          throw new TRPCError({
+            code: "NOT_FOUND",
+            message: "Tag not found",
+          });
+        }
+        return { success: true };
+      } catch (error) {
+        if (error instanceof TRPCError) throw error;
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: `Failed to delete tag: ${error instanceof Error ? error.message : "Unknown error"}`,
+        });
+      }
+    }),
+
+  // Get notebook tags
+  notebookTags: authedProcedure
+    .input(z.object({ nbId: z.string() }))
+    .query(async (opts) => {
+      const { ctx, input } = opts;
+      const { nbId } = input;
+      const {
+        env: { DB },
+        permissionsProvider,
+      } = ctx;
+
+      try {
+        const permissionResult = await permissionsProvider.checkPermission(
+          ctx.user.id,
+          nbId
+        );
+        if (!permissionResult.hasAccess) {
+          throw new TRPCError({
+            code: "NOT_FOUND",
+            message: "Notebook not found or access denied",
+          });
+        }
+
+        return await getNotebookTags(DB, nbId);
+      } catch (error) {
+        if (error instanceof TRPCError) throw error;
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: `Failed to fetch notebook tags: ${error instanceof Error ? error.message : "Unknown error"}`,
+        });
+      }
+    }),
+
+  // Assign tag to notebook
+  assignTagToNotebook: authedProcedure
+    .input(z.object({ nbId: z.string(), tagId: z.string() }))
+    .mutation(async (opts) => {
+      const { ctx, input } = opts;
+      const { nbId, tagId } = input;
+      const {
+        env: { DB },
+        permissionsProvider,
+      } = ctx;
+
+      try {
+        // Check if user has write access to the notebook
+        const permissionResult = await permissionsProvider.checkPermission(
+          ctx.user.id,
+          nbId
+        );
+        if (!permissionResult.hasAccess) {
+          throw new TRPCError({
+            code: "FORBIDDEN",
+            message: "You don't have permission to modify this notebook",
+          });
+        }
+
+        const success = await assignTagToNotebook(DB, nbId, tagId);
+        return { success };
+      } catch (error) {
+        if (error instanceof TRPCError) throw error;
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: `Failed to assign tag: ${error instanceof Error ? error.message : "Unknown error"}`,
+        });
+      }
+    }),
+
+  // Remove tag from notebook
+  removeTagFromNotebook: authedProcedure
+    .input(z.object({ nbId: z.string(), tagId: z.string() }))
+    .mutation(async (opts) => {
+      const { ctx, input } = opts;
+      const { nbId, tagId } = input;
+      const {
+        env: { DB },
+        permissionsProvider,
+      } = ctx;
+
+      try {
+        // Check if user has write access to the notebook
+        const permissionResult = await permissionsProvider.checkPermission(
+          ctx.user.id,
+          nbId
+        );
+        if (!permissionResult.hasAccess) {
+          throw new TRPCError({
+            code: "FORBIDDEN",
+            message: "You don't have permission to modify this notebook",
+          });
+        }
+
+        const success = await removeTagFromNotebook(DB, nbId, tagId);
+        return { success };
+      } catch (error) {
+        if (error instanceof TRPCError) throw error;
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: `Failed to remove tag: ${error instanceof Error ? error.message : "Unknown error"}`,
+        });
       }
     }),
 
