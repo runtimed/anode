@@ -56,7 +56,10 @@ export const NotebookCard: React.FC<NotebookCardProps> = ({
               >
                 {(notebook.myPermission || "NONE").toLowerCase()}
               </Badge>
-              <NotebookActions notebook={notebook} onUpdate={onUpdate} />
+              {/* Prevent actions from bubbling up to the link */}
+              <div onClick={(e) => e.stopPropagation()}>
+                <NotebookActions notebook={notebook} onUpdate={onUpdate} />
+              </div>
             </div>
           </div>
         </CardHeader>
