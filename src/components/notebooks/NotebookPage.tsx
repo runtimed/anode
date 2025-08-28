@@ -252,20 +252,6 @@ export const NotebookPage: React.FC = () => {
                 </span>
               </div>
             )}
-
-            {/* Created date */}
-            <div className="flex items-center gap-2">
-              <Clock className="h-4 w-4 shrink-0" />
-              <span>Created {formatDate(notebook.created_at)}</span>
-            </div>
-
-            {/* Updated date (if different from created) */}
-            {notebook.updated_at !== notebook.created_at && (
-              <div className="flex items-center gap-2">
-                <Clock className="h-4 w-4 shrink-0" />
-                <span>Updated {formatDate(notebook.updated_at)}</span>
-              </div>
-            )}
           </div>
         </div>
       </div>
