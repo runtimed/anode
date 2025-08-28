@@ -87,7 +87,7 @@ export const appRouter = router({
       z.object({
         owned: z.boolean().optional(),
         shared: z.boolean().optional(),
-        limit: z.number().min(1).max(100).default(50),
+        limit: z.number().min(1).max(100).default(5000),
         offset: z.number().min(0).default(0),
       })
     )
