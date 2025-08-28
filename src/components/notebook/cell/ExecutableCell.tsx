@@ -84,9 +84,7 @@ export const ExecutableCell: React.FC<ExecutableCellProps> = ({
   const { handleDeleteCell } = useDeleteCell(cell.id);
   const { addCell } = useAddCell();
 
-  const {
-    user: { sub: userId },
-  } = useAuthenticatedUser();
+  const { sub: userId } = useAuthenticatedUser();
   const { getUsersOnCell, getUserColor } = useUserRegistry();
 
   // Get users present on this cell (excluding current user)

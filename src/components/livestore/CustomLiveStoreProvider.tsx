@@ -5,7 +5,7 @@ import { BootStatus } from "@livestore/livestore";
 import { LiveStoreProvider } from "@livestore/react";
 import React, { useEffect, useMemo, useRef } from "react";
 import { unstable_batchedUpdates as batchUpdates } from "react-dom";
-import { useAuthenticatedUser } from "../../auth/index.js";
+import { useAuth } from "../../auth/index.js";
 import LiveStoreWorker from "./livestore.worker?worker";
 
 function loading(_status: BootStatus) {
@@ -62,7 +62,7 @@ export const CustomLiveStoreProvider: React.FC<
   const {
     user: { sub: clientId },
     accessToken,
-  } = useAuthenticatedUser();
+  } = useAuth();
 
   // Create completely static sync payload that never changes reference
   // Token and clientId are updated via useEffect to prevent LiveStore restarts

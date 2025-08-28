@@ -1,141 +1,225 @@
-import { useEffect, useState } from "react";
-import { useAuth as useOidcAuth } from "react-oidc-context";
-import { UserManager } from "oidc-client-ts";
-import { WebStorageStateStore } from "oidc-client-ts";
+import React, { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { getOpenIdService } from "@/auth/openid";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import {
+  updateLoadingStage,
+  removeStaticLoadingScreen,
+} from "@/util/domUpdates";
+import { Home, AlertCircle } from "lucide-react";
+import { RuntLogo } from "@/components/logo";
+import { redirectHelper } from "@/auth/redirect-url-helper";
 
-// Manual OIDC callback processing page
-export const OidcCallbackPage: React.FC = () => {
-  const auth = useOidcAuth();
-  const [processing, setProcessing] = useState(false);
-  const [processedCallback, setProcessedCallback] = useState(false);
+const OidcCallbackPage: React.FC = () => {
+  const openIdService = getOpenIdService();
+  const [error, setError] = useState<Error | null>(null);
+  const [isDirectAccess, setIsDirectAccess] = useState(false);
+  const navigate = useNavigate();
 
   useEffect(() => {
-    const processCallback = async () => {
-      if (processing || processedCallback) return;
+    // Remove the static loading screen so our component UI is visible
+    updateLoadingStage("checking-auth");
+    removeStaticLoadingScreen();
 
-      const urlParams = new URLSearchParams(window.location.search);
-      const code = urlParams.get("code");
-      const state = urlParams.get("state");
+    // Check if this is a legitimate OIDC callback
+    const urlParams = new URLSearchParams(window.location.search);
+    const hasCode = urlParams.has("code");
+    const hasState = urlParams.has("state");
 
-      if (!code || !state) {
-        console.log(
-          "🔍 OidcCallbackPage: No callback params, redirecting home"
-        );
-        window.location.href = "/";
-        return;
-      }
+    if (!hasCode || !hasState) {
+      // User directly navigated to /oidc without being redirected from auth provider
+      setIsDirectAccess(true);
+      return;
+    }
 
-      console.log("🔍 OidcCallbackPage: Processing callback manually", {
-        hasCode: !!code,
-        hasState: !!state,
-        url: window.location.href,
-      });
+    // Legitimate OIDC callback - process it
+    const subscription = openIdService.handleRedirect().subscribe({
+      complete: () => {
+        redirectHelper.navigateToSavedNotebook(navigate);
+      },
+      error: (error) => {
+        setError(error);
+      },
+    });
 
-      setProcessing(true);
-      setProcessedCallback(true);
-
-      try {
-        // Create UserManager settings directly (compatible with UserManagerSettings)
-        const userManagerSettings = {
-          authority: import.meta.env.VITE_AUTH_URI!,
-          client_id: import.meta.env.VITE_AUTH_CLIENT_ID!,
-          redirect_uri: import.meta.env.VITE_AUTH_REDIRECT_URI!,
-          scope: "openid profile email offline_access",
-          response_type: "code",
-          loadUserInfo: false,
-          userStore: new WebStorageStateStore({ store: window.localStorage }),
-        };
-        const userManager = new UserManager(userManagerSettings);
-
-        console.log("🔍 OidcCallbackPage: Calling signinCallback");
-        const user = await userManager.signinCallback();
-
-        console.log("🔍 OidcCallbackPage: Callback successful", {
-          user: user
-            ? {
-                profile: user.profile,
-                hasAccessToken: !!user.access_token,
-                hasIdToken: !!user.id_token,
-              }
-            : null,
-        });
-
-        // Clean URL and redirect
-        window.history.replaceState({}, document.title, "/");
-        window.location.href = "/";
-      } catch (error) {
-        console.error("🔍 OidcCallbackPage: Callback failed", error);
-        // On error, redirect home
-        setTimeout(() => {
-          window.location.href = "/";
-        }, 2000);
+    return () => {
+      if (subscription) {
+        subscription.unsubscribe();
       }
     };
+  }, [openIdService, navigate]);
 
-    processCallback();
-  }, [processing, processedCallback]);
-
-  // Fallback for auth state changes from react-oidc-context
-  useEffect(() => {
-    if (
-      auth.user &&
-      auth.user.access_token &&
-      auth.user.id_token &&
-      !processing
-    ) {
-      console.log(
-        "🔍 OidcCallbackPage: Auth context updated with user, redirecting"
-      );
-      window.location.href = "/";
-    }
-  }, [auth.user, processing]);
-
-  // Fallback redirect after 15 seconds if stuck
-  useEffect(() => {
-    const fallbackTimer = setTimeout(() => {
-      console.warn("🔍 OidcCallbackPage: Fallback redirect after timeout");
-      window.location.href = "/";
-    }, 15000);
-
-    return () => clearTimeout(fallbackTimer);
-  }, []);
-
-  if (auth.error) {
+  // Direct access case - show informative message
+  if (isDirectAccess) {
     return (
-      <div className="bg-background flex min-h-screen items-center justify-center">
-        <div className="text-center">
-          <div className="text-lg font-semibold text-red-600">
-            Authentication Error
+      <div className="bg-background flex min-h-screen items-center justify-center p-4">
+        <div className="w-full max-w-md text-center">
+          {/* Logo section matching login page */}
+          <div className="mb-8 flex items-center justify-center">
+            <RuntLogo size="h-24 w-24" filterId="pixelate-direct-access" />
           </div>
-          <p className="mt-2 text-sm text-gray-600">{auth.error.message}</p>
-          <button
-            onClick={() => (window.location.href = "/")}
-            className="mt-4 rounded bg-gray-200 px-4 py-2 hover:bg-gray-300"
-          >
-            Go Home
-          </button>
+
+          <Card className="border-muted bg-card">
+            <CardHeader>
+              <CardTitle className="flex items-center justify-center gap-2 text-xl">
+                <AlertCircle className="text-muted-foreground h-5 w-5" />
+                Lost in the Matrix?
+              </CardTitle>
+              <CardDescription className="text-base">
+                You've stumbled upon a secret portal
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <p className="text-muted-foreground text-sm">
+                Armed with no <code>state</code> and no <code>code</code>, this
+                page does nothing for you
+              </p>
+              <Button
+                onClick={() => navigate("/", { replace: true })}
+                variant="outline"
+                className="w-full"
+              >
+                <Home className="mr-2 h-4 w-4" />
+                Home
+              </Button>
+            </CardContent>
+          </Card>
         </div>
       </div>
     );
   }
 
+  // Error case - authentication failed
+  if (error) {
+    // Check if this is a configuration error
+    const isConfigError = error.message?.includes(
+      "Authentication not configured"
+    );
+
+    // Show developer-friendly message for configuration errors
+    if (isConfigError) {
+      return (
+        <div className="bg-background flex min-h-screen items-center justify-center p-4">
+          <div className="w-full max-w-md text-center">
+            {/* Logo section */}
+            <div className="mb-8 flex items-center justify-center">
+              <RuntLogo size="h-24 w-24" filterId="pixelate-auth-error" />
+            </div>
+
+            <Card className="border-amber-200 bg-amber-50">
+              <CardHeader>
+                <CardTitle className="text-amber-900">
+                  Missing Authentication Config
+                </CardTitle>
+                <CardDescription>
+                  Local development setup required
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="rounded-md bg-white p-3 font-mono text-xs text-amber-800">
+                  <div>Missing environment variables:</div>
+                  <div className="mt-2">VITE_AUTH_URI</div>
+                  <div>VITE_AUTH_CLIENT_ID</div>
+                </div>
+                <p className="text-muted-foreground text-sm">
+                  Check your <code>.env</code> file or see the project README
+                  for setup instructions.
+                </p>
+                <Button
+                  onClick={() => navigate("/", { replace: true })}
+                  variant="outline"
+                  className="w-full"
+                >
+                  <Home className="mr-2 h-4 w-4" />
+                  Home
+                </Button>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+      );
+    }
+
+    return (
+      <div className="bg-background flex min-h-screen items-center justify-center p-4">
+        <div className="w-full max-w-md text-center">
+          {/* Logo section */}
+          <div className="mb-8 flex items-center justify-center">
+            <RuntLogo size="h-24 w-24" filterId="pixelate-config-error" />
+          </div>
+
+          <Card className="border-red-200 bg-red-50">
+            <CardHeader>
+              <CardTitle className="text-destructive">
+                Oops, Something Went Wrong
+              </CardTitle>
+              <CardDescription>
+                Something went wrong during authentication
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="rounded-md bg-white p-3 text-sm text-red-700">
+                {error.message === "invalid response encountered"
+                  ? "The authentication link may have expired or there was an issue with the authentication service. Please try again."
+                  : error.message || `Authentication error: ${error}`}
+              </div>
+              <div className="flex flex-col gap-2">
+                <Button
+                  onClick={() => {
+                    // Clear auth state and try again
+                    openIdService.reset();
+                    navigate("/", { replace: true });
+                  }}
+                  className="w-full bg-[rgb(8,202,74)] text-white hover:bg-[rgb(7,180,66)]"
+                >
+                  Start Over
+                </Button>
+                <Button
+                  onClick={() => navigate("/", { replace: true })}
+                  variant="outline"
+                  className="w-full"
+                >
+                  <Home className="mr-2 h-4 w-4" />
+                  Home
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    );
+  }
+
+  // Loading state - processing authentication
   return (
     <div className="bg-background flex min-h-screen items-center justify-center">
       <div className="space-y-6 text-center">
+        {/* Animated logo */}
+        <div className="flex items-center justify-center">
+          <RuntLogo
+            size="h-20 w-20"
+            animation="animate-pulse"
+            filterId="pixelate-loading"
+          />
+        </div>
         <div>
           <div className="text-foreground mb-2 text-lg font-semibold">
             Following the White Rabbit...
           </div>
           <p className="text-muted-foreground text-sm">
-            Processing authentication
+            Preparing your notebook in just a moment
           </p>
-          <div className="text-muted-foreground mt-4 text-xs">
-            Processing: {processing ? "Yes" : "No"} | Authenticated:{" "}
-            {auth.isAuthenticated ? "Yes" : "No"} | Has User:{" "}
-            {auth.user ? "Yes" : "No"}
-          </div>
         </div>
       </div>
     </div>
   );
 };
+
+export default OidcCallbackPage;

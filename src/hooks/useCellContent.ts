@@ -15,9 +15,7 @@ export const useCellContent = ({
   onUpdate,
 }: CellContentOptions) => {
   const { store } = useStore();
-  const {
-    user: { sub: userId },
-  } = useAuthenticatedUser();
+  const { sub: userId } = useAuthenticatedUser();
   const [localSource, setLocalSource] = useState(initialSource);
 
   // Sync local source with cell source

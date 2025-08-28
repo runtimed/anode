@@ -1,7 +1,7 @@
 import { QueryClient } from "@tanstack/react-query";
 import { createTRPCClient, httpBatchLink } from "@trpc/client";
 import { createTRPCOptionsProxy } from "@trpc/tanstack-react-query";
-import { useAuth } from "react-oidc-context";
+import { useAuth } from "@/auth";
 import { useMemo } from "react";
 
 import type { AppRouter } from "../../backend/trpc/index";
@@ -20,7 +20,7 @@ export function useTRPCClient() {
       url: TRPC_ENDPOINT,
       // Called for every request. See: https://trpc.io/docs/client/headers
       headers: () => {
-        const accessToken = auth.user?.access_token;
+        const accessToken = auth.accessToken;
         if (!accessToken) {
           return {};
         }
@@ -38,5 +38,5 @@ export function useTRPCClient() {
       client: trpcClient,
       queryClient: trpcQueryClient,
     });
-  }, [auth.user?.access_token]);
+  }, [auth.accessToken]);
 }

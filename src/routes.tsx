@@ -1,8 +1,7 @@
 import React, { Suspense, useEffect } from "react";
-import { AuthProvider } from "react-oidc-context";
+import { AuthProvider } from "@/auth/AuthProvider";
 import { Route, Routes } from "react-router-dom";
-import { AuthGuard } from "@/auth/index.js";
-import { createOidcConfig } from "@/auth/oidc-config.js";
+import { AuthGuard } from "@/auth/AuthGuard";
 import AuthorizePage from "@/pages/AuthorizePage.tsx";
 import { LoadingState } from "@/components/loading/LoadingState.js";
 import { Toaster } from "@/components/ui/sonner.js";
@@ -14,7 +13,7 @@ import {
 
 // Import page components
 import { HomePage } from "@/pages/HomePage.tsx";
-import { OidcCallbackPage } from "@/pages/OidcCallbackPage.tsx";
+import OidcCallbackPage from "@/pages/OidcCallbackPage.tsx";
 import { NotebooksDashboardPage } from "@/pages/NotebooksDashboardPage.tsx";
 import { NotebookPage } from "@/pages/NotebookPage.tsx";
 
@@ -53,7 +52,7 @@ export const App: React.FC = () => {
   }, []);
 
   return (
-    <AuthProvider {...createOidcConfig()}>
+    <AuthProvider>
       <Routes>
         <Route path="/oidc" element={<OidcCallbackPage />} />
         <Route path="/local_oidc/authorize" element={<AuthorizePage />} />

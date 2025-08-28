@@ -4,9 +4,7 @@ import { useUserRegistry } from "@/hooks/useUserRegistry.js";
 import { getClientColor, getClientTypeInfo } from "@/services/userTypes.js";
 
 export function CollaboratorAvatars() {
-  const {
-    user: { sub: userId },
-  } = useAuthenticatedUser();
+  const { sub: userId } = useAuthenticatedUser();
   const { presentUsers, getUserInfo, getUserColor } = useUserRegistry();
 
   const otherUsers = presentUsers.filter((user) => user.id !== userId);
