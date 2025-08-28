@@ -21,7 +21,7 @@ export const RuntimeHelper: React.FC<RuntimeHelperProps> = ({
   notebookId,
 }) => {
   const { store } = useStore();
-  const { sub: userId } = useAuthenticatedUser();
+  const userId = useAuthenticatedUser();
   const { activeRuntime, hasActiveRuntime, runningExecutions, runtimeHealth } =
     useRuntimeHealth();
 

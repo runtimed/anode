@@ -10,6 +10,7 @@ type AuthContextType = {
   authState: AuthState;
   get user(): UserInfo;
   get accessToken(): string;
+  get isAuthenticated(): boolean;
   signOut: () => void;
 };
 
@@ -96,6 +97,9 @@ export function AuthProvider({ children }: AuthProviderProps) {
     },
     get accessToken() {
       return getAccessToken();
+    },
+    get isAuthenticated() {
+      return authState.valid;
     },
   };
 

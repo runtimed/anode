@@ -12,7 +12,7 @@ import { getDefaultAiModel } from "@/util/ai-models.js";
 
 export const useAddCell = () => {
   const { store } = useStore();
-  const { sub: userId } = useAuthenticatedUser();
+  const userId = useAuthenticatedUser();
   const { models } = useAvailableAiModels();
   const cellReferences = useQuery(queries.cellsWithIndices$);
   const lastUsedAiModel = useQuery(lastUsedAiModel$);

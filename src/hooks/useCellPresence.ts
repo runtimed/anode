@@ -7,7 +7,7 @@ import { useAuthenticatedUser } from "../auth/index.js";
 import { useUserRegistry } from "./useUserRegistry.js";
 
 export const useCellPresence = (cellId: string) => {
-  const { sub: userId } = useAuthenticatedUser();
+  const userId = useAuthenticatedUser();
   const { getUserInfo } = useUserRegistry();
 
   // Query users present on this specific cell, excluding current user
@@ -32,7 +32,7 @@ export const useCellPresence = (cellId: string) => {
 
 // Hook for getting users on any cell (for components that need to check multiple cells)
 export const useMultiCellPresence = () => {
-  const { sub: userId } = useAuthenticatedUser();
+  const userId = useAuthenticatedUser();
   const { getUserInfo } = useUserRegistry();
 
   // Query all presence data excluding current user

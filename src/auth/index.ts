@@ -1,6 +1,7 @@
 import { useContext } from "react";
 
 import { AuthContext } from "./AuthProvider";
+export type { UserInfo as AuthUser } from "./AuthProvider";
 
 export function useAuth() {
   const context = useContext(AuthContext);
@@ -12,5 +13,5 @@ export function useAuth() {
 
 export function useAuthenticatedUser() {
   const { user } = useAuth();
-  return user;
+  return user.sub;
 }

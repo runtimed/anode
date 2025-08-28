@@ -75,7 +75,7 @@ export const MarkdownCell: React.FC<MarkdownCellProps> = ({
   });
 
   // All hooks must be called at the top level before any conditional returns
-  const { sub: userId } = useAuthenticatedUser();
+  const userId = useAuthenticatedUser();
   const { getUsersOnCell, getUserColor } = useUserRegistry();
   const [isEditing, setIsEditing] = useState(autoFocus);
 
