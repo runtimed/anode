@@ -27,6 +27,7 @@ export const TagCreationDialog: React.FC<TagCreationDialogProps> = ({
   const [tagName, setTagName] = useState("");
   const [selectedColor, setSelectedColor] = useState<TagColor>("neutral");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const trpc = useTrpc();
   const createTagMutation = useMutation(trpc.createTag.mutationOptions());
@@ -36,6 +37,8 @@ export const TagCreationDialog: React.FC<TagCreationDialogProps> = ({
     if (!tagName.trim()) return;
 
     setIsSubmitting(true);
+    setError(null); // Clear any previous errors
+
     try {
       await createTagMutation.mutateAsync({
         name: tagName.trim(),
@@ -50,17 +53,37 @@ export const TagCreationDialog: React.FC<TagCreationDialogProps> = ({
       // Reset form
       setTagName("");
       setSelectedColor("neutral");
+      setError(null);
       setIsOpen(false);
       onTagCreated?.();
     } catch (error) {
       console.error("Failed to create tag:", error);
-      // TODO: Show error toast
+
+      // Handle tRPC errors specifically
+      if (error && typeof error === "object" && "data" in error) {
+        const trpcError = error as {
+          data?: { code?: string };
+          message?: string;
+        };
+        if (trpcError.data?.code === "CONFLICT") {
+          setError(
+            "A tag with this name already exists. Please choose a different name."
+          );
+        } else {
+          setError(
+            trpcError.message || "Failed to create tag. Please try again."
+          );
+        }
+      } else {
+        setError("An unexpected error occurred. Please try again.");
+      }
     } finally {
       setIsSubmitting(false);
     }
   };
 
   const handleOpenChange = (open: boolean) => {
+    setError(null);
     setIsOpen(open);
     if (!open) {
       // Reset form when dialog closes
@@ -89,18 +112,29 @@ export const TagCreationDialog: React.FC<TagCreationDialogProps> = ({
             <Input
               id="tag-name"
               value={tagName}
-              onChange={(e) => setTagName(e.target.value)}
+              onChange={(e) => {
+                setTagName(e.target.value);
+                // Clear error when user starts typing
+                if (error) setError(null);
+              }}
               placeholder="Enter tag name..."
               maxLength={50}
               required
+              className={error ? "border-red-500 focus:border-red-500" : ""}
             />
+            {error && <p className="mt-1 text-sm text-red-600">{error}</p>}
           </div>
 
           <div className="space-y-2">
             <label className="text-sm font-medium">Color</label>
             <ColorPicker
               selectedColor={selectedColor}
-              onColorChange={setSelectedColor}
+              onColorChange={(color) => {
+                if (!tagName.trim()) {
+                  setTagName(color);
+                }
+                setSelectedColor(color);
+              }}
             />
           </div>
 
