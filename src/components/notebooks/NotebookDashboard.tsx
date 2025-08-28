@@ -463,7 +463,7 @@ export const NotebookDashboard: React.FC = () => {
             </div>
           )}
 
-          {debug.enabled && <DebugNotebooks />}
+          {debug.enabled && <DebugNotebooks notebooks={filteredNotebooks} />}
 
           {!isLoading && filteredNotebooks.length > 0 && (
             <div className="space-y-8">
