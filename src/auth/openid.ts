@@ -59,7 +59,7 @@ export type RedirectUrls = {
 export enum LocalStorageKey {
   RequestState = "openid_request_state",
   Tokens = "openid_tokens",
-  LocalAuthRegistration = "local-auth-registration", // Keep in sync with AuthorizePage.tsx
+  LocalAuthRegistration = "local-auth-registration",
 }
 
 const OPENID_SCOPES = "openid email profile offline_access";
