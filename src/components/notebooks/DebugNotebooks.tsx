@@ -28,7 +28,7 @@ export const DebugNotebooks = ({
     setProcessing(true);
     for (let i = 0; i < 100; i++) {
       await createNotebookMutation.mutateAsync({
-        title: `Debug Notebook ${nanoid(8)}`,
+        title: `Debug Notebook ${nanoid(4)}`,
       });
     }
     toast.success("Created 100 notebooks");
