@@ -225,7 +225,7 @@ export const appRouter = router({
         }
 
         const notebook = await DB.prepare(
-          "SELECT * FROM notebooks WHERE id = ?"
+          "SELECT * FROM notebooks WHERE id = ? AND deleted_at IS NULL"
         )
           .bind(nbId)
           .first<NotebookRow>();
@@ -267,8 +267,8 @@ export const appRouter = router({
 
         const result = await DB.prepare(
           `
-          INSERT INTO notebooks (id, owner_id, title, created_at, updated_at)
-          VALUES (?, ?, ?, ?, ?)
+          INSERT INTO notebooks (id, owner_id, title, created_at, updated_at, deleted_at)
+          VALUES (?, ?, ?, ?, ?, NULL)
         `
         )
           .bind(nbId, user.id, input.title, now, now)
@@ -282,7 +282,7 @@ export const appRouter = router({
         }
 
         const notebook = await DB.prepare(
-          "SELECT * FROM notebooks WHERE id = ?"
+          "SELECT * FROM notebooks WHERE id = ? AND deleted_at IS NULL"
         )
           .bind(nbId)
           .first<NotebookRow>();
@@ -348,7 +348,7 @@ export const appRouter = router({
           `
           UPDATE notebooks
           SET ${updates.join(", ")}
-          WHERE id = ?
+          WHERE id = ? AND deleted_at IS NULL
         `
         )
           .bind(...bindings)
@@ -363,7 +363,7 @@ export const appRouter = router({
 
         // Return updated notebook
         const notebook = await DB.prepare(
-          "SELECT * FROM notebooks WHERE id = ?"
+          "SELECT * FROM notebooks WHERE id = ? AND deleted_at IS NULL"
         )
           .bind(nbId)
           .first<NotebookRow>();
@@ -378,7 +378,7 @@ export const appRouter = router({
       }
     }),
 
-  // Delete notebook
+  // Delete notebook (soft delete)
   deleteNotebook: authedProcedure
     .input(z.object({ nbId: z.string() }))
     .mutation(async (opts) => {
@@ -400,15 +400,17 @@ export const appRouter = router({
           });
         }
 
-        // Delete notebook (CASCADE will handle permissions)
-        const result = await DB.prepare("DELETE FROM notebooks WHERE id = ?")
-          .bind(nbId)
+        // Soft delete notebook by setting deleted_at timestamp
+        const result = await DB.prepare(
+          "UPDATE notebooks SET deleted_at = ?, updated_at = ? WHERE id = ? AND deleted_at IS NULL"
+        )
+          .bind(new Date().toISOString(), new Date().toISOString(), nbId)
           .run();
 
         if (result.meta.changes === 0) {
           throw new TRPCError({
             code: "NOT_FOUND",
-            message: "Notebook not found",
+            message: "Notebook not found or already deleted",
           });
         }
 
@@ -490,7 +492,7 @@ export const appRouter = router({
 
       try {
         const notebook = await DB.prepare(
-          "SELECT owner_id FROM notebooks WHERE id = ?"
+          "SELECT owner_id FROM notebooks WHERE id = ? AND deleted_at IS NULL"
         )
           .bind(nbId)
           .first<{ owner_id: string }>();
