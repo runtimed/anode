@@ -251,10 +251,7 @@ export async function getNotebookOwnerId(
 }
 
 // Get notebook owner user data
-export async function getNotebookOwner(
-  db: D1Database,
-  notebookId: string
-) {
+export async function getNotebookOwner(db: D1Database, notebookId: string) {
   const ownerId = await getNotebookOwnerId(db, notebookId);
   if (!ownerId) {
     return null;
