@@ -43,14 +43,16 @@ export const ColorPicker: React.FC<ColorPickerProps> = ({
           key={color}
           onClick={() => onColorChange(color)}
           className={cn(
-            "h-8 w-8 rounded-full border-2 transition-all hover:scale-110",
-            getTagDotColorClass(color),
+            "size-12 rounded-full border-2 transition-all hover:scale-110",
+            getTagColorClasses(color),
             selectedColor === color
-              ? "border-gray-900 ring-2 ring-gray-300"
-              : "border-gray-300 hover:border-gray-400"
+              ? "ring-2 ring-gray-900"
+              : "hover:ring-2 hover:ring-black"
           )}
           title={color}
-        />
+        >
+          A
+        </button>
       ))}
     </div>
   );
