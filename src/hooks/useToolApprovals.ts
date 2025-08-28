@@ -18,7 +18,7 @@ interface UseToolApprovalsOptions {
 
 export const useToolApprovals = (options: UseToolApprovalsOptions = {}) => {
   const { store } = useStore();
-  const { user: currentUser } = useAuthenticatedUser();
+  const currentUser = useAuthenticatedUser();
   const [pendingApprovals, setPendingApprovals] = useState<
     ToolApprovalRequest[]
   >([]);
@@ -60,7 +60,7 @@ export const useToolApprovals = (options: UseToolApprovalsOptions = {}) => {
       events.toolApprovalResponded({
         toolCallId,
         status,
-        approvedBy: currentUser.sub,
+        approvedBy: currentUser,
         respondedAt: new Date(),
       })
     );

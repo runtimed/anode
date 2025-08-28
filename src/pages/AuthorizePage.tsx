@@ -1,15 +1,15 @@
 import React, { useState, useEffect } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { Button } from "../components/ui/button";
+import { Input } from "../components/ui/input";
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card";
-import { RuntLogo } from "@/components/logo";
+} from "../components/ui/card";
+import { RuntLogo } from "../components/logo";
 import { removeStaticLoadingScreen } from "@/util/domUpdates";
 import { useSpring, animated } from "@react-spring/web";
 
@@ -81,30 +81,12 @@ const AuthorizePage: React.FC = () => {
       return;
     }
 
-    // Handle standard OIDC prompt parameters from react-oidc-context
-    let normalizedPrompt = prompt;
-    if (
-      prompt === "login" ||
-      prompt === "consent" ||
-      prompt === "select_account"
-    ) {
-      // Standard OIDC login prompts - check if we have existing registration
-      const savedData = localStorage.getItem(LOCAL_STORAGE_KEY);
-      normalizedPrompt = savedData ? "login" : "registration";
-    } else if (prompt === "registration") {
-      normalizedPrompt = "registration";
-    } else if (!prompt) {
-      // No prompt specified - default behavior
-      const savedData = localStorage.getItem(LOCAL_STORAGE_KEY);
-      normalizedPrompt = savedData ? "login" : "registration";
-    } else {
+    if (prompt !== "login" && prompt !== "registration") {
       setError("Invalid prompt parameter. Must be 'login' or 'registration'.");
       return;
     }
 
-    setPrompt(normalizedPrompt);
-
-    if (normalizedPrompt === "login") {
+    if (prompt === "login") {
       const savedData = localStorage.getItem(LOCAL_STORAGE_KEY);
       if (!savedData) {
         setPrompt("registration");

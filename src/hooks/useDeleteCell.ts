@@ -7,9 +7,7 @@ import { focusedCellSignal$ } from "@/components/notebook/signals/focus.js";
 
 export const useDeleteCell = (cellId: string) => {
   const { store } = useStore();
-  const {
-    user: { sub: userId },
-  } = useAuthenticatedUser();
+  const userId = useAuthenticatedUser();
   const { focusCell: registryFocusCell } = useEditorRegistry();
 
   const handleDeleteCell = useCallback(
