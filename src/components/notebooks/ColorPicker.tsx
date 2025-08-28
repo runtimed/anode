@@ -1,28 +1,20 @@
 import React from "react";
 import { cn } from "@/lib/utils";
-import { getTagDotColorClass } from "@/lib/tag-colors";
+import { getTagColorClasses } from "@/lib/tag-colors";
 import type { TagColor } from "backend/trpc/types";
 
 const TAILWIND_COLORS = [
+  "neutral",
   "red",
-  "orange",
   "amber",
-  "yellow",
-  "lime",
   "green",
-  "emerald",
   "teal",
-  "cyan",
   "sky",
   "blue",
   "indigo",
-  "violet",
-  "purple",
   "fuchsia",
   "pink",
-  "rose",
-  "neutral",
-] as const;
+] as const satisfies TagColor[];
 
 interface ColorPickerProps {
   selectedColor: TagColor;

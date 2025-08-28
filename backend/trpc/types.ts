@@ -22,24 +22,16 @@ export interface NotebookPermissionRow {
 }
 
 export const TAG_COLORS = [
+  "neutral",
   "red",
-  "orange",
   "amber",
-  "yellow",
-  "lime",
   "green",
-  "emerald",
   "teal",
-  "cyan",
   "sky",
   "blue",
   "indigo",
-  "violet",
-  "purple",
   "fuchsia",
   "pink",
-  "rose",
-  "neutral",
 ] as const;
 
 export type TagColor = (typeof TAG_COLORS)[number];
