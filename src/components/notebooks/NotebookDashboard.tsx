@@ -587,7 +587,7 @@ const NotebookGrid: React.FC<NotebookGridProps> = ({
 }) => {
   if (viewMode === "grid") {
     return (
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+      <div className="grid gap-6 lg:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
         {notebooks.map((notebook) => (
           <NotebookCard
             key={notebook.id}
