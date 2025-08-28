@@ -6,10 +6,6 @@ import { RuntLogo } from "../components/logo";
 import { LoadingState } from "../components/loading/LoadingState";
 import { useSpring, animated } from "@react-spring/web";
 
-// DEV MODE: Force login screen for design testing
-// Set to true to preview login screen locally
-const FORCE_LOGIN_SCREEN = false;
-
 interface AuthGuardProps {
   children: React.ReactNode;
   fallback?: React.ReactNode;
@@ -198,8 +194,7 @@ export const AuthGuard: React.FC<AuthGuardProps> = ({ children, fallback }) => {
     );
   }
 
-  // Show sign-in form if not authenticated OR if forced for design testing
-  if (!isAuthenticated || FORCE_LOGIN_SCREEN) {
+  if (!isAuthenticated) {
     return renderLoginForm();
   }
 
