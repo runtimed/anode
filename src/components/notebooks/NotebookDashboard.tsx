@@ -729,11 +729,7 @@ const NotebookTableRow: React.FC<NotebookTableRowProps> = ({
         {notebook.tags && notebook.tags.length > 0 ? (
           <div className="flex flex-wrap gap-1">
             {notebook.tags.slice(0, 2).map((tag) => (
-              <TagBadge
-                key={tag.id}
-                tag={tag}
-                showDelete={true}
-              />
+              <TagBadge key={tag.id} tag={tag} showDelete={true} />
             ))}
             {notebook.tags.length > 2 && (
               <Badge variant="outline" className="px-2 py-0.5 text-xs">
