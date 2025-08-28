@@ -12,6 +12,7 @@ import {
 import { RuntLogo } from "../components/logo";
 import { removeStaticLoadingScreen } from "@/util/domUpdates";
 import { useSpring, animated } from "@react-spring/web";
+import { LocalStorageKey } from "@/auth/openid";
 
 interface RegisterFormData {
   firstName: string;
@@ -19,7 +20,7 @@ interface RegisterFormData {
   email: string;
 }
 
-const LOCAL_STORAGE_KEY = "local-auth-registration"; // Keep in sync with openid.ts
+const LOCAL_STORAGE_KEY = LocalStorageKey.LocalAuthRegistration;
 
 const AuthorizePage: React.FC = () => {
   const [searchParams] = useSearchParams();
