@@ -151,7 +151,9 @@ export class LocalPermissionsProvider implements PermissionsProvider {
 
       // Get owner
       const owner = await this.db
-        .prepare("SELECT owner_id, created_at FROM notebooks WHERE id = ?")
+        .prepare(
+          "SELECT owner_id, created_at FROM notebooks WHERE id = ? AND deleted_at IS NULL"
+        )
         .bind(notebookId)
         .first<{ owner_id: string; created_at: string }>();
 
@@ -192,7 +194,9 @@ export class LocalPermissionsProvider implements PermissionsProvider {
   async isOwner(userId: string, notebookId: string): Promise<boolean> {
     try {
       const result = await this.db
-        .prepare("SELECT 1 FROM notebooks WHERE id = ? AND owner_id = ?")
+        .prepare(
+          "SELECT 1 FROM notebooks WHERE id = ? AND owner_id = ? AND deleted_at IS NULL"
+        )
         .bind(notebookId, userId)
         .first();
 
@@ -218,7 +222,9 @@ export class LocalPermissionsProvider implements PermissionsProvider {
       // Always include owned notebooks (owner implies all permissions)
       if (!permissions || permissions.includes("owner")) {
         const ownedNotebooks = await this.db
-          .prepare("SELECT id FROM notebooks WHERE owner_id = ?")
+          .prepare(
+            "SELECT id FROM notebooks WHERE owner_id = ? AND deleted_at IS NULL"
+          )
           .bind(userId)
           .all<{ id: string }>();
 
@@ -229,7 +235,9 @@ export class LocalPermissionsProvider implements PermissionsProvider {
       if (!permissions || permissions.includes("writer")) {
         const sharedNotebooks = await this.db
           .prepare(
-            "SELECT notebook_id FROM notebook_permissions WHERE user_id = ? AND permission = 'writer'"
+            `SELECT np.notebook_id FROM notebook_permissions np
+             INNER JOIN notebooks n ON np.notebook_id = n.id
+             WHERE np.user_id = ? AND np.permission = 'writer' AND n.deleted_at IS NULL`
           )
           .bind(userId)
           .all<{ notebook_id: string }>();
@@ -263,7 +271,7 @@ export class LocalPermissionsProvider implements PermissionsProvider {
       const placeholders = resourceIds.map(() => "?").join(",");
       const ownedNotebooks = await this.db
         .prepare(
-          `SELECT id FROM notebooks WHERE owner_id = ? AND id IN (${placeholders})`
+          `SELECT id FROM notebooks WHERE owner_id = ? AND deleted_at IS NULL AND id IN (${placeholders})`
         )
         .bind(userId, ...resourceIds)
         .all<{ id: string }>();
@@ -273,8 +281,9 @@ export class LocalPermissionsProvider implements PermissionsProvider {
       // Check notebooks with writer permissions
       const sharedNotebooks = await this.db
         .prepare(
-          `SELECT notebook_id FROM notebook_permissions
-           WHERE user_id = ? AND permission = 'writer' AND notebook_id IN (${placeholders})`
+          `SELECT np.notebook_id FROM notebook_permissions np
+           INNER JOIN notebooks n ON np.notebook_id = n.id
+           WHERE np.user_id = ? AND np.permission = 'writer' AND n.deleted_at IS NULL AND np.notebook_id IN (${placeholders})`
         )
         .bind(userId, ...resourceIds)
         .all<{ notebook_id: string }>();
@@ -344,9 +353,9 @@ export class LocalPermissionsProvider implements PermissionsProvider {
       if (owned && !shared) {
         // Only owned notebooks
         query = `
-          SELECT id, owner_id, title, created_at, updated_at
+          SELECT id, owner_id, title, created_at, updated_at, deleted_at
           FROM notebooks
-          WHERE owner_id = ?
+          WHERE owner_id = ? AND deleted_at IS NULL
           ORDER BY updated_at DESC
           LIMIT ? OFFSET ?
         `;
@@ -354,10 +363,10 @@ export class LocalPermissionsProvider implements PermissionsProvider {
       } else if (shared && !owned) {
         // Only shared notebooks (writer permissions)
         query = `
-          SELECT n.id, n.owner_id, n.title, n.created_at, n.updated_at
+          SELECT n.id, n.owner_id, n.title, n.created_at, n.updated_at, n.deleted_at
           FROM notebooks n
           INNER JOIN notebook_permissions np ON n.id = np.notebook_id
-          WHERE np.user_id = ? AND np.permission = 'writer'
+          WHERE np.user_id = ? AND np.permission = 'writer' AND n.deleted_at IS NULL
           ORDER BY n.updated_at DESC
           LIMIT ? OFFSET ?
         `;
@@ -365,10 +374,10 @@ export class LocalPermissionsProvider implements PermissionsProvider {
       } else {
         // All accessible notebooks (owned + shared)
         query = `
-          SELECT DISTINCT n.id, n.owner_id, n.title, n.created_at, n.updated_at
+          SELECT DISTINCT n.id, n.owner_id, n.title, n.created_at, n.updated_at, n.deleted_at
           FROM notebooks n
           LEFT JOIN notebook_permissions np ON n.id = np.notebook_id
-          WHERE n.owner_id = ? OR (np.user_id = ? AND np.permission = 'writer')
+          WHERE (n.owner_id = ? OR (np.user_id = ? AND np.permission = 'writer')) AND n.deleted_at IS NULL
           ORDER BY n.updated_at DESC
           LIMIT ? OFFSET ?
         `;

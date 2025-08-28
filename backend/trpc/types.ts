@@ -4,6 +4,7 @@ export interface NotebookRow {
   title: string | null;
   created_at: string;
   updated_at: string;
+  deleted_at: string | null;
   collaborators?: Array<{
     id: string;
     givenName: string;
