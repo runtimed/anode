@@ -432,14 +432,7 @@ export const appRouter = router({
     const {
       env: { DB },
     } = ctx;
-    const user_id = ctx.user?.id;
-
-    if (!user_id) {
-      throw new TRPCError({
-        code: "UNAUTHORIZED",
-        message: "User not authenticated",
-      });
-    }
+    const user_id = ctx.user.id;
 
     try {
       return await getUserTags(DB, user_id);
@@ -465,14 +458,7 @@ export const appRouter = router({
       const {
         env: { DB },
       } = ctx;
-      const user_id = ctx.user?.id;
-
-      if (!user_id) {
-        throw new TRPCError({
-          code: "UNAUTHORIZED",
-          message: "User not authenticated",
-        });
-      }
+      const user_id = ctx.user.id;
 
       try {
         const tag = await createTag(DB, { name, color, user_id });
@@ -546,14 +532,7 @@ export const appRouter = router({
       const {
         env: { DB },
       } = ctx;
-      const user_id = ctx.user?.id;
-
-      if (!user_id) {
-        throw new TRPCError({
-          code: "UNAUTHORIZED",
-          message: "User not authenticated",
-        });
-      }
+      const user_id = ctx.user.id;
 
       try {
         // Check if user owns the tag
