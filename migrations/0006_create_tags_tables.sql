@@ -4,6 +4,7 @@
 CREATE TABLE tags (
   id TEXT PRIMARY KEY,
   name TEXT NOT NULL UNIQUE,
+  -- Color values for now: 'neutral', 'red', 'orange', 'yellow', 'green', 'blue', 'purple', 'pink'
   color TEXT NOT NULL DEFAULT 'neutral',
   created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
   updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
