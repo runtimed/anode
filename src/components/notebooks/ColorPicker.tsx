@@ -1,8 +1,7 @@
-import React from "react";
-import { cn } from "@/lib/utils";
 import { getTagColorStyles } from "@/lib/tag-colors";
+import { cn } from "@/lib/utils";
 import type { TagColor } from "backend/trpc/types";
-import { Input } from "../ui/input";
+import React from "react";
 
 const defaultColors = [
   "#000000", // Black
