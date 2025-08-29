@@ -11,7 +11,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "../ui/dialog";
-import { ColorPicker } from "./ColorPicker";
+import { TagColorPicker } from "./TagColorPicker";
 import { useTrpc } from "../TrpcProvider";
 import { trpcQueryClient } from "@/lib/trpc-client";
 import { TagColor } from "backend/trpc/types";
@@ -129,7 +129,8 @@ export const TagCreationDialog: React.FC<TagCreationDialogProps> = ({
 
           <div className="space-y-2">
             <div className="text-sm font-medium">Color</div>
-            <ColorPicker
+            <TagColorPicker
+              tagName={tagName}
               selectedColor={selectedColor}
               onColorChange={setSelectedColor}
             />

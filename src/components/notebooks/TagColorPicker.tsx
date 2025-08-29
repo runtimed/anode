@@ -17,12 +17,14 @@ const defaultColors = [
 ] as const satisfies TagColor[];
 
 interface ColorPickerProps {
+  tagName?: string;
   selectedColor: TagColor;
   onColorChange: (color: TagColor) => void;
   className?: string;
 }
 
-export const ColorPicker: React.FC<ColorPickerProps> = ({
+export const TagColorPicker: React.FC<ColorPickerProps> = ({
+  tagName,
   selectedColor,
   onColorChange,
   className,
@@ -37,7 +39,13 @@ export const ColorPicker: React.FC<ColorPickerProps> = ({
           className="h-3 w-3 rounded-md border"
           style={getTagDotColorStyles(selectedColor)}
         />
-        <TagBadge tag={{ id: "1", name: "test", color: selectedColor }} />
+        <TagBadge
+          tag={{
+            id: "1",
+            name: tagName || "example tag",
+            color: selectedColor,
+          }}
+        />
       </div>
 
       <div className={cn("flex gap-2 p-4 pb-0", className)}>
