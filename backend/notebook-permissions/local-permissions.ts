@@ -333,17 +333,17 @@ export class LocalPermissionsProvider implements PermissionsProvider {
     });
   }
 
-  // Helper function to get notebook tags
-  private async getNotebookTags(notebookId: string) {
+  // Helper function to get notebook tags for a specific user
+  private async getNotebookTags(notebookId: string, userId: string) {
     const query = `
       SELECT t.id, t.name, t.color, t.user_id, t.created_at, t.updated_at
       FROM tags t
       INNER JOIN notebook_tags nt ON t.id = nt.tag_id
-      WHERE nt.notebook_id = ?
+      WHERE nt.notebook_id = ? AND t.user_id = ?
       ORDER BY t.name ASC
     `;
 
-    const result = await this.db.prepare(query).bind(notebookId).all<{
+    const result = await this.db.prepare(query).bind(notebookId, userId).all<{
       id: string;
       name: string;
       color: string;
@@ -420,7 +420,7 @@ export class LocalPermissionsProvider implements PermissionsProvider {
           try {
             const [collaborators, tags] = await Promise.all([
               this.getNotebookCollaborators(notebook.id),
-              this.getNotebookTags(notebook.id),
+              this.getNotebookTags(notebook.id, userId),
             ]);
 
             return {

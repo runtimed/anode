@@ -487,7 +487,7 @@ export const appRouter = router({
       const {
         env: { DB },
       } = ctx;
-      const user_id = ctx.user?.id;
+      const user_id = ctx.user.id;
 
       if (!user_id) {
         throw new TRPCError({
@@ -584,7 +584,7 @@ export const appRouter = router({
           });
         }
 
-        return await getNotebookTags(DB, nbId);
+        return await getNotebookTags(DB, nbId, ctx.user.id);
       } catch (error) {
         if (error instanceof TRPCError) throw error;
         throw new TRPCError({

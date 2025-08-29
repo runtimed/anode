@@ -114,7 +114,7 @@ export async function getNotebooks(
     finalResults.map(async (notebook) => ({
       ...notebook,
       collaborators: await getNotebookCollaborators(DB, notebook.id),
-      tags: await getNotebookTags(DB, notebook.id),
+      tags: await getNotebookTags(DB, notebook.id, user.id),
     }))
   );
 
@@ -484,20 +484,21 @@ export async function removeTagFromNotebook(
   return result.meta.changes > 0;
 }
 
-// Get all tags for a notebook
+// Get user's tags for a notebook
 export async function getNotebookTags(
   db: D1Database,
-  notebookId: string
+  notebookId: string,
+  userId: string
 ): Promise<TagRow[]> {
   const query = `
     SELECT t.id, t.name, t.color, t.user_id, t.created_at, t.updated_at
     FROM tags t
     INNER JOIN notebook_tags nt ON t.id = nt.tag_id
-    WHERE nt.notebook_id = ?
+    WHERE nt.notebook_id = ? AND t.user_id = ?
     ORDER BY t.name ASC
   `;
 
-  const result = await db.prepare(query).bind(notebookId).all<TagRow>();
+  const result = await db.prepare(query).bind(notebookId, userId).all<TagRow>();
 
   console.log("🚨", { result });
 
