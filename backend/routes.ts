@@ -1,5 +1,6 @@
 import { Hono } from "hono";
 import { v4 as uuidv4 } from "uuid";
+import { z } from "zod";
 import { authMiddleware, type AuthContext } from "./middleware.ts";
 import { type Env } from "./types.ts";
 
@@ -9,6 +10,11 @@ import {
   isUsingLocalProvider,
   validateProviderConfig,
 } from "./providers/api-key-factory.ts";
+
+// Import notebook utilities
+import { createNotebookId } from "./utils/notebook-id.ts";
+import { createNotebook, getNotebookById } from "./trpc/db.ts";
+import { createPermissionsProvider } from "./notebook-permissions/factory.ts";
 
 const api = new Hono<{ Bindings: Env; Variables: AuthContext }>();
 
@@ -50,6 +56,187 @@ api.get("/me", authMiddleware, (c) => {
     familyName: passport.user.familyName,
     isAnonymous: passport.user.isAnonymous,
   });
+});
+
+// Request body validation schema for notebook creation
+const createNotebookSchema = z.object({
+  title: z.string().min(1).max(255).trim(),
+  // Future: Add tags validation when ready
+  // tags: z.array(z.string()).optional(),
+});
+
+/**
+ * POST /notebooks - Create a new notebook
+ *
+ * Creates a new notebook with the authenticated user as owner.
+ * Designed for external clients using API keys.
+ *
+ * @param title - Required notebook title (1-255 characters)
+ * @returns Created notebook with ID, title, owner, and timestamps
+ */
+api.post("/notebooks", authMiddleware, async (c) => {
+  const passport = c.get("passport");
+  if (!passport) {
+    return c.json({ error: "Authentication failed" }, 401);
+  }
+
+  try {
+    const body = await c.req.json();
+
+    // Validate request body with Zod
+    const parseResult = createNotebookSchema.safeParse(body);
+    if (!parseResult.success) {
+      return c.json(
+        {
+          error: "Bad Request",
+          message: "Invalid request body",
+          details: parseResult.error.format(),
+        },
+        400
+      );
+    }
+
+    const { title } = parseResult.data;
+
+    // Generate notebook ID
+    const notebookId = createNotebookId();
+
+    // Create notebook in database - ownership is established through owner_id field
+    const success = await createNotebook(c.env.DB, {
+      id: notebookId,
+      ownerId: passport.user.id,
+      title: title,
+    });
+
+    if (!success) {
+      return c.json(
+        {
+          error: "Internal Server Error",
+          message: "Failed to create notebook",
+        },
+        500
+      );
+    }
+
+    // Retrieve the created notebook
+    const notebook = await getNotebookById(c.env.DB, notebookId);
+
+    if (!notebook) {
+      return c.json(
+        {
+          error: "Internal Server Error",
+          message: "Notebook created but could not be retrieved",
+        },
+        500
+      );
+    }
+
+    return c.json({
+      id: notebook.id,
+      title: notebook.title,
+      ownerId: notebook.owner_id,
+      createdAt: notebook.created_at,
+      updatedAt: notebook.updated_at,
+    });
+  } catch (error) {
+    console.error("❌ Notebook creation failed:", error);
+
+    if (error instanceof SyntaxError) {
+      return c.json(
+        {
+          error: "Bad Request",
+          message: "Invalid JSON in request body",
+        },
+        400
+      );
+    }
+
+    return c.json(
+      {
+        error: "Internal Server Error",
+        message: "Failed to create notebook",
+      },
+      500
+    );
+  }
+});
+
+/**
+ * GET /notebooks/:id - Get specific notebook by ID
+ *
+ * Returns notebook details if the authenticated user has access.
+ * Designed for external clients using API keys.
+ *
+ * @param id - Notebook ID
+ * @returns Notebook details with metadata
+ */
+api.get("/notebooks/:id", authMiddleware, async (c) => {
+  const passport = c.get("passport");
+  if (!passport) {
+    return c.json({ error: "Authentication failed" }, 401);
+  }
+
+  const notebookId = c.req.param("id");
+  if (!notebookId) {
+    return c.json(
+      {
+        error: "Bad Request",
+        message: "Notebook ID is required",
+      },
+      400
+    );
+  }
+
+  try {
+    // Create permissions provider
+    const permissionsProvider = createPermissionsProvider(c.env);
+
+    // Check if user has access to this notebook
+    const permissionResult = await permissionsProvider.checkPermission(
+      passport.user.id,
+      notebookId
+    );
+
+    if (!permissionResult.hasAccess) {
+      return c.json(
+        {
+          error: "Not Found",
+          message: "Notebook not found or access denied",
+        },
+        404
+      );
+    }
+
+    // Get notebook from database
+    const notebook = await getNotebookById(c.env.DB, notebookId);
+
+    if (!notebook) {
+      return c.json(
+        {
+          error: "Not Found",
+          message: "Notebook not found",
+        },
+        404
+      );
+    }
+
+    return c.json({
+      id: notebook.id,
+      title: notebook.title,
+      ownerId: notebook.owner_id,
+      createdAt: notebook.created_at,
+      updatedAt: notebook.updated_at,
+    });
+  } catch (error) {
+    console.error("❌ Failed to get notebook:", error);
+    return c.json(
+      {
+        error: "Internal Server Error",
+        message: "Failed to retrieve notebook",
+      },
+      500
+    );
+  }
 });
 
 // Mount unified API key routes

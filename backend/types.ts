@@ -12,6 +12,7 @@ import type {
   IncomingRequestCfProperties,
   ExportedHandlerFetchHandler,
 } from "@cloudflare/workers-types";
+
 // N.B. it's important that we pull in all the types directly from @cloudflare/workers-types
 // because we are NOT adding @cloudflare/workers-types to the types[] field in tsconfig.json
 // This means that e.g. the global Request and Response objects are not correct
