@@ -194,10 +194,9 @@ export async function updateNotebook(
   notebookId: string,
   updates: {
     title?: string;
-    updatedAt: string;
   }
 ): Promise<boolean> {
-  const { title, updatedAt } = updates;
+  const { title } = updates;
   const updateFields: string[] = [];
   const bindings: unknown[] = [];
 
@@ -206,8 +205,7 @@ export async function updateNotebook(
     bindings.push(title);
   }
 
-  updateFields.push("updated_at = ?");
-  bindings.push(updatedAt);
+  updateFields.push("updated_at = datetime('now')");
   bindings.push(notebookId);
 
   const result = await db

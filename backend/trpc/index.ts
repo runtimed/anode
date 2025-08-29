@@ -211,7 +211,6 @@ export const appRouter = router({
 
         const success = await updateNotebook(DB, nbId, {
           title: updateInput.title,
-          updatedAt: new Date().toISOString(),
         });
 
         if (!success) {
