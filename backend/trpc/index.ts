@@ -10,11 +10,12 @@ import {
 import { createNotebookId } from "../utils/notebook-id.ts";
 import {
   assignTagToNotebook,
+  checkTagOwnership,
   createNotebook,
   createTag,
   deleteNotebook,
   deleteTag,
-  getAllTags,
+  getUserTags,
   getNotebookById,
   getNotebookOwner,
   getNotebooks,
@@ -431,9 +432,17 @@ export const appRouter = router({
     const {
       env: { DB },
     } = ctx;
+    const user_id = ctx.user?.id;
+
+    if (!user_id) {
+      throw new TRPCError({
+        code: "UNAUTHORIZED",
+        message: "User not authenticated",
+      });
+    }
 
     try {
-      return await getAllTags(DB);
+      return await getUserTags(DB, user_id);
     } catch (error) {
       throw new TRPCError({
         code: "INTERNAL_SERVER_ERROR",
@@ -456,9 +465,17 @@ export const appRouter = router({
       const {
         env: { DB },
       } = ctx;
+      const user_id = ctx.user?.id;
+
+      if (!user_id) {
+        throw new TRPCError({
+          code: "UNAUTHORIZED",
+          message: "User not authenticated",
+        });
+      }
 
       try {
-        const tag = await createTag(DB, { name, color });
+        const tag = await createTag(DB, { name, color, user_id });
         if (!tag) {
           throw new TRPCError({
             code: "CONFLICT",
@@ -484,8 +501,25 @@ export const appRouter = router({
       const {
         env: { DB },
       } = ctx;
+      const user_id = ctx.user?.id;
+
+      if (!user_id) {
+        throw new TRPCError({
+          code: "UNAUTHORIZED",
+          message: "User not authenticated",
+        });
+      }
 
       try {
+        // Check if user owns the tag
+        const ownsTag = await checkTagOwnership(DB, id, user_id);
+        if (!ownsTag) {
+          throw new TRPCError({
+            code: "FORBIDDEN",
+            message: "You can only modify your own tags",
+          });
+        }
+
         const success = await updateTag(DB, id, { name });
         if (!success) {
           throw new TRPCError({
@@ -512,8 +546,25 @@ export const appRouter = router({
       const {
         env: { DB },
       } = ctx;
+      const user_id = ctx.user?.id;
+
+      if (!user_id) {
+        throw new TRPCError({
+          code: "UNAUTHORIZED",
+          message: "User not authenticated",
+        });
+      }
 
       try {
+        // Check if user owns the tag
+        const ownsTag = await checkTagOwnership(DB, id, user_id);
+        if (!ownsTag) {
+          throw new TRPCError({
+            code: "FORBIDDEN",
+            message: "You can only delete your own tags",
+          });
+        }
+
         const success = await deleteTag(DB, id);
         if (!success) {
           throw new TRPCError({

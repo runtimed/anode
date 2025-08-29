@@ -271,9 +271,10 @@ export async function createTag(
   params: {
     name: string;
     color?: TagColor;
+    user_id: string;
   }
 ): Promise<TagRow | null> {
-  const { name, color = "neutral" } = params;
+  const { name, color = "neutral", user_id } = params;
   const id = nanoid();
   const now = new Date().toISOString();
 
@@ -281,11 +282,11 @@ export async function createTag(
     const result = await db
       .prepare(
         `
-        INSERT INTO tags (id, name, color, created_at, updated_at)
-        VALUES (?, ?, ?, ?, ?)
+        INSERT INTO tags (id, name, color, user_id, created_at, updated_at)
+        VALUES (?, ?, ?, ?, ?, ?)
       `
       )
-      .bind(id, name, color, now, now)
+      .bind(id, name, color, user_id, now, now)
       .run();
 
     if (result.success) {
@@ -293,6 +294,7 @@ export async function createTag(
         id,
         name,
         color,
+        user_id,
         created_at: now,
         updated_at: now,
       };
@@ -390,23 +392,42 @@ export async function getTagById(
   return tag || null;
 }
 
-// Get tag by name
+// Check if user owns a tag
+export async function checkTagOwnership(
+  db: D1Database,
+  tagId: string,
+  user_id: string
+): Promise<boolean> {
+  const tag = await db
+    .prepare("SELECT user_id FROM tags WHERE id = ?")
+    .bind(tagId)
+    .first<{ user_id: string }>();
+
+  return tag?.user_id === user_id;
+}
+
+// Get tag by name and user
 export async function getTagByName(
   db: D1Database,
-  name: string
+  name: string,
+  user_id: string
 ): Promise<TagRow | null> {
   const tag = await db
-    .prepare("SELECT * FROM tags WHERE name = ?")
-    .bind(name)
+    .prepare("SELECT * FROM tags WHERE name = ? AND user_id = ?")
+    .bind(name, user_id)
     .first<TagRow>();
 
   return tag || null;
 }
 
-// Get all tags
-export async function getAllTags(db: D1Database): Promise<TagRow[]> {
+// Get all tags for a user
+export async function getUserTags(
+  db: D1Database,
+  user_id: string
+): Promise<TagRow[]> {
   const result = await db
-    .prepare("SELECT * FROM tags ORDER BY name ASC")
+    .prepare("SELECT * FROM tags WHERE user_id = ? ORDER BY name ASC")
+    .bind(user_id)
     .all<TagRow>();
 
   return result.results;
@@ -469,7 +490,7 @@ export async function getNotebookTags(
   notebookId: string
 ): Promise<TagRow[]> {
   const query = `
-    SELECT t.id, t.name, t.color, t.created_at, t.updated_at
+    SELECT t.id, t.name, t.color, t.user_id, t.created_at, t.updated_at
     FROM tags t
     INNER JOIN notebook_tags nt ON t.id = nt.tag_id
     WHERE nt.notebook_id = ?

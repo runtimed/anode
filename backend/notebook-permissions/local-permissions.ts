@@ -336,7 +336,7 @@ export class LocalPermissionsProvider implements PermissionsProvider {
   // Helper function to get notebook tags
   private async getNotebookTags(notebookId: string) {
     const query = `
-      SELECT t.id, t.name, t.color, t.created_at, t.updated_at
+      SELECT t.id, t.name, t.color, t.user_id, t.created_at, t.updated_at
       FROM tags t
       INNER JOIN notebook_tags nt ON t.id = nt.tag_id
       WHERE nt.notebook_id = ?
@@ -347,6 +347,7 @@ export class LocalPermissionsProvider implements PermissionsProvider {
       id: string;
       name: string;
       color: string;
+      user_id: string;
       created_at: string;
       updated_at: string;
     }>();
