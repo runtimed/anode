@@ -1,5 +1,5 @@
 import { useMutation } from "@tanstack/react-query";
-import { MoreHorizontal, Share2, Trash2 } from "lucide-react";
+import { MoreHorizontal, Share2, Trash2, Tag } from "lucide-react";
 import React, { useState } from "react";
 import { useTrpc } from "../TrpcProvider";
 import { Button } from "../ui/button";
@@ -17,6 +17,7 @@ import {
   DropdownMenuTrigger,
 } from "../ui/dropdown-menu";
 import { SharingModal } from "./SharingModal";
+import { TagSelectionDialog } from "./TagSelectionDialog";
 import type { NotebookProcessed } from "./types";
 
 interface NotebookActionsProps {
@@ -32,6 +33,7 @@ export const NotebookActions: React.FC<NotebookActionsProps> = ({
 }) => {
   const [isSharingModalOpen, setIsSharingModalOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [isTagSelectionOpen, setIsTagSelectionOpen] = useState(false);
   const trpc = useTrpc();
 
   // Delete notebook mutation
@@ -51,6 +53,12 @@ export const NotebookActions: React.FC<NotebookActionsProps> = ({
     e.preventDefault();
     e.stopPropagation();
     setIsDeleteDialogOpen(true);
+  };
+
+  const handleTagSelectionClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsTagSelectionOpen(true);
   };
 
   const handleDeleteConfirm = async () => {
@@ -92,6 +100,10 @@ export const NotebookActions: React.FC<NotebookActionsProps> = ({
           <DropdownMenuItem onClick={handleShare}>
             <Share2 className="mr-2 h-4 w-4" />
             Share
+          </DropdownMenuItem>
+          <DropdownMenuItem onClick={handleTagSelectionClick}>
+            <Tag className="mr-2 h-4 w-4" />
+            Manage Tags
           </DropdownMenuItem>
           <DropdownMenuItem
             onClick={handleDeleteClick}
@@ -140,6 +152,14 @@ export const NotebookActions: React.FC<NotebookActionsProps> = ({
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Tag Selection Dialog */}
+      <TagSelectionDialog
+        notebookId={notebook.id}
+        isOpen={isTagSelectionOpen}
+        onClose={() => setIsTagSelectionOpen(false)}
+        onUpdate={onUpdate}
+      />
     </>
   );
 };

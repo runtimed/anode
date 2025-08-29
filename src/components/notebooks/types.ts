@@ -1,3 +1,5 @@
+import { TagColor } from "backend/trpc/types";
+
 type NotebookPermission = "OWNER" | "WRITER" | "NONE";
 
 type NotebookUser = {
@@ -12,6 +14,14 @@ type Collaborator = {
   familyName: string | null;
 };
 
+export type Tag = {
+  id: string;
+  name: string;
+  color: TagColor;
+  created_at: string;
+  updated_at: string;
+};
+
 export type NotebookProcessed = {
   id: string;
   owner_id: string;
@@ -21,4 +31,5 @@ export type NotebookProcessed = {
   myPermission: NotebookPermission;
   owner: NotebookUser;
   collaborators: readonly Collaborator[];
+  tags?: readonly Tag[];
 };

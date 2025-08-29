@@ -1,5 +1,5 @@
 import type { D1Database } from "@cloudflare/workers-types";
-import { NotebookPermissionRow, NotebookRow } from "./types";
+import { NotebookPermissionRow, NotebookRow, TagRow, TagColor } from "./types";
 import { PermissionsProvider } from "backend/notebook-permissions/types";
 import { ValidatedUser } from "backend/auth";
 import {
@@ -8,6 +8,7 @@ import {
   toPublicFacingUser,
   getUserById,
 } from "backend/users/utils";
+import { nanoid } from "nanoid";
 
 export async function getNotebooks(
   ctx: {
@@ -108,15 +109,16 @@ export async function getNotebooks(
 
   const finalResults = allResults.slice(offset, offset + limit);
 
-  // Add collaborators to each notebook
-  const notebooksWithCollaborators = await Promise.all(
+  // Add collaborators and tags to each notebook
+  const notebooksWithCollaboratorsAndTags = await Promise.all(
     finalResults.map(async (notebook) => ({
       ...notebook,
       collaborators: await getNotebookCollaborators(DB, notebook.id),
+      tags: await getNotebookTags(DB, notebook.id, user.id),
     }))
   );
 
-  return notebooksWithCollaborators;
+  return notebooksWithCollaboratorsAndTags;
 }
 
 // Helper function to get notebook collaborators
@@ -259,4 +261,246 @@ export async function getNotebookOwner(db: D1Database, notebookId: string) {
   } else {
     return createFallbackUser(ownerId);
   }
+}
+
+// Tag-related functions
+
+// Create a new tag
+export async function createTag(
+  db: D1Database,
+  params: {
+    name: string;
+    color?: TagColor;
+    user_id: string;
+  }
+): Promise<TagRow | null> {
+  const { name, color, user_id } = params;
+  const id = nanoid();
+  const now = new Date().toISOString();
+
+  try {
+    const result = await db
+      .prepare(
+        `
+        INSERT INTO tags (id, name, color, user_id, created_at, updated_at)
+        VALUES (?, ?, ?, ?, ?, ?)
+      `
+      )
+      .bind(id, name, color, user_id, now, now)
+      .run();
+
+    if (result.success) {
+      return {
+        id,
+        name,
+        color: color as TagColor,
+        user_id,
+        created_at: now,
+        updated_at: now,
+      };
+    }
+    return null;
+  } catch (error) {
+    // Handle unique constraint violation
+    if (
+      error instanceof Error &&
+      error.message.includes("UNIQUE constraint failed")
+    ) {
+      return null;
+    }
+    throw error;
+  }
+}
+
+// Update tag name and color
+export async function updateTag(
+  db: D1Database,
+  tagId: string,
+  params: {
+    name?: string;
+    color?: TagColor;
+  }
+): Promise<boolean> {
+  const { name, color } = params;
+  const now = new Date().toISOString();
+
+  const updateFields: string[] = [];
+  const bindings: unknown[] = [];
+
+  if (name !== undefined) {
+    updateFields.push("name = ?");
+    bindings.push(name);
+  }
+
+  if (color !== undefined) {
+    updateFields.push("color = ?");
+    bindings.push(color);
+  }
+
+  updateFields.push("updated_at = ?");
+  bindings.push(now);
+  bindings.push(tagId);
+
+  try {
+    const result = await db
+      .prepare(
+        `
+        UPDATE tags
+        SET ${updateFields.join(", ")}
+        WHERE id = ?
+      `
+      )
+      .bind(...bindings)
+      .run();
+
+    return result.meta.changes > 0;
+  } catch (error) {
+    // Handle unique constraint violation
+    if (
+      error instanceof Error &&
+      error.message.includes("UNIQUE constraint failed")
+    ) {
+      return false;
+    }
+    throw error;
+  }
+}
+
+// Delete tag
+export async function deleteTag(
+  db: D1Database,
+  tagId: string
+): Promise<boolean> {
+  const result = await db
+    .prepare("DELETE FROM tags WHERE id = ?")
+    .bind(tagId)
+    .run();
+
+  return result.meta.changes > 0;
+}
+
+// Get tag by ID
+export async function getTagById(
+  db: D1Database,
+  tagId: string
+): Promise<TagRow | null> {
+  const tag = await db
+    .prepare("SELECT * FROM tags WHERE id = ?")
+    .bind(tagId)
+    .first<TagRow>();
+
+  return tag || null;
+}
+
+// Check if user owns a tag
+export async function checkTagOwnership(
+  db: D1Database,
+  tagId: string,
+  user_id: string
+): Promise<boolean> {
+  const tag = await db
+    .prepare("SELECT user_id FROM tags WHERE id = ?")
+    .bind(tagId)
+    .first<{ user_id: string }>();
+
+  return tag?.user_id === user_id;
+}
+
+// Get tag by name and user
+export async function getTagByName(
+  db: D1Database,
+  name: string,
+  user_id: string
+): Promise<TagRow | null> {
+  const tag = await db
+    .prepare("SELECT * FROM tags WHERE name = ? AND user_id = ?")
+    .bind(name, user_id)
+    .first<TagRow>();
+
+  return tag || null;
+}
+
+// Get all tags for a user
+export async function getUserTags(
+  db: D1Database,
+  user_id: string
+): Promise<TagRow[]> {
+  const result = await db
+    .prepare("SELECT * FROM tags WHERE user_id = ? ORDER BY name ASC")
+    .bind(user_id)
+    .all<TagRow>();
+
+  return result.results;
+}
+
+// Assign tag to notebook
+export async function assignTagToNotebook(
+  db: D1Database,
+  notebookId: string,
+  tagId: string
+): Promise<boolean> {
+  const now = new Date().toISOString();
+
+  try {
+    const result = await db
+      .prepare(
+        `
+        INSERT INTO notebook_tags (notebook_id, tag_id, created_at)
+        VALUES (?, ?, ?)
+      `
+      )
+      .bind(notebookId, tagId, now)
+      .run();
+
+    return result.success;
+  } catch (error) {
+    // Handle unique constraint violation (tag already assigned)
+    if (
+      error instanceof Error &&
+      error.message.includes("UNIQUE constraint failed")
+    ) {
+      return true; // Already assigned, consider it successful
+    }
+    throw error;
+  }
+}
+
+// Remove tag from notebook
+export async function removeTagFromNotebook(
+  db: D1Database,
+  notebookId: string,
+  tagId: string
+): Promise<boolean> {
+  const result = await db
+    .prepare(
+      `
+        DELETE FROM notebook_tags
+        WHERE notebook_id = ? AND tag_id = ?
+      `
+    )
+    .bind(notebookId, tagId)
+    .run();
+
+  return result.meta.changes > 0;
+}
+
+// Get user's tags for a notebook
+export async function getNotebookTags(
+  db: D1Database,
+  notebookId: string,
+  userId: string
+): Promise<TagRow[]> {
+  const query = `
+    SELECT t.id, t.name, t.color, t.user_id, t.created_at, t.updated_at
+    FROM tags t
+    INNER JOIN notebook_tags nt ON t.id = nt.tag_id
+    WHERE nt.notebook_id = ? AND t.user_id = ?
+    ORDER BY t.name ASC
+  `;
+
+  const result = await db.prepare(query).bind(notebookId, userId).all<TagRow>();
+
+  console.log("🚨", { result });
+
+  return result.results;
 }

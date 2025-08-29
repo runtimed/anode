@@ -9,15 +9,23 @@ import {
 } from "../users/utils.ts";
 import { createNotebookId } from "../utils/notebook-id.ts";
 import {
-  getNotebooks,
-  getNotebookById,
+  assignTagToNotebook,
+  checkTagOwnership,
   createNotebook,
-  updateNotebook,
+  createTag,
   deleteNotebook,
+  deleteTag,
+  getUserTags,
+  getNotebookById,
   getNotebookOwner,
+  getNotebooks,
+  getNotebookTags,
+  removeTagFromNotebook,
+  updateNotebook,
+  updateTag,
 } from "./db.ts";
 import { authedProcedure, publicProcedure, router } from "./trpc";
-import { NotebookPermission } from "./types.ts";
+import { NotebookPermission, TagColor } from "./types.ts";
 
 // Create the tRPC router
 export const appRouter = router({
@@ -413,6 +421,254 @@ export const appRouter = router({
       } catch (error) {
         console.error("Failed to check permission:", error);
         return "NONE";
+      }
+    }),
+
+  // Tag-related endpoints
+
+  // Get all tags
+  tags: authedProcedure.query(async (opts) => {
+    const { ctx } = opts;
+    const {
+      env: { DB },
+    } = ctx;
+    const user_id = ctx.user.id;
+
+    try {
+      return await getUserTags(DB, user_id);
+    } catch (error) {
+      throw new TRPCError({
+        code: "INTERNAL_SERVER_ERROR",
+        message: `Failed to fetch tags: ${error instanceof Error ? error.message : "Unknown error"}`,
+      });
+    }
+  }),
+
+  // Create a new tag
+  createTag: authedProcedure
+    .input(
+      z.object({
+        name: z.string().min(1).max(50),
+        color: z
+          .string()
+          .regex(/^#[0-9A-Fa-f]{6}$/)
+          .optional(),
+      })
+    )
+    .mutation(async (opts) => {
+      const { ctx, input } = opts;
+      const { name, color } = input;
+      const {
+        env: { DB },
+      } = ctx;
+      const user_id = ctx.user.id;
+
+      try {
+        const tag = await createTag(DB, {
+          name,
+          // we know it's a hex color because of the regex
+          color: color as TagColor,
+          user_id,
+        });
+        if (!tag) {
+          throw new TRPCError({
+            code: "CONFLICT",
+            message: "Tag with this name already exists",
+          });
+        }
+        return tag;
+      } catch (error) {
+        if (error instanceof TRPCError) throw error;
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: `Failed to create tag: ${error instanceof Error ? error.message : "Unknown error"}`,
+        });
+      }
+    }),
+
+  // Update tag name
+  updateTag: authedProcedure
+    .input(z.object({ id: z.string(), name: z.string().min(1).max(50) }))
+    .mutation(async (opts) => {
+      const { ctx, input } = opts;
+      const { id, name } = input;
+      const {
+        env: { DB },
+      } = ctx;
+      const user_id = ctx.user.id;
+
+      if (!user_id) {
+        throw new TRPCError({
+          code: "UNAUTHORIZED",
+          message: "User not authenticated",
+        });
+      }
+
+      try {
+        // Check if user owns the tag
+        const ownsTag = await checkTagOwnership(DB, id, user_id);
+        if (!ownsTag) {
+          throw new TRPCError({
+            code: "FORBIDDEN",
+            message: "You can only modify your own tags",
+          });
+        }
+
+        const success = await updateTag(DB, id, { name });
+        if (!success) {
+          throw new TRPCError({
+            code: "CONFLICT",
+            message: "Tag with this name already exists",
+          });
+        }
+        return { success: true };
+      } catch (error) {
+        if (error instanceof TRPCError) throw error;
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: `Failed to update tag: ${error instanceof Error ? error.message : "Unknown error"}`,
+        });
+      }
+    }),
+
+  // Delete tag
+  deleteTag: authedProcedure
+    .input(z.object({ id: z.string() }))
+    .mutation(async (opts) => {
+      const { ctx, input } = opts;
+      const { id } = input;
+      const {
+        env: { DB },
+      } = ctx;
+      const user_id = ctx.user.id;
+
+      try {
+        // Check if user owns the tag
+        const ownsTag = await checkTagOwnership(DB, id, user_id);
+        if (!ownsTag) {
+          throw new TRPCError({
+            code: "FORBIDDEN",
+            message: "You can only delete your own tags",
+          });
+        }
+
+        const success = await deleteTag(DB, id);
+        if (!success) {
+          throw new TRPCError({
+            code: "NOT_FOUND",
+            message: "Tag not found",
+          });
+        }
+        return { success: true };
+      } catch (error) {
+        if (error instanceof TRPCError) throw error;
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: `Failed to delete tag: ${error instanceof Error ? error.message : "Unknown error"}`,
+        });
+      }
+    }),
+
+  // Get notebook tags
+  notebookTags: authedProcedure
+    .input(z.object({ nbId: z.string() }))
+    .query(async (opts) => {
+      const { ctx, input } = opts;
+      const { nbId } = input;
+      const {
+        env: { DB },
+        permissionsProvider,
+      } = ctx;
+
+      try {
+        const permissionResult = await permissionsProvider.checkPermission(
+          ctx.user.id,
+          nbId
+        );
+        if (!permissionResult.hasAccess) {
+          throw new TRPCError({
+            code: "NOT_FOUND",
+            message: "Notebook not found or access denied",
+          });
+        }
+
+        return await getNotebookTags(DB, nbId, ctx.user.id);
+      } catch (error) {
+        if (error instanceof TRPCError) throw error;
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: `Failed to fetch notebook tags: ${error instanceof Error ? error.message : "Unknown error"}`,
+        });
+      }
+    }),
+
+  // Assign tag to notebook
+  assignTagToNotebook: authedProcedure
+    .input(z.object({ nbId: z.string(), tagId: z.string() }))
+    .mutation(async (opts) => {
+      const { ctx, input } = opts;
+      const { nbId, tagId } = input;
+      const {
+        env: { DB },
+        permissionsProvider,
+      } = ctx;
+
+      try {
+        // Check if user has write access to the notebook
+        const permissionResult = await permissionsProvider.checkPermission(
+          ctx.user.id,
+          nbId
+        );
+        if (!permissionResult.hasAccess) {
+          throw new TRPCError({
+            code: "FORBIDDEN",
+            message: "You don't have permission to modify this notebook",
+          });
+        }
+
+        const success = await assignTagToNotebook(DB, nbId, tagId);
+        return { success };
+      } catch (error) {
+        if (error instanceof TRPCError) throw error;
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: `Failed to assign tag: ${error instanceof Error ? error.message : "Unknown error"}`,
+        });
+      }
+    }),
+
+  // Remove tag from notebook
+  removeTagFromNotebook: authedProcedure
+    .input(z.object({ nbId: z.string(), tagId: z.string() }))
+    .mutation(async (opts) => {
+      const { ctx, input } = opts;
+      const { nbId, tagId } = input;
+      const {
+        env: { DB },
+        permissionsProvider,
+      } = ctx;
+
+      try {
+        // Check if user has write access to the notebook
+        const permissionResult = await permissionsProvider.checkPermission(
+          ctx.user.id,
+          nbId
+        );
+        if (!permissionResult.hasAccess) {
+          throw new TRPCError({
+            code: "FORBIDDEN",
+            message: "You don't have permission to modify this notebook",
+          });
+        }
+
+        const success = await removeTagFromNotebook(DB, nbId, tagId);
+        return { success };
+      } catch (error) {
+        if (error instanceof TRPCError) throw error;
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: `Failed to remove tag: ${error instanceof Error ? error.message : "Unknown error"}`,
+        });
       }
     }),
 

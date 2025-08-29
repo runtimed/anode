@@ -13,14 +13,20 @@ import {
 } from "lucide-react";
 import React, { useMemo } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { useTrpc } from "../TrpcProvider";
 import { getNotebookVanityUrl } from "../../util/url-utils";
+import { useTrpc } from "../TrpcProvider";
 import { Badge } from "../ui/badge";
 import { Button } from "../ui/button";
 import { DateDisplay } from "../ui/DateDisplay";
 import { Input } from "../ui/input";
 
+import { useDebug } from "@/components/debug/debug-mode";
+import { getTagDotColorStyles } from "@/lib/tag-colors";
+import { trpcQueryClient } from "@/lib/trpc-client";
+import { DebugModeToggle } from "../debug/DebugModeToggle";
 import { LoadingState } from "../loading/LoadingState";
+import { RuntLogoSmall } from "../logo/RuntLogoSmall";
+import { GitCommitHash } from "../notebook/GitCommitHash";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -30,12 +36,10 @@ import {
 import { NotebookActions } from "./NotebookActions";
 import { NotebookCard } from "./NotebookCard";
 import { SimpleUserProfile } from "./SimpleUserProfile";
+import { TagActions } from "./TagActions";
+import { TagBadge } from "./TagBadge";
+import { TagCreationDialog } from "./TagCreationDialog";
 import type { NotebookProcessed } from "./types";
-import { useDebug } from "@/components/debug/debug-mode";
-import { DebugModeToggle } from "../debug/DebugModeToggle";
-import { RuntLogoSmall } from "../logo/RuntLogoSmall";
-import { GitCommitHash } from "../notebook/GitCommitHash";
-import { trpcQueryClient } from "@/lib/trpc-client";
 
 const DebugNotebooks = React.lazy(() =>
   import("./DebugNotebooks").then((mod) => ({ default: mod.DebugNotebooks }))
@@ -102,6 +106,9 @@ export const NotebookDashboard: React.FC = () => {
 
   // Get user data
   const { data: userData } = useQuery(trpc.me.queryOptions());
+
+  // Get all tags
+  const { data: tagsData } = useQuery(trpc.tags.queryOptions());
 
   const allNotebooks = useMemo(() => {
     if (!notebooksData) return [];
@@ -343,13 +350,52 @@ export const NotebookDashboard: React.FC = () => {
             </div>
           </div>
 
-          {/* Tags Section - Placeholder for future */}
+          {/* Tags Section */}
           <div>
             <h3 className="mb-3 flex items-center text-sm font-medium text-gray-500">
               <Tag className="mr-2 h-4 w-4" />
               Tags
             </h3>
-            <div className="text-sm text-gray-400 italic">Coming soon...</div>
+            {tagsData && tagsData.length > 0 ? (
+              tagsData.map((tag) => (
+                <div
+                  key={tag.id}
+                  className="flex items-center justify-between rounded-md px-3 py-1 text-sm text-gray-700 transition-colors hover:bg-gray-50"
+                >
+                  <div className="flex items-center">
+                    <div
+                      className="mr-2 h-3 w-3 rounded-full"
+                      style={getTagDotColorStyles(tag.color)}
+                    />
+                    <TagBadge tag={tag} />
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <Badge variant="secondary" className="ml-2">
+                      {
+                        allNotebooks.filter((n) =>
+                          n.tags?.some((t) => t.id === tag.id)
+                        ).length
+                      }
+                    </Badge>
+                    <TagActions tag={tag} />
+                  </div>
+                </div>
+              ))
+            ) : (
+              <div className="text-sm text-gray-400 italic">No tags yet...</div>
+            )}
+
+            {/* Add Tag Button */}
+            <div className="mt-3">
+              <TagCreationDialog
+                onTagCreated={() => {
+                  // Refresh the tags list
+                  trpcQueryClient.invalidateQueries({
+                    queryKey: trpc.tags.queryKey(),
+                  });
+                }}
+              />
+            </div>
           </div>
         </div>
       </div>
@@ -616,6 +662,7 @@ const NotebookGrid: React.FC<NotebookGridProps> = ({
               <th className="p-4 text-left font-medium text-gray-900">
                 Permission
               </th>
+              <th className="p-4 text-left font-medium text-gray-900">Tags</th>
               <th className="p-4 text-left font-medium text-gray-900">
                 Updated
               </th>
@@ -679,6 +726,22 @@ const NotebookTableRow: React.FC<NotebookTableRowProps> = ({
         <Badge variant={getPermissionBadgeVariant(notebook.myPermission)}>
           {notebook.myPermission.toLowerCase()}
         </Badge>
+      </td>
+      <td className="p-4">
+        {notebook.tags && notebook.tags.length > 0 ? (
+          <div className="flex flex-wrap gap-1">
+            {notebook.tags.slice(0, 2).map((tag) => (
+              <TagBadge key={tag.id} tag={tag} />
+            ))}
+            {notebook.tags.length > 2 && (
+              <Badge variant="outline" className="px-2 py-0.5 text-xs">
+                +{notebook.tags.length - 2} more
+              </Badge>
+            )}
+          </div>
+        ) : (
+          <span className="text-sm text-gray-400">No tags</span>
+        )}
       </td>
       <td className="p-4 text-gray-600">
         <DateDisplay date={notebook.updated_at} format="short" />
