@@ -429,7 +429,7 @@ export async function getUserTags(
   user_id: string
 ): Promise<TagRow[]> {
   const result = await db
-    .prepare("SELECT * FROM tags WHERE user_id = ? ORDER BY name ASC")
+    .prepare("SELECT * FROM tags WHERE user_id = ? ORDER BY created_at ASC")
     .bind(user_id)
     .all<TagRow>();
 
