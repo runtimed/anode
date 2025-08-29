@@ -1,9 +1,11 @@
-import React, { useState, useEffect } from "react";
 import { useMutation } from "@tanstack/react-query";
-import { X } from "lucide-react";
+import React, { useEffect, useState } from "react";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
 
+import { trpcQueryClient } from "@/lib/trpc-client";
+import { TagColor, TagRow } from "backend/trpc/types";
+import { useTrpc } from "../TrpcProvider";
 import {
   Dialog,
   DialogContent,
@@ -12,9 +14,6 @@ import {
   DialogTrigger,
 } from "../ui/dialog";
 import { ColorPicker } from "./ColorPicker";
-import { useTrpc } from "../TrpcProvider";
-import { trpcQueryClient } from "@/lib/trpc-client";
-import { TagColor, TagRow } from "backend/trpc/types";
 
 interface TagEditDialogProps {
   tag: TagRow;

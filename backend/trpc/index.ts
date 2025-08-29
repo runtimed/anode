@@ -492,10 +492,19 @@ export const appRouter = router({
 
   // Update tag name
   updateTag: authedProcedure
-    .input(z.object({ id: z.string(), name: z.string().min(1).max(50) }))
+    .input(
+      z.object({
+        id: z.string(),
+        name: z.string().min(1).max(50),
+        color: z
+          .string()
+          .regex(/^#[0-9A-Fa-f]{6}$/)
+          .optional(),
+      })
+    )
     .mutation(async (opts) => {
       const { ctx, input } = opts;
-      const { id, name } = input;
+      const { id, name, color } = input;
       const {
         env: { DB },
       } = ctx;
@@ -518,7 +527,10 @@ export const appRouter = router({
           });
         }
 
-        const success = await updateTag(DB, id, { name });
+        const success = await updateTag(DB, id, {
+          name,
+          color: color as TagColor,
+        });
         if (!success) {
           throw new TRPCError({
             code: "CONFLICT",
