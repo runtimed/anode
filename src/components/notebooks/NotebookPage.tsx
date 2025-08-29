@@ -1,7 +1,7 @@
 import { useDebug } from "@/components/debug/debug-mode.js";
 import { cn } from "@/lib/utils";
 import { useQuery } from "@tanstack/react-query";
-import { ArrowLeft, Share2, User, Users } from "lucide-react";
+import { ArrowLeft, Share2, Tag, User, Users } from "lucide-react";
 import React, { Suspense, useEffect, useState } from "react";
 import { ErrorBoundary } from "react-error-boundary";
 import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
@@ -28,6 +28,8 @@ import { TitleEditor } from "./notebook/TitleEditor";
 import { SharingModal } from "./SharingModal";
 import { SimpleUserProfile } from "./SimpleUserProfile";
 import type { NotebookProcessed } from "./types";
+import { TagSelectionDialog } from "./TagSelectionDialog";
+import { TagBadge } from "./TagBadge.js";
 
 // Lazy import DebugPanel only in development
 const LazyDebugPanel = React.lazy(() =>
@@ -41,6 +43,7 @@ export const NotebookPage: React.FC = () => {
   const trpc = useTrpc();
   const location = useLocation();
   const navigate = useNavigate();
+  const [isTagSelectionOpen, setIsTagSelectionOpen] = useState(false);
   const [isSharingModalOpen, setIsSharingModalOpen] = useState(false);
   const [showRuntimeHelper, setShowRuntimeHelper] = React.useState(false);
   const [liveStoreReady, setLiveStoreReady] = useState(false);
@@ -172,7 +175,7 @@ export const NotebookPage: React.FC = () => {
       <div className="border-b bg-white">
         <div className="container mx-auto px-4 py-4">
           <div className="flex flex-wrap-reverse items-center justify-between gap-4">
-            <div className="flex items-center gap-4">
+            <div className="flex flex-wrap items-center gap-4">
               <Link to="/nb" className="group/logo relative">
                 <span className="relative transition-opacity group-hover/logo:opacity-20">
                   <RuntLogoSmall />
@@ -185,6 +188,26 @@ export const NotebookPage: React.FC = () => {
                 onTitleSaved={refetch}
                 canEdit={canEdit}
               />
+
+              {/* Tags */}
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setIsTagSelectionOpen(true)}
+              >
+                <Tag className="h-4 w-4" />
+                {!notebook.tags || (notebook.tags.length === 0 && "Tags")}
+                <div className="flex items-center gap-1">
+                  {notebook.tags?.slice(0, 2).map((tag) => (
+                    <TagBadge key={tag.id} tag={tag} />
+                  ))}
+                  {notebook.tags && notebook.tags.length > 2 && (
+                    <Badge variant="outline" className="px-2 py-0.5 text-xs">
+                      +{notebook.tags.length - 2} more
+                    </Badge>
+                  )}
+                </div>
+              </Button>
             </div>
 
             {/* Right side */}
@@ -297,6 +320,13 @@ export const NotebookPage: React.FC = () => {
           notebook={notebook}
           isOpen={isSharingModalOpen}
           onClose={() => setIsSharingModalOpen(false)}
+          onUpdate={refetch}
+        />
+
+        <TagSelectionDialog
+          notebookId={notebook.id}
+          isOpen={isTagSelectionOpen}
+          onClose={() => setIsTagSelectionOpen(false)}
           onUpdate={refetch}
         />
 

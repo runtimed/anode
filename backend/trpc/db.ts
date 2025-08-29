@@ -122,7 +122,10 @@ export async function getNotebooks(
 }
 
 // Helper function to get notebook collaborators
-async function getNotebookCollaborators(db: D1Database, notebookId: string) {
+export async function getNotebookCollaborators(
+  db: D1Database,
+  notebookId: string
+) {
   const query = `
     SELECT user_id FROM notebook_permissions
     WHERE notebook_id = ?

@@ -23,6 +23,7 @@ import {
   removeTagFromNotebook,
   updateNotebook,
   updateTag,
+  getNotebookCollaborators,
 } from "./db.ts";
 import { authedProcedure, publicProcedure, router } from "./trpc";
 import { NotebookPermission, TagColor } from "./types.ts";
@@ -120,6 +121,9 @@ export const appRouter = router({
 
         const notebook = await getNotebookById(DB, nbId);
 
+        const collaborators = await getNotebookCollaborators(DB, nbId);
+        const tags = await getNotebookTags(DB, nbId, user.id);
+
         if (!notebook) {
           throw new TRPCError({
             code: "NOT_FOUND",
@@ -127,7 +131,7 @@ export const appRouter = router({
           });
         }
 
-        return notebook;
+        return { ...notebook, collaborators, tags };
       } catch (error) {
         if (error instanceof TRPCError) throw error;
         throw new TRPCError({
