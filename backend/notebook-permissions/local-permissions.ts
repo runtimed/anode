@@ -18,6 +18,18 @@ interface NotebookRow {
   title: string | null;
   created_at: string;
   updated_at: string;
+  collaborators?: Array<{
+    id: string;
+    givenName: string | null;
+    familyName: string | null;
+  }>;
+  tags?: Array<{
+    id: string;
+    name: string;
+    color: string;
+    created_at: string;
+    updated_at: string;
+  }>;
 }
 
 /**
@@ -321,6 +333,27 @@ export class LocalPermissionsProvider implements PermissionsProvider {
     });
   }
 
+  // Helper function to get notebook tags
+  private async getNotebookTags(notebookId: string) {
+    const query = `
+      SELECT t.id, t.name, t.color, t.created_at, t.updated_at
+      FROM tags t
+      INNER JOIN notebook_tags nt ON t.id = nt.tag_id
+      WHERE nt.notebook_id = ?
+      ORDER BY t.name ASC
+    `;
+
+    const result = await this.db.prepare(query).bind(notebookId).all<{
+      id: string;
+      name: string;
+      color: string;
+      created_at: string;
+      updated_at: string;
+    }>();
+
+    return result.results;
+  }
+
   async fetchAccessibleResourcesWithData(
     userId: string,
     resourceType: "notebook",
@@ -380,15 +413,36 @@ export class LocalPermissionsProvider implements PermissionsProvider {
         .bind(...bindings)
         .all<NotebookRow>();
 
-      // Add collaborators to each notebook
-      const notebooksWithCollaborators = await Promise.all(
-        result.results.map(async (notebook) => ({
-          ...notebook,
-          collaborators: await this.getNotebookCollaborators(notebook.id),
-        }))
+      // Add collaborators and tags to each notebook
+      const notebooksWithCollaboratorsAndTags = await Promise.all(
+        result.results.map(async (notebook) => {
+          try {
+            const [collaborators, tags] = await Promise.all([
+              this.getNotebookCollaborators(notebook.id),
+              this.getNotebookTags(notebook.id),
+            ]);
+
+            return {
+              ...notebook,
+              collaborators,
+              tags,
+            };
+          } catch (error) {
+            console.error(
+              `Error fetching data for notebook ${notebook.id}:`,
+              error
+            );
+            // Return notebook with empty arrays if there's an error
+            return {
+              ...notebook,
+              collaborators: [],
+              tags: [],
+            };
+          }
+        })
       );
 
-      return notebooksWithCollaborators;
+      return notebooksWithCollaboratorsAndTags;
     } catch (error) {
       // Fall back to null to indicate the two-step approach should be used
       console.error("Failed to fetch accessible resources with data:", error);
