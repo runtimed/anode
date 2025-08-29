@@ -21,8 +21,6 @@ interface TagEditDialogProps {
   children: React.ReactNode;
 }
 
-const DEFAULT_COLOR = "#000000";
-
 export const TagEditDialog: React.FC<TagEditDialogProps> = ({
   tag,
   onTagEdited,
