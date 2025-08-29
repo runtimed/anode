@@ -13,14 +13,20 @@ import {
 } from "lucide-react";
 import React, { useMemo } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { useTrpc } from "../TrpcProvider";
 import { getNotebookVanityUrl } from "../../util/url-utils";
+import { useTrpc } from "../TrpcProvider";
 import { Badge } from "../ui/badge";
 import { Button } from "../ui/button";
 import { DateDisplay } from "../ui/DateDisplay";
 import { Input } from "../ui/input";
 
+import { useDebug } from "@/components/debug/debug-mode";
+import { getTagDotColorClass } from "@/lib/tag-colors";
+import { trpcQueryClient } from "@/lib/trpc-client";
+import { DebugModeToggle } from "../debug/DebugModeToggle";
 import { LoadingState } from "../loading/LoadingState";
+import { RuntLogoSmall } from "../logo/RuntLogoSmall";
+import { GitCommitHash } from "../notebook/GitCommitHash";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -30,15 +36,10 @@ import {
 import { NotebookActions } from "./NotebookActions";
 import { NotebookCard } from "./NotebookCard";
 import { SimpleUserProfile } from "./SimpleUserProfile";
-import { TagCreationDialog } from "./TagCreationDialog";
+import { TagActions } from "./TagActions";
 import { TagBadge } from "./TagBadge";
-import { getTagDotColorClass } from "@/lib/tag-colors";
+import { TagCreationDialog } from "./TagCreationDialog";
 import type { NotebookProcessed } from "./types";
-import { useDebug } from "@/components/debug/debug-mode";
-import { DebugModeToggle } from "../debug/DebugModeToggle";
-import { RuntLogoSmall } from "../logo/RuntLogoSmall";
-import { GitCommitHash } from "../notebook/GitCommitHash";
-import { trpcQueryClient } from "@/lib/trpc-client";
 
 const DebugNotebooks = React.lazy(() =>
   import("./DebugNotebooks").then((mod) => ({ default: mod.DebugNotebooks }))
@@ -375,7 +376,7 @@ export const NotebookDashboard: React.FC = () => {
                         }
                       </Badge>
                     </div>
-                    <TagBadge tag={tag} showDelete={true} />
+                    <TagActions tag={tag} />
                   </div>
                 ))}
               </div>
