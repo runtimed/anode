@@ -1,8 +1,11 @@
-import React, { useState, useEffect } from "react";
+import { getTagColorClasses, getTagDotColorClass } from "@/lib/tag-colors";
+import { trpcQueryClient } from "@/lib/trpc-client";
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { Check, Plus, Tag } from "lucide-react";
+import { Check, Tag } from "lucide-react";
+import React, { useEffect, useState } from "react";
+import { useTrpc } from "../TrpcProvider";
+import { Badge } from "../ui/badge";
 import { Button } from "../ui/button";
-import { Input } from "../ui/input";
 import {
   Dialog,
   DialogContent,
@@ -10,10 +13,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "../ui/dialog";
-import { Badge } from "../ui/badge";
-import { getTagColorClasses, getTagDotColorClass } from "@/lib/tag-colors";
-import { useTrpc } from "../TrpcProvider";
-import { trpcQueryClient } from "@/lib/trpc-client";
+import { Input } from "../ui/input";
 
 interface TagSelectionDialogProps {
   notebookId: string;
