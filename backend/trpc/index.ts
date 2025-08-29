@@ -145,14 +145,11 @@ export const appRouter = router({
 
       try {
         const nbId = createNotebookId();
-        const now = new Date().toISOString();
 
         const success = await createNotebook(DB, {
           id: nbId,
           ownerId: user.id,
           title: input.title,
-          createdAt: now,
-          updatedAt: now,
         });
 
         if (!success) {

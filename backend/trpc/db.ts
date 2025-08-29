@@ -169,20 +169,18 @@ export async function createNotebook(
     id: string;
     ownerId: string;
     title: string;
-    createdAt: string;
-    updatedAt: string;
   }
 ): Promise<boolean> {
-  const { id, ownerId, title, createdAt, updatedAt } = params;
+  const { id, ownerId, title } = params;
 
   const result = await db
     .prepare(
       `
-      INSERT INTO notebooks (id, owner_id, title, created_at, updated_at)
-      VALUES (?, ?, ?, ?, ?)
+      INSERT INTO notebooks (id, owner_id, title)
+      VALUES (?, ?, ?)
     `
     )
-    .bind(id, ownerId, title, createdAt, updatedAt)
+    .bind(id, ownerId, title)
     .run();
 
   return result.success;
