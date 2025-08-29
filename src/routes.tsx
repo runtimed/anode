@@ -1,21 +1,20 @@
-import React, { Suspense, useEffect } from "react";
-import { AuthProvider } from "@/auth/AuthProvider";
-import { Route, Routes } from "react-router-dom";
 import { AuthGuard } from "@/auth/AuthGuard";
-import AuthorizePage from "@/pages/AuthorizePage.tsx";
+import { AuthProvider } from "@/auth/AuthProvider";
+import { FPSMeter } from "@/components/debug/FPSMeter.tsx";
 import { LoadingState } from "@/components/loading/LoadingState.js";
 import { Toaster } from "@/components/ui/sonner.js";
-import { FPSMeter } from "@/components/debug/FPSMeter.tsx";
+import AuthorizePage from "@/pages/AuthorizePage.tsx";
 import {
   isLoadingScreenVisible,
   removeStaticLoadingScreen,
 } from "@/util/domUpdates.js";
+import React, { Suspense, useEffect } from "react";
+import { Navigate, Route, Routes } from "react-router-dom";
 
 // Import page components
-import { HomePage } from "@/pages/HomePage.tsx";
-import OidcCallbackPage from "@/pages/OidcCallbackPage.tsx";
-import { NotebooksDashboardPage } from "@/pages/NotebooksDashboardPage.tsx";
 import { NotebookPage } from "@/pages/NotebookPage.tsx";
+import { NotebooksDashboardPage } from "@/pages/NotebooksDashboardPage.tsx";
+import OidcCallbackPage from "@/pages/OidcCallbackPage.tsx";
 
 export const App: React.FC = () => {
   // Safety net: Auto-remove loading screen if no component has handled it
@@ -90,14 +89,7 @@ export const App: React.FC = () => {
             </AuthGuard>
           }
         />
-        <Route
-          path="/*"
-          element={
-            <AuthGuard>
-              <HomePage />
-            </AuthGuard>
-          }
-        />
+        <Route path="/" element={<Navigate to="/nb" replace />} />
       </Routes>
       <FPSMeter />
       <Toaster />
