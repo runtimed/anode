@@ -13,8 +13,16 @@ import {
 
 // Import notebook utilities
 import { createNotebookId } from "./utils/notebook-id.ts";
-import { createNotebook, getNotebookById } from "./trpc/db.ts";
+import {
+  createNotebook,
+  getNotebookById,
+  createTag,
+  getTagByName,
+  assignTagToNotebook,
+  getNotebookTags,
+} from "./trpc/db.ts";
 import { createPermissionsProvider } from "./notebook-permissions/factory.ts";
+import type { TagColor } from "./trpc/types.ts";
 
 const api = new Hono<{ Bindings: Env; Variables: AuthContext }>();
 
@@ -61,8 +69,7 @@ api.get("/me", authMiddleware, (c) => {
 // Request body validation schema for notebook creation
 const createNotebookSchema = z.object({
   title: z.string().min(1).max(255).trim(),
-  // Future: Add tags validation when ready
-  // tags: z.array(z.string()).optional(),
+  tags: z.array(z.string().min(1).max(50).trim()).optional(),
 });
 
 /**
@@ -72,6 +79,7 @@ const createNotebookSchema = z.object({
  * Designed for external clients using API keys.
  *
  * @param title - Required notebook title (1-255 characters)
+ * @param tags - Optional array of tag names to assign to notebook
  * @returns Created notebook with ID, title, owner, and timestamps
  */
 api.post("/notebooks", authMiddleware, async (c) => {
@@ -96,7 +104,7 @@ api.post("/notebooks", authMiddleware, async (c) => {
       );
     }
 
-    const { title } = parseResult.data;
+    const { title, tags } = parseResult.data;
 
     // Generate notebook ID
     const notebookId = createNotebookId();
@@ -129,6 +137,33 @@ api.post("/notebooks", authMiddleware, async (c) => {
         },
         500
       );
+    }
+
+    // Handle tag assignment if tags were provided
+    if (tags && tags.length > 0) {
+      try {
+        for (const tagName of tags) {
+          // Check if tag already exists for this user
+          let tag = await getTagByName(c.env.DB, tagName, passport.user.id);
+
+          // Create tag if it doesn't exist
+          if (!tag) {
+            tag = await createTag(c.env.DB, {
+              name: tagName,
+              color: "#3B82F6" as TagColor, // Default blue color
+              user_id: passport.user.id,
+            });
+          }
+
+          // Assign tag to notebook if creation was successful
+          if (tag) {
+            await assignTagToNotebook(c.env.DB, notebookId, tag.id);
+          }
+        }
+      } catch (tagError) {
+        console.warn("❌ Tag assignment failed:", tagError);
+        // Don't fail the entire request if tag assignment fails
+      }
     }
 
     return c.json({
@@ -220,12 +255,16 @@ api.get("/notebooks/:id", authMiddleware, async (c) => {
       );
     }
 
+    // Get notebook tags
+    const tags = await getNotebookTags(c.env.DB, notebookId, passport.user.id);
+
     return c.json({
       id: notebook.id,
       title: notebook.title,
       ownerId: notebook.owner_id,
       createdAt: notebook.created_at,
       updatedAt: notebook.updated_at,
+      tags: tags,
     });
   } catch (error) {
     console.error("❌ Failed to get notebook:", error);
