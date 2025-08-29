@@ -1,47 +1,23 @@
-import type { D1Database } from "@cloudflare/workers-types";
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
-import { publicProcedure, authedProcedure, router } from "./trpc";
 import {
-  getUserById,
-  getUsersByIds,
-  getUserByEmail,
-  toPublicFacingUser,
   createFallbackUser,
   getPrivateUserById,
+  getUserByEmail,
+  getUsersByIds,
+  toPublicFacingUser,
 } from "../users/utils.ts";
 import { createNotebookId } from "../utils/notebook-id.ts";
-import { NotebookPermission, NotebookRow } from "./types.ts";
-
-// Helper function to get notebook collaborators
-async function getNotebookCollaborators(db: D1Database, notebookId: string) {
-  const query = `
-    SELECT user_id FROM notebook_permissions
-    WHERE notebook_id = ?
-    AND permission = 'writer'
-  `;
-
-  const writers = await db
-    .prepare(query)
-    .bind(notebookId)
-    .all<{ user_id: string }>();
-
-  if (writers.results.length === 0) {
-    return [];
-  }
-
-  const userIds = writers.results.map((w: { user_id: string }) => w.user_id);
-  const userMap = await getUsersByIds(db, userIds);
-
-  return userIds.map((userId: string) => {
-    const userRecord = userMap.get(userId);
-    if (userRecord) {
-      return toPublicFacingUser(userRecord);
-    } else {
-      return createFallbackUser(userId);
-    }
-  });
-}
+import {
+  getNotebooks,
+  getNotebookById,
+  createNotebook,
+  updateNotebook,
+  deleteNotebook,
+  getNotebookOwner,
+} from "./db.ts";
+import { authedProcedure, publicProcedure, router } from "./trpc";
+import { NotebookPermission } from "./types.ts";
 
 // Create the tRPC router
 export const appRouter = router({
@@ -92,106 +68,16 @@ export const appRouter = router({
       })
     )
     .query(async (opts) => {
-      const { ctx, input } = opts;
-      const { owned, shared, limit, offset } = input;
-      const {
-        user,
-        env: { DB },
-        permissionsProvider,
-      } = ctx;
-
       try {
-        let accessibleNotebookIds: string[];
+        const { ctx, input } = opts;
+        const { owned, shared, limit, offset } = input;
 
-        if (owned && !shared) {
-          accessibleNotebookIds =
-            await permissionsProvider.listAccessibleResources(
-              user.id,
-              "notebook",
-              ["owner"]
-            );
-        } else if (shared && !owned) {
-          const allAccessible =
-            await permissionsProvider.listAccessibleResources(
-              user.id,
-              "notebook"
-            );
-          const ownedOnly = await permissionsProvider.listAccessibleResources(
-            user.id,
-            "notebook",
-            ["owner"]
-          );
-          accessibleNotebookIds = allAccessible.filter(
-            (id) => !ownedOnly.includes(id)
-          );
-        } else {
-          // All accessible notebooks (default case and when both owned and shared are true)
-          accessibleNotebookIds =
-            await permissionsProvider.listAccessibleResources(
-              user.id,
-              "notebook"
-            );
-        }
-
-        // Try efficient single-query approach first (works for local provider)
-        if (permissionsProvider.fetchAccessibleResourcesWithData) {
-          const efficientResult =
-            await permissionsProvider.fetchAccessibleResourcesWithData(
-              user.id,
-              "notebook",
-              { owned, shared, limit, offset }
-            );
-
-          if (efficientResult !== null) {
-            return efficientResult;
-          }
-        }
-
-        // Fall back to two-step approach for external providers
-        if (accessibleNotebookIds.length === 0) {
-          return [];
-        }
-
-        // Use chunked queries to avoid SQL parameter limits
-        // SQLite has a limit around 999 parameters. Using 900 is well under the limit
-        // and more efficient than smaller chunks like 100.
-        const CHUNK_SIZE = 900;
-        const allResults: NotebookRow[] = [];
-
-        for (let i = 0; i < accessibleNotebookIds.length; i += CHUNK_SIZE) {
-          const chunk = accessibleNotebookIds.slice(i, i + CHUNK_SIZE);
-          const placeholders = chunk.map(() => "?").join(",");
-          const query = `
-            SELECT id, owner_id, title, created_at, updated_at
-            FROM notebooks
-            WHERE id IN (${placeholders})
-            ORDER BY updated_at DESC
-          `;
-
-          const result = await DB.prepare(query)
-            .bind(...chunk)
-            .all<NotebookRow>();
-
-          allResults.push(...result.results);
-        }
-
-        // Sort all results by updated_at DESC and apply pagination
-        allResults.sort(
-          (a, b) =>
-            new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime()
-        );
-
-        const finalResults = allResults.slice(offset, offset + limit);
-
-        // Add collaborators to each notebook
-        const notebooksWithCollaborators = await Promise.all(
-          finalResults.map(async (notebook) => ({
-            ...notebook,
-            collaborators: await getNotebookCollaborators(DB, notebook.id),
-          }))
-        );
-
-        return notebooksWithCollaborators;
+        return await getNotebooks(ctx, {
+          owned,
+          shared,
+          limit,
+          offset,
+        });
       } catch (error) {
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
@@ -224,11 +110,7 @@ export const appRouter = router({
           });
         }
 
-        const notebook = await DB.prepare(
-          "SELECT * FROM notebooks WHERE id = ?"
-        )
-          .bind(nbId)
-          .first<NotebookRow>();
+        const notebook = await getNotebookById(DB, nbId);
 
         if (!notebook) {
           throw new TRPCError({
@@ -263,29 +145,21 @@ export const appRouter = router({
 
       try {
         const nbId = createNotebookId();
-        const now = new Date().toISOString();
 
-        const result = await DB.prepare(
-          `
-          INSERT INTO notebooks (id, owner_id, title, created_at, updated_at)
-          VALUES (?, ?, ?, ?, ?)
-        `
-        )
-          .bind(nbId, user.id, input.title, now, now)
-          .run();
+        const success = await createNotebook(DB, {
+          id: nbId,
+          ownerId: user.id,
+          title: input.title,
+        });
 
-        if (!result.success) {
+        if (!success) {
           throw new TRPCError({
             code: "INTERNAL_SERVER_ERROR",
             message: "Failed to create notebook",
           });
         }
 
-        const notebook = await DB.prepare(
-          "SELECT * FROM notebooks WHERE id = ?"
-        )
-          .bind(nbId)
-          .first<NotebookRow>();
+        const notebook = await getNotebookById(DB, nbId);
 
         return notebook;
       } catch (error) {
@@ -325,36 +199,18 @@ export const appRouter = router({
           });
         }
 
-        const updates: string[] = [];
-        const bindings: unknown[] = [];
-
-        if (updateInput.title !== undefined) {
-          updates.push("title = ?");
-          bindings.push(updateInput.title);
-        }
-
-        if (updates.length === 0) {
+        if (updateInput.title === undefined) {
           throw new TRPCError({
             code: "BAD_REQUEST",
             message: "No updates provided",
           });
         }
 
-        updates.push("updated_at = ?");
-        bindings.push(new Date().toISOString());
-        bindings.push(nbId);
+        const success = await updateNotebook(DB, nbId, {
+          title: updateInput.title,
+        });
 
-        const result = await DB.prepare(
-          `
-          UPDATE notebooks
-          SET ${updates.join(", ")}
-          WHERE id = ?
-        `
-        )
-          .bind(...bindings)
-          .run();
-
-        if (result.meta.changes === 0) {
+        if (!success) {
           throw new TRPCError({
             code: "NOT_FOUND",
             message: "Notebook not found or no changes made",
@@ -362,11 +218,7 @@ export const appRouter = router({
         }
 
         // Return updated notebook
-        const notebook = await DB.prepare(
-          "SELECT * FROM notebooks WHERE id = ?"
-        )
-          .bind(nbId)
-          .first<NotebookRow>();
+        const notebook = await getNotebookById(DB, nbId);
 
         return notebook;
       } catch (error) {
@@ -401,11 +253,9 @@ export const appRouter = router({
         }
 
         // Delete notebook (CASCADE will handle permissions)
-        const result = await DB.prepare("DELETE FROM notebooks WHERE id = ?")
-          .bind(nbId)
-          .run();
+        const success = await deleteNotebook(DB, nbId);
 
-        if (result.meta.changes === 0) {
+        if (!success) {
           throw new TRPCError({
             code: "NOT_FOUND",
             message: "Notebook not found",
@@ -489,25 +339,16 @@ export const appRouter = router({
       } = ctx;
 
       try {
-        const notebook = await DB.prepare(
-          "SELECT owner_id FROM notebooks WHERE id = ?"
-        )
-          .bind(nbId)
-          .first<{ owner_id: string }>();
+        const owner = await getNotebookOwner(DB, nbId);
 
-        if (!notebook) {
+        if (!owner) {
           throw new TRPCError({
             code: "NOT_FOUND",
             message: "Notebook not found",
           });
         }
 
-        const userRecord = await getUserById(DB, notebook.owner_id);
-        if (userRecord) {
-          return toPublicFacingUser(userRecord);
-        } else {
-          return createFallbackUser(notebook.owner_id);
-        }
+        return owner;
       } catch (error) {
         if (error instanceof TRPCError) throw error;
         console.error("Failed to fetch owner:", error);

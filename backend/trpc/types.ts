@@ -12,3 +12,10 @@ export interface NotebookRow {
 }
 
 export type NotebookPermission = "OWNER" | "WRITER" | "NONE";
+
+export interface NotebookPermissionRow {
+  nodebook_id: string;
+  user_id: string;
+  permission: NotebookPermission;
+  granted_at: string;
+}
