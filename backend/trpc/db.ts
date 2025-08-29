@@ -110,7 +110,7 @@ export async function getNotebooks(
   const finalResults = allResults.slice(offset, offset + limit);
 
   // Add collaborators and tags to each notebook
-  const notebooksWithCollaborators = await Promise.all(
+  const notebooksWithCollaboratorsAndTags = await Promise.all(
     finalResults.map(async (notebook) => ({
       ...notebook,
       collaborators: await getNotebookCollaborators(DB, notebook.id),
@@ -118,7 +118,7 @@ export async function getNotebooks(
     }))
   );
 
-  return notebooksWithCollaborators;
+  return notebooksWithCollaboratorsAndTags;
 }
 
 // Helper function to get notebook collaborators
@@ -477,6 +477,8 @@ export async function getNotebookTags(
   `;
 
   const result = await db.prepare(query).bind(notebookId).all<TagRow>();
+
+  console.log("🚨", { result });
 
   return result.results;
 }
