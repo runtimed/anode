@@ -21,7 +21,7 @@ import { DateDisplay } from "../ui/DateDisplay";
 import { Input } from "../ui/input";
 
 import { useDebug } from "@/components/debug/debug-mode";
-import { getTagDotColorClass } from "@/lib/tag-colors";
+import { getTagDotColorStyles } from "@/lib/tag-colors";
 import { trpcQueryClient } from "@/lib/trpc-client";
 import { DebugModeToggle } from "../debug/DebugModeToggle";
 import { LoadingState } from "../loading/LoadingState";
@@ -364,9 +364,10 @@ export const NotebookDashboard: React.FC = () => {
                 >
                   <div className="flex items-center">
                     <div
-                      className={`mr-2 h-3 w-3 rounded-full ${getTagDotColorClass(tag.color)}`}
+                      className="mr-2 h-3 w-3 rounded-full"
+                      style={getTagDotColorStyles(tag.color)}
                     />
-                    {tag.name}
+                    <TagBadge tag={tag} />
                   </div>
                   <div className="flex items-center gap-1">
                     <Badge variant="secondary" className="ml-2">

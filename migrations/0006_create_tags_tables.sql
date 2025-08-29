@@ -5,8 +5,7 @@ CREATE TABLE tags (
   id TEXT PRIMARY KEY,
   name TEXT NOT NULL,
   user_id TEXT NOT NULL,
-  -- Color values for now: 'neutral', 'red', 'orange', 'yellow', 'green', 'blue', 'purple', 'pink'
-  color TEXT NOT NULL DEFAULT 'neutral',
+  color TEXT NOT NULL DEFAULT '#000000',
   created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
   updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
   -- Make tag names unique per user

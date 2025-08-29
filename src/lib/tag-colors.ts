@@ -1,35 +1,33 @@
 import type { TagColor } from "backend/trpc/types";
 
-export function getTagColorClasses(color: TagColor) {
-  const colorMap: Record<TagColor, string> = {
-    neutral: "border-neutral-300 text-neutral-700 bg-neutral-50",
-    red: "border-red-300 text-red-700 bg-red-50",
-    amber: "border-amber-300 text-amber-700 bg-amber-50",
-    green: "border-green-300 text-green-700 bg-green-50",
-    teal: "border-teal-300 text-teal-700 bg-teal-50",
-    sky: "border-sky-300 text-sky-700 bg-sky-50",
-    blue: "border-blue-300 text-blue-700 bg-blue-50",
-    indigo: "border-indigo-300 text-indigo-700 bg-indigo-50",
-    fuchsia: "border-fuchsia-300 text-fuchsia-700 bg-fuchsia-50",
-    pink: "border-pink-300 text-pink-700 bg-pink-50",
-  };
+export function getTagColorStyles(color: TagColor) {
+  if (!color.startsWith("#")) {
+    throw new Error("Color must be a hex color");
+  }
 
-  return colorMap[color];
+  // Handle hex color with OKLab transformations
+  const baseColor = color;
+  const textColor = `oklch(from ${baseColor} 0.2 c h)`; // Darker text
+  const backgroundColor = `oklch(from ${baseColor} 0.9 c h)`; // Lighter background
+  const borderColor = `oklch(from ${baseColor} 0.7 c h)`; // Medium border
+
+  return {
+    color: textColor,
+    backgroundColor,
+    borderColor,
+  };
 }
 
-export function getTagDotColorClass(color: TagColor) {
-  const colorMap: Record<TagColor, string> = {
-    neutral: "bg-neutral-500",
-    red: "bg-red-500",
-    amber: "bg-amber-500",
-    green: "bg-green-500",
-    teal: "bg-teal-500",
-    sky: "bg-sky-500",
-    blue: "bg-blue-500",
-    indigo: "bg-indigo-500",
-    fuchsia: "bg-fuchsia-500",
-    pink: "bg-pink-500",
-  };
+export function getTagDotColorStyles(color: TagColor): {
+  backgroundColor: string;
+} {
+  if (!color.startsWith("#")) throw new Error("Color must be a hex color");
 
-  return colorMap[color];
+  // Handle hex color with OKLab transformations
+  const baseColor = color;
+  // const backgroundColor = `oklch(from ${baseColor} calc(l + 0.1) c h)`; // Slightly lighter for dot
+
+  return {
+    backgroundColor: baseColor,
+  };
 }

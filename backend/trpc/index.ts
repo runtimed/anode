@@ -25,7 +25,7 @@ import {
   updateTag,
 } from "./db.ts";
 import { authedProcedure, publicProcedure, router } from "./trpc";
-import { NotebookPermission, TAG_COLORS } from "./types.ts";
+import { NotebookPermission, TagColor } from "./types.ts";
 
 // Create the tRPC router
 export const appRouter = router({
@@ -449,7 +449,10 @@ export const appRouter = router({
     .input(
       z.object({
         name: z.string().min(1).max(50),
-        color: z.enum(TAG_COLORS).optional(),
+        color: z
+          .string()
+          .regex(/^#[0-9A-Fa-f]{6}$/)
+          .optional(),
       })
     )
     .mutation(async (opts) => {
@@ -461,7 +464,12 @@ export const appRouter = router({
       const user_id = ctx.user.id;
 
       try {
-        const tag = await createTag(DB, { name, color, user_id });
+        const tag = await createTag(DB, {
+          name,
+          // we know it's a hex color because of the regex
+          color: color as TagColor,
+          user_id,
+        });
         if (!tag) {
           throw new TRPCError({
             code: "CONFLICT",

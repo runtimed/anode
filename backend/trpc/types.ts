@@ -21,20 +21,8 @@ export interface NotebookPermissionRow {
   granted_at: string;
 }
 
-export const TAG_COLORS = [
-  "neutral",
-  "red",
-  "amber",
-  "green",
-  "teal",
-  "sky",
-  "blue",
-  "indigo",
-  "fuchsia",
-  "pink",
-] as const;
-
-export type TagColor = (typeof TAG_COLORS)[number];
+// Only hex colors are supported for now
+export type TagColor = `#${string}`;
 
 export interface TagRow {
   id: string;

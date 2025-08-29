@@ -274,7 +274,7 @@ export async function createTag(
     user_id: string;
   }
 ): Promise<TagRow | null> {
-  const { name, color = "neutral", user_id } = params;
+  const { name, color, user_id } = params;
   const id = nanoid();
   const now = new Date().toISOString();
 
@@ -293,7 +293,7 @@ export async function createTag(
       return {
         id,
         name,
-        color,
+        color: color as TagColor,
         user_id,
         created_at: now,
         updated_at: now,

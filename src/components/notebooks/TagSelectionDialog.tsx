@@ -1,4 +1,4 @@
-import { getTagColorClasses, getTagDotColorClass } from "@/lib/tag-colors";
+import { getTagColorStyles, getTagDotColorStyles } from "@/lib/tag-colors";
 import { trpcQueryClient } from "@/lib/trpc-client";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { Check, Tag } from "lucide-react";
@@ -153,11 +153,13 @@ export const TagSelectionDialog: React.FC<TagSelectionDialogProps> = ({
                   >
                     <div className="flex items-center gap-3">
                       <div
-                        className={`h-3 w-3 rounded-full ${getTagDotColorClass(tag.color)}`}
+                        className="h-3 w-3 rounded-full"
+                        style={getTagDotColorStyles(tag.color)}
                       />
                       <Badge
                         variant="outline"
-                        className={`px-2 py-0.5 text-xs ${getTagColorClasses(tag.color)}`}
+                        className="px-2 py-0.5 text-xs"
+                        style={getTagColorStyles(tag.color)}
                       >
                         {tag.name}
                       </Badge>

@@ -20,12 +20,14 @@ interface TagCreationDialogProps {
   onTagCreated?: () => void;
 }
 
+const DEFAULT_COLOR = "#000000";
+
 export const TagCreationDialog: React.FC<TagCreationDialogProps> = ({
   onTagCreated,
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [tagName, setTagName] = useState("");
-  const [selectedColor, setSelectedColor] = useState<TagColor>("neutral");
+  const [selectedColor, setSelectedColor] = useState<TagColor>(DEFAULT_COLOR);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -52,7 +54,7 @@ export const TagCreationDialog: React.FC<TagCreationDialogProps> = ({
 
       // Reset form
       setTagName("");
-      setSelectedColor("neutral");
+      setSelectedColor(DEFAULT_COLOR);
       setError(null);
       setIsOpen(false);
       onTagCreated?.();
@@ -88,7 +90,7 @@ export const TagCreationDialog: React.FC<TagCreationDialogProps> = ({
     if (!open) {
       // Reset form when dialog closes
       setTagName("");
-      setSelectedColor("neutral");
+      setSelectedColor(DEFAULT_COLOR);
     }
   };
 
@@ -126,15 +128,10 @@ export const TagCreationDialog: React.FC<TagCreationDialogProps> = ({
           </div>
 
           <div className="space-y-2">
-            <label className="text-sm font-medium">Color</label>
+            <div className="text-sm font-medium">Color</div>
             <ColorPicker
               selectedColor={selectedColor}
-              onColorChange={(color) => {
-                if (!tagName.trim()) {
-                  setTagName(color);
-                }
-                setSelectedColor(color);
-              }}
+              onColorChange={setSelectedColor}
             />
           </div>
 
