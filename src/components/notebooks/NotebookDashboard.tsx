@@ -357,31 +357,29 @@ export const NotebookDashboard: React.FC = () => {
               Tags
             </h3>
             {tagsData && tagsData.length > 0 ? (
-              <div className="space-y-1">
-                {tagsData.map((tag) => (
-                  <div
-                    key={tag.id}
-                    className="flex items-center justify-between rounded-md px-3 py-2 text-sm text-gray-700 transition-colors hover:bg-gray-50"
-                  >
-                    <div className="flex items-center">
-                      <div
-                        className={`mr-2 h-3 w-3 rounded-full ${getTagDotColorClass(tag.color)}`}
-                      />
-                      {tag.name}
-                    </div>
-                    <div className="flex items-center gap-1">
-                      <Badge variant="secondary" className="ml-2">
-                        {
-                          allNotebooks.filter((n) =>
-                            n.tags?.some((t) => t.id === tag.id)
-                          ).length
-                        }
-                      </Badge>
-                      <TagActions tag={tag} />
-                    </div>
+              tagsData.map((tag) => (
+                <div
+                  key={tag.id}
+                  className="flex items-center justify-between rounded-md px-3 py-1 text-sm text-gray-700 transition-colors hover:bg-gray-50"
+                >
+                  <div className="flex items-center">
+                    <div
+                      className={`mr-2 h-3 w-3 rounded-full ${getTagDotColorClass(tag.color)}`}
+                    />
+                    {tag.name}
                   </div>
-                ))}
-              </div>
+                  <div className="flex items-center gap-1">
+                    <Badge variant="secondary" className="ml-2">
+                      {
+                        allNotebooks.filter((n) =>
+                          n.tags?.some((t) => t.id === tag.id)
+                        ).length
+                      }
+                    </Badge>
+                    <TagActions tag={tag} />
+                  </div>
+                </div>
+              ))
             ) : (
               <div className="text-sm text-gray-400 italic">No tags yet...</div>
             )}
