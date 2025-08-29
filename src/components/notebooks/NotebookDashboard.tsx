@@ -368,6 +368,8 @@ export const NotebookDashboard: React.FC = () => {
                         className={`mr-2 h-3 w-3 rounded-full ${getTagDotColorClass(tag.color)}`}
                       />
                       {tag.name}
+                    </div>
+                    <div className="flex items-center gap-1">
                       <Badge variant="secondary" className="ml-2">
                         {
                           allNotebooks.filter((n) =>
@@ -375,8 +377,8 @@ export const NotebookDashboard: React.FC = () => {
                           ).length
                         }
                       </Badge>
+                      <TagActions tag={tag} />
                     </div>
-                    <TagActions tag={tag} />
                   </div>
                 ))}
               </div>

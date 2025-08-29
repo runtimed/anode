@@ -55,7 +55,7 @@ export const TagActions = ({ tag }: { tag: TagRow }) => {
     <>
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <Button variant="outline" size="sm">
+          <Button variant="ghost" size="xs">
             <MoreHorizontal className="h-4 w-4" />
           </Button>
         </DropdownMenuTrigger>
