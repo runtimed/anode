@@ -16,6 +16,8 @@ import { NotebookPage } from "@/pages/NotebookPage.tsx";
 import { NotebooksDashboardPage } from "@/pages/NotebooksDashboardPage.tsx";
 import OidcCallbackPage from "@/pages/OidcCallbackPage.tsx";
 import NavPage from "./pages/NavPage";
+import NbPage from "./pages/NbPage";
+import NbDashboardPage from "./pages/NbDashboardPage";
 
 export const App: React.FC = () => {
   // Safety net: Auto-remove loading screen if no component has handled it
@@ -90,7 +92,41 @@ export const App: React.FC = () => {
             </AuthGuard>
           }
         />
-        <Route path="/" element={<Navigate to="/nb" replace />} />
+        <Route
+          path="/nb2/:id/*"
+          element={
+            <AuthGuard>
+              <Suspense
+                fallback={
+                  <LoadingState
+                    variant="fullscreen"
+                    message="Loading notebook..."
+                  />
+                }
+              >
+                <NbPage />
+              </Suspense>
+            </AuthGuard>
+          }
+        />
+        <Route
+          path="/nb2"
+          element={
+            <AuthGuard>
+              <Suspense
+                fallback={
+                  <LoadingState
+                    variant="fullscreen"
+                    message="Loading notebooks..."
+                  />
+                }
+              >
+                <NbDashboardPage />
+              </Suspense>
+            </AuthGuard>
+          }
+        />
+        <Route path="/" element={<Navigate to="/nb2" replace />} />
         <Route path="/nav" element={<NavPage />} />
       </Routes>
       <FPSMeter />
