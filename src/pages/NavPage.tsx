@@ -1,4 +1,5 @@
 import { AppSidebar } from "@/components/app-sidebar";
+import { SidebarRight } from "@/components/right-sidebar";
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -50,6 +51,7 @@ export default function NavPage() {
           <div className="bg-muted/50 min-h-[100vh] flex-1 rounded-xl md:min-h-min" />
         </div>
       </SidebarInset>
+      <SidebarRight />
     </SidebarProvider>
   );
 }
