@@ -2,7 +2,7 @@ import { trpcQueryClient } from "@/lib/trpc-client";
 
 import { useMutation } from "@tanstack/react-query";
 import type { TagRow } from "backend/trpc/types";
-import { MoreHorizontal, Trash2 } from "lucide-react";
+import { MoreHorizontal, Trash2, Edit } from "lucide-react";
 import React, { useState } from "react";
 import { useTrpc } from "../TrpcProvider";
 import { Button } from "../ui/button";
@@ -19,6 +19,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "../ui/dropdown-menu";
+import { TagEditDialog } from "./TagEditDialog";
 
 export const TagActions = ({ tag }: { tag: TagRow }) => {
   const trpc = useTrpc();
@@ -60,6 +61,12 @@ export const TagActions = ({ tag }: { tag: TagRow }) => {
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
+          <TagEditDialog tag={tag}>
+            <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+              <Edit className="mr-2 h-4 w-4" />
+              Edit
+            </DropdownMenuItem>
+          </TagEditDialog>
           <DropdownMenuItem
             onClick={handleDeleteClick}
             className="text-red-600 focus:text-red-600"

@@ -1,9 +1,11 @@
-import React, { useState } from "react";
 import { useMutation } from "@tanstack/react-query";
-import { X } from "lucide-react";
+import React, { useEffect, useState } from "react";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
 
+import { trpcQueryClient } from "@/lib/trpc-client";
+import { TagColor, TagRow } from "backend/trpc/types";
+import { useTrpc } from "../TrpcProvider";
 import {
   Dialog,
   DialogContent,
@@ -12,27 +14,32 @@ import {
   DialogTrigger,
 } from "../ui/dialog";
 import { TagColorPicker } from "./TagColorPicker";
-import { useTrpc } from "../TrpcProvider";
-import { trpcQueryClient } from "@/lib/trpc-client";
-import { TagColor } from "backend/trpc/types";
 
-interface TagCreationDialogProps {
-  onTagCreated?: () => void;
+interface TagEditDialogProps {
+  tag: TagRow;
+  onTagEdited?: () => void;
+  children: React.ReactNode;
 }
 
-const DEFAULT_COLOR = "#000000";
-
-export const TagCreationDialog: React.FC<TagCreationDialogProps> = ({
-  onTagCreated,
+export const TagEditDialog: React.FC<TagEditDialogProps> = ({
+  tag,
+  onTagEdited,
+  children,
 }) => {
   const [isOpen, setIsOpen] = useState(false);
-  const [tagName, setTagName] = useState("");
-  const [selectedColor, setSelectedColor] = useState<TagColor>(DEFAULT_COLOR);
+  const [tagName, setTagName] = useState(tag.name);
+  const [selectedColor, setSelectedColor] = useState<TagColor>(tag.color);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const trpc = useTrpc();
-  const createTagMutation = useMutation(trpc.createTag.mutationOptions());
+  const updateTagMutation = useMutation(trpc.updateTag.mutationOptions());
+
+  // Update form when tag prop changes
+  useEffect(() => {
+    setTagName(tag.name);
+    setSelectedColor(tag.color);
+  }, [tag]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -42,7 +49,8 @@ export const TagCreationDialog: React.FC<TagCreationDialogProps> = ({
     setError(null); // Clear any previous errors
 
     try {
-      await createTagMutation.mutateAsync({
+      await updateTagMutation.mutateAsync({
+        id: tag.id,
         name: tagName.trim(),
         color: selectedColor,
       });
@@ -53,13 +61,11 @@ export const TagCreationDialog: React.FC<TagCreationDialogProps> = ({
       });
 
       // Reset form
-      setTagName("");
-      setSelectedColor(DEFAULT_COLOR);
       setError(null);
       setIsOpen(false);
-      onTagCreated?.();
+      onTagEdited?.();
     } catch (error) {
-      console.error("Failed to create tag:", error);
+      console.error("Failed to update tag:", error);
 
       // Handle tRPC errors specifically
       if (error && typeof error === "object" && "data" in error) {
@@ -73,7 +79,7 @@ export const TagCreationDialog: React.FC<TagCreationDialogProps> = ({
           );
         } else {
           setError(
-            trpcError.message || "Failed to create tag. Please try again."
+            trpcError.message || "Failed to update tag. Please try again."
           );
         }
       } else {
@@ -89,22 +95,17 @@ export const TagCreationDialog: React.FC<TagCreationDialogProps> = ({
     setIsOpen(open);
     if (!open) {
       // Reset form when dialog closes
-      setTagName("");
-      setSelectedColor(DEFAULT_COLOR);
+      setTagName(tag.name);
+      setSelectedColor(tag.color);
     }
   };
 
   return (
     <Dialog open={isOpen} onOpenChange={handleOpenChange}>
-      <DialogTrigger asChild>
-        <Button variant="outline" size="sm" className="w-full">
-          <X className="mr-2 h-4 w-4 rotate-45" />
-          Add Tag
-        </Button>
-      </DialogTrigger>
+      <DialogTrigger asChild>{children}</DialogTrigger>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>Create New Tag</DialogTitle>
+          <DialogTitle>Edit Tag</DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
@@ -146,7 +147,7 @@ export const TagCreationDialog: React.FC<TagCreationDialogProps> = ({
               Cancel
             </Button>
             <Button type="submit" disabled={!tagName.trim() || isSubmitting}>
-              {isSubmitting ? "Creating..." : "Create Tag"}
+              {isSubmitting ? "Updating..." : "Update Tag"}
             </Button>
           </div>
         </form>

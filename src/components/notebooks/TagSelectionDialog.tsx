@@ -1,11 +1,12 @@
 import { getTagColorStyles, getTagDotColorStyles } from "@/lib/tag-colors";
 import { trpcQueryClient } from "@/lib/trpc-client";
+import { cn } from "@/lib/utils";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { Check, Tag } from "lucide-react";
 import React, { useEffect, useState } from "react";
 import { useTrpc } from "../TrpcProvider";
 import { Badge } from "../ui/badge";
-import { Button } from "../ui/button";
+import { Button, buttonVariants } from "../ui/button";
 import {
   Dialog,
   DialogContent,
@@ -97,11 +98,7 @@ export const TagSelectionDialog: React.FC<TagSelectionDialogProps> = ({
     onClose();
   };
 
-  const isLoading =
-    isLoadingTags ||
-    isLoadingNotebookTags ||
-    assignTagMutation.isPending ||
-    removeTagMutation.isPending;
+  const isLoading = isLoadingTags || isLoadingNotebookTags;
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -143,9 +140,11 @@ export const TagSelectionDialog: React.FC<TagSelectionDialogProps> = ({
               filteredTags.map((tag) => {
                 const isSelected = selectedTagIds.has(tag.id);
                 return (
-                  <div
+                  <button
                     key={tag.id}
-                    className={`flex items-center justify-between rounded-lg border p-3 transition-colors hover:bg-gray-50 ${
+                    onClick={() => handleTagToggle(tag.id)}
+                    disabled={isLoading}
+                    className={`flex w-full items-center justify-between rounded-lg border p-3 transition-colors hover:bg-gray-50 ${
                       isSelected
                         ? "border-blue-300 bg-blue-50"
                         : "border-gray-200"
@@ -164,20 +163,18 @@ export const TagSelectionDialog: React.FC<TagSelectionDialogProps> = ({
                         {tag.name}
                       </Badge>
                     </div>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleTagToggle(tag.id)}
-                      disabled={isLoading}
-                      className={`h-8 w-8 p-0 ${
+                    <div
+                      className={cn(
+                        buttonVariants({ variant: "outline", size: "sm" }),
+                        "h-8 w-8 p-0",
                         isSelected ? "text-blue-600" : "text-gray-400"
-                      }`}
+                      )}
                     >
                       <Check
                         className={`h-4 w-4 ${isSelected ? "opacity-100" : "opacity-0"}`}
                       />
-                    </Button>
-                  </div>
+                    </div>
+                  </button>
                 );
               })
             )}
