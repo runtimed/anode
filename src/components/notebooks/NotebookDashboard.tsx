@@ -2,7 +2,6 @@ import { useMutation, useQuery } from "@tanstack/react-query";
 import {
   ChevronDown,
   Clock,
-  Filter,
   Grid3X3,
   List,
   Plus,
@@ -10,6 +9,7 @@ import {
   Tag,
   User,
   Users,
+  X,
 } from "lucide-react";
 import React, { useMemo } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
@@ -21,7 +21,7 @@ import { DateDisplay } from "../ui/DateDisplay";
 import { Input } from "../ui/input";
 
 import { useDebug } from "@/components/debug/debug-mode";
-import { getTagDotColorStyles } from "@/lib/tag-colors";
+
 import { trpcQueryClient } from "@/lib/trpc-client";
 import { DebugModeToggle } from "../debug/DebugModeToggle";
 import { LoadingState } from "../loading/LoadingState";
@@ -61,6 +61,7 @@ export const NotebookDashboard: React.FC = () => {
       : "named";
 
   const searchQuery = searchParams.get("q") || "";
+  const selectedTagName = searchParams.get("tag") || "";
 
   const viewModeParam = searchParams.get("view");
   const viewMode: ViewMode = viewModeParam === "table" ? "table" : "grid";
@@ -90,6 +91,17 @@ export const NotebookDashboard: React.FC = () => {
       newSearchParams.set("q", query);
     } else {
       newSearchParams.delete("q");
+    }
+    setSearchParams(newSearchParams, { replace: true });
+  };
+
+  // Function to set selected tag filter
+  const setSelectedTag = (tagName: string) => {
+    const newSearchParams = new URLSearchParams(searchParams);
+    if (tagName) {
+      newSearchParams.set("tag", tagName);
+    } else {
+      newSearchParams.delete("tag");
     }
     setSearchParams(newSearchParams, { replace: true });
   };
@@ -132,9 +144,16 @@ export const NotebookDashboard: React.FC = () => {
   // Filter and group notebooks
   const { filteredNotebooks, recentScratchNotebooks, namedNotebooks } =
     useMemo(() => {
-      let filtered = allNotebooks;
+      // Apply tag filter first to create base set
+      let baseFiltered = allNotebooks;
+      if (selectedTagName) {
+        baseFiltered = baseFiltered.filter((n) =>
+          n.tags?.some((tag) => tag.name === selectedTagName)
+        );
+      }
 
-      // Apply filter
+      // Apply activeFilter to baseFiltered
+      let filtered = baseFiltered;
       if (activeFilter === "scratch") {
         filtered = filtered.filter(
           (n) =>
@@ -170,8 +189,8 @@ export const NotebookDashboard: React.FC = () => {
           (!n.title || n.title.startsWith("Untitled"))
       );
 
-      // All named notebooks (not starting with "Untitled")
-      const named = allNotebooks.filter(
+      // All named notebooks from tag-filtered base (respects tag filter)
+      const named = baseFiltered.filter(
         (n) =>
           n.myPermission === "OWNER" &&
           n.title &&
@@ -183,7 +202,7 @@ export const NotebookDashboard: React.FC = () => {
         recentScratchNotebooks: recentScratch,
         namedNotebooks: named,
       };
-    }, [allNotebooks, activeFilter, searchQuery]);
+    }, [allNotebooks, activeFilter, searchQuery, selectedTagName]);
 
   // Check if user has named notebooks
   const hasNamedNotebooks = useMemo(() => {
@@ -272,124 +291,146 @@ export const NotebookDashboard: React.FC = () => {
           <h2 className="font-semibold text-gray-900">Notebooks</h2>
         </div>
 
-        {/* Filter Sections */}
         <div className="space-y-6 p-4">
-          {/* Main Filters */}
-          <div>
-            <h3 className="mb-3 flex items-center text-sm font-medium text-gray-500">
-              <Filter className="mr-2 h-4 w-4" />
-              Filters
-            </h3>
-            <div className="space-y-1">
-              {hasNamedNotebooks && (
-                <button
-                  onClick={() => setActiveFilter("named")}
-                  className={`w-full rounded-md px-3 py-2 text-left text-sm transition-colors ${
-                    activeFilter === "named"
-                      ? "bg-blue-50 text-blue-700"
-                      : "text-gray-700 hover:bg-gray-50"
-                  }`}
-                >
-                  <div className="flex items-center">
-                    <User className="mr-2 h-4 w-4" />
-                    My Notebooks
-                    <Badge variant="secondary" className="ml-auto">
-                      {
-                        allNotebooks.filter(
-                          (n) =>
-                            n.myPermission === "OWNER" &&
-                            n.title &&
-                            !n.title.startsWith("Untitled")
-                        ).length
-                      }
-                    </Badge>
-                  </div>
-                </button>
-              )}
-              <button
-                onClick={() => setActiveFilter("scratch")}
-                className={`w-full rounded-md px-3 py-2 text-left text-sm transition-colors ${
-                  activeFilter === "scratch"
-                    ? "bg-blue-50 text-blue-700"
-                    : "text-gray-700 hover:bg-gray-50"
-                }`}
+          {/* Navigation */}
+          <nav className="space-y-1">
+            <button
+              onClick={() => setActiveFilter("named")}
+              className={`group flex w-full items-center justify-between rounded-lg px-3 py-2.5 text-sm font-medium transition-all ${
+                activeFilter === "named"
+                  ? "border border-blue-200 bg-blue-50 text-blue-700"
+                  : "border border-transparent text-gray-700 hover:bg-gray-50 hover:text-gray-900"
+              }`}
+            >
+              <div className="flex items-center">
+                <User className="mr-3 h-4 w-4" />
+                My Notebooks
+              </div>
+              <Badge
+                variant="secondary"
+                className="bg-gray-100 text-xs text-gray-600"
               >
-                <div className="flex items-center">
-                  <Users className="mr-2 h-4 w-4" />
-                  Scratch Notebooks
-                  <Badge variant="secondary" className="ml-auto">
-                    {
-                      allNotebooks.filter(
-                        (n) =>
-                          n.myPermission === "OWNER" &&
-                          (!n.title || n.title.startsWith("Untitled"))
-                      ).length
-                    }
-                  </Badge>
-                </div>
-              </button>
-              <button
-                onClick={() => setActiveFilter("shared")}
-                className={`w-full rounded-md px-3 py-2 text-left text-sm transition-colors ${
-                  activeFilter === "shared"
-                    ? "bg-blue-50 text-blue-700"
-                    : "text-gray-700 hover:bg-gray-50"
-                }`}
+                {
+                  allNotebooks.filter(
+                    (n) =>
+                      n.myPermission === "OWNER" &&
+                      n.title &&
+                      !n.title.startsWith("Untitled")
+                  ).length
+                }
+              </Badge>
+            </button>
+
+            <button
+              onClick={() => setActiveFilter("scratch")}
+              className={`group flex w-full items-center justify-between rounded-lg px-3 py-2.5 text-sm font-medium transition-all ${
+                activeFilter === "scratch"
+                  ? "border border-blue-200 bg-blue-50 text-blue-700"
+                  : "border border-transparent text-gray-700 hover:bg-gray-50 hover:text-gray-900"
+              }`}
+            >
+              <div className="flex items-center">
+                <Users className="mr-3 h-4 w-4" />
+                Scratch
+              </div>
+              <Badge
+                variant="secondary"
+                className="bg-gray-100 text-xs text-gray-600"
               >
-                <div className="flex items-center">
-                  <Users className="mr-2 h-4 w-4" />
-                  Shared with Me
-                  <Badge variant="secondary" className="ml-auto">
-                    {
-                      allNotebooks.filter((n) => n.myPermission === "WRITER")
-                        .length
-                    }
-                  </Badge>
-                </div>
-              </button>
-            </div>
-          </div>
+                {
+                  allNotebooks.filter(
+                    (n) =>
+                      n.myPermission === "OWNER" &&
+                      (!n.title || n.title.startsWith("Untitled"))
+                  ).length
+                }
+              </Badge>
+            </button>
+
+            <button
+              onClick={() => setActiveFilter("shared")}
+              className={`group flex w-full items-center justify-between rounded-lg px-3 py-2.5 text-sm font-medium transition-all ${
+                activeFilter === "shared"
+                  ? "border border-blue-200 bg-blue-50 text-blue-700"
+                  : "border border-transparent text-gray-700 hover:bg-gray-50 hover:text-gray-900"
+              }`}
+            >
+              <div className="flex items-center">
+                <Users className="mr-3 h-4 w-4" />
+                Shared with Me
+              </div>
+              <Badge
+                variant="secondary"
+                className="bg-gray-100 text-xs text-gray-600"
+              >
+                {allNotebooks.filter((n) => n.myPermission === "WRITER").length}
+              </Badge>
+            </button>
+          </nav>
 
           {/* Tags Section */}
           <div>
-            <h3 className="mb-3 flex items-center text-sm font-medium text-gray-500">
-              <Tag className="mr-2 h-4 w-4" />
-              Tags
-            </h3>
-            {tagsData && tagsData.length > 0 ? (
-              tagsData.map((tag) => (
-                <div
-                  key={tag.id}
-                  className="flex items-center justify-between rounded-md px-3 py-1 text-sm text-gray-700 transition-colors hover:bg-gray-50"
+            <div className="mb-3 flex items-center justify-between">
+              <h3 className="text-sm font-semibold text-gray-900">
+                Filter by Tags
+              </h3>
+              {selectedTagName && (
+                <button
+                  onClick={() => setSelectedTag("")}
+                  className="text-xs font-medium text-blue-600 hover:text-blue-700"
                 >
-                  <div className="flex items-center">
-                    <div
-                      className="mr-2 h-3 w-3 rounded-full"
-                      style={getTagDotColorStyles(tag.color)}
-                    />
-                    <TagBadge tag={tag} />
-                  </div>
-                  <div className="flex items-center gap-1">
-                    <Badge variant="secondary" className="ml-2">
-                      {
-                        allNotebooks.filter((n) =>
-                          n.tags?.some((t) => t.id === tag.id)
-                        ).length
+                  Clear
+                </button>
+              )}
+            </div>
+
+            <div className="space-y-1">
+              {tagsData && tagsData.length > 0 ? (
+                tagsData.map((tag) => (
+                  <div
+                    key={tag.id}
+                    className="flex items-center justify-between rounded-lg px-3 py-1 text-sm text-gray-700 transition-colors hover:bg-gray-50"
+                  >
+                    <button
+                      className={`flex min-w-0 flex-1 items-center gap-2 py-1 ${
+                        selectedTagName === tag.name
+                          ? "text-blue-700"
+                          : "text-gray-700"
+                      }`}
+                      onClick={() =>
+                        setSelectedTag(
+                          selectedTagName === tag.name ? "" : tag.name
+                        )
                       }
-                    </Badge>
-                    <TagActions tag={tag} />
+                    >
+                      <TagBadge tag={tag} className="flex-shrink-0" />
+                      {selectedTagName === tag.name && (
+                        <div className="ml-1 h-2 w-2 rounded-full bg-blue-500" />
+                      )}
+                    </button>
+                    <div className="flex flex-shrink-0 items-center gap-1">
+                      <Badge variant="secondary" className="ml-2">
+                        {
+                          allNotebooks.filter((n) =>
+                            n.tags?.some((t) => t.id === tag.id)
+                          ).length
+                        }
+                      </Badge>
+                      <TagActions tag={tag} />
+                    </div>
                   </div>
+                ))
+              ) : (
+                <div className="px-3 py-4 text-center text-sm text-gray-500">
+                  No tags yet
                 </div>
-              ))
-            ) : (
-              <div className="text-sm text-gray-400 italic">No tags yet...</div>
-            )}
+              )}
+            </div>
 
             {/* Add Tag Button */}
-            <div className="mt-3">
+            <div className="mt-4 border-t border-gray-100 pt-4">
               <TagCreationDialog
                 onTagCreated={() => {
-                  // Refresh the tags list
                   trpcQueryClient.invalidateQueries({
                     queryKey: trpc.tags.queryKey(),
                   });
@@ -519,6 +560,55 @@ export const NotebookDashboard: React.FC = () => {
 
           {!isLoading && filteredNotebooks.length > 0 && (
             <div className="space-y-8">
+              {/* Active Filters Indicator */}
+              {(searchQuery.trim() || selectedTagName) && (
+                <div className="flex flex-wrap items-center gap-2 rounded-lg border bg-gray-50 p-3">
+                  <span className="text-sm text-gray-600">Active filters:</span>
+                  {searchQuery.trim() && (
+                    <div className="flex items-center gap-1 rounded-full bg-blue-100 px-2 py-1 text-xs">
+                      <Search className="h-3 w-3" />
+                      <span>"{searchQuery}"</span>
+                      <button
+                        onClick={() => setSearchQuery("")}
+                        className="text-gray-500 hover:text-gray-700"
+                      >
+                        <X className="h-3 w-3" />
+                      </button>
+                    </div>
+                  )}
+                  {selectedTagName && tagsData && (
+                    <div className="flex items-center gap-1">
+                      {(() => {
+                        const selectedTag = tagsData.find(
+                          (t) => t.name === selectedTagName
+                        );
+                        return selectedTag ? (
+                          <div className="flex items-center gap-1 rounded-full bg-gray-200 px-2 py-1 text-xs">
+                            <Tag className="h-3 w-3" />
+                            <TagBadge tag={selectedTag} className="text-xs" />
+                            <button
+                              onClick={() => setSelectedTag("")}
+                              className="text-gray-500 hover:text-gray-700"
+                            >
+                              <X className="h-3 w-3" />
+                            </button>
+                          </div>
+                        ) : null;
+                      })()}
+                    </div>
+                  )}
+                  <button
+                    onClick={() => {
+                      setSearchQuery("");
+                      setSelectedTag("");
+                    }}
+                    className="ml-auto text-xs text-blue-600 hover:text-blue-800"
+                  >
+                    Clear all filters
+                  </button>
+                </div>
+              )}
+
               {/* Search Results Section (prioritized when searching) */}
               {searchQuery.trim() && (
                 <section>
@@ -615,6 +705,7 @@ export const NotebookDashboard: React.FC = () => {
                 )}
             </div>
           )}
+
           <div className="mt-8 flex justify-center border-t px-4 py-2 text-center">
             <GitCommitHash />
           </div>

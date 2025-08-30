@@ -1,12 +1,9 @@
-import { getTagColorStyles, getTagDotColorStyles } from "@/lib/tag-colors";
 import { trpcQueryClient } from "@/lib/trpc-client";
-import { cn } from "@/lib/utils";
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { Check, Tag } from "lucide-react";
-import React, { useEffect, useState } from "react";
+import { Plus, Tag, X } from "lucide-react";
+import React, { useEffect, useMemo, useState } from "react";
 import { useTrpc } from "../TrpcProvider";
-import { Badge } from "../ui/badge";
-import { Button, buttonVariants } from "../ui/button";
+
 import {
   Dialog,
   DialogContent,
@@ -15,6 +12,9 @@ import {
   DialogTitle,
 } from "../ui/dialog";
 import { Input } from "../ui/input";
+import { TagBadge } from "./TagBadge";
+import { TagEditDialog } from "./TagEditDialog";
+import type { TagColor } from "backend/trpc/types";
 
 interface TagSelectionDialogProps {
   notebookId: string;
@@ -22,6 +22,8 @@ interface TagSelectionDialogProps {
   onClose: () => void;
   onUpdate?: () => void;
 }
+
+const DEFAULT_COLOR: TagColor = "#000000";
 
 export const TagSelectionDialog: React.FC<TagSelectionDialogProps> = ({
   notebookId,
@@ -31,6 +33,7 @@ export const TagSelectionDialog: React.FC<TagSelectionDialogProps> = ({
 }) => {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedTagIds, setSelectedTagIds] = useState<Set<string>>(new Set());
+  const [editingTag, setEditingTag] = useState<string | null>(null);
   const trpc = useTrpc();
 
   // Fetch all available tags
@@ -42,13 +45,14 @@ export const TagSelectionDialog: React.FC<TagSelectionDialogProps> = ({
   const { data: notebookTags = [], isLoading: isLoadingNotebookTags } =
     useQuery(trpc.notebookTags.queryOptions({ nbId: notebookId }));
 
-  // Mutations for adding/removing tags
+  // Mutations
   const assignTagMutation = useMutation(
     trpc.assignTagToNotebook.mutationOptions()
   );
   const removeTagMutation = useMutation(
     trpc.removeTagFromNotebook.mutationOptions()
   );
+  const createTagMutation = useMutation(trpc.createTag.mutationOptions());
 
   // Initialize selected tags when dialog opens
   useEffect(() => {
@@ -58,8 +62,16 @@ export const TagSelectionDialog: React.FC<TagSelectionDialogProps> = ({
   }, [isOpen, notebookTags]);
 
   // Filter tags based on search term
-  const filteredTags = allTags.filter((tag) =>
-    tag.name.toLowerCase().includes(searchTerm.toLowerCase())
+  const filteredTags = useMemo(() => {
+    if (!searchTerm) return allTags;
+    return allTags.filter((tag) =>
+      tag.name.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+  }, [allTags, searchTerm]);
+
+  // Check if search term matches any existing tag exactly
+  const exactMatch = allTags.find(
+    (tag) => tag.name.toLowerCase() === searchTerm.toLowerCase()
   );
 
   const handleTagToggle = async (tagId: string) => {
@@ -78,24 +90,61 @@ export const TagSelectionDialog: React.FC<TagSelectionDialogProps> = ({
       }
 
       setSelectedTagIds(newSelectedIds);
-
-      // Invalidate queries to refresh the UI
-      trpcQueryClient.invalidateQueries({
-        queryKey: trpc.notebookTags.queryKey({ nbId: notebookId }),
-      });
-      trpcQueryClient.invalidateQueries({
-        queryKey: trpc.notebooks.queryKey(),
-      });
-
-      onUpdate?.();
+      await refreshQueries();
     } catch (error) {
       console.error("Failed to update tag assignment:", error);
-      // TODO: Show error toast
     }
   };
 
-  const handleSave = () => {
-    onClose();
+  const handleCreateNewTag = async () => {
+    if (!searchTerm.trim()) return;
+
+    try {
+      const newTag = await createTagMutation.mutateAsync({
+        name: searchTerm.trim(),
+        color: DEFAULT_COLOR,
+      });
+
+      if (newTag) {
+        // Immediately assign the new tag to the notebook
+        await assignTagMutation.mutateAsync({
+          nbId: notebookId,
+          tagId: newTag.id,
+        });
+
+        setSelectedTagIds((prev) => new Set([...prev, newTag.id]));
+        setSearchTerm("");
+        await refreshQueries();
+      }
+    } catch (error) {
+      console.error("Failed to create tag:", error);
+    }
+  };
+
+  const refreshQueries = async () => {
+    trpcQueryClient.invalidateQueries({
+      queryKey: trpc.notebookTags.queryKey({ nbId: notebookId }),
+    });
+    trpcQueryClient.invalidateQueries({
+      queryKey: trpc.notebooks.queryKey(),
+    });
+    trpcQueryClient.invalidateQueries({
+      queryKey: trpc.tags.queryKey(),
+    });
+    onUpdate?.();
+  };
+
+  const handleRemoveTag = async (tagId: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    try {
+      await removeTagMutation.mutateAsync({ nbId: notebookId, tagId });
+      const newSelectedIds = new Set(selectedTagIds);
+      newSelectedIds.delete(tagId);
+      setSelectedTagIds(newSelectedIds);
+      await refreshQueries();
+    } catch (error) {
+      console.error("Failed to remove tag:", error);
+    }
   };
 
   const isLoading = isLoadingTags || isLoadingNotebookTags;
@@ -109,88 +158,105 @@ export const TagSelectionDialog: React.FC<TagSelectionDialogProps> = ({
             Manage Tags
           </DialogTitle>
           <DialogDescription>
-            Select tags to organize your notebook. You can choose multiple tags.
+            Select tags to organize your notebooks. You can choose multiple
+            tags.
           </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-4">
+          {/* Current tags */}
+          {selectedTagIds.size > 0 && (
+            <div className="flex flex-wrap gap-1">
+              {Array.from(selectedTagIds).map((tagId) => {
+                const tag = allTags.find((t) => t.id === tagId);
+                if (!tag) return null;
+                return (
+                  <div key={tag.id} className="flex items-center">
+                    <button
+                      onClick={() => setEditingTag(tag.id)}
+                      className="rounded hover:opacity-80"
+                    >
+                      <TagBadge tag={tag} />
+                    </button>
+                    <button
+                      onClick={(e) => handleRemoveTag(tag.id, e)}
+                      className="ml-1 rounded-sm hover:bg-black/10"
+                    >
+                      <X className="h-3 w-3" />
+                    </button>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+
           {/* Search input */}
-          <div className="relative">
-            <Input
-              placeholder="Search tags..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="pr-8"
-            />
-          </div>
+          <Input
+            placeholder="Search tags..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="w-full"
+          />
 
           {/* Tags list */}
-          <div className="max-h-60 space-y-2 overflow-y-auto">
+          <div className="max-h-60 space-y-1 overflow-y-auto">
             {isLoading ? (
-              <div className="text-center text-sm text-gray-500">
+              <div className="py-4 text-center text-sm text-gray-500">
                 Loading tags...
               </div>
-            ) : filteredTags.length === 0 ? (
-              <div className="text-center text-sm text-gray-500">
-                {searchTerm
-                  ? "No tags found matching your search."
-                  : "No tags available."}
-              </div>
             ) : (
-              filteredTags.map((tag) => {
-                const isSelected = selectedTagIds.has(tag.id);
-                return (
+              <>
+                {/* Create new tag option */}
+                {searchTerm && !exactMatch && (
                   <button
-                    key={tag.id}
-                    onClick={() => handleTagToggle(tag.id)}
-                    disabled={isLoading}
-                    className={`flex w-full items-center justify-between rounded-lg border p-3 transition-colors hover:bg-gray-50 ${
-                      isSelected
-                        ? "border-blue-300 bg-blue-50"
-                        : "border-gray-200"
-                    }`}
+                    onClick={handleCreateNewTag}
+                    disabled={createTagMutation.isPending}
+                    className="flex w-full items-center gap-2 rounded p-2 text-left text-sm hover:bg-gray-50"
                   >
-                    <div className="flex items-center gap-3">
-                      <div
-                        className="h-3 w-3 rounded-full"
-                        style={getTagDotColorStyles(tag.color)}
-                      />
-                      <Badge
-                        variant="outline"
-                        className="px-2 py-0.5 text-xs"
-                        style={getTagColorStyles(tag.color)}
-                      >
-                        {tag.name}
-                      </Badge>
-                    </div>
-                    <div
-                      className={cn(
-                        buttonVariants({ variant: "outline", size: "sm" }),
-                        "h-8 w-8 p-0",
-                        isSelected ? "text-blue-600" : "text-gray-400"
-                      )}
-                    >
-                      <Check
-                        className={`h-4 w-4 ${isSelected ? "opacity-100" : "opacity-0"}`}
-                      />
-                    </div>
+                    <Plus className="h-4 w-4 text-gray-500" />
+                    <span>Create new tag "{searchTerm}"</span>
                   </button>
-                );
-              })
-            )}
-          </div>
+                )}
 
-          {/* Action buttons */}
-          <div className="flex justify-end gap-2 pt-4">
-            <Button variant="outline" onClick={onClose}>
-              Cancel
-            </Button>
-            <Button onClick={handleSave} disabled={isLoading}>
-              Save
-            </Button>
+                {/* Existing tags */}
+                {filteredTags.length === 0 && searchTerm && !exactMatch
+                  ? null
+                  : filteredTags.map((tag) => {
+                      return (
+                        <button
+                          key={tag.id}
+                          onClick={() => handleTagToggle(tag.id)}
+                          disabled={isLoading}
+                          className="flex w-full items-center gap-2 rounded p-2 text-left text-sm hover:bg-gray-50"
+                        >
+                          <TagBadge tag={tag} className="text-xs" />
+                        </button>
+                      );
+                    })}
+
+                {filteredTags.length === 0 && !searchTerm && (
+                  <div className="py-4 text-center text-sm text-gray-500">
+                    No tags found
+                  </div>
+                )}
+              </>
+            )}
           </div>
         </div>
       </DialogContent>
+
+      {/* Tag Edit Dialog */}
+      {editingTag && (
+        <TagEditDialog
+          tag={allTags.find((t) => t.id === editingTag)!}
+          isOpen={true}
+          onClose={() => setEditingTag(null)}
+          onTagEdited={() => {
+            refreshQueries();
+            setEditingTag(null);
+          }}
+        />
+      )}
     </Dialog>
   );
 };

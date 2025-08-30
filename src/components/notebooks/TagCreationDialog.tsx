@@ -99,17 +99,17 @@ export const TagCreationDialog: React.FC<TagCreationDialogProps> = ({
       <DialogTrigger asChild>
         <Button variant="outline" size="sm" className="w-full">
           <X className="mr-2 h-4 w-4 rotate-45" />
-          Add Tag
+          New tag
         </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>Create New Tag</DialogTitle>
+          <DialogTitle>Create new tag</DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
             <label htmlFor="tag-name" className="text-sm font-medium">
-              Tag Name
+              Tag name
             </label>
             <Input
               id="tag-name"
@@ -146,7 +146,7 @@ export const TagCreationDialog: React.FC<TagCreationDialogProps> = ({
               Cancel
             </Button>
             <Button type="submit" disabled={!tagName.trim() || isSubmitting}>
-              {isSubmitting ? "Creating..." : "Create Tag"}
+              {isSubmitting ? "Creating..." : "Create tag"}
             </Button>
           </div>
         </form>

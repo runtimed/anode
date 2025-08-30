@@ -18,15 +18,24 @@ import { TagColorPicker } from "./TagColorPicker";
 interface TagEditDialogProps {
   tag: TagRow;
   onTagEdited?: () => void;
-  children: React.ReactNode;
+  children?: React.ReactNode;
+  isOpen?: boolean;
+  onClose?: () => void;
 }
 
 export const TagEditDialog: React.FC<TagEditDialogProps> = ({
   tag,
   onTagEdited,
   children,
+  isOpen: controlledOpen,
+  onClose: controlledOnClose,
 }) => {
-  const [isOpen, setIsOpen] = useState(false);
+  const [internalOpen, setInternalOpen] = useState(false);
+  const isControlled = controlledOpen !== undefined;
+  const isOpen = isControlled ? controlledOpen : internalOpen;
+  const setIsOpen = isControlled
+    ? controlledOnClose || (() => {})
+    : setInternalOpen;
   const [tagName, setTagName] = useState(tag.name);
   const [selectedColor, setSelectedColor] = useState<TagColor>(tag.color);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -92,17 +101,26 @@ export const TagEditDialog: React.FC<TagEditDialogProps> = ({
 
   const handleOpenChange = (open: boolean) => {
     setError(null);
-    setIsOpen(open);
-    if (!open) {
-      // Reset form when dialog closes
-      setTagName(tag.name);
-      setSelectedColor(tag.color);
+    if (isControlled) {
+      if (!open) {
+        setIsOpen(false);
+        // Reset form when dialog closes
+        setTagName(tag.name);
+        setSelectedColor(tag.color);
+      }
+    } else {
+      setIsOpen(open);
+      if (!open) {
+        // Reset form when dialog closes
+        setTagName(tag.name);
+        setSelectedColor(tag.color);
+      }
     }
   };
 
   return (
     <Dialog open={isOpen} onOpenChange={handleOpenChange}>
-      <DialogTrigger asChild>{children}</DialogTrigger>
+      {children && <DialogTrigger asChild>{children}</DialogTrigger>}
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle>Edit Tag</DialogTitle>
