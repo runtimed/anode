@@ -1,5 +1,5 @@
 import { useAuthenticatedUser } from "@/auth/index.js";
-import { Avatar } from "@/components/ui/Avatar.js";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { useUserRegistry } from "@/hooks/useUserRegistry.js";
 import { getClientColor, getClientTypeInfo } from "@/services/userTypes.js";
 
@@ -9,7 +9,6 @@ export function CollaboratorAvatars() {
 
   const otherUsers = presentUsers.filter((user) => user.id !== userId);
   const LIMIT = 5;
-
   return (
     <div className="group/users flex items-center gap-2">
       <div className="flex -space-x-2 group-hover/users:space-x-1">
@@ -44,10 +43,11 @@ export function CollaboratorAvatars() {
                   className="h-8 w-8 rounded-full bg-gray-300"
                 />
               ) : (
-                <Avatar
-                  initials={userInfo?.name?.charAt(0).toUpperCase() ?? "?"}
-                  backgroundColor={getUserColor(user.id)}
-                />
+                <Avatar>
+                  <AvatarFallback>
+                    {userInfo?.name?.charAt(0).toUpperCase() ?? "?"}
+                  </AvatarFallback>
+                </Avatar>
               )}
             </div>
           );
