@@ -15,6 +15,7 @@ import { Navigate, Route, Routes } from "react-router-dom";
 import { NotebookPage } from "@/pages/NotebookPage.tsx";
 import { NotebooksDashboardPage } from "@/pages/NotebooksDashboardPage.tsx";
 import OidcCallbackPage from "@/pages/OidcCallbackPage.tsx";
+import NavPage from "./pages/NavPage";
 
 export const App: React.FC = () => {
   // Safety net: Auto-remove loading screen if no component has handled it
@@ -90,6 +91,7 @@ export const App: React.FC = () => {
           }
         />
         <Route path="/" element={<Navigate to="/nb" replace />} />
+        <Route path="/nav" element={<NavPage />} />
       </Routes>
       <FPSMeter />
       <Toaster />
