@@ -41,7 +41,8 @@ export const NotebookActions: React.FC<NotebookActionsProps> = ({
     trpc.deleteNotebook.mutationOptions()
   );
 
-  const canEdit = notebook.myPermission === "OWNER";
+  const canEdit =
+    notebook.myPermission === "OWNER" || notebook.myPermission === "WRITER";
 
   const handleShare = (e: React.MouseEvent) => {
     e.preventDefault();
