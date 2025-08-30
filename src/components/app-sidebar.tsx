@@ -1,6 +1,5 @@
 "use client";
 
-import * as React from "react";
 import {
   BookOpen,
   Bot,
@@ -12,9 +11,9 @@ import {
   Settings2,
   SquareTerminal,
 } from "lucide-react";
+import * as React from "react";
 
 import { NavMain } from "@/components/nav-main";
-import { NavProjects } from "@/components/nav-projects";
 import { NavSecondary } from "@/components/nav-secondary";
 import { NavUser } from "@/components/nav-user";
 import {
@@ -27,6 +26,7 @@ import {
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
 import { RuntLogoSmall } from "./logo/RuntLogoSmall";
+import { NavNb } from "./nav-nb";
 
 const data = {
   user: {
@@ -175,7 +175,8 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       </SidebarHeader>
       <SidebarContent>
         <NavMain items={data.navMain} />
-        <NavProjects projects={data.projects} />
+        {/* <NavProjects projects={data.projects} /> */}
+        <NavNb />
         <NavSecondary items={data.navSecondary} className="mt-auto" />
       </SidebarContent>
       <SidebarFooter>
