@@ -1,4 +1,4 @@
-import { Avatar } from "./Avatar";
+import { Avatar, AvatarFallback } from "./avatar";
 
 export function AvatarWithDetails({
   image,
@@ -22,7 +22,9 @@ export function AvatarWithDetails({
           className="h-8 w-8 rounded-full bg-gray-300"
         />
       ) : (
-        <Avatar initials={initials} backgroundColor={backgroundColor} />
+        <Avatar style={{ backgroundColor }}>
+          <AvatarFallback>{initials}</AvatarFallback>
+        </Avatar>
       )}
       <div className="hidden text-left sm:block">
         <div className="text-sm font-medium text-gray-900">{title}</div>

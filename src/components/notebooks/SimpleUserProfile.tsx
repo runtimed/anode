@@ -1,6 +1,8 @@
-import React, { useState } from "react";
 import { Key, LogOut, Settings } from "lucide-react";
+import React, { useState } from "react";
 import { useAuth, type AuthUser } from "../../auth/index.js";
+import { ApiKeysDialog } from "../auth/ApiKeysDialog.js";
+import { Avatar, AvatarFallback } from "../ui/avatar.js";
 import { Button } from "../ui/button";
 import {
   DropdownMenu,
@@ -9,8 +11,6 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "../ui/dropdown-menu";
-import { Avatar } from "../ui/Avatar";
-import { ApiKeysDialog } from "../auth/ApiKeysDialog.js";
 
 interface SimpleUserProfileProps {
   className?: string;
@@ -84,7 +84,9 @@ export const SimpleUserProfile: React.FC<SimpleUserProfileProps> = ({
       <DropdownMenu open={isDropdownOpen} onOpenChange={setIsDropdownOpen}>
         <DropdownMenuTrigger asChild>
           <Button variant="ghost" className="h-8 w-8 rounded-full p-0">
-            <Avatar initials={initials} size="md" />
+            <Avatar>
+              <AvatarFallback>{initials}</AvatarFallback>
+            </Avatar>
           </Button>
         </DropdownMenuTrigger>
 
@@ -92,7 +94,9 @@ export const SimpleUserProfile: React.FC<SimpleUserProfileProps> = ({
           {/* User Info */}
           <div className="px-2 py-1.5">
             <div className="flex items-center gap-2">
-              <Avatar initials={initials} size="md" />
+              <Avatar>
+                <AvatarFallback>{initials}</AvatarFallback>
+              </Avatar>
               <div className="flex flex-col space-y-1">
                 <p className="text-sm leading-none font-medium">
                   {displayName}
