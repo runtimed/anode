@@ -115,7 +115,14 @@ export const App: React.FC = () => {
             }
           />
           <Route path="/" element={<Navigate to="/nb2" replace />} />
-          <Route path="/nav" element={<NavPage />} />
+          <Route
+            path="/nav"
+            element={
+              <AuthGuard>
+                <NavPage />
+              </AuthGuard>
+            }
+          />
         </Routes>
         <FPSMeter />
         <Toaster />
