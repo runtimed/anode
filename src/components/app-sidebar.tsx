@@ -2,6 +2,8 @@
 
 import {
   Box,
+  Bug,
+  BugOff,
   Database,
   EyeOff,
   Folder,
@@ -29,6 +31,7 @@ import {
 } from "@/components/ui/sidebar";
 import { Switch } from "@/components/ui/switch";
 import { RuntLogoSmall } from "./logo/RuntLogoSmall";
+import { useDebug } from "./debug/debug-mode";
 
 // This is sample data
 const data = {
@@ -172,6 +175,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const [activeItem, setActiveItem] = React.useState(data.navMain[0]);
   const [mails, setMails] = React.useState(data.mails);
   const { setOpen } = useSidebar();
+  const debug = useDebug();
 
   return (
     <Sidebar
@@ -231,6 +235,20 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                     </SidebarMenuButton>
                   </SidebarMenuItem>
                 ))}
+                {import.meta.env.DEV && (
+                  <SidebarMenuItem>
+                    <SidebarMenuButton
+                      tooltip={{
+                        children: "Debug Mode",
+                        hidden: false,
+                      }}
+                      className="px-2.5 md:px-2"
+                      onClick={() => debug.setEnabled(!debug.enabled)}
+                    >
+                      {debug.enabled ? <Bug /> : <BugOff />}
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                )}
               </SidebarMenu>
             </SidebarGroupContent>
           </SidebarGroup>
