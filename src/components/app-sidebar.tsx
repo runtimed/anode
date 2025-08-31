@@ -1,7 +1,17 @@
 "use client";
 
+import {
+  Box,
+  Command,
+  Database,
+  EyeOff,
+  Folder,
+  FunctionSquare,
+  History,
+  Home,
+  List,
+} from "lucide-react";
 import * as React from "react";
-import { ArchiveX, Command, File, Inbox, Send, Trash2 } from "lucide-react";
 
 import { NavUser } from "@/components/nav-user";
 import { Label } from "@/components/ui/label";
@@ -24,33 +34,51 @@ import { Switch } from "@/components/ui/switch";
 const data = {
   navMain: [
     {
-      title: "Inbox",
+      title: "Home",
       url: "#",
-      icon: Inbox,
+      icon: Home,
       isActive: true,
     },
     {
-      title: "Drafts",
+      title: "Files",
       url: "#",
-      icon: File,
+      icon: Folder,
       isActive: false,
     },
     {
-      title: "Sent",
+      title: "Data",
       url: "#",
-      icon: Send,
+      icon: Database,
       isActive: false,
     },
     {
-      title: "Junk",
+      title: "Environments",
       url: "#",
-      icon: ArchiveX,
+      icon: Box,
       isActive: false,
     },
     {
-      title: "Trash",
+      title: "Table of Contents",
       url: "#",
-      icon: Trash2,
+      icon: List,
+      isActive: false,
+    },
+    {
+      title: "Secrets",
+      url: "#",
+      icon: EyeOff,
+      isActive: false,
+    },
+    {
+      title: "Variables",
+      url: "#",
+      icon: FunctionSquare,
+      isActive: false,
+    },
+    {
+      title: "History",
+      url: "#",
+      icon: History,
       isActive: false,
     },
   ],
