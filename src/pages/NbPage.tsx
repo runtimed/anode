@@ -1,4 +1,4 @@
-import { AppSidebar } from "@/components/app-sidebar";
+import { AppSidebarNb } from "@/components/app-sidebar-nb";
 import { CollaboratorAvatars } from "@/components/CollaboratorAvatars";
 import { ContextSelectionModeButton } from "@/components/notebook/ContextSelectionModeButton";
 import { useDebug } from "@/components/debug/debug-mode";
@@ -50,7 +50,7 @@ export default function NbPage() {
           } as React.CSSProperties
         }
       >
-        <AppSidebar />
+        <AppSidebarNb />
         <SidebarInset className="h-dvh overflow-y-scroll overscroll-contain">
           <header className="bg-background sticky top-0 z-50 flex h-14 shrink-0 items-center gap-2 border-b px-2">
             <SidebarTrigger className="-ml-1" />

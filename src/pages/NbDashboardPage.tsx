@@ -1,5 +1,4 @@
-import { AppSidebar } from "@/components/app-sidebar";
-import { SidebarRight } from "@/components/right-sidebar";
+import { AppSidebarNbDashboard } from "@/components/app-sidebar-nb-dashboard";
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -24,7 +23,7 @@ export default function NbDashboardPage() {
         } as React.CSSProperties
       }
     >
-      <AppSidebar />
+      <AppSidebarNbDashboard />
       <SidebarInset className="h-dvh overflow-y-scroll overscroll-contain">
         <header className="bg-background sticky top-0 z-50 flex shrink-0 items-center gap-2 border-b p-4">
           <SidebarTrigger className="-ml-1" />
@@ -53,7 +52,7 @@ export default function NbDashboardPage() {
           <div className="bg-muted/50 min-h-[100vh] flex-1 rounded-xl md:min-h-min" />
         </div>
       </SidebarInset>
-      <SidebarRight />
+      {/* <SidebarRight /> */}
     </SidebarProvider>
   );
 }
