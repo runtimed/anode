@@ -1,8 +1,11 @@
 import { cn } from "@/lib/utils";
-import React, { useState } from "react";
+import React from "react";
 import { CollaboratorAvatars } from "../CollaboratorAvatars.js";
 import { KeyboardShortcuts } from "../KeyboardShortcuts.js";
-import { CustomLiveStoreProvider } from "../livestore/CustomLiveStoreProvider.js";
+import {
+  LiveStoreReady,
+  useLiveStoreReady,
+} from "../livestore/LivestoreProviderProvider.js";
 import { ContextSelectionModeButton } from "../notebook/ContextSelectionModeButton.js";
 import { NotebookContent } from "../notebook/NotebookContent.js";
 import { RuntimeHealthIndicatorButton } from "../notebook/RuntimeHealthIndicatorButton.js";
@@ -11,14 +14,11 @@ import { DelayedSpinner } from "../outputs/shared-with-iframe/SuspenseSpinner.js
 
 export function NbLiveStore({ id }: { id: string }) {
   const [showRuntimeHelper, setShowRuntimeHelper] = React.useState(false);
-  const [liveStoreReady, setLiveStoreReady] = useState(false);
+  const liveStoreReady = useLiveStoreReady();
 
   return (
     <LiveStoreSpinnerContainer liveStoreReady={liveStoreReady}>
-      <CustomLiveStoreProvider
-        storeId={id}
-        onLiveStoreReady={() => setLiveStoreReady(true)}
-      >
+      <LiveStoreReady>
         <div className="flex">
           <div className="container mx-auto px-4">
             <div className="flex h-12 items-center gap-2">
@@ -39,7 +39,7 @@ export function NbLiveStore({ id }: { id: string }) {
             <NotebookContent />
           </div>
         </div>
-      </CustomLiveStoreProvider>
+      </LiveStoreReady>
     </LiveStoreSpinnerContainer>
   );
 }
