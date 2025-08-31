@@ -2,7 +2,6 @@
 
 import {
   Box,
-  Command,
   Database,
   EyeOff,
   Folder,
@@ -29,6 +28,7 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar";
 import { Switch } from "@/components/ui/switch";
+import { RuntLogoSmall } from "./logo/RuntLogoSmall";
 
 // This is sample data
 const data = {
@@ -191,12 +191,10 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
             <SidebarMenuItem>
               <SidebarMenuButton size="lg" asChild className="md:h-8 md:p-0">
                 <a href="#">
-                  <div className="bg-sidebar-primary text-sidebar-primary-foreground flex aspect-square size-8 items-center justify-center rounded-lg">
-                    <Command className="size-4" />
-                  </div>
+                  <RuntLogoSmall className="sm:size-8" />
                   <div className="grid flex-1 text-left text-sm leading-tight">
-                    <span className="truncate font-semibold">Acme Inc</span>
-                    <span className="truncate text-xs">Enterprise</span>
+                    <span className="truncate font-semibold">Anode</span>
+                    {/* <span className="truncate text-xs">Enterprise</span> */}
                   </div>
                 </a>
               </SidebarMenuButton>

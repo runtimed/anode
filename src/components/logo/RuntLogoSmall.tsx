@@ -1,6 +1,15 @@
-export const RuntLogoSmall: React.FC = () => {
+import { cn } from "@/lib/utils";
+
+export const RuntLogoSmall: React.FC<React.ComponentProps<"div">> = ({
+  className,
+}) => {
   return (
-    <div className="relative h-8 w-8 overflow-hidden sm:h-10 sm:w-10">
+    <div
+      className={cn(
+        "relative size-8 shrink-0 overflow-hidden sm:size-10",
+        className
+      )}
+    >
       <img
         src="/hole.png"
         alt=""
