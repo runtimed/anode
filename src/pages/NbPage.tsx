@@ -1,10 +1,10 @@
 import { AppSidebar } from "@/components/app-sidebar";
+import { useDebug } from "@/components/debug/debug-mode";
 import {
   LivestoreProviderProvider,
   LiveStoreReady,
 } from "@/components/livestore/LivestoreProviderProvider";
 import { NbLiveStore } from "@/components/notebooks/NbLiveStore";
-import { SidebarRightDebug } from "@/components/right-sidebar-debug";
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -19,10 +19,18 @@ import {
   SidebarProvider,
   SidebarTrigger,
 } from "@/components/ui/sidebar";
+import React from "react";
 import { useParams } from "react-router-dom";
+
+const SidebarRightDebug = React.lazy(() =>
+  import("@/components/right-sidebar-debug").then((m) => ({
+    default: m.SidebarRightDebug,
+  }))
+);
 
 export default function NbPage() {
   const { id } = useParams<{ id: string }>();
+  const debug = useDebug();
 
   // Should never happen
   if (!id) {
@@ -64,7 +72,7 @@ export default function NbPage() {
           </div>
         </SidebarInset>
         <LiveStoreReady>
-          <SidebarRightDebug />
+          {import.meta.env.DEV && debug.enabled && <SidebarRightDebug />}
         </LiveStoreReady>
       </SidebarProvider>
     </LivestoreProviderProvider>
