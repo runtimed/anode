@@ -85,16 +85,7 @@ export const App: React.FC = () => {
             path="/nb"
             element={
               <AuthGuard>
-                <Suspense
-                  fallback={
-                    <LoadingState
-                      variant="fullscreen"
-                      message="Loading notebooks..."
-                    />
-                  }
-                >
-                  <NotebooksDashboardPage />
-                </Suspense>
+                <NotebooksDashboardPage />
               </AuthGuard>
             }
           />
@@ -102,16 +93,7 @@ export const App: React.FC = () => {
             path="/nb2/:id/*"
             element={
               <AuthGuard>
-                <Suspense
-                  fallback={
-                    <LoadingState
-                      variant="fullscreen"
-                      message="Loading notebook..."
-                    />
-                  }
-                >
-                  <NbPage />
-                </Suspense>
+                <NbPage />
               </AuthGuard>
             }
           />

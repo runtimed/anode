@@ -45,7 +45,7 @@ export default defineConfig(({ mode }) => {
 
   const plugins = [
     envValidationPlugin(env),
-    injectLoadingScreen(),
+    // injectLoadingScreen(),
     react({
       babel: {
         plugins: [
