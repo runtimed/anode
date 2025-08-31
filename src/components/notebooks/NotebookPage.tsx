@@ -125,17 +125,6 @@ export const NotebookPage: React.FC = () => {
     notebook,
   ]);
 
-  const getPermissionBadgeVariant = (permission: string) => {
-    switch (permission) {
-      case "OWNER":
-        return "default";
-      case "WRITER":
-        return "secondary";
-      default:
-        return "outline";
-    }
-  };
-
   if (isLoading && !initialNotebook) {
     return <LoadingState variant="fullscreen" message="Loading notebook..." />;
   }
@@ -189,46 +178,51 @@ export const NotebookPage: React.FC = () => {
                 canEdit={canEdit}
               />
 
-              {/* Tags */}
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setIsTagSelectionOpen(true)}
-              >
-                <Tag className="h-4 w-4" />
-                {!notebook.tags || (notebook.tags.length === 0 && "Tags")}
-                <div className="flex items-center gap-1">
-                  {notebook.tags?.slice(0, 2).map((tag) => (
-                    <TagBadge key={tag.id} tag={tag} />
-                  ))}
-                  {notebook.tags && notebook.tags.length > 2 && (
-                    <Badge variant="outline" className="px-2 py-0.5 text-xs">
-                      +{notebook.tags.length - 2} more
-                    </Badge>
-                  )}
-                </div>
-              </Button>
+              {/* Tags - Simplified */}
+              <div className="flex items-center gap-2">
+                {notebook.tags?.slice(0, 3).map((tag) => (
+                  <TagBadge key={tag.id} tag={tag} className="text-xs" />
+                ))}
+                {notebook.tags && notebook.tags.length > 3 && (
+                  <Badge
+                    variant="outline"
+                    className="px-1.5 py-0.5 text-xs text-gray-500"
+                  >
+                    +{notebook.tags.length - 3}
+                  </Badge>
+                )}
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setIsTagSelectionOpen(true)}
+                  className="h-6 px-2 text-xs text-gray-500 hover:text-gray-700"
+                >
+                  <Tag className="mr-1 h-3 w-3" />
+                  {!notebook.tags || notebook.tags.length === 0
+                    ? "Add tags"
+                    : "Edit"}
+                </Button>
+              </div>
             </div>
 
-            {/* Right side */}
-            <div className="flex flex-grow items-center justify-end gap-2">
-              {/* Share button */}
+            {/* Right side - Simplified */}
+            <div className="flex items-center gap-3">
+              {/* Share button - only show if can edit */}
               {canEdit && (
                 <Button
                   variant="outline"
                   size="sm"
                   onClick={() => setIsSharingModalOpen(true)}
+                  className="text-gray-600 hover:text-gray-900"
                 >
-                  <Share2 className="mr-2 h-4 w-4" />
-                  Share
+                  <Share2 className="h-4 w-4" />
                 </Button>
               )}
 
-              {/* Permission badge */}
+              {/* Permission badge - smaller and less prominent */}
               <Badge
-                variant={getPermissionBadgeVariant(
-                  notebook.myPermission || "NONE"
-                )}
+                variant="secondary"
+                className="bg-gray-100 px-2 py-1 text-xs text-gray-600"
               >
                 {(notebook.myPermission || "NONE").toLowerCase()}
               </Badge>
@@ -241,11 +235,11 @@ export const NotebookPage: React.FC = () => {
             </div>
           </div>
 
-          {/* Metadata */}
-          <div className="mt-4 flex items-center gap-6 overflow-x-auto text-sm whitespace-nowrap text-gray-600">
-            {/* Owner */}
-            <div className="flex shrink-0 items-center gap-2">
-              <User className="h-4 w-4 shrink-0" />
+          {/* Metadata - Simplified */}
+          <div className="mt-3 flex items-center gap-4 text-xs text-gray-500">
+            {/* Owner - more subtle */}
+            <div className="flex items-center gap-1.5">
+              <User className="h-3 w-3" />
               <span>
                 {notebook.owner?.givenName && notebook.owner?.familyName
                   ? `${notebook.owner.givenName} ${notebook.owner.familyName}`
@@ -253,10 +247,10 @@ export const NotebookPage: React.FC = () => {
               </span>
             </div>
 
-            {/* Collaborators count */}
+            {/* Collaborators count - more subtle */}
             {notebook.collaborators && notebook.collaborators.length > 0 && (
-              <div className="flex items-center gap-2">
-                <Users className="h-4 w-4 shrink-0" />
+              <div className="flex items-center gap-1.5">
+                <Users className="h-3 w-3" />
                 <span>
                   {notebook.collaborators.length}{" "}
                   {notebook.collaborators.length === 1
@@ -276,13 +270,17 @@ export const NotebookPage: React.FC = () => {
         >
           <div className="flex">
             <div className="container mx-auto px-4">
-              <div className="flex h-12 items-center gap-2">
+              <div className="mb-4 flex h-8 items-center gap-3">
                 <CollaboratorAvatars />
                 <div className="flex-1" />
-                <ContextSelectionModeButton />
-                <RuntimeHealthIndicatorButton
-                  onToggleClick={() => setShowRuntimeHelper(!showRuntimeHelper)}
-                />
+                <div className="flex items-center gap-2 text-sm">
+                  <ContextSelectionModeButton />
+                  <RuntimeHealthIndicatorButton
+                    onToggleClick={() =>
+                      setShowRuntimeHelper(!showRuntimeHelper)
+                    }
+                  />
+                </div>
               </div>
               <RuntimeHelper
                 notebookId={id}
