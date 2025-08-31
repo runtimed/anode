@@ -18,6 +18,7 @@ import OidcCallbackPage from "@/pages/OidcCallbackPage.tsx";
 import NavPage from "./pages/NavPage";
 import NbPage from "./pages/NbPage";
 import NbDashboardPage from "./pages/NbDashboardPage";
+import { ErrorBoundary } from "react-error-boundary";
 
 export const App: React.FC = () => {
   // Safety net: Auto-remove loading screen if no component has handled it
@@ -55,82 +56,88 @@ export const App: React.FC = () => {
 
   return (
     <AuthProvider>
-      <Routes>
-        <Route path="/oidc" element={<OidcCallbackPage />} />
-        <Route path="/local_oidc/authorize" element={<AuthorizePage />} />
-        <Route
-          path="/nb/:id/*"
-          element={
-            <AuthGuard>
-              <Suspense
-                fallback={
-                  <LoadingState
-                    variant="fullscreen"
-                    message="Loading notebook..."
-                  />
-                }
-              >
-                <NotebookPage />
-              </Suspense>
-            </AuthGuard>
-          }
-        />
-        <Route
-          path="/nb"
-          element={
-            <AuthGuard>
-              <Suspense
-                fallback={
-                  <LoadingState
-                    variant="fullscreen"
-                    message="Loading notebooks..."
-                  />
-                }
-              >
-                <NotebooksDashboardPage />
-              </Suspense>
-            </AuthGuard>
-          }
-        />
-        <Route
-          path="/nb2/:id/*"
-          element={
-            <AuthGuard>
-              <Suspense
-                fallback={
-                  <LoadingState
-                    variant="fullscreen"
-                    message="Loading notebook..."
-                  />
-                }
-              >
-                <NbPage />
-              </Suspense>
-            </AuthGuard>
-          }
-        />
-        <Route
-          path="/nb2"
-          element={
-            <AuthGuard>
-              <Suspense
-                fallback={
-                  <LoadingState
-                    variant="fullscreen"
-                    message="Loading notebooks..."
-                  />
-                }
-              >
-                <NbDashboardPage />
-              </Suspense>
-            </AuthGuard>
-          }
-        />
-        <Route path="/" element={<Navigate to="/nb2" replace />} />
-        <Route path="/nav" element={<NavPage />} />
-      </Routes>
-      <FPSMeter />
-      <Toaster />
+      <ErrorBoundary
+        fallbackRender={() => (
+          <div>Error on page. See console log for details.</div>
+        )}
+      >
+        <Routes>
+          <Route path="/oidc" element={<OidcCallbackPage />} />
+          <Route path="/local_oidc/authorize" element={<AuthorizePage />} />
+          <Route
+            path="/nb/:id/*"
+            element={
+              <AuthGuard>
+                <Suspense
+                  fallback={
+                    <LoadingState
+                      variant="fullscreen"
+                      message="Loading notebook..."
+                    />
+                  }
+                >
+                  <NotebookPage />
+                </Suspense>
+              </AuthGuard>
+            }
+          />
+          <Route
+            path="/nb"
+            element={
+              <AuthGuard>
+                <Suspense
+                  fallback={
+                    <LoadingState
+                      variant="fullscreen"
+                      message="Loading notebooks..."
+                    />
+                  }
+                >
+                  <NotebooksDashboardPage />
+                </Suspense>
+              </AuthGuard>
+            }
+          />
+          <Route
+            path="/nb2/:id/*"
+            element={
+              <AuthGuard>
+                <Suspense
+                  fallback={
+                    <LoadingState
+                      variant="fullscreen"
+                      message="Loading notebook..."
+                    />
+                  }
+                >
+                  <NbPage />
+                </Suspense>
+              </AuthGuard>
+            }
+          />
+          <Route
+            path="/nb2"
+            element={
+              <AuthGuard>
+                <Suspense
+                  fallback={
+                    <LoadingState
+                      variant="fullscreen"
+                      message="Loading notebooks..."
+                    />
+                  }
+                >
+                  <NbDashboardPage />
+                </Suspense>
+              </AuthGuard>
+            }
+          />
+          <Route path="/" element={<Navigate to="/nb2" replace />} />
+          <Route path="/nav" element={<NavPage />} />
+        </Routes>
+        <FPSMeter />
+        <Toaster />
+      </ErrorBoundary>
     </AuthProvider>
   );
 };
