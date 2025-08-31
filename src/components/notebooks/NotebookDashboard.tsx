@@ -1,6 +1,5 @@
 import { useMutation, useQuery } from "@tanstack/react-query";
 import {
-  ChevronDown,
   Clock,
   Grid3X3,
   List,
@@ -27,12 +26,7 @@ import { DebugModeToggle } from "../debug/DebugModeToggle";
 import { LoadingState } from "../loading/LoadingState";
 import { RuntLogoSmall } from "../logo/RuntLogoSmall";
 import { GitCommitHash } from "../notebook/GitCommitHash";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "../ui/dropdown-menu";
+
 import { NotebookActions } from "./NotebookActions";
 import { NotebookCard } from "./NotebookCard";
 import { SimpleUserProfile } from "./SimpleUserProfile";
@@ -484,30 +478,11 @@ export const NotebookDashboard: React.FC = () => {
                 </button>
               </div>
 
-              {/* New Notebook Dropdown */}
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button>
-                    <Plus className="mr-2 h-4 w-4" />
-                    New
-                    <ChevronDown className="ml-1 h-4 w-4" />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                  <DropdownMenuItem onClick={handleCreateNotebook}>
-                    <Plus className="mr-2 h-4 w-4" />
-                    Blank Notebook
-                  </DropdownMenuItem>
-                  <DropdownMenuItem disabled>
-                    <Plus className="mr-2 h-4 w-4" />
-                    From Template (Soon)
-                  </DropdownMenuItem>
-                  <DropdownMenuItem disabled>
-                    <Plus className="mr-2 h-4 w-4" />
-                    Import (Soon)
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
+              {/* New Notebook Button */}
+              <Button onClick={handleCreateNotebook}>
+                <Plus className="mr-2 h-4 w-4" />
+                New Notebook
+              </Button>
 
               {/* Debug Mode Toggle */}
               {import.meta.env.DEV && <DebugModeToggle />}
