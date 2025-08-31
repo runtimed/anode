@@ -1,19 +1,23 @@
 import { cn } from "@/lib/utils";
 import React from "react";
-import { CollaboratorAvatars } from "../CollaboratorAvatars.js";
 import { KeyboardShortcuts } from "../KeyboardShortcuts.js";
 import {
   LiveStoreReady,
   useLiveStoreReady,
 } from "../livestore/LivestoreProviderProvider.js";
-import { ContextSelectionModeButton } from "../notebook/ContextSelectionModeButton.js";
 import { NotebookContent } from "../notebook/NotebookContent.js";
-import { RuntimeHealthIndicatorButton } from "../notebook/RuntimeHealthIndicatorButton.js";
-import { RuntimeHelper } from "../notebook/RuntimeHelper.js";
 import { DelayedSpinner } from "../outputs/shared-with-iframe/SuspenseSpinner.js";
+import { RuntimeHelper } from "../notebook/RuntimeHelper.js";
 
-export function NbLiveStore({ id }: { id: string }) {
-  const [showRuntimeHelper, setShowRuntimeHelper] = React.useState(false);
+export function NbLiveStore({
+  id,
+  showRuntimeHelper,
+  setShowRuntimeHelper,
+}: {
+  id: string;
+  showRuntimeHelper: boolean;
+  setShowRuntimeHelper: (showRuntimeHelper: boolean) => void;
+}) {
   const liveStoreReady = useLiveStoreReady();
 
   return (
@@ -21,20 +25,11 @@ export function NbLiveStore({ id }: { id: string }) {
       <LiveStoreReady>
         <div className="flex">
           <div className="container mx-auto px-4">
-            <div className="flex h-12 items-center gap-2">
-              <CollaboratorAvatars />
-              <div className="flex-1" />
-              <ContextSelectionModeButton />
-              <RuntimeHealthIndicatorButton
-                onToggleClick={() => setShowRuntimeHelper(!showRuntimeHelper)}
-              />
-            </div>
             <RuntimeHelper
               notebookId={id}
               showRuntimeHelper={showRuntimeHelper}
               onClose={() => setShowRuntimeHelper(false)}
             />
-
             <KeyboardShortcuts />
             <NotebookContent />
           </div>

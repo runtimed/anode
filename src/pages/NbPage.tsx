@@ -1,9 +1,12 @@
 import { AppSidebar } from "@/components/app-sidebar";
+import { CollaboratorAvatars } from "@/components/CollaboratorAvatars";
+import { ContextSelectionModeButton } from "@/components/notebook/ContextSelectionModeButton";
 import { useDebug } from "@/components/debug/debug-mode";
 import {
   LivestoreProviderProvider,
   LiveStoreReady,
 } from "@/components/livestore/LivestoreProviderProvider";
+import { RuntimeHealthIndicatorButton } from "@/components/notebook/RuntimeHealthIndicatorButton";
 import { NbLiveStore } from "@/components/notebooks/NbLiveStore";
 import {
   Breadcrumb,
@@ -31,6 +34,7 @@ const SidebarRightDebug = React.lazy(() =>
 export default function NbPage() {
   const { id } = useParams<{ id: string }>();
   const debug = useDebug();
+  const [showRuntimeHelper, setShowRuntimeHelper] = React.useState(false);
 
   // Should never happen
   if (!id) {
@@ -48,7 +52,7 @@ export default function NbPage() {
       >
         <AppSidebar />
         <SidebarInset className="h-dvh overflow-y-scroll overscroll-contain">
-          <header className="bg-background sticky top-0 z-50 flex shrink-0 items-center gap-2 border-b p-4">
+          <header className="bg-background sticky top-0 z-50 flex h-14 shrink-0 items-center gap-2 border-b px-2">
             <SidebarTrigger className="-ml-1" />
             <Separator
               orientation="vertical"
@@ -65,9 +69,28 @@ export default function NbPage() {
                 </BreadcrumbItem>
               </BreadcrumbList>
             </Breadcrumb>
+
+            <div className="flex-1" />
+
+            <LiveStoreReady>
+              <div className="flex h-12 items-center gap-2">
+                <CollaboratorAvatars />
+                <div className="flex-1" />
+                <ContextSelectionModeButton />
+                <RuntimeHealthIndicatorButton
+                  onToggleClick={() => setShowRuntimeHelper(!showRuntimeHelper)}
+                />
+              </div>
+            </LiveStoreReady>
           </header>
           <div className="flex flex-1 flex-col gap-4 p-4 pt-0">
-            {id && <NbLiveStore id={id} />}
+            {id && (
+              <NbLiveStore
+                id={id}
+                showRuntimeHelper={showRuntimeHelper}
+                setShowRuntimeHelper={setShowRuntimeHelper}
+              />
+            )}
             <div className="h-[70vh]"></div>
             {!id && <div>No notebook id</div>}
             <div className="bg-muted/50 min-h-[100vh] flex-1 rounded-xl md:min-h-min" />
