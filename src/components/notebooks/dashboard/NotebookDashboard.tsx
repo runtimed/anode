@@ -1,4 +1,21 @@
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useDebug } from "@/components/debug/debug-mode";
+import { DebugModeToggle } from "@/components/debug/DebugModeToggle";
+import { LoadingState } from "@/components/loading/LoadingState";
+import { RuntLogoSmall } from "@/components/logo/RuntLogoSmall";
+import { GitCommitHash } from "@/components/notebook/GitCommitHash";
+import { NotebookGrid } from "@/components/notebooks/NotebookListView";
+import { SimpleUserProfile } from "@/components/notebooks/SimpleUserProfile";
+import { TagActions } from "@/components/notebooks/TagActions";
+import { TagBadge } from "@/components/notebooks/TagBadge";
+import { TagCreationDialog } from "@/components/notebooks/TagCreationDialog";
+import { NotebookProcessed } from "@/components/notebooks/types";
+import { useTrpc } from "@/components/TrpcProvider";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { useNotebooks } from "@/hooks/use-notebooks";
+import { trpcQueryClient } from "@/lib/trpc-client";
+import { useQuery } from "@tanstack/react-query";
 import {
   Clock,
   Grid3X3,
@@ -10,35 +27,12 @@ import {
   Users,
   X,
 } from "lucide-react";
-import React, { useCallback, useMemo } from "react";
-import { useNavigate, useSearchParams } from "react-router-dom";
-import { useTrpc } from "../TrpcProvider";
-import { Badge } from "../ui/badge";
-import { Button } from "../ui/button";
-import { Input } from "../ui/input";
-
-import { useDebug } from "@/components/debug/debug-mode";
-
-import { trpcQueryClient } from "@/lib/trpc-client";
-import { DebugModeToggle } from "../debug/DebugModeToggle";
-import { LoadingState } from "../loading/LoadingState";
-import { RuntLogoSmall } from "../logo/RuntLogoSmall";
-import { GitCommitHash } from "../notebook/GitCommitHash";
-
-import { FilterType, useNotebooks } from "@/hooks/use-notebooks";
-import { getNotebookVanityUrl } from "@/util/url-utils";
-import { NotebookGrid } from "./NotebookListView";
-import { SimpleUserProfile } from "./SimpleUserProfile";
-import { TagActions } from "./TagActions";
-import { TagBadge } from "./TagBadge";
-import { TagCreationDialog } from "./TagCreationDialog";
-import { NotebookProcessed } from "./types";
+import React, { useMemo } from "react";
+import { useCreateNotebookAndNavigate, useDashboardParams } from "./helpers";
 
 const DebugNotebooks = React.lazy(() =>
-  import("./DebugNotebooks").then((mod) => ({ default: mod.DebugNotebooks }))
+  import("../DebugNotebooks").then((mod) => ({ default: mod.DebugNotebooks }))
 );
-
-type ViewMode = "grid" | "table";
 
 function useSmartDefaultFilter({
   allNotebooks,
@@ -602,104 +596,4 @@ function ActiveFilters() {
       )}
     </>
   );
-}
-
-function useCreateNotebookAndNavigate() {
-  const trpc = useTrpc();
-  const navigate = useNavigate();
-
-  // Create notebook mutation
-  const createNotebookMutation = useMutation(
-    trpc.createNotebook.mutationOptions()
-  );
-
-  const createNotebook = useCallback(async () => {
-    const input = {
-      title: "Untitled Notebook",
-    };
-
-    try {
-      const result = await createNotebookMutation.mutateAsync(input);
-      trpcQueryClient.invalidateQueries({
-        queryKey: trpc.notebooks.queryKey(),
-      });
-      if (result) {
-        // Redirect to the new notebook with initial data to prevent flicker
-        navigate(getNotebookVanityUrl(result.id, result.title), {
-          state: { initialNotebook: result },
-        });
-      }
-    } catch (err) {
-      console.error("Failed to create notebook:", err);
-      // TODO: Show error toast
-    }
-  }, [createNotebookMutation, trpc, navigate]);
-
-  return createNotebook;
-}
-
-function useDashboardParams() {
-  const [searchParams, setSearchParams] = useSearchParams();
-  const filterParam = searchParams.get("filter");
-  const activeFilter: FilterType =
-    filterParam === "scratch" ||
-    filterParam === "shared" ||
-    filterParam === "named"
-      ? filterParam
-      : "named";
-  const searchQuery = searchParams.get("q") || "";
-  const selectedTagName = searchParams.get("tag") || "";
-  const viewModeParam = searchParams.get("view");
-  const viewMode: ViewMode = viewModeParam === "table" ? "table" : "grid";
-
-  // Function to update view mode in URL params
-  const setViewMode = (mode: ViewMode) => {
-    const newSearchParams = new URLSearchParams(searchParams);
-    newSearchParams.set("view", mode);
-    setSearchParams(newSearchParams, { replace: true });
-  };
-
-  // Function to update active filter in URL params
-  const setActiveFilter = React.useCallback(
-    (filter: FilterType) => {
-      const newSearchParams = new URLSearchParams(searchParams);
-      newSearchParams.set("filter", filter);
-      setSearchParams(newSearchParams, { replace: true });
-    },
-    [searchParams, setSearchParams]
-  );
-
-  // Function to update search query in URL params with debouncing
-  const setSearchQuery = (query: string) => {
-    const newSearchParams = new URLSearchParams(searchParams);
-    const isSearching = query.trim();
-    if (isSearching) {
-      newSearchParams.set("q", query);
-    } else {
-      newSearchParams.delete("q");
-    }
-    setSearchParams(newSearchParams, { replace: true });
-  };
-
-  // Function to set selected tag filter
-  const setSelectedTag = (tagName: string) => {
-    const newSearchParams = new URLSearchParams(searchParams);
-    if (tagName) {
-      newSearchParams.set("tag", tagName);
-    } else {
-      newSearchParams.delete("tag");
-    }
-    setSearchParams(newSearchParams, { replace: true });
-  };
-
-  return {
-    activeFilter,
-    searchQuery,
-    selectedTagName,
-    viewMode,
-    setViewMode,
-    setActiveFilter,
-    setSearchQuery,
-    setSelectedTag,
-  };
 }
