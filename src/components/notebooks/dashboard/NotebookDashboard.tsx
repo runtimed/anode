@@ -21,7 +21,7 @@ import { useCreateNotebookAndNavigate, useDashboardParams } from "./helpers";
 import { NoResults, Results } from "./Results";
 
 const DebugNotebooks = React.lazy(() =>
-  import("../DebugNotebooks").then((mod) => ({ default: mod.DebugNotebooks }))
+  import("./DebugNotebooks").then((mod) => ({ default: mod.DebugNotebooks }))
 );
 
 export const NotebookDashboard: React.FC = () => {

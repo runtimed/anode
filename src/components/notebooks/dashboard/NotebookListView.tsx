@@ -1,10 +1,11 @@
+import { NotebookActions } from "@/components/notebooks/NotebookActions";
+import { TagBadge } from "@/components/notebooks/TagBadge";
+import type { NotebookProcessed } from "@/components/notebooks/types";
+import { Badge } from "@/components/ui/badge";
+import { DateDisplay } from "@/components/ui/DateDisplay";
+import { getNotebookVanityUrl } from "@/util/url-utils";
 import React from "react";
-import { Badge } from "../ui/badge";
-import { DateDisplay } from "../ui/DateDisplay";
-import { getNotebookVanityUrl } from "../../util/url-utils";
-import { NotebookActions } from "./NotebookActions";
-import { TagBadge } from "./TagBadge";
-import type { NotebookProcessed } from "./types";
+import { NotebookCard } from "./NotebookCard";
 
 // Grid/Table component for notebooks
 interface NotebookGridProps {
@@ -134,7 +135,3 @@ const NotebookTableRow: React.FC<NotebookTableRowProps> = ({
     </tr>
   );
 };
-
-// Import NotebookCard here since it's used in the grid view
-// This assumes NotebookCard is already defined elsewhere
-import { NotebookCard } from "./NotebookCard";
