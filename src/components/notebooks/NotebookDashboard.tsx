@@ -40,21 +40,12 @@ const DebugNotebooks = React.lazy(() =>
 
 type ViewMode = "grid" | "table";
 
-export const NotebookDashboard: React.FC = () => {
-  const { activeFilter, searchQuery, selectedTagName, setActiveFilter } =
-    useDashboardParams();
-
-  const debug = useDebug();
-
-  const {
-    allNotebooks,
-    filteredNotebooks,
-    recentScratchNotebooks,
-    namedNotebooks,
-    isLoading,
-    error,
-    refetch,
-  } = useNotebooks(selectedTagName, activeFilter, searchQuery);
+function useSmartDefaultFilter({
+  allNotebooks,
+}: {
+  allNotebooks: NotebookProcessed[];
+}) {
+  const { activeFilter, setActiveFilter } = useDashboardParams();
 
   // Check if user has named notebooks
   const hasNamedNotebooks = useMemo(() => {
@@ -93,6 +84,23 @@ export const NotebookDashboard: React.FC = () => {
     allNotebooks,
     setActiveFilter,
   ]);
+}
+
+export const NotebookDashboard: React.FC = () => {
+  const debug = useDebug();
+
+  const { activeFilter, searchQuery, selectedTagName } = useDashboardParams();
+  const {
+    allNotebooks,
+    filteredNotebooks,
+    recentScratchNotebooks,
+    namedNotebooks,
+    isLoading,
+    error,
+    refetch,
+  } = useNotebooks(selectedTagName, activeFilter, searchQuery);
+
+  useSmartDefaultFilter({ allNotebooks });
 
   if (error) {
     return (
