@@ -41,61 +41,18 @@ const DebugNotebooks = React.lazy(() =>
 type ViewMode = "grid" | "table";
 
 export const NotebookDashboard: React.FC = () => {
-  const [searchParams, setSearchParams] = useSearchParams();
-  // Get filter, view mode, and search query from URL params
-  const filterParam = searchParams.get("filter");
-  const activeFilter: FilterType =
-    filterParam === "scratch" ||
-    filterParam === "shared" ||
-    filterParam === "named"
-      ? filterParam
-      : "named";
+  const {
+    activeFilter,
+    searchQuery,
+    selectedTagName,
+    viewMode,
+    setViewMode,
+    setActiveFilter,
+    setSearchQuery,
+    setSelectedTag,
+  } = useDashboardParams();
 
-  const searchQuery = searchParams.get("q") || "";
-  const selectedTagName = searchParams.get("tag") || "";
-
-  const viewModeParam = searchParams.get("view");
-  const viewMode: ViewMode = viewModeParam === "table" ? "table" : "grid";
   const debug = useDebug();
-
-  // Function to update view mode in URL params
-  const setViewMode = (mode: ViewMode) => {
-    const newSearchParams = new URLSearchParams(searchParams);
-    newSearchParams.set("view", mode);
-    setSearchParams(newSearchParams, { replace: true });
-  };
-
-  // Function to update active filter in URL params
-  const setActiveFilter = React.useCallback(
-    (filter: FilterType) => {
-      const newSearchParams = new URLSearchParams(searchParams);
-      newSearchParams.set("filter", filter);
-      setSearchParams(newSearchParams, { replace: true });
-    },
-    [searchParams, setSearchParams]
-  );
-
-  // Function to update search query in URL params with debouncing
-  const setSearchQuery = (query: string) => {
-    const newSearchParams = new URLSearchParams(searchParams);
-    if (query.trim()) {
-      newSearchParams.set("q", query);
-    } else {
-      newSearchParams.delete("q");
-    }
-    setSearchParams(newSearchParams, { replace: true });
-  };
-
-  // Function to set selected tag filter
-  const setSelectedTag = (tagName: string) => {
-    const newSearchParams = new URLSearchParams(searchParams);
-    if (tagName) {
-      newSearchParams.set("tag", tagName);
-    } else {
-      newSearchParams.delete("tag");
-    }
-    setSearchParams(newSearchParams, { replace: true });
-  };
 
   const {
     allNotebooks,
@@ -196,9 +153,10 @@ export const NotebookDashboard: React.FC = () => {
           {!isLoading && filteredNotebooks.length > 0 && (
             <Results
               searchQuery={searchQuery}
+              setSearchQuery={setSearchQuery}
+              //
               activeFilter={activeFilter}
               selectedTagName={selectedTagName}
-              setSearchQuery={setSearchQuery}
               setSelectedTag={setSelectedTag}
               viewMode={viewMode}
               refetch={refetch}
@@ -712,4 +670,69 @@ function useCreateNotebookAndNavigate() {
   }, [createNotebookMutation, trpc, navigate]);
 
   return createNotebook;
+}
+
+function useDashboardParams() {
+  const [searchParams, setSearchParams] = useSearchParams();
+  const filterParam = searchParams.get("filter");
+  const activeFilter: FilterType =
+    filterParam === "scratch" ||
+    filterParam === "shared" ||
+    filterParam === "named"
+      ? filterParam
+      : "named";
+  const searchQuery = searchParams.get("q") || "";
+  const selectedTagName = searchParams.get("tag") || "";
+  const viewModeParam = searchParams.get("view");
+  const viewMode: ViewMode = viewModeParam === "table" ? "table" : "grid";
+
+  // Function to update view mode in URL params
+  const setViewMode = (mode: ViewMode) => {
+    const newSearchParams = new URLSearchParams(searchParams);
+    newSearchParams.set("view", mode);
+    setSearchParams(newSearchParams, { replace: true });
+  };
+
+  // Function to update active filter in URL params
+  const setActiveFilter = React.useCallback(
+    (filter: FilterType) => {
+      const newSearchParams = new URLSearchParams(searchParams);
+      newSearchParams.set("filter", filter);
+      setSearchParams(newSearchParams, { replace: true });
+    },
+    [searchParams, setSearchParams]
+  );
+
+  // Function to update search query in URL params with debouncing
+  const setSearchQuery = (query: string) => {
+    const newSearchParams = new URLSearchParams(searchParams);
+    if (query.trim()) {
+      newSearchParams.set("q", query);
+    } else {
+      newSearchParams.delete("q");
+    }
+    setSearchParams(newSearchParams, { replace: true });
+  };
+
+  // Function to set selected tag filter
+  const setSelectedTag = (tagName: string) => {
+    const newSearchParams = new URLSearchParams(searchParams);
+    if (tagName) {
+      newSearchParams.set("tag", tagName);
+    } else {
+      newSearchParams.delete("tag");
+    }
+    setSearchParams(newSearchParams, { replace: true });
+  };
+
+  return {
+    activeFilter,
+    searchQuery,
+    selectedTagName,
+    viewMode,
+    setViewMode,
+    setActiveFilter,
+    setSearchQuery,
+    setSelectedTag,
+  };
 }
