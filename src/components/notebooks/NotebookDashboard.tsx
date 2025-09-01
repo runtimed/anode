@@ -437,69 +437,12 @@ function Results({
   namedNotebooks: NotebookProcessed[];
   filteredNotebooks: NotebookProcessed[];
 }) {
-  const {
-    searchQuery,
-    setSearchQuery,
-    activeFilter,
-    selectedTagName,
-    setSelectedTag,
-    viewMode,
-  } = useDashboardParams();
-
-  const trpc = useTrpc();
-  const { data: tagsData } = useQuery(trpc.tags.queryOptions());
+  const { searchQuery, activeFilter, viewMode } = useDashboardParams();
   const isSearching = searchQuery.trim();
 
   return (
     <div className="space-y-8">
-      {/* Active Filters Indicator */}
-      {(isSearching || selectedTagName) && (
-        <div className="flex flex-wrap items-center gap-2 rounded-lg border bg-gray-50 p-3">
-          <span className="text-sm text-gray-600">Active filters:</span>
-          {isSearching && (
-            <div className="flex items-center gap-1 rounded-full bg-blue-100 px-2 py-1 text-xs">
-              <Search className="h-3 w-3" />
-              <span>"{searchQuery}"</span>
-              <button
-                onClick={() => setSearchQuery("")}
-                className="text-gray-500 hover:text-gray-700"
-              >
-                <X className="h-3 w-3" />
-              </button>
-            </div>
-          )}
-          {selectedTagName && tagsData && (
-            <div className="flex items-center gap-1">
-              {(() => {
-                const selectedTag = tagsData.find(
-                  (t) => t.name === selectedTagName
-                );
-                return selectedTag ? (
-                  <div className="flex items-center gap-1 rounded-full bg-gray-200 px-2 py-1 text-xs">
-                    <Tag className="h-3 w-3" />
-                    <TagBadge tag={selectedTag} className="text-xs" />
-                    <button
-                      onClick={() => setSelectedTag("")}
-                      className="text-gray-500 hover:text-gray-700"
-                    >
-                      <X className="h-3 w-3" />
-                    </button>
-                  </div>
-                ) : null;
-              })()}
-            </div>
-          )}
-          <button
-            onClick={() => {
-              setSearchQuery("");
-              setSelectedTag("");
-            }}
-            className="ml-auto text-xs text-blue-600 hover:text-blue-800"
-          >
-            Clear all filters
-          </button>
-        </div>
-      )}
+      <ActiveFilters />
 
       {/* Search Results Section (prioritized when searching) */}
       {isSearching && (
@@ -596,6 +539,68 @@ function Results({
           </section>
         )}
     </div>
+  );
+}
+
+function ActiveFilters() {
+  const { searchQuery, setSearchQuery, selectedTagName, setSelectedTag } =
+    useDashboardParams();
+
+  const trpc = useTrpc();
+  const { data: tagsData } = useQuery(trpc.tags.queryOptions());
+  const isSearching = searchQuery.trim();
+
+  return (
+    <>
+      {/* Active Filters Indicator */}
+      {(isSearching || selectedTagName) && (
+        <div className="flex flex-wrap items-center gap-2 rounded-lg border bg-gray-50 p-3">
+          <span className="text-sm text-gray-600">Active filters:</span>
+          {isSearching && (
+            <div className="flex items-center gap-1 rounded-full bg-blue-100 px-2 py-1 text-xs">
+              <Search className="h-3 w-3" />
+              <span>"{searchQuery}"</span>
+              <button
+                onClick={() => setSearchQuery("")}
+                className="text-gray-500 hover:text-gray-700"
+              >
+                <X className="h-3 w-3" />
+              </button>
+            </div>
+          )}
+          {selectedTagName && tagsData && (
+            <div className="flex items-center gap-1">
+              {(() => {
+                const selectedTag = tagsData.find(
+                  (t) => t.name === selectedTagName
+                );
+                return selectedTag ? (
+                  <div className="flex items-center gap-1 rounded-full bg-gray-200 px-2 py-1 text-xs">
+                    <Tag className="h-3 w-3" />
+                    <TagBadge tag={selectedTag} className="text-xs" />
+                    <button
+                      onClick={() => setSelectedTag("")}
+                      className="text-gray-500 hover:text-gray-700"
+                    >
+                      <X className="h-3 w-3" />
+                    </button>
+                  </div>
+                ) : null;
+              })()}
+            </div>
+          )}
+          <button
+            onClick={() => {
+              setSearchQuery("");
+              setSelectedTag("");
+            }}
+            className="ml-auto text-xs text-blue-600 hover:text-blue-800"
+          >
+            Clear all filters
+          </button>
+        </div>
+      )}
+    </>
   );
 }
 
