@@ -519,28 +519,6 @@ function Results({
         </section>
       )}
 
-      {/* Recent Scratch Work Section (for scratch filter when not searching) */}
-      {!searchQuery.trim() &&
-        activeFilter === "scratch" &&
-        recentScratchNotebooks.length > 0 && (
-          <section>
-            <div className="mb-4 flex items-center">
-              <Clock className="mr-2 h-5 w-5 text-gray-500" />
-              <h2 className="text-lg font-semibold text-gray-900">
-                Recent Scratch Work
-              </h2>
-              <Badge variant="secondary" className="ml-2">
-                {recentScratchNotebooks.length}
-              </Badge>
-            </div>
-            <NotebookGrid
-              notebooks={recentScratchNotebooks}
-              viewMode={viewMode}
-              onUpdate={() => refetch()}
-            />
-          </section>
-        )}
-
       {/* Named Notebooks Section (for named filter when not searching) */}
       {!searchQuery.trim() &&
         activeFilter === "named" &&
@@ -557,6 +535,28 @@ function Results({
             </div>
             <NotebookGrid
               notebooks={namedNotebooks}
+              viewMode={viewMode}
+              onUpdate={() => refetch()}
+            />
+          </section>
+        )}
+
+      {/* Recent Scratch Work Section (for scratch filter when not searching) */}
+      {!searchQuery.trim() &&
+        activeFilter === "scratch" &&
+        recentScratchNotebooks.length > 0 && (
+          <section>
+            <div className="mb-4 flex items-center">
+              <Clock className="mr-2 h-5 w-5 text-gray-500" />
+              <h2 className="text-lg font-semibold text-gray-900">
+                Recent Scratch Work
+              </h2>
+              <Badge variant="secondary" className="ml-2">
+                {recentScratchNotebooks.length}
+              </Badge>
+            </div>
+            <NotebookGrid
+              notebooks={recentScratchNotebooks}
               viewMode={viewMode}
               onUpdate={() => refetch()}
             />
