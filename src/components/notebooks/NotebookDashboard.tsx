@@ -41,16 +41,8 @@ const DebugNotebooks = React.lazy(() =>
 type ViewMode = "grid" | "table";
 
 export const NotebookDashboard: React.FC = () => {
-  const {
-    activeFilter,
-    searchQuery,
-    selectedTagName,
-    viewMode,
-    setViewMode,
-    setActiveFilter,
-    setSearchQuery,
-    setSelectedTag,
-  } = useDashboardParams();
+  const { activeFilter, searchQuery, selectedTagName, setActiveFilter } =
+    useDashboardParams();
 
   const debug = useDebug();
 
@@ -123,42 +115,22 @@ export const NotebookDashboard: React.FC = () => {
           <RuntLogoSmall />
           <h2 className="font-semibold text-gray-900">Notebooks</h2>
         </div>
-        <Filters
-          allNotebooks={allNotebooks}
-          activeFilter={activeFilter}
-          setActiveFilter={setActiveFilter}
-          selectedTagName={selectedTagName}
-          setSelectedTag={setSelectedTag}
-        />
+        <Filters allNotebooks={allNotebooks} />
       </div>
 
       {/* Main Content */}
       <div className="flex flex-1 flex-col overflow-hidden">
-        <TopHeader
-          searchQuery={searchQuery}
-          setSearchQuery={setSearchQuery}
-          viewMode={viewMode}
-          setViewMode={setViewMode}
-        />
+        <TopHeader />
 
         {/* Content Area */}
         <div className="flex-1 overflow-auto p-6">
           {isLoading && <LoadingState message="Loading notebooks..." />}
           {debug.enabled && <DebugNotebooks notebooks={filteredNotebooks} />}
 
-          {!isLoading && filteredNotebooks.length === 0 && (
-            <EmptyState searchQuery={searchQuery} activeFilter={activeFilter} />
-          )}
+          {!isLoading && filteredNotebooks.length === 0 && <EmptyState />}
 
           {!isLoading && filteredNotebooks.length > 0 && (
             <Results
-              searchQuery={searchQuery}
-              setSearchQuery={setSearchQuery}
-              //
-              activeFilter={activeFilter}
-              selectedTagName={selectedTagName}
-              setSelectedTag={setSelectedTag}
-              viewMode={viewMode}
               refetch={refetch}
               recentScratchNotebooks={recentScratchNotebooks}
               namedNotebooks={namedNotebooks}
@@ -175,19 +147,10 @@ export const NotebookDashboard: React.FC = () => {
   );
 };
 
-function Filters({
-  allNotebooks,
-  activeFilter,
-  setActiveFilter,
-  selectedTagName,
-  setSelectedTag,
-}: {
-  allNotebooks: NotebookProcessed[];
-  activeFilter: FilterType;
-  setActiveFilter: (filter: FilterType) => void;
-  selectedTagName: string;
-  setSelectedTag: (tagName: string) => void;
-}) {
+function Filters({ allNotebooks }: { allNotebooks: NotebookProcessed[] }) {
+  const { activeFilter, selectedTagName, setActiveFilter, setSelectedTag } =
+    useDashboardParams();
+
   const trpc = useTrpc();
   const { data: tagsData } = useQuery(trpc.tags.queryOptions());
 
@@ -345,33 +308,15 @@ function Filters({
   );
 }
 
-function TopHeader({
-  searchQuery,
-  setSearchQuery,
-  viewMode,
-  setViewMode,
-}: {
-  searchQuery: string;
-  setSearchQuery: (query: string) => void;
-  viewMode: ViewMode;
-  setViewMode: (mode: ViewMode) => void;
-}) {
+function TopHeader() {
+  const { viewMode, setViewMode } = useDashboardParams();
   const createNotebook = useCreateNotebookAndNavigate();
 
   return (
     <div className="border-b border-gray-200 bg-white p-4">
       <div className="flex items-center justify-between gap-4">
         {/* Search */}
-        <div className="relative max-w-2xl flex-1">
-          <Search className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 transform text-gray-400" />
-          <Input
-            type="text"
-            placeholder="Search notebooks..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-10"
-          />
-        </div>
+        <SearchInput />
 
         {/* Actions */}
         <div className="flex items-center gap-3">
@@ -416,13 +361,25 @@ function TopHeader({
   );
 }
 
-function EmptyState({
-  searchQuery,
-  activeFilter,
-}: {
-  searchQuery: string;
-  activeFilter: FilterType;
-}) {
+function SearchInput() {
+  const { searchQuery, setSearchQuery } = useDashboardParams();
+
+  return (
+    <div className="relative max-w-2xl flex-1">
+      <Search className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 transform text-gray-400" />
+      <Input
+        type="text"
+        placeholder="Search notebooks..."
+        value={searchQuery}
+        onChange={(e) => setSearchQuery(e.target.value)}
+        className="pl-10"
+      />
+    </div>
+  );
+}
+
+function EmptyState() {
+  const { searchQuery, activeFilter } = useDashboardParams();
   const createNotebook = useCreateNotebookAndNavigate();
 
   return (
@@ -461,31 +418,25 @@ function EmptyState({
 }
 
 function Results({
-  searchQuery,
-  setSearchQuery,
-  //
-  activeFilter,
-  //
-  selectedTagName,
-  setSelectedTag,
-  //
-  viewMode,
   refetch,
   recentScratchNotebooks,
   namedNotebooks,
   filteredNotebooks,
 }: {
-  searchQuery: string;
-  setSearchQuery: (query: string) => void;
-  activeFilter: FilterType;
-  selectedTagName: string;
-  setSelectedTag: (tag: string) => void;
-  viewMode: ViewMode;
   refetch: () => void;
   recentScratchNotebooks: NotebookProcessed[];
   namedNotebooks: NotebookProcessed[];
   filteredNotebooks: NotebookProcessed[];
 }) {
+  const {
+    searchQuery,
+    setSearchQuery,
+    activeFilter,
+    selectedTagName,
+    setSelectedTag,
+    viewMode,
+  } = useDashboardParams();
+
   const trpc = useTrpc();
   const { data: tagsData } = useQuery(trpc.tags.queryOptions());
 
