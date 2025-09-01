@@ -1,12 +1,5 @@
 import { AppSidebarNbDashboard } from "@/components/app-sidebar-nb-dashboard";
-import {
-  Breadcrumb,
-  BreadcrumbItem,
-  BreadcrumbLink,
-  BreadcrumbList,
-  BreadcrumbPage,
-  BreadcrumbSeparator,
-} from "@/components/ui/breadcrumb";
+import { DebugModeToggle } from "@/components/debug/DebugModeToggle";
 import { Separator } from "@/components/ui/separator";
 import {
   SidebarInset,
@@ -31,17 +24,8 @@ export default function NbDashboardPage() {
             orientation="vertical"
             className="mr-2 data-[orientation=vertical]:h-4"
           />
-          <Breadcrumb>
-            <BreadcrumbList>
-              <BreadcrumbItem className="hidden md:block">
-                <BreadcrumbLink href="#">All Inboxes</BreadcrumbLink>
-              </BreadcrumbItem>
-              <BreadcrumbSeparator className="hidden md:block" />
-              <BreadcrumbItem>
-                <BreadcrumbPage>Inbox</BreadcrumbPage>
-              </BreadcrumbItem>
-            </BreadcrumbList>
-          </Breadcrumb>
+          <div className="flex-1" />
+          <DebugModeToggle />
         </header>
         <div className="flex flex-1 flex-col gap-4 p-4">
           <div className="grid auto-rows-min gap-4 md:grid-cols-3">

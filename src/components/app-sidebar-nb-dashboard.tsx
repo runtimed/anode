@@ -1,44 +1,21 @@
 "use client";
 
-import {
-  Box,
-  Bug,
-  BugOff,
-  Database,
-  EyeOff,
-  Folder,
-  FunctionSquare,
-  History,
-  Home,
-  List,
-} from "lucide-react";
 import * as React from "react";
 
-import { NavUser } from "@/components/nav-user";
 import { Label } from "@/components/ui/label";
 import {
   Sidebar,
   SidebarContent,
-  SidebarFooter,
   SidebarGroup,
-  SidebarGroupContent,
   SidebarHeader,
   SidebarInput,
-  SidebarMenu,
-  SidebarMenuButton,
-  SidebarMenuItem,
-  useSidebar,
 } from "@/components/ui/sidebar";
 import { Switch } from "@/components/ui/switch";
 import { RuntLogoSmall } from "./logo/RuntLogoSmall";
-import { useDebug } from "./debug/debug-mode";
-import { DebugModeToggle } from "./debug/DebugModeToggle";
 
 export function AppSidebarNbDashboard({
   ...props
 }: React.ComponentProps<typeof Sidebar>) {
-  const debug = useDebug();
-
   return (
     <Sidebar
       collapsible="icon"
