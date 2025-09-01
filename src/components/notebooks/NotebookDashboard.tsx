@@ -389,6 +389,7 @@ function SearchInput() {
 function EmptyState() {
   const { searchQuery, activeFilter } = useDashboardParams();
   const createNotebook = useCreateNotebookAndNavigate();
+  const isSearching = searchQuery.trim();
 
   return (
     <div className="py-12 text-center">
@@ -396,7 +397,7 @@ function EmptyState() {
         <Users className="mx-auto h-16 w-16" />
       </div>
       <h3 className="mb-2 text-lg font-medium text-gray-900">
-        {searchQuery.trim()
+        {isSearching
           ? "No notebooks found"
           : activeFilter === "scratch"
             ? "No scratch notebooks yet"
@@ -405,7 +406,7 @@ function EmptyState() {
               : "No shared notebooks yet"}
       </h3>
       <p className="mb-6 text-gray-600">
-        {searchQuery.trim()
+        {isSearching
           ? `No notebooks match "${searchQuery}"`
           : activeFilter === "scratch"
             ? "Start experimenting - create, iterate, and promote the good ones."
@@ -413,7 +414,7 @@ function EmptyState() {
               ? "Name your scratch notebooks to promote them here."
               : "No notebooks have been shared with you yet."}
       </p>
-      {!searchQuery.trim() && activeFilter !== "shared" && (
+      {!isSearching && activeFilter !== "shared" && (
         <Button onClick={createNotebook}>
           <Plus className="mr-2 h-4 w-4" />
           {activeFilter === "scratch"
@@ -447,14 +448,15 @@ function Results({
 
   const trpc = useTrpc();
   const { data: tagsData } = useQuery(trpc.tags.queryOptions());
+  const isSearching = searchQuery.trim();
 
   return (
     <div className="space-y-8">
       {/* Active Filters Indicator */}
-      {(searchQuery.trim() || selectedTagName) && (
+      {(isSearching || selectedTagName) && (
         <div className="flex flex-wrap items-center gap-2 rounded-lg border bg-gray-50 p-3">
           <span className="text-sm text-gray-600">Active filters:</span>
-          {searchQuery.trim() && (
+          {isSearching && (
             <div className="flex items-center gap-1 rounded-full bg-blue-100 px-2 py-1 text-xs">
               <Search className="h-3 w-3" />
               <span>"{searchQuery}"</span>
@@ -500,7 +502,7 @@ function Results({
       )}
 
       {/* Search Results Section (prioritized when searching) */}
-      {searchQuery.trim() && (
+      {isSearching && (
         <section>
           <div className="mb-4 flex items-center">
             <Users className="mr-2 h-5 w-5 text-gray-500" />
@@ -520,7 +522,7 @@ function Results({
       )}
 
       {/* Named Notebooks Section (for named filter when not searching) */}
-      {!searchQuery.trim() &&
+      {!isSearching &&
         activeFilter === "named" &&
         namedNotebooks.length > 0 && (
           <section>
@@ -542,7 +544,7 @@ function Results({
         )}
 
       {/* Recent Scratch Work Section (for scratch filter when not searching) */}
-      {!searchQuery.trim() &&
+      {!isSearching &&
         activeFilter === "scratch" &&
         recentScratchNotebooks.length > 0 && (
           <section>
@@ -564,7 +566,7 @@ function Results({
         )}
 
       {/* All Results (for shared filter or fallback when not searching) */}
-      {!searchQuery.trim() &&
+      {!isSearching &&
         (activeFilter === "shared" ||
           (activeFilter === "scratch" &&
             !recentScratchNotebooks.length &&
@@ -665,7 +667,8 @@ function useDashboardParams() {
   // Function to update search query in URL params with debouncing
   const setSearchQuery = (query: string) => {
     const newSearchParams = new URLSearchParams(searchParams);
-    if (query.trim()) {
+    const isSearching = query.trim();
+    if (isSearching) {
       newSearchParams.set("q", query);
     } else {
       newSearchParams.delete("q");
