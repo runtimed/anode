@@ -1,4 +1,4 @@
-import { NotebookGrid } from "@/components/notebooks/dashboard/NotebookListView";
+import { NotebooksCardOrTable } from "@/components/notebooks/dashboard/NotebooksCardOrTable";
 import { TagBadge } from "@/components/notebooks/TagBadge";
 import { NotebookProcessed } from "@/components/notebooks/types";
 import { useTrpc } from "@/components/TrpcProvider";
@@ -38,7 +38,7 @@ export function Results({
               {filteredNotebooks.length}
             </Badge>
           </div>
-          <NotebookGrid
+          <NotebooksCardOrTable
             notebooks={filteredNotebooks}
             viewMode={viewMode}
             onUpdate={() => refetch()}
@@ -60,7 +60,7 @@ export function Results({
                 {namedNotebooks.length}
               </Badge>
             </div>
-            <NotebookGrid
+            <NotebooksCardOrTable
               notebooks={namedNotebooks}
               viewMode={viewMode}
               onUpdate={() => refetch()}
@@ -82,7 +82,7 @@ export function Results({
                 {recentScratchNotebooks.length}
               </Badge>
             </div>
-            <NotebookGrid
+            <NotebooksCardOrTable
               notebooks={recentScratchNotebooks}
               viewMode={viewMode}
               onUpdate={() => refetch()}
@@ -113,7 +113,7 @@ export function Results({
                 {filteredNotebooks.length}
               </Badge>
             </div>
-            <NotebookGrid
+            <NotebooksCardOrTable
               notebooks={filteredNotebooks}
               viewMode={viewMode}
               onUpdate={() => refetch()}
