@@ -1,12 +1,12 @@
 import { useMutation } from "@tanstack/react-query";
 import { nanoid } from "nanoid";
-import { useTrpc } from "../TrpcProvider";
-import { Button } from "../ui/button";
-import { NotebookProcessed } from "./types";
+import { useTrpc } from "../../TrpcProvider";
+import { Button } from "../../ui/button";
+import { NotebookProcessed } from "../types";
 import { toast } from "sonner";
 import { trpcQueryClient } from "@/lib/trpc-client";
 import { useState } from "react";
-import { Spinner } from "../ui/Spinner";
+import { Spinner } from "../../ui/Spinner";
 
 export const DebugNotebooks = ({
   notebooks,

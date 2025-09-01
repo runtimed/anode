@@ -1,4 +1,4 @@
-import { NotebookGrid } from "@/components/notebooks/NotebookListView";
+import { NotebookGrid } from "@/components/notebooks/dashboard/NotebookListView";
 import { TagBadge } from "@/components/notebooks/TagBadge";
 import { NotebookProcessed } from "@/components/notebooks/types";
 import { useTrpc } from "@/components/TrpcProvider";
