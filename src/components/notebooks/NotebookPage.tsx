@@ -12,7 +12,11 @@ import {
 import { CollaboratorAvatars } from "../CollaboratorAvatars";
 import { DebugModeToggle } from "../debug/DebugModeToggle.js";
 import { KeyboardShortcuts } from "../KeyboardShortcuts";
-import { CustomLiveStoreProvider } from "../livestore/CustomLiveStoreProvider";
+import {
+  LiveStoreProviderProvider,
+  LiveStoreReady,
+  useLiveStoreReady,
+} from "../livestore/LivestoreProviderProvider.js";
 import { LoadingState } from "../loading/LoadingState";
 import { RuntLogoSmall } from "../logo/RuntLogoSmall";
 import { ContextSelectionModeButton } from "../notebook/ContextSelectionModeButton.js";
@@ -27,9 +31,9 @@ import { Button } from "../ui/button";
 import { TitleEditor } from "./notebook/TitleEditor";
 import { SharingModal } from "./SharingModal";
 import { SimpleUserProfile } from "./SimpleUserProfile";
-import type { NotebookProcessed } from "./types";
-import { TagSelectionDialog } from "./TagSelectionDialog";
 import { TagBadge } from "./TagBadge.js";
+import { TagSelectionDialog } from "./TagSelectionDialog";
+import type { NotebookProcessed } from "./types";
 
 // Lazy import DebugPanel only in development
 const LazyDebugPanel = React.lazy(() =>
@@ -38,52 +42,32 @@ const LazyDebugPanel = React.lazy(() =>
   }))
 );
 
-export const NotebookPage: React.FC = () => {
-  const { id } = useParams<{ id: string }>();
+function useNotebook(id: string, initialNotebook?: NotebookProcessed) {
   const trpc = useTrpc();
-  const location = useLocation();
-  const navigate = useNavigate();
-  const [isTagSelectionOpen, setIsTagSelectionOpen] = useState(false);
-  const [isSharingModalOpen, setIsSharingModalOpen] = useState(false);
-  const [showRuntimeHelper, setShowRuntimeHelper] = React.useState(false);
-  const [liveStoreReady, setLiveStoreReady] = useState(false);
-  const debug = useDebug();
 
-  // Get initial notebook data from router state (if navigated from creation)
-  const initialNotebook = location.state?.initialNotebook as
-    | NotebookProcessed
-    | undefined;
-
-  // Query notebook data using tRPC
+  // Query notebook data
   const {
     data: notebookData,
     isLoading,
     error,
     refetch,
-  } = useQuery({
-    ...trpc.notebook.queryOptions({ id: id! }),
-    enabled: !!id,
-  });
+  } = useQuery(trpc.notebook.queryOptions({ id: id }));
 
   // Get notebook owner
-  const { data: owner } = useQuery({
-    ...trpc.notebookOwner.queryOptions({ nbId: id! }),
-    enabled: !!id,
-  });
+  const { data: owner } = useQuery(
+    trpc.notebookOwner.queryOptions({ nbId: id })
+  );
 
   // Get notebook collaborators
-  const { data: collaborators } = useQuery({
-    ...trpc.notebookCollaborators.queryOptions({ nbId: id! }),
-    enabled: !!id,
-  });
+  const { data: collaborators } = useQuery(
+    trpc.notebookCollaborators.queryOptions({ nbId: id })
+  );
 
   // Get user's permission level
-  const { data: myPermission } = useQuery({
-    ...trpc.myNotebookPermission.queryOptions({ nbId: id! }),
-    enabled: !!id,
-  });
+  const { data: myPermission } = useQuery(
+    trpc.myNotebookPermission.queryOptions({ nbId: id })
+  );
 
-  // Construct the full notebook object with all the data
   const notebook: NotebookProcessed | null = React.useMemo(() => {
     if (!notebookData && !initialNotebook) return null;
 
@@ -102,10 +86,15 @@ export const NotebookPage: React.FC = () => {
     } as const;
   }, [notebookData, initialNotebook, myPermission, owner, collaborators]);
 
+  return { notebook, isLoading, error, refetch };
+}
+
+function useNavigateToCanonicalUrl(notebook: NotebookProcessed) {
+  const navigate = useNavigate();
+  const location = useLocation();
+
   // Redirect to canonical vanity URL when title changes or on initial load
   useEffect(() => {
-    if (!notebook || isLoading) return;
-
     const needsCanonical = !hasCorrectNotebookVanityUrl(
       location.pathname,
       notebook.id,
@@ -116,14 +105,32 @@ export const NotebookPage: React.FC = () => {
       const canonicalUrl = getNotebookVanityUrl(notebook.id, notebook.title);
       navigate(canonicalUrl, { replace: true });
     }
-  }, [
-    notebook?.title,
-    notebook?.id,
-    location.pathname,
-    navigate,
-    isLoading,
-    notebook,
-  ]);
+  }, [notebook?.title, notebook?.id, location.pathname, navigate, notebook]);
+}
+
+export const NotebookPage: React.FC = () => {
+  const { id } = useParams<{ id: string }>();
+
+  if (!id) return <div>No notebook id</div>;
+
+  return (
+    <LiveStoreProviderProvider storeId={id}>
+      <NotebookPageWithId id={id} />
+    </LiveStoreProviderProvider>
+  );
+};
+
+function NotebookPageWithId({ id }: { id: string }) {
+  const location = useLocation();
+  // Get initial notebook data from router state (if navigated from creation)
+  const initialNotebook = location.state?.initialNotebook as
+    | NotebookProcessed
+    | undefined;
+
+  const { notebook, isLoading, error, refetch } = useNotebook(
+    id,
+    initialNotebook
+  );
 
   if (isLoading && !initialNotebook) {
     return <LoadingState variant="fullscreen" message="Loading notebook..." />;
@@ -152,11 +159,34 @@ export const NotebookPage: React.FC = () => {
     );
   }
 
-  const canEdit = notebook.myPermission === "OWNER";
+  return (
+    <NotebookPageWithIdAndNotebook
+      id={id}
+      notebook={notebook}
+      refetch={refetch}
+    />
+  );
+}
 
-  if (!id) {
-    return <div>No notebook id</div>;
-  }
+function NotebookPageWithIdAndNotebook({
+  id,
+  notebook,
+  refetch,
+}: {
+  id: string;
+  notebook: NotebookProcessed;
+  refetch: () => void;
+}) {
+  useNavigateToCanonicalUrl(notebook);
+
+  const liveStoreReady = useLiveStoreReady();
+  const debug = useDebug();
+
+  const [isTagSelectionOpen, setIsTagSelectionOpen] = useState(false);
+  const [isSharingModalOpen, setIsSharingModalOpen] = useState(false);
+  const [showRuntimeHelper, setShowRuntimeHelper] = useState(false);
+
+  const canEdit = notebook.myPermission === "OWNER";
 
   return (
     <div className="bg-background min-h-screen">
@@ -264,10 +294,7 @@ export const NotebookPage: React.FC = () => {
       </div>
 
       <LiveStoreSpinnerContainer liveStoreReady={liveStoreReady}>
-        <CustomLiveStoreProvider
-          storeId={id}
-          onLiveStoreReady={() => setLiveStoreReady(true)}
-        >
+        <LiveStoreReady>
           <div className="flex">
             <div className="container mx-auto px-4">
               <div className="mb-4 flex h-8 items-center gap-3">
@@ -311,7 +338,7 @@ export const NotebookPage: React.FC = () => {
               </Suspense>
             )}
           </div>
-        </CustomLiveStoreProvider>
+        </LiveStoreReady>
 
         {/* Sharing Modal */}
         <SharingModal
@@ -335,31 +362,31 @@ export const NotebookPage: React.FC = () => {
       </LiveStoreSpinnerContainer>
     </div>
   );
-};
 
-function LiveStoreSpinnerContainer({
-  children,
-  liveStoreReady,
-}: {
-  children: React.ReactNode;
-  liveStoreReady: boolean;
-}) {
-  return (
-    // Spinner is relative to this div
-    <div className="relative">
-      {children}
+  function LiveStoreSpinnerContainer({
+    children,
+    liveStoreReady,
+  }: {
+    children: React.ReactNode;
+    liveStoreReady: boolean;
+  }) {
+    return (
+      // Spinner is relative to this div
+      <div className="relative">
+        {children}
 
-      {/* Loading spinner */}
-      <div
-        className={cn(
-          "pointer-events-none absolute inset-0 z-50 flex items-center justify-center",
-          liveStoreReady ? "opacity-0" : "opacity-100"
-        )}
-      >
-        <div className="bg-background flex items-center justify-center rounded-full">
-          <DelayedSpinner size="lg" />
+        {/* Loading spinner */}
+        <div
+          className={cn(
+            "pointer-events-none absolute inset-0 z-50 flex items-center justify-center",
+            liveStoreReady ? "opacity-0" : "opacity-100"
+          )}
+        >
+          <div className="bg-background flex items-center justify-center rounded-full">
+            <DelayedSpinner size="lg" />
+          </div>
         </div>
       </div>
-    </div>
-  );
+    );
+  }
 }
