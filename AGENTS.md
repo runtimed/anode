@@ -1,27 +1,25 @@
 # AI Agent Development Context
 
-This document provides essential context for AI assistants working on the Anode
+This document provides essential context for AI assistants working on the [Anode](https://github.com/runtimed/anode)
 project.
 
-Current work state and next steps. What works, what doesn't. Last updated: July 2025.
+Current work state and next steps. What works, what doesn't. Last updated: September 2025.
 
-**Development Workflow**: The user will typically be running the integrated development server with `pnpm dev` in one tab. If you need to check work, run a build and/or lints, tests, typechecks. If the user isn't running the dev environment, tell them how to start it at the base of the repo with `pnpm dev`.
+**Development Workflow**: The user will typically be running the services in separate terminal tabs from the conversation with you. If you need to check work it is advised to run type checks first followed by lints, tests, and a build of the UI. If the user isn't running the dev environment, recommend instructions from the [`README.md`](./README.md)
 
 ## Project Overview
 
-Anode is a real-time collaborative notebook system built on LiveStore, an
-event-sourcing based local-first data synchronization library.
+Anode is a real-time collaborative notebook system built on LiveStore, an event-sourcing based local-first data synchronization library. In order to make this work, anode relies on runtime agents via the [`runt` packages released on jsr.io](https://github.com/runtimed/runt).
 
-**Current Status**: A robust, real-time collaborative notebook system deployed at https://app.runt.run. It features Python execution with rich outputs and integrated AI capabilities, all built on a unified, event-sourced output system. The system is stable and in production, with ongoing enhancements focused on advanced AI interaction and runtime management.
+**Current Status**: A robust, real-time collaborative notebook system deployed at https://app.runt.run. It features Python execution with rich outputs and integrated AI capabilities, all built on a unified, event-sourced output system. The system is stable and in production, with ongoing enhancements focused on runtime management.
 
 ## Architecture
 
 - **Schema** (`jsr:@runt/schema`): LiveStore schema definitions (events, state,
   materializers) - Published JSR package imported by all packages with full type
   inference. Comes via https://github.com/runtimed/runt's deno monorepo
-- **All-in-one Worker**: Unified Cloudflare Worker serving both web client and backend API
-- **Web Client**: React-based web interface (served from the worker)
-- **Document Worker**: Cloudflare Worker for sync backend with artifact storage
+- **Web Client**: React-based web interface (locally served via vite, deployed as `ASSETS` from the cloudflare worker)
+- **Document Worker**: Cloudflare Worker for sync backend and API (permissions, database, artifact storage)
 - **Pyodide Runtime Agent**: Python execution client using @runt packages
 
 ## Key Dependencies
@@ -36,18 +34,16 @@ event-sourcing based local-first data synchronization library.
 ### What's Actually Working ✅
 
 - ✅ **LiveStore integration** - Event-sourcing with real-time collaboration
-- ✅ **Python execution** - Code cells run Python via Pyodide with rich outputs
-  (matplotlib SVG, pandas HTML, IPython.display)
+- ✅ **Execution** - Code cells run Python via Pyodide with rich outputs. Other languages can be implemented as new runtime agents.
 - ✅ **Real-time collaboration** - Multiple users can edit notebooks
   simultaneously
-- ✅ **Cell management** - Create, edit, move, delete cells with proper state
+- ✅ **Cell management** - Create, edit, delete cells with proper state
   sync
-- ✅ **Rich output rendering** - Full IPython display support: matplotlib SVG,
-  pandas HTML, colored terminal output
+- ✅ **Rich output rendering** - Full IPython-style display support: matplotlib plots,
+  pandas HTML, colored terminal output, images
 - ✅ **AI integration** - Full notebook context awareness, sees previous cells
   and their outputs
-- ✅ **AI tool calling** - AI can create new cells and modify them using
-  function calling
+- ✅ **AI tool calling** - Runtime agents can create, run, and modify cells in the same notebook. The framework for tools is more extensible as the primary pyodide runtime agent supports `@tool` decorators as well as the Model Context Protocol.
 - ✅ **Context inclusion controls** - Users can exclude cells from AI context
   with visibility toggles
 - ✅ **Production deployment** - All-in-one worker deployed to Cloudflare at
@@ -60,13 +56,7 @@ event-sourcing based local-first data synchronization library.
   matplotlib) for faster startup
 - ✅ **AI context with outputs** - AI sees execution results, not just source
   code, for intelligent assistance with data analysis
-- ✅ **Unified Output System** - Granular, type-safe events for all output types
-- ✅ **Clear output functionality** - `clear_output(wait=True/False)` working properly
-- ✅ **Terminal output grouping** - Consecutive terminal outputs merge naturally
-- ✅ **Error output rendering** - Proper traceback display with JSON error parsing
-- ✅ **All tests passing** - 60/60 tests covering output system
 - ✅ **Artifact service** - Deployed with upload/download endpoints and R2 storage
-- ✅ **Development stability** - Integrated dev server with hot reload stability
 
 ### Core Architecture Constraints
 
@@ -77,9 +67,8 @@ event-sourcing based local-first data synchronization library.
   execution queue
 - **Direct TypeScript schema**: No build step, imports work across packages
 - **Session-based runtimes**: Each runtime restart gets unique `sessionId`
-- **One runtime per notebook**: Each notebook has exactly one active runtime at a
-  time
-- **Artifact storage**: First version backend for external storage (uploads authenticated, downloads currently unauthenticated)
+- **One runtime per notebook**: Each notebook is intended to have one active runtime at a time
+- **Artifact storage**: Large outputs are placed in artifact storage for on demand retrieval as raw bytes. For example, instead of base64 encoded images for plots, the system returns the proper media type as `Content-Type` allowing to use regular `src=` attributes with an artifact URL.
 
 ### Runtime-Notebook Relationship
 
@@ -376,9 +365,10 @@ anode/
 ## Development Workflow Notes
 
 - **User Environment**: The user will typically have:
-  - Integrated server running in one tab (`pnpm dev`) - includes both frontend and backend
-  - Python runtime available via `pnpm dev:runtime` (uses @runt JSR packages,
-    command customizable via VITE_RUNTIME_COMMAND)
+  - Frontend server running (`pnpm dev`) on port 5173
+  - Backend sync server running (`pnpm dev:sync`) on port 8787
+  - Iframe outputs server running (`pnpm dev:iframe`) on port 8000
+  - Runtime agent running on demand for notebooks they're working with (uses `@runt` JSR packages)
 
 **Checking Work**: To verify changes, run:
 
