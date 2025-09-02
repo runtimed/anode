@@ -19,6 +19,7 @@ import NavPage from "./pages/NavPage";
 import NbPage from "./pages/NbPage";
 import NbDashboardPage from "./pages/NbDashboardPage";
 import { ErrorBoundary } from "react-error-boundary";
+import { TrpcProvider } from "./components/TrpcProvider";
 
 export const App: React.FC = () => {
   // Safety net: Auto-remove loading screen if no component has handled it
@@ -109,7 +110,9 @@ export const App: React.FC = () => {
                     />
                   }
                 >
-                  <NbDashboardPage />
+                  <TrpcProvider>
+                    <NbDashboardPage />
+                  </TrpcProvider>
                 </Suspense>
               </AuthGuard>
             }
