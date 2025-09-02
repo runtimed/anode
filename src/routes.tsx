@@ -94,7 +94,9 @@ export const App: React.FC = () => {
             path="/nb2/:id/*"
             element={
               <AuthGuard>
-                <NbPage />
+                <TrpcProvider>
+                  <NbPage />
+                </TrpcProvider>
               </AuthGuard>
             }
           />
