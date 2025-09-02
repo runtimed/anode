@@ -67,8 +67,10 @@ pnpm install  # Install dependencies
 cp .env.example .env
 cp .dev.vars.example .dev.vars
 
-# Start development (single server with integrated backend)
-pnpm dev
+# Start development servers in separate terminals
+pnpm dev           # Frontend at http://localhost:5173
+pnpm dev:sync      # Backend at http://localhost:8787
+pnpm dev:iframe    # Iframe outputs at http://localhost:8000
 ```
 
 The example files contain sensible defaults that work for local development out of the box:
@@ -79,12 +81,13 @@ The example files contain sensible defaults that work for local development out 
 ### 2. Create Your First Notebook
 
 1. Open http://localhost:5173
-2. URL automatically gets notebook ID: `?notebook=notebook-123-abc`
+2. Click "New Notebook"
 3. Start creating cells and editing
 
 ### 3. Get Runtime Command from UI
 
 - Open the notebook interface
+- Create a `RUNT_API_KEY` via your user profile
 - Click the **Runtime** button in the notebook header
 - Copy the exact `NOTEBOOK_ID=xxx pnpm dev:runtime` command shown
 - Run that command in your terminal
@@ -138,34 +141,13 @@ This unified architecture simplifies deployment while providing robust real-time
 
 See [ROADMAP.md](./ROADMAP.md) for detailed implementation plan.
 
-**Enhanced AI Partnership** - AI will modify existing cells and execute code,
-not just create new ones.
-
 **Frictionless Setup** - One-click runtime startup instead of copy/paste
 commands.
 
-**Production Scale** - "Bring Your Own Compute" with API tokens for enterprise
-use.
-
 **Multi-language Support** - The runtime architecture already supports other
-languages, just need UI updates!
+languages with custom runtime agents. We just need UI updates!
 
 ## Local Development
-
-Want to run Anode locally or contribute? Here's the essentials:
-
-```bash
-# One-time setup
-pnpm install             # Install dependencies
-cp .env.example .env     # Copy environment configuration
-cp .dev.vars.example .dev.vars
-
-# Start development (single server with integrated backend)
-pnpm dev                 # Web interface + backend at http://localhost:5173
-
-# For Python execution, get the command from the notebook UI
-# Then run: NOTEBOOK_ID=your-notebook-id pnpm dev:runtime
-```
 
 ### Schema Linking for Development
 
@@ -211,7 +193,7 @@ Should update packages.json to use the local version of `runt`:
 
 1. Update `package.json` with the appropriate schema reference
 2. Run `pnpm install` to update dependencies
-3. Restart development server (`pnpm dev`)
+3. Restart UI development server (`pnpm dev`)
 
 **Important**: Ensure both repositories use compatible schema versions. Type errors usually indicate schema mismatches.
 
