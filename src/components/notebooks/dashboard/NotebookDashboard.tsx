@@ -16,8 +16,12 @@ import { useNotebooks } from "@/hooks/use-notebooks";
 import { trpcQueryClient } from "@/lib/trpc-client";
 import { useQuery } from "@tanstack/react-query";
 import { Grid3X3, List, Plus, Search, User, Users } from "lucide-react";
-import React, { useMemo } from "react";
-import { useCreateNotebookAndNavigate, useDashboardParams } from "./helpers";
+import React from "react";
+import {
+  useCreateNotebookAndNavigate,
+  useDashboardParams,
+  useSmartDefaultFilter,
+} from "./helpers";
 import { NoResults, Results } from "./Results";
 
 const DebugNotebooks = React.lazy(() =>
@@ -258,7 +262,7 @@ function Filters({ allNotebooks }: { allNotebooks: NotebookProcessed[] }) {
 
 // ---
 
-function TopHeader() {
+export function TopHeader() {
   const { viewMode, setViewMode } = useDashboardParams();
   const createNotebook = useCreateNotebookAndNavigate();
 
@@ -324,50 +328,4 @@ function SearchInput() {
       />
     </div>
   );
-}
-
-function useSmartDefaultFilter({
-  allNotebooks,
-}: {
-  allNotebooks: NotebookProcessed[];
-}) {
-  const { activeFilter, setActiveFilter } = useDashboardParams();
-
-  // Check if user has named notebooks
-  const hasNamedNotebooks = useMemo(() => {
-    return allNotebooks.some(
-      (n) =>
-        n.myPermission === "OWNER" && n.title && !n.title.startsWith("Untitled")
-    );
-  }, [allNotebooks]);
-
-  // Set smart default filter when data first loads
-  const hasNotebooks = allNotebooks.length > 0;
-  React.useEffect(() => {
-    if (hasNotebooks && activeFilter === "named") {
-      const hasScratchNotebooks = allNotebooks.some(
-        (n) =>
-          n.myPermission === "OWNER" &&
-          (!n.title || n.title.startsWith("Untitled"))
-      );
-      const hasSharedNotebooks = allNotebooks.some(
-        (n) => n.myPermission === "WRITER"
-      );
-
-      // Smart default: named > scratch > shared
-      if (hasNamedNotebooks) {
-        // Stay on named
-      } else if (hasScratchNotebooks) {
-        setActiveFilter("scratch");
-      } else if (hasSharedNotebooks) {
-        setActiveFilter("shared");
-      }
-    }
-  }, [
-    hasNotebooks,
-    activeFilter,
-    hasNamedNotebooks,
-    allNotebooks,
-    setActiveFilter,
-  ]);
 }

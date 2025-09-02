@@ -1,14 +1,61 @@
-import { useMutation } from "@tanstack/react-query";
-import React, { useCallback } from "react";
-import { useNavigate, useSearchParams } from "react-router-dom";
 import { useTrpc } from "@/components/TrpcProvider";
+import { useMutation } from "@tanstack/react-query";
+import React, { useCallback, useMemo } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
 
 import { trpcQueryClient } from "@/lib/trpc-client";
 
+import { NotebookProcessed } from "@/components/notebooks/types";
 import { FilterType } from "@/hooks/use-notebooks";
 import { getNotebookVanityUrl } from "@/util/url-utils";
 
 type ViewMode = "grid" | "table";
+
+export function useSmartDefaultFilter({
+  allNotebooks,
+}: {
+  allNotebooks: NotebookProcessed[];
+}) {
+  const { activeFilter, setActiveFilter } = useDashboardParams();
+
+  // Check if user has named notebooks
+  const hasNamedNotebooks = useMemo(() => {
+    return allNotebooks.some(
+      (n) =>
+        n.myPermission === "OWNER" && n.title && !n.title.startsWith("Untitled")
+    );
+  }, [allNotebooks]);
+
+  // Set smart default filter when data first loads
+  const hasNotebooks = allNotebooks.length > 0;
+  React.useEffect(() => {
+    if (hasNotebooks && activeFilter === "named") {
+      const hasScratchNotebooks = allNotebooks.some(
+        (n) =>
+          n.myPermission === "OWNER" &&
+          (!n.title || n.title.startsWith("Untitled"))
+      );
+      const hasSharedNotebooks = allNotebooks.some(
+        (n) => n.myPermission === "WRITER"
+      );
+
+      // Smart default: named > scratch > shared
+      if (hasNamedNotebooks) {
+        // Stay on named
+      } else if (hasScratchNotebooks) {
+        setActiveFilter("scratch");
+      } else if (hasSharedNotebooks) {
+        setActiveFilter("shared");
+      }
+    }
+  }, [
+    hasNotebooks,
+    activeFilter,
+    hasNamedNotebooks,
+    allNotebooks,
+    setActiveFilter,
+  ]);
+}
 
 export function useCreateNotebookAndNavigate() {
   const trpc = useTrpc();
