@@ -118,7 +118,7 @@ The `@runt/schema` package provides the shared types and events between Anode an
 ### Production (JSR Package)
 
 ```json
-"@runt/schema": "jsr:^0.9.0"
+"@runt/schema": "jsr:^0.11.1"
 ```
 
 Use this for stable releases and production deployments.
@@ -514,43 +514,11 @@ const titleMetadata = useQuery(
 
 **Deployment (Cloudflare):**
 
-- All-in-one Worker: `https://app.runt.run` (unified worker serving both backend and frontend)
+- Primary all-in-one Worker: `https://app.runt.run` (unified worker serving both backend and frontend)
 - D1: Production data persistence
 - R2: Artifact storage for large outputs
-- Secrets: Auth tokens, API keys
 - Runtime: Python execution via `@runt` packages
-
-## Notes for AI Assistants
-
-**Current Status - Production Deployment Working**
-
-- **LiveStore foundation** - Real-time collaborative editing deployed and stable
-- **Full Python execution** - Rich outputs working (matplotlib, pandas,
-  IPython.display)
-- **Complete AI integration** - Full notebook context awareness, can create and
-  modify cells
-- **Production deployment** - Cloudflare Pages + Workers with authentication
-
-### Key Development Insights
-
-- **Deployment Ready**: The full stack is working on Cloudflare infrastructure.
-- **Rich outputs working**: Complete IPython display compatibility with matplotlib and pandas.
-- **AI context awareness**: AI sees the full notebook state, including outputs.
-
-### Immediate Technical Goals
-
-- **User-attributed runtimes**: Implement API token system for "Bring Your Own Compute".
-- **Automated runtime orchestration**: Develop production runtime provisioning.
-
-### Communication Style
-
-- Be direct about what works and what doesn't
-- Focus on helping developers solve actual problems
-- Use code examples over lengthy explanations
-- Keep commit messages short and factual
-- State facts without marketing language
-- Say "this is a prototype" or "this part needs work" when true
-- Always bring a towel
+- Separate domain for IFrame `https://runtusercontent.com`
 
 ## Development Workflow Notes
 
@@ -565,24 +533,9 @@ const titleMetadata = useQuery(
 ```bash
 pnpm build           # Build all packages
 pnpm lint            # Check code style
-pnpm test            # Run test suite (60/60 passing)
+pnpm test            # Run test suite
 pnpm type-check      # TypeScript validation
 pnpm check           # Run all checks at once
-```
-
-**If Dev Environment Not Running**: To start the development environment:
-
-```bash
-# Setup environment
-pnpm install         # Install dependencies
-cp .env.example .env # Copy environment configuration
-cp .dev.vars.example .dev.vars
-
-# Start development (single server with integrated backend)
-pnpm dev             # Web client + backend at http://localhost:5173
-
-# For Python runtime (get NOTEBOOK_ID from UI, then run):
-NOTEBOOK_ID=your-notebook-id pnpm dev:runtime
 ```
 
 **Development Stability**: The integrated development server is stable with hot reload for most changes. Environment file changes are ignored to prevent crashes. If the server crashes, restart with `pnpm dev`.
@@ -590,6 +543,16 @@ NOTEBOOK_ID=your-notebook-id pnpm dev:runtime
 **For detailed development priorities, see [ROADMAP.md](./ROADMAP.md)**
 
 ## Communication Guidelines for AI Assistants
+
+### Communication Style
+
+- Be direct about what works and what doesn't
+- Focus on helping developers solve actual problems
+- Use code examples over lengthy explanations
+- Keep commit messages short and factual
+- State facts without marketing language
+- Say "this is a prototype" or "this part needs work" when true
+- Always bring a towel
 
 ### Senior Engineering Collaboration
 
