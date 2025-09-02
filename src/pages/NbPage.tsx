@@ -3,7 +3,7 @@ import { CollaboratorAvatars } from "@/components/CollaboratorAvatars";
 import { ContextSelectionModeButton } from "@/components/notebook/ContextSelectionModeButton";
 import { useDebug } from "@/components/debug/debug-mode";
 import {
-  LivestoreProviderProvider,
+  LiveStoreProviderProvider,
   LiveStoreReady,
 } from "@/components/livestore/LivestoreProviderProvider";
 import { RuntimeHealthIndicatorButton } from "@/components/notebook/RuntimeHealthIndicatorButton";
@@ -42,7 +42,7 @@ export default function NbPage() {
   }
 
   return (
-    <LivestoreProviderProvider storeId={id}>
+    <LiveStoreProviderProvider storeId={id}>
       <SidebarProvider
         style={
           {
@@ -100,6 +100,6 @@ export default function NbPage() {
           {import.meta.env.DEV && debug.enabled && <SidebarRightDebug />}
         </LiveStoreReady>
       </SidebarProvider>
-    </LivestoreProviderProvider>
+    </LiveStoreProviderProvider>
   );
 }

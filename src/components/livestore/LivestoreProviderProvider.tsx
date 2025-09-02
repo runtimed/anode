@@ -57,15 +57,15 @@ const LiveStoreReadyDetector: React.FC<{ onReady?: () => void }> = ({
   return null;
 };
 
-interface LivestoreProviderProviderProps {
+interface LiveStoreProviderProviderProps {
   storeId: string;
   onLiveStoreReady?: () => void;
   children: React.ReactNode;
 }
 
 // LiveStore setup - moved inside AuthGuard to ensure auth happens first
-export const LivestoreProviderProvider: React.FC<
-  LivestoreProviderProviderProps
+export const LiveStoreProviderProvider: React.FC<
+  LiveStoreProviderProviderProps
 > = ({ storeId, onLiveStoreReady, children }) => {
   const [liveStoreReady, setLiveStoreReady] = useState(false);
 
