@@ -31,12 +31,14 @@ Users can create notebooks, execute Python code, collaborate in real-time, use A
 **Target**: One-click runtime startup directly in browser
 
 **Implementation** (#447):
+
 - Browser-based Pyodide runtime agent
 - Embedded runtime management in web client
 - Auto-connect when opening notebooks
 - Owner-only runtime launch permissions
 
 **Benefits**:
+
 - Zero-friction notebook experience
 - Scalable for alpha user onboarding
 - No infrastructure management needed
@@ -44,11 +46,13 @@ Users can create notebooks, execute Python code, collaborate in real-time, use A
 ### 2. Runtime Management Improvements
 
 **Stale Runtime Cleanup** (#465):
+
 - Button to evict disappeared runtimes
 - Runtime health monitoring
 - Automatic cleanup of stale connections
 
 **RuntHQ Integration** (#335):
+
 - Autoconnect runtime on notebook open
 - Seamless runtime orchestration
 - Owner permission controls
@@ -56,12 +60,14 @@ Users can create notebooks, execute Python code, collaborate in real-time, use A
 ### 3. Product Naming & Alpha Preparation
 
 **Finalize Branding** (#448):
+
 - Decide between runtimed/anode/runt/rabbit naming
 - Domain strategy for alpha launch
 
 ### 4. Critical Bug Fixes
 
 **LiveStore Output Reactivity** (#415 - Critical):
+
 - Fix UI becoming unresponsive when outputs update
 - React Compiler compatibility issues
 - Ensure reliable real-time collaboration
@@ -71,17 +77,20 @@ Users can create notebooks, execute Python code, collaborate in real-time, use A
 ### Runtime Ecosystem Expansion
 
 **Local CPython Support** (#87, #99):
+
 - Connect to external Python environments
 - Ephemeral and persistent environment options
 
 ### Enhanced User Experience
 
 **Improved Code Editing** (#154):
+
 - Tab completion (Jupyter-style)
 - Better autocomplete behavior
 - LSP integration foundations
 
 **Output Management** (#173):
+
 - Granular output collapsing
 
 ## Medium-term Vision (6+ Months)
@@ -89,11 +98,13 @@ Users can create notebooks, execute Python code, collaborate in real-time, use A
 ### Advanced Runtime Capabilities
 
 **Multi-Runtime Support**:
+
 - ZeroMQ integration for external kernels (#61)
 - Jupyter kernel protocol compatibility
 - Container and remote runtime management
 
 **Enhanced Python Experience**:
+
 - Package management system (#63)
 - Variable inspection and debugging (#175)
 - SQL cell implementation with DuckDB (#62)
@@ -101,12 +112,14 @@ Users can create notebooks, execute Python code, collaborate in real-time, use A
 ### Rich Media Support
 
 **Enhanced Outputs**:
+
 - Vega/Vega-Lite visualization (#267)
 - GeoJSON mapping support (#266)
 - Interactive widgets (#183)
 - Advanced 3D visualizations
 
 **Content Management**:
+
 - Jupyter notebook compatibility (#184)
 - Import/export capabilities
 
