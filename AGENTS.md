@@ -95,7 +95,7 @@ pnpm install  # Install dependencies
 cp .env.example .env  # Copy environment configuration
 cp .dev.vars.example .dev.vars
 
-# Start development servers
+# Start development servers in separate terminals
 pnpm dev           # Frontend at http://localhost:5173
 pnpm dev:sync      # Backend at http://localhost:8787
 pnpm dev:iframe    # Iframe outputs at http://localhost:8000
@@ -143,7 +143,7 @@ Use this when developing locally with both Anode and Runt repositories side-by-s
 
 1. **Update `package.json`** with the appropriate schema reference
 2. **Run `pnpm install`** to update dependencies
-3. **Restart your development server** (`pnpm dev`)
+3. **Restart the vite web UI** (`pnpm dev`)
 
 **Important**: Always ensure both repositories are using compatible schema versions. Type errors likely indicate schema mismatches.
 
@@ -538,7 +538,7 @@ pnpm type-check      # TypeScript validation
 pnpm check           # Run all checks at once
 ```
 
-**Development Stability**: The integrated development server is stable with hot reload for most changes. Environment file changes are ignored to prevent crashes. If the server crashes, restart with `pnpm dev`.
+**Development Stability**: Both the vite web server and the wrangler-backed backend should reload properly for most changes. Feel free to check with the user to see if this is the case.
 
 **For detailed development priorities, see [ROADMAP.md](./ROADMAP.md)**
 
