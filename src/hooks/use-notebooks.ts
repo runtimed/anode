@@ -17,6 +17,7 @@ export function useNotebooks(
   const {
     data: notebooksData,
     isLoading,
+    isFetching,
     error,
     refetch,
   } = useQuery(trpc.notebooks.queryOptions({}));
@@ -111,7 +112,7 @@ export function useNotebooks(
     filteredNotebooks,
     recentScratchNotebooks,
     namedNotebooks,
-    isLoading,
+    isLoading: isLoading || isFetching,
     error,
     refetch,
   };

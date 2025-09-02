@@ -45,7 +45,7 @@ export default function NbDashboardPage() {
 
   useSmartDefaultFilter({ allNotebooks });
 
-  if (error) {
+  if (error && !isLoading) {
     return (
       <div className="container mx-auto py-8">
         <div className="text-center">
