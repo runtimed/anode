@@ -9,6 +9,7 @@ export function CollaboratorAvatars() {
 
   const otherUsers = presentUsers.filter((user) => user.id !== userId);
   const LIMIT = 5;
+
   return (
     <div className="group/users flex items-center gap-2">
       <div className="flex -space-x-2 group-hover/users:space-x-1">
@@ -32,7 +33,7 @@ export function CollaboratorAvatars() {
             >
               {IconComponent ? (
                 <div
-                  className={`flex size-8 items-center justify-center rounded-full ${clientInfo.backgroundColor}`}
+                  className={`flex size-6 items-center justify-center rounded-full ${clientInfo.backgroundColor}`}
                 >
                   <IconComponent className={`size-4 ${clientInfo.textColor}`} />
                 </div>

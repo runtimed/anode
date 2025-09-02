@@ -16,13 +16,13 @@ export const RuntimeHealthIndicatorButton: React.FC<
   return (
     <Button
       variant="outline"
-      size="sm"
+      size="xs"
       onClick={onToggleClick}
       className="flex items-center gap-1 sm:gap-2"
     >
-      <Terminal className="h-3 w-3 sm:h-4 sm:w-4" />
+      <Terminal className="h-3 w-3" />
 
-      <span className="hidden text-xs sm:block sm:text-sm">
+      <span className="hidden text-xs sm:block">
         {activeRuntime?.runtimeType ?? "unknown"}
       </span>
 

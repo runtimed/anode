@@ -10,18 +10,18 @@ export function ContextSelectionModeButton() {
   return (
     <Button
       variant={contextSelectionMode ? "default" : "outline"}
-      size="sm"
+      size="xs"
       onClick={() =>
         store.setSignal(contextSelectionMode$, !contextSelectionMode)
       }
-      className="flex items-center gap-1 sm:gap-2"
+      className="flex items-center"
     >
       {contextSelectionMode ? (
-        <X className="h-3 w-3 sm:h-4 sm:w-4" />
+        <X className="size-3" />
       ) : (
-        <Filter className="h-3 w-3 sm:h-4 sm:w-4" />
+        <Filter className="size-3" />
       )}
-      <span className="text-xs sm:text-sm">
+      <span className="text-xs">
         {contextSelectionMode ? "Done" : "Context"}
       </span>
     </Button>
