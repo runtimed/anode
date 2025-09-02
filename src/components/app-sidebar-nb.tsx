@@ -241,27 +241,11 @@ export function AppSidebarNb({
                     </SidebarMenuButton>
                   </SidebarMenuItem>
                 ))}
-                {import.meta.env.DEV && (
-                  <SidebarMenuItem>
-                    <SidebarMenuButton
-                      tooltip={{
-                        children: "Debug Mode",
-                        hidden: false,
-                      }}
-                      className="px-2.5 md:px-2"
-                      onClick={() => debug.setEnabled(!debug.enabled)}
-                    >
-                      {debug.enabled ? <Bug /> : <BugOff />}
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-                )}
               </SidebarMenu>
             </SidebarGroupContent>
           </SidebarGroup>
         </SidebarContent>
-        <SidebarFooter>
-          <NavUser />
-        </SidebarFooter>
+        <SidebarFooter>{/* <NavUser /> */}</SidebarFooter>
       </Sidebar>
 
       {/* This is the second sidebar */}
