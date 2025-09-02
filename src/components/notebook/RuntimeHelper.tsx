@@ -54,8 +54,8 @@ export const RuntimeHelper: React.FC<RuntimeHelperProps> = ({
   if (!showRuntimeHelper && runtimeHealth === "healthy") return null;
 
   return (
-    <div className="bg-card border-t">
-      <div className="w-full px-3 py-4 sm:mx-auto sm:max-w-6xl sm:px-4">
+    <>
+      <div className="w-full py-4 sm:mx-auto sm:max-w-6xl">
         <div className="mb-3 flex items-center justify-between">
           <h4 className="flex items-center gap-2 text-sm font-medium">
             Runtime Status
@@ -223,6 +223,6 @@ export const RuntimeHelper: React.FC<RuntimeHelperProps> = ({
           </div>
         )}
       </div>
-    </div>
+    </>
   );
 };
