@@ -1,14 +1,9 @@
 import { useDebug } from "@/components/debug/debug-mode.js";
 import { cn } from "@/lib/utils";
-import { useQuery } from "@tanstack/react-query";
 import { ArrowLeft, Share2, Tag, User, Users } from "lucide-react";
-import React, { Suspense, useEffect, useState } from "react";
+import React, { Suspense, useState } from "react";
 import { ErrorBoundary } from "react-error-boundary";
-import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
-import {
-  getNotebookVanityUrl,
-  hasCorrectNotebookVanityUrl,
-} from "../../../util/url-utils.js";
+import { Link, useLocation, useParams } from "react-router-dom";
 import { CollaboratorAvatars } from "../../CollaboratorAvatars.js";
 import { DebugModeToggle } from "../../debug/DebugModeToggle.js";
 import { KeyboardShortcuts } from "../../KeyboardShortcuts.js";
@@ -25,15 +20,15 @@ import { NotebookContent } from "../../notebook/NotebookContent.js";
 import { RuntimeHealthIndicatorButton } from "../../notebook/RuntimeHealthIndicatorButton.js";
 import { RuntimeHelper } from "../../notebook/RuntimeHelper.js";
 import { DelayedSpinner } from "../../outputs/shared-with-iframe/SuspenseSpinner.js";
-import { useTrpc } from "../../TrpcProvider.js";
 import { Badge } from "../../ui/badge.js";
 import { Button } from "../../ui/button.js";
-import { TitleEditor } from "./TitleEditor.js";
 import { SharingModal } from "../SharingModal.js";
 import { SimpleUserProfile } from "../SimpleUserProfile.js";
 import { TagBadge } from "../TagBadge.js";
 import { TagSelectionDialog } from "../TagSelectionDialog.js";
 import type { NotebookProcessed } from "../types.js";
+import { useNavigateToCanonicalUrl, useNotebook } from "./helpers.js";
+import { TitleEditor } from "./TitleEditor.js";
 
 // Lazy import DebugPanel only in development
 const LazyDebugPanel = React.lazy(() =>
