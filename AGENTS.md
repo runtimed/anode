@@ -11,7 +11,7 @@ Current work state and next steps. What works, what doesn't. Last updated: Septe
 
 Anode is a real-time collaborative notebook system built on LiveStore, an event-sourcing based local-first data synchronization library. In order to make this work, anode relies on runtime agents via the [`runt` packages released on jsr.io](https://github.com/runtimed/runt).
 
-**Current Status**: A robust, real-time collaborative notebook system deployed at https://app.runt.run. It features Python execution with rich outputs and integrated AI capabilities, all built on a unified, event-sourced output system. The system is stable and in production, with ongoing enhancements focused on runtime management.
+**Current Status**: A real-time collaborative notebook system deployed at https://app.runt.run. It features Python execution with rich outputs and integrated AI capabilities, all built on a unified, event-sourced output system. The system is stable and in production, with ongoing enhancements focused on runtime management.
 
 ## Architecture
 
