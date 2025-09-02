@@ -81,10 +81,10 @@ export function SidebarRightDebug({
   return (
     <Sidebar
       collapsible="none"
-      className="sticky top-0 hidden h-svh w-96 lg:flex"
+      className="border-sidebar-border sticky top-0 hidden h-svh w-96 border-l lg:flex"
       {...props}
     >
-      <SidebarHeader className="border-sidebar-border border-b p-4">
+      <SidebarHeader className="border-sidebar-border flex h-14 flex-row items-center border-b px-4">
         <div className="flex items-center gap-2">
           <Bug className="h-4 w-4" />
           <span className="text-sm font-semibold">Runt Debug Panel</span>
