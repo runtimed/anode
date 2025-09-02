@@ -66,7 +66,9 @@ export const NotebookDashboard: React.FC = () => {
 
       {/* Main Content */}
       <div className="flex flex-1 flex-col overflow-hidden">
-        <TopHeader />
+        <div className="border-b border-gray-200 bg-white p-4">
+          <TopHeader />
+        </div>
 
         {/* Content Area */}
         <div className="flex-1 overflow-auto p-6">
@@ -261,49 +263,47 @@ function TopHeader() {
   const createNotebook = useCreateNotebookAndNavigate();
 
   return (
-    <div className="border-b border-gray-200 bg-white p-4">
-      <div className="flex items-center justify-between gap-4">
-        {/* Search */}
-        <SearchInput />
+    <div className="flex items-center justify-between gap-4">
+      {/* Search */}
+      <SearchInput />
 
-        {/* Actions */}
-        <div className="flex items-center gap-3">
-          {/* View Toggle */}
-          <div className="flex items-center rounded-md border">
-            <button
-              onClick={() => setViewMode("grid")}
-              className={`rounded-l-md p-2 transition-colors ${
-                viewMode === "grid"
-                  ? "bg-blue-50 text-blue-600"
-                  : "text-gray-500 hover:text-gray-700"
-              }`}
-            >
-              <Grid3X3 className="h-4 w-4" />
-            </button>
-            <button
-              onClick={() => setViewMode("table")}
-              className={`rounded-r-md p-2 transition-colors ${
-                viewMode === "table"
-                  ? "bg-blue-50 text-blue-600"
-                  : "text-gray-500 hover:text-gray-700"
-              }`}
-            >
-              <List className="h-4 w-4" />
-            </button>
-          </div>
-
-          {/* New Notebook Button */}
-          <Button onClick={createNotebook}>
-            <Plus className="mr-2 h-4 w-4" />
-            New Notebook
-          </Button>
-
-          {/* Debug Mode Toggle */}
-          {import.meta.env.DEV && <DebugModeToggle />}
-
-          {/* User Profile */}
-          <SimpleUserProfile />
+      {/* Actions */}
+      <div className="flex items-center gap-3">
+        {/* View Toggle */}
+        <div className="flex items-center rounded-md border">
+          <button
+            onClick={() => setViewMode("grid")}
+            className={`rounded-l-md p-2 transition-colors ${
+              viewMode === "grid"
+                ? "bg-blue-50 text-blue-600"
+                : "text-gray-500 hover:text-gray-700"
+            }`}
+          >
+            <Grid3X3 className="h-4 w-4" />
+          </button>
+          <button
+            onClick={() => setViewMode("table")}
+            className={`rounded-r-md p-2 transition-colors ${
+              viewMode === "table"
+                ? "bg-blue-50 text-blue-600"
+                : "text-gray-500 hover:text-gray-700"
+            }`}
+          >
+            <List className="h-4 w-4" />
+          </button>
         </div>
+
+        {/* New Notebook Button */}
+        <Button onClick={createNotebook}>
+          <Plus className="mr-2 h-4 w-4" />
+          New Notebook
+        </Button>
+
+        {/* Debug Mode Toggle */}
+        {import.meta.env.DEV && <DebugModeToggle />}
+
+        {/* User Profile */}
+        <SimpleUserProfile />
       </div>
     </div>
   );
