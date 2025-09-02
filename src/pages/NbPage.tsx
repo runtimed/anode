@@ -195,22 +195,21 @@ function NbContent({
 
             <Separator className="my-3" />
 
-            <div className="wrap-reverse flex flex-wrap items-center gap-2">
+            <div className="wrap-reverse flex flex-wrap items-center gap-4">
               {/* Metadata - Simplified */}
+              <div className="flex flex-wrap items-center gap-3 text-xs text-gray-500 sm:gap-4">
+                {/* Permission badge - smaller and less prominent */}
+                <Badge
+                  variant="secondary"
+                  className="bg-gray-100 px-2 py-1 text-xs text-gray-600"
+                >
+                  {(notebook.myPermission || "NONE").toLowerCase()}
+                </Badge>
 
-              {/* Permission badge - smaller and less prominent */}
-              <Badge
-                variant="secondary"
-                className="bg-gray-100 px-2 py-1 text-xs text-gray-600"
-              >
-                {(notebook.myPermission || "NONE").toLowerCase()}
-              </Badge>
-
-              <div className="flex items-center gap-4 text-xs text-gray-500">
                 {/* Owner - more subtle */}
                 <div className="flex items-center gap-1.5">
                   <User className="h-3 w-3" />
-                  <span>
+                  <span className="text-nowrap">
                     {notebook.owner?.givenName && notebook.owner?.familyName
                       ? `${notebook.owner.givenName} ${notebook.owner.familyName}`
                       : "Unknown Owner"}
@@ -222,7 +221,7 @@ function NbContent({
                   notebook.collaborators.length > 0 && (
                     <div className="flex items-center gap-1.5">
                       <Users className="h-3 w-3" />
-                      <span>
+                      <span className="text-nowrap">
                         {notebook.collaborators.length}{" "}
                         {notebook.collaborators.length === 1
                           ? "collaborator"
@@ -261,10 +260,14 @@ function NbContent({
               <div className="flex-1" />
 
               <LiveStoreReady>
-                <ContextSelectionModeButton />
-                <RuntimeHealthIndicatorButton
-                  onToggleClick={() => setShowRuntimeHelper(!showRuntimeHelper)}
-                />
+                <div className="flex flex-1 items-center justify-end gap-2">
+                  <ContextSelectionModeButton />
+                  <RuntimeHealthIndicatorButton
+                    onToggleClick={() =>
+                      setShowRuntimeHelper(!showRuntimeHelper)
+                    }
+                  />
+                </div>
               </LiveStoreReady>
             </div>
 
