@@ -164,14 +164,14 @@ function NbContent({
           <SimpleUserProfile />
         </ErrorBoundary>
       </header>
-      <div className="relative flex flex-1 flex-col gap-4 p-4 pt-0">
+      <div className="relative flex flex-1 flex-col gap-4">
         {!liveStoreReady && (
           <div className="absolute inset-0 flex items-center justify-center">
             <DelayedSpinner size="lg" />
           </div>
         )}
 
-        <div className="container mx-auto px-4">
+        <div className="container mx-auto sm:px-6">
           <div className="px-4 py-8">
             <div className="flex items-center gap-2">
               <TitleEditor
