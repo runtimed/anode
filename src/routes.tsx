@@ -122,7 +122,9 @@ export const App: React.FC = () => {
             path="/nav"
             element={
               <AuthGuard>
-                <NavPage />
+                <TrpcProvider>
+                  <NavPage />
+                </TrpcProvider>
               </AuthGuard>
             }
           />

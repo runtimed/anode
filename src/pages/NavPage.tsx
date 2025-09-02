@@ -23,7 +23,7 @@ export default function NavPage() {
         } as React.CSSProperties
       }
     >
-      <AppSidebarNbDashboard />
+      <AppSidebarNbDashboard allNotebooks={[]} />
       <SidebarInset className="h-dvh overflow-y-scroll overscroll-contain">
         <header className="bg-background sticky top-0 flex shrink-0 items-center gap-2 border-b p-4">
           <SidebarTrigger className="-ml-1" />
