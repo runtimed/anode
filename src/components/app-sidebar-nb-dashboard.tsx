@@ -1,44 +1,42 @@
 "use client";
 
-import * as React from "react";
-
-import { Label } from "@/components/ui/label";
 import {
   Sidebar,
   SidebarContent,
   SidebarGroup,
+  SidebarGroupContent,
   SidebarHeader,
-  SidebarInput,
 } from "@/components/ui/sidebar";
-import { Switch } from "@/components/ui/switch";
 import { RuntLogoSmall } from "./logo/RuntLogoSmall";
+import { Filters } from "./notebooks/dashboard/NotebookDashboard";
+import { NotebookProcessed } from "./notebooks/types";
 
 export function AppSidebarNbDashboard({
-  ...props
-}: React.ComponentProps<typeof Sidebar>) {
+  allNotebooks,
+}: {
+  allNotebooks: NotebookProcessed[];
+}) {
   return (
-    <Sidebar
-      className="overflow-hidden [&>[data-sidebar=sidebar]]:flex-row"
-      {...props}
-    >
+    <Sidebar className="overflow-hidden [&>[data-sidebar=sidebar]]:flex-row">
       <Sidebar collapsible="none" className="hidden flex-1 md:flex">
-        <SidebarHeader className="gap-3.5 border-b p-4">
+        <SidebarHeader className="flex h-14 items-center gap-3.5 border-b px-2">
           <div className="flex w-full items-center justify-between">
             <div className="flex items-center gap-2">
               <RuntLogoSmall className="sm:size-8" />
               <div className="text-foreground text-base font-medium">Anode</div>
             </div>
-            <Label className="flex items-center gap-2 text-sm">
+            {/* <Label className="flex items-center gap-2 text-sm">
               <span>Unreads</span>
               <Switch className="shadow-none" />
-            </Label>
+            </Label> */}
           </div>
-          <SidebarInput placeholder="Type to search..." />
+          {/* <SidebarInput placeholder="Type to search..." /> */}
         </SidebarHeader>
         <SidebarContent>
           <SidebarGroup className="px-0">
-            {/* <SidebarGroupContent>
-              {mails.map((mail) => (
+            <SidebarGroupContent>
+              <Filters allNotebooks={allNotebooks} />
+              {/* {mails.map((mail) => (
                 <a
                   href="#"
                   key={mail.email}
@@ -53,8 +51,8 @@ export function AppSidebarNbDashboard({
                     {mail.teaser}
                   </span>
                 </a>
-              ))}
-            </SidebarGroupContent> */}
+              ))} */}
+            </SidebarGroupContent>
           </SidebarGroup>
         </SidebarContent>
       </Sidebar>

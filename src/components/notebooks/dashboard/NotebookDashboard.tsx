@@ -99,7 +99,11 @@ export const NotebookDashboard: React.FC = () => {
   );
 };
 
-function Filters({ allNotebooks }: { allNotebooks: NotebookProcessed[] }) {
+export function Filters({
+  allNotebooks,
+}: {
+  allNotebooks: NotebookProcessed[];
+}) {
   const { activeFilter, selectedTagName, setActiveFilter, setSelectedTag } =
     useDashboardParams();
 
@@ -259,8 +263,6 @@ function Filters({ allNotebooks }: { allNotebooks: NotebookProcessed[] }) {
     </div>
   );
 }
-
-// ---
 
 export function TopHeader() {
   const { viewMode, setViewMode } = useDashboardParams();

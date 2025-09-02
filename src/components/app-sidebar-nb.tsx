@@ -195,7 +195,11 @@ export function AppSidebarNb({
         <SidebarHeader>
           <SidebarMenu>
             <SidebarMenuItem>
-              <SidebarMenuButton size="lg" asChild className="md:h-8 md:p-0">
+              <SidebarMenuButton
+                size="lg"
+                asChild
+                className="rounded-none md:h-8 md:p-0"
+              >
                 <a href="#">
                   <RuntLogoSmall className="sm:size-8" />
                   <div className="grid flex-1 text-left text-sm leading-tight">
