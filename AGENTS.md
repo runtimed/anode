@@ -95,8 +95,10 @@ pnpm install  # Install dependencies
 cp .env.example .env  # Copy environment configuration
 cp .dev.vars.example .dev.vars
 
-# Start development (single server with integrated backend)
-pnpm dev      # All-in-one server at http://localhost:5173
+# Start development servers
+pnpm dev           # Frontend at http://localhost:5173
+pnpm dev:sync      # Backend at http://localhost:8787
+pnpm dev:iframe    # Iframe outputs at http://localhost:8000
 
 # Start runtime (get command from notebook UI)
 # Runtime command is now dynamic via VITE_RUNTIME_COMMAND environment variable
@@ -105,8 +107,8 @@ NOTEBOOK_ID=notebook-id-from-ui pnpm dev:runtime
 
 # Check work
 pnpm check    # Type check, lint, and format check
-pnpm test     # Run 60+ tests
-pnpm build    # Build for production
+pnpm test     # Run tests
+pnpm build    # Build web UI
 ```
 
 ## Schema Linking for Development
@@ -143,28 +145,16 @@ Use this when developing locally with both Anode and Runt repositories side-by-s
 2. **Run `pnpm install`** to update dependencies
 3. **Restart your development server** (`pnpm dev`)
 
-**Important**: Always ensure both repositories are using compatible schema versions. Type errors usually indicate schema mismatches.
+**Important**: Always ensure both repositories are using compatible schema versions. Type errors likely indicate schema mismatches.
 
 ## Current Priorities
 
-**Current Focus**: Enhancing AI capabilities and improving runtime management.
+**Current Focus**: Improving runtime management.
 
 ### Key Development Areas
 
-1.  **Enhanced AI Tool Calling**: AI can now create, modify, and execute cells.
-    - Function calling infrastructure is in place.
-    - AI can create new cells (`create_cell`).
-    - AI can modify existing cells (`modify_cell`).
-    - AI can execute code cells (`execute_cell`).
-    - _Next Step_: Add comprehensive JSDoc and parameter validation for tool calls.
-2.  **User Confirmation Flows**: Implementing UI for confirming AI-initiated actions.
-    - _Next Step_: Design and implement confirmation dialogs, categorize risks, integrate with LiveStore events, and allow safe operations to bypass confirmation.
-3.  **User-Attributed Runtime Agents ("Bring Your Own Compute")**: Enabling users to run standalone runtime agents with API tokens.
-    - _Next Step_: Develop API token system, token management UI, and documentation for user-owned runtimes.
-4.  **Automated Runtime Management**: Reducing manual friction in starting and managing runtimes.
+1.  **Automated Runtime Management**: Reducing manual friction in starting and managing runtimes.
     - _Next Step_: Design runtime orchestration, implement one-click startup, and add health monitoring.
-
-**Foundation Complete**: The core output system provides type safety, performance, and streaming capabilities, forming a solid base for these enhancements.
 
 ## Important Considerations
 
@@ -172,48 +162,6 @@ Use this when developing locally with both Anode and Runt repositories side-by-s
 
 - **JSR schema package**: `jsr:@runt/schema` provides zero-build-step imports
   with type inference across all packages
-
-### ⚠️ CRITICAL: Materializer Determinism Requirements
-
-LiveStore requires all materializers to be **pure functions without side
-effects**. Avoid non-deterministic operations (like `Date()` calls) that could
-produce different results across clients. Using `ctx.query()` for deterministic
-data access is fine.
-
-**What caused the bug:**
-
-```typescript
-// ❌ WRONG - This causes LiveStore.UnexpectedError materializer hash mismatch
-"v1.ExecutionCompleted": ({ queueId }, ctx) => {
-  const queueEntries = ctx.query(
-    tables.executionQueue.select().where({ id: queueId }).limit(1)
-  );
-  // ... rest of materializer
-}
-```
-
-**Correct approach:**
-
-```typescript
-// ✅ CORRECT - All needed data in event payload
-"v1.ExecutionCompleted": ({ queueId, cellId, status }) => [
-  tables.executionQueue.update({
-    status: status === "success" ? "completed" : "failed"
-  }).where({ id: queueId }),
-  tables.cells.update({
-    executionState: status === "success" ? "completed" : "error"
-  }).where({ id: cellId }),
-]
-```
-
-**Fixed commits for reference:**
-
-- `6e0fb4f`: Fixed ExecutionCompleted/ExecutionCancelled materializers
-- `a1bf20d`: Fixed ExecutionStarted materializer
-
-**Rule**: Materializers must be deterministic and reproducible. Avoid
-non-deterministic operations, but using `ctx.query()` for deterministic data
-lookups is acceptable.
 
 ### Use top-level `useQuery` rather than `store.useQuery`
 
@@ -245,7 +193,7 @@ const titleMetadata = useQuery(
 
 ### Code Style
 
-- Prefer functional programming patterns (Effect library)
+- Prefer functional programming patterns
 - Event sourcing over direct state mutations
 - Reactive queries over imperative data fetching
 - TypeScript strict mode enabled
@@ -255,68 +203,310 @@ const titleMetadata = useQuery(
 ## File Structure
 
 ```
-anode/
-├── .git/
-├── .github/
-├── .zed/
-├── dist/
-├── docs/
-│   ├── proposals/
-│   ├── README.md
-│   ├── TESTING.md
-│   ├── ai-context-visibility.md
-│   ├── ui-design.md
-│   └── ui-enhancements-demo.md
-├── examples/
-│   └── ai-context-demo.md
-├── node_modules/
-├── public/
-├── src/
-│   ├── auth/
-│   ├── backend/
-│   │   ├── artifact.ts
-│   │   ├── auth.ts
-│   │   ├── entry.ts
-│   │   ├── sync.ts
-│   │   └── types.ts
-│   ├── components/
-│   │   ├── auth/
-│   │   ├── notebook/
-│   │   │   ├── AiCell.tsx
-│   │   │   ├── AnsiOutput.tsx
-│   │   │   ├── Cell.tsx
-│   │   │   ├── NotebookViewer.tsx
-│   │   │   ├── RichOutput.css
-│   │   │   ├── RichOutput.tsx
-│   │   │   └── SqlCell.tsx
-│   │   └── ui/
-│   ├── lib/
-│   │   └── utils.ts
-│   ├── sync/
-│   │   └── sync.ts
-│   ├── types/
-│   ├── util/
-│   ├── Root.tsx
-│   ├── index.css
-│   ├── livestore.worker.ts
-│   └── main.tsx
-├── test/
-├── .gitignore
+.
 ├── AGENTS.md
-├── CONTRIBUTING.md
+├── assets
+│   └── runt-magic.aseprite
+├── backend
+│   ├── api-key-provider.ts
+│   ├── api-key-routes.ts
+│   ├── auth.ts
+│   ├── local_oidc.ts
+│   ├── local-oidc-routes.ts
+│   ├── middleware.ts
+│   ├── notebook-permissions
+│   │   ├── factory.ts
+│   │   ├── local-permissions.ts
+│   │   ├── no-permissions.ts
+│   │   └── types.ts
+│   ├── providers
+│   │   ├── anaconda-api-key.ts
+│   │   ├── anaconda.ts
+│   │   ├── api-key-factory.ts
+│   │   ├── index.ts
+│   │   ├── local-api-key.ts
+│   │   ├── local.ts
+│   │   └── types.ts
+│   ├── routes.ts
+│   ├── selective-entry.ts
+│   ├── sync.ts
+│   ├── trpc
+│   │   ├── db.ts
+│   │   ├── index.ts
+│   │   ├── trpc.ts
+│   │   └── types.ts
+│   ├── types.ts
+│   ├── users
+│   │   └── utils.ts
+│   └── utils
+│       └── notebook-id.ts
 ├── Caddyfile.example
+├── components.json
+├── CONTRIBUTING.md
 ├── DEPLOYMENT.md
+├── docs
+│   ├── api-keys.md
+│   ├── proposals
+│   │   ├── artifact-service-design.md
+│   │   └── unified-output-system.md
+│   ├── README.md
+│   ├── technologies
+│   │   ├── deno.md
+│   │   ├── livestore.md
+│   │   ├── pyodide.md
+│   │   └── README.md
+│   ├── tool-approval-system.md
+│   └── ui-design.md
+├── ecosystem.config.json
+├── eslint.config.js
+├── iframe-outputs
+│   ├── README.md
+│   ├── src
+│   │   ├── components
+│   │   │   └── IframeReactApp.tsx
+│   │   ├── react-main.tsx
+│   │   ├── react.html
+│   │   ├── style.css
+│   │   └── tsconfig.node.json
+│   ├── test-iframe.html
+│   ├── vite.config.ts
+│   └── worker
+│       ├── package.json
+│       ├── pnpm-lock.yaml
+│       ├── tsconfig.json
+│       ├── worker.ts
+│       └── wrangler.toml
+├── index.html
 ├── LICENSE
+├── migrations
+│   ├── 0001_create_settings_table.sql
+│   ├── 0002_create_users_table.sql
+│   ├── 0004_create_notebooks_and_permissions.sql
+│   ├── 0005_drop_runbook_tables.sql
+│   └── 0006_create_tags_tables.sql
+├── package.json
+├── PM2-SETUP.md
+├── pnpm-lock.yaml
+├── public
+│   ├── android-chrome-192x192.png
+│   ├── bracket.png
+│   ├── bunny-sit.png
+│   ├── bunny.png
+│   ├── favicon.ico
+│   ├── hole.png
+│   ├── runes.png
+│   ├── shadow.png
+│   └── site.webmanifest
 ├── README.md
 ├── ROADMAP.md
-├── components.json
-├── index.html
-├── package.json
-├── pnpm-lock.yaml
 ├── schema.ts
+├── scripts
+│   ├── deploy-iframe-outputs.sh
+│   ├── dev-runtime.sh
+│   ├── optimize-build.sh
+│   ├── start-nb.sh
+│   ├── start-runt-dev.sh
+│   ├── test-api-key-flow.sh
+│   ├── test-api-keys.sh
+│   ├── use-runt.sh
+│   └── watch-script.cjs
+├── src
+│   ├── auth
+│   │   ├── AuthGuard.tsx
+│   │   ├── AuthProvider.tsx
+│   │   ├── index.ts
+│   │   ├── LoginPrompt.tsx
+│   │   ├── openid.ts
+│   │   └── redirect-url-helper.ts
+│   ├── components
+│   │   ├── auth
+│   │   │   └── ApiKeysDialog.tsx
+│   │   ├── CollaboratorAvatars.tsx
+│   │   ├── debug
+│   │   │   ├── debug-mode.tsx
+│   │   │   ├── DebugModeToggle.tsx
+│   │   │   ├── DebugPanel.tsx
+│   │   │   └── FPSMeter.tsx
+│   │   ├── KeyboardShortcuts.tsx
+│   │   ├── livestore
+│   │   │   ├── CustomLiveStoreProvider.tsx
+│   │   │   └── livestore.worker.ts
+│   │   ├── loading
+│   │   │   └── LoadingState.tsx
+│   │   ├── logo
+│   │   │   ├── index.ts
+│   │   │   ├── PixelatedCircle.tsx
+│   │   │   ├── RuntLogo.tsx
+│   │   │   └── RuntLogoSmall.tsx
+│   │   ├── notebook
+│   │   │   ├── cell
+│   │   │   │   ├── Cell.tsx
+│   │   │   │   ├── CellAdder.tsx
+│   │   │   │   ├── CellBetweener.tsx
+│   │   │   │   ├── ExecutableCell.tsx
+│   │   │   │   ├── MarkdownCell.tsx
+│   │   │   │   ├── shared
+│   │   │   │   │   ├── AiCellTypeSelector.tsx
+│   │   │   │   │   ├── CellContainer.tsx
+│   │   │   │   │   ├── CellControls.tsx
+│   │   │   │   │   ├── CellTypeSelector.tsx
+│   │   │   │   │   ├── Editor.tsx
+│   │   │   │   │   ├── editorUtils.ts
+│   │   │   │   │   ├── ExecutionStatus.tsx
+│   │   │   │   │   ├── OutputsErrorBoundary.tsx
+│   │   │   │   │   ├── PlayButton.tsx
+│   │   │   │   │   ├── PresenceBookmarks.tsx
+│   │   │   │   │   └── PresenceIndicators.css
+│   │   │   │   └── toolbars
+│   │   │   │       ├── AiToolbar.tsx
+│   │   │   │       ├── CodeToolbar.tsx
+│   │   │   │       └── SqlToolbar.tsx
+│   │   │   ├── CellList.tsx
+│   │   │   ├── codemirror
+│   │   │   │   ├── baseExtensions.ts
+│   │   │   │   └── CodeMirrorEditor.tsx
+│   │   │   ├── ContextSelectionModeButton.tsx
+│   │   │   ├── EmptyStateCellAdder.tsx
+│   │   │   ├── GitCommitHash.tsx
+│   │   │   ├── NotebookContent.tsx
+│   │   │   ├── NotebookLoadingScreen.tsx
+│   │   │   ├── NotebookTitle.tsx
+│   │   │   ├── RuntimeHealthIndicator.tsx
+│   │   │   ├── RuntimeHealthIndicatorButton.tsx
+│   │   │   ├── RuntimeHelper.tsx
+│   │   │   └── signals
+│   │   │       ├── ai-context.ts
+│   │   │       └── focus.ts
+│   │   ├── notebooks
+│   │   │   ├── DebugNotebooks.tsx
+│   │   │   ├── notebook
+│   │   │   │   └── TitleEditor.tsx
+│   │   │   ├── NotebookActions.tsx
+│   │   │   ├── NotebookCard.tsx
+│   │   │   ├── NotebookDashboard.tsx
+│   │   │   ├── NotebookPage.tsx
+│   │   │   ├── NotebookViewer.tsx
+│   │   │   ├── SharingModal.tsx
+│   │   │   ├── SimpleUserProfile.tsx
+│   │   │   ├── TagActions.tsx
+│   │   │   ├── TagBadge.tsx
+│   │   │   ├── TagColorPicker.tsx
+│   │   │   ├── TagCreationDialog.tsx
+│   │   │   ├── TagEditDialog.tsx
+│   │   │   ├── TagSelectionDialog.tsx
+│   │   │   └── types.ts
+│   │   ├── outputs
+│   │   │   ├── index.ts
+│   │   │   ├── MaybeCellOutputs.tsx
+│   │   │   └── shared-with-iframe
+│   │   │       ├── AiToolApprovalOutput.tsx
+│   │   │       ├── AiToolCallOutput.tsx
+│   │   │       ├── AiToolResultOutput.tsx
+│   │   │       ├── AnsiOutput.tsx
+│   │   │       ├── comms.ts
+│   │   │       ├── HtmlOutput.tsx
+│   │   │       ├── ImageOutput.tsx
+│   │   │       ├── JsonOutput.tsx
+│   │   │       ├── MarkdownRenderer.tsx
+│   │   │       ├── PlainTextOutput.tsx
+│   │   │       ├── README.md
+│   │   │       ├── RichOutputContent.tsx
+│   │   │       ├── SingleOutput.tsx
+│   │   │       ├── SuspenseSpinner.tsx
+│   │   │       └── SvgOutput.tsx
+│   │   ├── TrpcProvider.tsx
+│   │   └── ui
+│   │       ├── Avatar.tsx
+│   │       ├── AvatarWithDetails.tsx
+│   │       ├── badge.tsx
+│   │       ├── button.tsx
+│   │       ├── card.tsx
+│   │       ├── DateDisplay.tsx
+│   │       ├── dialog.tsx
+│   │       ├── dropdown-menu.tsx
+│   │       ├── input.tsx
+│   │       ├── label.tsx
+│   │       ├── separator.tsx
+│   │       ├── sonner.tsx
+│   │       ├── Spinner.tsx
+│   │       ├── tabs.tsx
+│   │       ├── TerminalPlay.tsx
+│   │       ├── textarea.tsx
+│   │       └── tooltip.tsx
+│   ├── hooks
+│   │   ├── useAddCell.ts
+│   │   ├── useApiKeys.ts
+│   │   ├── useCellContent.ts
+│   │   ├── useCellKeyboardNavigation.ts
+│   │   ├── useCellOutputs.tsx
+│   │   ├── useCellPresence.ts
+│   │   ├── useDeleteCell.ts
+│   │   ├── useEditorRegistry.ts
+│   │   ├── useInterruptExecution.ts
+│   │   ├── useRuntimeHealth.ts
+│   │   ├── useToolApprovals.ts
+│   │   └── useUserRegistry.ts
+│   ├── index.css
+│   ├── lib
+│   │   ├── tag-colors.ts
+│   │   ├── trpc-client.tsx
+│   │   └── utils.ts
+│   ├── main.tsx
+│   ├── pages
+│   │   ├── AuthorizePage.tsx
+│   │   ├── NotebookPage.tsx
+│   │   ├── NotebooksDashboardPage.tsx
+│   │   └── OidcCallbackPage.tsx
+│   ├── queries
+│   │   ├── index.ts
+│   │   └── outputDeltas.ts
+│   ├── routes.tsx
+│   ├── schema.ts
+│   ├── services
+│   │   └── userTypes.ts
+│   ├── types
+│   │   ├── misc.d.ts
+│   │   └── psl.d.ts
+│   ├── util
+│   │   ├── ai-models.ts
+│   │   ├── ansi-cleaner.test.ts
+│   │   ├── ansi-cleaner.ts
+│   │   ├── avatar.ts
+│   │   ├── domUpdates.ts
+│   │   ├── iframe.ts
+│   │   ├── output-grouping.ts
+│   │   ├── prefetch.ts
+│   │   ├── runtime-command.ts
+│   │   ├── store-id.ts
+│   │   └── url-utils.ts
+│   └── vite-env.d.ts
+├── test
+│   ├── api-keys.test.ts
+│   ├── artifact-service.test.ts
+│   ├── backend-local-oidc.test.ts
+│   ├── basic.test.ts
+│   ├── components
+│   │   └── outputs
+│   │       └── AiToolResultOutput.test.tsx
+│   ├── edge-cases.test.ts
+│   ├── fixtures
+│   │   └── index.ts
+│   ├── focused-cell-signal.test.ts
+│   ├── hono-routes.test.ts
+│   ├── integration
+│   │   ├── execution-flow.test.ts
+│   │   └── reactivity-debugging.test.ts
+│   ├── local-oidc-routes.test.ts
+│   ├── output-grouping.test.ts
+│   ├── README.md
+│   ├── runtime-command.test.ts
+│   └── setup.ts
 ├── tsconfig.json
 ├── tsconfig.node.json
 ├── tsconfig.test.json
+├── vite-plugins
+│   ├── env-validation.ts
+│   └── inject-loading-screen.ts
 ├── vite.config.ts
 ├── vitest.config.ts
 └── wrangler.toml
