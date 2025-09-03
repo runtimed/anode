@@ -66,8 +66,17 @@ export const CustomLiveStoreProvider: React.FC<
 
   // Generate clientId following LiveStore best practices
   // ClientId should identify device/app instances, not users
+  // Store in sessionStorage to keep stable across component remounts
   const clientId = useMemo(() => {
-    return `${userId}-${crypto.randomUUID()}`;
+    const storageKey = `livestore-client-id-${userId}`;
+    let storedClientId = sessionStorage.getItem(storageKey);
+
+    if (!storedClientId) {
+      storedClientId = `${userId}-${crypto.randomUUID()}`;
+      sessionStorage.setItem(storageKey, storedClientId);
+    }
+
+    return storedClientId;
   }, [userId]);
 
   // Create completely static sync payload that never changes reference
