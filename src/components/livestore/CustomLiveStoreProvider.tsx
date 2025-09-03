@@ -71,19 +71,17 @@ export const CustomLiveStoreProvider: React.FC<
   }, [userId]);
 
   // Create completely static sync payload that never changes reference
-  // Token, clientId, and userId are updated via useEffect to prevent LiveStore restarts
+  // Token and clientId are updated via useEffect to prevent LiveStore restarts
   const syncPayload = useRef({
     authToken: accessToken || "",
     clientId,
-    userId,
   });
 
-  // Update clientId, userId, and authToken if they change, but keep same object reference
+  // Update clientId and authToken if they change, but keep same object reference
   useEffect(() => {
     syncPayload.current.clientId = clientId;
-    syncPayload.current.userId = userId;
     syncPayload.current.authToken = accessToken || "";
-  }, [clientId, userId, accessToken]);
+  }, [clientId, accessToken]);
 
   const adapter = useMemo(
     () =>
