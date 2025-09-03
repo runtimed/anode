@@ -98,6 +98,8 @@ export default function NbPage() {
   return (
     <LiveStoreProviderProvider storeId={id}>
       <SidebarProvider
+        localStorageKey="sidebar-open-nb"
+        defaultOpen={false}
         style={
           {
             "--sidebar-width": "350px",
@@ -105,7 +107,7 @@ export default function NbPage() {
         }
       >
         <AppSidebarNb />
-        <SidebarInset className="h-dvh overflow-y-scroll overscroll-contain">
+        <SidebarInset>
           {notebook && <NbContent notebook={notebook} refetch={refetch} />}
         </SidebarInset>
         <LiveStoreReady>

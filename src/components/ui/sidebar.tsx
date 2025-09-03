@@ -22,9 +22,8 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { useLocalStorage } from "react-use";
 
-const SIDEBAR_COOKIE_NAME = "sidebar_state";
-const SIDEBAR_COOKIE_MAX_AGE = 60 * 60 * 24 * 7;
 const SIDEBAR_WIDTH = "16rem";
 const SIDEBAR_WIDTH_MOBILE = "18rem";
 const SIDEBAR_WIDTH_ICON = "3rem";
@@ -52,6 +51,7 @@ function useSidebar() {
 }
 
 function SidebarProvider({
+  localStorageKey,
   defaultOpen = true,
   open: openProp,
   onOpenChange: setOpenProp,
@@ -60,6 +60,7 @@ function SidebarProvider({
   children,
   ...props
 }: React.ComponentProps<"div"> & {
+  localStorageKey: string;
   defaultOpen?: boolean;
   open?: boolean;
   onOpenChange?: (open: boolean) => void;
@@ -67,9 +68,15 @@ function SidebarProvider({
   const isMobile = useIsMobile();
   const [openMobile, setOpenMobile] = React.useState(false);
 
+  // Use localStorage for persistent sidebar state instead of cookies
+  const [storedOpen, setStoredOpen] = useLocalStorage(
+    localStorageKey,
+    defaultOpen
+  );
+
   // This is the internal state of the sidebar.
   // We use openProp and setOpenProp for control from outside the component.
-  const [_open, _setOpen] = React.useState(defaultOpen);
+  const [_open, _setOpen] = React.useState(storedOpen ?? defaultOpen);
   const open = openProp ?? _open;
   const setOpen = React.useCallback(
     (value: boolean | ((value: boolean) => boolean)) => {
@@ -80,11 +87,10 @@ function SidebarProvider({
         _setOpen(openState);
       }
 
-      // This sets the cookie to keep the sidebar state.
-      // eslint-disable-next-line
-      document.cookie = `${SIDEBAR_COOKIE_NAME}=${openState}; path=/; max-age=${SIDEBAR_COOKIE_MAX_AGE}`;
+      // Save to localStorage instead of cookies
+      setStoredOpen(openState);
     },
-    [setOpenProp, open]
+    [setOpenProp, open, setStoredOpen]
   );
 
   // Helper to toggle the sidebar.

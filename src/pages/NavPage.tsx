@@ -17,6 +17,7 @@ import {
 export default function NavPage() {
   return (
     <SidebarProvider
+      localStorageKey="sidebar-open-nav"
       style={
         {
           "--sidebar-width": "350px",
