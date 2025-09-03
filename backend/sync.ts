@@ -19,6 +19,7 @@ export class WebSocketServer extends makeDurableObject({
 const SyncPayloadSchema = Schema.Struct({
   authToken: Schema.String,
   clientId: Schema.String,
+  userId: Schema.optional(Schema.String),
   runtime: Schema.optional(Schema.Boolean),
 });
 
@@ -45,6 +46,7 @@ export default {
           }
 
           const clientId = payload.clientId;
+          const userId = payload.userId;
 
           // TODO: Revisit this flow to determine if the runtime agent should have both a
           //       User ID (via their API key) and an identifier for the runtime agent
@@ -68,14 +70,26 @@ export default {
               runtimeClientId: clientId,
             });
           } else {
-            // For regular users, the clientId must match their user ID
-            if (clientId !== validatedUser.id) {
-              console.error("🚫 ClientId attribution mismatch:", {
+            // For regular users, validate userId if provided (following LiveStore best practices)
+            // ClientId should identify device/app instances, not users
+            if (userId && userId !== validatedUser.id) {
+              console.error("🚫 UserId attribution mismatch:", {
+                payloadUserId: userId,
+                authenticatedUserId: validatedUser.id,
+              });
+              throw new Error(
+                `USER_ID_MISMATCH: Provided userId '${userId}' does not match authenticated user '${validatedUser.id}'.`
+              );
+            }
+
+            // Backward compatibility: if no userId provided, allow clientId === user ID for now
+            if (!userId && clientId !== validatedUser.id) {
+              console.error("🚫 ClientId attribution mismatch (legacy mode):", {
                 payloadClientId: clientId,
                 authenticatedUserId: validatedUser.id,
               });
               throw new Error(
-                `CLIENT_ID_MISMATCH: Provided clientId '${clientId}' does not match authenticated user '${validatedUser.id}'.`
+                `CLIENT_ID_MISMATCH: Provided clientId '${clientId}' does not match authenticated user '${validatedUser.id}'. Consider updating to use userId in sync payload.`
               );
             }
           }
