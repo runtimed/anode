@@ -66,7 +66,7 @@ export const App: React.FC = () => {
           <Route path="/oidc" element={<OidcCallbackPage />} />
           <Route path="/local_oidc/authorize" element={<AuthorizePage />} />
           <Route
-            path="/nb/:id/*"
+            path="/nb-old/:id/*"
             element={
               <AuthGuard>
                 <Suspense
@@ -83,7 +83,7 @@ export const App: React.FC = () => {
             }
           />
           <Route
-            path="/nb"
+            path="/nb-old"
             element={
               <AuthGuard>
                 <NotebooksDashboardPage />
@@ -91,7 +91,7 @@ export const App: React.FC = () => {
             }
           />
           <Route
-            path="/nb2/:id/*"
+            path="/nb/:id/*"
             element={
               <AuthGuard>
                 <TrpcProvider>
@@ -101,7 +101,7 @@ export const App: React.FC = () => {
             }
           />
           <Route
-            path="/nb2"
+            path="/nb"
             element={
               <AuthGuard>
                 <Suspense
@@ -119,7 +119,7 @@ export const App: React.FC = () => {
               </AuthGuard>
             }
           />
-          <Route path="/" element={<Navigate to="/nb2" replace />} />
+          <Route path="/" element={<Navigate to="/nb" replace />} />
           <Route
             path="/nav"
             element={
