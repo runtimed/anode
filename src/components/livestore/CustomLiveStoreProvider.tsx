@@ -58,39 +58,19 @@ export const CustomLiveStoreProvider: React.FC<
     }
   }, [resetPersistence]);
 
-  // Get authenticated user info and access token
-  const {
-    user: { sub: userId },
-    accessToken,
-  } = useAuth();
-
-  // Generate clientId following LiveStore best practices
-  // ClientId should identify device/app instances, not users
-  // Store in localStorage to keep stable across component remounts and shared across tabs
-  const clientId = useMemo(() => {
-    const storageKey = `livestore-client-id-${userId}`;
-    let storedClientId = localStorage.getItem(storageKey);
-
-    if (!storedClientId) {
-      storedClientId = `${userId}-${crypto.randomUUID()}`;
-      localStorage.setItem(storageKey, storedClientId);
-    }
-
-    return storedClientId;
-  }, [userId]);
+  // Get access token for authentication
+  const { accessToken } = useAuth();
 
   // Create completely static sync payload that never changes reference
-  // Token and clientId are updated via useEffect to prevent LiveStore restarts
+  // Token is updated via useEffect to prevent LiveStore restarts
   const syncPayload = useRef({
     authToken: accessToken || "",
-    clientId,
   });
 
-  // Update clientId and authToken if they change, but keep same object reference
+  // Update authToken if it changes, but keep same object reference
   useEffect(() => {
-    syncPayload.current.clientId = clientId;
     syncPayload.current.authToken = accessToken || "";
-  }, [clientId, accessToken]);
+  }, [accessToken]);
 
   const adapter = useMemo(
     () =>
@@ -99,9 +79,9 @@ export const CustomLiveStoreProvider: React.FC<
         worker: LiveStoreWorker,
         sharedWorker: LiveStoreSharedWorker,
         resetPersistence,
-        clientId, // This identifies the device/app instance following LiveStore best practices
+        // Let LiveStore generate and manage clientId
       }),
-    [clientId, resetPersistence]
+    [resetPersistence]
   );
 
   return (
