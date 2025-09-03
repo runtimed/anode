@@ -40,23 +40,31 @@ const UserSetup: React.FC = () => {
 
   useEffect(() => {
     if (isAuthenticated) {
+      // Extract specific user fields we need
+      const { sub: userId, name, given_name, family_name } = user;
+
       // Create actor record for the authenticated user
       const displayName =
-        user.name ||
-        [user.given_name, user.family_name].filter(Boolean).join(" ") ||
-        user.email?.split("@")[0] ||
+        name ||
+        [given_name, family_name].filter(Boolean).join(" ") ||
         "Unknown User";
 
       store.commit(
         events.actorProfileSet({
-          id: user.sub,
+          id: userId,
           displayName,
-          avatar: user.picture,
           type: "human",
         })
       );
     }
-  }, [isAuthenticated, user, store]);
+  }, [
+    isAuthenticated,
+    user.sub,
+    user.name,
+    user.given_name,
+    user.family_name,
+    store,
+  ]);
 
   return null;
 };
