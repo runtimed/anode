@@ -60,9 +60,15 @@ export const CustomLiveStoreProvider: React.FC<
 
   // Get authenticated user info and access token
   const {
-    user: { sub: clientId },
+    user: { sub: userId },
     accessToken,
   } = useAuth();
+
+  // Generate clientId following LiveStore best practices
+  // ClientId should identify device/app instances, not users
+  const clientId = useMemo(() => {
+    return `${userId}-${crypto.randomUUID()}`;
+  }, [userId]);
 
   // Create completely static sync payload that never changes reference
   // Token and clientId are updated via useEffect to prevent LiveStore restarts
@@ -84,7 +90,7 @@ export const CustomLiveStoreProvider: React.FC<
         worker: LiveStoreWorker,
         sharedWorker: LiveStoreSharedWorker,
         resetPersistence,
-        clientId, // This ties the LiveStore client to the authenticated user
+        clientId, // This identifies the device/app instance following LiveStore best practices
       }),
     [clientId, resetPersistence]
   );

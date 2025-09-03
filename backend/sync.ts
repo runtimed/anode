@@ -68,16 +68,12 @@ export default {
               runtimeClientId: clientId,
             });
           } else {
-            // For regular users, the clientId must match their user ID
-            if (clientId !== validatedUser.id) {
-              console.error("🚫 ClientId attribution mismatch:", {
-                payloadClientId: clientId,
-                authenticatedUserId: validatedUser.id,
-              });
-              throw new Error(
-                `CLIENT_ID_MISMATCH: Provided clientId '${clientId}' does not match authenticated user '${validatedUser.id}'.`
-              );
-            }
+            // For regular users, clientId can be any value since it identifies device/app instances
+            // User identity is already validated via the JWT token
+            console.log("✅ Authenticated user client:", {
+              userId: validatedUser.id,
+              clientId: clientId,
+            });
           }
 
           // SECURITY NOTE: This validation only occurs at connection time.
