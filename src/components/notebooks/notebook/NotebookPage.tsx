@@ -27,7 +27,7 @@ import { SimpleUserProfile } from "../SimpleUserProfile.js";
 import { TagBadge } from "../TagBadge.js";
 import { TagSelectionDialog } from "../TagSelectionDialog.js";
 import type { NotebookProcessed } from "../types.js";
-import { useNavigateToCanonicalUrl, useNotebook } from "./helpers.js";
+import { useNotebook } from "./helpers.js";
 import { TitleEditor } from "./TitleEditor.js";
 
 // Lazy import DebugPanel only in development
@@ -106,8 +106,6 @@ function NotebookPageWithIdAndNotebook({
   notebook: NotebookProcessed;
   refetch: () => void;
 }) {
-  useNavigateToCanonicalUrl(notebook);
-
   const liveStoreReady = useLiveStoreReady();
   const debug = useDebug();
 

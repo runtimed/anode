@@ -13,7 +13,10 @@ import { ContextSelectionModeButton } from "@/components/notebook/ContextSelecti
 import { NotebookContent } from "@/components/notebook/NotebookContent";
 import { RuntimeHealthIndicatorButton } from "@/components/notebook/RuntimeHealthIndicatorButton";
 import { RuntimeHelper } from "@/components/notebook/RuntimeHelper";
-import { useNotebook } from "@/components/notebooks/notebook/helpers";
+import {
+  useNavigateToCanonicalUrl,
+  useNotebook,
+} from "@/components/notebooks/notebook/helpers";
 import { TitleEditor } from "@/components/notebooks/notebook/TitleEditor";
 import { SharingModal } from "@/components/notebooks/SharingModal";
 import { SimpleUserProfile } from "@/components/notebooks/SimpleUserProfile";
@@ -125,6 +128,8 @@ function NbContent({
   notebook: NotebookProcessed;
   refetch: () => void;
 }) {
+  useNavigateToCanonicalUrl(notebook);
+
   const canEdit = notebook?.myPermission === "OWNER";
   const liveStoreReady = useLiveStoreReady();
 
