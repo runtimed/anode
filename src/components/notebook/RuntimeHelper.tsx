@@ -55,7 +55,7 @@ export const RuntimeHelper: React.FC<RuntimeHelperProps> = ({
 
   return (
     <>
-      <div className="w-full py-4 sm:mx-auto sm:max-w-6xl">
+      <div className="w-full py-4">
         <div className="mb-3 flex items-center justify-between">
           <h4 className="flex items-center gap-2 text-sm font-medium">
             Runtime Status
