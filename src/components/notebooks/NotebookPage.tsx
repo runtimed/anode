@@ -1,7 +1,7 @@
 import { useDebug } from "@/components/debug/debug-mode.js";
 import { cn } from "@/lib/utils";
 import { useQuery } from "@tanstack/react-query";
-import { ArrowLeft, Share2, Tag, User, Users } from "lucide-react";
+import { ArrowLeft, Tag, User, Users } from "lucide-react";
 import React, { Suspense, useEffect, useState } from "react";
 import { ErrorBoundary } from "react-error-boundary";
 import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
@@ -207,18 +207,6 @@ export const NotebookPage: React.FC = () => {
 
             {/* Right side - Simplified */}
             <div className="flex items-center gap-3">
-              {/* Share button - only show if can edit */}
-              {canEdit && (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setIsSharingModalOpen(true)}
-                  className="text-gray-600 hover:text-gray-900"
-                >
-                  <Share2 className="h-4 w-4" />
-                </Button>
-              )}
-
               {/* Permission badge - smaller and less prominent */}
               <Badge
                 variant="secondary"
@@ -237,7 +225,7 @@ export const NotebookPage: React.FC = () => {
 
           {/* Metadata - Simplified */}
           <div className="mt-3 flex items-center gap-4 text-xs text-gray-500">
-            {/* Owner - more subtle */}
+            {/* Owner name without label */}
             <div className="flex items-center gap-1.5">
               <User className="h-3 w-3" />
               <span>
@@ -247,18 +235,44 @@ export const NotebookPage: React.FC = () => {
               </span>
             </div>
 
-            {/* Collaborators count - more subtle */}
+            {/* Collaborators count with share button */}
             {notebook.collaborators && notebook.collaborators.length > 0 && (
-              <div className="flex items-center gap-1.5">
-                <Users className="h-3 w-3" />
-                <span>
-                  {notebook.collaborators.length}{" "}
-                  {notebook.collaborators.length === 1
-                    ? "collaborator"
-                    : "collaborators"}
-                </span>
+              <div className="flex items-center gap-2">
+                <div className="flex items-center gap-1.5">
+                  <Users className="h-3 w-3" />
+                  <span>
+                    {notebook.collaborators.length}{" "}
+                    {notebook.collaborators.length === 1
+                      ? "collaborator"
+                      : "collaborators"}
+                  </span>
+                </div>
+                {canEdit && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setIsSharingModalOpen(true)}
+                    className="h-5 px-2 text-xs text-gray-400 hover:text-gray-600"
+                  >
+                    Share
+                  </Button>
+                )}
               </div>
             )}
+
+            {/* Show share button even when no collaborators */}
+            {(!notebook.collaborators || notebook.collaborators.length === 0) &&
+              canEdit && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setIsSharingModalOpen(true)}
+                  className="h-5 px-2 text-xs text-gray-400 hover:text-gray-600"
+                >
+                  <Users className="mr-1.5 h-3 w-3" />
+                  Share
+                </Button>
+              )}
           </div>
         </div>
       </div>
