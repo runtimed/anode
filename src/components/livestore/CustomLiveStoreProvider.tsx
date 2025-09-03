@@ -6,6 +6,8 @@ import { LiveStoreProvider } from "@livestore/react";
 import React, { useEffect, useMemo, useRef } from "react";
 import { unstable_batchedUpdates as batchUpdates } from "react-dom";
 import { useAuth } from "../../auth/index.js";
+import { useStore } from "@livestore/react";
+import { events } from "@/schema";
 import LiveStoreWorker from "./livestore.worker?worker";
 
 function loading(_status: BootStatus) {
@@ -27,6 +29,34 @@ const LiveStoreReadyDetector: React.FC<{ onReady?: () => void }> = ({
       onReady?.();
     }
   }, [onReady]);
+
+  return null;
+};
+
+// Component to set up authenticated user as an actor
+const UserSetup: React.FC = () => {
+  const { store } = useStore();
+  const { user, isAuthenticated } = useAuth();
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      // Create actor record for the authenticated user
+      const displayName =
+        user.name ||
+        [user.given_name, user.family_name].filter(Boolean).join(" ") ||
+        user.email?.split("@")[0] ||
+        "Unknown User";
+
+      store.commit(
+        events.actorProfileSet({
+          id: user.sub,
+          displayName,
+          avatar: user.picture,
+          type: "human",
+        })
+      );
+    }
+  }, [isAuthenticated, user, store]);
 
   return null;
 };
@@ -94,6 +124,7 @@ export const CustomLiveStoreProvider: React.FC<
       syncPayload={syncPayload.current}
     >
       <LiveStoreReadyDetector onReady={onLiveStoreReady} />
+      <UserSetup />
       {children}
     </LiveStoreProvider>
   );
