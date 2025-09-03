@@ -18,7 +18,6 @@ export class WebSocketServer extends makeDurableObject({
 
 const SyncPayloadSchema = Schema.Struct({
   authToken: Schema.String,
-  clientId: Schema.String,
   runtime: Schema.optional(Schema.Boolean),
 });
 
@@ -44,35 +43,19 @@ export default {
             throw new Error("User must be authenticated");
           }
 
-          const clientId = payload.clientId;
-
-          // TODO: Revisit this flow to determine if the runtime agent should have both a
-          //       User ID (via their API key) and an identifier for the runtime agent
+          // User identity is validated via JWT token
+          // LiveStore will manage clientId for device/app instance identification
           if (validatedUser.id === "runtime-agent") {
-            // A runtime agent's clientId should NOT look like a real user's ID.
-            // OIDC user IDs are typically numeric strings.
-            if (/^\d+$/.test(clientId)) {
-              console.error(
-                "🚫 Runtime agent attempting to use a user-like clientId:",
-                { clientId }
-              );
-              throw new Error(
-                `RUNTIME_IMPERSONATION_ATTEMPT: Runtime agent cannot use a numeric clientId ('${clientId}') that could be a user ID.`
-              );
-            }
+            console.log("✅ Runtime agent authenticated");
           } else if (payload?.runtime === true) {
-            // For API key authenticated runtime agents, allow runtime ID as clientId
-            // These are user-attributed runtime agents using their own API keys
+            // For API key authenticated runtime agents
             console.log("✅ API key authenticated runtime agent:", {
               userId: validatedUser.id,
-              runtimeClientId: clientId,
             });
           } else {
-            // For regular users, clientId can be any value since it identifies device/app instances
-            // User identity is already validated via the JWT token
-            console.log("✅ Authenticated user client:", {
+            // For regular users
+            console.log("✅ Authenticated user:", {
               userId: validatedUser.id,
-              clientId: clientId,
             });
           }
 

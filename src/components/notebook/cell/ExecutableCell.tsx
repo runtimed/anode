@@ -1,4 +1,4 @@
-import { useAuthenticatedUser } from "../../../auth/index.js";
+import { useAuthenticatedUser } from "@/auth/index.js";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { useCellContent } from "@/hooks/useCellContent.js";
@@ -291,7 +291,15 @@ export const ExecutableCell: React.FC<ExecutableCellProps> = ({
   const handleFocus = useCallback(() => {
     store.setSignal(focusedCellSignal$, cell.id);
     store.setSignal(hasManuallyFocused$, true);
-  }, [store, cell.id]);
+
+    // Set presence to track user focus on this cell
+    store.commit(
+      events.presenceSet({
+        userId,
+        cellId: cell.id,
+      })
+    );
+  }, [store, cell.id, userId]);
 
   // Handle editor registration for navigation
   const handleEditorReady = useCallback(

@@ -6,6 +6,8 @@ import { LiveStoreProvider } from "@livestore/react";
 import React, { useEffect, useMemo, useRef } from "react";
 import { unstable_batchedUpdates as batchUpdates } from "react-dom";
 import { useAuth } from "../../auth/index.js";
+import { useStore } from "@livestore/react";
+import { events } from "@/schema";
 import LiveStoreWorker from "./livestore.worker?worker";
 
 function loading(_status: BootStatus) {
@@ -27,6 +29,42 @@ const LiveStoreReadyDetector: React.FC<{ onReady?: () => void }> = ({
       onReady?.();
     }
   }, [onReady]);
+
+  return null;
+};
+
+// Component to set up authenticated user as an actor
+const UserSetup: React.FC = () => {
+  const { store } = useStore();
+  const { user, isAuthenticated } = useAuth();
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      // Extract specific user fields we need
+      const { sub: userId, name, given_name, family_name } = user;
+
+      // Create actor record for the authenticated user
+      const displayName =
+        name ||
+        [given_name, family_name].filter(Boolean).join(" ") ||
+        "Unknown User";
+
+      store.commit(
+        events.actorProfileSet({
+          id: userId,
+          displayName,
+          type: "human",
+        })
+      );
+    }
+  }, [
+    isAuthenticated,
+    user.sub,
+    user.name,
+    user.given_name,
+    user.family_name,
+    store,
+  ]);
 
   return null;
 };
@@ -58,30 +96,19 @@ export const CustomLiveStoreProvider: React.FC<
     }
   }, [resetPersistence]);
 
-  // Get authenticated user info and access token
-  const {
-    user: { sub: userId },
-    accessToken,
-  } = useAuth();
-
-  // Generate clientId following LiveStore best practices
-  // ClientId should identify device/app instances, not users
-  const clientId = useMemo(() => {
-    return `${userId}-${crypto.randomUUID()}`;
-  }, [userId]);
+  // Get access token for authentication
+  const { accessToken } = useAuth();
 
   // Create completely static sync payload that never changes reference
-  // Token and clientId are updated via useEffect to prevent LiveStore restarts
+  // Token is updated via useEffect to prevent LiveStore restarts
   const syncPayload = useRef({
     authToken: accessToken || "",
-    clientId,
   });
 
-  // Update clientId and authToken if they change, but keep same object reference
+  // Update authToken if it changes, but keep same object reference
   useEffect(() => {
-    syncPayload.current.clientId = clientId;
     syncPayload.current.authToken = accessToken || "";
-  }, [clientId, accessToken]);
+  }, [accessToken]);
 
   const adapter = useMemo(
     () =>
@@ -90,9 +117,9 @@ export const CustomLiveStoreProvider: React.FC<
         worker: LiveStoreWorker,
         sharedWorker: LiveStoreSharedWorker,
         resetPersistence,
-        clientId, // This identifies the device/app instance following LiveStore best practices
+        // Let LiveStore generate and manage clientId
       }),
-    [clientId, resetPersistence]
+    [resetPersistence]
   );
 
   return (
@@ -105,6 +132,7 @@ export const CustomLiveStoreProvider: React.FC<
       syncPayload={syncPayload.current}
     >
       <LiveStoreReadyDetector onReady={onLiveStoreReady} />
+      <UserSetup />
       {children}
     </LiveStoreProvider>
   );
