@@ -38,11 +38,11 @@ const UserSetup: React.FC = () => {
   const { store } = useStore();
   const { user, isAuthenticated } = useAuth();
 
+  // Extract specific user fields we need
+  const { sub: userId, name, given_name, family_name } = user;
+
   useEffect(() => {
     if (isAuthenticated) {
-      // Extract specific user fields we need
-      const { sub: userId, name, given_name, family_name } = user;
-
       // Create actor record for the authenticated user
       const displayName =
         name ||
@@ -57,14 +57,7 @@ const UserSetup: React.FC = () => {
         })
       );
     }
-  }, [
-    isAuthenticated,
-    user.sub,
-    user.name,
-    user.given_name,
-    user.family_name,
-    store,
-  ]);
+  }, [isAuthenticated, userId, name, given_name, family_name, store]);
 
   return null;
 };
