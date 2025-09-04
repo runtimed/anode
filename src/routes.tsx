@@ -16,6 +16,7 @@ import { NotebookPage } from "@/pages/NotebookPage.tsx";
 import { NotebooksDashboardPage } from "@/pages/NotebooksDashboardPage.tsx";
 import OidcCallbackPage from "@/pages/OidcCallbackPage.tsx";
 import { ErrorBoundary } from "react-error-boundary";
+import { ErrorFallbackPage } from "./components/ErrorFallbackPage";
 
 export const App: React.FC = () => {
   // Safety net: Auto-remove loading screen if no component has handled it
@@ -53,11 +54,7 @@ export const App: React.FC = () => {
 
   return (
     <AuthProvider>
-      <ErrorBoundary
-        fallbackRender={() => (
-          <div>Error on page. See console log for details.</div>
-        )}
-      >
+      <ErrorBoundary fallbackRender={ErrorFallbackPage}>
         <Routes>
           <Route path="/oidc" element={<OidcCallbackPage />} />
           <Route path="/local_oidc/authorize" element={<AuthorizePage />} />
