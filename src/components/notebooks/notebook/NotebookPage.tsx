@@ -1,5 +1,4 @@
 import { useDebug } from "@/components/debug/debug-mode.js";
-import { cn } from "@/lib/utils";
 import { ArrowLeft, Share2, Tag, User, Users } from "lucide-react";
 import React, { Suspense, useState } from "react";
 import { ErrorBoundary } from "react-error-boundary";
@@ -7,11 +6,7 @@ import { Link, useLocation, useParams } from "react-router-dom";
 import { CollaboratorAvatars } from "../../CollaboratorAvatars.js";
 import { DebugModeToggle } from "../../debug/DebugModeToggle.js";
 import { KeyboardShortcuts } from "../../KeyboardShortcuts.js";
-import {
-  LiveStoreProviderProvider,
-  LiveStoreReady,
-  useLiveStoreReady,
-} from "../../livestore/LivestoreProviderProvider.js";
+import { CustomLiveStoreProvider } from "../../livestore/CustomLiveStoreProvider.js";
 import { LoadingState } from "../../loading/LoadingState.js";
 import { RuntLogoSmall } from "../../logo/RuntLogoSmall.js";
 import { ContextSelectionModeButton } from "../../notebook/ContextSelectionModeButton.js";
@@ -19,7 +14,6 @@ import { GitCommitHash } from "../../notebook/GitCommitHash.js";
 import { NotebookContent } from "../../notebook/NotebookContent.js";
 import { RuntimeHealthIndicatorButton } from "../../notebook/RuntimeHealthIndicatorButton.js";
 import { RuntimeHelper } from "../../notebook/RuntimeHelper.js";
-import { DelayedSpinner } from "../../outputs/shared-with-iframe/SuspenseSpinner.js";
 import { Badge } from "../../ui/badge.js";
 import { Button } from "../../ui/button.js";
 import { SharingModal } from "../SharingModal.js";
@@ -43,9 +37,9 @@ export const NotebookPage: React.FC = () => {
   if (!id) return <div>No notebook id</div>;
 
   return (
-    <LiveStoreProviderProvider storeId={id}>
+    <CustomLiveStoreProvider storeId={id}>
       <NotebookPageWithId id={id} />
-    </LiveStoreProviderProvider>
+    </CustomLiveStoreProvider>
   );
 };
 
@@ -108,7 +102,6 @@ function NotebookPageWithIdAndNotebook({
 }) {
   useNavigateToCanonicalUrl(notebook);
 
-  const liveStoreReady = useLiveStoreReady();
   const debug = useDebug();
 
   const [isTagSelectionOpen, setIsTagSelectionOpen] = useState(false);
@@ -222,100 +215,65 @@ function NotebookPageWithIdAndNotebook({
         </div>
       </div>
 
-      <LiveStoreSpinnerContainer liveStoreReady={liveStoreReady}>
-        <LiveStoreReady>
-          <div className="flex">
-            <div className="container mx-auto px-4">
-              <div className="mb-4 flex h-8 items-center gap-3">
-                <CollaboratorAvatars />
-                <div className="flex-1" />
-                <div className="flex items-center gap-2 text-sm">
-                  <ContextSelectionModeButton />
-                  <RuntimeHealthIndicatorButton
-                    onToggleClick={() =>
-                      setShowRuntimeHelper(!showRuntimeHelper)
-                    }
-                  />
-                </div>
-              </div>
-              <RuntimeHelper
-                notebookId={id}
-                showRuntimeHelper={showRuntimeHelper}
-                onClose={() => setShowRuntimeHelper(false)}
+      <div className="flex">
+        <div className="container mx-auto px-4">
+          <div className="mb-4 flex h-8 items-center gap-3">
+            <CollaboratorAvatars />
+            <div className="flex-1" />
+            <div className="flex items-center gap-2 text-sm">
+              <ContextSelectionModeButton />
+              <RuntimeHealthIndicatorButton
+                onToggleClick={() => setShowRuntimeHelper(!showRuntimeHelper)}
               />
-
-              <KeyboardShortcuts />
-              <NotebookContent />
             </div>
-
-            {/* Debug Panel */}
-            {import.meta.env.DEV && debug.enabled && (
-              <Suspense
-                fallback={
-                  <div className="bg-muted/5 text-muted-foreground w-96 border-l p-4 text-xs">
-                    Loading debug panel...
-                  </div>
-                }
-              >
-                <ErrorBoundary
-                  fallback={<div>Error rendering debug panel</div>}
-                >
-                  <div className="w-96">
-                    <LazyDebugPanel />
-                  </div>
-                </ErrorBoundary>
-              </Suspense>
-            )}
           </div>
-        </LiveStoreReady>
+          <RuntimeHelper
+            notebookId={id}
+            showRuntimeHelper={showRuntimeHelper}
+            onClose={() => setShowRuntimeHelper(false)}
+          />
 
-        {/* Sharing Modal */}
-        <SharingModal
-          notebook={notebook}
-          isOpen={isSharingModalOpen}
-          onClose={() => setIsSharingModalOpen(false)}
-          onUpdate={refetch}
-        />
-
-        <TagSelectionDialog
-          notebookId={notebook.id}
-          isOpen={isTagSelectionOpen}
-          onClose={() => setIsTagSelectionOpen(false)}
-          onUpdate={refetch}
-        />
-
-        <div className="h-[70vh]"></div>
-        <div className="mt-8 flex justify-center border-t px-4 py-2 text-center">
-          <GitCommitHash />
+          <KeyboardShortcuts />
+          <NotebookContent />
         </div>
-      </LiveStoreSpinnerContainer>
+
+        {/* Debug Panel */}
+        {import.meta.env.DEV && debug.enabled && (
+          <Suspense
+            fallback={
+              <div className="bg-muted/5 text-muted-foreground w-96 border-l p-4 text-xs">
+                Loading debug panel...
+              </div>
+            }
+          >
+            <ErrorBoundary fallback={<div>Error rendering debug panel</div>}>
+              <div className="w-96">
+                <LazyDebugPanel />
+              </div>
+            </ErrorBoundary>
+          </Suspense>
+        )}
+      </div>
+
+      {/* Sharing Modal */}
+      <SharingModal
+        notebook={notebook}
+        isOpen={isSharingModalOpen}
+        onClose={() => setIsSharingModalOpen(false)}
+        onUpdate={refetch}
+      />
+
+      <TagSelectionDialog
+        notebookId={notebook.id}
+        isOpen={isTagSelectionOpen}
+        onClose={() => setIsTagSelectionOpen(false)}
+        onUpdate={refetch}
+      />
+
+      <div className="h-[70vh]"></div>
+      <div className="mt-8 flex justify-center border-t px-4 py-2 text-center">
+        <GitCommitHash />
+      </div>
     </div>
   );
-
-  function LiveStoreSpinnerContainer({
-    children,
-    liveStoreReady,
-  }: {
-    children: React.ReactNode;
-    liveStoreReady: boolean;
-  }) {
-    return (
-      // Spinner is relative to this div
-      <div className="relative">
-        {children}
-
-        {/* Loading spinner */}
-        <div
-          className={cn(
-            "pointer-events-none absolute inset-0 z-50 flex items-center justify-center",
-            liveStoreReady ? "opacity-0" : "opacity-100"
-          )}
-        >
-          <div className="bg-background flex items-center justify-center rounded-full">
-            <DelayedSpinner size="lg" />
-          </div>
-        </div>
-      </div>
-    );
-  }
 }
