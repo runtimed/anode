@@ -133,6 +133,7 @@ function NotebookPageWithIdAndNotebook({
 
             {/* Right side - Simplified */}
             <div className="flex items-center gap-3">
+              <CollaboratorAvatars />
               {import.meta.env.DEV && <DebugModeToggle />}
 
               <ErrorBoundary fallback={<div>Error loading user profile</div>}>
