@@ -1,13 +1,13 @@
 import { Clock, User, Users, Tag } from "lucide-react";
 import React from "react";
 import { Link } from "react-router-dom";
-import { getNotebookVanityUrl } from "../../util/url-utils";
-import { Badge } from "../ui/badge";
-import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
-import { DateDisplay } from "../ui/DateDisplay";
-import { NotebookActions } from "./NotebookActions";
-import { TagBadge } from "./TagBadge";
-import type { NotebookProcessed } from "./types";
+import { getNotebookVanityUrl } from "../../../util/url-utils";
+import { Badge } from "../../ui/badge";
+import { Card, CardContent, CardHeader, CardTitle } from "../../ui/card";
+import { DateDisplay } from "../../ui/DateDisplay";
+import { NotebookActions } from "../NotebookActions";
+import { TagBadge } from "../TagBadge";
+import type { NotebookProcessed } from "../types";
 
 interface NotebookCardProps {
   notebook: NotebookProcessed;
