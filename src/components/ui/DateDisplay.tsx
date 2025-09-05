@@ -1,11 +1,6 @@
 import React from "react";
 import { formatDistanceToNow } from "date-fns";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "./tooltip";
+import { Tooltip, TooltipContent, TooltipTrigger } from "./tooltip";
 import { cn } from "@/lib/utils";
 
 interface DateDisplayProps {
@@ -54,18 +49,16 @@ export const DateDisplay: React.FC<DateDisplayProps> = ({
   }
 
   return (
-    <TooltipProvider>
-      <Tooltip delayDuration={0}>
-        <TooltipTrigger asChild>
-          <span className={cn("cursor-default", className)}>
-            {getDisplayText()}
-          </span>
-        </TooltipTrigger>
-        <TooltipContent>
-          <p>{getTooltipText()}</p>
-        </TooltipContent>
-      </Tooltip>
-    </TooltipProvider>
+    <Tooltip>
+      <TooltipTrigger asChild>
+        <span className={cn("cursor-default", className)}>
+          {getDisplayText()}
+        </span>
+      </TooltipTrigger>
+      <TooltipContent>
+        <p>{getTooltipText()}</p>
+      </TooltipContent>
+    </Tooltip>
   );
 };
 
