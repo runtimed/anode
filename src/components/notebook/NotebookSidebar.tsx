@@ -9,6 +9,7 @@ import { RuntimeHealthIndicator } from "@/components/notebook/RuntimeHealthIndic
 import { useRuntimeHealth } from "@/hooks/useRuntimeHealth";
 import type { NotebookProcessed } from "@/components/notebooks/types";
 import { RuntSidebarLogo } from "@/components/logo/RuntSidebarLogo";
+import { GitCommitHash } from "@/components/notebook/GitCommitHash";
 import { Link } from "react-router-dom";
 
 // Icons
@@ -21,6 +22,9 @@ import {
   X,
   ArrowLeft,
   HelpCircle,
+  Star,
+  Bug,
+  ExternalLink,
 } from "lucide-react";
 
 // Lazy import DebugPanel only in development
@@ -358,6 +362,42 @@ export const NotebookSidebar: React.FC<NotebookSidebarProps> = ({
                       Pick a cell type above to start experimenting with
                       real-time collaborative computing.
                     </p>
+                  </div>
+
+                  <div className="border-t pt-4">
+                    <h4 className="mb-3 text-sm font-medium text-gray-700">
+                      About Anode
+                    </h4>
+                    <div className="space-y-3">
+                      <div className="flex flex-col space-y-2">
+                        <a
+                          href="https://github.com/runtimed/anode"
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="flex items-center gap-2 rounded px-2 py-1.5 text-xs hover:bg-gray-100"
+                        >
+                          <Star className="h-3 w-3" />
+                          <span>Star us on GitHub</span>
+                          <ExternalLink className="h-3 w-3 opacity-60" />
+                        </a>
+                        <a
+                          href="https://github.com/runtimed/anode/issues"
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="flex items-center gap-2 rounded px-2 py-1.5 text-xs hover:bg-gray-100"
+                        >
+                          <Bug className="h-3 w-3" />
+                          <span>Report a bug</span>
+                          <ExternalLink className="h-3 w-3 opacity-60" />
+                        </a>
+                      </div>
+                      <div className="border-t pt-2">
+                        <div className="flex items-center justify-between text-xs">
+                          <span className="text-gray-600">Build:</span>
+                          <GitCommitHash />
+                        </div>
+                      </div>
+                    </div>
                   </div>
                 </div>
               )}
