@@ -141,11 +141,11 @@ export function getDefaultModelForProvider(
     return undefined;
   }
 
-  // For Groq, prefer Kimi K2 Instruct
+  // For Groq, prefer Kimi K2 Instruct (SEP 5 2025 update)
   if (provider === "groq") {
     return (
       providerModels.find(
-        (model) => model.name === "moonshotai/kimi-k2-instruct"
+        (model) => model.name === "moonshotai/kimi-k2-instruct-0905"
       ) || providerModels[0]
     );
   }
