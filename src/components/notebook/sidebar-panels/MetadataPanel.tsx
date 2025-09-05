@@ -44,14 +44,17 @@ export const MetadataPanel: React.FC<SidebarPanelProps> = ({
   const [editingTagName, setEditingTagName] = useState("");
   const [editingTagColor, setEditingTagColor] = useState<TagColor>("#000000");
   const [isCreatingTag, setIsCreatingTag] = useState(false);
+  const [selectedColor, setSelectedColor] = useState<TagColor>("#3b82f6");
   const [previewColor, setPreviewColor] = useState<TagColor>("#3b82f6");
 
   const trpc = useTrpc();
 
-  // Update preview color when search term changes
+  // Update colors when search term changes
   useEffect(() => {
     if (searchTerm) {
-      setPreviewColor(getRandomTagColor());
+      const randomColor = getRandomTagColor();
+      setSelectedColor(randomColor);
+      setPreviewColor(randomColor);
     }
   }, [searchTerm]);
 
@@ -109,15 +112,14 @@ export const MetadataPanel: React.FC<SidebarPanelProps> = ({
     }
   };
 
-  const handleCreateTag = async (color?: TagColor) => {
+  const handleCreateTag = async () => {
     if (!searchTerm.trim()) return;
 
-    const tagColor = color || previewColor;
     setIsCreatingTag(true);
     try {
       const newTag = await createTagMutation.mutateAsync({
         name: searchTerm.trim(),
-        color: tagColor,
+        color: selectedColor,
       });
 
       if (newTag) {
@@ -315,11 +317,20 @@ export const MetadataPanel: React.FC<SidebarPanelProps> = ({
                 {TAG_COLOR_PALETTE.slice(0, 8).map((color) => (
                   <button
                     key={color}
-                    onClick={() => handleCreateTag(color)}
+                    onClick={() => {
+                      setSelectedColor(color);
+                      setPreviewColor(color);
+                    }}
+                    onMouseEnter={() => setPreviewColor(color)}
+                    onMouseLeave={() => setPreviewColor(selectedColor)}
                     disabled={isCreatingTag}
-                    className="h-6 w-6 rounded border-2 border-gray-200 hover:border-gray-400 disabled:opacity-50"
+                    className={`h-6 w-6 rounded border-2 hover:border-gray-400 disabled:opacity-50 ${
+                      selectedColor === color
+                        ? "border-gray-600"
+                        : "border-gray-200"
+                    }`}
                     style={{ backgroundColor: color }}
-                    title={`Create "${searchTerm}" with ${color}`}
+                    title={`Select ${color}`}
                   />
                 ))}
               </div>
