@@ -54,7 +54,10 @@ export const App: React.FC = () => {
 
   return (
     <AuthProvider>
-      <ErrorBoundary fallbackRender={ErrorFallbackPage}>
+      <ErrorBoundary
+        // Note: this must a render prop for error fallback
+        fallbackRender={({ error }) => <ErrorFallbackPage error={error} />}
+      >
         <Routes>
           <Route path="/oidc" element={<OidcCallbackPage />} />
           <Route path="/local_oidc/authorize" element={<AuthorizePage />} />
