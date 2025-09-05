@@ -13,7 +13,16 @@ import { RuntSidebarLogo } from "@/components/logo/RuntSidebarLogo";
 import { Link } from "react-router-dom";
 
 // Icons
-import { Tag, Brain, Cog, Bug, X, ArrowLeft, HelpCircle } from "lucide-react";
+import {
+  Tag,
+  ListChecks,
+  MonitorCheck,
+  MonitorOff,
+  DatabaseZap,
+  X,
+  ArrowLeft,
+  HelpCircle,
+} from "lucide-react";
 
 // Lazy import DebugPanel only in development
 const LazyDebugPanel = React.lazy(() =>
@@ -76,36 +85,36 @@ export const NotebookSidebar: React.FC<NotebookSidebarProps> = ({
       icon: Tag,
       tooltip: "Tags & Metadata",
     },
-    {
-      id: "ai" as SidebarSection,
-      icon: Brain,
-      tooltip: "AI Controls",
-    },
-    {
-      id: "help" as SidebarSection,
-      icon: HelpCircle,
-      tooltip: "Help & Shortcuts",
-    },
     ...(hasActiveRuntime ||
     runtimeHealth !== "healthy" ||
     activeSection === "runtime"
       ? [
           {
             id: "runtime" as SidebarSection,
-            icon: Cog,
+            icon: hasActiveRuntime ? MonitorCheck : MonitorOff,
             tooltip: "Runtime",
           },
         ]
       : []),
+    {
+      id: "ai" as SidebarSection,
+      icon: ListChecks,
+      tooltip: "AI Context Controls",
+    },
     ...(import.meta.env.DEV
       ? [
           {
             id: "debug" as SidebarSection,
-            icon: Bug,
-            tooltip: "Debug",
+            icon: DatabaseZap,
+            tooltip: "LiveStore Debug",
           },
         ]
       : []),
+    {
+      id: "help" as SidebarSection,
+      icon: HelpCircle,
+      tooltip: "Help & Shortcuts",
+    },
   ];
 
   return (
@@ -249,20 +258,22 @@ export const NotebookSidebar: React.FC<NotebookSidebarProps> = ({
               )}
 
               {activeSection === "runtime" && (
-                <div className="space-y-6">
+                <div className="space-y-4">
                   <div>
                     <h4 className="mb-3 text-sm font-medium text-gray-700">
                       Runtime Status
                     </h4>
-                    <div className="space-y-3">
+                    <div className="space-y-2">
                       <div className="flex items-center justify-between">
-                        <span className="text-sm text-gray-600">Status</span>
+                        <span className="text-xs text-gray-600">
+                          Connection
+                        </span>
                         <RuntimeHealthIndicator showStatus />
                       </div>
                       {hasActiveRuntime && (
                         <div className="flex items-center justify-between">
-                          <span className="text-sm text-gray-600">Type</span>
-                          <span className="font-mono text-sm">
+                          <span className="text-xs text-gray-600">Type</span>
+                          <span className="font-mono text-xs">
                             {activeRuntime?.runtimeType ?? "unknown"}
                           </span>
                         </div>
@@ -271,31 +282,25 @@ export const NotebookSidebar: React.FC<NotebookSidebarProps> = ({
                   </div>
 
                   <div className="border-t pt-4">
-                    <h4 className="mb-3 text-sm font-medium text-gray-700">
-                      Runtime Management
-                    </h4>
                     {hasActiveRuntime ? (
-                      <div className="space-y-3">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={handleRuntimeClick}
-                          className="w-full"
-                        >
-                          View Runtime Details
-                        </Button>
-                      </div>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={handleRuntimeClick}
+                        className="w-full text-xs"
+                      >
+                        View Runtime Details
+                      </Button>
                     ) : (
-                      <div className="space-y-3">
+                      <div className="space-y-2">
                         <p className="text-xs text-gray-500">
-                          No active runtime. Start a runtime to begin executing
-                          code.
+                          Start a runtime to execute code cells.
                         </p>
                         <Button
                           variant="outline"
                           size="sm"
                           onClick={handleRuntimeClick}
-                          className="w-full"
+                          className="w-full text-xs"
                         >
                           Setup Runtime
                         </Button>
@@ -347,6 +352,11 @@ export const NotebookSidebar: React.FC<NotebookSidebarProps> = ({
 
               {activeSection === "debug" && import.meta.env.DEV && (
                 <div className="h-full">
+                  <div className="mb-3">
+                    <p className="text-xs text-gray-500">
+                      LiveStore database debugging and inspection tools.
+                    </p>
+                  </div>
                   <Suspense
                     fallback={
                       <div className="p-4 text-xs text-gray-500">
