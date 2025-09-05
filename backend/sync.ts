@@ -36,6 +36,9 @@ export default {
         ctx,
         options: {
           headers: {},
+          durableObject: {
+            name: "WEBSOCKET_SERVER",
+          },
           validatePayload: async (rawPayload) => {
             try {
               const payload = decodePayload(rawPayload);

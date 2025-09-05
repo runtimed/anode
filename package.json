@@ -91,7 +91,7 @@
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "date-fns": "^4.1.0",
-    "effect": "3.15.5",
+    "effect": "3.17.13",
     "fractional-indexing": "^3.2.0",
     "hono": "^4.9.1",
     "jose": "^6.0.12",
@@ -163,7 +163,7 @@
   },
   "pnpm": {
     "overrides": {
-      "effect": "3.15.5",
+      "effect": "3.17.13",
       "react": "19.0.0",
       "react-dom": "19.0.0",
       "@effect/platform": "0.90.7",
