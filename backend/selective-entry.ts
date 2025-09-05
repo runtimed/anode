@@ -181,51 +181,51 @@ export default {
       });
     }
 
+    // if (pathname.startsWith("/api/trpc")) {
+    //   console.log("🚀 Routing to tRPC");
+    //   try {
+    //     const response = await fetchRequestHandler({
+    //       endpoint: "/api/trpc",
+    //       req: request as unknown as Request,
+    //       router: appRouter,
+    //       createContext: async (): Promise<TrcpContext> => {
+    //         let auth = await extractAndValidateUser(
+    //           request as unknown as Request,
+    //           env
+    //         );
+
+    //         // Create permissions provider
+    //         const permissionsProvider = createPermissionsProvider(env);
+
+    //         return {
+    //           env,
+    //           user: auth,
+    //           permissionsProvider,
+    //         };
+    //       },
+    //     });
+    //     console.log("✅ tRPC response:", response.status);
+    //     return response as unknown as WorkerResponse;
+    //   } catch (error) {
+    //     console.error("❌ tRPC error:", error);
+    //     return new workerGlobals.Response(
+    //       JSON.stringify({
+    //         error: "tRPC processing failed",
+    //         message: error instanceof Error ? error.message : String(error),
+    //       }),
+    //       {
+    //         status: 500,
+    //         headers: { "Content-Type": "application/json" },
+    //       }
+    //     );
+    //   }
+    // }
+
     if (pathname.startsWith("/api/trpc")) {
-      console.log("🚀 Routing to tRPC");
-      try {
-        const response = await fetchRequestHandler({
-          endpoint: "/api/trpc",
-          req: request as unknown as Request,
-          router: appRouter,
-          createContext: async (): Promise<TrcpContext> => {
-            let auth = await extractAndValidateUser(
-              request as unknown as Request,
-              env
-            );
-
-            // Create permissions provider
-            const permissionsProvider = createPermissionsProvider(env);
-
-            return {
-              env,
-              user: auth,
-              permissionsProvider,
-            };
-          },
-        });
-        console.log("✅ tRPC response:", response.status);
-        return response as unknown as WorkerResponse;
-      } catch (error) {
-        console.error("❌ tRPC error:", error);
-        return new workerGlobals.Response(
-          JSON.stringify({
-            error: "tRPC processing failed",
-            message: error instanceof Error ? error.message : String(error),
-          }),
-          {
-            status: 500,
-            headers: { "Content-Type": "application/json" },
-          }
-        );
-      }
-    }
-
-    if (pathname.startsWith("/api/trpc-no-context")) {
       console.log("🚀 Routing to tRPC (no context)");
       try {
         const response = await fetchRequestHandler({
-          endpoint: "/api/trpc-no-context",
+          endpoint: "/api/trpc",
           req: request as unknown as Request,
           router: appRouter,
           createContext: async (): Promise<TrcpContext> => null as any,
