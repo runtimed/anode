@@ -6,7 +6,7 @@ import { CollaboratorAvatars } from "../../CollaboratorAvatars.js";
 
 import { CustomLiveStoreProvider } from "../../livestore/CustomLiveStoreProvider.js";
 import { LoadingState } from "../../loading/LoadingState.js";
-import { GitCommitHash } from "../../notebook/GitCommitHash.js";
+
 import { NotebookContent } from "../../notebook/NotebookContent.js";
 import { NotebookSidebar } from "../../notebook/NotebookSidebar.js";
 
@@ -184,9 +184,6 @@ function NotebookPageWithIdAndNotebook({
           <div className="container mx-auto px-4">
             <NotebookContent />
             <div className="h-[70vh]"></div>
-            <div className="mt-8 flex justify-center border-t px-4 py-2 text-center">
-              <GitCommitHash />
-            </div>
           </div>
         </div>
       </div>
