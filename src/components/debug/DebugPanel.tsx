@@ -73,7 +73,7 @@ const DebugPanel: React.FC = () => {
 
   return (
     <div className="bg-muted/5 w-full overflow-y-auto">
-      <div className="bg-card border-b p-4">
+      <div className="bg-card border-b pb-3">
         <h3 className="flex items-center gap-2 text-sm font-semibold">
           <Bug className="h-4 w-4" />
           Runt Debug Panel
@@ -84,13 +84,13 @@ const DebugPanel: React.FC = () => {
         target="_blank"
         rel="noopener noreferrer"
         href={`${window.location.protocol}//${window.location.hostname}${window.location.port ? `:${window.location.port}` : ""}/_livestore/web/${store.storeId}/${store.clientSession.clientId}/${store.sessionId}/default`}
-        className="hover:bg-muted flex items-center gap-1 border-b px-4 py-2 text-sm text-blue-500 hover:underline"
+        className="hover:bg-muted flex items-center gap-1 border-b py-2 text-sm text-blue-500 hover:underline"
       >
         <Database className="size-4" />
         LiveStore DevTools →
       </a>
 
-      <div className="space-y-4 p-4">
+      <div className="space-y-4 pt-4">
         <DebugVersion />
         {/* Available Tables */}
         <div>
