@@ -1,5 +1,5 @@
 import { useDebug } from "@/components/debug/debug-mode.js";
-import { ArrowLeft, Share2, Tag, User, Users } from "lucide-react";
+import { ArrowLeft, Tag, User, Users } from "lucide-react";
 import React, { Suspense, useState } from "react";
 import { ErrorBoundary } from "react-error-boundary";
 import { Link, useLocation, useParams } from "react-router-dom";
@@ -14,7 +14,7 @@ import { GitCommitHash } from "../../notebook/GitCommitHash.js";
 import { NotebookContent } from "../../notebook/NotebookContent.js";
 import { RuntimeHealthIndicatorButton } from "../../notebook/RuntimeHealthIndicatorButton.js";
 import { RuntimeHelper } from "../../notebook/RuntimeHelper.js";
-import { Badge } from "../../ui/badge.js";
+
 import { Button } from "../../ui/button.js";
 import { SharingModal } from "../SharingModal.js";
 import { SimpleUserProfile } from "../SimpleUserProfile.js";
@@ -129,56 +129,10 @@ function NotebookPageWithIdAndNotebook({
                 onTitleSaved={refetch}
                 canEdit={canEdit}
               />
-
-              {/* Tags - Simplified */}
-              <div className="flex items-center gap-2">
-                {notebook.tags?.slice(0, 3).map((tag) => (
-                  <TagBadge key={tag.id} tag={tag} className="text-xs" />
-                ))}
-                {notebook.tags && notebook.tags.length > 3 && (
-                  <Badge
-                    variant="outline"
-                    className="px-1.5 py-0.5 text-xs text-gray-500"
-                  >
-                    +{notebook.tags.length - 3}
-                  </Badge>
-                )}
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => setIsTagSelectionOpen(true)}
-                  className="h-6 px-2 text-xs text-gray-500 hover:text-gray-700"
-                >
-                  <Tag className="mr-1 h-3 w-3" />
-                  {!notebook.tags || notebook.tags.length === 0
-                    ? "Add tags"
-                    : "Edit"}
-                </Button>
-              </div>
             </div>
 
             {/* Right side - Simplified */}
             <div className="flex items-center gap-3">
-              {/* Share button - only show if can edit */}
-              {canEdit && (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setIsSharingModalOpen(true)}
-                  className="text-gray-600 hover:text-gray-900"
-                >
-                  <Share2 className="h-4 w-4" />
-                </Button>
-              )}
-
-              {/* Permission badge - smaller and less prominent */}
-              <Badge
-                variant="secondary"
-                className="bg-gray-100 px-2 py-1 text-xs text-gray-600"
-              >
-                {(notebook.myPermission || "NONE").toLowerCase()}
-              </Badge>
-
               {import.meta.env.DEV && <DebugModeToggle />}
 
               <ErrorBoundary fallback={<div>Error loading user profile</div>}>
@@ -188,29 +142,80 @@ function NotebookPageWithIdAndNotebook({
           </div>
 
           {/* Metadata - Simplified */}
-          <div className="mt-3 flex items-center gap-4 text-xs text-gray-500">
-            {/* Owner - more subtle */}
-            <div className="flex items-center gap-1.5">
-              <User className="h-3 w-3" />
-              <span>
-                {notebook.owner?.givenName && notebook.owner?.familyName
-                  ? `${notebook.owner.givenName} ${notebook.owner.familyName}`
-                  : "Unknown Owner"}
-              </span>
-            </div>
-
-            {/* Collaborators count - more subtle */}
-            {notebook.collaborators && notebook.collaborators.length > 0 && (
+          <div className="mt-3 flex items-center justify-between text-xs text-gray-500">
+            <div className="flex items-center gap-4">
+              {/* Owner name without label */}
               <div className="flex items-center gap-1.5">
-                <Users className="h-3 w-3" />
+                <User className="h-3 w-3" />
                 <span>
-                  {notebook.collaborators.length}{" "}
-                  {notebook.collaborators.length === 1
-                    ? "collaborator"
-                    : "collaborators"}
+                  {notebook.owner?.givenName && notebook.owner?.familyName
+                    ? `${notebook.owner.givenName} ${notebook.owner.familyName}`
+                    : "Unknown Owner"}
                 </span>
               </div>
-            )}
+
+              {/* Collaborators count with share button */}
+              {notebook.collaborators && notebook.collaborators.length > 0 && (
+                <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-1.5">
+                    <Users className="h-3 w-3" />
+                    <span>
+                      {notebook.collaborators.length}{" "}
+                      {notebook.collaborators.length === 1
+                        ? "collaborator"
+                        : "collaborators"}
+                    </span>
+                  </div>
+                  {canEdit && (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setIsSharingModalOpen(true)}
+                      className="h-5 px-2 text-xs text-gray-400 hover:text-gray-600"
+                    >
+                      Share
+                    </Button>
+                  )}
+                </div>
+              )}
+
+              {/* Show share button even when no collaborators */}
+              {(!notebook.collaborators ||
+                notebook.collaborators.length === 0) &&
+                canEdit && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setIsSharingModalOpen(true)}
+                    className="h-5 px-2 text-xs text-gray-400 hover:text-gray-600"
+                  >
+                    <Users className="mr-1.5 h-3 w-3" />
+                    Share
+                  </Button>
+                )}
+            </div>
+
+            {/* Tags - Right aligned */}
+            <div className="flex items-center gap-1">
+              {notebook.tags?.map((tag) => (
+                <TagBadge
+                  key={tag.id}
+                  tag={tag}
+                  className="px-1.5 py-0.5 text-[10px]"
+                />
+              ))}
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setIsTagSelectionOpen(true)}
+                className="h-4 px-1.5 text-[10px] text-gray-400 hover:text-gray-600"
+              >
+                <Tag className="mr-1 h-2.5 w-2.5" />
+                {!notebook.tags || notebook.tags.length === 0
+                  ? "Add tags"
+                  : "Edit"}
+              </Button>
+            </div>
           </div>
         </div>
       </div>
