@@ -6,6 +6,7 @@ import { TagSelectionDialog } from "@/components/notebooks/TagSelectionDialog";
 import { ContextSelectionModeButton } from "@/components/notebook/ContextSelectionModeButton";
 import { RuntimeHealthIndicatorButton } from "@/components/notebook/RuntimeHealthIndicatorButton";
 import { RuntimeHelper } from "@/components/notebook/RuntimeHelper";
+import { useRuntimeHealth } from "@/hooks/useRuntimeHealth";
 import type { NotebookProcessed } from "@/components/notebooks/types";
 import { RuntLogoSmall } from "@/components/logo/RuntLogoSmall";
 import { Link } from "react-router-dom";
@@ -40,9 +41,16 @@ export const NotebookSidebar: React.FC<NotebookSidebarProps> = ({
   );
   const [isTagSelectionOpen, setIsTagSelectionOpen] = useState(false);
   const [showRuntimeHelper, setShowRuntimeHelper] = useState(false);
+  const { hasActiveRuntime, runtimeHealth } = useRuntimeHealth();
 
   const toggleSection = (section: SidebarSection) => {
     const newActiveSection = activeSection === section ? null : section;
+
+    // If we're switching away from AI panel to another panel, notify parent
+    if (activeSection === "ai" && newActiveSection !== "ai") {
+      onAiPanelToggle(false);
+    }
+
     setActiveSection(newActiveSection);
 
     // Notify parent when AI panel toggles
@@ -72,11 +80,17 @@ export const NotebookSidebar: React.FC<NotebookSidebarProps> = ({
       icon: Brain,
       tooltip: "AI Controls",
     },
-    {
-      id: "runtime" as SidebarSection,
-      icon: Cog,
-      tooltip: "Runtime",
-    },
+    ...(hasActiveRuntime ||
+    runtimeHealth !== "healthy" ||
+    activeSection === "runtime"
+      ? [
+          {
+            id: "runtime" as SidebarSection,
+            icon: Cog,
+            tooltip: "Runtime",
+          },
+        ]
+      : []),
     ...(import.meta.env.DEV
       ? [
           {
@@ -100,7 +114,9 @@ export const NotebookSidebar: React.FC<NotebookSidebarProps> = ({
             title="Back to Notebooks"
           >
             <span className="relative transition-opacity group-hover/logo:opacity-20">
-              <RuntLogoSmall />
+              <div className="flex h-4 w-4 items-center justify-center">
+                <RuntLogoSmall />
+              </div>
             </span>
             <ArrowLeft className="absolute h-4 w-4 opacity-0 transition-opacity group-hover/logo:opacity-100" />
           </Link>
