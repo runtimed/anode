@@ -4,7 +4,7 @@ import { queryDb, sql, Schema } from "@livestore/livestore";
 
 import { tables, events, queries } from "@/schema";
 import { schema } from "../../schema.js";
-import { Bug, Database } from "lucide-react";
+import { Database } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 const useAvailableTables = () => {
@@ -73,13 +73,6 @@ const DebugPanel: React.FC = () => {
 
   return (
     <div className="bg-muted/5 w-full overflow-y-auto">
-      <div className="bg-card border-b pb-3">
-        <h3 className="flex items-center gap-2 text-sm font-semibold">
-          <Bug className="h-4 w-4" />
-          Runt Debug Panel
-        </h3>
-      </div>
-
       <a
         target="_blank"
         rel="noopener noreferrer"
