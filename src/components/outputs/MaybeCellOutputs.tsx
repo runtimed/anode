@@ -43,13 +43,8 @@ export const MaybeCellOutputs = ({
           className="transition-[height] duration-300"
         />
       ) : (
-        processedOutputs.map((output: OutputData, index: number) => (
-          <div
-            key={output.id}
-            className={index > 0 ? "border-border/30 mt-2 border-t pt-2" : ""}
-          >
-            <SingleOutput output={output} />
-          </div>
+        processedOutputs.map((output: OutputData) => (
+          <SingleOutput key={output.id} output={output} />
         ))
       )}
     </div>
