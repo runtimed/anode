@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { useTrpc } from "@/components/TrpcProvider";
 import { trpcQueryClient } from "@/lib/trpc-client";
@@ -11,7 +11,29 @@ import type { Tag } from "@/components/notebooks/types";
 import type { SidebarPanelProps } from "./types";
 
 // Icons
-import { Plus, Edit3, Check, X, Trash2 } from "lucide-react";
+import { Plus, Edit3, Check, X, Undo, Trash2 } from "lucide-react";
+
+// Curated color palette for new tags
+const TAG_COLOR_PALETTE: TagColor[] = [
+  "#ef4444", // red
+  "#f97316", // orange
+  "#eab308", // yellow
+  "#22c55e", // green
+  "#06b6d4", // cyan
+  "#3b82f6", // blue
+  "#8b5cf6", // violet
+  "#ec4899", // pink
+  "#f59e0b", // amber
+  "#10b981", // emerald
+  "#6366f1", // indigo
+  "#84cc16", // lime
+];
+
+const getRandomTagColor = (): TagColor => {
+  return TAG_COLOR_PALETTE[
+    Math.floor(Math.random() * TAG_COLOR_PALETTE.length)
+  ];
+};
 
 export const MetadataPanel: React.FC<SidebarPanelProps> = ({
   notebook,
@@ -22,8 +44,16 @@ export const MetadataPanel: React.FC<SidebarPanelProps> = ({
   const [editingTagName, setEditingTagName] = useState("");
   const [editingTagColor, setEditingTagColor] = useState<TagColor>("#000000");
   const [isCreatingTag, setIsCreatingTag] = useState(false);
+  const [previewColor, setPreviewColor] = useState<TagColor>("#3b82f6");
 
   const trpc = useTrpc();
+
+  // Update preview color when search term changes
+  useEffect(() => {
+    if (searchTerm) {
+      setPreviewColor(getRandomTagColor());
+    }
+  }, [searchTerm]);
 
   // Fetch all available tags
   const { data: allTags = [] } = useQuery(trpc.tags.queryOptions());
@@ -86,7 +116,7 @@ export const MetadataPanel: React.FC<SidebarPanelProps> = ({
     try {
       const newTag = await createTagMutation.mutateAsync({
         name: searchTerm.trim(),
-        color: "#3b82f6" as TagColor,
+        color: previewColor,
       });
 
       if (newTag) {
@@ -194,7 +224,7 @@ export const MetadataPanel: React.FC<SidebarPanelProps> = ({
                         onClick={cancelEditingTag}
                         className="h-6 px-2 text-xs"
                       >
-                        <X className="h-3 w-3" />
+                        <Undo className="h-3 w-3" />
                       </Button>
                       <Button
                         size="sm"
@@ -257,6 +287,40 @@ export const MetadataPanel: React.FC<SidebarPanelProps> = ({
             }
           }}
         />
+
+        {/* Preview and quick colors for new tag */}
+        {searchTerm && !exactMatch && (
+          <div className="mb-3 space-y-2 rounded-lg border bg-gray-50 p-3">
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-medium text-gray-700">
+                Preview:
+              </span>
+              <TagBadge
+                tag={{
+                  id: "preview",
+                  name: searchTerm,
+                  color: previewColor,
+                }}
+                className="text-xs"
+              />
+            </div>
+            <div className="flex flex-wrap gap-1">
+              {TAG_COLOR_PALETTE.slice(0, 8).map((color) => (
+                <button
+                  key={color}
+                  onClick={() => setPreviewColor(color)}
+                  className={`h-6 w-6 rounded border-2 ${
+                    previewColor === color
+                      ? "border-gray-400"
+                      : "border-gray-200"
+                  }`}
+                  style={{ backgroundColor: color }}
+                  title={`Use ${color}`}
+                />
+              ))}
+            </div>
+          </div>
+        )}
 
         <div className="max-h-48 space-y-1 overflow-y-auto">
           {/* Create new tag option */}

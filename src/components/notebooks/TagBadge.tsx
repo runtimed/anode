@@ -9,15 +9,22 @@ interface TagBadgeProps {
 }
 
 // Function to determine if text should be white or black based on background color
-// Uses chroma-js for proper WCAG contrast calculation
+// Biased toward white text for better readability on medium-dark colors, especially blues
 function getContrastTextColor(hexColor: string): string {
   const color = chroma(hexColor);
 
-  // Calculate contrast with white and black, return the one with better contrast
-  const contrastWithWhite = chroma.contrast(color, "white");
-  const contrastWithBlack = chroma.contrast(color, "black");
+  // Get HSL values to check for blue hues and lightness
+  const [hue, , lightness] = color.hsl();
 
-  return contrastWithWhite > contrastWithBlack ? "#ffffff" : "#000000";
+  // For blue-ish colors (210-270 degrees), use white text unless very light
+  const isBlueish = hue >= 210 && hue <= 270;
+  if (isBlueish && lightness < 0.8) {
+    return "#ffffff";
+  }
+
+  // For other colors, use white text if lightness is below 0.65 (biased toward white)
+  // This is more conservative than pure contrast calculation
+  return lightness < 0.65 ? "#ffffff" : "#000000";
 }
 
 export const TagBadge: React.FC<TagBadgeProps> = ({ tag, className = "" }) => {
