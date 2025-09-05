@@ -3,7 +3,7 @@ import React, { useState } from "react";
 import { ErrorBoundary } from "react-error-boundary";
 import { Link, useLocation, useParams } from "react-router-dom";
 import { CollaboratorAvatars } from "../../CollaboratorAvatars.js";
-import { DebugModeToggle } from "../../debug/DebugModeToggle.js";
+
 import { KeyboardShortcuts } from "../../KeyboardShortcuts.js";
 import { CustomLiveStoreProvider } from "../../livestore/CustomLiveStoreProvider.js";
 import { LoadingState } from "../../loading/LoadingState.js";
@@ -122,7 +122,6 @@ function NotebookPageWithIdAndNotebook({
 
               {/* Right side - Simplified */}
               <div className="flex items-center gap-3">
-                {import.meta.env.DEV && <DebugModeToggle />}
                 <CollaboratorAvatars />
 
                 <ErrorBoundary fallback={<div>Error loading user profile</div>}>
