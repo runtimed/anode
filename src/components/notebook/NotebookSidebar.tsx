@@ -4,15 +4,16 @@ import { Button } from "@/components/ui/button";
 import { TagBadge } from "@/components/notebooks/TagBadge";
 import { TagSelectionDialog } from "@/components/notebooks/TagSelectionDialog";
 import { ContextSelectionModeButton } from "@/components/notebook/ContextSelectionModeButton";
-import { RuntimeHealthIndicatorButton } from "@/components/notebook/RuntimeHealthIndicatorButton";
+
+import { RuntimeHealthIndicator } from "@/components/notebook/RuntimeHealthIndicator";
 import { RuntimeHelper } from "@/components/notebook/RuntimeHelper";
 import { useRuntimeHealth } from "@/hooks/useRuntimeHealth";
 import type { NotebookProcessed } from "@/components/notebooks/types";
-import { RuntLogoSmall } from "@/components/logo/RuntLogoSmall";
+import { RuntSidebarLogo } from "@/components/logo/RuntSidebarLogo";
 import { Link } from "react-router-dom";
 
 // Icons
-import { Tag, Brain, Cog, Bug, X, ArrowLeft } from "lucide-react";
+import { Tag, Brain, Cog, Bug, X, ArrowLeft, HelpCircle } from "lucide-react";
 
 // Lazy import DebugPanel only in development
 const LazyDebugPanel = React.lazy(() =>
@@ -28,7 +29,7 @@ interface NotebookSidebarProps {
   onAiPanelToggle: (isOpen: boolean) => void;
 }
 
-type SidebarSection = "metadata" | "ai" | "runtime" | "debug";
+type SidebarSection = "metadata" | "ai" | "runtime" | "debug" | "help";
 
 export const NotebookSidebar: React.FC<NotebookSidebarProps> = ({
   notebook,
@@ -41,7 +42,7 @@ export const NotebookSidebar: React.FC<NotebookSidebarProps> = ({
   );
   const [isTagSelectionOpen, setIsTagSelectionOpen] = useState(false);
   const [showRuntimeHelper, setShowRuntimeHelper] = useState(false);
-  const { hasActiveRuntime, runtimeHealth } = useRuntimeHealth();
+  const { hasActiveRuntime, runtimeHealth, activeRuntime } = useRuntimeHealth();
 
   const toggleSection = (section: SidebarSection) => {
     const newActiveSection = activeSection === section ? null : section;
@@ -80,6 +81,11 @@ export const NotebookSidebar: React.FC<NotebookSidebarProps> = ({
       icon: Brain,
       tooltip: "AI Controls",
     },
+    {
+      id: "help" as SidebarSection,
+      icon: HelpCircle,
+      tooltip: "Help & Shortcuts",
+    },
     ...(hasActiveRuntime ||
     runtimeHealth !== "healthy" ||
     activeSection === "runtime"
@@ -114,11 +120,7 @@ export const NotebookSidebar: React.FC<NotebookSidebarProps> = ({
             title="Back to Notebooks"
           >
             <span className="relative transition-opacity group-hover/logo:opacity-20">
-              <div className="flex h-4 w-4 items-center justify-center">
-                <div className="h-4 w-4 [&>*]:!h-4 [&>*]:!w-4">
-                  <RuntLogoSmall />
-                </div>
-              </div>
+              <RuntSidebarLogo />
             </span>
             <ArrowLeft className="absolute h-4 w-4 opacity-0 transition-opacity group-hover/logo:opacity-100" />
           </Link>
@@ -175,6 +177,7 @@ export const NotebookSidebar: React.FC<NotebookSidebarProps> = ({
                 {activeSection === "ai" && "AI Context Controls"}
                 {activeSection === "runtime" && "Runtime Configuration"}
                 {activeSection === "debug" && "Debug Panel"}
+                {activeSection === "help" && "Help & Keyboard Shortcuts"}
               </h3>
               <Button
                 variant="ghost"
@@ -251,17 +254,92 @@ export const NotebookSidebar: React.FC<NotebookSidebarProps> = ({
                     <h4 className="mb-3 text-sm font-medium text-gray-700">
                       Runtime Status
                     </h4>
-                    <RuntimeHealthIndicatorButton
-                      onToggleClick={handleRuntimeClick}
-                    />
+                    <div className="space-y-3">
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm text-gray-600">Status</span>
+                        <RuntimeHealthIndicator showStatus />
+                      </div>
+                      {hasActiveRuntime && (
+                        <div className="flex items-center justify-between">
+                          <span className="text-sm text-gray-600">Type</span>
+                          <span className="font-mono text-sm">
+                            {activeRuntime?.runtimeType ?? "unknown"}
+                          </span>
+                        </div>
+                      )}
+                    </div>
                   </div>
 
                   <div className="border-t pt-4">
                     <h4 className="mb-3 text-sm font-medium text-gray-700">
-                      Runtime Configuration
+                      Runtime Management
+                    </h4>
+                    {hasActiveRuntime ? (
+                      <div className="space-y-3">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={handleRuntimeClick}
+                          className="w-full"
+                        >
+                          View Runtime Details
+                        </Button>
+                      </div>
+                    ) : (
+                      <div className="space-y-3">
+                        <p className="text-xs text-gray-500">
+                          No active runtime. Start a runtime to begin executing
+                          code.
+                        </p>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={handleRuntimeClick}
+                          className="w-full"
+                        >
+                          Setup Runtime
+                        </Button>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {activeSection === "help" && (
+                <div className="space-y-6">
+                  <div>
+                    <h4 className="mb-3 text-sm font-medium text-gray-700">
+                      Keyboard Shortcuts
+                    </h4>
+                    <div className="space-y-3 text-sm">
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">Navigate cells</span>
+                        <code className="rounded bg-gray-100 px-2 py-1 text-xs">
+                          ↑↓
+                        </code>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">Run & next</span>
+                        <code className="rounded bg-gray-100 px-2 py-1 text-xs">
+                          Shift+Enter
+                        </code>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">Run cell</span>
+                        <code className="rounded bg-gray-100 px-2 py-1 text-xs">
+                          Ctrl+Enter
+                        </code>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="border-t pt-4">
+                    <h4 className="mb-3 text-sm font-medium text-gray-700">
+                      Getting Started
                     </h4>
                     <p className="text-xs text-gray-500">
-                      Runtime management controls and settings
+                      Pick a cell type above to start experimenting with
+                      real-time collaborative computing.
                     </p>
                   </div>
                 </div>
