@@ -82,8 +82,8 @@ export const NotebookSidebar: React.FC<NotebookSidebarProps> = ({
 
   return (
     <>
-      {/* Icon-only sidebar */}
-      <div className="fixed top-0 left-0 z-40 flex h-full w-12 flex-col items-center border-r bg-gray-50 py-4">
+      {/* Desktop: Icon-only sidebar (hidden on mobile) */}
+      <div className="fixed top-0 left-0 z-40 hidden h-full w-12 flex-col items-center border-r bg-gray-50 py-4 lg:flex">
         {/* Logo and back navigation */}
         <div className="mb-4 flex flex-col items-center space-y-2">
           <Link
@@ -124,26 +124,66 @@ export const NotebookSidebar: React.FC<NotebookSidebarProps> = ({
         </div>
       </div>
 
-      {/* Slide-out panel */}
+      {/* Mobile: Bottom navigation bar (hidden on desktop) */}
+      <div className="fixed right-0 bottom-0 left-0 z-40 flex items-center justify-center border-t bg-white p-2 shadow-lg lg:hidden">
+        {/* Back button */}
+        <div className="flex w-full items-center justify-between px-2">
+          <Link
+            to="/nb"
+            className="flex h-10 w-10 items-center justify-center rounded-lg bg-gray-100 hover:bg-gray-200"
+            title="Back to Notebooks"
+          >
+            <ArrowLeft className="h-5 w-5 text-gray-600" />
+          </Link>
+
+          {/* Mobile sidebar items */}
+          <div className="flex items-center space-x-1">
+            {sidebarItems.map((item) => {
+              const Icon = item.icon;
+              const isActive = activeSection === item.id;
+
+              return (
+                <Button
+                  key={item.id}
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => toggleSection(item.id)}
+                  className={`h-10 w-10 ${
+                    isActive
+                      ? "bg-blue-100 text-blue-600 hover:bg-blue-200"
+                      : "text-gray-600 hover:bg-gray-200 hover:text-gray-900"
+                  }`}
+                  title={item.tooltip}
+                >
+                  <Icon className="h-5 w-5" />
+                </Button>
+              );
+            })}
+          </div>
+
+          {/* Spacer for visual balance */}
+          <div className="h-10 w-10" />
+        </div>
+      </div>
+
+      {/* Desktop: Slide-out panel from left */}
       {activeSection && (
         <>
-          {/* Backdrop - only for non-AI panels */}
+          {/* Desktop backdrop - only for non-AI panels */}
           {activeSection !== "ai" && (
             <div
-              className="fixed inset-0 z-30 bg-black/20"
+              className="fixed inset-0 z-30 hidden bg-black/20 lg:block"
               onClick={() => {
                 setActiveSection(null);
               }}
             />
           )}
 
-          {/* Panel - different positioning for AI vs others */}
+          {/* Desktop panel */}
           <div
-            className={
-              activeSection === "ai"
-                ? "fixed top-0 left-12 z-40 h-full w-80 overflow-auto border-r bg-white shadow-lg"
-                : "fixed top-0 left-12 z-50 h-full w-80 overflow-auto border-r bg-white shadow-lg"
-            }
+            className={`fixed top-0 left-12 z-50 hidden h-full w-80 overflow-auto border-r bg-white shadow-lg lg:block ${
+              activeSection === "ai" ? "z-40" : "z-50"
+            }`}
           >
             <div className="flex items-center justify-between border-b px-4 py-3">
               <h3 className="font-medium text-gray-900">{activeItem?.title}</h3>
@@ -163,6 +203,53 @@ export const NotebookSidebar: React.FC<NotebookSidebarProps> = ({
             </div>
 
             <div className="p-4">{renderPanelContent()}</div>
+          </div>
+        </>
+      )}
+
+      {/* Mobile: Bottom sheet panel */}
+      {activeSection && (
+        <>
+          {/* Mobile backdrop */}
+          <div
+            className="fixed inset-0 z-30 bg-black/20 lg:hidden"
+            onClick={() => {
+              if (activeSection === "ai") {
+                onAiPanelToggle(false);
+              }
+              setActiveSection(null);
+            }}
+          />
+
+          {/* Mobile bottom sheet */}
+          <div className="fixed right-0 bottom-0 left-0 z-50 max-h-[70vh] overflow-auto rounded-t-xl border-t bg-white shadow-2xl lg:hidden">
+            {/* Handle bar */}
+            <div className="flex justify-center p-2">
+              <div className="h-1 w-12 rounded-full bg-gray-300" />
+            </div>
+
+            {/* Header */}
+            <div className="flex items-center justify-between border-b px-4 py-3">
+              <h3 className="text-lg font-medium text-gray-900">
+                {activeItem?.title}
+              </h3>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => {
+                  if (activeSection === "ai") {
+                    onAiPanelToggle(false);
+                  }
+                  setActiveSection(null);
+                }}
+                className="h-8 w-8 p-0"
+              >
+                <X className="h-4 w-4" />
+              </Button>
+            </div>
+
+            {/* Content */}
+            <div className="p-4 pb-20">{renderPanelContent()}</div>
           </div>
         </>
       )}
