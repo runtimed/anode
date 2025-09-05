@@ -18,6 +18,7 @@ import { appRouter } from "./trpc/index.ts";
 import { extractAndValidateUser } from "./auth.ts";
 import { createPermissionsProvider } from "./notebook-permissions/factory.ts";
 import { TrcpContext } from "./trpc/trpc.ts";
+import * as crypto from "crypto";
 
 // NOTE: This export is necessary at the root entry point for the Workers
 // runtime for Durable Object usage
@@ -110,6 +111,35 @@ export default {
   ): Promise<WorkerResponse> {
     const url = new URL(request.url);
     const pathname = url.pathname;
+
+    if (pathname.startsWith("/api/test-speed")) {
+      // loop based on the query param
+      const count = parseInt(request.url.split("=")[1]);
+      console.log("Count:", count);
+      const start = Date.now();
+      for (let i = 0; i < count; i++) {
+        // expensive math operations
+        crypto.subtle.generateKey(
+          {
+            name: "RSA",
+            modulusLength: 2048,
+            publicExponent: new Uint8Array([1, 0, 1]),
+            hash: "SHA-256",
+          },
+          true,
+          ["encrypt", "decrypt"]
+        );
+      }
+      const end = Date.now();
+      console.log("🔍 Test speed:", end - start);
+      return new workerGlobals.Response(
+        JSON.stringify({ message: "Test speed", time: end - start }),
+        {
+          status: 200,
+          headers: { "Content-Type": "application/json" },
+        }
+      );
+    }
 
     console.log("🔍 Selective router:", {
       method: request.method,
