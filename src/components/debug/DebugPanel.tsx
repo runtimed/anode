@@ -40,7 +40,7 @@ const DebugCell = ({
       <summary className="hover:bg-muted/50 cursor-pointer rounded p-1 font-mono text-xs">
         {cellIndex + 1}. {cell.cellType} ({cellId.slice(-8)})
       </summary>
-      <pre className="bg-card mt-1 overflow-x-auto rounded border p-2 text-xs">
+      <pre className="bg-card mt-1 max-w-full overflow-x-auto rounded border p-2 text-xs">
         {JSON.stringify(cell, null, 2)}
       </pre>
     </details>
@@ -72,7 +72,7 @@ const DebugPanel: React.FC = () => {
   const executionQueue = useQuery(inflightExecutionQueue$);
 
   return (
-    <div className="bg-muted/5 w-96 overflow-y-auto border-l">
+    <div className="bg-muted/5 w-full overflow-y-auto">
       <div className="bg-card border-b p-4">
         <h3 className="flex items-center gap-2 text-sm font-semibold">
           <Bug className="h-4 w-4" />
@@ -119,7 +119,7 @@ const DebugPanel: React.FC = () => {
           <h4 className="text-muted-foreground mb-2 text-xs font-medium tracking-wide uppercase">
             Notebook
           </h4>
-          <pre className="bg-card overflow-x-auto rounded border p-2 text-xs">
+          <pre className="bg-card max-w-full overflow-x-auto rounded border p-2 text-xs">
             {JSON.stringify(
               Object.fromEntries(notebookMetadata.map((m) => [m.key, m.value])),
               null,
@@ -154,7 +154,7 @@ const DebugPanel: React.FC = () => {
                     <span className="ml-1 text-green-600">●</span>
                   )}
                 </summary>
-                <pre className="bg-card mt-1 overflow-x-auto rounded border p-2 text-xs">
+                <pre className="bg-card mt-1 max-w-full overflow-x-auto rounded border p-2 text-xs">
                   {JSON.stringify(session, null, 2)}
                 </pre>
               </details>
@@ -174,7 +174,7 @@ const DebugPanel: React.FC = () => {
                   {index + 1}. {entry.status} - Cell{" "}
                   {entry.cellId?.slice(-8) || "unknown"}
                 </summary>
-                <pre className="bg-card mt-1 overflow-x-auto rounded border p-2 text-xs">
+                <pre className="bg-card mt-1 max-w-full overflow-x-auto rounded border p-2 text-xs">
                   {JSON.stringify(entry, null, 2)}
                 </pre>
               </details>

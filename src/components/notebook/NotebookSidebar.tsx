@@ -383,7 +383,9 @@ export const NotebookSidebar: React.FC<NotebookSidebarProps> = ({
                         </div>
                       }
                     >
-                      <LazyDebugPanel />
+                      <div className="w-full max-w-full overflow-hidden">
+                        <LazyDebugPanel />
+                      </div>
                     </ErrorBoundary>
                   </Suspense>
                 </div>
