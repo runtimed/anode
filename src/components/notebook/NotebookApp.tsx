@@ -1,4 +1,4 @@
-import { useDebug } from "@/components/debug/debug-mode.js";
+import { useDebug } from "@/components/debug/debug-mode";
 import { cn } from "@/lib/utils";
 import { useQuery } from "@tanstack/react-query";
 import { ArrowLeft, Tag, User, Users } from "lucide-react";
@@ -8,28 +8,28 @@ import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
 import {
   getNotebookVanityUrl,
   hasCorrectNotebookVanityUrl,
-} from "../../util/url-utils";
-import { CollaboratorAvatars } from "../CollaboratorAvatars";
-import { DebugModeToggle } from "../debug/DebugModeToggle.js";
-import { KeyboardShortcuts } from "../KeyboardShortcuts";
-import { CustomLiveStoreProvider } from "../livestore/CustomLiveStoreProvider";
-import { LoadingState } from "../loading/LoadingState";
-import { RuntLogoSmall } from "../logo/RuntLogoSmall";
-import { ContextSelectionModeButton } from "../notebook/ContextSelectionModeButton.js";
-import { GitCommitHash } from "../notebook/GitCommitHash";
-import { NotebookContent } from "../notebook/NotebookContent";
+} from "@/util/url-utils";
+import { CollaboratorAvatars } from "@/components/CollaboratorAvatars";
+import { DebugModeToggle } from "@/components/debug/DebugModeToggle";
+import { KeyboardShortcuts } from "@/components/KeyboardShortcuts";
+import { CustomLiveStoreProvider } from "@/components/livestore/CustomLiveStoreProvider";
+import { LoadingState } from "@/components/loading/LoadingState";
+import { RuntLogoSmall } from "@/components/logo/RuntLogoSmall";
+import { ContextSelectionModeButton } from "@/components/notebook/ContextSelectionModeButton";
+import { GitCommitHash } from "@/components/notebook/GitCommitHash";
+import { NotebookContent } from "@/components/notebook/NotebookContent";
 import { RuntimeHealthIndicatorButton } from "../notebook/RuntimeHealthIndicatorButton";
-import { RuntimeHelper } from "../notebook/RuntimeHelper";
-import { DelayedSpinner } from "../outputs/shared-with-iframe/SuspenseSpinner";
-import { useTrpc } from "../TrpcProvider";
+import { RuntimeHelper } from "@/components/notebook/RuntimeHelper";
+import { DelayedSpinner } from "@/components/outputs/shared-with-iframe/SuspenseSpinner";
+import { useTrpc } from "@/components/TrpcProvider";
 
-import { Button } from "../ui/button";
-import { TitleEditor } from "./notebook/TitleEditor";
-import { SharingModal } from "./SharingModal";
-import { SimpleUserProfile } from "./SimpleUserProfile";
-import type { NotebookProcessed } from "./types";
-import { TagSelectionDialog } from "./TagSelectionDialog";
-import { TagBadge } from "./TagBadge.js";
+import { Button } from "@/components/ui/button";
+import { TitleEditor } from "@/components/notebooks/notebook/TitleEditor";
+import { SharingModal } from "@/components/notebooks/SharingModal";
+import { SimpleUserProfile } from "@/components/notebooks/SimpleUserProfile";
+import type { NotebookProcessed } from "@/components/notebooks/types";
+import { TagSelectionDialog } from "@/components/notebooks/TagSelectionDialog";
+import { TagBadge } from "@/components/notebooks/TagBadge";
 
 // Lazy import DebugPanel only in development
 const LazyDebugPanel = React.lazy(() =>
@@ -38,7 +38,7 @@ const LazyDebugPanel = React.lazy(() =>
   }))
 );
 
-export const NotebookPage: React.FC = () => {
+export const NotebookApp: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const trpc = useTrpc();
   const location = useLocation();

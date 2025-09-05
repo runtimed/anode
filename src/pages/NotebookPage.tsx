@@ -1,11 +1,11 @@
 import React from "react";
 import { TrpcProvider } from "@/components/TrpcProvider.tsx";
-import { NotebookPage as NotebookPageComponent } from "@/components/notebooks/NotebookPage.tsx";
+import { NotebookApp } from "@/components/notebook/NotebookApp";
 
 export const NotebookPage: React.FC = () => {
   return (
     <TrpcProvider>
-      <NotebookPageComponent />
+      <NotebookApp />
     </TrpcProvider>
   );
 };
