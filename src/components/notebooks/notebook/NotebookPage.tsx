@@ -222,7 +222,7 @@ function NotebookPageWithIdAndNotebook({
 
       <div className="flex">
         <div className="container mx-auto px-4">
-          <div className="mb-4 flex h-8 items-center gap-3">
+          <div className="my-4 flex h-8 items-center gap-3">
             <CollaboratorAvatars />
             <div className="flex-1" />
             <div className="flex items-center gap-2 text-sm">
