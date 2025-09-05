@@ -115,7 +115,9 @@ export const NotebookSidebar: React.FC<NotebookSidebarProps> = ({
           >
             <span className="relative transition-opacity group-hover/logo:opacity-20">
               <div className="flex h-4 w-4 items-center justify-center">
-                <RuntLogoSmall />
+                <div className="h-4 w-4 [&>*]:!h-4 [&>*]:!w-4">
+                  <RuntLogoSmall />
+                </div>
               </div>
             </span>
             <ArrowLeft className="absolute h-4 w-4 opacity-0 transition-opacity group-hover/logo:opacity-100" />
