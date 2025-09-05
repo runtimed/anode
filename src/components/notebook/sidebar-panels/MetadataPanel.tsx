@@ -109,14 +109,15 @@ export const MetadataPanel: React.FC<SidebarPanelProps> = ({
     }
   };
 
-  const handleCreateTag = async () => {
+  const handleCreateTag = async (color?: TagColor) => {
     if (!searchTerm.trim()) return;
 
+    const tagColor = color || previewColor;
     setIsCreatingTag(true);
     try {
       const newTag = await createTagMutation.mutateAsync({
         name: searchTerm.trim(),
-        color: previewColor,
+        color: tagColor,
       });
 
       if (newTag) {
@@ -288,51 +289,41 @@ export const MetadataPanel: React.FC<SidebarPanelProps> = ({
           }}
         />
 
-        {/* Preview and quick colors for new tag */}
-        {searchTerm && !exactMatch && (
-          <div className="mb-3 space-y-2 rounded-lg border bg-gray-50 p-3">
-            <div className="flex items-center justify-between">
-              <span className="text-xs font-medium text-gray-700">
-                Preview:
-              </span>
-              <TagBadge
-                tag={{
-                  id: "preview",
-                  name: searchTerm,
-                  color: previewColor,
-                }}
-                className="text-xs"
-              />
-            </div>
-            <div className="flex flex-wrap gap-1">
-              {TAG_COLOR_PALETTE.slice(0, 8).map((color) => (
-                <button
-                  key={color}
-                  onClick={() => setPreviewColor(color)}
-                  className={`h-6 w-6 rounded border-2 ${
-                    previewColor === color
-                      ? "border-gray-400"
-                      : "border-gray-200"
-                  }`}
-                  style={{ backgroundColor: color }}
-                  title={`Use ${color}`}
-                />
-              ))}
-            </div>
-          </div>
-        )}
-
         <div className="max-h-48 space-y-1 overflow-y-auto">
           {/* Create new tag option */}
           {searchTerm && !exactMatch && (
-            <button
-              onClick={handleCreateTag}
-              disabled={isCreatingTag}
-              className="flex w-full items-center gap-2 rounded p-2 text-left text-sm hover:bg-gray-50 disabled:opacity-50"
-            >
-              <Plus className="h-4 w-4 text-gray-500" />
-              <span>Create "{searchTerm}"</span>
-            </button>
+            <div className="rounded-lg border bg-gray-50 p-3">
+              <div className="mb-2 flex items-center justify-between">
+                <button
+                  onClick={() => handleCreateTag()}
+                  disabled={isCreatingTag}
+                  className="flex items-center gap-2 rounded px-2 py-1 text-sm hover:bg-gray-100 disabled:opacity-50"
+                >
+                  <Plus className="h-4 w-4 text-gray-500" />
+                  <span>Create "{searchTerm}"</span>
+                </button>
+                <TagBadge
+                  tag={{
+                    id: "preview",
+                    name: searchTerm,
+                    color: previewColor,
+                  }}
+                  className="text-xs"
+                />
+              </div>
+              <div className="flex flex-wrap gap-1">
+                {TAG_COLOR_PALETTE.slice(0, 8).map((color) => (
+                  <button
+                    key={color}
+                    onClick={() => handleCreateTag(color)}
+                    disabled={isCreatingTag}
+                    className="h-6 w-6 rounded border-2 border-gray-200 hover:border-gray-400 disabled:opacity-50"
+                    style={{ backgroundColor: color }}
+                    title={`Create "${searchTerm}" with ${color}`}
+                  />
+                ))}
+              </div>
+            </div>
           )}
 
           {/* Available tags */}
