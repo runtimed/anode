@@ -17,7 +17,7 @@ export const outputDeltasQuery = (outputId: string) =>
       .select()
       .where({ outputId })
       .orderBy("sequenceNumber", "asc"),
-    { deps: [outputId], label: "outputDeltas" },
+    { deps: [outputId], label: "outputDeltas" }
   );
 
 /**
@@ -25,7 +25,7 @@ export const outputDeltasQuery = (outputId: string) =>
  */
 export const applyDeltas = (
   originalContent: string,
-  deltas: readonly OutputDelta[],
+  deltas: readonly OutputDelta[]
 ): string => {
   if (deltas.length === 0) {
     return originalContent;
@@ -41,7 +41,7 @@ export const applyDeltas = (
  */
 export const getFinalContent = (
   originalContent: string,
-  deltas: readonly OutputDelta[],
+  deltas: readonly OutputDelta[]
 ): { content: string; hasDeltas: boolean; deltaCount: number } => {
   const hasDeltas = deltas.length > 0;
   const content = applyDeltas(originalContent, deltas);
@@ -58,5 +58,5 @@ export const getFinalContent = (
  */
 export const outputDeltas$ = queryDb(
   tables.outputDeltas.select().orderBy("sequenceNumber", "asc"),
-  { label: "notebook.outputDeltas" },
+  { label: "notebook.outputDeltas" }
 );

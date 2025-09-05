@@ -55,6 +55,8 @@
     "@codemirror/lint": "^6.8.5",
     "@codemirror/state": "^6.5.2",
     "@codemirror/view": "^6.38.0",
+    "@effect/platform": "0.90.7",
+    "@effect/rpc": "0.69.2",
     "@japikey/authenticate": "^0.4.0",
     "@japikey/cloudflare": "^0.4.0",
     "@japikey/japikey": "^0.4.0",
@@ -164,12 +166,12 @@
       "effect": "3.15.5",
       "react": "19.0.0",
       "react-dom": "19.0.0",
-      "@effect/platform": "0.82.4",
+      "@effect/platform": "0.90.7",
       "@effect/typeclass": "0.34.2",
       "@effect/cluster": "0.34.2",
       "@effect/experimental": "0.46.8",
       "@effect/sql": "0.35.8",
-      "@effect/rpc": "0.59.9"
+      "@effect/rpc": "0.69.2"
     },
     "onlyBuiltDependencies": [
       "@parcel/watcher",

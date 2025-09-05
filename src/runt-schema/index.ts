@@ -236,7 +236,7 @@ export const events = {
         "restart",
         "error",
         "timeout",
-        "displaced",
+        "displaced"
       ),
     }),
   }),
@@ -515,7 +515,7 @@ function selectPrimaryRepresentation(
     "text/latex",
     "text/markdown",
     "text/plain",
-  ],
+  ]
 ): { mimeType: string; container: MediaContainer } | null {
   for (const mimeType of preferredMimeTypes) {
     if (representations[mimeType]) {
@@ -534,13 +534,13 @@ function updateExistingDisplays(
   displayId: string,
   representations: Record<string, MediaContainer>,
   // deno-lint-ignore no-explicit-any
-  ctx: any,
+  ctx: any
 ) {
   const existingOutputs = ctx.query(
     tables.outputs.select().where({
       displayId,
       outputType: "multimedia_display",
-    }),
+    })
   );
 
   if (existingOutputs.length === 0) {
@@ -580,7 +580,7 @@ function updatePresence(userId: string, cellId?: string) {
 export const materializers = State.SQLite.materializers(events, {
   "v1.Debug": (event, ctx) => {
     const existingDebug = ctx.query(
-      tables.debug.select().where({ id: event.id }).limit(1),
+      tables.debug.select().where({ id: event.id }).limit(1)
     )[0];
     if (existingDebug) {
       return [];
@@ -655,7 +655,7 @@ export const materializers = State.SQLite.materializers(events, {
           fractionalIndex, // New fractional index
           createdBy,
         })
-        .onConflict("id", "ignore"),
+        .onConflict("id", "ignore")
     );
 
     // Update presence for the creator
@@ -692,9 +692,11 @@ export const materializers = State.SQLite.materializers(events, {
     const ops = [];
     // Convert position to deterministic fractional index in base36 format
     ops.push(
-      tables.cells.update({
-        fractionalIndex: "a" + Math.floor(newPosition).toString(36),
-      }).where({ id }),
+      tables.cells
+        .update({
+          fractionalIndex: "a" + Math.floor(newPosition).toString(36),
+        })
+        .where({ id })
     );
     if (actorId) {
       ops.push(updatePresence(actorId, id));
@@ -872,12 +874,12 @@ export const materializers = State.SQLite.materializers(events, {
   // Unified output system materializers with pending clear support
   "v1.MultimediaDisplayOutputAdded": (
     { id, cellId, position, representations, displayId },
-    ctx,
+    ctx
   ) => {
     const ops = [];
     // Check for pending clears
     const pendingClear = ctx.query(
-      tables.pendingClears.select().where({ cellId }).limit(1),
+      tables.pendingClears.select().where({ cellId }).limit(1)
     )[0];
     if (pendingClear) {
       ops.push(tables.outputs.delete().where({ cellId }));
@@ -912,14 +914,14 @@ export const materializers = State.SQLite.materializers(events, {
           metadata: null,
           representations,
         })
-        .onConflict("id", "replace"),
+        .onConflict("id", "replace")
     );
     return ops;
   },
 
   "v1.MultimediaDisplayOutputUpdated": (
     { displayId, representations },
-    ctx,
+    ctx
   ) => {
     // Only update existing displays - no new output creation
     return updateExistingDisplays(displayId, representations, ctx);
@@ -927,12 +929,12 @@ export const materializers = State.SQLite.materializers(events, {
 
   "v1.MultimediaResultOutputAdded": (
     { id, cellId, position, representations, executionCount },
-    ctx,
+    ctx
   ) => {
     const ops = [];
     // Check for pending clears
     const pendingClear = ctx.query(
-      tables.pendingClears.select().where({ cellId }).limit(1),
+      tables.pendingClears.select().where({ cellId }).limit(1)
     )[0];
     if (pendingClear) {
       ops.push(tables.outputs.delete().where({ cellId }));
@@ -974,19 +976,19 @@ export const materializers = State.SQLite.materializers(events, {
           metadata: null,
           representations,
         })
-        .onConflict("id", "replace"),
+        .onConflict("id", "replace")
     );
     return ops;
   },
 
   "v1.TerminalOutputAdded": (
     { id, cellId, position, content, streamName },
-    ctx,
+    ctx
   ) => {
     const ops = [];
     // Check for pending clears
     const pendingClear = ctx.query(
-      tables.pendingClears.select().where({ cellId }).limit(1),
+      tables.pendingClears.select().where({ cellId }).limit(1)
     )[0];
     if (pendingClear) {
       ops.push(tables.outputs.delete().where({ cellId }));
@@ -1007,14 +1009,14 @@ export const materializers = State.SQLite.materializers(events, {
           metadata: content.metadata || null,
           representations: null,
         })
-        .onConflict("id", "replace"),
+        .onConflict("id", "replace")
     );
     return ops;
   },
 
   "v1.TerminalOutputAppended": ({ outputId, content }, ctx) => {
     const existingOutput = ctx.query(
-      tables.outputs.select().where({ id: outputId }).limit(1),
+      tables.outputs.select().where({ id: outputId }).limit(1)
     )[0];
 
     if (!existingOutput) {
@@ -1042,7 +1044,7 @@ export const materializers = State.SQLite.materializers(events, {
     const ops = [];
     // Check for pending clears
     const pendingClear = ctx.query(
-      tables.pendingClears.select().where({ cellId }).limit(1),
+      tables.pendingClears.select().where({ cellId }).limit(1)
     )[0];
     if (pendingClear) {
       ops.push(tables.outputs.delete().where({ cellId }));
@@ -1062,7 +1064,7 @@ export const materializers = State.SQLite.materializers(events, {
           metadata: content.metadata || null,
           representations: null,
         })
-        .onConflict("id", "replace"),
+        .onConflict("id", "replace")
     );
     return ops;
   },
@@ -1070,7 +1072,7 @@ export const materializers = State.SQLite.materializers(events, {
   /**@deprecated */
   "v1.MarkdownOutputAppended": ({ outputId, content }, ctx) => {
     const existingOutput = ctx.query(
-      tables.outputs.select().where({ id: outputId }).limit(1),
+      tables.outputs.select().where({ id: outputId }).limit(1)
     )[0];
 
     if (!existingOutput) {
@@ -1098,7 +1100,7 @@ export const materializers = State.SQLite.materializers(events, {
     const ops = [];
     // Check for pending clears
     const pendingClear = ctx.query(
-      tables.pendingClears.select().where({ cellId }).limit(1),
+      tables.pendingClears.select().where({ cellId }).limit(1)
     )[0];
     if (pendingClear) {
       ops.push(tables.outputs.delete().where({ cellId }));
@@ -1118,7 +1120,7 @@ export const materializers = State.SQLite.materializers(events, {
           metadata: content.metadata || null,
           representations: null,
         })
-        .onConflict("id", "replace"),
+        .onConflict("id", "replace")
     );
     return ops;
   },
@@ -1130,7 +1132,7 @@ export const materializers = State.SQLite.materializers(events, {
       ops.push(
         tables.pendingClears
           .insert({ cellId, clearedBy })
-          .onConflict("cellId", "replace"),
+          .onConflict("cellId", "replace")
       );
     } else {
       // Immediate clear for wait=False
@@ -1226,13 +1228,13 @@ export type UiStateData = typeof tables.uiState.Type;
 
 // Type guards for MediaContainer
 export function isInlineContainer<T>(
-  container: MediaContainer,
+  container: MediaContainer
 ): container is InlineContainer<T> {
   return container.type === "inline";
 }
 
 export function isArtifactContainer(
-  container: MediaContainer,
+  container: MediaContainer
 ): container is ArtifactContainer {
   return container.type === "artifact";
 }
@@ -1241,7 +1243,7 @@ export function isArtifactContainer(
 export function getNotebookMetadata(
   metadataRecords: Array<{ key: string; value: string }>,
   key: string,
-  defaultValue: string = "",
+  defaultValue: string = ""
 ): string {
   const record = metadataRecords.find((r) => r.key === key);
   return record?.value ?? defaultValue;
@@ -1249,7 +1251,7 @@ export function getNotebookMetadata(
 
 // Helper to get common notebook metadata values
 export function getNotebookInfo(
-  metadataRecords: Array<{ key: string; value: string }>,
+  metadataRecords: Array<{ key: string; value: string }>
 ) {
   return {
     title: getNotebookMetadata(metadataRecords, "title", "Untitled"),
@@ -1381,7 +1383,7 @@ function valueToChar(value: number): string {
 
 function generateKeyBetween(
   a: string | null | undefined,
-  b: string | null | undefined,
+  b: string | null | undefined
 ): string {
   // Handle null/undefined cases
   if (!a && !b) return "m"; // Middle of the range
@@ -1453,7 +1455,7 @@ function generateKeyBetween(
       }
       // No space between a and b
       throw new Error(
-        `No string exists between "${a}" and "${b}" in base36 encoding`,
+        `No string exists between "${a}" and "${b}" in base36 encoding`
       );
     }
   }
@@ -1603,7 +1605,7 @@ export const createTestJitterProvider = (seed = 0): JitterProvider => {
 export function fractionalIndexBetween(
   a: string | null | undefined,
   b: string | null | undefined,
-  jitterProvider: JitterProvider = defaultJitterProvider,
+  jitterProvider: JitterProvider = defaultJitterProvider
 ): string {
   // Add some jitter to avoid clustering
   const key = generateKeyBetween(a, b);
@@ -1629,7 +1631,7 @@ export function generateFractionalIndices(
   a: string | null | undefined,
   b: string | null | undefined,
   n: number,
-  jitterProvider: JitterProvider = defaultJitterProvider,
+  jitterProvider: JitterProvider = defaultJitterProvider
 ): string[] {
   if (n <= 0) return [];
   if (n === 1) return [fractionalIndexBetween(a, b, jitterProvider)];
@@ -1651,7 +1653,7 @@ export function generateFractionalIndices(
 
 // Helper to get initial fractional index
 export function initialFractionalIndex(
-  jitterProvider: JitterProvider = defaultJitterProvider,
+  jitterProvider: JitterProvider = defaultJitterProvider
 ): string {
   return fractionalIndexBetween(null, null, jitterProvider);
 }
@@ -1704,7 +1706,7 @@ export interface MoveOperationResult {
  */
 export function needsRebalancing(
   cells: readonly CellReference[],
-  insertPosition?: number,
+  insertPosition?: number
 ): boolean {
   if (cells.length < 2) return false;
 
@@ -1739,19 +1741,17 @@ export function needsRebalancing(
 
   // If insertPosition is specified, check if we can insert there
   if (insertPosition !== undefined) {
-    const beforeCell = insertPosition > 0
-      ? sortedCells[insertPosition - 1]
-      : null;
-    const afterCell = insertPosition < sortedCells.length
-      ? sortedCells[insertPosition]
-      : null;
+    const beforeCell =
+      insertPosition > 0 ? sortedCells[insertPosition - 1] : null;
+    const afterCell =
+      insertPosition < sortedCells.length ? sortedCells[insertPosition] : null;
 
     if (beforeCell && afterCell) {
       try {
         fractionalIndexBetween(
           beforeCell.fractionalIndex,
           afterCell.fractionalIndex,
-          { random: () => 0, randomInt: () => 0 },
+          { random: () => 0, randomInt: () => 0 }
         );
       } catch (error) {
         if (
@@ -1773,7 +1773,7 @@ export function needsRebalancing(
  */
 export function rebalanceCellIndices(
   cells: readonly CellReference[],
-  options: RebalanceOptions = {},
+  options: RebalanceOptions = {}
 ): RebalanceResult {
   const {
     jitterProvider = defaultJitterProvider,
@@ -1794,14 +1794,14 @@ export function rebalanceCellIndices(
   const moveEvents: ReturnType<typeof events.cellMoved2>[] = [];
 
   // Calculate the range with buffer
-  const totalPositions = cells.length + (bufferCells * 2);
+  const totalPositions = cells.length + bufferCells * 2;
 
   // Generate evenly distributed indices
   const indices = generateFractionalIndices(
     null,
     null,
     totalPositions,
-    jitterProvider,
+    jitterProvider
   );
 
   // Assign new indices to cells (skipping buffer positions)
@@ -1837,11 +1837,11 @@ export function rebalanceCellIndices(
 function calculateInsertionIndexAfterRebalancing(
   insertPosition: number,
   rebalanceResult: RebalanceResult,
-  jitterProvider: JitterProvider,
+  jitterProvider: JitterProvider
 ): string {
   // Get the new indices after rebalancing
-  const newIndices = rebalanceResult.newIndices.map((item) =>
-    item.fractionalIndex
+  const newIndices = rebalanceResult.newIndices.map(
+    (item) => item.fractionalIndex
   );
   newIndices.sort();
 
@@ -1877,7 +1877,7 @@ export function fractionalIndexBetweenWithFallback(
     insertPosition?: number;
     /** Jitter provider */
     jitterProvider?: JitterProvider;
-  } = {},
+  } = {}
 ): {
   index?: string;
   needsRebalancing: boolean;
@@ -1910,7 +1910,7 @@ export function fractionalIndexBetweenWithFallback(
         const insertionIndex = calculateInsertionIndexAfterRebalancing(
           position,
           rebalanceResult,
-          jitterProvider,
+          jitterProvider
         );
 
         return {
@@ -1937,7 +1937,7 @@ export function moveCellWithRebalancing(
   options: {
     actorId?: string;
     jitterProvider?: JitterProvider;
-  } = {},
+  } = {}
 ): {
   moveEvent?: ReturnType<typeof events.cellMoved2>;
   rebalanceResult?: RebalanceResult;
@@ -1952,7 +1952,7 @@ export function moveCellWithRebalancing(
       cellBefore,
       cellAfter,
       actorId,
-      jitterProvider,
+      jitterProvider
     );
 
     if (moveEvent) {
@@ -2006,7 +2006,7 @@ export function isValidFractionalIndex(index: string): boolean {
 
 // Validate that fractional indices maintain proper binary collation ordering
 export function validateFractionalIndexOrder(
-  indices: (string | null | undefined)[],
+  indices: (string | null | undefined)[]
 ): boolean {
   const validIndices = indices.filter((idx): idx is string =>
     isValidFractionalIndex(idx || "")
@@ -2020,7 +2020,7 @@ export function validateFractionalIndexOrder(
     }
     if (prev >= curr) {
       console.error(
-        `Fractional index ordering violation: "${prev}" >= "${curr}"`,
+        `Fractional index ordering violation: "${prev}" >= "${curr}"`
       );
       return false;
     }
@@ -2065,7 +2065,7 @@ export function moveCellBetween(
   cellBefore: CellReference | null,
   cellAfter: CellReference | null,
   actorId?: string,
-  jitterProvider: JitterProvider = defaultJitterProvider,
+  jitterProvider: JitterProvider = defaultJitterProvider
 ): ReturnType<typeof events.cellMoved2> | null {
   // Cell must have a valid fractional index to be moved
   if (!cell.fractionalIndex) {
@@ -2100,7 +2100,7 @@ export function moveCellBetween(
   const fractionalIndex = fractionalIndexBetween(
     previousKey,
     nextKey,
-    jitterProvider,
+    jitterProvider
   );
 
   return events.cellMoved2({
@@ -2129,7 +2129,7 @@ export function createCellBetween(
   cellBefore: CellReference | null,
   cellAfter: CellReference | null,
   allCells: readonly CellReference[],
-  jitterProvider: JitterProvider = defaultJitterProvider,
+  jitterProvider: JitterProvider = defaultJitterProvider
 ): CellOperationResult {
   // Determine the fractional indices for before and after
   let previousKey = cellBefore?.fractionalIndex || null;
@@ -2168,15 +2168,11 @@ export function createCellBetween(
   }
 
   // Use the robust fractional index generation with fallback
-  const result = fractionalIndexBetweenWithFallback(
-    previousKey,
-    nextKey,
-    {
-      allCells,
-      insertPosition,
-      jitterProvider,
-    },
-  );
+  const result = fractionalIndexBetweenWithFallback(previousKey, nextKey, {
+    allCells,
+    insertPosition,
+    jitterProvider,
+  });
 
   const resultEvents: Array<
     | ReturnType<typeof events.cellCreated2>
@@ -2214,7 +2210,7 @@ export function moveCellBetweenWithRebalancing(
   cellAfter: CellReference | null,
   allCells: readonly CellReference[],
   actorId?: string,
-  jitterProvider: JitterProvider = defaultJitterProvider,
+  jitterProvider: JitterProvider = defaultJitterProvider
 ): MoveOperationResult {
   // Cell must have a valid fractional index to be moved
   if (!cell.fractionalIndex) {
@@ -2260,7 +2256,7 @@ export function moveCellBetweenWithRebalancing(
     cellBefore,
     cellAfter,
     allCells,
-    { ...(actorId && { actorId }), jitterProvider },
+    { ...(actorId && { actorId }), jitterProvider }
   );
 
   const resultEvents: Array<ReturnType<typeof events.cellMoved2>> = [];
@@ -2305,7 +2301,7 @@ export function createCellBetweenAndCommit<
     commit: (
       event:
         | ReturnType<typeof events.cellCreated2>
-        | ReturnType<typeof events.cellMoved2>,
+        | ReturnType<typeof events.cellMoved2>
     ) => void;
   },
 >(
@@ -2318,14 +2314,14 @@ export function createCellBetweenAndCommit<
   cellBefore: CellReference | null,
   cellAfter: CellReference | null,
   allCells: readonly CellReference[],
-  jitterProvider: JitterProvider = defaultJitterProvider,
+  jitterProvider: JitterProvider = defaultJitterProvider
 ): string {
   const result = createCellBetween(
     cellData,
     cellBefore,
     cellAfter,
     allCells,
-    jitterProvider,
+    jitterProvider
   );
 
   // Commit all events
@@ -2347,7 +2343,7 @@ export function moveCellBetweenAndCommit<
   cellAfter: CellReference | null,
   allCells: readonly CellReference[],
   actorId?: string,
-  jitterProvider: JitterProvider = defaultJitterProvider,
+  jitterProvider: JitterProvider = defaultJitterProvider
 ): boolean {
   const result = moveCellBetweenWithRebalancing(
     cell,
@@ -2355,7 +2351,7 @@ export function moveCellBetweenAndCommit<
     cellAfter,
     allCells,
     actorId,
-    jitterProvider,
+    jitterProvider
   );
 
   // Commit all events

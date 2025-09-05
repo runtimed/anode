@@ -6,16 +6,16 @@ export const MediaRepresentationSchema = Schema.Union(
     type: Schema.Literal("inline"),
     data: Schema.Any,
     metadata: Schema.optional(
-      Schema.Record({ key: Schema.String, value: Schema.Any }),
+      Schema.Record({ key: Schema.String, value: Schema.Any })
     ),
   }),
   Schema.Struct({
     type: Schema.Literal("artifact"),
     artifactId: Schema.String,
     metadata: Schema.optional(
-      Schema.Record({ key: Schema.String, value: Schema.Any }),
+      Schema.Record({ key: Schema.String, value: Schema.Any })
     ),
-  }),
+  })
 );
 
 // TypeScript type for cell types
@@ -27,7 +27,7 @@ export const CellTypeSchema = Schema.Literal(
   "markdown",
   "sql",
   "raw",
-  "ai",
+  "ai"
 );
 
 // Execution state types
@@ -42,7 +42,7 @@ export const ExecutionStateSchema = Schema.Literal(
   "queued",
   "running",
   "completed",
-  "error",
+  "error"
 );
 
 // Output types
@@ -57,7 +57,7 @@ export const OutputTypeSchema = Schema.Literal(
   "multimedia_result",
   "terminal",
   "markdown",
-  "error",
+  "error"
 );
 
 // Runtime status types
@@ -72,7 +72,7 @@ export const RuntimeStatusSchema = Schema.Literal(
   "ready",
   "busy",
   "restarting",
-  "terminated",
+  "terminated"
 );
 
 // Queue status types
@@ -89,7 +89,7 @@ export const QueueStatusSchema = Schema.Literal(
   "executing",
   "completed",
   "failed",
-  "cancelled",
+  "cancelled"
 );
 
 // Actor types
@@ -181,7 +181,7 @@ export function isTextMimeType(mimeType: string): mimeType is TextMimeType {
  * Type guard to check if a MIME type is a known application format
  */
 export function isApplicationMimeType(
-  mimeType: string,
+  mimeType: string
 ): mimeType is ApplicationMimeType {
   return (APPLICATION_MIME_TYPES as readonly string[]).includes(mimeType);
 }
@@ -197,7 +197,7 @@ export function isImageMimeType(mimeType: string): mimeType is ImageMimeType {
  * Type guard to check if a MIME type is a Jupyter vendor format
  */
 export function isJupyterMimeType(
-  mimeType: string,
+  mimeType: string
 ): mimeType is JupyterMimeType {
   return (JUPYTER_MIME_TYPES as readonly string[]).includes(mimeType);
 }

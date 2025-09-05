@@ -209,7 +209,7 @@ export const tables = {
           "pending",
           "approved_once",
           "approved_always",
-          "denied",
+          "denied"
         ),
       }),
       approvedBy: State.SQLite.text({ nullable: true }),
