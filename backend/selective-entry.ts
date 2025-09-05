@@ -118,7 +118,7 @@ export default {
       console.log("Count:", count);
       const start = Date.now();
       for (let i = 0; i < count; i++) {
-        // expensive math operations
+        // expensive math operations 2
         crypto.subtle.generateKey(
           {
             name: "RSA",
