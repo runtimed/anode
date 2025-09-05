@@ -40,11 +40,11 @@ export function CollaboratorAvatars() {
                 <img
                   src={userInfo.picture}
                   alt={userInfo.name ?? "User"}
-                  className="h-8 w-8 rounded-full bg-gray-300"
+                  className="size-8 rounded-full bg-gray-300"
                 />
               ) : (
-                <Avatar>
-                  <AvatarFallback>
+                <Avatar className="size-8">
+                  <AvatarFallback className="text-xs">
                     {userInfo?.name?.charAt(0).toUpperCase() ?? "?"}
                   </AvatarFallback>
                 </Avatar>
