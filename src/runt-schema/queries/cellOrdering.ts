@@ -12,7 +12,7 @@ export const cellsWithIndices$ = queryDb(
   tables.cells
     .select("id", "fractionalIndex", "cellType")
     .orderBy("fractionalIndex", "asc"),
-  { label: "cells.withIndices" },
+  { label: "cells.withIndices" }
 );
 
 // Get just the cell ordering information (minimal fields)
@@ -20,7 +20,7 @@ export const cellOrdering$ = queryDb(
   tables.cells
     .select("id", "fractionalIndex")
     .orderBy("fractionalIndex", "asc"),
-  { label: "cells.ordering" },
+  { label: "cells.ordering" }
 );
 
 // Get the first cell in the notebook
@@ -28,8 +28,8 @@ export const firstCell$ = queryDb(
   tables.cells
     .select("id", "fractionalIndex")
     .orderBy("fractionalIndex", "asc")
-    .first({ fallback: () => null }),
-  { label: "cells.first" },
+    .first({ behaviour: "fallback", fallback: () => null }),
+  { label: "cells.first" }
 );
 
 // Get the last cell in the notebook
@@ -37,8 +37,8 @@ export const lastCell$ = queryDb(
   tables.cells
     .select("id", "fractionalIndex")
     .orderBy("fractionalIndex", "desc")
-    .first({ fallback: () => null }),
-  { label: "cells.last" },
+    .first({ behaviour: "fallback", fallback: () => null }),
+  { label: "cells.last" }
 );
 
 // Get cells before a specific fractional index
@@ -52,7 +52,7 @@ export const cellsBefore = (fractionalIndex: string, limit: number = 1) =>
     {
       deps: [fractionalIndex, limit],
       label: `cells.before.${fractionalIndex}`,
-    },
+    }
   );
 
 // Get cells after a specific fractional index
@@ -66,7 +66,7 @@ export const cellsAfter = (fractionalIndex: string, limit: number = 1) =>
     {
       deps: [fractionalIndex, limit],
       label: `cells.after.${fractionalIndex}`,
-    },
+    }
   );
 
 // Get neighboring cells (one before and one after)
@@ -78,7 +78,7 @@ export const neighboringCells = (cellId: string) =>
     {
       deps: [cellId],
       label: `cells.neighbors.${cellId}`,
-    },
+    }
   );
 
 // Get the immediate adjacent cells (previous and next) for a specific cell
@@ -88,11 +88,11 @@ export const getAdjacentCells = (cellId: string, fractionalIndex: string) => {
       .select("id", "fractionalIndex")
       .where("fractionalIndex", "<", fractionalIndex)
       .orderBy("fractionalIndex", "desc")
-      .first({ fallback: () => null }),
+      .first({ behaviour: "fallback", fallback: () => null }),
     {
       deps: [cellId, fractionalIndex],
       label: `cells.previous.${cellId}`,
-    },
+    }
   );
 
   const nextCell$ = queryDb(
@@ -100,11 +100,11 @@ export const getAdjacentCells = (cellId: string, fractionalIndex: string) => {
       .select("id", "fractionalIndex")
       .where("fractionalIndex", ">", fractionalIndex)
       .orderBy("fractionalIndex", "asc")
-      .first({ fallback: () => null }),
+      .first({ behaviour: "fallback", fallback: () => null }),
     {
       deps: [cellId, fractionalIndex],
       label: `cells.next.${cellId}`,
-    },
+    }
   );
 
   return { previousCell$, nextCell$ };
@@ -116,17 +116,17 @@ export const cellPositionInfo = (cellId: string) =>
     tables.cells
       .select("id", "fractionalIndex")
       .where({ id: cellId })
-      .first({ fallback: () => null }),
+      .first({ behaviour: "fallback", fallback: () => null }),
     {
       deps: [cellId],
       label: `cells.positionInfo.${cellId}`,
-    },
+    }
   );
 
 // Get cells in a range (useful for virtualization)
 export const cellsInRange = (
   startIndex: string | null,
-  endIndex: string | null,
+  endIndex: string | null
 ) => {
   let query = tables.cells.select("id", "fractionalIndex", "cellType");
 

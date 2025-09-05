@@ -1,6 +1,6 @@
 import { Hono } from "hono";
 import { cors } from "hono/cors";
-import { WebSocketServer } from "./sync.ts";
+import { SyncBackendDO } from "./sync.ts";
 import syncHandler from "./sync.ts";
 import {
   workerGlobals,
@@ -21,7 +21,7 @@ import { TrcpContext } from "./trpc/trpc.ts";
 
 // NOTE: This export is necessary at the root entry point for the Workers
 // runtime for Durable Object usage
-export { WebSocketServer };
+export { SyncBackendDO };
 
 const honoApp = new Hono<{ Bindings: Env; Variables: AuthContext }>();
 

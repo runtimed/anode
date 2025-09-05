@@ -6,7 +6,7 @@ export * from "./cellOrdering.ts";
 
 export const cellIDs$ = queryDb(
   tables.cells.select("id").orderBy("fractionalIndex", "asc"),
-  { label: "notebook.cellIds" },
+  { label: "notebook.cellIds" }
 );
 
 // Primary query for cell references - returns CellReference objects
@@ -14,7 +14,7 @@ export const cellReferences$ = queryDb(
   tables.cells
     .select("id", "fractionalIndex", "cellType")
     .orderBy("fractionalIndex", "asc"),
-  { label: "notebook.cellReferences" },
+  { label: "notebook.cellReferences" }
 );
 
 // @deprecated Use cellReferences$ instead
@@ -27,19 +27,20 @@ export const cellFractionalIndex = (cellId: string) =>
       .select("fractionalIndex")
       .where({ id: cellId })
       .first({
+        behaviour: "fallback",
         fallback: () => null,
       }),
     {
       deps: [cellId],
       label: `cell.fractionalIndex.${cellId}`,
-    },
+    }
   );
 
 // @deprecated Use cellReferences$ instead - this returns all cells anyway
 export const adjacentCells = (_cellId: string) => cellReferences$;
 
 export const notebookMetadata$ = queryDb(
-  tables.notebookMetadata.select("key", "value"),
+  tables.notebookMetadata.select("key", "value")
 );
 
 export const cellQuery = {
@@ -49,30 +50,31 @@ export const cellQuery = {
         .select()
         .where({ id: cellId })
         .first({
+          behaviour: "fallback",
           fallback: () => null,
         }),
       {
         deps: [cellId],
         label: `cell.${cellId}`,
-      },
+      }
     ),
 
   outputs: (cellId: string) =>
     queryDb(
       tables.outputs.select().where({ cellId }).orderBy("position", "asc"),
-      { deps: [cellId], label: `outputs:${cellId}` },
+      { deps: [cellId], label: `outputs:${cellId}` }
     ),
 
   executionQueue: (cellId: string) =>
     queryDb(
       tables.executionQueue.select().where({ cellId }).orderBy("id", "desc"),
-      { deps: [cellId], label: `queue:${cellId}` },
+      { deps: [cellId], label: `queue:${cellId}` }
     ),
 };
 
 export const runtimeSessions$ = queryDb(
   tables.runtimeSessions.select().orderBy("sessionId", "desc"),
-  { label: "runtime.sessions" },
+  { label: "runtime.sessions" }
 );
 
 /**
@@ -90,5 +92,5 @@ export const runtimeSessions$ = queryDb(
  */
 export const cells$ = queryDb(
   tables.cells.select().orderBy("fractionalIndex", "asc"),
-  { label: "notebook.cells" },
+  { label: "notebook.cells" }
 );
