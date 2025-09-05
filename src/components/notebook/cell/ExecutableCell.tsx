@@ -453,7 +453,7 @@ export const ExecutableCell: React.FC<ExecutableCellProps> = ({
 
         {/* Editor Content Area */}
         {cell.sourceVisible && (
-          <div className="cell-content bg-white py-1 pl-4 transition-colors">
+          <div className="cell-content max-w-full overflow-x-auto bg-white py-1 pl-4 transition-colors">
             <ErrorBoundary fallback={<div>Error rendering editor</div>}>
               <Editor
                 ref={handleEditorReady}
@@ -538,7 +538,7 @@ export const ExecutableCell: React.FC<ExecutableCellProps> = ({
         (hasOutputs ||
           cell.executionState === "running" ||
           staleOutputs.length > 0) && (
-          <div className="cell-content bg-background max-w-full overflow-hidden px-4 sm:px-4">
+          <div className="cell-content bg-background max-w-full min-w-0 overflow-x-auto px-2 sm:px-4">
             <ErrorBoundary FallbackComponent={OutputsErrorBoundary}>
               <MaybeCellOutputs
                 isLoading={cell.executionState === "running" && !hasOutputs}
