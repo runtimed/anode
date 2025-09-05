@@ -10,12 +10,7 @@ export const IframeReactApp: React.FC = () => {
   }
 
   // Default content or non-React mode
-  return outputs.map((output, index) => (
-    <div
-      key={output.id}
-      className={index > 0 ? "mt-2 border-t border-black/10 pt-2" : ""}
-    >
-      <SingleOutput output={output} />
-    </div>
+  return outputs.map((output) => (
+    <SingleOutput key={output.id} output={output} />
   ));
 };
