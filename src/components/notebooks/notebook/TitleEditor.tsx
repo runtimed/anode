@@ -55,11 +55,11 @@ export function TitleEditor({
   return (
     <div className="flex items-center gap-2">
       {isEditingTitle ? (
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1 sm:gap-2">
           <Input
             value={editTitle}
             onChange={(e) => setEditTitle(e.target.value)}
-            className="text-lg font-semibold"
+            className="text-sm font-semibold sm:text-lg"
             placeholder="Notebook title..."
             onKeyDown={(e) => {
               if (e.key === "Enter") handleSaveTitle();
@@ -72,20 +72,31 @@ export function TitleEditor({
             variant="ghost"
             onClick={handleSaveTitle}
             disabled={!editTitle.trim()}
+            className="h-8 w-8 shrink-0 p-0"
           >
             <Check className="h-4 w-4" />
           </Button>
-          <Button size="sm" variant="ghost" onClick={handleCancelEdit}>
+          <Button
+            size="sm"
+            variant="ghost"
+            onClick={handleCancelEdit}
+            className="h-8 w-8 shrink-0 p-0"
+          >
             <X className="h-4 w-4" />
           </Button>
         </div>
       ) : (
-        <div className="flex items-center gap-2">
-          <h1 className="text-md line-clamp-1 font-semibold md:text-xl">
+        <div className="flex min-w-0 items-center gap-1 sm:gap-2">
+          <h1 className="min-w-0 flex-1 truncate text-sm font-semibold sm:text-lg md:text-xl">
             {notebook.title || "Untitled Notebook"}
           </h1>
           {canEdit && (
-            <Button size="sm" variant="ghost" onClick={handleStartEditTitle}>
+            <Button
+              size="sm"
+              variant="ghost"
+              onClick={handleStartEditTitle}
+              className="h-8 w-8 shrink-0 p-0"
+            >
               <Edit2 className="h-4 w-4" />
             </Button>
           )}
