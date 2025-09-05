@@ -221,6 +221,32 @@ export default {
       }
     }
 
+    if (pathname.startsWith("/api/trpc-no-context")) {
+      console.log("🚀 Routing to tRPC (no context)");
+      try {
+        const response = await fetchRequestHandler({
+          endpoint: "/api/trpc-no-context",
+          req: request as unknown as Request,
+          router: appRouter,
+          createContext: async (): Promise<TrcpContext> => null as any,
+        });
+        console.log("✅ tRPC (no context) response:", response.status);
+        return response as unknown as WorkerResponse;
+      } catch (error) {
+        console.error("❌ tRPC error:", error);
+        return new workerGlobals.Response(
+          JSON.stringify({
+            error: "tRPC processing failed",
+            message: error instanceof Error ? error.message : String(error),
+          }),
+          {
+            status: 500,
+            headers: { "Content-Type": "application/json" },
+          }
+        );
+      }
+    }
+
     if (
       pathname.startsWith("/livestore") &&
       request.headers.get("upgrade") === "websocket"
