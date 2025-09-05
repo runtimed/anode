@@ -70,20 +70,14 @@ function NotebookPageWithId({ id }: { id: string }) {
   }
 
   return (
-    <NotebookPageWithIdAndNotebook
-      id={id}
-      notebook={notebook}
-      refetch={refetch}
-    />
+    <NotebookPageWithIdAndNotebook notebook={notebook} refetch={refetch} />
   );
 }
 
 function NotebookPageWithIdAndNotebook({
-  id,
   notebook,
   refetch,
 }: {
-  id: string;
   notebook: NotebookProcessed;
   refetch: () => void;
 }) {
@@ -98,7 +92,6 @@ function NotebookPageWithIdAndNotebook({
     <div className="flex h-screen w-full">
       <NotebookSidebar
         notebook={notebook}
-        notebookId={id}
         onUpdate={refetch}
         onAiPanelToggle={setIsAiPanelOpen}
       />
@@ -110,7 +103,7 @@ function NotebookPageWithIdAndNotebook({
       >
         {/* Header */}
         <div className="border-b bg-white">
-          <div className="mx-auto max-w-none px-4 py-4">
+          <div className="container mx-auto px-4 py-4">
             <div className="flex flex-wrap items-center justify-between gap-2 sm:gap-4">
               <div className="flex min-w-0 flex-1 items-center gap-2 sm:gap-4">
                 <TitleEditor

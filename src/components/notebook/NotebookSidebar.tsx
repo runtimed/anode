@@ -6,7 +6,6 @@ import { TagSelectionDialog } from "@/components/notebooks/TagSelectionDialog";
 import { ContextSelectionModeButton } from "@/components/notebook/ContextSelectionModeButton";
 
 import { RuntimeHealthIndicator } from "@/components/notebook/RuntimeHealthIndicator";
-import { RuntimeHelper } from "@/components/notebook/RuntimeHelper";
 import { useRuntimeHealth } from "@/hooks/useRuntimeHealth";
 import type { NotebookProcessed } from "@/components/notebooks/types";
 import { RuntSidebarLogo } from "@/components/logo/RuntSidebarLogo";
@@ -33,7 +32,6 @@ const LazyDebugPanel = React.lazy(() =>
 
 interface NotebookSidebarProps {
   notebook: NotebookProcessed;
-  notebookId: string;
   onUpdate: () => void;
   onAiPanelToggle: (isOpen: boolean) => void;
 }
@@ -42,7 +40,6 @@ type SidebarSection = "metadata" | "ai" | "runtime" | "debug" | "help";
 
 export const NotebookSidebar: React.FC<NotebookSidebarProps> = ({
   notebook,
-  notebookId,
   onUpdate,
   onAiPanelToggle,
 }) => {
@@ -50,7 +47,6 @@ export const NotebookSidebar: React.FC<NotebookSidebarProps> = ({
     null
   );
   const [isTagSelectionOpen, setIsTagSelectionOpen] = useState(false);
-  const [showRuntimeHelper, setShowRuntimeHelper] = useState(false);
   const { hasActiveRuntime, runtimeHealth, activeRuntime } = useRuntimeHealth();
 
   const toggleSection = (section: SidebarSection) => {
@@ -71,11 +67,6 @@ export const NotebookSidebar: React.FC<NotebookSidebarProps> = ({
 
   const handleTagsClick = () => {
     setIsTagSelectionOpen(true);
-    setActiveSection(null);
-  };
-
-  const handleRuntimeClick = () => {
-    setShowRuntimeHelper(true);
     setActiveSection(null);
   };
 
@@ -281,32 +272,53 @@ export const NotebookSidebar: React.FC<NotebookSidebarProps> = ({
                     </div>
                   </div>
 
-                  <div className="border-t pt-4">
-                    {hasActiveRuntime ? (
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={handleRuntimeClick}
-                        className="w-full text-xs"
-                      >
-                        View Runtime Details
-                      </Button>
-                    ) : (
+                  {hasActiveRuntime && activeRuntime && (
+                    <div className="border-t pt-4">
+                      <h4 className="mb-2 text-xs font-medium text-gray-700">
+                        Runtime Details
+                      </h4>
+                      <div className="space-y-1 text-xs">
+                        <div className="flex justify-between">
+                          <span className="text-gray-600">Session:</span>
+                          <code className="rounded bg-gray-100 px-1 text-xs">
+                            {activeRuntime.sessionId.slice(-8)}
+                          </code>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-gray-600">Status:</span>
+                          <span
+                            className={`text-xs font-medium ${
+                              activeRuntime.status === "ready"
+                                ? "text-green-600"
+                                : activeRuntime.status === "busy"
+                                  ? "text-amber-600"
+                                  : "text-red-600"
+                            }`}
+                          >
+                            {activeRuntime.status === "ready"
+                              ? "Ready"
+                              : activeRuntime.status === "busy"
+                                ? "Busy"
+                                : activeRuntime.status.charAt(0).toUpperCase() +
+                                  activeRuntime.status.slice(1)}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {!hasActiveRuntime && (
+                    <div className="border-t pt-4">
                       <div className="space-y-2">
                         <p className="text-xs text-gray-500">
                           Start a runtime to execute code cells.
                         </p>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={handleRuntimeClick}
-                          className="w-full text-xs"
-                        >
-                          Setup Runtime
-                        </Button>
+                        <p className="text-xs text-gray-500">
+                          Setup instructions will be available here.
+                        </p>
                       </div>
-                    )}
-                  </div>
+                    </div>
+                  )}
                 </div>
               )}
 
@@ -387,12 +399,6 @@ export const NotebookSidebar: React.FC<NotebookSidebarProps> = ({
         isOpen={isTagSelectionOpen}
         onClose={() => setIsTagSelectionOpen(false)}
         onUpdate={onUpdate}
-      />
-
-      <RuntimeHelper
-        notebookId={notebookId}
-        showRuntimeHelper={showRuntimeHelper}
-        onClose={() => setShowRuntimeHelper(false)}
       />
     </>
   );
