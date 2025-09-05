@@ -4,7 +4,6 @@ import { ErrorBoundary } from "react-error-boundary";
 import { Link, useLocation, useParams } from "react-router-dom";
 import { CollaboratorAvatars } from "../../CollaboratorAvatars.js";
 
-import { KeyboardShortcuts } from "../../KeyboardShortcuts.js";
 import { CustomLiveStoreProvider } from "../../livestore/CustomLiveStoreProvider.js";
 import { LoadingState } from "../../loading/LoadingState.js";
 import { GitCommitHash } from "../../notebook/GitCommitHash.js";
@@ -183,7 +182,6 @@ function NotebookPageWithIdAndNotebook({
 
         <div className="flex-1 overflow-auto">
           <div className="container mx-auto px-4">
-            <KeyboardShortcuts />
             <NotebookContent />
             <div className="h-[70vh]"></div>
             <div className="mt-8 flex justify-center border-t px-4 py-2 text-center">
