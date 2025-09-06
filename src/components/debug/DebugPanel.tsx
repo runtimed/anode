@@ -303,8 +303,9 @@ function DebugVersion() {
   const debugVersion = useQuery(
     queryDb(
       tables.debug.select("version").first({
+        behaviour: "fallback",
         fallback: () => {
-          return "unknown";
+          return "1";
         },
       })
     )
