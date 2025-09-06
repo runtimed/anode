@@ -103,7 +103,6 @@ export function useIframeCommsParent({
     }
     // Send content to iframe when it changes
     if (iframeRef.current && iframeRef.current.contentWindow) {
-      console.log("Sending outputs to iframe", outputs);
       sendToIframe(iframeRef.current, {
         type: "update-outputs",
         outputs: outputs || [],
@@ -125,7 +124,6 @@ export function useIframeCommsChild() {
     function sendHeight() {
       const BUFFER = 1; // Add a small buffer to prevent scrollbars
       const height = document.body.scrollHeight;
-      console.log("sending height 2", height);
       sendFromIframe({
         type: "iframe-height",
         height: height + BUFFER,
@@ -137,10 +135,8 @@ export function useIframeCommsChild() {
 
     // Handle incoming content updates
     window.addEventListener("message", (event: MessageEvent<ToIframeEvent>) => {
-      console.log("received message", event.data);
       const data = event.data;
       if (data && data.type === "update-outputs") {
-        console.log("update-outputs", data.outputs);
         setOutputs(data.outputs || []);
         setTimeout(sendHeight, 50);
       }

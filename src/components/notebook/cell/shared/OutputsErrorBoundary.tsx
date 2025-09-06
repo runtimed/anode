@@ -6,5 +6,7 @@ interface FallbackProps {
 }
 
 export const OutputsErrorBoundary: React.FC<FallbackProps> = () => {
-  return <span className="text-sm text-red-600">Error rendering outputs</span>;
+  return (
+    <span className="px-6 text-sm text-red-600">Error rendering outputs</span>
+  );
 };
