@@ -13,7 +13,7 @@ URL="http://localhost:$DEV_PORT/?notebook=$NOTEBOOK_ID"
 
 echo "ANODE_OPEN_INCOGNITO: $ANODE_OPEN_INCOGNITO"
 
-RUNTIME_CMD="NOTEBOOK_ID=${NOTEBOOK_ID} LIVESTORE_SYNC_URL=ws://localhost:8787 ${VITE_RUNTIME_COMMAND}"
+RUNTIME_CMD="NOTEBOOK_ID=${NOTEBOOK_ID} ${VITE_RUNTIME_COMMAND}"
 
 echo ""
 echo "=============================================="
