@@ -543,7 +543,6 @@ export const ExecutableCell: React.FC<ExecutableCellProps> = ({
               <MaybeCellOutputs
                 isLoading={cell.executionState === "running" && !hasOutputs}
                 outputs={hasOutputs ? outputs : staleOutputs}
-                shouldUseIframe={cell.cellType === "code"}
               />
             </ErrorBoundary>
           </div>

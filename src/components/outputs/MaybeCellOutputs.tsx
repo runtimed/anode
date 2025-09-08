@@ -1,20 +1,20 @@
-import { OutputData } from "@/schema";
+import { cn } from "@/lib/utils";
+import { outputsDeltasQuery, processDeltas } from "@/queries/outputDeltas";
+import { OutputData, SAFE_MIME_TYPES } from "@/schema";
 import { groupConsecutiveStreamOutputs } from "@/util/output-grouping";
 import { useQuery } from "@livestore/react";
 import { useMemo, useState } from "react";
+import { useDebounce } from "react-use";
 import { SingleOutput } from "./shared-with-iframe/SingleOutput";
 import { useIframeCommsParent } from "./shared-with-iframe/comms";
-import { outputsDeltasQuery, processDeltas } from "@/queries/outputDeltas";
-import { cn } from "@/lib/utils";
-import { useDebounce } from "react-use";
 
 export const MaybeCellOutputs = ({
   outputs,
-  shouldUseIframe,
+  shouldAlwaysUseIframe = false,
   isLoading,
 }: {
   outputs: readonly OutputData[];
-  shouldUseIframe: boolean;
+  shouldAlwaysUseIframe?: boolean;
   isLoading: boolean;
 }) => {
   const outputDeltas = useQuery(
@@ -28,6 +28,9 @@ export const MaybeCellOutputs = ({
   }, [outputs, outputDeltas]);
 
   if (!outputs.length) return null;
+
+  const isUnsafe = hasUnsafeOutputs(processedOutputs ?? []);
+  const shouldUseIframe = shouldAlwaysUseIframe || isUnsafe;
 
   return (
     <div
@@ -97,4 +100,10 @@ export const IframeOutput: React.FC<IframeOutputProps> = ({
       sandbox="allow-downloads allow-forms allow-pointer-lock allow-popups allow-popups-to-escape-sandbox allow-same-origin allow-scripts allow-storage-access-by-user-activation allow-modals"
     />
   );
+};
+
+const hasUnsafeOutputs = (outputs: OutputData[]) => {
+  return outputs.some((output) => {
+    return !SAFE_MIME_TYPES.includes(output.mimeType as any);
+  });
 };
