@@ -103,9 +103,7 @@ export const IframeOutput: React.FC<IframeOutputProps> = ({
 
   // Iframe can get height updates pretty often, but we want to avoid layout jumping each time
   // TODO: ensure that it's a leading debounce!
-  useDebounce(() => setDebouncedIframeHeight(iframeHeight), 200, [
-    iframeHeight,
-  ]);
+  useDebounce(() => setDebouncedIframeHeight(iframeHeight), 50, [iframeHeight]);
 
   return (
     <iframe
