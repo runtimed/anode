@@ -15,10 +15,8 @@ export const RuntimePanel: React.FC<SidebarPanelProps> = ({ notebook }) => {
 
   const runtimeCommand = getRuntimeCommand(notebook.id);
 
-  // Query for all runtime sessions
-  const allRuntimeSessions = useQuery(queryDb(tables.runtimeSessions.select()));
-  const activeRuntimeSessions = allRuntimeSessions.filter(
-    (session) => session.isActive
+  const activeRuntimeSessions = useQuery(
+    queryDb(tables.runtimeSessions.select().where("isActive", "=", true))
   );
 
   const copyRuntimeCommand = useCallback(() => {
@@ -26,13 +24,17 @@ export const RuntimePanel: React.FC<SidebarPanelProps> = ({ notebook }) => {
   }, [runtimeCommand]);
 
   const clearAllRuntimes = useCallback(() => {
-    // Cancel all active executions
-    const allExecutions = store.query(queryDb(tables.executionQueue.select()));
-    const activeExecutions = allExecutions.filter(
-      (execution) =>
-        execution.status === "pending" ||
-        execution.status === "assigned" ||
-        execution.status === "executing"
+    const activeExecutions = store.query(
+      queryDb(
+        tables.executionQueue
+          .select("id", "cellId")
+          // We need to select for status IN pending, assigned, executing
+          // but LiveStore only supports AND for where clauses with this ORM
+          // so we'll look for the other events
+          .where("status", "!=", "completed")
+          .where("status", "!=", "cancelled")
+          .where("status", "!=", "failed")
+      )
     );
 
     activeExecutions.forEach((execution) => {
@@ -51,7 +53,8 @@ export const RuntimePanel: React.FC<SidebarPanelProps> = ({ notebook }) => {
       store.commit(
         events.runtimeSessionTerminated({
           sessionId: session.sessionId,
-          reason: "shutdown",
+          // TODO: perhaps we should have another reason for this kind...
+          reason: "displaced",
         })
       );
     });
