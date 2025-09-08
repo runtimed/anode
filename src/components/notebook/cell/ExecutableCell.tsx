@@ -322,6 +322,12 @@ export const ExecutableCell: React.FC<ExecutableCellProps> = ({
     cell.cellType as "code" | "sql" | "ai"
   );
 
+  const showOutput =
+    cell.outputVisible &&
+    (hasOutputs ||
+      cell.executionState === "running" ||
+      staleOutputs.length > 0);
+
   return (
     <CellContainer
       ref={cellRef}
@@ -534,19 +540,14 @@ export const ExecutableCell: React.FC<ExecutableCellProps> = ({
       )}
 
       {/* Output Area */}
-      {cell.outputVisible &&
-        (hasOutputs ||
-          cell.executionState === "running" ||
-          staleOutputs.length > 0) && (
-          <div className="cell-content bg-background max-w-full min-w-0 overflow-x-auto px-2 sm:px-4">
-            <ErrorBoundary FallbackComponent={OutputsErrorBoundary}>
-              <MaybeCellOutputs
-                isLoading={cell.executionState === "running" && !hasOutputs}
-                outputs={hasOutputs ? outputs : staleOutputs}
-              />
-            </ErrorBoundary>
-          </div>
-        )}
+
+      <ErrorBoundary FallbackComponent={OutputsErrorBoundary}>
+        <MaybeCellOutputs
+          isLoading={cell.executionState === "running" && !hasOutputs}
+          outputs={hasOutputs ? outputs : staleOutputs}
+          showOutput={showOutput}
+        />
+      </ErrorBoundary>
     </CellContainer>
   );
 };
