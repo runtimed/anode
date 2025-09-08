@@ -64,7 +64,7 @@ export const NotebookTableRow: React.FC<NotebookTableRowProps> = ({
         )}
       </td>
       <td className="p-4 text-gray-600">
-        <DateDisplay date={notebook.updated_at} format="short" />
+        <DateDisplay date={notebook.updated_at} format="relative" />
       </td>
       <td className="p-4">
         <NotebookActions notebook={notebook} onUpdate={onUpdate} />
