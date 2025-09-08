@@ -36,11 +36,9 @@ interface MarkdownCellProps {
 }
 
 const MarkdownRenderer = React.lazy(() =>
-  import("@/components/outputs/shared-with-iframe/MarkdownRenderer.js").then(
-    (m) => ({
-      default: m.MarkdownRenderer,
-    })
-  )
+  import("@anode/shared").then((m) => ({
+    default: m.MarkdownRenderer,
+  }))
 );
 
 export const MarkdownCell: React.FC<MarkdownCellProps> = ({

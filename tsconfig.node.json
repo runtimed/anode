@@ -10,6 +10,6 @@
   "include": [
     "vite.config.ts",
     "vite-plugins/**/*.ts",
-    "iframe-outputs/vite.config.ts"
+    "packages/*/vite.config.ts"
   ]
 }

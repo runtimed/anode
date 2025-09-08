@@ -5,10 +5,10 @@ import tailwindcss from "@tailwindcss/vite";
 
 export default defineConfig({
   root: "src",
-  plugins: [react(), tailwindcss()] as any,
+  plugins: [react(), tailwindcss()],
   resolve: {
     alias: {
-      "@": resolve(__dirname, "../src"),
+      "@": resolve(__dirname, "./src"),
     },
   },
   build: {
@@ -16,9 +16,15 @@ export default defineConfig({
     emptyOutDir: true,
     rollupOptions: {
       input: {
-        // TODO: add a basic index.html entry point too!
         react: resolve(__dirname, "src/react.html"),
       },
     },
+  },
+  server: {
+    port: 8000,
+    strictPort: true,
+  },
+  optimizeDeps: {
+    include: ["react", "react-dom", "@anode/shared"],
   },
 });

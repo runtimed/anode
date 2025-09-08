@@ -8,59 +8,56 @@ import {
   AI_TOOL_RESULT_MIME_TYPE,
   isAiToolCallData,
   isAiToolResultData,
-} from "@/schema";
+} from "../schema";
 import { SuspenseSpinner } from "./SuspenseSpinner";
 
 // Dynamic imports for heavy components
 const MarkdownRenderer = React.lazy(() =>
-  import("@/components/outputs/shared-with-iframe/MarkdownRenderer").then(
-    (m) => ({
-      default: m.MarkdownRenderer,
-    })
-  )
+  import("./MarkdownRenderer").then((m) => ({
+    default: m.MarkdownRenderer,
+  }))
 );
+
 const JsonOutput = React.lazy(() =>
-  import("@/components/outputs/shared-with-iframe/JsonOutput").then((m) => ({
+  import("./JsonOutput").then((m) => ({
     default: m.JsonOutput,
   }))
 );
+
 const HtmlOutput = React.lazy(() =>
-  import("@/components/outputs/shared-with-iframe/HtmlOutput").then((m) => ({
+  import("./HtmlOutput").then((m) => ({
     default: m.HtmlOutput,
   }))
 );
+
 const ImageOutput = React.lazy(() =>
-  import("@/components/outputs/shared-with-iframe/ImageOutput").then((m) => ({
+  import("./ImageOutput").then((m) => ({
     default: m.ImageOutput,
   }))
 );
+
 const SvgOutput = React.lazy(() =>
-  import("@/components/outputs/shared-with-iframe/SvgOutput").then((m) => ({
+  import("./SvgOutput").then((m) => ({
     default: m.SvgOutput,
   }))
 );
+
 const PlainTextOutput = React.lazy(() =>
-  import("@/components/outputs/shared-with-iframe/PlainTextOutput").then(
-    (m) => ({
-      default: m.PlainTextOutput,
-    })
-  )
+  import("./PlainTextOutput").then((m) => ({
+    default: m.PlainTextOutput,
+  }))
 );
 
-// Dynamic imports for AI outputs
 const AiToolCallOutput = React.lazy(() =>
-  import("@/components/outputs/shared-with-iframe/AiToolCallOutput").then(
-    (m) => ({
-      default: m.AiToolCallOutput,
-    })
-  )
+  import("./AiToolCallOutput").then((m) => ({
+    default: m.AiToolCallOutput,
+  }))
 );
+
 const AiToolResultOutput = React.lazy(() =>
-  import("@/components/outputs/shared-with-iframe/AiToolResultOutput").then(
-    (m) => ({
-      default: m.AiToolResultOutput,
-    })
-  )
+  import("./AiToolResultOutput").then((m) => ({
+    default: m.AiToolResultOutput,
+  }))
 );
 
 export function RichOutputContent({

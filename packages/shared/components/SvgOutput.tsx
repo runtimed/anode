@@ -1,4 +1,4 @@
-import { throwIfNotInIframe } from "@/util/iframe";
+import { throwIfNotInIframe } from "../util/iframe";
 import React from "react";
 
 interface SvgOutputProps {

@@ -1,7 +1,7 @@
 import { createRoot } from "react-dom/client";
 import { IframeReactApp } from "./components/IframeReactApp";
 import "./style.css";
-import { sendFromIframe } from "@/components/outputs/shared-with-iframe/comms";
+import { sendFromIframe } from "@anode/shared";
 
 // Main React initialization for iframe outputs
 function initializeReactIframe() {

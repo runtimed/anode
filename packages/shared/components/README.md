@@ -6,7 +6,7 @@ Realistically, we can't put all shared code into this folder. We still depend on
 
 🚨 IMPORTANT: do not depend on any LiveStore hooks in this folder like `useQuery`. Components in an iframe don't get access to React Context from the rest of the page.
 
-🚨 IMPORTANT: tailwind styles will not get picked up in the iframe build unless they're in the `shared-with-iframe` folder. See: `iframe-outputs/src/style.css`.
+🚨 IMPORTANT: tailwind styles will not get picked up in the iframe build unless they're in the `@anode/shared` package. See: `packages/iframe-outputs/src/style.css`.
 
 # Thoughts for the future
 

@@ -271,10 +271,7 @@ export default [
     },
   },
   {
-    files: [
-      "backend/**/*.{js,jsx,ts,tsx}",
-      "iframe-outputs/**/*.{js,jsx,ts,tsx}",
-    ],
+    files: ["backend/**/*.{js,jsx,ts,tsx}", "packages/**/*.{js,jsx,ts,tsx}"],
     languageOptions: {
       parser: tsparser,
       ecmaVersion: 2022,
@@ -324,8 +321,8 @@ export default [
       "node_modules/**",
       "*.d.ts",
       "scripts/**",
-      "iframe-outputs/worker/dist/**",
-      "iframe-outputs/worker/.wrangler/**",
+      "packages/iframe-outputs/worker/dist/**",
+      "packages/iframe-outputs/worker/.wrangler/**",
     ],
   },
 ];

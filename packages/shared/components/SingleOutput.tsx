@@ -1,9 +1,6 @@
 import React from "react";
 
-import {
-  AnsiErrorOutput,
-  AnsiStreamOutput,
-} from "@/components/outputs/shared-with-iframe/AnsiOutput";
+import { AnsiErrorOutput, AnsiStreamOutput } from "./AnsiOutput";
 import {
   AI_TOOL_CALL_MIME_TYPE,
   AI_TOOL_RESULT_MIME_TYPE,
@@ -15,18 +12,16 @@ import {
   TEXT_MIME_TYPES,
   isArtifactContainer,
   isInlineContainer,
-} from "@/schema";
+} from "../schema";
 import PlainTextOutput from "./PlainTextOutput";
 import { RichOutputContent } from "./RichOutputContent";
 import { SuspenseSpinner } from "./SuspenseSpinner";
 
 // Dynamic imports for heavy components
 const MarkdownRenderer = React.lazy(() =>
-  import("@/components/outputs/shared-with-iframe/MarkdownRenderer").then(
-    (m) => ({
-      default: m.MarkdownRenderer,
-    })
-  )
+  import("./MarkdownRenderer").then((m) => ({
+    default: m.MarkdownRenderer,
+  }))
 );
 
 /**
