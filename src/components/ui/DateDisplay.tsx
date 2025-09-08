@@ -16,7 +16,9 @@ export const DateDisplay: React.FC<DateDisplayProps> = ({
   showTooltip = true,
   className = "",
 }) => {
-  const dateObj = typeof date === "string" ? new Date(date) : date;
+  // Assume UTC if no timezone is specified
+  // By default our D1 sqlite DB creates events in UTC
+  const dateObj = typeof date === "string" ? new Date(date + " Z") : date;
 
   const getDisplayText = () => {
     switch (format) {
