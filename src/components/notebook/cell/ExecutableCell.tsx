@@ -1,4 +1,4 @@
-import { useAuth } from "@/components/auth/AuthProvider.js";
+import { useAuthenticatedUser } from "@/auth/index.js";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { useCellContent } from "@/hooks/useCellContent.js";
@@ -84,9 +84,7 @@ export const ExecutableCell: React.FC<ExecutableCellProps> = ({
   const { handleDeleteCell } = useDeleteCell(cell.id);
   const { addCell } = useAddCell();
 
-  const {
-    user: { sub: userId },
-  } = useAuth();
+  const userId = useAuthenticatedUser();
   const { getUsersOnCell, getUserColor } = useUserRegistry();
 
   // Get users present on this cell (excluding current user)
@@ -293,7 +291,15 @@ export const ExecutableCell: React.FC<ExecutableCellProps> = ({
   const handleFocus = useCallback(() => {
     store.setSignal(focusedCellSignal$, cell.id);
     store.setSignal(hasManuallyFocused$, true);
-  }, [store, cell.id]);
+
+    // Set presence to track user focus on this cell
+    store.commit(
+      events.presenceSet({
+        userId,
+        cellId: cell.id,
+      })
+    );
+  }, [store, cell.id, userId]);
 
   // Handle editor registration for navigation
   const handleEditorReady = useCallback(
@@ -447,7 +453,7 @@ export const ExecutableCell: React.FC<ExecutableCellProps> = ({
 
         {/* Editor Content Area */}
         {cell.sourceVisible && (
-          <div className="cell-content bg-white py-1 pl-4 transition-colors">
+          <div className="cell-content max-w-full overflow-x-auto bg-white py-1 pl-4 transition-colors">
             <ErrorBoundary fallback={<div>Error rendering editor</div>}>
               <Editor
                 ref={handleEditorReady}
@@ -532,7 +538,7 @@ export const ExecutableCell: React.FC<ExecutableCellProps> = ({
         (hasOutputs ||
           cell.executionState === "running" ||
           staleOutputs.length > 0) && (
-          <div className="cell-content bg-background max-w-full overflow-hidden px-4 sm:px-4">
+          <div className="cell-content bg-background max-w-full min-w-0 overflow-x-auto px-2 sm:px-4">
             <ErrorBoundary FallbackComponent={OutputsErrorBoundary}>
               <MaybeCellOutputs
                 isLoading={cell.executionState === "running" && !hasOutputs}

@@ -1,5 +1,5 @@
 /**
- * Utility functions for generating URL-safe slugs and vanity URLs for runbooks
+ * Utility functions for generating URL-safe slugs and vanity URLs for notebooks
  */
 
 /**
@@ -26,14 +26,14 @@ export function slugify(text: string): string {
 }
 
 /**
- * Generate a vanity URL for a runbook
+ * Generate a vanity URL for a notebook
  * If title is empty or becomes empty after slugification, returns just the ulid path
  */
-export function getRunbookVanityUrl(
-  ulid: string,
+export function getNotebookVanityUrl(
+  id: string,
   title?: string | null
 ): string {
-  const basePath = `/r/${ulid}`;
+  const basePath = `/nb/${id}`;
 
   if (!title?.trim()) {
     return basePath;
@@ -49,26 +49,26 @@ export function getRunbookVanityUrl(
 }
 
 /**
- * Extract ulid from a runbook path (with or without vanity name)
- * Supports: /r/{ulid}, /r/{ulid}/, /r/{ulid}/{vanity}
+ * Extract ulid from a notebook path (with or without vanity name)
+ * Supports: /nb/{id}, /nb/{id}/, /nb/{id}/{vanity}
  */
-export function extractRunbookUlid(path: string): string | null {
-  const match = path.match(/^\/r\/([^/]+)/);
+export function extractNotebookId(path: string): string | null {
+  const match = path.match(/^\/nb\/([^/]+)/);
   return match ? match[1] : null;
 }
 
 /**
- * Check if a runbook URL has the correct vanity name
+ * Check if a notebook URL has the correct vanity name
  * Used to redirect to canonical URL if needed
  */
-export function hasCorrectVanityUrl(
+export function hasCorrectNotebookVanityUrl(
   currentPath: string,
-  ulid: string,
+  id: string,
   title?: string | null
 ): boolean {
-  const expectedUrl = getRunbookVanityUrl(ulid, title);
-  const expectedPath = expectedUrl.replace(/^\/r\/[^/]+/, ""); // Get just the vanity part
-  const currentVanityPath = currentPath.replace(/^\/r\/[^/]+/, "");
+  const expectedUrl = getNotebookVanityUrl(id, title);
+  const expectedPath = expectedUrl.replace(/^\/nb\/[^/]+/, ""); // Get just the vanity part
+  const currentVanityPath = currentPath.replace(/^\/nb\/[^/]+/, "");
 
   // If no title, both should be empty
   if (!title?.trim()) {

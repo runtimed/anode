@@ -1,27 +1,25 @@
 # AI Agent Development Context
 
-This document provides essential context for AI assistants working on the Anode
+This document provides essential context for AI assistants working on the [Anode](https://github.com/runtimed/anode)
 project.
 
-Current work state and next steps. What works, what doesn't. Last updated: July 2025.
+Current work state and next steps. What works, what doesn't. Last updated: September 2025.
 
-**Development Workflow**: The user will typically be running the integrated development server with `pnpm dev` in one tab. If you need to check work, run a build and/or lints, tests, typechecks. If the user isn't running the dev environment, tell them how to start it at the base of the repo with `pnpm dev`.
+**Development Workflow**: The user will typically be running the services in separate terminal tabs from the conversation with you. If you need to check work it is advised to run type checks first followed by lints, tests, and a build of the UI. If the user isn't running the dev environment, recommend instructions from the [`README.md`](./README.md)
 
 ## Project Overview
 
-Anode is a real-time collaborative notebook system built on LiveStore, an
-event-sourcing based local-first data synchronization library.
+Anode is a real-time collaborative notebook system built on LiveStore, an event-sourcing based local-first data synchronization library. In order to make this work, anode relies on runtime agents via the [`runt` packages released on jsr.io](https://github.com/runtimed/runt).
 
-**Current Status**: A robust, real-time collaborative notebook system deployed at https://app.runt.run. It features Python execution with rich outputs and integrated AI capabilities, all built on a unified, event-sourced output system. The system is stable and in production, with ongoing enhancements focused on advanced AI interaction and runtime management.
+**Current Status**: A real-time collaborative notebook system deployed at https://app.runt.run. It features Python execution with rich outputs and integrated AI capabilities, all built on a unified, event-sourced output system. The system is stable and in production, with ongoing enhancements focused on runtime management.
 
 ## Architecture
 
 - **Schema** (`jsr:@runt/schema`): LiveStore schema definitions (events, state,
   materializers) - Published JSR package imported by all packages with full type
   inference. Comes via https://github.com/runtimed/runt's deno monorepo
-- **All-in-one Worker**: Unified Cloudflare Worker serving both web client and backend API
-- **Web Client**: React-based web interface (served from the worker)
-- **Document Worker**: Cloudflare Worker for sync backend with artifact storage
+- **Web Client**: React-based web interface (locally served via vite, deployed as `ASSETS` from the cloudflare worker)
+- **Document Worker**: Cloudflare Worker for sync backend and API (permissions, database, artifact storage)
 - **Pyodide Runtime Agent**: Python execution client using @runt packages
 
 ## Key Dependencies
@@ -36,18 +34,16 @@ event-sourcing based local-first data synchronization library.
 ### What's Actually Working ✅
 
 - ✅ **LiveStore integration** - Event-sourcing with real-time collaboration
-- ✅ **Python execution** - Code cells run Python via Pyodide with rich outputs
-  (matplotlib SVG, pandas HTML, IPython.display)
+- ✅ **Execution** - Code cells run Python via Pyodide with rich outputs. Other languages can be implemented as new runtime agents.
 - ✅ **Real-time collaboration** - Multiple users can edit notebooks
   simultaneously
-- ✅ **Cell management** - Create, edit, move, delete cells with proper state
+- ✅ **Cell management** - Create, edit, delete cells with proper state
   sync
-- ✅ **Rich output rendering** - Full IPython display support: matplotlib SVG,
-  pandas HTML, colored terminal output
+- ✅ **Rich output rendering** - Full IPython-style display support: matplotlib plots,
+  pandas HTML, colored terminal output, images
 - ✅ **AI integration** - Full notebook context awareness, sees previous cells
   and their outputs
-- ✅ **AI tool calling** - AI can create new cells and modify them using
-  function calling
+- ✅ **AI tool calling** - Runtime agents can create, run, and modify cells in the same notebook. The framework for tools is more extensible as the primary pyodide runtime agent supports `@tool` decorators as well as the Model Context Protocol.
 - ✅ **Context inclusion controls** - Users can exclude cells from AI context
   with visibility toggles
 - ✅ **Production deployment** - All-in-one worker deployed to Cloudflare at
@@ -60,13 +56,7 @@ event-sourcing based local-first data synchronization library.
   matplotlib) for faster startup
 - ✅ **AI context with outputs** - AI sees execution results, not just source
   code, for intelligent assistance with data analysis
-- ✅ **Unified Output System** - Granular, type-safe events for all output types
-- ✅ **Clear output functionality** - `clear_output(wait=True/False)` working properly
-- ✅ **Terminal output grouping** - Consecutive terminal outputs merge naturally
-- ✅ **Error output rendering** - Proper traceback display with JSON error parsing
-- ✅ **All tests passing** - 60/60 tests covering output system
 - ✅ **Artifact service** - Deployed with upload/download endpoints and R2 storage
-- ✅ **Development stability** - Integrated dev server with hot reload stability
 
 ### Core Architecture Constraints
 
@@ -77,9 +67,8 @@ event-sourcing based local-first data synchronization library.
   execution queue
 - **Direct TypeScript schema**: No build step, imports work across packages
 - **Session-based runtimes**: Each runtime restart gets unique `sessionId`
-- **One runtime per notebook**: Each notebook has exactly one active runtime at a
-  time
-- **Artifact storage**: First version backend for external storage (uploads authenticated, downloads currently unauthenticated)
+- **One runtime per notebook**: Each notebook is intended to have one active runtime at a time
+- **Artifact storage**: Large outputs are placed in artifact storage for on demand retrieval as raw bytes. For example, instead of base64 encoded images for plots, the system returns the proper media type as `Content-Type` allowing to use regular `src=` attributes with an artifact URL.
 
 ### Runtime-Notebook Relationship
 
@@ -106,8 +95,10 @@ pnpm install  # Install dependencies
 cp .env.example .env  # Copy environment configuration
 cp .dev.vars.example .dev.vars
 
-# Start development (single server with integrated backend)
-pnpm dev      # All-in-one server at http://localhost:5173
+# Start development servers in separate terminals
+pnpm dev           # Frontend at http://localhost:5173
+pnpm dev:sync      # Backend at http://localhost:8787
+pnpm dev:iframe    # Iframe outputs at http://localhost:8000
 
 # Start runtime (get command from notebook UI)
 # Runtime command is now dynamic via VITE_RUNTIME_COMMAND environment variable
@@ -116,8 +107,8 @@ NOTEBOOK_ID=notebook-id-from-ui pnpm dev:runtime
 
 # Check work
 pnpm check    # Type check, lint, and format check
-pnpm test     # Run 60+ tests
-pnpm build    # Build for production
+pnpm test     # Run tests
+pnpm build    # Build web UI
 ```
 
 ## Schema Linking for Development
@@ -127,7 +118,7 @@ The `@runt/schema` package provides the shared types and events between Anode an
 ### Production (JSR Package)
 
 ```json
-"@runt/schema": "jsr:^0.9.0"
+"@runt/schema": "jsr:^0.11.1"
 ```
 
 Use this for stable releases and production deployments.
@@ -152,30 +143,18 @@ Use this when developing locally with both Anode and Runt repositories side-by-s
 
 1. **Update `package.json`** with the appropriate schema reference
 2. **Run `pnpm install`** to update dependencies
-3. **Restart your development server** (`pnpm dev`)
+3. **Restart the vite web UI** (`pnpm dev`)
 
-**Important**: Always ensure both repositories are using compatible schema versions. Type errors usually indicate schema mismatches.
+**Important**: Always ensure both repositories are using compatible schema versions. Type errors likely indicate schema mismatches.
 
 ## Current Priorities
 
-**Current Focus**: Enhancing AI capabilities and improving runtime management.
+**Current Focus**: Improving runtime management.
 
 ### Key Development Areas
 
-1.  **Enhanced AI Tool Calling**: AI can now create, modify, and execute cells.
-    - Function calling infrastructure is in place.
-    - AI can create new cells (`create_cell`).
-    - AI can modify existing cells (`modify_cell`).
-    - AI can execute code cells (`execute_cell`).
-    - _Next Step_: Add comprehensive JSDoc and parameter validation for tool calls.
-2.  **User Confirmation Flows**: Implementing UI for confirming AI-initiated actions.
-    - _Next Step_: Design and implement confirmation dialogs, categorize risks, integrate with LiveStore events, and allow safe operations to bypass confirmation.
-3.  **User-Attributed Runtime Agents ("Bring Your Own Compute")**: Enabling users to run standalone runtime agents with API tokens.
-    - _Next Step_: Develop API token system, token management UI, and documentation for user-owned runtimes.
-4.  **Automated Runtime Management**: Reducing manual friction in starting and managing runtimes.
+1.  **Automated Runtime Management**: Reducing manual friction in starting and managing runtimes.
     - _Next Step_: Design runtime orchestration, implement one-click startup, and add health monitoring.
-
-**Foundation Complete**: The core output system provides type safety, performance, and streaming capabilities, forming a solid base for these enhancements.
 
 ## Important Considerations
 
@@ -183,48 +162,6 @@ Use this when developing locally with both Anode and Runt repositories side-by-s
 
 - **JSR schema package**: `jsr:@runt/schema` provides zero-build-step imports
   with type inference across all packages
-
-### ⚠️ CRITICAL: Materializer Determinism Requirements
-
-LiveStore requires all materializers to be **pure functions without side
-effects**. Avoid non-deterministic operations (like `Date()` calls) that could
-produce different results across clients. Using `ctx.query()` for deterministic
-data access is fine.
-
-**What caused the bug:**
-
-```typescript
-// ❌ WRONG - This causes LiveStore.UnexpectedError materializer hash mismatch
-"v1.ExecutionCompleted": ({ queueId }, ctx) => {
-  const queueEntries = ctx.query(
-    tables.executionQueue.select().where({ id: queueId }).limit(1)
-  );
-  // ... rest of materializer
-}
-```
-
-**Correct approach:**
-
-```typescript
-// ✅ CORRECT - All needed data in event payload
-"v1.ExecutionCompleted": ({ queueId, cellId, status }) => [
-  tables.executionQueue.update({
-    status: status === "success" ? "completed" : "failed"
-  }).where({ id: queueId }),
-  tables.cells.update({
-    executionState: status === "success" ? "completed" : "error"
-  }).where({ id: cellId }),
-]
-```
-
-**Fixed commits for reference:**
-
-- `6e0fb4f`: Fixed ExecutionCompleted/ExecutionCancelled materializers
-- `a1bf20d`: Fixed ExecutionStarted materializer
-
-**Rule**: Materializers must be deterministic and reproducible. Avoid
-non-deterministic operations, but using `ctx.query()` for deterministic data
-lookups is acceptable.
 
 ### Use top-level `useQuery` rather than `store.useQuery`
 
@@ -256,7 +193,7 @@ const titleMetadata = useQuery(
 
 ### Code Style
 
-- Prefer functional programming patterns (Effect library)
+- Prefer functional programming patterns
 - Event sourcing over direct state mutations
 - Reactive queries over imperative data fetching
 - TypeScript strict mode enabled
@@ -266,68 +203,310 @@ const titleMetadata = useQuery(
 ## File Structure
 
 ```
-anode/
-├── .git/
-├── .github/
-├── .zed/
-├── dist/
-├── docs/
-│   ├── proposals/
-│   ├── README.md
-│   ├── TESTING.md
-│   ├── ai-context-visibility.md
-│   ├── ui-design.md
-│   └── ui-enhancements-demo.md
-├── examples/
-│   └── ai-context-demo.md
-├── node_modules/
-├── public/
-├── src/
-│   ├── auth/
-│   ├── backend/
-│   │   ├── artifact.ts
-│   │   ├── auth.ts
-│   │   ├── entry.ts
-│   │   ├── sync.ts
-│   │   └── types.ts
-│   ├── components/
-│   │   ├── auth/
-│   │   ├── notebook/
-│   │   │   ├── AiCell.tsx
-│   │   │   ├── AnsiOutput.tsx
-│   │   │   ├── Cell.tsx
-│   │   │   ├── NotebookViewer.tsx
-│   │   │   ├── RichOutput.css
-│   │   │   ├── RichOutput.tsx
-│   │   │   └── SqlCell.tsx
-│   │   └── ui/
-│   ├── lib/
-│   │   └── utils.ts
-│   ├── sync/
-│   │   └── sync.ts
-│   ├── types/
-│   ├── util/
-│   ├── Root.tsx
-│   ├── index.css
-│   ├── livestore.worker.ts
-│   └── main.tsx
-├── test/
-├── .gitignore
+.
 ├── AGENTS.md
-├── CONTRIBUTING.md
+├── assets
+│   └── runt-magic.aseprite
+├── backend
+│   ├── api-key-provider.ts
+│   ├── api-key-routes.ts
+│   ├── auth.ts
+│   ├── local_oidc.ts
+│   ├── local-oidc-routes.ts
+│   ├── middleware.ts
+│   ├── notebook-permissions
+│   │   ├── factory.ts
+│   │   ├── local-permissions.ts
+│   │   ├── no-permissions.ts
+│   │   └── types.ts
+│   ├── providers
+│   │   ├── anaconda-api-key.ts
+│   │   ├── anaconda.ts
+│   │   ├── api-key-factory.ts
+│   │   ├── index.ts
+│   │   ├── local-api-key.ts
+│   │   ├── local.ts
+│   │   └── types.ts
+│   ├── routes.ts
+│   ├── selective-entry.ts
+│   ├── sync.ts
+│   ├── trpc
+│   │   ├── db.ts
+│   │   ├── index.ts
+│   │   ├── trpc.ts
+│   │   └── types.ts
+│   ├── types.ts
+│   ├── users
+│   │   └── utils.ts
+│   └── utils
+│       └── notebook-id.ts
 ├── Caddyfile.example
+├── components.json
+├── CONTRIBUTING.md
 ├── DEPLOYMENT.md
+├── docs
+│   ├── api-keys.md
+│   ├── proposals
+│   │   ├── artifact-service-design.md
+│   │   └── unified-output-system.md
+│   ├── README.md
+│   ├── technologies
+│   │   ├── deno.md
+│   │   ├── livestore.md
+│   │   ├── pyodide.md
+│   │   └── README.md
+│   ├── tool-approval-system.md
+│   └── ui-design.md
+├── ecosystem.config.json
+├── eslint.config.js
+├── iframe-outputs
+│   ├── README.md
+│   ├── src
+│   │   ├── components
+│   │   │   └── IframeReactApp.tsx
+│   │   ├── react-main.tsx
+│   │   ├── react.html
+│   │   ├── style.css
+│   │   └── tsconfig.node.json
+│   ├── test-iframe.html
+│   ├── vite.config.ts
+│   └── worker
+│       ├── package.json
+│       ├── pnpm-lock.yaml
+│       ├── tsconfig.json
+│       ├── worker.ts
+│       └── wrangler.toml
+├── index.html
 ├── LICENSE
+├── migrations
+│   ├── 0001_create_settings_table.sql
+│   ├── 0002_create_users_table.sql
+│   ├── 0004_create_notebooks_and_permissions.sql
+│   ├── 0005_drop_runbook_tables.sql
+│   └── 0006_create_tags_tables.sql
+├── package.json
+├── PM2-SETUP.md
+├── pnpm-lock.yaml
+├── public
+│   ├── android-chrome-192x192.png
+│   ├── bracket.png
+│   ├── bunny-sit.png
+│   ├── bunny.png
+│   ├── favicon.ico
+│   ├── hole.png
+│   ├── runes.png
+│   ├── shadow.png
+│   └── site.webmanifest
 ├── README.md
 ├── ROADMAP.md
-├── components.json
-├── index.html
-├── package.json
-├── pnpm-lock.yaml
 ├── schema.ts
+├── scripts
+│   ├── deploy-iframe-outputs.sh
+│   ├── dev-runtime.sh
+│   ├── optimize-build.sh
+│   ├── start-nb.sh
+│   ├── start-runt-dev.sh
+│   ├── test-api-key-flow.sh
+│   ├── test-api-keys.sh
+│   ├── use-runt.sh
+│   └── watch-script.cjs
+├── src
+│   ├── auth
+│   │   ├── AuthGuard.tsx
+│   │   ├── AuthProvider.tsx
+│   │   ├── index.ts
+│   │   ├── LoginPrompt.tsx
+│   │   ├── openid.ts
+│   │   └── redirect-url-helper.ts
+│   ├── components
+│   │   ├── auth
+│   │   │   └── ApiKeysDialog.tsx
+│   │   ├── CollaboratorAvatars.tsx
+│   │   ├── debug
+│   │   │   ├── debug-mode.tsx
+│   │   │   ├── DebugModeToggle.tsx
+│   │   │   ├── DebugPanel.tsx
+│   │   │   └── FPSMeter.tsx
+│   │   ├── KeyboardShortcuts.tsx
+│   │   ├── livestore
+│   │   │   ├── CustomLiveStoreProvider.tsx
+│   │   │   └── livestore.worker.ts
+│   │   ├── loading
+│   │   │   └── LoadingState.tsx
+│   │   ├── logo
+│   │   │   ├── index.ts
+│   │   │   ├── PixelatedCircle.tsx
+│   │   │   ├── RuntLogo.tsx
+│   │   │   └── RuntLogoSmall.tsx
+│   │   ├── notebook
+│   │   │   ├── cell
+│   │   │   │   ├── Cell.tsx
+│   │   │   │   ├── CellAdder.tsx
+│   │   │   │   ├── CellBetweener.tsx
+│   │   │   │   ├── ExecutableCell.tsx
+│   │   │   │   ├── MarkdownCell.tsx
+│   │   │   │   ├── shared
+│   │   │   │   │   ├── AiCellTypeSelector.tsx
+│   │   │   │   │   ├── CellContainer.tsx
+│   │   │   │   │   ├── CellControls.tsx
+│   │   │   │   │   ├── CellTypeSelector.tsx
+│   │   │   │   │   ├── Editor.tsx
+│   │   │   │   │   ├── editorUtils.ts
+│   │   │   │   │   ├── ExecutionStatus.tsx
+│   │   │   │   │   ├── OutputsErrorBoundary.tsx
+│   │   │   │   │   ├── PlayButton.tsx
+│   │   │   │   │   ├── PresenceBookmarks.tsx
+│   │   │   │   │   └── PresenceIndicators.css
+│   │   │   │   └── toolbars
+│   │   │   │       ├── AiToolbar.tsx
+│   │   │   │       ├── CodeToolbar.tsx
+│   │   │   │       └── SqlToolbar.tsx
+│   │   │   ├── CellList.tsx
+│   │   │   ├── codemirror
+│   │   │   │   ├── baseExtensions.ts
+│   │   │   │   └── CodeMirrorEditor.tsx
+│   │   │   ├── ContextSelectionModeButton.tsx
+│   │   │   ├── EmptyStateCellAdder.tsx
+│   │   │   ├── GitCommitHash.tsx
+│   │   │   ├── NotebookContent.tsx
+│   │   │   ├── NotebookLoadingScreen.tsx
+│   │   │   ├── NotebookTitle.tsx
+│   │   │   ├── RuntimeHealthIndicator.tsx
+│   │   │   ├── RuntimeHealthIndicatorButton.tsx
+│   │   │   ├── RuntimeHelper.tsx
+│   │   │   └── signals
+│   │   │       ├── ai-context.ts
+│   │   │       └── focus.ts
+│   │   ├── notebooks
+│   │   │   ├── DebugNotebooks.tsx
+│   │   │   ├── notebook
+│   │   │   │   └── TitleEditor.tsx
+│   │   │   ├── NotebookActions.tsx
+│   │   │   ├── NotebookCard.tsx
+│   │   │   ├── NotebookDashboard.tsx
+│   │   │   ├── NotebookPage.tsx
+│   │   │   ├── NotebookViewer.tsx
+│   │   │   ├── SharingModal.tsx
+│   │   │   ├── SimpleUserProfile.tsx
+│   │   │   ├── TagActions.tsx
+│   │   │   ├── TagBadge.tsx
+│   │   │   ├── TagColorPicker.tsx
+│   │   │   ├── TagCreationDialog.tsx
+│   │   │   ├── TagEditDialog.tsx
+│   │   │   ├── TagSelectionDialog.tsx
+│   │   │   └── types.ts
+│   │   ├── outputs
+│   │   │   ├── index.ts
+│   │   │   ├── MaybeCellOutputs.tsx
+│   │   │   └── shared-with-iframe
+│   │   │       ├── AiToolApprovalOutput.tsx
+│   │   │       ├── AiToolCallOutput.tsx
+│   │   │       ├── AiToolResultOutput.tsx
+│   │   │       ├── AnsiOutput.tsx
+│   │   │       ├── comms.ts
+│   │   │       ├── HtmlOutput.tsx
+│   │   │       ├── ImageOutput.tsx
+│   │   │       ├── JsonOutput.tsx
+│   │   │       ├── MarkdownRenderer.tsx
+│   │   │       ├── PlainTextOutput.tsx
+│   │   │       ├── README.md
+│   │   │       ├── RichOutputContent.tsx
+│   │   │       ├── SingleOutput.tsx
+│   │   │       ├── SuspenseSpinner.tsx
+│   │   │       └── SvgOutput.tsx
+│   │   ├── TrpcProvider.tsx
+│   │   └── ui
+│   │       ├── Avatar.tsx
+│   │       ├── AvatarWithDetails.tsx
+│   │       ├── badge.tsx
+│   │       ├── button.tsx
+│   │       ├── card.tsx
+│   │       ├── DateDisplay.tsx
+│   │       ├── dialog.tsx
+│   │       ├── dropdown-menu.tsx
+│   │       ├── input.tsx
+│   │       ├── label.tsx
+│   │       ├── separator.tsx
+│   │       ├── sonner.tsx
+│   │       ├── Spinner.tsx
+│   │       ├── tabs.tsx
+│   │       ├── TerminalPlay.tsx
+│   │       ├── textarea.tsx
+│   │       └── tooltip.tsx
+│   ├── hooks
+│   │   ├── useAddCell.ts
+│   │   ├── useApiKeys.ts
+│   │   ├── useCellContent.ts
+│   │   ├── useCellKeyboardNavigation.ts
+│   │   ├── useCellOutputs.tsx
+│   │   ├── useCellPresence.ts
+│   │   ├── useDeleteCell.ts
+│   │   ├── useEditorRegistry.ts
+│   │   ├── useInterruptExecution.ts
+│   │   ├── useRuntimeHealth.ts
+│   │   ├── useToolApprovals.ts
+│   │   └── useUserRegistry.ts
+│   ├── index.css
+│   ├── lib
+│   │   ├── tag-colors.ts
+│   │   ├── trpc-client.tsx
+│   │   └── utils.ts
+│   ├── main.tsx
+│   ├── pages
+│   │   ├── AuthorizePage.tsx
+│   │   ├── NotebookPage.tsx
+│   │   ├── NotebooksDashboardPage.tsx
+│   │   └── OidcCallbackPage.tsx
+│   ├── queries
+│   │   ├── index.ts
+│   │   └── outputDeltas.ts
+│   ├── routes.tsx
+│   ├── schema.ts
+│   ├── services
+│   │   └── userTypes.ts
+│   ├── types
+│   │   ├── misc.d.ts
+│   │   └── psl.d.ts
+│   ├── util
+│   │   ├── ai-models.ts
+│   │   ├── ansi-cleaner.test.ts
+│   │   ├── ansi-cleaner.ts
+│   │   ├── avatar.ts
+│   │   ├── domUpdates.ts
+│   │   ├── iframe.ts
+│   │   ├── output-grouping.ts
+│   │   ├── prefetch.ts
+│   │   ├── runtime-command.ts
+│   │   ├── store-id.ts
+│   │   └── url-utils.ts
+│   └── vite-env.d.ts
+├── test
+│   ├── api-keys.test.ts
+│   ├── artifact-service.test.ts
+│   ├── backend-local-oidc.test.ts
+│   ├── basic.test.ts
+│   ├── components
+│   │   └── outputs
+│   │       └── AiToolResultOutput.test.tsx
+│   ├── edge-cases.test.ts
+│   ├── fixtures
+│   │   └── index.ts
+│   ├── focused-cell-signal.test.ts
+│   ├── hono-routes.test.ts
+│   ├── integration
+│   │   ├── execution-flow.test.ts
+│   │   └── reactivity-debugging.test.ts
+│   ├── local-oidc-routes.test.ts
+│   ├── output-grouping.test.ts
+│   ├── README.md
+│   ├── runtime-command.test.ts
+│   └── setup.ts
 ├── tsconfig.json
 ├── tsconfig.node.json
 ├── tsconfig.test.json
+├── vite-plugins
+│   ├── env-validation.ts
+│   └── inject-loading-screen.ts
 ├── vite.config.ts
 ├── vitest.config.ts
 └── wrangler.toml
@@ -335,33 +514,35 @@ anode/
 
 **Deployment (Cloudflare):**
 
-- All-in-one Worker: `https://app.runt.run` (unified worker serving both backend and frontend)
+- Primary all-in-one Worker: `https://app.runt.run` (unified worker serving both backend and frontend)
 - D1: Production data persistence
 - R2: Artifact storage for large outputs
-- Secrets: Auth tokens, API keys
 - Runtime: Python execution via `@runt` packages
+- Separate domain for IFrame `https://runtusercontent.com`
 
-## Notes for AI Assistants
+## Development Workflow Notes
 
-**Current Status - Production Deployment Working**
+- **User Environment**: The user will typically have:
+  - Frontend server running (`pnpm dev`) on port 5173
+  - Backend sync server running (`pnpm dev:sync`) on port 8787
+  - Iframe outputs server running (`pnpm dev:iframe`) on port 8000
+  - Runtime agent running on demand for notebooks they're working with (uses `@runt` JSR packages)
 
-- **LiveStore foundation** - Real-time collaborative editing deployed and stable
-- **Full Python execution** - Rich outputs working (matplotlib, pandas,
-  IPython.display)
-- **Complete AI integration** - Full notebook context awareness, can create and
-  modify cells
-- **Production deployment** - Cloudflare Pages + Workers with authentication
+**Checking Work**: To verify changes, run:
 
-### Key Development Insights
+```bash
+pnpm build           # Build all packages
+pnpm lint            # Check code style
+pnpm test            # Run test suite
+pnpm type-check      # TypeScript validation
+pnpm check           # Run all checks at once
+```
 
-- **Deployment Ready**: The full stack is working on Cloudflare infrastructure.
-- **Rich outputs working**: Complete IPython display compatibility with matplotlib and pandas.
-- **AI context awareness**: AI sees the full notebook state, including outputs.
+**Development Stability**: Both the vite web server and the wrangler-backed backend should reload properly for most changes. Feel free to check with the user to see if this is the case.
 
-### Immediate Technical Goals
+**For detailed development priorities, see [ROADMAP.md](./ROADMAP.md)**
 
-- **User-attributed runtimes**: Implement API token system for "Bring Your Own Compute".
-- **Automated runtime orchestration**: Develop production runtime provisioning.
+## Communication Guidelines for AI Assistants
 
 ### Communication Style
 
@@ -372,44 +553,6 @@ anode/
 - State facts without marketing language
 - Say "this is a prototype" or "this part needs work" when true
 - Always bring a towel
-
-## Development Workflow Notes
-
-- **User Environment**: The user will typically have:
-  - Integrated server running in one tab (`pnpm dev`) - includes both frontend and backend
-  - Python runtime available via `pnpm dev:runtime` (uses @runt JSR packages,
-    command customizable via VITE_RUNTIME_COMMAND)
-
-**Checking Work**: To verify changes, run:
-
-```bash
-pnpm build           # Build all packages
-pnpm lint            # Check code style
-pnpm test            # Run test suite (60/60 passing)
-pnpm type-check      # TypeScript validation
-pnpm check           # Run all checks at once
-```
-
-**If Dev Environment Not Running**: To start the development environment:
-
-```bash
-# Setup environment
-pnpm install         # Install dependencies
-cp .env.example .env # Copy environment configuration
-cp .dev.vars.example .dev.vars
-
-# Start development (single server with integrated backend)
-pnpm dev             # Web client + backend at http://localhost:5173
-
-# For Python runtime (get NOTEBOOK_ID from UI, then run):
-NOTEBOOK_ID=your-notebook-id pnpm dev:runtime
-```
-
-**Development Stability**: The integrated development server is stable with hot reload for most changes. Environment file changes are ignored to prevent crashes. If the server crashes, restart with `pnpm dev`.
-
-**For detailed development priorities, see [ROADMAP.md](./ROADMAP.md)**
-
-## Communication Guidelines for AI Assistants
 
 ### Senior Engineering Collaboration
 

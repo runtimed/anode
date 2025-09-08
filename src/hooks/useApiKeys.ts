@@ -1,5 +1,5 @@
 import { useState, useCallback } from "react";
-import { useAuth } from "../components/auth/AuthProvider.js";
+import { useAuth } from "../auth/index.js";
 
 export enum Scope {
   RuntRead = "runt:read",

@@ -1,0 +1,165 @@
+name: Deploy (Reusable)
+
+on:
+  workflow_call:
+    inputs:
+      environment:
+        description: "Target environment"
+        required: true
+        type: string
+      build_mode:
+        description: "Build mode (preview/production)"
+        required: true
+        type: string
+
+      branch:
+        description: "Branch to deploy (optional)"
+        required: false
+        type: string
+
+    secrets:
+      CLOUDFLARE_API_TOKEN:
+        required: true
+      CLOUDFLARE_ACCOUNT_ID:
+        required: true
+
+jobs:
+  deploy:
+    name: Build and Deploy
+    runs-on: ubuntu-latest
+    environment:
+      name: ${{ inputs.environment }}
+    concurrency:
+      group: ${{ inputs.environment }}-deploy-${{ github.ref }}
+      cancel-in-progress: ${{ inputs.environment == 'preview' }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.branch || github.ref }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "23"
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: latest
+
+      - name: Get pnpm store directory
+        shell: bash
+        run: |
+          echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
+
+      - name: Setup pnpm cache
+        uses: actions/cache@v4
+        with:
+          path: ${{ env.STORE_PATH }}
+          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-store-
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build base app
+        run: pnpm build --mode ${{ inputs.build_mode }}
+        env:
+          VITE_AUTH_CLIENT_ID: ${{ vars.VITE_AUTH_CLIENT_ID }}
+          VITE_AUTH_REDIRECT_URI: ${{ vars.VITE_AUTH_REDIRECT_URI }}
+          VITE_AUTH_URI: ${{ vars.VITE_AUTH_URI }}
+          VITE_IFRAME_OUTPUT_URI: ${{ vars.VITE_IFRAME_OUTPUT_URI }}
+          VITE_LIVESTORE_SYNC_URL: ${{ vars.VITE_LIVESTORE_SYNC_URL }}
+          VITE_RUNTIME_COMMAND: ${{ vars.VITE_RUNTIME_COMMAND }}
+          VITE_GIT_COMMIT_HASH: ${{ github.sha }}
+
+      - name: Build iframe outputs
+        run: pnpm run build:iframe
+
+      - name: Install iframe worker dependencies
+        working-directory: iframe-outputs/worker
+        run: pnpm install --frozen-lockfile
+
+      - name: Validate production deployment (dry-run)
+        run: pnpm wrangler deploy --env production --dry-run
+
+      - name: Validate iframe worker production deployment (dry-run)
+        working-directory: iframe-outputs/worker
+        run: pnpm run deploy:production-dry-run
+
+      - name: Apply database migrations
+        run: pnpm wrangler d1 migrations apply DB --env ${{ inputs.environment }} --remote
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+
+      - name: Deploy base app (with retry)
+        run: |
+          # Retry deployment up to 3 times with exponential backoff
+          for i in {1..3}; do
+            echo "🚀 Base app deployment attempt $i/3..."
+            if timeout 300 pnpm wrangler deploy --env ${{ inputs.environment }}; then
+              echo "✅ Base app deployment successful on attempt $i"
+              break
+            else
+              exit_code=$?
+              if [ $i -eq 3 ]; then
+                echo "❌ All base app deployment attempts failed (exit code: $exit_code)"
+                exit 1
+              fi
+              wait_time=$((i * 60))
+              echo "⚠️ Attempt $i failed (exit code: $exit_code), retrying in ${wait_time} seconds..."
+              sleep $wait_time
+            fi
+          done
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        timeout-minutes: 15
+
+      - name: Deploy iframe worker (with retry)
+        working-directory: iframe-outputs/worker
+        run: |
+          # Retry deployment up to 3 times with exponential backoff
+          for i in {1..3}; do
+            echo "🚀 Iframe worker deployment attempt $i/3..."
+            if timeout 300 pnpm run deploy:${{ inputs.environment }}; then
+              echo "✅ Iframe worker deployment successful on attempt $i"
+              break
+            else
+              exit_code=$?
+              if [ $i -eq 3 ]; then
+                echo "❌ All iframe worker deployment attempts failed (exit code: $exit_code)"
+                exit 1
+              fi
+              wait_time=$((i * 60))
+              echo "⚠️ Attempt $i failed (exit code: $exit_code), retrying in ${wait_time} seconds..."
+              sleep $wait_time
+            fi
+          done
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        timeout-minutes: 15
+
+      - name: Deployment Summary
+        run: |
+          echo "## 🚀 ${{ inputs.environment }} Deployment Complete" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "- **Environment:** ${{ inputs.environment }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Build Mode:** ${{ inputs.build_mode }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Commit:** ${{ github.sha }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Trigger:** ${{ github.event_name }}" >> $GITHUB_STEP_SUMMARY
+
+          if [[ "${{ inputs.environment }}" == "production" ]]; then
+            echo "- **Base App:** https://app.runt.run" >> $GITHUB_STEP_SUMMARY
+            echo "- **Iframe Outputs:** https://runtusercontent.com" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "- **Preview App:** https://anode-preview.rgbkrk.workers.dev" >> $GITHUB_STEP_SUMMARY
+          fi
+
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "✅ Both applications deployed successfully"

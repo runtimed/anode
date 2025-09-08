@@ -4,12 +4,15 @@ import React from "react";
 import ReactDOM from "react-dom/client";
 import { BrowserRouter } from "react-router-dom";
 
-import { App } from "./Root.js";
+import { App } from "@/routes.tsx";
+import { DebugProvider } from "@/components/debug/debug-mode.js";
 
 ReactDOM.createRoot(document.getElementById("react-app")!).render(
   <React.StrictMode>
-    <BrowserRouter>
-      <App />
-    </BrowserRouter>
+    <DebugProvider>
+      <BrowserRouter>
+        <App />
+      </BrowserRouter>
+    </DebugProvider>
   </React.StrictMode>
 );

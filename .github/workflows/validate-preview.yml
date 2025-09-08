@@ -1,0 +1,16 @@
+name: Validate Preview
+
+on:
+  pull_request:
+    branches: [main]
+
+jobs:
+  validate-preview:
+    name: Validate Preview
+    uses: ./.github/workflows/.deploy-reusable.yml
+    with:
+      environment: "preview"
+      build_mode: "preview"
+    secrets:
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}

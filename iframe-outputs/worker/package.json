@@ -12,6 +12,8 @@
     "deploy": "wrangler deploy --env production",
     "deploy:production": "wrangler deploy --env production",
     "deploy:preview": "wrangler deploy --env preview",
+    "deploy:preview-dry-run": "wrangler deploy --env preview --dry-run",
+    "deploy:production-dry-run": "wrangler deploy --env production --dry-run",
     "logs": "wrangler tail --env production",
     "logs:preview": "wrangler tail --env preview"
   },

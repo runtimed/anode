@@ -532,3 +532,27 @@
     transform: translateY(0);
   }
 }
+
+/* Tooltip styling overrides */
+@layer components {
+  /* Override shadcn tooltip to use light popover styling by default */
+  [data-slot="tooltip-content"] {
+    @apply bg-popover text-popover-foreground border shadow-md;
+    @apply overflow-hidden;
+    /* Remove the arrow by hiding it */
+  }
+
+  /* Hide the tooltip arrow to match original design */
+  [data-slot="tooltip-content"] > [data-radix-popper-arrow] {
+    @apply hidden;
+  }
+
+  /* Optional: Create a dark tooltip variant */
+  .tooltip-dark [data-slot="tooltip-content"] {
+    @apply bg-primary text-primary-foreground border-0 shadow-none;
+  }
+
+  .tooltip-dark [data-slot="tooltip-content"] > [data-radix-popper-arrow] {
+    @apply block bg-primary;
+  }
+}

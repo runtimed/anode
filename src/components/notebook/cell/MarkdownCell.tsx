@@ -15,7 +15,7 @@ import React, {
 } from "react";
 
 import { Button } from "@/components/ui/button.js";
-import { useAuth } from "@/components/auth/AuthProvider.js";
+import { useAuthenticatedUser } from "../../../auth/index.js";
 import { useUserRegistry } from "@/hooks/useUserRegistry.js";
 import { Edit3, Eye } from "lucide-react";
 import { ErrorBoundary } from "react-error-boundary";
@@ -75,9 +75,7 @@ export const MarkdownCell: React.FC<MarkdownCellProps> = ({
   });
 
   // All hooks must be called at the top level before any conditional returns
-  const {
-    user: { sub: userId },
-  } = useAuth();
+  const userId = useAuthenticatedUser();
   const { getUsersOnCell, getUserColor } = useUserRegistry();
   const [isEditing, setIsEditing] = useState(autoFocus);
 
@@ -216,7 +214,15 @@ export const MarkdownCell: React.FC<MarkdownCellProps> = ({
   const handleFocus = useCallback(() => {
     store.setSignal(focusedCellSignal$, cell.id);
     store.setSignal(hasManuallyFocused$, true);
-  }, [store, cell.id]);
+
+    // Set presence to track user focus on this cell
+    store.commit(
+      events.presenceSet({
+        userId,
+        cellId: cell.id,
+      })
+    );
+  }, [store, cell.id, userId]);
 
   // Handle editor registration for navigation
   const handleEditorReady = useCallback(

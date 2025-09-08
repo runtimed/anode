@@ -8,7 +8,7 @@ const DEVELOPMENT_DEFAULTS: EnvConfig = {
   VITE_AUTH_URI: "http://localhost:8787/local_oidc",
   VITE_AUTH_CLIENT_ID: "local-anode-client",
   VITE_AUTH_REDIRECT_URI: "http://localhost:5173/oidc",
-  VITE_LIVESTORE_SYNC_URL: "ws://localhost:8787",
+  VITE_LIVESTORE_SYNC_URL: "ws://localhost:8787/livestore",
   VITE_IFRAME_OUTPUT_URI: "http://localhost:8000",
 };
 
@@ -23,6 +23,7 @@ export function envValidationPlugin(env: Record<string, string>): Plugin {
 
       if (isDevelopment) {
         // Apply defaults for development
+
         for (const [key, defaultValue] of Object.entries(
           DEVELOPMENT_DEFAULTS
         )) {
@@ -31,9 +32,6 @@ export function envValidationPlugin(env: Record<string, string>): Plugin {
               `[env-validation] Setting default ${key}=${defaultValue}`
             );
             env[key] = defaultValue;
-            console.log(
-              `[env-validation] Setting default ${key}=${defaultValue}`
-            );
           }
         }
       } else if (isProduction) {
@@ -90,11 +88,6 @@ ${missingVars.map((v) => `  ${v}="${DEVELOPMENT_DEFAULTS[v]}"`).join("\n")}
           ),
         },
       };
-      console.log(
-        "\nInjected vite required env vars:",
-        injectedEnv.define,
-        "\n"
-      );
 
       return injectedEnv;
     },

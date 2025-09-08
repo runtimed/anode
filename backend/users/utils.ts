@@ -1,7 +1,7 @@
 import type { D1Database } from "@cloudflare/workers-types";
 
 /**
- * Public user data safe for sharing in runbook contexts
+ * Public user data safe for sharing in public contexts
  * Does NOT include email to prevent privacy leaks
  */
 export interface PublicUserData {
@@ -184,9 +184,9 @@ export async function getPrivateUserById(
 }
 
 /**
- * Convert PublicUserData to GraphQL User format
+ * Convert PublicUserData to trpc User format
  */
-export function toGraphQLPublicUser(userData: PublicUserData) {
+export function toPublicFacingUser(userData: PublicUserData) {
   return {
     id: userData.id,
     givenName: userData.givenName,

@@ -1,7 +1,12 @@
 import React from "react";
 import { Button } from "@/components/ui/button";
-import { Bot, Code, Database, FileText } from "lucide-react";
+import { Code } from "lucide-react";
 import { useAddCell } from "@/hooks/useAddCell.js";
+import {
+  MarkdownCellButton,
+  SqlCellButton,
+  AiCellButton,
+} from "./cell/CellTypeButtons";
 
 export const EmptyStateCellAdder: React.FC = () => {
   const { addCell } = useAddCell();
@@ -21,40 +26,28 @@ export const EmptyStateCellAdder: React.FC = () => {
           <Code className="h-4 w-4" />
           Code Cell
         </Button>
-        <Button
+        <MarkdownCellButton
           size="lg"
-          variant="outline"
-          color="yellow"
+          label="Markdown"
           onClick={() => addCell(undefined, "markdown")}
           className="flex items-center gap-2"
-        >
-          <FileText className="h-4 w-4" />
-          Markdown
-        </Button>
-        <Button
+        />
+        <SqlCellButton
           size="lg"
-          variant="outline"
-          color="blue"
+          label="SQL Query"
           onClick={() => addCell(undefined, "sql")}
           className="flex items-center gap-2"
-        >
-          <Database className="h-4 w-4" />
-          SQL Query
-        </Button>
-        <Button
+        />
+        <AiCellButton
           size="lg"
-          variant="outline"
-          color="purple"
+          label="AI Assistant"
           onClick={() => addCell(undefined, "ai")}
           className="flex items-center gap-2"
-        >
-          <Bot className="h-4 w-4" />
-          AI Assistant
-        </Button>
+        />
       </div>
       <div className="text-muted-foreground hidden text-xs sm:block">
-        💡 Use ↑↓ arrow keys to navigate • Shift+Enter to run and move •
-        Ctrl+Enter to run
+        💡 Real-time collaborative computing. Pick a cell type to start
+        experimenting.
       </div>
     </div>
   );

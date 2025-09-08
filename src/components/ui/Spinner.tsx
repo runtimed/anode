@@ -1,8 +1,10 @@
 import { cn } from "@/lib/utils";
 import { LoaderIcon, type LucideProps } from "lucide-react";
 
+export type SpinnerSize = "sm" | "md" | "lg";
+
 type SpinnerProps = LucideProps & {
-  size?: "sm" | "md" | "lg";
+  size?: SpinnerSize;
 };
 
 export const Spinner = ({ className, size = "sm", ...props }: SpinnerProps) => (

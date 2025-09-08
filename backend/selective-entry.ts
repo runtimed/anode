@@ -13,7 +13,11 @@ import { type AuthContext } from "./middleware.ts";
 import { RuntError, ErrorType } from "./types.ts";
 import apiRoutes from "./routes.ts";
 import localOidcRoutes from "./local-oidc-routes.ts";
-import { yoga } from "./graphql/server.ts";
+import { fetchRequestHandler } from "@trpc/server/adapters/fetch";
+import { appRouter } from "./trpc/index.ts";
+import { extractAndValidateUser } from "./auth.ts";
+import { createPermissionsProvider } from "./notebook-permissions/factory.ts";
+import { TrcpContext } from "./trpc/trpc.ts";
 
 // NOTE: This export is necessary at the root entry point for the Workers
 // runtime for Durable Object usage
@@ -147,17 +151,36 @@ export default {
       });
     }
 
-    if (pathname.startsWith("/graphql")) {
-      console.log("🚀 Routing to GraphQL Yoga");
+    if (pathname.startsWith("/api/trpc")) {
+      console.log("🚀 Routing to tRPC");
       try {
-        const response = await yoga.fetch(request as unknown as Request, env);
-        console.log("✅ GraphQL response:", response.status);
+        const response = await fetchRequestHandler({
+          endpoint: "/api/trpc",
+          req: request as unknown as Request,
+          router: appRouter,
+          createContext: async (): Promise<TrcpContext> => {
+            let auth = await extractAndValidateUser(
+              request as unknown as Request,
+              env
+            );
+
+            // Create permissions provider
+            const permissionsProvider = createPermissionsProvider(env);
+
+            return {
+              env,
+              user: auth,
+              permissionsProvider,
+            };
+          },
+        });
+        console.log("✅ tRPC response:", response.status);
         return response as unknown as WorkerResponse;
       } catch (error) {
-        console.error("❌ GraphQL error:", error);
+        console.error("❌ tRPC error:", error);
         return new workerGlobals.Response(
           JSON.stringify({
-            error: "GraphQL processing failed",
+            error: "tRPC processing failed",
             message: error instanceof Error ? error.message : String(error),
           }),
           {
@@ -169,14 +192,10 @@ export default {
     }
 
     if (
-      pathname.startsWith("/livestore") ||
-      pathname.startsWith("/websocket") ||
+      pathname.startsWith("/livestore") &&
       request.headers.get("upgrade") === "websocket"
     ) {
-      console.log(
-        "🔄 Routing to LiveStore/WebSocket (sync handler) on",
-        request.url
-      );
+      console.log("🔄 Routing to LiveStore sync handler on", request.url);
       return syncHandler.fetch(
         request as unknown as Request,
         env,
@@ -251,7 +270,6 @@ export default {
   <h2>Available Endpoints:</h2>
   <ul>
     <li><a href="/health">GET /health</a> - Health check</li>
-    <li><a href="/graphql">POST /graphql</a> - GraphQL API</li>
     <li><span class="code">WS /livestore</span> - LiveStore sync</li>
   </ul>
   ${!allowLocalAuth ? '<p><em>Local OIDC endpoints are disabled. Set ALLOW_LOCAL_AUTH="true" to enable them.</em></p>' : ""}

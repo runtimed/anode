@@ -1,0 +1,39 @@
+name: Deploy Production
+
+on:
+  workflow_dispatch:
+    inputs:
+      branch:
+        description: "Branch to deploy (default: main)"
+        required: false
+        default: "main"
+        type: string
+      confirm:
+        description: 'Type "DEPLOY" to confirm production deployment'
+        required: true
+        type: string
+
+jobs:
+  validate-input:
+    name: Validate Deployment Input
+    runs-on: ubuntu-latest
+    steps:
+      - name: Validate confirmation
+        run: |
+          if [[ "${{ github.event.inputs.confirm }}" != "DEPLOY" ]]; then
+            echo "❌ Confirmation failed. You must type 'DEPLOY' exactly to proceed."
+            exit 1
+          fi
+          echo "✅ Deployment confirmed"
+
+  deploy-production:
+    name: Deploy Production
+    needs: validate-input
+    uses: ./.github/workflows/.deploy-reusable.yml
+    with:
+      environment: "production"
+      build_mode: "production"
+      branch: ${{ github.event.inputs.branch }}
+    secrets:
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
