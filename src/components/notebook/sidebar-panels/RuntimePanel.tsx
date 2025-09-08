@@ -8,10 +8,12 @@ import { events, tables } from "@/schema";
 import { queryDb } from "@livestore/livestore";
 import { useQuery, useStore } from "@livestore/react";
 import type { SidebarPanelProps } from "./types";
+import { useAuthenticatedUser } from "@/auth";
 
 export const RuntimePanel: React.FC<SidebarPanelProps> = ({ notebook }) => {
   const { store } = useStore();
   const { hasActiveRuntime, activeRuntime } = useRuntimeHealth();
+  const userId = useAuthenticatedUser();
 
   const runtimeCommand = getRuntimeCommand(notebook.id);
 
@@ -42,8 +44,8 @@ export const RuntimePanel: React.FC<SidebarPanelProps> = ({ notebook }) => {
         events.executionCancelled({
           queueId: execution.id,
           cellId: execution.cellId,
-          cancelledBy: "system",
-          reason: "All runtimes cleared by user",
+          cancelledBy: userId,
+          reason: "Cleared via UI",
         })
       );
     });
@@ -58,7 +60,7 @@ export const RuntimePanel: React.FC<SidebarPanelProps> = ({ notebook }) => {
         })
       );
     });
-  }, [activeRuntimeSessions, store]);
+  }, [activeRuntimeSessions, store, userId]);
 
   return (
     <div className="space-y-4">
