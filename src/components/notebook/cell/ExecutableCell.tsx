@@ -36,7 +36,7 @@ import { SqlToolbar } from "./toolbars/SqlToolbar.js";
 
 import { MaybeCellOutputs } from "@/components/outputs/MaybeCellOutputs.js";
 import { useToolApprovals } from "@/hooks/useToolApprovals.js";
-import { AiToolApprovalOutput } from "../../outputs/shared-with-iframe/AiToolApprovalOutput.js";
+import { AiToolApprovalOutput } from "@anode/shared";
 import { cn } from "@/lib/utils.js";
 
 // Cell-specific styling configuration

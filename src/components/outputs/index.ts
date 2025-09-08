@@ -1,23 +1,18 @@
-// Re-export AnsiOutput from the notebook folder for convenience
+// Re-export components from the shared package for convenience
 import { AiToolCallData, AiToolResultData } from "@/schema";
 
-export { AiToolCallOutput } from "./shared-with-iframe/AiToolCallOutput.js";
-export { AiToolResultOutput } from "./shared-with-iframe/AiToolResultOutput.js";
-export { AiToolApprovalOutput } from "./shared-with-iframe/AiToolApprovalOutput.js";
-export { HtmlOutput } from "./shared-with-iframe/HtmlOutput.js";
-export { ImageOutput } from "./shared-with-iframe/ImageOutput.js";
-export { JsonOutput } from "./shared-with-iframe/JsonOutput.js";
-
-export { PlainTextOutput } from "./shared-with-iframe/PlainTextOutput.js";
-export { SingleOutput as RichOutput } from "./shared-with-iframe/SingleOutput.js";
-export { SvgOutput } from "./shared-with-iframe/SvgOutput.js";
+export { AiToolCallOutput } from "@anode/shared";
+export { AiToolResultOutput } from "@anode/shared";
+export { AiToolApprovalOutput } from "@anode/shared";
+export { HtmlOutput } from "@anode/shared";
+export { ImageOutput } from "@anode/shared";
+export { JsonOutput } from "@anode/shared";
+export { PlainTextOutput } from "@anode/shared";
+export { SingleOutput as RichOutput } from "@anode/shared";
+export { SvgOutput } from "@anode/shared";
 
 // Note: Heavy output components are now dynamically imported in RichOutput.tsx
-// to reduce bundle size. They are no longer exported from this index file.
+// from the shared package
 
-// Re-export types from schema for consistency
-export type { OutputData, AiToolCallData, AiToolResultData } from "@/schema";
-
-// Legacy type aliases for backward compatibility
-export type ToolCallData = AiToolCallData;
-export type ToolResultData = AiToolResultData;
+// Export types for convenience
+export type { AiToolCallData, AiToolResultData };

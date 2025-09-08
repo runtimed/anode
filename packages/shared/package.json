@@ -1,0 +1,48 @@
+{
+  "name": "@anode/shared",
+  "version": "0.2.0",
+  "type": "module",
+  "private": true,
+  "description": "Shared components between Anode UI and iframe outputs",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./components/*": {
+      "types": "./dist/components/*.d.ts",
+      "default": "./dist/components/*.js"
+    }
+  },
+  "scripts": {
+    "build": "tsc --build",
+    "dev": "tsc --build --watch",
+    "clean": "rm -rf dist",
+    "type-check": "tsc --noEmit"
+  },
+  "peerDependencies": {
+    "react": "19.0.0",
+    "react-dom": "19.0.0",
+    "@radix-ui/react-slot": "^1.2.3"
+  },
+  "dependencies": {
+    "@microlink/react-json-view": "^1.26.2",
+    "@runt/schema": "jsr:^0.13.0",
+    "ansi-to-react": "^6.1.6",
+    "class-variance-authority": "^0.7.1",
+    "clsx": "^2.1.1",
+    "lucide-react": "^0.514.0",
+    "react-markdown": "^10.1.0",
+    "react-syntax-highlighter": "^15.6.1",
+    "react-use": "^17.6.0",
+    "remark-gfm": "^4.0.1",
+    "strip-ansi": "^7.1.0",
+    "tailwind-merge": "^3.3.1"
+  },
+  "devDependencies": {
+    "@types/react": "^19.1.8",
+    "@types/react-dom": "^19.1.6",
+    "@types/react-syntax-highlighter": "^15.5.13",
+    "typescript": "^5.8.3"
+  }
+}

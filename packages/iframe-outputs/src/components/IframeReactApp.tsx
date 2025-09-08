@@ -1,5 +1,4 @@
-import { SingleOutput } from "@/components/outputs/shared-with-iframe/SingleOutput";
-import { useIframeCommsChild } from "@/components/outputs/shared-with-iframe/comms";
+import { SingleOutput, useIframeCommsChild } from "@anode/shared";
 import React from "react";
 
 export const IframeReactApp: React.FC = () => {

@@ -6,7 +6,7 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
-IFRAME_DIR="$PROJECT_ROOT/iframe-outputs"
+IFRAME_DIR="$PROJECT_ROOT/packages/iframe-outputs"
 
 # Colors for output
 RED='\033[0;31m'
@@ -23,8 +23,8 @@ echo "Directory: $IFRAME_DIR"
 echo ""
 
 # Check if we're in the right place
-if [ ! -f "$IFRAME_DIR/wrangler.toml" ]; then
-    echo -e "${RED}❌ Error: Cannot find iframe-outputs/wrangler.toml${NC}"
+if [ ! -f "$IFRAME_DIR/worker/wrangler.toml" ]; then
+    echo -e "${RED}❌ Error: Cannot find packages/iframe-outputs/worker/wrangler.toml${NC}"
     echo "Please run this script from the anode project root"
     exit 1
 fi
@@ -36,8 +36,8 @@ if ! command -v wrangler &> /dev/null; then
     exit 1
 fi
 
-# Change to iframe directory
-cd "$IFRAME_DIR"
+# Change to iframe worker directory
+cd "$IFRAME_DIR/worker"
 
 # Validate environment
 case "$ENV" in
@@ -84,7 +84,7 @@ if [ $? -eq 0 ]; then
     echo "   VITE_IFRAME_OUTPUT_URI should point to the deployed domain"
     echo ""
     echo "3. Monitor logs with:"
-    echo "   cd iframe-outputs && pnpm logs${ENV:+:$ENV}"
+    echo "   cd packages/iframe-outputs/worker && pnpm logs${ENV:+:$ENV}"
 else
     echo -e "${RED}❌ Deployment failed${NC}"
     exit 1

@@ -5,31 +5,35 @@
     "lib": ["ES2020", "DOM", "DOM.Iterable"],
     "module": "ESNext",
     "skipLibCheck": true,
-    "types": ["vite/client"],
     "moduleResolution": "bundler",
     "allowImportingTsExtensions": true,
     "resolveJsonModule": true,
     "isolatedModules": true,
     "noEmit": true,
     "jsx": "react-jsx",
-    "baseUrl": ".",
-    "paths": {
-      "@/*": ["./src/*"],
-      "@anode/shared": ["./packages/shared/index.ts"],
-      "@anode/shared/*": ["./packages/shared/*"]
-    },
     "strict": true,
     "noUnusedLocals": true,
     "noUnusedParameters": true,
-    "noFallthroughCasesInSwitch": true
+    "noFallthroughCasesInSwitch": true,
+    "paths": {
+      "@/*": ["./src/*"],
+      "@anode/shared": ["../shared/index.ts"],
+      "@anode/shared/*": ["../shared/*"]
+    }
   },
-  "include": ["src", "src/types", "backend"],
+  "include": [
+    "src/**/*",
+    "worker/**/*"
+  ],
+  "exclude": [
+    "node_modules",
+    "dist",
+    "worker/dist",
+    "legacy"
+  ],
   "references": [
     {
-      "path": "./tsconfig.node.json"
-    },
-    {
-      "path": "./packages/shared"
+      "path": "../shared"
     }
   ]
 }

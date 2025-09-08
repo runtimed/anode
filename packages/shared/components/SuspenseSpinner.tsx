@@ -1,5 +1,5 @@
 import { Suspense } from "react";
-import { Spinner, type SpinnerSize } from "../../ui/Spinner";
+import { Spinner, type SpinnerSize } from "../ui/Spinner";
 
 import React from "react";
 import { useTimeout } from "react-use";

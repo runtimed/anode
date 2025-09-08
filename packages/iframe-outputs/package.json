@@ -1,0 +1,53 @@
+{
+  "name": "@anode/iframe-outputs",
+  "version": "0.2.0",
+  "type": "module",
+  "private": true,
+  "description": "Isolated iframe content server for Anode user-generated outputs",
+  "engines": {
+    "node": ">=23.0.0",
+    "pnpm": ">=10.9.0"
+  },
+  "scripts": {
+    "dev": "vite --port 8000",
+    "build": "vite build",
+    "preview": "vite preview",
+    "deploy": "cd worker && wrangler deploy --env production",
+    "deploy:production": "cd worker && wrangler deploy --env production",
+    "deploy:preview": "cd worker && wrangler deploy --env preview",
+    "deploy:preview-dry-run": "cd worker && wrangler deploy --env preview --dry-run",
+    "deploy:production-dry-run": "cd worker && wrangler deploy --env production --dry-run",
+    "logs": "cd worker && wrangler tail --env production",
+    "logs:preview": "cd worker && wrangler tail --env preview",
+    "type-check": "tsc --noEmit",
+    "test": "echo 'No tests yet'",
+    "clean": "rm -rf dist worker/dist node_modules/.vite"
+  },
+  "dependencies": {
+    "@anode/shared": "workspace:*",
+    "modern-normalize": "^3.0.1",
+    "react": "19.0.0",
+    "react-dom": "19.0.0",
+    "tw-animate-css": "^1.3.4"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^4.20250813.0",
+    "@tailwindcss/typography": "^0.5.16",
+    "@tailwindcss/vite": "^4.1.10",
+    "@types/react": "^19.1.8",
+    "@types/react-dom": "^19.1.6",
+    "@vitejs/plugin-react": "^4.5.2",
+    "tailwindcss": "^4.1.10",
+    "typescript": "^5.8.3",
+    "vite": "^6.3.5",
+    "wrangler": "4.27.0"
+  },
+  "keywords": [
+    "iframe",
+    "sandbox",
+    "user-content",
+    "cloudflare-worker"
+  ],
+  "author": "Runt Team",
+  "license": "MIT"
+}

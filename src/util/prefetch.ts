@@ -73,34 +73,11 @@ export function prefetchOutputChunks(): void {
     // Preload react-spring first as it's used on initial page load
     import("@react-spring/web").catch(() => {});
 
-    // These imports will trigger chunk loading but won't execute the modules
-    // until they're actually needed via React.lazy()
-    import(
-      "../components/outputs/shared-with-iframe/MarkdownRenderer.js"
-    ).catch(() => {
+    // This import will trigger chunk loading for all shared components
+    // but won't execute the modules until they're actually needed via React.lazy()
+    import("@anode/shared").catch(() => {
       // Silently ignore prefetch failures
     });
-    import("../components/outputs/shared-with-iframe/JsonOutput.js").catch(
-      () => {}
-    );
-    import("../components/outputs/shared-with-iframe/PlainTextOutput.js").catch(
-      () => {}
-    );
-    import("../components/outputs/shared-with-iframe/HtmlOutput.js").catch(
-      () => {}
-    );
-    import("../components/outputs/shared-with-iframe/ImageOutput.js").catch(
-      () => {}
-    );
-    import("../components/outputs/shared-with-iframe/SvgOutput.js").catch(
-      () => {}
-    );
-    import(
-      "../components/outputs/shared-with-iframe/AiToolCallOutput.js"
-    ).catch(() => {});
-    import(
-      "../components/outputs/shared-with-iframe/AiToolResultOutput.js"
-    ).catch(() => {});
   });
 }
 
@@ -136,13 +113,8 @@ export function prefetchOutputsAggressive(): void {
 export function prefetchOutputsConservative(): void {
   prefetchWhenIdle(
     () => {
-      // Only prefetch the most commonly used components
-      import(
-        "../components/outputs/shared-with-iframe/PlainTextOutput.js"
-      ).catch(() => {});
-      import(
-        "../components/outputs/shared-with-iframe/MarkdownRenderer.js"
-      ).catch(() => {});
+      // Prefetch shared components package
+      import("@anode/shared").catch(() => {});
       // Preload react-spring as it's used in the loading screen
       import("@react-spring/web").catch(() => {});
     },
