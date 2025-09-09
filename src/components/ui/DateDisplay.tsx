@@ -1,5 +1,5 @@
 import React from "react";
-import { formatDistanceToNow } from "date-fns";
+import { formatDistanceToNow, parseISO } from "date-fns";
 import { Tooltip, TooltipContent, TooltipTrigger } from "./tooltip";
 import { cn } from "@/lib/utils";
 
@@ -16,9 +16,8 @@ export const DateDisplay: React.FC<DateDisplayProps> = ({
   showTooltip = true,
   className = "",
 }) => {
-  // Assume UTC if no timezone is specified
-  // By default our D1 sqlite DB creates events in UTC
-  const dateObj = typeof date === "string" ? new Date(date + " Z") : date;
+  // API returns proper ISO strings with timezone info
+  const dateObj = typeof date === "string" ? parseISO(date) : date;
 
   const getDisplayText = () => {
     switch (format) {
