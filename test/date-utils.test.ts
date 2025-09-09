@@ -1,59 +1,11 @@
 import { describe, it, expect, beforeAll } from "vitest";
-import {
-  toDbIsoString,
-  normalizeToDbIsoString,
-  parseDbDate,
-  nowDbIsoString,
-  toApiIsoString,
-  isValidIsoDate,
-} from "../backend/utils/date";
+import { parseDbDate, nowIsoString } from "../backend/utils/date";
 
 beforeAll(() => {
   console.log("🧪 Starting Anode date utilities test suite...");
 });
 
 describe("Backend Date Utilities", () => {
-  describe("toDbIsoString", () => {
-    it("should convert Date to ISO string", () => {
-      const date = new Date("2025-01-15T10:30:00.000Z");
-      const result = toDbIsoString(date);
-      expect(result).toBe("2025-01-15T10:30:00.000Z");
-    });
-
-    it("should always return UTC format", () => {
-      const date = new Date("2025-01-15T10:30:00.000Z");
-      const result = toDbIsoString(date);
-      expect(result).toMatch(/Z$/);
-    });
-  });
-
-  describe("normalizeToDbIsoString", () => {
-    it("should handle Date objects", () => {
-      const date = new Date("2025-01-15T10:30:00.000Z");
-      const result = normalizeToDbIsoString(date);
-      expect(result).toBe("2025-01-15T10:30:00.000Z");
-    });
-
-    it("should handle ISO date strings", () => {
-      const dateString = "2025-01-15T10:30:00.000Z";
-      const result = normalizeToDbIsoString(dateString);
-      expect(result).toBe("2025-01-15T10:30:00.000Z");
-    });
-
-    it("should handle timestamp numbers", () => {
-      const timestamp = 1737023400000; // 2025-01-16T10:30:00.000Z
-      const result = normalizeToDbIsoString(timestamp);
-      expect(result).toBe("2025-01-16T10:30:00.000Z");
-    });
-
-    it("should handle non-UTC date strings by converting to UTC", () => {
-      const dateString = "2025-01-15T10:30:00.000+05:00";
-      const result = normalizeToDbIsoString(dateString);
-      // Should convert to UTC (subtract 5 hours)
-      expect(result).toBe("2025-01-15T05:30:00.000Z");
-    });
-  });
-
   describe("parseDbDate", () => {
     it("should parse ISO date strings with Z timezone", () => {
       const dateString = "2025-01-15T10:30:00.000Z";
@@ -88,10 +40,10 @@ describe("Backend Date Utilities", () => {
     });
   });
 
-  describe("nowDbIsoString", () => {
+  describe("nowIsoString", () => {
     it("should return current time as ISO string", () => {
       const before = Date.now();
-      const result = nowDbIsoString();
+      const result = nowIsoString();
       const after = Date.now();
 
       const parsed = new Date(result);
@@ -100,66 +52,14 @@ describe("Backend Date Utilities", () => {
     });
 
     it("should return UTC format", () => {
-      const result = nowDbIsoString();
+      const result = nowIsoString();
       expect(result).toMatch(/Z$/);
     });
 
     it("should be valid ISO format", () => {
-      const result = nowDbIsoString();
-      expect(isValidIsoDate(result)).toBe(true);
-    });
-  });
-
-  describe("toApiIsoString", () => {
-    it("should handle Date objects", () => {
-      const date = new Date("2025-01-15T10:30:00.000Z");
-      const result = toApiIsoString(date);
-      expect(result).toBe("2025-01-15T10:30:00.000Z");
-    });
-
-    it("should handle date strings from database (no timezone)", () => {
-      const dateString = "2025-01-15T10:30:00.000";
-      const result = toApiIsoString(dateString);
-      expect(result).toBe("2025-01-15T10:30:00.000Z");
-    });
-
-    it("should handle date strings with timezone info", () => {
-      const dateString = "2025-01-15T10:30:00.000Z";
-      const result = toApiIsoString(dateString);
-      expect(result).toBe("2025-01-15T10:30:00.000Z");
-    });
-
-    it("should consistently format dates for API responses", () => {
-      const date = new Date("2025-01-15T10:30:00.000Z");
-      const dateStringWithZ = "2025-01-15T10:30:00.000Z";
-      const dateStringWithoutZ = "2025-01-15T10:30:00.000";
-
-      const resultFromDate = toApiIsoString(date);
-      const resultFromStringWithZ = toApiIsoString(dateStringWithZ);
-      const resultFromStringWithoutZ = toApiIsoString(dateStringWithoutZ);
-
-      expect(resultFromDate).toBe(resultFromStringWithZ);
-      expect(resultFromDate).toBe(resultFromStringWithoutZ);
-    });
-  });
-
-  describe("isValidIsoDate", () => {
-    it("should validate correct ISO date strings", () => {
-      expect(isValidIsoDate("2025-01-15T10:30:00.000Z")).toBe(true);
-      expect(isValidIsoDate("2025-12-31T23:59:59.999Z")).toBe(true);
-    });
-
-    it("should reject invalid date strings", () => {
-      expect(isValidIsoDate("invalid-date")).toBe(false);
-      expect(isValidIsoDate("2025-13-01T10:30:00.000Z")).toBe(false);
-      expect(isValidIsoDate("2025-01-32T10:30:00.000Z")).toBe(false);
-      expect(isValidIsoDate("")).toBe(false);
-    });
-
-    it("should be strict about ISO format", () => {
-      // These are valid dates but not strict ISO format
-      expect(isValidIsoDate("2025-01-15")).toBe(false);
-      expect(isValidIsoDate("Jan 15, 2025")).toBe(false);
+      const result = nowIsoString();
+      const parsed = new Date(result);
+      expect(!isNaN(parsed.getTime())).toBe(true);
     });
   });
 
@@ -172,23 +72,23 @@ describe("Backend Date Utilities", () => {
       const parsed = parseDbDate(dbDate);
 
       // Format for API response
-      const apiFormatted = toApiIsoString(parsed);
+      const apiFormatted = parsed.toISOString();
 
       expect(apiFormatted).toBe("2025-01-15T10:30:00.000Z");
-      expect(isValidIsoDate(apiFormatted)).toBe(true);
+      expect(!isNaN(parsed.getTime())).toBe(true);
     });
 
     it("should handle round-trip consistency", () => {
       const originalDate = new Date("2025-01-15T10:30:00.000Z");
 
-      // Store in database format
-      const dbFormat = toDbIsoString(originalDate);
+      // Store in database format (just ISO string)
+      const dbFormat = originalDate.toISOString();
 
       // Parse back from database
       const parsed = parseDbDate(dbFormat);
 
       // Format for API
-      const apiFormat = toApiIsoString(parsed);
+      const apiFormat = parsed.toISOString();
 
       expect(apiFormat).toBe(originalDate.toISOString());
     });
