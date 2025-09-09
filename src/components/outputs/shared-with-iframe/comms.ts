@@ -61,14 +61,15 @@ export function addParentMessageListener(
   cb: (event: MessageEvent<FromIframeEvent>) => void
 ) {
   window.addEventListener("message", (event) => {
+    // Don't print errors because Chrome extensions can send `postMessage` events.
+    // We don't want to error in these cases.
     if (event.source !== window.parent) {
-      console.error("Invalid event source", event);
       return;
     }
     if (!isValidFromIframeEventType(event.data.type)) {
-      console.error("Invalid event type", event.data);
       return;
     }
+
     cb(event);
   });
 }
@@ -83,12 +84,12 @@ export function addIframeMessageListener(
   cb: (event: MessageEvent<ToIframeEvent>) => void
 ) {
   window.addEventListener("message", (event) => {
+    // Don't print errors because Chrome extensions can send `postMessage` events.
+    // We don't want to error in these cases.
     if (event.source !== window.parent) {
-      console.error("Invalid event source", event);
       return;
     }
     if (!isValidToIframeEventType(event.data.type)) {
-      console.error("Invalid event type", event.data);
       return;
     }
     cb(event);
