@@ -82,17 +82,15 @@ export default defineConfig(({ mode }) => {
     // );
   }
 
-  const port = env.ANODE_DEV_SERVER_PORT
-    ? parseInt(env.ANODE_DEV_SERVER_PORT)
-    : 5173;
-
   return {
     mode,
     build: {
       sourcemap: true,
     },
     server: {
-      port,
+      port: env.ANODE_DEV_SERVER_PORT
+        ? parseInt(env.ANODE_DEV_SERVER_PORT)
+        : 5173,
       strictPort: true,
       proxy: {
         "/api": {
@@ -129,7 +127,6 @@ export default defineConfig(({ mode }) => {
     plugins,
     define: {
       "import.meta.env.VITE_GIT_COMMIT_HASH": JSON.stringify(gitCommitHash),
-      "import.meta.env.VITE_URI": JSON.stringify(`http://localhost:${port}`),
     },
   };
 });

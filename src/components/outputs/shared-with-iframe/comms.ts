@@ -61,10 +61,12 @@ export function addParentMessageListener(
   cb: (event: MessageEvent<FromIframeEvent>) => void
 ) {
   window.addEventListener("message", (event) => {
-    if (event.origin !== import.meta.env.VITE_IFRAME_OUTPUT_URI) {
+    if (event.source !== window.parent) {
+      console.error("Invalid event source", event);
       return;
     }
     if (!isValidFromIframeEventType(event.data.type)) {
+      console.error("Invalid event type", event.data);
       return;
     }
     cb(event);
@@ -86,6 +88,7 @@ export function addIframeMessageListener(
       return;
     }
     if (!isValidToIframeEventType(event.data.type)) {
+      console.error("Invalid event type", event.data);
       return;
     }
     cb(event);

@@ -2,8 +2,6 @@
 /// <reference types="vite-plugin-svgr/client" />
 
 interface ImportMetaEnv {
-  VITE_URI: string;
-  VITE_IFRAME_OUTPUT_URI: string;
   VITE_AUTH_URI: string;
   VITE_AUTH_CLIENT_ID?: string;
   VITE_AUTH_REDIRECT_URI: string;
