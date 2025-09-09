@@ -9,6 +9,7 @@ import {
   getUserById,
 } from "backend/users/utils";
 import { nanoid } from "nanoid";
+import { parseDbDate, nowDbIsoString, toApiIsoString } from "../utils/date";
 
 export async function getNotebooks(
   ctx: {
@@ -104,7 +105,7 @@ export async function getNotebooks(
   // Sort all results by updated_at DESC and apply pagination
   allResults.sort(
     (a, b) =>
-      new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime()
+      parseDbDate(b.updated_at).getTime() - parseDbDate(a.updated_at).getTime()
   );
 
   const finalResults = allResults.slice(offset, offset + limit);
@@ -113,6 +114,8 @@ export async function getNotebooks(
   const notebooksWithCollaboratorsAndTags = await Promise.all(
     finalResults.map(async (notebook) => ({
       ...notebook,
+      created_at: toApiIsoString(notebook.created_at),
+      updated_at: toApiIsoString(notebook.updated_at),
       collaborators: await getNotebookCollaborators(DB, notebook.id),
       tags: await getNotebookTags(DB, notebook.id, user.id),
     }))
@@ -164,7 +167,13 @@ export async function getNotebookById(
     .bind(notebookId)
     .first<NotebookRow>();
 
-  return notebook || null;
+  if (!notebook) return null;
+
+  return {
+    ...notebook,
+    created_at: toApiIsoString(notebook.created_at),
+    updated_at: toApiIsoString(notebook.updated_at),
+  };
 }
 
 // Create a new notebook
@@ -279,7 +288,7 @@ export async function createTag(
 ): Promise<TagRow | null> {
   const { name, color, user_id } = params;
   const id = nanoid();
-  const now = new Date().toISOString();
+  const now = nowDbIsoString();
 
   try {
     const result = await db
@@ -298,8 +307,8 @@ export async function createTag(
         name,
         color: color as TagColor,
         user_id,
-        created_at: now,
-        updated_at: now,
+        created_at: toApiIsoString(now),
+        updated_at: toApiIsoString(now),
       };
     }
     return null;
@@ -325,7 +334,7 @@ export async function updateTag(
   }
 ): Promise<boolean> {
   const { name, color } = params;
-  const now = new Date().toISOString();
+  const now = nowDbIsoString();
 
   const updateFields: string[] = [];
   const bindings: unknown[] = [];
@@ -392,7 +401,13 @@ export async function getTagById(
     .bind(tagId)
     .first<TagRow>();
 
-  return tag || null;
+  if (!tag) return null;
+
+  return {
+    ...tag,
+    created_at: toApiIsoString(tag.created_at),
+    updated_at: toApiIsoString(tag.updated_at),
+  };
 }
 
 // Check if user owns a tag
@@ -420,7 +435,13 @@ export async function getTagByName(
     .bind(name, user_id)
     .first<TagRow>();
 
-  return tag || null;
+  if (!tag) return null;
+
+  return {
+    ...tag,
+    created_at: toApiIsoString(tag.created_at),
+    updated_at: toApiIsoString(tag.updated_at),
+  };
 }
 
 // Get all tags for a user
@@ -433,7 +454,11 @@ export async function getUserTags(
     .bind(user_id)
     .all<TagRow>();
 
-  return result.results;
+  return result.results.map((tag) => ({
+    ...tag,
+    created_at: toApiIsoString(tag.created_at),
+    updated_at: toApiIsoString(tag.updated_at),
+  }));
 }
 
 // Assign tag to notebook
@@ -442,7 +467,7 @@ export async function assignTagToNotebook(
   notebookId: string,
   tagId: string
 ): Promise<boolean> {
-  const now = new Date().toISOString();
+  const now = nowDbIsoString();
 
   try {
     const result = await db
@@ -503,7 +528,9 @@ export async function getNotebookTags(
 
   const result = await db.prepare(query).bind(notebookId, userId).all<TagRow>();
 
-  console.log("🚨", { result });
-
-  return result.results;
+  return result.results.map((tag) => ({
+    ...tag,
+    created_at: toApiIsoString(tag.created_at),
+    updated_at: toApiIsoString(tag.updated_at),
+  }));
 }

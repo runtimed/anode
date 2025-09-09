@@ -1,5 +1,5 @@
 import React from "react";
-import { formatDistanceToNow } from "date-fns";
+import { formatDistanceToNow, parseISO } from "date-fns";
 import { Tooltip, TooltipContent, TooltipTrigger } from "./tooltip";
 import { cn } from "@/lib/utils";
 
@@ -18,7 +18,7 @@ export const DateDisplay: React.FC<DateDisplayProps> = ({
 }) => {
   // Assume UTC if no timezone is specified
   // By default our D1 sqlite DB creates events in UTC
-  const dateObj = typeof date === "string" ? new Date(date + " Z") : date;
+  const dateObj = typeof date === "string" ? parseStringToDate(date) : date;
 
   const getDisplayText = () => {
     switch (format) {
@@ -89,4 +89,35 @@ function formatFullDate(date: Date) {
     minute: "2-digit",
     timeZoneName: "short",
   });
+}
+
+function parseStringToDate(dateString: string): Date {
+  // Try parseISO first for ISO strings
+  try {
+    const isoDate = parseISO(dateString);
+    if (!isNaN(isoDate.getTime())) {
+      return isoDate;
+    }
+  } catch {
+    // Continue to fallback
+  }
+
+  // If no timezone info present, assume UTC (D1 sqlite default)
+  if (
+    !dateString.includes("Z") &&
+    !dateString.includes("+") &&
+    !dateString.includes("-", 10)
+  ) {
+    try {
+      const utcDate = new Date(dateString + "Z");
+      if (!isNaN(utcDate.getTime())) {
+        return utcDate;
+      }
+    } catch {
+      // Continue to final fallback
+    }
+  }
+
+  // Final fallback - parse as-is
+  return new Date(dateString);
 }
