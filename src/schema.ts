@@ -1,7 +1,7 @@
 import { makeSchema, State, Store as LiveStore } from "@livestore/livestore";
-import * as RuntSchema from "@runt/schema";
+import * as RuntSchema from "@/runt-schema";
 
-export * as queries from "@runt/schema/queries";
+export * as queries from "@/runt-schema/queries";
 
 // Create the schema using the factory pattern
 const state = State.SQLite.makeState({
@@ -27,7 +27,7 @@ export type {
   AiToolResultData,
   CellOperationResult,
   MoveOperationResult,
-} from "@runt/schema";
+} from "@/runt-schema";
 
 // TODO: put these into @runt/schema
 /**

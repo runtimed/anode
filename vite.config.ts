@@ -112,14 +112,7 @@ export default defineConfig(({ mode }) => {
     },
     optimizeDeps: {
       exclude: ["@livestore/wa-sqlite"],
-      include: [
-        "react",
-        "react-dom",
-        "effect",
-        "@livestore/livestore",
-        "@livestore/react",
-        "@react-spring/web",
-      ],
+      include: ["react", "react-dom", "effect", "@react-spring/web"],
       esbuildOptions: {
         target: "esnext",
       },
