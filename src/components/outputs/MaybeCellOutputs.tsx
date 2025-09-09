@@ -1,21 +1,29 @@
-import { OutputData } from "@/schema";
+import { cn } from "@/lib/utils";
+import { outputsDeltasQuery, processDeltas } from "@/queries/outputDeltas";
+import { OutputData, SAFE_MIME_TYPES } from "@/schema";
 import { groupConsecutiveStreamOutputs } from "@/util/output-grouping";
 import { useQuery } from "@livestore/react";
 import { useMemo, useState } from "react";
-import { SingleOutput } from "./shared-with-iframe/SingleOutput";
 import { useIframeCommsParent } from "./shared-with-iframe/comms";
-import { outputsDeltasQuery, processDeltas } from "@/queries/outputDeltas";
-import { cn } from "@/lib/utils";
+import { SingleOutput } from "./shared-with-iframe/SingleOutput";
 import { useDebounce } from "react-use";
+import { OutputsContainer } from "./shared-with-iframe/OutputsContainer";
+import { SuspenseSpinner } from "./shared-with-iframe/SuspenseSpinner";
 
+/**
+ * TODO: consider renaming this component
+ * By default, we want to be ready to render the outputs
+ */
 export const MaybeCellOutputs = ({
   outputs,
-  shouldUseIframe,
+  shouldAlwaysUseIframe = false,
   isLoading,
+  showOutput,
 }: {
   outputs: readonly OutputData[];
-  shouldUseIframe: boolean;
+  shouldAlwaysUseIframe?: boolean;
   isLoading: boolean;
+  showOutput: boolean;
 }) => {
   const outputDeltas = useQuery(
     outputsDeltasQuery(outputs.map((output) => output.id))
@@ -27,26 +35,42 @@ export const MaybeCellOutputs = ({
     return processDeltas(grouped, outputDeltas);
   }, [outputs, outputDeltas]);
 
-  if (!outputs.length) return null;
+  const isUnsafe = hasUnsafeOutputs(processedOutputs ?? []);
+
+  // Always assume we'll be rendering in an iframe if there are no outputs
+  const shouldUseIframe = shouldAlwaysUseIframe || isUnsafe || !outputs.length;
 
   return (
     <div
       className={cn(
-        "outputs-container px-4 py-2 transition-opacity duration-300",
-        isLoading ? "opacity-50" : "opacity-100"
+        "cell-content bg-background max-w-full min-w-0 overflow-x-auto px-2 sm:px-4",
+        showOutput ? "block" : "hidden"
       )}
     >
-      {shouldUseIframe ? (
-        <IframeOutput
-          outputs={processedOutputs}
-          isReact
-          className="transition-[height] duration-300"
-        />
-      ) : (
-        processedOutputs.map((output: OutputData) => (
-          <SingleOutput key={output.id} output={output} />
-        ))
-      )}
+      {/* When loading and has stale outputs, we fade it out */}
+      <div
+        className={cn(
+          outputs.length ? "transition-opacity duration-300" : "",
+          isLoading && outputs.length ? "opacity-50" : "opacity-100"
+        )}
+      >
+        {/* TODO: consider rendering an empty iframewhen we have a safe output currently rendered but cell input has changed */}
+        {shouldUseIframe ? (
+          <IframeOutput
+            outputs={processedOutputs}
+            className="transition-[height] duration-150 ease-out"
+            isReact
+          />
+        ) : (
+          <SuspenseSpinner>
+            <OutputsContainer>
+              {processedOutputs.map((output: OutputData) => (
+                <SingleOutput key={output.id} output={output} />
+              ))}
+            </OutputsContainer>
+          </SuspenseSpinner>
+        )}
+      </div>
     </div>
   );
 };
@@ -79,9 +103,7 @@ export const IframeOutput: React.FC<IframeOutputProps> = ({
 
   // Iframe can get height updates pretty often, but we want to avoid layout jumping each time
   // TODO: ensure that it's a leading debounce!
-  useDebounce(() => setDebouncedIframeHeight(iframeHeight), 200, [
-    iframeHeight,
-  ]);
+  useDebounce(() => setDebouncedIframeHeight(iframeHeight), 50, [iframeHeight]);
 
   return (
     <iframe
@@ -97,4 +119,10 @@ export const IframeOutput: React.FC<IframeOutputProps> = ({
       sandbox="allow-downloads allow-forms allow-pointer-lock allow-popups allow-popups-to-escape-sandbox allow-same-origin allow-scripts allow-storage-access-by-user-activation allow-modals"
     />
   );
+};
+
+const hasUnsafeOutputs = (outputs: OutputData[]) => {
+  return outputs.some((output) => {
+    return !SAFE_MIME_TYPES.includes(output.mimeType as any);
+  });
 };

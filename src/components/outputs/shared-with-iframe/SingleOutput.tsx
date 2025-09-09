@@ -18,7 +18,6 @@ import {
 } from "@/schema";
 import PlainTextOutput from "./PlainTextOutput";
 import { RichOutputContent } from "./RichOutputContent";
-import { SuspenseSpinner } from "./SuspenseSpinner";
 
 // Dynamic imports for heavy components
 const MarkdownRenderer = React.lazy(() =>
@@ -140,12 +139,7 @@ export const SingleOutput: React.FC<{
     // Handle markdown outputs specially with delta support
     case "markdown": {
       return (
-        <SuspenseSpinner>
-          <MarkdownRenderer
-            content={String(data || "")}
-            enableCopyCode={true}
-          />
-        </SuspenseSpinner>
+        <MarkdownRenderer content={String(data || "")} enableCopyCode={true} />
       );
     }
     // Handle error outputs specially

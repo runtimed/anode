@@ -29,6 +29,23 @@ export type {
   MoveOperationResult,
 } from "@runt/schema";
 
+// TODO: put these into @runt/schema
+/**
+ * Safe MIME types are ones that are safe to render directly in the parent page.
+ * And content that has the capability of running scipts is insafe. Some examples:
+ * - text/html
+ * - text/markdown
+ * - svg
+ *
+ * We're using a whitelist because it's safer.
+ */
+export const SAFE_MIME_TYPES = [
+  "text/plain",
+  "image/png",
+  "image/jpeg",
+  "image/gif",
+] as const;
+
 export const {
   // Re-export everything we need from @runt/schema
   events,
