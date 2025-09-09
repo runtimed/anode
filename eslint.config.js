@@ -19,19 +19,6 @@ export default [
       // Reduce noise from globals - TypeScript handles these
       "no-undef": "off",
       "no-unused-vars": "off",
-      // https://typescript-eslint.io/rules/no-unused-vars/#what-benefits-does-this-rule-have-over-typescript
-      "@typescript-eslint/no-unused-vars": [
-        "error",
-        {
-          args: "all",
-          argsIgnorePattern: "^_",
-          caughtErrors: "all",
-          caughtErrorsIgnorePattern: "^_",
-          destructuredArrayIgnorePattern: "^_",
-          varsIgnorePattern: "^_",
-          ignoreRestSiblings: true,
-        },
-      ],
     },
     languageOptions: {
       parser: tsparser,
@@ -274,7 +261,7 @@ export default [
     rules: {
       // Disable noisy rules for config files
       "@typescript-eslint/no-explicit-any": "off",
-      // "@typescript-eslint/no-unused-vars": "off",
+      "@typescript-eslint/no-unused-vars": "off",
       "no-unused-vars": "off",
       "@typescript-eslint/no-unsafe-assignment": "off",
       "@typescript-eslint/no-unsafe-member-access": "off",
@@ -325,7 +312,10 @@ export default [
       "no-undef": "off", // TypeScript handles this
       "no-unused-vars": "off", // TypeScript handles this
       "@typescript-eslint/no-explicit-any": "off", // Allow any in backend code
-      "@typescript-eslint/no-unused-vars": "off",
+      "@typescript-eslint/no-unused-vars": [
+        "error",
+        { argsIgnorePattern: "^_" },
+      ],
     },
   },
   {
