@@ -1,43 +1,27 @@
-// 🚨 IMPORTANT: code here is shared between the iframe and the parent page.
+// NOTE: code here is shared between the iframe and the parent page.
 // It's done to colocate types to ensure typesafety across the two bundles.
 
 import { OutputData } from "@/schema";
 import { useEffect, useRef, useState } from "react";
 
-// ---
-// NOTE: source of truth here. Updates here propogate down
-
-const allowedToIframeEvents = ["update-outputs"] as const;
-const allowedFromIframeEvents = ["iframe-height", "iframe-loaded"] as const;
-
-// ---
-
-type ToIframeEventName = (typeof allowedToIframeEvents)[number];
-type FromIframeEventName = (typeof allowedFromIframeEvents)[number];
-
-// Type guard helpers to ensure event types are valid
-function isValidToIframeEventType(type: string): type is ToIframeEventName {
-  return allowedToIframeEvents.includes(type as ToIframeEventName);
-}
-
-function isValidFromIframeEventType(type: string): type is FromIframeEventName {
-  return allowedFromIframeEvents.includes(type as FromIframeEventName);
-}
-
-export type ToIframeEvent = {
+type UpdateOutputsEvent = {
   type: "update-outputs";
   outputs: OutputData[];
 };
 
-export type FromIframeEvent =
-  | { type: "iframe-loaded" }
-  | { type: "iframe-height"; height: number };
+type IframeLoadedEvent = {
+  type: "iframe-loaded";
+};
+
+type IframeHeightEvent = {
+  type: "iframe-height";
+  height: number;
+};
+
+export type ToIframeEvent = UpdateOutputsEvent;
+export type FromIframeEvent = IframeHeightEvent | IframeLoadedEvent;
 
 export function sendFromIframe(event: FromIframeEvent) {
-  if (!isValidFromIframeEventType(event.type)) {
-    console.error("Invalid event type", event);
-    return;
-  }
   window.parent.postMessage(event, "*");
 }
 
@@ -46,12 +30,7 @@ export function sendToIframe(
   data: ToIframeEvent
 ) {
   if (iframeElement.contentWindow) {
-    if (!isValidToIframeEventType(data.type)) {
-      console.error("Invalid event type", data);
-      return;
-    }
-    const targetOrigin = new URL(import.meta.env.VITE_IFRAME_OUTPUT_URI).origin;
-    iframeElement.contentWindow.postMessage(data, targetOrigin);
+    iframeElement.contentWindow.postMessage(data, "*");
   } else {
     console.error("Iframe element is not loaded");
   }
@@ -60,43 +39,11 @@ export function sendToIframe(
 export function addParentMessageListener(
   cb: (event: MessageEvent<FromIframeEvent>) => void
 ) {
-  window.addEventListener("message", (event) => {
-    if (event.source !== window.parent) {
-      console.error("Invalid event source", event);
-      return;
-    }
-    if (!isValidFromIframeEventType(event.data.type)) {
-      console.error("Invalid event type", event.data);
-      return;
-    }
-    cb(event);
-  });
+  window.addEventListener("message", cb);
 }
 
 export function removeParentMessageListener(
   cb: (event: MessageEvent<FromIframeEvent>) => void
-) {
-  window.removeEventListener("message", cb);
-}
-
-export function addIframeMessageListener(
-  cb: (event: MessageEvent<ToIframeEvent>) => void
-) {
-  window.addEventListener("message", (event) => {
-    if (event.source !== window.parent) {
-      console.error("Invalid event source", event);
-      return;
-    }
-    if (!isValidToIframeEventType(event.data.type)) {
-      console.error("Invalid event type", event.data);
-      return;
-    }
-    cb(event);
-  });
-}
-
-export function removeIframeMessageListener(
-  cb: (event: MessageEvent<ToIframeEvent>) => void
 ) {
   window.removeEventListener("message", cb);
 }
@@ -187,13 +134,13 @@ export function useIframeCommsChild() {
     sendHeight();
 
     // Handle incoming content updates
-
-    const listener = (event: MessageEvent<ToIframeEvent>) => {
+    window.addEventListener("message", (event: MessageEvent<ToIframeEvent>) => {
       const data = event.data;
-      setOutputs(data.outputs || []);
-    };
-
-    addIframeMessageListener(listener);
+      if (data && data.type === "update-outputs") {
+        setOutputs(data.outputs || []);
+        setTimeout(sendHeight, 50);
+      }
+    });
 
     // After the MutationObserver setup
     const resizeObserver = new ResizeObserver(sendHeight);
@@ -215,7 +162,6 @@ export function useIframeCommsChild() {
     }
 
     return () => {
-      removeIframeMessageListener(listener);
       resizeObserver.disconnect();
       document.removeEventListener("load", sendHeight, true);
     };
