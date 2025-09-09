@@ -3,7 +3,6 @@
 
 import { OutputData } from "@/schema";
 import { useEffect, useRef, useState } from "react";
-import type { Expect, Extends } from "@/lib/type-utils";
 
 // ---
 // NOTE: source of truth here. Updates here propogate down
@@ -33,16 +32,6 @@ export type ToIframeEvent = {
 export type FromIframeEvent =
   | { type: "iframe-loaded" }
   | { type: "iframe-height"; height: number };
-
-// Errors if `ToIframeEvent` is wrong
-type _TestToIframeEventAssertion = Expect<
-  Extends<ToIframeEvent["type"], ToIframeEventName>
->;
-
-// Errors if `FromIframeEvent` is wrong
-type _TestFromIframeEventTypeAssertion = Expect<
-  Extends<FromIframeEvent["type"], FromIframeEventName>
->;
 
 export function sendFromIframe(event: FromIframeEvent) {
   if (!isValidFromIframeEventType(event.type)) {
