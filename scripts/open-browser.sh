@@ -7,30 +7,21 @@ fi
 # 🚨 IMPORTANT: We're overriding the runtime command here to avoid it breaking by accident
 export VITE_RUNTIME_COMMAND="deno run --allow-all --unstable-broadcast-channel --env-file=../anode/.env ../runt/packages/pyodide-runtime-agent/src/mod.ts"
 export DEV_PORT=${ANODE_DEV_SERVER_PORT:-5173}
-export NOTEBOOK_ID=$(date +%s)-$(openssl rand -hex 4)
+export NOTEBOOK_ID=$(openssl rand -hex 8)
 
-URL="http://localhost:$DEV_PORT/?notebook=$NOTEBOOK_ID"
+URL="http://localhost:$DEV_PORT"
 
 echo "ANODE_OPEN_INCOGNITO: $ANODE_OPEN_INCOGNITO"
 
-RUNTIME_CMD="NOTEBOOK_ID=${NOTEBOOK_ID} ${VITE_RUNTIME_COMMAND}"
-
 echo ""
 echo "=============================================="
 echo "✨✨✨✨✨✨✨✨✨✨✨✨✨✨✨✨✨✨✨✨✨✨✨✨✨✨✨✨"
 echo ""
-echo "🔗 Notebook URL: $URL"
-echo ""
-echo "🐇 Runtime command (started in background):"
-echo ""
-echo "$RUNTIME_CMD"
+echo "🔗 Anode URL: $URL"
 echo ""
 echo "✨✨✨✨✨✨✨✨✨✨✨✨✨✨✨✨✨✨✨✨✨✨✨✨✨✨✨✨"
 echo "=============================================="
 echo ""
-
-# Start runtime in background
-pnpm exec pm2 start --name "notebook=$NOTEBOOK_ID" "$RUNTIME_CMD"
 
 sleep 1
 

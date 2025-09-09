@@ -304,7 +304,7 @@ const titleMetadata = useQuery(
 │   ├── deploy-iframe-outputs.sh
 │   ├── dev-runtime.sh
 │   ├── optimize-build.sh
-│   ├── start-nb.sh
+│   ├── open-browser.sh
 │   ├── start-runt-dev.sh
 │   ├── test-api-key-flow.sh
 │   ├── test-api-keys.sh

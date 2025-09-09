@@ -67,19 +67,10 @@ pm2 delete all
 
 ### Process Names
 
+- `iframe-outputs`: Runs `pnpm run dev:iframe` (for displaying outputs in an iframe)
 - `web`: Runs `pnpm run dev` (Vite development server with integrated Cloudflare Workers on port 5173)
 - `sync`: Runs `pnpm run dev:sync` (Cloudflare Worker backend on port 8787)
-- `nb`: Runs `./scripts/start-nb.sh` (Deno runtime agent with unique notebook ID)
 - `watcher`: Monitors the schema file and triggers updates
-
-### Runtime Process Details
-
-The `nb` process runs `scripts/start-nb.sh` which:
-
-- Sets `DEV_PORT=5173`
-- Generates a unique notebook ID using timestamp and random hex
-- Opens a browser tab to `http://localhost:5173/?notebook=$NOTEBOOK_ID`
-- Starts the Deno runtime agent with debug logging
 
 ### Architecture Options
 

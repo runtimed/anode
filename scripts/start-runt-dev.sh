@@ -21,7 +21,7 @@ echo ""
 echo "📊 PM2 Status:"
 pnpm exec pm2 status
 
-./scripts/start-nb.sh
+./scripts/open-browser.sh
 
 echo "🚀 Started runtime!"
 
