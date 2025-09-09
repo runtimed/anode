@@ -9,7 +9,6 @@ import {
   getUserById,
 } from "backend/users/utils";
 import { nanoid } from "nanoid";
-import { parseDbDate, nowIsoString } from "../utils/date";
 
 export async function getNotebooks(
   ctx: {
@@ -89,7 +88,9 @@ export async function getNotebooks(
     const chunk = accessibleNotebookIds.slice(i, i + CHUNK_SIZE);
     const placeholders = chunk.map(() => "?").join(",");
     const query = `
-        SELECT id, owner_id, title, created_at, updated_at
+        SELECT id, owner_id, title,
+               strftime('%Y-%m-%dT%H:%M:%SZ', created_at) as created_at,
+               strftime('%Y-%m-%dT%H:%M:%SZ', updated_at) as updated_at
         FROM notebooks
         WHERE id IN (${placeholders})
         ORDER BY updated_at DESC
@@ -105,7 +106,7 @@ export async function getNotebooks(
   // Sort all results by updated_at DESC and apply pagination
   allResults.sort(
     (a, b) =>
-      parseDbDate(b.updated_at).getTime() - parseDbDate(a.updated_at).getTime()
+      new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime()
   );
 
   const finalResults = allResults.slice(offset, offset + limit);
@@ -114,8 +115,6 @@ export async function getNotebooks(
   const notebooksWithCollaboratorsAndTags = await Promise.all(
     finalResults.map(async (notebook) => ({
       ...notebook,
-      created_at: parseDbDate(notebook.created_at).toISOString(),
-      updated_at: parseDbDate(notebook.updated_at).toISOString(),
       collaborators: await getNotebookCollaborators(DB, notebook.id),
       tags: await getNotebookTags(DB, notebook.id, user.id),
     }))
@@ -163,17 +162,16 @@ export async function getNotebookById(
   notebookId: string
 ): Promise<NotebookRow | null> {
   const notebook = await db
-    .prepare("SELECT * FROM notebooks WHERE id = ?")
+    .prepare(
+      `SELECT id, owner_id, title,
+              strftime('%Y-%m-%dT%H:%M:%SZ', created_at) as created_at,
+              strftime('%Y-%m-%dT%H:%M:%SZ', updated_at) as updated_at
+              FROM notebooks WHERE id = ?`
+    )
     .bind(notebookId)
     .first<NotebookRow>();
 
-  if (!notebook) return null;
-
-  return {
-    ...notebook,
-    created_at: parseDbDate(notebook.created_at).toISOString(),
-    updated_at: parseDbDate(notebook.updated_at).toISOString(),
-  };
+  return notebook || null;
 }
 
 // Create a new notebook
@@ -288,7 +286,7 @@ export async function createTag(
 ): Promise<TagRow | null> {
   const { name, color, user_id } = params;
   const id = nanoid();
-  const now = nowIsoString();
+  const now = new Date().toISOString();
 
   try {
     const result = await db
@@ -334,7 +332,7 @@ export async function updateTag(
   }
 ): Promise<boolean> {
   const { name, color } = params;
-  const now = nowIsoString();
+  const now = new Date().toISOString();
 
   const updateFields: string[] = [];
   const bindings: unknown[] = [];
@@ -397,17 +395,16 @@ export async function getTagById(
   tagId: string
 ): Promise<TagRow | null> {
   const tag = await db
-    .prepare("SELECT * FROM tags WHERE id = ?")
+    .prepare(
+      `SELECT id, name, color, user_id,
+              strftime('%Y-%m-%dT%H:%M:%SZ', created_at) as created_at,
+              strftime('%Y-%m-%dT%H:%M:%SZ', updated_at) as updated_at
+              FROM tags WHERE id = ?`
+    )
     .bind(tagId)
     .first<TagRow>();
 
-  if (!tag) return null;
-
-  return {
-    ...tag,
-    created_at: parseDbDate(tag.created_at).toISOString(),
-    updated_at: parseDbDate(tag.updated_at).toISOString(),
-  };
+  return tag || null;
 }
 
 // Check if user owns a tag
@@ -431,17 +428,16 @@ export async function getTagByName(
   user_id: string
 ): Promise<TagRow | null> {
   const tag = await db
-    .prepare("SELECT * FROM tags WHERE name = ? AND user_id = ?")
+    .prepare(
+      `SELECT id, name, color, user_id,
+              strftime('%Y-%m-%dT%H:%M:%SZ', created_at) as created_at,
+              strftime('%Y-%m-%dT%H:%M:%SZ', updated_at) as updated_at
+              FROM tags WHERE name = ? AND user_id = ?`
+    )
     .bind(name, user_id)
     .first<TagRow>();
 
-  if (!tag) return null;
-
-  return {
-    ...tag,
-    created_at: parseDbDate(tag.created_at).toISOString(),
-    updated_at: parseDbDate(tag.updated_at).toISOString(),
-  };
+  return tag || null;
 }
 
 // Get all tags for a user
@@ -450,15 +446,16 @@ export async function getUserTags(
   user_id: string
 ): Promise<TagRow[]> {
   const result = await db
-    .prepare("SELECT * FROM tags WHERE user_id = ? ORDER BY created_at ASC")
+    .prepare(
+      `SELECT id, name, color, user_id,
+              strftime('%Y-%m-%dT%H:%M:%SZ', created_at) as created_at,
+              strftime('%Y-%m-%dT%H:%M:%SZ', updated_at) as updated_at
+              FROM tags WHERE user_id = ? ORDER BY created_at ASC`
+    )
     .bind(user_id)
     .all<TagRow>();
 
-  return result.results.map((tag) => ({
-    ...tag,
-    created_at: parseDbDate(tag.created_at).toISOString(),
-    updated_at: parseDbDate(tag.updated_at).toISOString(),
-  }));
+  return result.results;
 }
 
 // Assign tag to notebook
@@ -467,7 +464,7 @@ export async function assignTagToNotebook(
   notebookId: string,
   tagId: string
 ): Promise<boolean> {
-  const now = nowIsoString();
+  const now = new Date().toISOString();
 
   try {
     const result = await db
@@ -519,7 +516,9 @@ export async function getNotebookTags(
   userId: string
 ): Promise<TagRow[]> {
   const query = `
-    SELECT t.id, t.name, t.color, t.user_id, t.created_at, t.updated_at
+    SELECT t.id, t.name, t.color, t.user_id,
+           strftime('%Y-%m-%dT%H:%M:%SZ', t.created_at) as created_at,
+           strftime('%Y-%m-%dT%H:%M:%SZ', t.updated_at) as updated_at
     FROM tags t
     INNER JOIN notebook_tags nt ON t.id = nt.tag_id
     WHERE nt.notebook_id = ? AND t.user_id = ?
@@ -528,9 +527,5 @@ export async function getNotebookTags(
 
   const result = await db.prepare(query).bind(notebookId, userId).all<TagRow>();
 
-  return result.results.map((tag) => ({
-    ...tag,
-    created_at: parseDbDate(tag.created_at).toISOString(),
-    updated_at: parseDbDate(tag.updated_at).toISOString(),
-  }));
+  return result.results;
 }

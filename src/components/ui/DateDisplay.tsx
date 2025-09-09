@@ -16,9 +16,8 @@ export const DateDisplay: React.FC<DateDisplayProps> = ({
   showTooltip = true,
   className = "",
 }) => {
-  // Assume UTC if no timezone is specified
-  // By default our D1 sqlite DB creates events in UTC
-  const dateObj = typeof date === "string" ? parseStringDate(date) : date;
+  // API returns proper ISO strings with timezone info
+  const dateObj = typeof date === "string" ? parseISO(date) : date;
 
   const getDisplayText = () => {
     switch (format) {
@@ -89,28 +88,4 @@ function formatFullDate(date: Date) {
     minute: "2-digit",
     timeZoneName: "short",
   });
-}
-
-function parseStringDate(dateString: string): Date {
-  // Try parseISO first - handles most cases including API responses
-  try {
-    const parsed = parseISO(dateString);
-    if (!isNaN(parsed.getTime())) {
-      return parsed;
-    }
-  } catch {
-    // Continue to D1 fallback
-  }
-
-  // D1 SQLite fallback: assume UTC if no timezone info
-  if (
-    !dateString.includes("Z") &&
-    !dateString.includes("+") &&
-    !dateString.includes("-", 10)
-  ) {
-    return parseISO(dateString + "Z");
-  }
-
-  // Final fallback
-  return new Date(dateString);
 }
