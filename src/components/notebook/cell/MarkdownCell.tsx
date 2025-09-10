@@ -301,6 +301,7 @@ export const MarkdownCell: React.FC<MarkdownCellProps> = ({
         >
           {/* Send markdown content to iframe */}
           <IframeOutput
+            onDoubleClick={() => setIsEditing(true)}
             outputs={[
               {
                 id: cell.id + "-output",

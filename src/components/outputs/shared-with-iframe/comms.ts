@@ -18,8 +18,15 @@ type IframeHeightEvent = {
   height: number;
 };
 
+type IframeDoubleClickEvent = {
+  type: "iframe-double-click";
+};
+
 export type ToIframeEvent = UpdateOutputsEvent;
-export type FromIframeEvent = IframeHeightEvent | IframeLoadedEvent;
+export type FromIframeEvent =
+  | IframeHeightEvent
+  | IframeLoadedEvent
+  | IframeDoubleClickEvent;
 
 export function sendFromIframe(event: FromIframeEvent) {
   window.parent.postMessage(event, "*");
@@ -52,10 +59,12 @@ export function useIframeCommsParent({
   defaultHeight,
   onHeightChange,
   outputs,
+  onDoubleClick,
 }: {
   defaultHeight: string;
   onHeightChange?: (height: number) => void;
   outputs?: OutputData[];
+  onDoubleClick?: () => void;
 }) {
   const iframeRef = useRef<HTMLIFrameElement>(null);
 
@@ -86,6 +95,9 @@ export function useIframeCommsParent({
       if (event.data && event.data.type === "iframe-loaded") {
         setIframeLoaded(true);
       }
+      if (event.data && event.data.type === "iframe-double-click") {
+        onDoubleClick?.();
+      }
     };
 
     // Add message listener
@@ -94,7 +106,7 @@ export function useIframeCommsParent({
     return () => {
       removeParentMessageListener(handleMessage);
     };
-  }, [onHeightChange]);
+  }, [onHeightChange, onDoubleClick]);
 
   useEffect(() => {
     // We cannot send content to iframe before it is loaded
