@@ -19,7 +19,13 @@ import { markdown } from "@codemirror/lang-markdown";
 import { SupportedLanguage } from "@/types/misc.js";
 import { sql } from "@codemirror/lang-sql";
 import { useCodeMirror } from "@uiw/react-codemirror";
-import { baseExtensions, aiBaseExtensions } from "./baseExtensions.js";
+import {
+  baseExtensions,
+  aiBaseExtensions,
+  createBaseExtensionsWithLSP,
+  createAIBaseExtensionsWithLSP,
+  isLSPAvailable,
+} from "./baseExtensions.js";
 
 export interface CodeMirrorEditorRef {
   focus: () => void;
@@ -40,6 +46,8 @@ type CodeMirrorEditorProps = {
   maxHeight?: string;
   enableLineWrapping?: boolean;
   disableAutocompletion?: boolean;
+  enableLSP?: boolean;
+  documentUri?: string;
 };
 
 function languageExtension(language: SupportedLanguage) {
@@ -71,6 +79,8 @@ export const CodeMirrorEditor = forwardRef<
       maxHeight,
       enableLineWrapping = false,
       disableAutocompletion = false,
+      enableLSP = false,
+      documentUri,
     },
     ref
   ) => {
@@ -83,9 +93,18 @@ export const CodeMirrorEditor = forwardRef<
     );
 
     const extensions = useMemo(() => {
-      const selectedBaseExtensions = disableAutocompletion
-        ? aiBaseExtensions
-        : baseExtensions;
+      let selectedBaseExtensions: any[];
+
+      // Use LSP-enabled extensions if LSP is enabled and available
+      if (enableLSP && isLSPAvailable(language) && documentUri) {
+        selectedBaseExtensions = disableAutocompletion
+          ? createAIBaseExtensionsWithLSP(language, documentUri)
+          : createBaseExtensionsWithLSP(language, documentUri);
+      } else {
+        selectedBaseExtensions = disableAutocompletion
+          ? aiBaseExtensions
+          : baseExtensions;
+      }
 
       const exts = [
         keymap.of(keyMap || []),
@@ -108,6 +127,9 @@ export const CodeMirrorEditor = forwardRef<
       placeholder,
       enableLineWrapping,
       disableAutocompletion,
+      enableLSP,
+      language,
+      documentUri,
     ]);
 
     const handleChange = useCallback(

@@ -1,0 +1,37 @@
+{
+  "servers": {
+    "python": {
+      "url": "ws://localhost:3001/pyright",
+      "description": "Pyright Python Language Server",
+      "enabled": true
+    },
+    "typescript": {
+      "url": "ws://localhost:3002/typescript",
+      "description": "TypeScript Language Server",
+      "enabled": true
+    },
+    "javascript": {
+      "url": "ws://localhost:3002/javascript",
+      "description": "JavaScript Language Server",
+      "enabled": true
+    },
+    "sql": {
+      "url": "ws://localhost:3003/sql",
+      "description": "SQL Language Server",
+      "enabled": false
+    },
+    "markdown": {
+      "url": "ws://localhost:3004/markdown",
+      "description": "Markdown Language Server",
+      "enabled": false
+    }
+  },
+  "globalSettings": {
+    "enableLSP": true,
+    "allowHTMLContent": true,
+    "keyboardShortcuts": {
+      "rename": "F2",
+      "goToDefinition": "ctrlcmd"
+    }
+  }
+}

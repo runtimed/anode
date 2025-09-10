@@ -5,6 +5,7 @@ import { useDeleteCell } from "@/hooks/useDeleteCell.js";
 import { useAddCell } from "@/hooks/useAddCell.js";
 import { useStore } from "@livestore/react";
 import { events, tables, queries } from "@/schema";
+import { getStoreId } from "@/util/store-id.js";
 import React, {
   useCallback,
   useEffect,
@@ -48,6 +49,7 @@ export const MarkdownCell: React.FC<MarkdownCellProps> = ({
   autoFocus = false,
   contextSelectionMode = false,
 }) => {
+  const notebookId = getStoreId();
   const editButtonRef = useRef<HTMLButtonElement>(null);
   const cellContainerRef = useRef<HTMLDivElement>(null);
 
@@ -315,6 +317,9 @@ export const MarkdownCell: React.FC<MarkdownCellProps> = ({
                 enableLineWrapping={true}
                 autoFocus={autoFocus}
                 keyMap={extendedKeyMap}
+                notebookId={notebookId}
+                cellId={cell.id}
+                enableLSP={true}
               />
             </ErrorBoundary>
           </div>

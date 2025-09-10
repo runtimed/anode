@@ -15,6 +15,8 @@ import {
   CodeMirrorEditorRef,
 } from "@/components/notebook/codemirror/CodeMirrorEditor";
 import { ErrorBoundary } from "react-error-boundary";
+import { generateDocumentUri } from "@/util/documentUri.js";
+import { isLSPAvailable } from "@/components/notebook/codemirror/baseExtensions.js";
 
 const ErrorFallback = () => {
   return <div>Error rendering editor</div>;
@@ -36,6 +38,9 @@ interface EditorProps {
   enableLineWrapping?: boolean;
   autoFocus: boolean;
   keyMap: KeyBinding[];
+  notebookId?: string;
+  cellId?: string;
+  enableLSP?: boolean;
 }
 
 export const Editor = forwardRef<EditorRef, EditorProps>(
@@ -50,12 +55,26 @@ export const Editor = forwardRef<EditorRef, EditorProps>(
       enableLineWrapping,
       autoFocus,
       keyMap,
+      notebookId,
+      cellId,
+      enableLSP = false,
     },
     ref
   ) => {
     const [isMaximized, setIsMaximized] = useState(false);
     const normalEditorRef = useRef<CodeMirrorEditorRef>(null);
     const maximizedEditorRef = useRef<CodeMirrorEditorRef>(null);
+
+    // Generate document URI for LSP if enabled
+    const documentUri =
+      enableLSP && language && notebookId && cellId
+        ? generateDocumentUri(notebookId, cellId, language)
+        : undefined;
+
+    // Check if LSP should be enabled for this language
+    const shouldEnableLSP = Boolean(
+      enableLSP && language && isLSPAvailable(language) && documentUri
+    );
 
     // Expose methods via ref - forward to the active editor
     useImperativeHandle(
@@ -124,6 +143,8 @@ export const Editor = forwardRef<EditorRef, EditorProps>(
               keyMap={keyMap}
               onBlur={onBlur}
               enableLineWrapping={enableLineWrapping}
+              enableLSP={shouldEnableLSP}
+              documentUri={documentUri}
             />
           </ErrorBoundary>
           <Button
@@ -162,6 +183,8 @@ export const Editor = forwardRef<EditorRef, EditorProps>(
                   keyMap={keyMap}
                   onBlur={onBlur}
                   enableLineWrapping={enableLineWrapping}
+                  enableLSP={shouldEnableLSP}
+                  documentUri={documentUri}
                 />
               </ErrorBoundary>
               <Button
