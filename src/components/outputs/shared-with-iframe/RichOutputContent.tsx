@@ -48,6 +48,11 @@ const PlainTextOutput = React.lazy(() =>
     })
   )
 );
+const MathOutput = React.lazy(() =>
+  import("@/components/outputs/shared-with-iframe/MathOutput").then((m) => ({
+    default: m.MathOutput,
+  }))
+);
 
 // Dynamic imports for AI outputs
 const AiToolCallOutput = React.lazy(() =>
@@ -72,6 +77,7 @@ export function RichOutputContent({
   mediaType: string;
   outputData: Record<string, unknown>;
 }) {
+  debugger;
   switch (mediaType) {
     case AI_TOOL_CALL_MIME_TYPE: {
       const toolData = outputData[mediaType];
@@ -131,6 +137,9 @@ export function RichOutputContent({
 
     case APPLICATION_MIME_TYPES[0]: // application/json
       return <JsonOutput data={outputData[mediaType]} />;
+
+    case TEXT_MIME_TYPES[3]: // text/latex
+      return <MathOutput content={String(outputData[mediaType] || "")} />;
 
     case TEXT_MIME_TYPES[0]: // text/plain
     default:

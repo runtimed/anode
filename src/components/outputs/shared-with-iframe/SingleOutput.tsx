@@ -82,6 +82,7 @@ const getPreferredMediaType = (
     "image/svg", // legacy SVG format
     // Application formats
     APPLICATION_MIME_TYPES[0], // application/json
+    TEXT_MIME_TYPES[3], // text/latex
     TEXT_MIME_TYPES[0], // text/plain
   ];
 
