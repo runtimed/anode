@@ -17,6 +17,7 @@
     "predev:sync": "pnpm run db:migrate",
     "dev:sync": "wrangler dev",
     "dev:runtime": "./scripts/dev-runtime.sh",
+    "dev:lsp": "node scripts/lsp-bridge.js",
     "build:iframe": "cd iframe-outputs && vite build",
     "build": "vite build --mode development",
     "use-runt": "./scripts/use-runt.sh",
@@ -160,7 +161,8 @@
     "vite": "^6.3.5",
     "vitest": "^3.0.0",
     "webpack-bundle-analyzer": "^4.10.2",
-    "wrangler": "4.27.0"
+    "wrangler": "4.27.0",
+    "ws": "^8.18.0"
   },
   "pnpm": {
     "overrides": {
