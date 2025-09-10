@@ -48,6 +48,13 @@ const PlainTextOutput = React.lazy(() =>
     })
   )
 );
+const GeoJsonMapOutput = React.lazy(() =>
+  import("@/components/outputs/shared-with-iframe/GeoJsonMapOutput").then(
+    (m) => ({
+      default: m.GeoJsonMapOutput,
+    })
+  )
+);
 
 // Dynamic imports for AI outputs
 const AiToolCallOutput = React.lazy(() =>
@@ -127,7 +134,7 @@ export function RichOutputContent({
       return <JsonOutput data={outputData[mediaType]} />;
 
     case "application/geo+json":
-      return <JsonOutput data={outputData[mediaType]} />;
+      return <GeoJsonMapOutput data={outputData[mediaType]} />;
 
     case APPLICATION_MIME_TYPES[0]: // application/json
       return <JsonOutput data={outputData[mediaType]} />;
