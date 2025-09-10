@@ -104,7 +104,7 @@ function NotebookPageWithIdAndNotebook({
         <div className="border-b bg-white">
           <div className="mx-auto px-2 py-3 sm:px-4 sm:py-4">
             <div className="flex items-center justify-between gap-1 sm:gap-4">
-              <div className="min-w-0 flex-1 overflow-hidden">
+              <div className="min-w-0 flex-1">
                 <TitleEditor
                   notebook={notebook}
                   onTitleSaved={refetch}
