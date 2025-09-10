@@ -77,7 +77,6 @@ export function RichOutputContent({
   mediaType: string;
   outputData: Record<string, unknown>;
 }) {
-  debugger;
   switch (mediaType) {
     case AI_TOOL_CALL_MIME_TYPE: {
       const toolData = outputData[mediaType];
