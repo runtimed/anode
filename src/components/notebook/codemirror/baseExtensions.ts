@@ -1,4 +1,5 @@
 import {
+  autocompletion,
   closeBrackets,
   closeBracketsKeymap,
   completionKeymap,
@@ -21,8 +22,7 @@ import {
   rectangularSelection,
 } from "@codemirror/view";
 import { githubLight } from "@uiw/codemirror-theme-github";
-import { createLSPExtension, isLSPAvailable } from "./lspConfig.js";
-import { SupportedLanguage } from "@/types/misc.js";
+import { isLSPAvailable } from "./lspConfig.js";
 
 // Re-export isLSPAvailable for use in other components
 export { isLSPAvailable };
@@ -45,6 +45,7 @@ const customStyles = EditorView.theme({
 });
 
 export const basicSetup: Extension = (() => [
+  autocompletion(),
   history(),
   drawSelection(),
   dropCursor(),
@@ -89,41 +90,3 @@ export const aiBasicSetup: Extension = (() => [
 
 export const baseExtensions = [basicSetup, githubLight];
 export const aiBaseExtensions = [aiBasicSetup, githubLight];
-
-/**
- * Create base extensions with LSP support for a specific language and document
- */
-export function createBaseExtensionsWithLSP(
-  language: SupportedLanguage,
-  documentUri: string
-): Extension[] {
-  const extensions = [basicSetup, githubLight];
-
-  if (isLSPAvailable(language)) {
-    const lspExtension = createLSPExtension(language, documentUri);
-    if (lspExtension) {
-      extensions.push(lspExtension);
-    }
-  }
-
-  return extensions;
-}
-
-/**
- * Create AI base extensions with LSP support for a specific language and document
- */
-export function createAIBaseExtensionsWithLSP(
-  language: SupportedLanguage,
-  documentUri: string
-): Extension[] {
-  const extensions = [aiBasicSetup, githubLight];
-
-  if (isLSPAvailable(language)) {
-    const lspExtension = createLSPExtension(language, documentUri);
-    if (lspExtension) {
-      extensions.push(lspExtension);
-    }
-  }
-
-  return extensions;
-}

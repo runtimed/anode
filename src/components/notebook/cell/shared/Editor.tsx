@@ -17,6 +17,7 @@ import {
 import { ErrorBoundary } from "react-error-boundary";
 import { generateDocumentUri } from "@/util/documentUri.js";
 import { isLSPAvailable } from "@/components/notebook/codemirror/baseExtensions.js";
+import JsonOutput from "@/components/outputs/shared-with-iframe/JsonOutput";
 
 const ErrorFallback = () => {
   return <div>Error rendering editor</div>;
@@ -129,6 +130,20 @@ export const Editor = forwardRef<EditorRef, EditorProps>(
         <div
           className={cn("relative min-h-[1.5rem]", isMaximized && "opacity-20")}
         >
+          {shouldEnableLSP && (
+            <div className="absolute top-1 right-1 h-6 w-6 p-1">
+              <span className="text-muted-foreground text-xs">LSP</span>
+            </div>
+          )}
+          enableLSP && language && isLSPAvailable(language) && documentUri
+          <JsonOutput
+            data={{
+              shouldEnableLSP,
+              language,
+              isLSPAvailable: isLSPAvailable(language),
+              documentUri,
+            }}
+          />
           <ErrorBoundary FallbackComponent={ErrorFallback}>
             <CodeMirrorEditor
               ref={normalEditorRef}

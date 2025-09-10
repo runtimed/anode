@@ -5,41 +5,44 @@ import {
 } from "@marimo-team/codemirror-languageserver";
 import { WebSocketTransport } from "@open-rpc/client-js";
 import { Extension } from "@codemirror/state";
-import { SupportedLanguage } from "@/types/misc.js";
+import { SupportedLspLanguage, SupportedLanguage } from "@/types/misc.js";
 
 // LSP server configurations for different languages
-const LSP_SERVERS: Record<string, { url: string; languageId: string }> = {
+export const LSP_SERVERS = {
   python: {
     // Python LSP server (e.g., Pyright, Pylsp, etc.)
     // You can configure this to point to your preferred Python LSP server
     url: "ws://localhost:3001/pyright", // Example Pyright server
     languageId: "python",
   },
-  typescript: {
-    // TypeScript LSP server
-    url: "ws://localhost:3002/typescript", // Example TypeScript server
-    languageId: "typescript",
-  },
-  javascript: {
-    // JavaScript LSP server
-    url: "ws://localhost:3002/javascript", // Example JavaScript server
-    languageId: "javascript",
-  },
-  sql: {
-    // SQL LSP server (e.g., SQL Language Server)
-    url: "ws://localhost:3003/sql", // Example SQL server
-    languageId: "sql",
-  },
-};
+  // typescript: {
+  //   // TypeScript LSP server
+  //   url: "ws://localhost:3002/typescript", // Example TypeScript server
+  //   languageId: "typescript",
+  // },
+  // javascript: {
+  //   // JavaScript LSP server
+  //   url: "ws://localhost:3002/javascript", // Example JavaScript server
+  //   languageId: "javascript",
+  // },
+  // sql: {
+  //   // SQL LSP server (e.g., SQL Language Server)
+  //   url: "ws://localhost:3003/sql", // Example SQL server
+  //   languageId: "sql",
+  // },
+} as const satisfies Record<
+  Exclude<SupportedLspLanguage, undefined>,
+  { url: string; languageId: string }
+>;
 
 // Global LSP client instances to share across editors
-const lspClients = new Map<string, LanguageServerClient>();
+const lspClients = new Map<SupportedLspLanguage, LanguageServerClient>();
 
 /**
  * Get or create an LSP client for a specific language
  */
 function getLSPClient(
-  language: SupportedLanguage
+  language: SupportedLspLanguage
 ): LanguageServerClient | null {
   if (!language) {
     return null;
@@ -74,7 +77,7 @@ function getLSPClient(
  * Create LSP extension for a specific language and document
  */
 export function createLSPExtension(
-  language: SupportedLanguage,
+  language: SupportedLspLanguage,
   documentUri: string
 ): Extension {
   if (!language || !documentUri) {
@@ -107,7 +110,7 @@ export function createLSPExtension(
  * Create LSP extension with direct transport (for single editor instances)
  */
 export function createLSPExtensionWithTransport(
-  language: SupportedLanguage,
+  language: SupportedLspLanguage,
   documentUri: string
 ): Extension {
   if (!language || !documentUri) {
@@ -121,7 +124,7 @@ export function createLSPExtensionWithTransport(
 
   try {
     return languageServer({
-      serverUri: config.url as `ws://${string}` | `wss://${string}`,
+      serverUri: config.url,
       rootUri: "file:///",
       workspaceFolders: [{ name: "workspace", uri: "file:///" }],
       documentUri,

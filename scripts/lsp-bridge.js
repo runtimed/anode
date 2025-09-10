@@ -17,20 +17,6 @@ const wss = new WebSocketServer({
   path: "/pyright", // Handle /pyright path specifically
 });
 
-// Handle WebSocket upgrade requests
-server.on("upgrade", (request, socket, head) => {
-  const pathname = new URL(request.url, `http://${request.headers.host}`)
-    .pathname;
-
-  if (pathname === "/pyright") {
-    wss.handleUpgrade(request, socket, head, (ws) => {
-      wss.emit("connection", ws, request);
-    });
-  } else {
-    socket.destroy();
-  }
-});
-
 wss.on("connection", (ws, request) => {
   console.log("New WebSocket connection established for pyright");
 
@@ -41,6 +27,10 @@ wss.on("connection", (ws, request) => {
 
   // Forward WebSocket messages to pyright stdin
   ws.on("message", (data) => {
+    console.log(
+      "Received message from WebSocket:",
+      JSON.stringify(data, null, 2)
+    );
     // Handle both Buffer and ArrayBuffer data
     let messageData;
     if (data instanceof Buffer) {
@@ -54,14 +44,22 @@ wss.on("connection", (ws, request) => {
       return;
     }
 
+    console.log(
+      "Sending message to pyright:",
+      JSON.stringify(messageData, null, 2)
+    );
     pyright.stdin.write(messageData);
   });
 
   // Forward pyright stdout to WebSocket
   pyright.stdout.on("data", (data) => {
     if (ws.readyState === ws.OPEN) {
-      // Send as Buffer to maintain binary data integrity
-      ws.send(data);
+      if (data.toString().includes("Content-Length")) {
+        return;
+      }
+      console.log("Sending message to WebSocket:", data.toString());
+      // Send as text - the LSP client expects text messages
+      ws.send(data.toString());
     }
   });
 

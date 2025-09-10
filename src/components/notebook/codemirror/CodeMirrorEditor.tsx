@@ -16,16 +16,11 @@ import {
 
 import { markdown } from "@codemirror/lang-markdown";
 
-import { SupportedLanguage } from "@/types/misc.js";
+import { SupportedLanguage, SupportedLspLanguage } from "@/types/misc.js";
 import { sql } from "@codemirror/lang-sql";
 import { useCodeMirror } from "@uiw/react-codemirror";
-import {
-  baseExtensions,
-  aiBaseExtensions,
-  createBaseExtensionsWithLSP,
-  createAIBaseExtensionsWithLSP,
-  isLSPAvailable,
-} from "./baseExtensions.js";
+import { baseExtensions, aiBaseExtensions } from "./baseExtensions.js";
+import { createLSPExtension, isLSPAvailable } from "./lspConfig.js";
 
 export interface CodeMirrorEditorRef {
   focus: () => void;
@@ -93,17 +88,18 @@ export const CodeMirrorEditor = forwardRef<
     );
 
     const extensions = useMemo(() => {
-      let selectedBaseExtensions: any[];
+      const selectedBaseExtensions = disableAutocompletion
+        ? aiBaseExtensions
+        : baseExtensions;
 
-      // Use LSP-enabled extensions if LSP is enabled and available
       if (enableLSP && isLSPAvailable(language) && documentUri) {
-        selectedBaseExtensions = disableAutocompletion
-          ? createAIBaseExtensionsWithLSP(language, documentUri)
-          : createBaseExtensionsWithLSP(language, documentUri);
-      } else {
-        selectedBaseExtensions = disableAutocompletion
-          ? aiBaseExtensions
-          : baseExtensions;
+        const lspExtension = createLSPExtension(
+          language as SupportedLspLanguage,
+          documentUri
+        );
+        if (lspExtension) {
+          selectedBaseExtensions.push(lspExtension);
+        }
       }
 
       const exts = [
@@ -189,12 +185,15 @@ export const CodeMirrorEditor = forwardRef<
     }, [setContainer]);
 
     return (
-      <div
-        ref={editorRef}
-        onBlur={onBlur}
-        onFocus={handleFocus}
-        className={className}
-      />
+      <>
+        {extensions.flatMap((extension) => extension.toString()).join(", ")}
+        <div
+          ref={editorRef}
+          onBlur={onBlur}
+          onFocus={handleFocus}
+          className={className}
+        />
+      </>
     );
   }
 );

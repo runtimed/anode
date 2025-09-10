@@ -145,6 +145,9 @@ importers:
       ansi-to-react:
         specifier: ^6.1.6
         version: 6.1.6(react-dom@19.0.0(react@19.0.0))(react@19.0.0)
+      basedpyright:
+        specifier: ^1.31.4
+        version: 1.31.4
       chroma-js:
         specifier: ^3.1.2
         version: 3.1.2
@@ -2618,6 +2621,11 @@ packages:
 
   base16@1.0.0:
     resolution: {integrity: sha512-pNdYkNPiJUnEhnfXV56+sQy8+AaPcG3POZAUnwr4EeqCUZFz4u2PePbo3e5Gj4ziYPCWGUZT9RHisvJKnwFuBQ==}
+
+  basedpyright@1.31.4:
+    resolution: {integrity: sha512-XEOnntpRezNC4tj+6cZXT/Zy7QcxTZox2tr11I7MvIFHUQcuPNUzLyCxP2eNjuPtBaw01C66CeGaNjOSnPOFSA==}
+    engines: {node: '>=14.0.0'}
+    hasBin: true
 
   basic-auth@2.0.1:
     resolution: {integrity: sha512-NF+epuEdnUYVlGuhaxbbq+dvJttwLnGY+YixlXlME5KpQ5W3CnXA5cVTneY3SPbPDRkcjMbifrwmFYcClgOZeg==}
@@ -7560,6 +7568,10 @@ snapshots:
   balanced-match@1.0.2: {}
 
   base16@1.0.0: {}
+
+  basedpyright@1.31.4:
+    optionalDependencies:
+      fsevents: 2.3.3
 
   basic-auth@2.0.1:
     dependencies:
