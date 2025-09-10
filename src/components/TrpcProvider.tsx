@@ -62,7 +62,12 @@ export const TrpcProvider = ({ children }: TrpcProviderProps) => {
     <QueryClientProvider client={trpcQueryClient}>
       <TrpcContext.Provider value={trpc}>
         {children}
-        {import.meta.env.DEV && <ReactQueryDevtools initialIsOpen={false} />}
+        {import.meta.env.DEV && (
+          <ReactQueryDevtools
+            buttonPosition="bottom-left"
+            initialIsOpen={false}
+          />
+        )}
       </TrpcContext.Provider>
     </QueryClientProvider>
   );
