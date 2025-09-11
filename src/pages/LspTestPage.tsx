@@ -29,7 +29,7 @@ function simpleWebSocketTransport(uri: string): Promise<Transport> {
   let sock = new WebSocket(uri);
   sock.onmessage = (e) => {
     console.log(
-      "Received message from WebSocket:",
+      "⬇️ Received message from WebSocket:",
       JSON.parse(e.data.toString())
     );
     for (let h of handlers) h(e.data.toString());
@@ -38,6 +38,7 @@ function simpleWebSocketTransport(uri: string): Promise<Transport> {
     sock.onopen = () =>
       resolve({
         send(message: string) {
+          console.log("↑ Sending message to WebSocket:", JSON.parse(message));
           sock.send(message);
         },
         subscribe(handler: (value: string) => void) {
