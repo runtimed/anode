@@ -322,6 +322,11 @@ export const ExecutableCell: React.FC<ExecutableCellProps> = ({
     cell.cellType as "code" | "sql" | "ai"
   );
 
+  const isSourceLessAiOutput =
+    cell.cellType === "ai" &&
+    cell.source === "" &&
+    cell.createdBy.startsWith("ai-");
+
   const showOutput =
     cell.outputVisible &&
     (hasOutputs ||
@@ -339,144 +344,150 @@ export const ExecutableCell: React.FC<ExecutableCellProps> = ({
       focusBgColor={focusBgColor}
     >
       {/* Cell Header */}
-      <div className="cell-header mb-2 flex items-center justify-between pr-1 pl-6 sm:pr-4">
-        <div className="flex items-center gap-3">
-          <CellTypeSelector cell={cell} onCellTypeChange={changeCellType} />
+      {!isSourceLessAiOutput && (
+        <div className="cell-header mb-2 flex items-center justify-between pr-1 pl-6 sm:pr-4">
+          <div className="flex items-center gap-3">
+            <CellTypeSelector cell={cell} onCellTypeChange={changeCellType} />
 
-          {/* Cell-type-specific toolbars */}
-          {cell.cellType === "code" && <CodeToolbar />}
-          {cell.cellType === "ai" && (
-            <AiToolbar
-              provider={cell.aiProvider || "openai"}
-              model={cell.aiModel || "gpt-4o-mini"}
-              onProviderChange={(newProvider: string, newModel: string) => {
-                store.commit(
-                  events.aiSettingsChanged({
-                    cellId: cell.id,
-                    provider: newProvider,
-                    model: newModel,
-                    settings: {
-                      temperature: 0.7,
-                      maxTokens: 1000,
-                    },
-                  })
-                );
+            {/* Cell-type-specific toolbars */}
+            {cell.cellType === "code" && <CodeToolbar />}
+            {cell.cellType === "ai" && (
+              <AiToolbar
+                provider={cell.aiProvider || "openai"}
+                model={cell.aiModel || "gpt-4o-mini"}
+                onProviderChange={(newProvider: string, newModel: string) => {
+                  store.commit(
+                    events.aiSettingsChanged({
+                      cellId: cell.id,
+                      provider: newProvider,
+                      model: newModel,
+                      settings: {
+                        temperature: 0.7,
+                        maxTokens: 1000,
+                      },
+                    })
+                  );
 
-                // Save the last used AI model to notebook metadata for future AI cells
-                store.commit(
-                  events.notebookMetadataSet({
-                    key: "lastUsedAiProvider",
-                    value: newProvider,
-                  })
-                );
-                store.commit(
-                  events.notebookMetadataSet({
-                    key: "lastUsedAiModel",
-                    value: newModel,
-                  })
-                );
-              }}
+                  // Save the last used AI model to notebook metadata for future AI cells
+                  store.commit(
+                    events.notebookMetadataSet({
+                      key: "lastUsedAiProvider",
+                      value: newProvider,
+                    })
+                  );
+                  store.commit(
+                    events.notebookMetadataSet({
+                      key: "lastUsedAiModel",
+                      value: newModel,
+                    })
+                  );
+                }}
+              />
+            )}
+            {cell.cellType === "sql" && (
+              <SqlToolbar
+                dataConnection={cell.sqlConnectionId || "default"}
+                onDataConnectionChange={(newConnectionId: string) => {
+                  store.commit(
+                    events.sqlConnectionChanged({
+                      cellId: cell.id,
+                      connectionId: newConnectionId,
+                      changedBy: userId,
+                    })
+                  );
+
+                  // Save the last used SQL connection to notebook metadata for future SQL cells
+                  store.commit(
+                    events.notebookMetadataSet({
+                      key: "lastUsedSqlConnection",
+                      value: newConnectionId,
+                    })
+                  );
+                }}
+              />
+            )}
+
+            <ExecutionStatus executionState={cell.executionState} />
+            <PresenceBookmarks
+              usersOnCell={usersOnCell}
+              getUserColor={getUserColor}
             />
-          )}
-          {cell.cellType === "sql" && (
-            <SqlToolbar
-              dataConnection={cell.sqlConnectionId || "default"}
-              onDataConnectionChange={(newConnectionId: string) => {
-                store.commit(
-                  events.sqlConnectionChanged({
-                    cellId: cell.id,
-                    connectionId: newConnectionId,
-                    changedBy: userId,
-                  })
-                );
+          </div>
 
-                // Save the last used SQL connection to notebook metadata for future SQL cells
-                store.commit(
-                  events.notebookMetadataSet({
-                    key: "lastUsedSqlConnection",
-                    value: newConnectionId,
-                  })
-                );
-              }}
-            />
-          )}
-
-          <ExecutionStatus executionState={cell.executionState} />
-          <PresenceBookmarks
-            usersOnCell={usersOnCell}
-            getUserColor={getUserColor}
+          <CellControls
+            sourceVisible={cell.sourceVisible}
+            aiContextVisible={cell.aiContextVisible}
+            contextSelectionMode={contextSelectionMode}
+            onDeleteCell={() => handleDeleteCell("click")}
+            onClearOutputs={clearCellOutputs}
+            hasOutputs={hasOutputs}
+            toggleSourceVisibility={toggleSourceVisibility}
+            toggleAiContextVisibility={toggleAiContextVisibility}
+            playButton={
+              <PlayButton
+                executionState={cell.executionState}
+                cellType={cell.cellType}
+                autoFocus={autoFocus}
+                onExecute={executeCell}
+                onInterrupt={interruptCell}
+                className="mobile-play-btn block sm:hidden"
+                primaryColor="text-foreground"
+              />
+            }
           />
         </div>
+      )}
 
-        <CellControls
-          sourceVisible={cell.sourceVisible}
-          aiContextVisible={cell.aiContextVisible}
-          contextSelectionMode={contextSelectionMode}
-          onDeleteCell={() => handleDeleteCell("click")}
-          onClearOutputs={clearCellOutputs}
-          hasOutputs={hasOutputs}
-          toggleSourceVisibility={toggleSourceVisibility}
-          toggleAiContextVisibility={toggleAiContextVisibility}
-          playButton={
+      {/* Cell Content with Left Gutter Play Button - Desktop Only */}
+      {!isSourceLessAiOutput && (
+        <div className="relative">
+          {/* Play Button Breaking Through Left Border - Desktop Only */}
+          <div
+            className="desktop-play-btn absolute -left-3 z-10 hidden sm:block"
+            style={{
+              top: cell.sourceVisible ? "0.35rem" : "-1.5rem",
+            }}
+          >
             <PlayButton
               executionState={cell.executionState}
               cellType={cell.cellType}
               autoFocus={autoFocus}
               onExecute={executeCell}
               onInterrupt={interruptCell}
-              className="mobile-play-btn block sm:hidden"
-              primaryColor="text-foreground"
+              size="default"
+              className="h-6 w-6 rounded-sm border-0 bg-white p-0 transition-colors hover:bg-white"
+              primaryColor={
+                cell.cellType === "ai" ? "text-purple-600" : "text-foreground"
+              }
             />
-          }
-        />
-      </div>
-
-      {/* Cell Content with Left Gutter Play Button - Desktop Only */}
-      <div className="relative">
-        {/* Play Button Breaking Through Left Border - Desktop Only */}
-        <div
-          className="desktop-play-btn absolute -left-3 z-10 hidden sm:block"
-          style={{
-            top: cell.sourceVisible ? "0.35rem" : "-1.5rem",
-          }}
-        >
-          <PlayButton
-            executionState={cell.executionState}
-            cellType={cell.cellType}
-            autoFocus={autoFocus}
-            onExecute={executeCell}
-            onInterrupt={interruptCell}
-            size="default"
-            className="h-6 w-6 rounded-sm border-0 bg-white p-0 transition-colors hover:bg-white"
-            primaryColor={
-              cell.cellType === "ai" ? "text-purple-600" : "text-foreground"
-            }
-          />
-        </div>
-
-        {/* AI Tool Approval (if any) */}
-        {cell.cellType === "ai" && <MaybeInlineToolApproval cellId={cell.id} />}
-
-        {/* Editor Content Area */}
-        {cell.sourceVisible && (
-          <div className="cell-content max-w-full overflow-x-auto bg-white py-1 pl-4 transition-colors">
-            <ErrorBoundary fallback={<div>Error rendering editor</div>}>
-              <Editor
-                ref={handleEditorReady}
-                localSource={localSource}
-                handleSourceChange={handleSourceChange}
-                onBlur={updateSource}
-                handleFocus={handleFocus}
-                language={languageFromCellType(cell.cellType)}
-                placeholder={placeholderFromCellType(cell.cellType)}
-                enableLineWrapping={shouldEnableLineWrapping(cell.cellType)}
-                autoFocus={autoFocus}
-                keyMap={keyMap}
-              />
-            </ErrorBoundary>
           </div>
-        )}
-      </div>
+
+          {/* AI Tool Approval (if any) */}
+          {cell.cellType === "ai" && (
+            <MaybeInlineToolApproval cellId={cell.id} />
+          )}
+
+          {/* Editor Content Area */}
+          {cell.sourceVisible && (
+            <div className="cell-content max-w-full overflow-x-auto bg-white py-1 pl-4 transition-colors">
+              <ErrorBoundary fallback={<div>Error rendering editor</div>}>
+                <Editor
+                  ref={handleEditorReady}
+                  localSource={localSource}
+                  handleSourceChange={handleSourceChange}
+                  onBlur={updateSource}
+                  handleFocus={handleFocus}
+                  language={languageFromCellType(cell.cellType)}
+                  placeholder={placeholderFromCellType(cell.cellType)}
+                  enableLineWrapping={shouldEnableLineWrapping(cell.cellType)}
+                  autoFocus={autoFocus}
+                  keyMap={keyMap}
+                />
+              </ErrorBoundary>
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Execution Summary - appears after input */}
       {(cell.executionCount ||
