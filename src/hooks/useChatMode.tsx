@@ -1,13 +1,12 @@
 import { createContext, useContext, ReactNode } from "react";
-import { useLocalStorage } from "react-use";
+import { useQuery } from "@livestore/react";
+import { useStore } from "@livestore/react";
+import { queryDb } from "@livestore/livestore";
+import { tables, events } from "@runt/schema";
 
 export interface ChatModeState {
   enabled: boolean;
 }
-
-const defaultChatModeState: ChatModeState = {
-  enabled: false,
-};
 
 interface ChatModeContextType {
   chatModeState: ChatModeState;
@@ -22,27 +21,42 @@ const ChatModeContext = createContext<ChatModeContextType | undefined>(
 
 interface ChatModeProviderProps {
   children: ReactNode;
-  storageKey?: string;
 }
 
-export function ChatModeProvider({
-  children,
-  storageKey = "anode-chat-mode-state",
-}: ChatModeProviderProps) {
-  const [chatModeState, setChatModeState] = useLocalStorage<ChatModeState>(
-    storageKey,
-    defaultChatModeState
+export function ChatModeProvider({ children }: ChatModeProviderProps) {
+  const { store } = useStore();
+
+  // Query the chatMode metadata from the notebook
+  const chatModeMetadata = useQuery(
+    queryDb(
+      tables.notebookMetadata.select().where({ key: "chatMode" }).limit(1)
+    )
   );
 
+  // Get the current chat mode state from metadata
+  const chatModeState: ChatModeState = {
+    enabled: chatModeMetadata[0]?.value === "true" || false,
+  };
+
+  const setChatModeState = (
+    state: ChatModeState | ((prev: ChatModeState) => ChatModeState)
+  ) => {
+    if (!store) return;
+
+    const newState = typeof state === "function" ? state(chatModeState) : state;
+
+    // Commit the metadata change to the store
+    store.commit(
+      events.notebookMetadataSet({
+        key: "chatMode",
+        value: newState.enabled.toString(),
+      })
+    );
+  };
+
   const contextValue: ChatModeContextType = {
-    chatModeState: chatModeState || defaultChatModeState,
-    setChatModeState: (state) => {
-      if (typeof state === "function") {
-        setChatModeState((prev) => state(prev || defaultChatModeState));
-      } else {
-        setChatModeState(state);
-      }
-    },
+    chatModeState,
+    setChatModeState,
   };
 
   return (
@@ -63,7 +77,6 @@ export function useChatMode() {
     enabled: context.chatModeState.enabled,
     setEnabled: (enabled: boolean) => {
       context.setChatModeState({
-        ...context.chatModeState,
         enabled,
       });
     },
