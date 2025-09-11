@@ -27,6 +27,7 @@ const DebugCell = ({
   cellIndex: number;
 }) => {
   const cell = useQuery(queries.cellQuery.byId(cellId));
+
   if (!cell) {
     return (
       <div className="animate-pulse border-4 border-red-500 bg-red-900 p-4 text-xl font-bold text-white">
@@ -36,14 +37,58 @@ const DebugCell = ({
   }
 
   return (
-    <details className="group">
+    <details className="group open:bg-muted/50">
       <summary className="hover:bg-muted/50 cursor-pointer rounded p-1 font-mono text-xs">
         {cellIndex + 1}. {cell.cellType} ({cellId.slice(-8)})
       </summary>
-      <pre className="bg-card mt-1 max-w-full overflow-x-auto rounded border p-2 text-xs">
-        {JSON.stringify(cell, null, 2)}
-      </pre>
+      <div className="px-2">
+        <pre className="bg-card mt-1 max-w-full overflow-x-auto rounded border p-2 text-xs">
+          {JSON.stringify(cell, null, 2)}
+        </pre>
+        <DebugCellOutputs key={cellId} cellId={cellId} cellIndex={cellIndex} />
+      </div>
     </details>
+  );
+};
+
+const DebugCellOutputs = ({
+  cellId,
+  cellIndex,
+}: {
+  cellId: string;
+  cellIndex: number;
+}) => {
+  const outputs = useQuery(queries.cellQuery.outputs(cellId));
+  const cell = useQuery(queries.cellQuery.byId(cellId));
+
+  if (!cell) {
+    return null; // Don't show outputs for non-existent cells
+  }
+
+  if (!outputs || outputs.length === 0) {
+    return (
+      <details className="group">
+        <summary className="hover:bg-muted/50 text-muted-foreground cursor-pointer rounded p-1 font-mono text-xs">
+          {cellIndex + 1}. {cell.cellType} ({cellId.slice(-8)}) - No outputs
+        </summary>
+      </details>
+    );
+  }
+
+  return (
+    <>
+      {outputs.map((output, outputIndex) => (
+        <details key={output.id} className="group">
+          <summary className="hover:bg-muted/30 bg-muted/20 cursor-pointer rounded p-1 font-mono text-xs">
+            Output {outputIndex + 1}: (pos: {output.position})
+            {output.mimeType && ` - ${output.mimeType}`}
+          </summary>
+          <pre className="bg-card mt-1 max-w-full overflow-x-auto rounded border p-2 text-xs">
+            {JSON.stringify(output, null, 2)}
+          </pre>
+        </details>
+      ))}
+    </>
   );
 };
 
