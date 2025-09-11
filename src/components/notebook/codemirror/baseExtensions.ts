@@ -45,6 +45,9 @@ const customStyles = EditorView.theme({
   ".cm-tooltip": {
     fontSize: "12px",
   },
+  ".cm-rename-popup": {
+    fontSize: "14px",
+  },
 });
 
 export const basicSetup: Extension = (() => [
