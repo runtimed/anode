@@ -2144,6 +2144,9 @@ packages:
     cpu: [x64]
     os: [win32]
 
+  '@runt/schema@file:../runt/packages/schema':
+    resolution: {directory: ../runt/packages/schema, type: directory}
+
   '@sindresorhus/is@7.0.2':
     resolution: {integrity: sha512-d9xRovfKNz1SKieM0qJdO+PQonjnnIfSNWfHYnBSJ9hkjm0ZPw6HlxscDXYstp3z+7V2GOFHc+J0CYrYTjqCJw==}
     engines: {node: '>=18'}
@@ -7051,6 +7054,27 @@ snapshots:
 
   '@rollup/rollup-win32-x64-msvc@4.45.0':
     optional: true
+
+  '@runt/schema@file:../runt/packages/schema(f9c23af240f2640c0a9abef8711d3cc6)':
+    dependencies:
+      '@livestore/livestore': 0.3.1(f9c23af240f2640c0a9abef8711d3cc6)
+      fractional-indexing: 3.2.0
+    transitivePeerDependencies:
+      - '@effect/cli'
+      - '@effect/cluster'
+      - '@effect/experimental'
+      - '@effect/opentelemetry'
+      - '@effect/platform'
+      - '@effect/platform-browser'
+      - '@effect/platform-bun'
+      - '@effect/platform-node'
+      - '@effect/printer'
+      - '@effect/printer-ansi'
+      - '@effect/rpc'
+      - '@effect/sql'
+      - '@effect/typeclass'
+      - '@opentelemetry/resources'
+      - effect
 
   '@sindresorhus/is@7.0.2': {}
 
