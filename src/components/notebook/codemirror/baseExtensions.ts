@@ -42,6 +42,9 @@ const customStyles = EditorView.theme({
   ".cm-cursor": {
     borderLeftWidth: "2px",
   },
+  ".cm-tooltip": {
+    fontSize: "12px",
+  },
 });
 
 export const basicSetup: Extension = (() => [
