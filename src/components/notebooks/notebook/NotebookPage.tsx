@@ -1,7 +1,8 @@
-import { ArrowLeft, User, Users } from "lucide-react";
-import React, { useState } from "react";
+import { ArrowLeft, ArrowUp, User, Users } from "lucide-react";
+import React, { RefObject, useRef, useState } from "react";
 import { ErrorBoundary } from "react-error-boundary";
 import { Link, useLocation, useParams } from "react-router-dom";
+import { useScroll } from "react-use";
 import { CollaboratorAvatars } from "../../CollaboratorAvatars.js";
 
 import { CustomLiveStoreProvider } from "../../livestore/CustomLiveStoreProvider.js";
@@ -16,6 +17,7 @@ import { SimpleUserProfile } from "../SimpleUserProfile.js";
 import type { NotebookProcessed } from "../types.js";
 import { useNavigateToCanonicalUrl, useNotebook } from "./helpers.js";
 import { TitleEditor } from "./TitleEditor.js";
+import { useIsMobile } from "@/hooks/use-mobile.js";
 
 export const NotebookPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -82,10 +84,17 @@ function NotebookPageWithIdAndNotebook({
 }) {
   useNavigateToCanonicalUrl(notebook);
 
+  const isMobile = useIsMobile();
   const [isSharingModalOpen, setIsSharingModalOpen] = useState(false);
   const [isAiPanelOpen, setIsAiPanelOpen] = useState(false);
+  const nbContentScrollRef = useRef<HTMLDivElement>(null);
 
   const canEdit = notebook.myPermission === "OWNER";
+
+  const { y: scrollY } = useScroll(
+    nbContentScrollRef as RefObject<HTMLElement>
+  );
+  const isScrolled = scrollY > 0;
 
   return (
     <div className="flex h-screen w-full">
@@ -191,7 +200,7 @@ function NotebookPageWithIdAndNotebook({
           </div>
         </div>
 
-        <div className="flex-1 overflow-auto">
+        <div ref={nbContentScrollRef} className="flex-1 overflow-auto">
           <div className="w-full max-w-full px-2 sm:container sm:mx-auto sm:max-w-none sm:px-4">
             <div className="max-w-full min-w-0 overflow-hidden">
               <NotebookContent />
@@ -199,6 +208,18 @@ function NotebookPageWithIdAndNotebook({
             <div className="h-[70vh]"></div>
           </div>
         </div>
+        {isScrolled && !isMobile && (
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => {
+              nbContentScrollRef.current?.scrollTo({ top: 0 });
+            }}
+            className="bg-background/50 absolute right-4 bottom-4 bg-white/50 backdrop-blur-xs"
+          >
+            <ArrowUp />
+          </Button>
+        )}
       </div>
 
       {/* Sharing Modal */}
