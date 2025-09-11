@@ -135,7 +135,7 @@ export const Editor = forwardRef<EditorRef, EditorProps>(
               <span className="text-muted-foreground text-xs">LSP</span>
             </div>
           )}
-          enableLSP && language && isLSPAvailable(language) && documentUri
+          {/* enableLSP && language && isLSPAvailable(language) && documentUri
           <JsonOutput
             data={{
               shouldEnableLSP,
@@ -143,7 +143,7 @@ export const Editor = forwardRef<EditorRef, EditorProps>(
               isLSPAvailable: isLSPAvailable(language),
               documentUri,
             }}
-          />
+          /> */}
           <ErrorBoundary FallbackComponent={ErrorFallback}>
             <CodeMirrorEditor
               ref={normalEditorRef}

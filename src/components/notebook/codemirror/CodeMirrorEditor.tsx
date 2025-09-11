@@ -185,15 +185,12 @@ export const CodeMirrorEditor = forwardRef<
     }, [setContainer]);
 
     return (
-      <>
-        {extensions.flatMap((extension) => extension.toString()).join(", ")}
-        <div
-          ref={editorRef}
-          onBlur={onBlur}
-          onFocus={handleFocus}
-          className={className}
-        />
-      </>
+      <div
+        ref={editorRef}
+        onBlur={onBlur}
+        onFocus={handleFocus}
+        className={className}
+      />
     );
   }
 );
