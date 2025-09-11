@@ -2,6 +2,25 @@
 
 This document explains how to set up Language Server Protocol (LSP) support in Anode for enhanced code editing features like autocompletion, error checking, and go-to-definition.
 
+## Working with servers (human-edited)
+
+LSP works with both basedpyright and python-lsp-server. Both have their tradeoffs.
+
+For `basedpyright`, run:
+
+```sh
+pnpm dev:lsp
+```
+
+`python-lsp-server` is probably best installed into a new conda env and run through there like so
+
+```sh
+conda activate my-lsp-env
+pylsp --ws --port 3001 -v
+```
+
+Ideally, we want them to run in the same runtime env as the notebook itself.
+
 ## Features
 
 With LSP enabled, you get:
