@@ -9,6 +9,7 @@ import { useUserRegistry } from "@/hooks/useUserRegistry.js";
 import { useEditorRegistry } from "@/hooks/useEditorRegistry.js";
 import { useDeleteCell } from "@/hooks/useDeleteCell.js";
 import { useAddCell } from "@/hooks/useAddCell.js";
+import { getStoreId } from "@/util/store-id.js";
 
 import { useStore } from "@livestore/react";
 import { focusedCellSignal$, hasManuallyFocused$ } from "../signals/focus.js";
@@ -71,6 +72,7 @@ export const ExecutableCell: React.FC<ExecutableCellProps> = ({
   autoFocus = false,
   contextSelectionMode = false,
 }) => {
+  const notebookId = getStoreId();
   const hasRunRef = useRef(false);
   const cellRef = useRef<HTMLDivElement>(null);
 
@@ -472,6 +474,9 @@ export const ExecutableCell: React.FC<ExecutableCellProps> = ({
                 enableLineWrapping={shouldEnableLineWrapping(cell.cellType)}
                 autoFocus={autoFocus}
                 keyMap={keyMap}
+                notebookId={notebookId}
+                cellId={cell.id}
+                enableLSP={true}
               />
             </ErrorBoundary>
           </div>

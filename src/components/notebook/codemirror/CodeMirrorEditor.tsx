@@ -16,10 +16,11 @@ import {
 
 import { markdown } from "@codemirror/lang-markdown";
 
-import { SupportedLanguage } from "@/types/misc.js";
+import { SupportedLanguage, SupportedLspLanguage } from "@/types/misc.js";
 import { sql } from "@codemirror/lang-sql";
 import { useCodeMirror } from "@uiw/react-codemirror";
 import { baseExtensions, aiBaseExtensions } from "./baseExtensions.js";
+import { createLSPExtension, isLSPAvailable } from "./lspConfig.js";
 
 export interface CodeMirrorEditorRef {
   focus: () => void;
@@ -40,6 +41,8 @@ type CodeMirrorEditorProps = {
   maxHeight?: string;
   enableLineWrapping?: boolean;
   disableAutocompletion?: boolean;
+  enableLSP?: boolean;
+  documentUri?: string;
 };
 
 function languageExtension(language: SupportedLanguage) {
@@ -71,6 +74,8 @@ export const CodeMirrorEditor = forwardRef<
       maxHeight,
       enableLineWrapping = false,
       disableAutocompletion = false,
+      enableLSP = false,
+      documentUri,
     },
     ref
   ) => {
@@ -86,6 +91,16 @@ export const CodeMirrorEditor = forwardRef<
       const selectedBaseExtensions = disableAutocompletion
         ? aiBaseExtensions
         : baseExtensions;
+
+      if (enableLSP && isLSPAvailable(language) && documentUri) {
+        const lspExtension = createLSPExtension(
+          language as SupportedLspLanguage,
+          documentUri
+        );
+        if (lspExtension) {
+          selectedBaseExtensions.push(lspExtension);
+        }
+      }
 
       const exts = [
         keymap.of(keyMap || []),
@@ -108,6 +123,9 @@ export const CodeMirrorEditor = forwardRef<
       placeholder,
       enableLineWrapping,
       disableAutocompletion,
+      enableLSP,
+      language,
+      documentUri,
     ]);
 
     const handleChange = useCallback(

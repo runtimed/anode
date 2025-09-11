@@ -1,4 +1,5 @@
 import {
+  autocompletion,
   closeBrackets,
   closeBracketsKeymap,
   completionKeymap,
@@ -21,6 +22,10 @@ import {
   rectangularSelection,
 } from "@codemirror/view";
 import { githubLight } from "@uiw/codemirror-theme-github";
+import { isLSPAvailable } from "./lspConfig.js";
+
+// Re-export isLSPAvailable for use in other components
+export { isLSPAvailable };
 
 const customStyles = EditorView.theme({
   // Remove focus dotted outline
@@ -37,9 +42,16 @@ const customStyles = EditorView.theme({
   ".cm-cursor": {
     borderLeftWidth: "2px",
   },
+  ".cm-tooltip": {
+    fontSize: "12px",
+  },
+  ".cm-rename-popup": {
+    fontSize: "14px",
+  },
 });
 
 export const basicSetup: Extension = (() => [
+  autocompletion(),
   history(),
   drawSelection(),
   dropCursor(),

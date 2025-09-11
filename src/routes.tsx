@@ -17,6 +17,7 @@ import { NotebooksDashboardPage } from "@/pages/NotebooksDashboardPage.tsx";
 import OidcCallbackPage from "@/pages/OidcCallbackPage.tsx";
 import { ErrorBoundary } from "react-error-boundary";
 import { ErrorFallbackPage } from "./components/ErrorFallbackPage";
+import { LspTestPage } from "./pages/LspTestPage";
 
 export const App: React.FC = () => {
   // Safety net: Auto-remove loading screen if no component has handled it
@@ -95,7 +96,7 @@ export const App: React.FC = () => {
               </AuthGuard>
             }
           />
-
+          <Route path="/lsp" element={<LspTestPage />} />
           <Route path="/" element={<Navigate to="/nb" replace />} />
         </Routes>
         <FPSMeter />

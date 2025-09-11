@@ -556,3 +556,9 @@
     @apply block bg-primary;
   }
 }
+
+.cm-tooltip-autocomplete::after {
+  @apply text-xs block w-full px-1;
+  border-top: 1px solid #bbb;
+  content: "Press [Enter] to select";
+}
