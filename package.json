@@ -46,6 +46,7 @@
     "start": "echo 'Use `pnpm dev` to run the integrated server (frontend + backend). Legacy `dev:sync` script removed - now using Cloudflare Vite plugin.'"
   },
   "dependencies": {
+    "@astral-sh/ruff-wasm-bundler": "^0.13.0",
     "@codemirror/autocomplete": "^6.18.6",
     "@codemirror/commands": "^6.8.1",
     "@codemirror/lang-markdown": "^6.3.3",
@@ -119,6 +120,7 @@
     "zod": "^4.0.17"
   },
   "devDependencies": {
+    "@astral-sh/ruff-wasm-nodejs": "^0.13.0",
     "@cloudflare/vite-plugin": "^1.9.6",
     "@cloudflare/workers-types": "^4.20250813.0",
     "@effect/vitest": "0.23.7",
@@ -156,6 +158,7 @@
     "tailwindcss": "^4.1.10",
     "typescript": "^5.8.3",
     "vite": "^6.3.5",
+    "vite-plugin-wasm": "^3.5.0",
     "vitest": "^3.0.0",
     "webpack-bundle-analyzer": "^4.10.2",
     "wrangler": "4.27.0"

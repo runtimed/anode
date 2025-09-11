@@ -3,6 +3,7 @@ import { fileURLToPath } from "node:url";
 import { execSync } from "child_process";
 
 import { livestoreDevtoolsPlugin } from "@livestore/devtools-vite";
+import wasm from "vite-plugin-wasm";
 import react from "@vitejs/plugin-react";
 import tailwindcss from "@tailwindcss/vite";
 import { defineConfig, loadEnv } from "vite";
@@ -44,6 +45,7 @@ export default defineConfig(({ mode }) => {
   }
 
   const plugins = [
+    wasm(),
     envValidationPlugin(env),
     injectLoadingScreen(),
     react({

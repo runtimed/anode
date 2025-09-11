@@ -19,6 +19,9 @@ importers:
 
   .:
     dependencies:
+      '@astral-sh/ruff-wasm-bundler':
+        specifier: ^0.13.0
+        version: 0.13.0
       '@codemirror/autocomplete':
         specifier: ^6.18.6
         version: 6.18.6
@@ -233,6 +236,9 @@ importers:
         specifier: ^4.0.17
         version: 4.0.17
     devDependencies:
+      '@astral-sh/ruff-wasm-nodejs':
+        specifier: ^0.13.0
+        version: 0.13.0
       '@cloudflare/vite-plugin':
         specifier: ^1.9.6
         version: 1.9.6(rollup@4.45.0)(vite@6.3.5(@types/node@24.0.13)(jiti@2.4.2)(lightningcss@1.30.1)(yaml@2.8.1))(workerd@1.20250730.0)(wrangler@4.27.0(@cloudflare/workers-types@4.20250813.0))
@@ -344,6 +350,9 @@ importers:
       vite:
         specifier: ^6.3.5
         version: 6.3.5(@types/node@24.0.13)(jiti@2.4.2)(lightningcss@1.30.1)(yaml@2.8.1)
+      vite-plugin-wasm:
+        specifier: ^3.5.0
+        version: 3.5.0(vite@6.3.5(@types/node@24.0.13)(jiti@2.4.2)(lightningcss@1.30.1)(yaml@2.8.1))
       vitest:
         specifier: ^3.0.0
         version: 3.2.4(@types/debug@4.1.12)(@types/node@24.0.13)(@vitest/ui@3.2.4)(happy-dom@15.11.7)(jiti@2.4.2)(lightningcss@1.30.1)(yaml@2.8.1)
@@ -366,6 +375,12 @@ packages:
   '@ampproject/remapping@2.3.0':
     resolution: {integrity: sha512-30iZtAPgz+LTIYoeivqYo853f02jBYSd5uGnGpkFV0M3xOt9aN73erkgYAmZU43x4VfqcnLxW9Kpg3R5LC4YYw==}
     engines: {node: '>=6.0.0'}
+
+  '@astral-sh/ruff-wasm-bundler@0.13.0':
+    resolution: {integrity: sha512-t8++k7Vpuzg8zxD5uu1uSm5kgTn/B22MQ5u2DYtYGn+77qcl5zMIRm7WCWB++Fzt31xh9yc530kajYHxYC8GZw==}
+
+  '@astral-sh/ruff-wasm-nodejs@0.13.0':
+    resolution: {integrity: sha512-+1b/Z3BlLqxARV0/ao7lr5dHJkz97oj8Ge29D7MG4OsFyUQ3v11aO9IqXBFZv0cWpD1JwHmdrt9//q4gbl7reA==}
 
   '@babel/code-frame@7.27.1':
     resolution: {integrity: sha512-cjQ7ZlQ0Mv3b47hABuTevyTuYN4i+loJKGeV9flcCgIK37cCXRh+L1bd3iBHlynerhQ7BhCkn2BPbQUL+rGqFg==}
@@ -4809,6 +4824,11 @@ packages:
     engines: {node: ^18.0.0 || ^20.0.0 || >=22.0.0}
     hasBin: true
 
+  vite-plugin-wasm@3.5.0:
+    resolution: {integrity: sha512-X5VWgCnqiQEGb+omhlBVsvTfxikKtoOgAzQ95+BZ8gQ+VfMHIjSHr0wyvXFQCa0eKQ0fKyaL0kWcEnYqBac4lQ==}
+    peerDependencies:
+      vite: ^2 || ^3 || ^4 || ^5 || ^6 || ^7
+
   vite@6.3.4:
     resolution: {integrity: sha512-BiReIiMS2fyFqbqNT/Qqt4CVITDU9M9vE+DKcVAsB+ZV0wvTKd+3hMbkpxz1b+NmEDMegpVbisKiAZOnvO92Sw==}
     engines: {node: ^18.0.0 || ^20.0.0 || >=22.0.0}
@@ -5084,6 +5104,10 @@ snapshots:
     dependencies:
       '@jridgewell/gen-mapping': 0.3.12
       '@jridgewell/trace-mapping': 0.3.29
+
+  '@astral-sh/ruff-wasm-bundler@0.13.0': {}
+
+  '@astral-sh/ruff-wasm-nodejs@0.13.0': {}
 
   '@babel/code-frame@7.27.1':
     dependencies:
@@ -9925,6 +9949,10 @@ snapshots:
       - terser
       - tsx
       - yaml
+
+  vite-plugin-wasm@3.5.0(vite@6.3.5(@types/node@24.0.13)(jiti@2.4.2)(lightningcss@1.30.1)(yaml@2.8.1)):
+    dependencies:
+      vite: 6.3.5(@types/node@24.0.13)(jiti@2.4.2)(lightningcss@1.30.1)(yaml@2.8.1)
 
   vite@6.3.4(@types/node@24.0.13)(jiti@2.4.2)(lightningcss@1.30.1)(yaml@2.8.1):
     dependencies:
