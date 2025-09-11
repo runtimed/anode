@@ -1,5 +1,5 @@
 import { useEffect, useRef } from "react";
-import L from "leaflet";
+import Leaflet from "leaflet";
 import "leaflet/dist/leaflet.css";
 
 interface GeoJsonMapOutputProps {
@@ -8,19 +8,19 @@ interface GeoJsonMapOutputProps {
 
 export function GeoJsonMapOutput({ data }: GeoJsonMapOutputProps) {
   const mapRef = useRef<HTMLDivElement>(null);
-  const mapInstanceRef = useRef<L.Map | null>(null);
-  const geoJsonLayerRef = useRef<L.GeoJSON | null>(null);
+  const mapInstanceRef = useRef<Leaflet.Map | null>(null);
+  const geoJsonLayerRef = useRef<Leaflet.GeoJSON | null>(null);
 
   useEffect(() => {
     if (!mapRef.current || mapInstanceRef.current) return;
 
     // Initialize map
-    const map = L.map(mapRef.current);
+    const map = Leaflet.map(mapRef.current);
     map.scrollWheelZoom.disable();
     mapInstanceRef.current = map;
 
     // Add tile layer
-    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+    Leaflet.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
       attribution:
         '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
       minZoom: 0,
@@ -79,7 +79,7 @@ export function GeoJsonMapOutput({ data }: GeoJsonMapOutputProps) {
       }
 
       // Add new GeoJSON layer
-      const geoJsonLayer = L.geoJSON(geoJsonData).addTo(map);
+      const geoJsonLayer = Leaflet.geoJSON(geoJsonData).addTo(map);
       geoJsonLayerRef.current = geoJsonLayer;
 
       // Fit map to bounds
