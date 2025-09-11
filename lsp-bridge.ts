@@ -36,17 +36,51 @@ const wss = new ws.WebSocketServer({
 });
 
 wss.on("connection", (client, request: http.IncomingMessage) => {
-  let localConnection = rpcServer.createServerProcess(
-    "Example",
+  console.log("🪴 🪴 🪴 New WebSocket connection established for pyright");
+
+  console.log("Request headers:", request.headers);
+  console.log("Request method:", request.method);
+  console.log("Request url:", request.url);
+
+  // Try to read the request body (if any)
+  // let body: any[] = [];
+  // request.on("data", (chunk) => {
+  //   body.push(chunk);
+  // });
+  // request.on("end", () => {
+  //   if (body.length > 0) {
+  //     const rawBody = Buffer.concat(body).toString();
+  //     console.log("Request body:", rawBody);
+  //   } else {
+  //     console.log("Request body: <empty>");
+  //   }
+  // });
+
+  const localConnection = rpcServer.createServerProcess(
+    "Python Language Server",
     "basedpyright-langserver",
     ["--stdio"]
   );
 
-  let socket: rpc.IWebSocket = toSocket(client);
-  let connection = rpcServer.createWebSocketConnection(socket);
+  const socket: rpc.IWebSocket = toSocket(client);
+  const connection = rpcServer.createWebSocketConnection(socket);
   rpcServer.forward(connection, localConnection);
 
   console.log(`Forwarding new client`);
+
+  client.send(
+    JSON.stringify({
+      jsonrpc: "2.0",
+      method: "hello!!!",
+    })
+  );
+
+  client.on("message", (data) => {
+    console.log(
+      "Received message from WebSocket:",
+      JSON.stringify(JSON.parse(data.toString()), null, 2)
+    );
+  });
 
   socket.onClose((code, reason) => {
     console.log("Client closed", reason);

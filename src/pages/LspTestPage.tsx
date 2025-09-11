@@ -28,6 +28,10 @@ function simpleWebSocketTransport(uri: string): Promise<Transport> {
   let handlers: ((value: string) => void)[] = [];
   let sock = new WebSocket(uri);
   sock.onmessage = (e) => {
+    console.log(
+      "Received message from WebSocket:",
+      JSON.parse(e.data.toString())
+    );
     for (let h of handlers) h(e.data.toString());
   };
   return new Promise((resolve) => {
@@ -37,6 +41,7 @@ function simpleWebSocketTransport(uri: string): Promise<Transport> {
           sock.send(message);
         },
         subscribe(handler: (value: string) => void) {
+          console.log("Subscribed to WebSocket");
           handlers.push(handler);
         },
         unsubscribe(handler: (value: string) => void) {
