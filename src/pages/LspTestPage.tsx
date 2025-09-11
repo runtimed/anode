@@ -8,9 +8,11 @@ import { languageServer } from "@marimo-team/codemirror-languageserver";
 
 const lspExtension = languageServer({
   serverUri: LSP_SERVERS.python.url,
-  rootUri: "file:///",
-  workspaceFolders: [{ name: "workspace", uri: "file:///" }],
-  documentUri: "file:///path/to/test.py",
+  rootUri: "file:///Users/mm/p/anode/lsp",
+  workspaceFolders: [
+    { name: "workspace", uri: "file:///Users/mm/p/anode/lsp" },
+  ],
+  documentUri: "file:///Users/mm/p/anode/lsp/test.py",
   languageId: "python",
   keyboardShortcuts: {
     rename: "F2",
