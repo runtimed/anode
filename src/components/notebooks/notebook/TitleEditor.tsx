@@ -3,8 +3,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useMutation } from "@tanstack/react-query";
 import { Check, Edit2, X } from "lucide-react";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { NotebookProcessed } from "../types";
+import { useClickAway } from "react-use";
 
 export function TitleEditor({
   notebook,
@@ -47,19 +48,22 @@ export function TitleEditor({
     setEditTitle("");
   };
 
+  const ref = useRef(null);
+  useClickAway(ref, handleCancelEdit);
+
   // Update notebook mutation
   const updateNotebookMutation = useMutation(
     trpc.updateNotebook.mutationOptions()
   );
 
   return (
-    <div className="flex items-center gap-2">
+    <div ref={ref} className="flex items-center gap-2">
       {isEditingTitle ? (
         <div className="flex items-center gap-1 sm:gap-2">
           <Input
             value={editTitle}
             onChange={(e) => setEditTitle(e.target.value)}
-            className="text-sm font-semibold sm:text-lg"
+            className="field-sizing-content max-w-[calc(100vw/2)] text-sm font-semibold sm:text-lg"
             placeholder="Notebook title..."
             onKeyDown={(e) => {
               if (e.key === "Enter") handleSaveTitle();
@@ -86,8 +90,11 @@ export function TitleEditor({
           </Button>
         </div>
       ) : (
-        <div className="flex min-w-0 items-center gap-1 sm:gap-2">
-          <h1 className="min-w-0 flex-1 truncate text-sm font-semibold sm:text-lg md:text-xl">
+        <div
+          className="group/nb-title flex min-w-0 items-center gap-1 rounded-sm hover:ring-1 hover:ring-gray-300 hover:ring-offset-2 sm:gap-2"
+          onClick={handleStartEditTitle}
+        >
+          <h1 className="truncate text-sm font-semibold transition-shadow sm:text-lg md:text-xl">
             {notebook.title || "Untitled Notebook"}
           </h1>
           {canEdit && (
@@ -95,7 +102,7 @@ export function TitleEditor({
               size="sm"
               variant="ghost"
               onClick={handleStartEditTitle}
-              className="h-8 w-8 shrink-0 p-0"
+              className="size-0 shrink-0 p-0 text-gray-300 opacity-0 group-hover/nb-title:size-8 group-hover/nb-title:text-gray-600 group-hover/nb-title:opacity-100"
             >
               <Edit2 className="h-4 w-4" />
             </Button>
