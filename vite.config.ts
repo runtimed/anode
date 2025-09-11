@@ -3,6 +3,8 @@ import { fileURLToPath } from "node:url";
 import { execSync } from "child_process";
 
 import { livestoreDevtoolsPlugin } from "@livestore/devtools-vite";
+import topLevelAwait from "vite-plugin-top-level-await";
+import wasm from "vite-plugin-wasm";
 import react from "@vitejs/plugin-react";
 import tailwindcss from "@tailwindcss/vite";
 import { defineConfig, loadEnv } from "vite";
@@ -44,6 +46,10 @@ export default defineConfig(({ mode }) => {
   }
 
   const plugins = [
+    // `topLevelAwait()` is needed for wasm, otherwise build errors in GH actions:
+    // ERROR: Top-level await is not available in the configured target environment
+    topLevelAwait(),
+    wasm(),
     envValidationPlugin(env),
     injectLoadingScreen(),
     react({
