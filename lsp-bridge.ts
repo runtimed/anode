@@ -32,7 +32,7 @@ function toSocket(webSocket: ws.WebSocket): rpc.IWebSocket {
 const wss = new ws.WebSocketServer({
   perMessageDeflate: false,
   server,
-  path: "/pyright", // Handle /pyright path specifically
+  path: "", // Handle /pyright path specifically
 });
 
 wss.on("connection", (client, request: http.IncomingMessage) => {

@@ -12,7 +12,7 @@ export const LSP_SERVERS = {
   python: {
     // Python LSP server (e.g., Pyright, Pylsp, etc.)
     // You can configure this to point to your preferred Python LSP server
-    url: "ws://localhost:3001/pyright", // Example Pyright server
+    url: "ws://localhost:3001", // Example Pyright server
     languageId: "python",
   },
   // typescript: {
@@ -38,6 +38,8 @@ export const LSP_SERVERS = {
 // Global LSP client instances to share across editors
 const lspClients = new Map<SupportedLspLanguage, LanguageServerClient>();
 
+(window as any).getLSPClients = () => lspClients;
+
 /**
  * Get or create an LSP client for a specific language
  */
@@ -61,8 +63,10 @@ function getLSPClient(
     const transport = new WebSocketTransport(config.url);
     const client = new LanguageServerClient({
       transport,
-      rootUri: "file:///",
-      workspaceFolders: [{ name: "workspace", uri: "file:///" }],
+      rootUri: "file:///Users/mm/p/anode/lsp",
+      workspaceFolders: [
+        { name: "workspace", uri: "file:///Users/mm/p/anode/lsp" },
+      ],
     });
 
     lspClients.set(language, client);
@@ -73,20 +77,15 @@ function getLSPClient(
   }
 }
 
-/**
- * Create LSP extension for a specific language and document
- */
-export function createLSPExtension(
+const lspExtensions = new Map<SupportedLspLanguage, Extension>();
+
+function getLspExtension(
+  client: LanguageServerClient,
   language: SupportedLspLanguage,
   documentUri: string
 ): Extension {
-  if (!language || !documentUri) {
-    return [];
-  }
-
-  const client = getLSPClient(language);
-  if (!client) {
-    return [];
+  if (lspExtensions.has(language)) {
+    return lspExtensions.get(language)!;
   }
 
   const config = LSP_SERVERS[language];
@@ -94,7 +93,7 @@ export function createLSPExtension(
     return [];
   }
 
-  return languageServerWithClient({
+  const extension = languageServerWithClient({
     client,
     documentUri,
     languageId: config.languageId,
@@ -104,6 +103,24 @@ export function createLSPExtension(
     },
     allowHTMLContent: true,
   });
+
+  lspExtensions.set(language, extension);
+  return extension;
+}
+
+/**
+ * Create LSP extension for a specific language and document
+ */
+export function createLSPExtension(
+  language: SupportedLspLanguage,
+  documentUri: string
+): Extension {
+  const client = getLSPClient(language);
+  if (!client) {
+    return [];
+  }
+
+  return getLspExtension(client, language, documentUri);
 }
 
 /**
@@ -124,11 +141,13 @@ export function createLSPExtensionWithTransport(
 
   try {
     return languageServer({
-      serverUri: config.url,
-      rootUri: "file:///",
-      workspaceFolders: [{ name: "workspace", uri: "file:///" }],
-      documentUri,
-      languageId: config.languageId,
+      serverUri: LSP_SERVERS.python.url,
+      rootUri: "file:///Users/mm/p/anode/lsp",
+      workspaceFolders: [
+        { name: "workspace", uri: "file:///Users/mm/p/anode/lsp" },
+      ],
+      documentUri: "file:///Users/mm/p/anode/lsp/test.py",
+      languageId: "python",
       keyboardShortcuts: {
         rename: "F2",
         goToDefinition: "ctrlcmd",
