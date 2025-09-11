@@ -1,11 +1,11 @@
 import type { SidebarItemConfig, SidebarSection } from "./types";
 import {
   Tag,
-  ListChecks,
   MonitorCheck,
   MonitorOff,
   DatabaseZap,
   HelpCircle,
+  BotIcon,
 } from "lucide-react";
 
 interface SidebarConfigOptions {
@@ -30,7 +30,7 @@ const SIDEBAR_ITEM_CONFIGS: Record<SidebarSection, SidebarItemConfig> = {
   },
   ai: {
     id: "ai",
-    icon: ListChecks,
+    icon: BotIcon,
     tooltip: "AI Context Controls",
     title: "AI Context Controls",
   },
