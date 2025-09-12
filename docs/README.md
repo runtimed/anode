@@ -80,7 +80,7 @@ docs/
 - `src/sync/sync.ts` - Cloudflare Worker for LiveStore sync
 - `src/components/ui/` - Reusable UI components
 - `schema.ts` - Local LiveStore schema definitions (for web client)
-- `@runt/schema` - Primary LiveStore schema (JSR package, used by runtimes)
+- `@runtimed/schema` - Primary LiveStore schema (npm package, used by runtimes)
 
 **Development Commands:**
 
