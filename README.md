@@ -151,7 +151,7 @@ languages with custom runtime agents. We just need UI updates!
 
 ### Schema Linking for Development
 
-The `@runt/schema` package provides shared types and events between Anode and Runt. Use the appropriate linking method based on your development phase:
+The `@runtimed/schema` package provides shared types and events for Anode. Use the appropriate linking method based on your development phase:
 
 **Production (JSR Package)**:
 
@@ -162,7 +162,7 @@ pnpm use-runt prod
 Should update package.json to:
 
 ```json
-"@runt/schema": "jsr:^0.9.0"
+"@runtimed/schema": "^0.1.0"
 ```
 
 **Testing PR Changes (GitHub Reference)**:
@@ -174,7 +174,7 @@ pnpm use-runt main
 Should update package.json to use the hash of whatever is on `main` in the `runt` package:
 
 ```json
-"@runt/schema": "github:runtimed/runt#1d52f9e51b9f28e81e366a7053d1e5fa6164c390&path:/packages/schema"
+"@runtimed/schema": "workspace:*"
 ```
 
 **Local Development (File Link)**:
@@ -186,7 +186,7 @@ pnpm use-runt local
 Should update packages.json to use the local version of `runt`:
 
 ```json
-"@runt/schema": "file:../runt/packages/schema"
+"@runtimed/schema": "workspace:*"
 ```
 
 **To switch between modes:**
@@ -197,7 +197,7 @@ Should update packages.json to use the local version of `runt`:
 
 **Important**: Ensure both repositories use compatible schema versions. Type errors usually indicate schema mismatches.
 
-**Git Hook Protection**: A Husky pre-commit hook prevents accidentally committing `package.json` with `@runt/schema` using the `file:` protocol. This ensures the repository remains deployable. See [CONTRIBUTING.md](./CONTRIBUTING.md#git-hook-protection) for details.
+**Git Hook Protection**: A Husky pre-commit hook prevents accidentally committing `package.json` with `@runtimed/schema` using the `file:` protocol. This ensures the repository remains deployable. See [CONTRIBUTING.md](./CONTRIBUTING.md#git-hook-protection) for details.
 
 ## 🚀 Groq AI Integration
 
