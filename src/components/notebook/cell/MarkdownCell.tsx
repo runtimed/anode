@@ -1,31 +1,32 @@
+import { useAddCell } from "@/hooks/useAddCell.js";
 import { useCellContent } from "@/hooks/useCellContent.js";
 import { useCellKeyboardNavigation } from "@/hooks/useCellKeyboardNavigation.js";
-import { useEditorRegistry } from "@/hooks/useEditorRegistry.js";
 import { useDeleteCell } from "@/hooks/useDeleteCell.js";
-import { useAddCell } from "@/hooks/useAddCell.js";
+import { useEditorRegistry } from "@/hooks/useEditorRegistry.js";
+import { events, queries, tables } from "@/schema";
 import { useStore } from "@livestore/react";
-import { events, tables, queries } from "@/schema";
 import React, {
   useCallback,
   useEffect,
   useMemo,
   useRef,
   useState,
-  Suspense,
 } from "react";
 
 import { Button } from "@/components/ui/button.js";
-import { useAuthenticatedUser } from "../../../auth/index.js";
 import { useUserRegistry } from "@/hooks/useUserRegistry.js";
+import { cn } from "@/lib/utils.js";
 import { Edit3, Eye } from "lucide-react";
 import { ErrorBoundary } from "react-error-boundary";
 import { useClickAway } from "react-use";
+import { useAuthenticatedUser } from "../../../auth/index.js";
+import { focusedCellSignal$, hasManuallyFocused$ } from "../signals/focus.js";
 import { CellContainer } from "./shared/CellContainer.js";
 import { CellControls } from "./shared/CellControls.js";
 import { CellTypeSelector } from "./shared/CellTypeSelector.js";
 import { Editor, EditorRef } from "./shared/Editor.js";
 import { PresenceBookmarks } from "./shared/PresenceBookmarks.js";
-import { focusedCellSignal$, hasManuallyFocused$ } from "../signals/focus.js";
+import { IframeOutput } from "@/components/outputs/MaybeCellOutputs.js";
 
 type CellType = typeof tables.cells.Type;
 
@@ -34,14 +35,6 @@ interface MarkdownCellProps {
   autoFocus?: boolean;
   contextSelectionMode?: boolean;
 }
-
-const MarkdownRenderer = React.lazy(() =>
-  import("@/components/outputs/shared-with-iframe/MarkdownRenderer.js").then(
-    (m) => ({
-      default: m.MarkdownRenderer,
-    })
-  )
-);
 
 export const MarkdownCell: React.FC<MarkdownCellProps> = ({
   cell,
@@ -300,37 +293,63 @@ export const MarkdownCell: React.FC<MarkdownCellProps> = ({
 
       {/* Cell Content */}
       <div className="relative">
-        {/* Editor Content Area */}
-        {cell.sourceVisible && isEditing && (
-          <div className="cell-content bg-white py-1 pl-4 transition-colors">
-            <ErrorBoundary fallback={<div>Error rendering editor</div>}>
-              <Editor
-                ref={handleEditorReady}
-                localSource={localSource}
-                handleSourceChange={handleSourceChange}
-                onBlur={updateSource}
-                handleFocus={handleFocus}
-                language="markdown"
-                placeholder="Write markdown..."
-                enableLineWrapping={true}
-                autoFocus={autoFocus}
-                keyMap={extendedKeyMap}
-              />
-            </ErrorBoundary>
-          </div>
-        )}
-        {cell.sourceVisible && !isEditing && (
-          <div
-            className="cell-content bg-white py-1 pr-4 pl-4 transition-colors"
+        <div
+          className={cn(
+            "cell-content bg-white py-1 pr-4 pl-4 transition-colors",
+            cell.sourceVisible && !isEditing ? "h-auto" : "h-0 opacity-0"
+          )}
+        >
+          {/* Send markdown content to iframe */}
+          <IframeOutput
             onDoubleClick={() => setIsEditing(true)}
-          >
-            <Suspense
-              fallback={<div className="animate-pulse">Loading...</div>}
-            >
-              <MarkdownRenderer content={localSource} />
-            </Suspense>
-          </div>
-        )}
+            outputs={[
+              {
+                id: cell.id + "-output",
+                cellId: cell.id,
+                position: 0,
+                streamName: null,
+                executionCount: 0,
+                representations: {
+                  "text/markdown": {
+                    type: "inline",
+                    data: localSource,
+                    metadata: {},
+                  },
+                },
+                metadata: {},
+                displayId: null,
+                mimeType: "text/markdown",
+                artifactId: null,
+                data: localSource,
+                outputType: "markdown",
+              },
+            ]}
+            isReact
+          />
+        </div>
+
+        {/* Editor Content Area */}
+        <div
+          className={cn(
+            "cell-content bg-white py-1 pl-4 transition-colors",
+            cell.sourceVisible && isEditing ? "block" : "hidden"
+          )}
+        >
+          <ErrorBoundary fallback={<div>Error rendering editor</div>}>
+            <Editor
+              ref={handleEditorReady}
+              localSource={localSource}
+              handleSourceChange={handleSourceChange}
+              onBlur={updateSource}
+              handleFocus={handleFocus}
+              language="markdown"
+              placeholder="Write markdown..."
+              enableLineWrapping={true}
+              autoFocus={autoFocus}
+              keyMap={extendedKeyMap}
+            />
+          </ErrorBoundary>
+        </div>
       </div>
     </CellContainer>
   );

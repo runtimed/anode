@@ -18,6 +18,10 @@ function initializeReactIframe() {
   sendFromIframe({ type: "iframe-loaded" });
 }
 
+document.addEventListener("dblclick", () => {
+  sendFromIframe({ type: "iframe-double-click" });
+});
+
 // Initialize when DOM is ready
 if (document.readyState === "loading") {
   document.addEventListener("DOMContentLoaded", initializeReactIframe);
