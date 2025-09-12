@@ -67,7 +67,7 @@ export default defineConfig(({ mode }) => {
       },
     }),
     tailwindcss(),
-    livestoreDevtoolsPlugin({ schemaPath: "./schema.ts" }),
+    livestoreDevtoolsPlugin({ schemaPath: "./packages/schema/src/index.ts" }),
   ];
 
   // Include Cloudflare plugin in development and auth modes

@@ -75,7 +75,7 @@
     "@radix-ui/react-slot": "^1.2.3",
     "@radix-ui/react-tooltip": "^1.1.6",
     "@react-spring/web": "^10.0.1",
-    "@runt/schema": "jsr:^0.13.0",
+    "@runtimed/schema": "workspace:*",
     "@tanstack/react-query": "^5.85.5",
     "@tanstack/react-query-devtools": "^5.85.5",
     "@tanstack/react-virtual": "^3.13.12",
