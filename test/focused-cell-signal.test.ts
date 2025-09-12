@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach, afterEach } from "vitest";
 import { signal, createStorePromise } from "@livestore/livestore";
 import { makeAdapter } from "@livestore/adapter-node";
-import { schema } from "../src/schema.js";
+import { schema } from "@runtimed/schema";
 import { createTestStoreId, cleanupResources } from "./setup.js";
 
 console.log("🧪 Starting Anode test suite...");
