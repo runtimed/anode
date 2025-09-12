@@ -197,8 +197,6 @@ Should update packages.json to use the local version of `runt`:
 
 **Important**: Ensure both repositories use compatible schema versions. Type errors usually indicate schema mismatches.
 
-
-
 ## 🚀 Groq AI Integration
 
 Anode supports **Groq** as a first-class AI provider alongside OpenAI and Ollama, offering high-speed inference with advanced models.

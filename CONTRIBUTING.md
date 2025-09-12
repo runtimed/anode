@@ -111,8 +111,6 @@ Use this when developing locally with both Anode and Runt repositories side-by-s
 
 **Important**: Always ensure both repositories are using compatible schema versions. Type errors usually indicate schema mismatches.
 
-
-
 ## Deployment
 
 We use a unified Cloudflare Worker architecture that serves both the web client and backend API. Deploy with:
