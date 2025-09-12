@@ -1,4 +1,4 @@
-import { tables } from "@/schema";
+import { tables } from "@runtimed/schema";
 import { forwardRef, ReactNode } from "react";
 import "./PresenceIndicators.css";
 

@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useState } from "react";
 import { useStore, useQuery } from "@livestore/react";
-import { events, tables } from "@/schema";
+import { events, tables } from "@runtimed/schema";
 import { queryDb } from "@livestore/livestore";
 import { Input } from "@/components/ui/input";
 

@@ -2,7 +2,7 @@ import { useCallback } from "react";
 import { useStore, useQuery } from "@livestore/react";
 import { useAuthenticatedUser } from "../auth/index.js";
 import { useAvailableAiModels } from "@/util/ai-models.js";
-import { events, queries, createCellBetween } from "@/schema";
+import { events, queries, createCellBetween } from "@runtimed/schema";
 import { focusedCellSignal$ } from "@/components/notebook/signals/focus.js";
 import {
   lastUsedAiModel$,

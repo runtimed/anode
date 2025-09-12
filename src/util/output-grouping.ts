@@ -1,4 +1,4 @@
-import { OutputData } from "@/schema";
+import { OutputData } from "@runtimed/schema";
 
 /**
  * Groups consecutive terminal outputs of the same type (stdout/stderr) into single outputs

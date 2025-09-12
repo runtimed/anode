@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { CellReference } from "@/schema";
+import { CellReference } from "@runtimed/schema";
 import { Plus } from "lucide-react";
 import { useAddCell } from "@/hooks/useAddCell.js";
 import { memo } from "react";

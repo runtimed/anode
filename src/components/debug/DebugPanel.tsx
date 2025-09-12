@@ -2,8 +2,8 @@ import React, { useState } from "react";
 import { useQuery, useStore } from "@livestore/react";
 import { queryDb, sql, Schema } from "@livestore/livestore";
 
-import { tables, events, queries } from "@/schema";
-import { schema } from "../../schema.js";
+import { tables, events, queries } from "@runtimed/schema";
+import { schema } from "@runtimed/schema";
 import { Database } from "lucide-react";
 import { Button } from "@/components/ui/button";
 

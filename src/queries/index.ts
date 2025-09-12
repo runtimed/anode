@@ -1,4 +1,4 @@
-import { tables } from "@/schema";
+import { tables } from "@runtimed/schema";
 import { queryDb } from "@livestore/livestore";
 
 // Most queries come from `@runt/schema/queries`. Where we've needed something custom, we've written it here.

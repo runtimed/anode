@@ -1,7 +1,7 @@
 import { makeWorker } from "@livestore/adapter-web/worker";
 import { makeCfSync } from "@livestore/sync-cf";
 
-import { schema } from "../../schema.js";
+import { schema } from "@runtimed/schema";
 
 function getLiveStoreUrl(): string {
   const syncUrl = import.meta.env.VITE_LIVESTORE_SYNC_URL;

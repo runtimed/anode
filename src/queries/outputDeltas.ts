@@ -1,4 +1,4 @@
-import { OutputData, tables } from "@/schema";
+import { OutputData, tables } from "@runtimed/schema";
 import { queryDb } from "@livestore/livestore";
 
 // TODO: code here is duplicated from `runt/packages/schema/queries/outputDeltas.ts`

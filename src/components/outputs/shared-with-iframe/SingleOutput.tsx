@@ -15,7 +15,7 @@ import {
   TEXT_MIME_TYPES,
   isArtifactContainer,
   isInlineContainer,
-} from "@/schema";
+} from "@runtimed/schema";
 import PlainTextOutput from "./PlainTextOutput";
 import { RichOutputContent } from "./RichOutputContent";
 
