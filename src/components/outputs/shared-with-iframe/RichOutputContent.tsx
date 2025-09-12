@@ -48,7 +48,7 @@ const PlainTextOutput = React.lazy(() =>
     })
   )
 );
-const GeoJsonMapOutput = React.lazy(() =>
+const GeoJsonMapWithPopups = React.lazy(() =>
   import("@/components/outputs/shared-with-iframe/GeoJsonMapOutput").then(
     (m) => ({
       default: m.GeoJsonMapOutput,
@@ -134,7 +134,11 @@ export function RichOutputContent({
       return <JsonOutput data={outputData[mediaType]} />;
 
     case "application/geo+json":
-      return <GeoJsonMapOutput data={outputData[mediaType]} />;
+      return (
+        <GeoJsonMapWithPopups
+          data={outputData[mediaType] as GeoJSON.FeatureCollection}
+        />
+      );
 
     case APPLICATION_MIME_TYPES[0]: // application/json
       return <JsonOutput data={outputData[mediaType]} />;
