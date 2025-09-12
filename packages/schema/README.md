@@ -16,14 +16,14 @@ const createEvent = createCellBetween(
     createdBy: "my-runtime",
   },
   cellBefore, // CellReference | null
-  cellAfter, // CellReference | null
+  cellAfter // CellReference | null
 );
 store.commit(createEvent);
 
 // Query tables
 const cells = store.query(tables.cells.select().where({ cellType: "code" }));
 const outputs = store.query(
-  tables.outputs.select().where({ cellId: "cell-123" }),
+  tables.outputs.select().where({ cellId: "cell-123" })
 );
 ```
 
@@ -215,7 +215,7 @@ store.commit(events.cellCreated({ cellId, cellType, source, position }));
 const event = createCellBetween(
   { id: cellId, cellType, createdBy: "runtime" },
   cellBefore,
-  cellAfter,
+  cellAfter
 );
 store.commit(event);
 ```
