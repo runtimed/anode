@@ -1,4 +1,4 @@
-# @runt/schema
+# @runtimed/schema
 
 LiveStore schema for Anode notebooks, defining events, tables, and types with
 conflict-free cell ordering and real-time collaboration support.
@@ -6,7 +6,7 @@ conflict-free cell ordering and real-time collaboration support.
 ## Usage
 
 ```typescript
-import { createCellBetween, events, schema, tables } from "jsr:@runt/schema";
+import { createCellBetween, events, schema, tables } from "@runtimed/schema";
 
 // Create cells using the helper (recommended approach)
 const createEvent = createCellBetween(
@@ -191,10 +191,9 @@ multiple clients create cells simultaneously.
 
 ## Development Notes
 
-**Dual Package Files**:
+**Package Configuration**:
 
-- `package.json` - Local development syncing with Anode
-- `deno.json` - JSR publishing and Deno runtime
+- `package.json` - npm publishing and Node.js/TypeScript compatibility
 
 **Type Safety**: All events and tables are fully typed. LiveStore enforces
 schema at runtime.
