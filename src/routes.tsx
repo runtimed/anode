@@ -17,6 +17,7 @@ import { NotebooksDashboardPage } from "@/pages/NotebooksDashboardPage.tsx";
 import OidcCallbackPage from "@/pages/OidcCallbackPage.tsx";
 import { ErrorBoundary } from "react-error-boundary";
 import { ErrorFallbackPage } from "./components/ErrorFallbackPage";
+import { GeoJsonDemoPage } from "./pages/GeoJsonDemoPage";
 
 export const App: React.FC = () => {
   // Safety net: Auto-remove loading screen if no component has handled it
@@ -95,8 +96,11 @@ export const App: React.FC = () => {
               </AuthGuard>
             }
           />
-
           <Route path="/" element={<Navigate to="/nb" replace />} />
+          <Route
+            path="/demo/geojson"
+            element={<GeoJsonDemoPage to="/geojson" />}
+          />
         </Routes>
         <FPSMeter />
         <Toaster />
