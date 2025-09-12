@@ -109,6 +109,7 @@ export default defineConfig(({ mode }) => {
       alias: {
         "@": path.resolve(__dirname, "./src"),
       },
+      conditions: ["development", "browser", "import", "module", "default"],
     },
     optimizeDeps: {
       exclude: ["@livestore/wa-sqlite"],
