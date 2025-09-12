@@ -1,4 +1,4 @@
-import { queries } from "@/schema";
+import { queries } from "@runtimed/schema";
 import React, { memo } from "react";
 import { ErrorBoundary } from "react-error-boundary";
 import { useQuery } from "@livestore/react";

@@ -3,7 +3,7 @@ import { useCellContent } from "@/hooks/useCellContent.js";
 import { useCellKeyboardNavigation } from "@/hooks/useCellKeyboardNavigation.js";
 import { useDeleteCell } from "@/hooks/useDeleteCell.js";
 import { useEditorRegistry } from "@/hooks/useEditorRegistry.js";
-import { events, queries, tables } from "@/schema";
+import { events, queries, tables } from "@runtimed/schema";
 import { useStore } from "@livestore/react";
 import React, {
   useCallback,

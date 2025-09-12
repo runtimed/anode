@@ -12,7 +12,7 @@ import { useAddCell } from "@/hooks/useAddCell.js";
 
 import { useStore } from "@livestore/react";
 import { focusedCellSignal$, hasManuallyFocused$ } from "../signals/focus.js";
-import { events, tables, queries } from "@/schema";
+import { events, tables, queries } from "@runtimed/schema";
 import { ChevronDown, ChevronUp } from "lucide-react";
 import React, { useCallback, useEffect, useRef } from "react";
 import { ErrorBoundary } from "react-error-boundary";

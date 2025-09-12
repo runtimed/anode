@@ -3,7 +3,7 @@ import { ErrorBoundary } from "react-error-boundary";
 import { useQuery } from "@livestore/react";
 import { Cell } from "./cell/Cell.js";
 import { CellBetweener } from "./cell/CellBetweener.js";
-import { CellReference } from "@/schema";
+import { CellReference } from "@runtimed/schema";
 import { focusedCellSignal$ } from "./signals/focus.js";
 import { contextSelectionMode$ } from "./signals/ai-context.js";
 

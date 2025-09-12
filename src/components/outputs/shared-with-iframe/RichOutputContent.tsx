@@ -8,7 +8,7 @@ import {
   AI_TOOL_RESULT_MIME_TYPE,
   isAiToolCallData,
   isAiToolResultData,
-} from "@/schema";
+} from "@runtimed/schema";
 import { prefetchOutputsAdaptive } from "@/util/prefetch";
 
 prefetchOutputsAdaptive();

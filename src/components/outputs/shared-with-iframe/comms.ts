@@ -1,7 +1,7 @@
 // NOTE: code here is shared between the iframe and the parent page.
 // It's done to colocate types to ensure typesafety across the two bundles.
 
-import { OutputData } from "@/schema";
+import { OutputData } from "@runtimed/schema";
 import { useEffect, useRef, useState } from "react";
 
 type UpdateOutputsEvent = {

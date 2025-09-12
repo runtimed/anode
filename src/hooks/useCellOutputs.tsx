@@ -1,4 +1,4 @@
-import { OutputData, tables } from "@/schema";
+import { OutputData, tables } from "@runtimed/schema";
 import { queryDb } from "@livestore/livestore";
 import { useQuery } from "@livestore/react";
 import { useState } from "react";

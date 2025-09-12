@@ -1,5 +1,5 @@
 // Re-export AnsiOutput from the notebook folder for convenience
-import { AiToolCallData, AiToolResultData } from "@/schema";
+import { AiToolCallData, AiToolResultData } from "@runtimed/schema";
 
 export { AiToolCallOutput } from "./shared-with-iframe/AiToolCallOutput.js";
 export { AiToolResultOutput } from "./shared-with-iframe/AiToolResultOutput.js";
@@ -16,7 +16,11 @@ export { SvgOutput } from "./shared-with-iframe/SvgOutput.js";
 // to reduce bundle size. They are no longer exported from this index file.
 
 // Re-export types from schema for consistency
-export type { OutputData, AiToolCallData, AiToolResultData } from "@/schema";
+export type {
+  OutputData,
+  AiToolCallData,
+  AiToolResultData,
+} from "@runtimed/schema";
 
 // Legacy type aliases for backward compatibility
 export type ToolCallData = AiToolCallData;

@@ -1,4 +1,4 @@
-import { schema } from "@/schema";
+import { schema } from "@runtimed/schema";
 import { makePersistedAdapter } from "@livestore/adapter-web";
 import LiveStoreSharedWorker from "@livestore/adapter-web/shared-worker?sharedworker";
 import { BootStatus } from "@livestore/livestore";
@@ -7,7 +7,7 @@ import React, { useEffect, useMemo, useRef } from "react";
 import { unstable_batchedUpdates as batchUpdates } from "react-dom";
 import { useAuth } from "../../auth/index.js";
 import { useStore } from "@livestore/react";
-import { events } from "@/schema";
+import { events } from "@runtimed/schema";
 import LiveStoreWorker from "./livestore.worker?worker";
 
 function loading(_status: BootStatus) {

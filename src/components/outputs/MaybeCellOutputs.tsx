@@ -1,6 +1,6 @@
 import { cn } from "@/lib/utils";
 import { outputsDeltasQuery, processDeltas } from "@/queries/outputDeltas";
-import { OutputData, SAFE_MIME_TYPES } from "@/schema";
+import { OutputData, SAFE_MIME_TYPES } from "@runtimed/schema";
 import { groupConsecutiveStreamOutputs } from "@/util/output-grouping";
 import { useQuery } from "@livestore/react";
 import { useMemo, useState } from "react";
