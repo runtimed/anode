@@ -111,15 +111,7 @@ Use this when developing locally with both Anode and Runt repositories side-by-s
 
 **Important**: Always ensure both repositories are using compatible schema versions. Type errors usually indicate schema mismatches.
 
-### Git Hook Protection (Husky)
 
-A Husky pre-commit hook is configured to prevent accidentally committing `package.json` with `@runtimed/schema` using the `file:` protocol. This ensures that:
-
-- Production deployments work correctly
-- Other developers can install dependencies without local file paths
-- The repository remains distributable
-
-**Note**: The hook is managed by Husky and stored in `.husky/pre-commit`. It will be automatically installed for all developers when they run `pnpm install`.
 
 ## Deployment
 

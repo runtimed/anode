@@ -197,7 +197,7 @@ Should update packages.json to use the local version of `runt`:
 
 **Important**: Ensure both repositories use compatible schema versions. Type errors usually indicate schema mismatches.
 
-**Git Hook Protection**: A Husky pre-commit hook prevents accidentally committing `package.json` with `@runtimed/schema` using the `file:` protocol. This ensures the repository remains deployable. See [CONTRIBUTING.md](./CONTRIBUTING.md#git-hook-protection) for details.
+
 
 ## 🚀 Groq AI Integration
 
