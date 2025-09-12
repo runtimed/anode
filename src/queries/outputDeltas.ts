@@ -1,6 +1,5 @@
 import { OutputData, tables } from "@/schema";
 import { queryDb } from "@livestore/livestore";
-import { getFinalContent } from "@runt/schema";
 
 // TODO: code here is duplicated from `runt/packages/schema/queries/outputDeltas.ts`
 // Reconcile it in the future
@@ -23,6 +22,20 @@ export const outputsDeltasQuery = (outputIds: readonly string[]) =>
       .orderBy("sequenceNumber", "asc"),
     { deps: outputIds, label: "outputDeltas" }
   );
+
+/**
+ * Apply deltas to initial content to get final content
+ */
+function getFinalContent(
+  initialContent: string,
+  deltas: readonly OutputDelta[]
+) {
+  let content = initialContent;
+  for (const delta of deltas) {
+    content += delta.delta;
+  }
+  return { content };
+}
 
 export function processDeltas(
   outputs: OutputData[],
