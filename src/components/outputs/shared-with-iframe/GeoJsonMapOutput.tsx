@@ -292,7 +292,8 @@ const townData: Feature<Polygon> = {
 
 export function GeoJsonMapOutput({ data }: GeoJsonMapOutputProps) {
   return (
-    <div className="h-96 w-full overflow-hidden rounded-md border border-gray-200">
+    // Scale height to viewport width
+    <div className="h-[45vw] w-full overflow-hidden rounded-md border border-gray-200">
       <RMap
         minZoom={6}
         initialCenter={mountain}
