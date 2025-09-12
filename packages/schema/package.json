@@ -14,19 +14,14 @@
   "main": "./src/index.ts",
   "types": "./src/index.ts",
   "files": [
-    "dist",
     "src"
   ],
   "scripts": {
-    "build": "tsc",
-    "dev": "tsc --watch",
-    "clean": "rm -rf dist",
     "type-check": "tsc --noEmit",
     "lint": "eslint src/",
     "lint:check": "eslint src/ --max-warnings 0",
     "format": "prettier --write .",
-    "format:check": "prettier --check .",
-    "prepublishOnly": "pnpm clean && pnpm build"
+    "format:check": "prettier --check ."
   },
   "dependencies": {
     "@livestore/livestore": "^0.3.1",
