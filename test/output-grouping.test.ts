@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { groupConsecutiveStreamOutputs } from "../src/util/output-grouping.js";
-import { OutputData } from "../src/schema";
+import { OutputData } from "@runtimed/schema";
 
 // Helper to create minimal test objects with only the fields the function uses
 function createTerminalOutput(

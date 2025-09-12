@@ -59,6 +59,40 @@ export default [
     },
   },
   {
+    files: ["packages/**/*.{js,jsx,ts,tsx}"],
+    languageOptions: {
+      parser: tsparser,
+      ecmaVersion: 2022,
+      sourceType: "module",
+      globals: {
+        // Node.js globals for packages
+        process: "readonly",
+        Buffer: "readonly",
+        __dirname: "readonly",
+        __filename: "readonly",
+        global: "readonly",
+        module: "readonly",
+        require: "readonly",
+        exports: "readonly",
+        console: "readonly",
+      },
+      parserOptions: {
+        project: null, // Don't use project references for packages to allow running from different dirs
+      },
+    },
+    plugins: {
+      "@typescript-eslint": tseslint,
+    },
+    rules: {
+      "no-undef": "off", // TypeScript handles this
+      "no-unused-vars": "off", // TypeScript handles this
+      "@typescript-eslint/no-unused-vars": [
+        "error",
+        { argsIgnorePattern: "^_" },
+      ],
+    },
+  },
+  {
     files: ["test/**/*.{js,jsx,ts,tsx}"],
     languageOptions: {
       parser: tsparser,
