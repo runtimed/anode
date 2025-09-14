@@ -4,6 +4,7 @@ import remarkGfm from "remark-gfm";
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
 import { oneLight } from "react-syntax-highlighter/dist/esm/styles/prism";
 import { Check, Copy } from "lucide-react";
+import rehypeRaw from "rehype-raw";
 
 // latex imports
 import remarkMath from "remark-math";
@@ -92,7 +93,7 @@ export const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({
     <div className={`${className} [&_pre]:!bg-gray-50`}>
       <ReactMarkdown
         remarkPlugins={[remarkGfm, remarkMath]}
-        rehypePlugins={[rehypeKatex]}
+        rehypePlugins={[rehypeKatex, rehypeRaw]}
         components={{
           img({ src, alt, ...props }) {
             // Prevent empty src attribute warnings
