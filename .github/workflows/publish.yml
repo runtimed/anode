@@ -77,14 +77,10 @@ jobs:
         run: pnpm --filter schema exec jsr publish --dry-run --allow-slow-types --allow-dirty
 
       - name: Publish to npm
-        run: pnpm --filter schema publish --access public --no-git-checks
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: pnpm --filter schema publish --access public --no-git-checks --provenance
 
       - name: Publish to JSR
         run: pnpm --filter schema exec jsr publish --allow-slow-types
-        env:
-          JSR_TOKEN: ${{ secrets.JSR_TOKEN }}
 
       - name: Create GitHub Release
         uses: actions/create-release@v1
