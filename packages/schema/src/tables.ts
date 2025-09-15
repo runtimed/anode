@@ -1,4 +1,4 @@
-import { Schema, SessionIdSymbol, State } from "@livestore/livestore";
+import { Schema, SessionIdSymbol, State } from "@runtimed/schema";
 
 import {
   CellTypeSchema,

@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { createStorePromise, queryDb } from "@livestore/livestore";
+import { createStorePromise, queryDb } from "@runtimed/schema";
 import { makeAdapter } from "@livestore/adapter-node";
 import { events, tables, schema } from "@runtimed/schema";
 import {

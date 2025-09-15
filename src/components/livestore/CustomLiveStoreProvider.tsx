@@ -1,7 +1,7 @@
 import { schema } from "@runtimed/schema";
 import { makePersistedAdapter } from "@livestore/adapter-web";
 import LiveStoreSharedWorker from "@livestore/adapter-web/shared-worker?sharedworker";
-import { BootStatus } from "@livestore/livestore";
+import { BootStatus } from "@runtimed/schema";
 import { LiveStoreProvider } from "@livestore/react";
 import React, { useEffect, useMemo, useRef } from "react";
 import { unstable_batchedUpdates as batchUpdates } from "react-dom";

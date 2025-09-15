@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { useQuery, useStore } from "@livestore/react";
-import { queryDb, sql, Schema } from "@livestore/livestore";
+import { queryDb, sql, Schema } from "@runtimed/schema";
 
 import { tables, events, queries } from "@runtimed/schema";
 import { schema } from "@runtimed/schema";

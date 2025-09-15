@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useStore, useQuery } from "@livestore/react";
-import { queryDb } from "@livestore/livestore";
+import { queryDb } from "@runtimed/schema";
 import { events, tables } from "@runtimed/schema";
 import { useAuthenticatedUser } from "../auth/index.js";
 
