@@ -1,5 +1,5 @@
 import { tables } from "../tables.ts";
-import { queryDb } from "@livestore/livestore";
+import { queryDb } from "@runtimed/schema";
 
 /**
  * Cell ordering queries using fractional indexing

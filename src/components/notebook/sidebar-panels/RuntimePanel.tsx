@@ -5,7 +5,7 @@ import { getRuntimeCommand } from "@/util/runtime-command";
 import { Button } from "@/components/ui/button";
 import { Copy, Trash2 } from "lucide-react";
 import { events, tables } from "@runtimed/schema";
-import { queryDb } from "@livestore/livestore";
+import { queryDb } from "@runtimed/schema";
 import { useQuery, useStore } from "@livestore/react";
 import type { SidebarPanelProps } from "./types";
 import { useAuthenticatedUser } from "@/auth";

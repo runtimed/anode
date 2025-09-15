@@ -1,6 +1,6 @@
 import { useCallback } from "react";
 import { useStore, useQuery } from "@livestore/react";
-import { queryDb } from "@livestore/livestore";
+import { queryDb } from "@runtimed/schema";
 import { events, tables } from "@runtimed/schema";
 
 interface UseInterruptExecutionOptions {

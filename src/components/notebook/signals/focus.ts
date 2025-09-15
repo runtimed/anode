@@ -1,4 +1,4 @@
-import { signal } from "@livestore/livestore";
+import { signal } from "@runtimed/schema";
 
 /**
  * Signal tracking which cell is currently focused

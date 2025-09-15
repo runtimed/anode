@@ -1,4 +1,4 @@
-import { Schema } from "@livestore/livestore";
+import { Schema } from "@runtimed/schemae";
 
 // Media representation schema for unified output system - defined first for use in events
 export const MediaRepresentationSchema = Schema.Union(

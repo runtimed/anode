@@ -1,5 +1,5 @@
 import { tables } from "../tables.ts";
-import { queryDb } from "@livestore/livestore";
+import { queryDb } from "@runtimed/schema";
 
 export * from "./outputDeltas.ts";
 export * from "./cellOrdering.ts";
