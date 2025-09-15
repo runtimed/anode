@@ -94,6 +94,19 @@ export const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({
         remarkPlugins={[remarkGfm, remarkMath]}
         rehypePlugins={[rehypeKatex]}
         components={{
+          a({ href, children, ...props }) {
+            return (
+              <a
+                href={href}
+                {...props}
+                // Always open in new tab
+                rel="noopener noreferrer"
+                target="_blank"
+              >
+                {children}
+              </a>
+            );
+          },
           img({ src, alt, ...props }) {
             // Prevent empty src attribute warnings
             if (!src || src === "") {
