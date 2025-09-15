@@ -76,10 +76,11 @@ jobs:
       - name: Test JSR publish (dry run)
         run: pnpm --filter schema exec jsr publish --dry-run --allow-slow-types --allow-dirty
 
-      - name: Publish to npm
-        run: pnpm --filter schema publish --no-git-checks
-        env:
-          NPM_CONFIG_PROVENANCE: true
+      # Disabling npm publishing... for now
+      # - name: Publish to npm
+      #   run: pnpm --filter schema publish --no-git-checks
+      #   env:
+      #     NPM_CONFIG_PROVENANCE: true
 
       - name: Publish to JSR
         run: pnpm --filter schema exec jsr publish --allow-slow-types
