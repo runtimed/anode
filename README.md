@@ -147,56 +147,6 @@ commands.
 **Multi-language Support** - The runtime architecture already supports other
 languages with custom runtime agents. We just need UI updates!
 
-## Local Development
-
-### Schema Linking for Development
-
-The `@runtimed/schema` package provides shared types and events for Anode. Use the appropriate linking method based on your development phase:
-
-**Production (JSR Package)**:
-
-```bash
-pnpm use-runt prod
-```
-
-Should update package.json to:
-
-```json
-"@runtimed/schema": "^0.1.0"
-```
-
-**Testing PR Changes (GitHub Reference)**:
-
-```bash
-pnpm use-runt main
-```
-
-Should update package.json to use the hash of whatever is on `main` in the `runt` package:
-
-```json
-"@runtimed/schema": "workspace:*"
-```
-
-**Local Development (File Link)**:
-
-```bash
-pnpm use-runt local
-```
-
-Should update packages.json to use the local version of `runt`:
-
-```json
-"@runtimed/schema": "workspace:*"
-```
-
-**To switch between modes:**
-
-1. Update `package.json` with the appropriate schema reference
-2. Run `pnpm install` to update dependencies
-3. Restart UI development server (`pnpm dev`)
-
-**Important**: Ensure both repositories use compatible schema versions. Type errors usually indicate schema mismatches.
-
 ## 🚀 Groq AI Integration
 
 Anode supports **Groq** as a first-class AI provider alongside OpenAI and Ollama, offering high-speed inference with advanced models.

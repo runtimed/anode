@@ -1,11 +1,3 @@
-# Source the .env file to get VITE_RUNTIME_COMMAND
-if [ -f ".env" ]; then
-  echo "Sourcing .env file"
-  source .env
-fi
-
-# 🚨 IMPORTANT: We're overriding the runtime command here to avoid it breaking by accident
-export VITE_RUNTIME_COMMAND="deno run --allow-all --unstable-broadcast-channel --env-file=../anode/.env ../runt/packages/pyodide-runtime-agent/src/mod.ts"
 export DEV_PORT=${ANODE_DEV_SERVER_PORT:-5173}
 export NOTEBOOK_ID=$(openssl rand -hex 8)
 

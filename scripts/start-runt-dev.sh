@@ -4,12 +4,6 @@
 DEV_PORT=${ANODE_DEV_SERVER_PORT:-5173}
 export ANODE_DEV_SERVER_PORT=$DEV_PORT
 
-# export VITE_RUNTIME_COMMAND="deno run --allow-all --unstable-broadcast-channel --env-file=../anode/.env ../runt/packages/pyodide-runtime-agent/src/mod.ts"
-
-# Use runt local
-echo "🔄 Using runt local..."
-pnpm use-runt local
-
 echo "🚀 Starting Anode development environment with PM2 (single-server setup)..."
 echo "📡 Using port: $DEV_PORT"
 

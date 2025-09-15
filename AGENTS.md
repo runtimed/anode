@@ -308,8 +308,6 @@ const titleMetadata = useQuery(
 │   ├── start-runt-dev.sh
 │   ├── test-api-key-flow.sh
 │   ├── test-api-keys.sh
-│   ├── use-runt.sh
-│   └── watch-script.cjs
 ├── src
 │   ├── auth
 │   │   ├── AuthGuard.tsx
