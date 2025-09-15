@@ -11,7 +11,7 @@ import {
   sql,
 } from "@livestore/livestore";
 
-export type { BootStatus } from "@livestore/livestore";
+export type { BootStatus, Adapter } from "@livestore/livestore";
 
 export {
   makeSchema,
