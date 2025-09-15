@@ -78,6 +78,8 @@ jobs:
 
       - name: Publish to npm
         run: pnpm --filter schema publish
+        env:
+          NPM_CONFIG_PROVENANCE: true
 
       - name: Publish to JSR
         run: pnpm --filter schema exec jsr publish --allow-slow-types
