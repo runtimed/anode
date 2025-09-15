@@ -2,7 +2,7 @@ import { createContext, useContext, ReactNode } from "react";
 import { useQuery } from "@livestore/react";
 import { useStore } from "@livestore/react";
 import { queryDb } from "@livestore/livestore";
-import { tables, events } from "@runt/schema";
+import { tables, events } from "@/schema";
 
 export interface ChatModeState {
   enabled: boolean;
