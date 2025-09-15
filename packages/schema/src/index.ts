@@ -4,7 +4,27 @@ import {
   Events,
   Schema,
   Store as LiveStore,
+  queryDb,
+  SessionIdSymbol,
+  signal,
+  createStorePromise,
+  sql,
 } from "@livestore/livestore";
+
+export type { BootStatus, Adapter } from "@livestore/livestore";
+
+export {
+  makeSchema,
+  State,
+  Events,
+  Schema,
+  LiveStore,
+  queryDb,
+  SessionIdSymbol,
+  signal,
+  createStorePromise,
+  sql,
+};
 
 export * as queries from "./queries/index.ts";
 

@@ -1,5 +1,5 @@
 import { tables } from "@runtimed/schema";
-import { queryDb } from "@livestore/livestore";
+import { queryDb } from "@runtimed/schema";
 
 // Most queries come from `@runtimed/schema/queries`. Where we've needed something custom, we've written it here.
 

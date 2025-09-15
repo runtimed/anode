@@ -1,6 +1,6 @@
 import { useCallback, useRef } from "react";
 import { useStore } from "@livestore/react";
-import { signal } from "@livestore/livestore";
+import { signal } from "@runtimed/schema";
 
 // Editor interface that we expect from CodeMirror editors
 export interface EditorRef {

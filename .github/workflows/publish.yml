@@ -1,0 +1,97 @@
+name: Publish Schema Package
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  id-token: write # Required for npm provenance and JSR OIDC
+  contents: read
+
+jobs:
+  validate-and-publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "23"
+          registry-url: "https://registry.npmjs.org"
+
+      - name: Install JSR CLI
+        run: npm install -g jsr
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Validate version consistency
+        run: |
+          PACKAGE_VERSION=$(node -p "require('./packages/schema/package.json').version")
+          JSR_VERSION=$(node -p "require('./packages/schema/jsr.json').version")
+
+          echo "package.json version: $PACKAGE_VERSION"
+          echo "jsr.json version: $JSR_VERSION"
+
+          if [ "$PACKAGE_VERSION" != "$JSR_VERSION" ]; then
+            echo "❌ Version mismatch: package.json ($PACKAGE_VERSION) != jsr.json ($JSR_VERSION)"
+            exit 1
+          fi
+
+          echo "✅ Versions match: $PACKAGE_VERSION"
+
+      - name: Extract tag version
+        id: tag_version
+        run: |
+          TAG_VERSION=${GITHUB_REF#refs/tags/v}
+          echo "tag_version=$TAG_VERSION" >> $GITHUB_OUTPUT
+          echo "Tag version: $TAG_VERSION"
+
+      - name: Validate tag matches package version
+        run: |
+          PACKAGE_VERSION=$(node -p "require('./packages/schema/package.json').version")
+          TAG_VERSION="${{ steps.tag_version.outputs.tag_version }}"
+
+          if [ "$PACKAGE_VERSION" != "$TAG_VERSION" ]; then
+            echo "❌ Tag version ($TAG_VERSION) doesn't match package version ($PACKAGE_VERSION)"
+            exit 1
+          fi
+
+          echo "✅ Tag version matches package version: $TAG_VERSION"
+
+      - name: Run type check
+        run: pnpm --filter schema type-check
+
+      - name: Run lint check
+        run: pnpm --filter schema lint:check
+
+      - name: Run format check
+        run: pnpm --filter schema format:check
+
+      - name: Test JSR publish (dry run)
+        run: pnpm --filter schema exec jsr publish --dry-run --allow-slow-types --allow-dirty
+
+      - name: Publish to npm
+        run: pnpm --filter schema publish --access public --no-git-checks --provenance
+
+      - name: Publish to JSR
+        run: pnpm --filter schema exec jsr publish --allow-slow-types
+
+      - name: Create GitHub Release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ github.ref }}
+          release_name: Schema v${{ steps.tag_version.outputs.tag_version }}
+          body: |
+            Published @runtimed/schema v${{ steps.tag_version.outputs.tag_version }} to:
+            - npm: https://www.npmjs.com/package/@runtimed/schema
+            - JSR: https://jsr.io/@runtimed/schema
+          draft: false
+          prerelease: false

@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, afterEach } from "vitest";
-import { signal, createStorePromise } from "@livestore/livestore";
+import { signal, createStorePromise } from "@runtimed/schema";
 import { makeAdapter } from "@livestore/adapter-node";
 import { schema } from "@runtimed/schema";
 import { createTestStoreId, cleanupResources } from "./setup.js";
