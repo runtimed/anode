@@ -322,6 +322,9 @@ export const ExecutableCell: React.FC<ExecutableCellProps> = ({
     cell.cellType as "code" | "sql" | "ai"
   );
 
+  // All these conditions because a user can have a source-less AI cell by making one manually and then deleting the source
+  // Not checking for metadata for chat mode because if the user is not in chat mode, we could still receive
+  // AI outputs interspersed with other cell outputs.
   const isSourceLessAiOutput =
     cell.cellType === "ai" &&
     cell.source === "" &&
