@@ -77,7 +77,7 @@ jobs:
         run: pnpm --filter schema exec jsr publish --dry-run --allow-slow-types --allow-dirty
 
       - name: Publish to npm
-        run: pnpm --filter schema publish --access public --no-git-checks --provenance
+        run: pnpm --filter schema publish
 
       - name: Publish to JSR
         run: pnpm --filter schema exec jsr publish --allow-slow-types
