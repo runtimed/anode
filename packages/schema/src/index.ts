@@ -8,6 +8,7 @@ import {
   SessionIdSymbol,
   signal,
   createStorePromise,
+  sql,
 } from "@livestore/livestore";
 
 export type { BootStatus } from "@livestore/livestore";
@@ -22,6 +23,7 @@ export {
   SessionIdSymbol,
   signal,
   createStorePromise,
+  sql,
 };
 
 export * as queries from "./queries/index.ts";
