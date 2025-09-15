@@ -5,6 +5,7 @@ This document explains how to publish the `@runtimed/schema` package to both npm
 ## Overview
 
 The `@runtimed/schema` package is published to two registries:
+
 - **npm**: https://www.npmjs.com/package/@runtimed/schema
 - **JSR**: https://jsr.io/@runtimed/schema
 
@@ -41,6 +42,7 @@ pnpm bump-schema 0.1.3
 ```
 
 This script:
+
 - Updates version in both `package.json` and `jsr.json`
 - Validates version format
 - Stages changes for git commit
@@ -54,6 +56,7 @@ pnpm test-publish
 ```
 
 This runs:
+
 - Version consistency check
 - Type checking
 - Linting
@@ -71,6 +74,7 @@ git push origin HEAD --tags
 ### 4. GitHub Actions Takes Over
 
 The workflow (`.github/workflows/publish.yml`) automatically:
+
 1. Validates version consistency
 2. Runs all checks (type, lint, format)
 3. Tests dry run publishing
@@ -174,19 +178,19 @@ error: Unauthorized
 
 ## Scripts Reference
 
-| Script | Command | Purpose |
-|--------|---------|---------|
-| Version Bump | `pnpm bump-schema <version>` | Update package versions consistently |
-| Test Publish | `pnpm test-publish` | Validate everything before publishing |
-| Manual npm | `pnpm --filter schema publish --access public` | Publish to npm only |
-| Manual JSR | `pnpm --filter schema exec jsr publish --allow-slow-types` | Publish to JSR only |
+| Script       | Command                                                    | Purpose                               |
+| ------------ | ---------------------------------------------------------- | ------------------------------------- |
+| Version Bump | `pnpm bump-schema <version>`                               | Update package versions consistently  |
+| Test Publish | `pnpm test-publish`                                        | Validate everything before publishing |
+| Manual npm   | `pnpm --filter schema publish --access public`             | Publish to npm only                   |
+| Manual JSR   | `pnpm --filter schema exec jsr publish --allow-slow-types` | Publish to JSR only                   |
 
 ## Package Structure
 
 ```
 packages/schema/
 ├── package.json      # npm package configuration
-├── jsr.json         # JSR package configuration  
+├── jsr.json         # JSR package configuration
 ├── README.md        # Package documentation
 ├── src/
 │   ├── index.ts     # Main export
@@ -209,6 +213,7 @@ packages/schema/
 ## Support
 
 For issues with the publishing process:
+
 1. Check GitHub Actions logs for detailed error messages
 2. Test locally with `pnpm test-publish`
 3. Verify authentication tokens are valid
