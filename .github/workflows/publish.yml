@@ -84,17 +84,3 @@ jobs:
 
       - name: Publish to JSR
         run: pnpm --filter schema exec jsr publish --allow-slow-types
-
-      - name: Create GitHub Release
-        uses: actions/create-release@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          tag_name: ${{ github.ref }}
-          release_name: Schema v${{ steps.tag_version.outputs.tag_version }}
-          body: |
-            Published @runtimed/schema v${{ steps.tag_version.outputs.tag_version }} to:
-            - npm: https://www.npmjs.com/package/@runtimed/schema
-            - JSR: https://jsr.io/@runtimed/schema
-          draft: false
-          prerelease: false
