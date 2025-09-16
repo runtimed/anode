@@ -1,14 +1,12 @@
 import { schema } from "@runtimed/schema";
-import { makePersistedAdapter } from "@livestore/adapter-web";
-import LiveStoreSharedWorker from "@livestore/adapter-web/shared-worker?sharedworker";
 import { BootStatus } from "@runtimed/schema";
 import { LiveStoreProvider } from "@livestore/react";
-import React, { useEffect, useMemo, useRef } from "react";
+import React, { useEffect, useRef } from "react";
 import { unstable_batchedUpdates as batchUpdates } from "react-dom";
-import { useAuth } from "../../auth/index.js";
+import { useAuth } from "../auth/index.js";
 import { useStore } from "@livestore/react";
 import { events } from "@runtimed/schema";
-import LiveStoreWorker from "./livestore.worker?worker";
+import { sharedLiveStoreAdapter } from "./adapter.js";
 
 function loading(_status: BootStatus) {
   // Let our overlay handle loading
@@ -72,23 +70,6 @@ interface CustomLiveStoreProviderProps {
 export const CustomLiveStoreProvider: React.FC<
   CustomLiveStoreProviderProps
 > = ({ storeId, onLiveStoreReady, children }) => {
-  // Check for reset parameter to handle schema evolution issues
-  const resetPersistence =
-    new URLSearchParams(window.location.search).get("reset") !== null;
-
-  // Clean up URL if reset was requested
-  useEffect(() => {
-    if (resetPersistence) {
-      const searchParams = new URLSearchParams(window.location.search);
-      searchParams.delete("reset");
-      window.history.replaceState(
-        null,
-        "",
-        `${window.location.pathname}?${searchParams.toString()}`
-      );
-    }
-  }, [resetPersistence]);
-
   // Get access token for authentication
   const { accessToken } = useAuth();
 
@@ -103,22 +84,10 @@ export const CustomLiveStoreProvider: React.FC<
     syncPayload.current.authToken = accessToken || "";
   }, [accessToken]);
 
-  const adapter = useMemo(
-    () =>
-      makePersistedAdapter({
-        storage: { type: "opfs" },
-        worker: LiveStoreWorker,
-        sharedWorker: LiveStoreSharedWorker,
-        resetPersistence,
-        // Let LiveStore generate and manage clientId
-      }),
-    [resetPersistence]
-  );
-
   return (
     <LiveStoreProvider
       schema={schema}
-      adapter={adapter}
+      adapter={sharedLiveStoreAdapter}
       renderLoading={loading}
       batchUpdates={batchUpdates}
       storeId={storeId}
