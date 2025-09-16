@@ -3,6 +3,7 @@ import { SingleOutput } from "@/components/outputs/shared-with-iframe/SingleOutp
 import { SuspenseSpinner } from "@/components/outputs/shared-with-iframe/SuspenseSpinner";
 import { useIframeCommsChild } from "@/components/outputs/shared-with-iframe/comms";
 import React from "react";
+import { ErrorBoundary } from "react-error-boundary";
 
 export const IframeReactApp: React.FC = () => {
   const { outputs } = useIframeCommsChild();
@@ -16,7 +17,16 @@ export const IframeReactApp: React.FC = () => {
     <SuspenseSpinner>
       <OutputsContainer>
         {outputs.map((output) => (
-          <SingleOutput key={output.id} output={output} />
+          <ErrorBoundary
+            key={output.id}
+            fallbackRender={({ error }) => (
+              <div className="text-red-500">
+                Error rendering output "{output.mimeType}": {error.message}
+              </div>
+            )}
+          >
+            <SingleOutput output={output} />
+          </ErrorBoundary>
         ))}
       </OutputsContainer>
     </SuspenseSpinner>
