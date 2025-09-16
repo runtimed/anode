@@ -5,7 +5,7 @@ import { Link, useLocation, useParams } from "react-router-dom";
 import { useScroll } from "react-use";
 import { CollaboratorAvatars } from "../../CollaboratorAvatars.js";
 
-import { CustomLiveStoreProvider } from "../../livestore/CustomLiveStoreProvider.js";
+import { CustomLiveStoreProvider } from "../../../livestore/index.js";
 import { LoadingState } from "../../loading/LoadingState.js";
 
 import { NotebookContent } from "../../notebook/NotebookContent.js";
