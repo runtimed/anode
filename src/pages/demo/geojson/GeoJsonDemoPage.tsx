@@ -112,6 +112,28 @@ export const GeoJsonDemoPage = () => {
             ],
           }}
         />
+
+        <h3 className="text-lg font-bold">180th Meridian</h3>
+        <a
+          href="https://github.com/mapbox/mapbox-gl-js/issues/3250"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          https://github.com/mapbox/mapbox-gl-js/issues/3250
+        </a>
+        <GeoJsonMapOutput
+          data={{
+            type: "Feature",
+            properties: {},
+            geometry: {
+              type: "LineString",
+              coordinates: [
+                [179.664878, -16.407901],
+                [-172.404544, -13.716485],
+              ],
+            },
+          }}
+        />
       </div>
     </div>
   );
