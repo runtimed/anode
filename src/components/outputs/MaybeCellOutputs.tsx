@@ -32,7 +32,15 @@ export const MaybeCellOutputs = ({
   // Apply grouping strategy based on cell type
   const processedOutputs = useMemo(() => {
     const grouped = groupConsecutiveStreamOutputs(outputs);
-    return processDeltas(grouped, outputDeltas);
+    const processed = processDeltas(grouped, outputDeltas);
+    if (
+      processed.length === 2 &&
+      processed[0].mimeType === "application/geo+json" &&
+      processed[1].mimeType === "application/json"
+    ) {
+      return [processed[0]];
+    }
+    return processed;
   }, [outputs, outputDeltas]);
 
   const isUnsafe = hasUnsafeOutputs(processedOutputs ?? []);
