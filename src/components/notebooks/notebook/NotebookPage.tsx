@@ -11,13 +11,14 @@ import { LoadingState } from "../../loading/LoadingState.js";
 import { NotebookContent } from "../../notebook/NotebookContent.js";
 import { NotebookSidebar } from "../../notebook/NotebookSidebar.js";
 
+import { useIsMobile } from "@/hooks/use-mobile.js";
+import { ChatModeProvider } from "@/hooks/useChatMode.js";
 import { Button } from "../../ui/button.js";
 import { SharingModal } from "../SharingModal.js";
 import { SimpleUserProfile } from "../SimpleUserProfile.js";
 import type { NotebookProcessed } from "../types.js";
 import { useNavigateToCanonicalUrl, useNotebook } from "./helpers.js";
 import { TitleEditor } from "./TitleEditor.js";
-import { useIsMobile } from "@/hooks/use-mobile.js";
 
 export const NotebookPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -26,7 +27,9 @@ export const NotebookPage: React.FC = () => {
 
   return (
     <CustomLiveStoreProvider storeId={id}>
-      <NotebookPageWithId id={id} />
+      <ChatModeProvider>
+        <NotebookPageWithId id={id} />
+      </ChatModeProvider>
     </CustomLiveStoreProvider>
   );
 };
