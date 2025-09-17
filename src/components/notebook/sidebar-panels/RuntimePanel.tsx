@@ -18,7 +18,7 @@ export const RuntimePanel: React.FC<SidebarPanelProps> = ({ notebook }) => {
     startRuntime,
     stopRuntime,
   } = useHtmlRuntime();
-  const { hasActiveRuntime, activeRuntime } = useRuntimeHealth();
+  const { hasActiveRuntime } = useRuntimeHealth();
 
   const activeRuntimeSessions = useQuery(
     queryDb(tables.runtimeSessions.select().where({ isActive: true }))

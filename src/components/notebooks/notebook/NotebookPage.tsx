@@ -113,7 +113,7 @@ function NotebookPageWithIdAndNotebook({
             onClick={() => {
               nbContentScrollRef.current?.scrollTo({ top: 0 });
             }}
-            className="bg-background/50 absolute right-4 bottom-4 bg-white/50 backdrop-blur-xs"
+            className="absolute right-4 bottom-4 bg-white/50 backdrop-blur-xs"
           >
             <ArrowUp />
           </Button>

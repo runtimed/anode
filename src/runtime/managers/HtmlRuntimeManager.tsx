@@ -63,7 +63,7 @@ export const HtmlRuntimeManager: React.FC<HtmlRuntimeManagerProps> = ({
   children,
 }) => {
   const { store } = useStore();
-  const { user, isAuthenticated } = useAuth();
+  const { isAuthenticated } = useAuth();
   const [runtimeState, setRuntimeState] = useState<HtmlRuntimeState>(
     DEFAULT_RUNTIME_STATE
   );
@@ -97,10 +97,7 @@ export const HtmlRuntimeManager: React.FC<HtmlRuntimeManagerProps> = ({
   );
 
   // Generate stable runtime and session IDs
-  const runtimeId = React.useMemo(
-    () => `html-runtime-${nanoid()}`,
-    [notebookId]
-  );
+  const runtimeId = React.useMemo(() => `html-runtime-${nanoid()}`, []);
   const sessionId = React.useMemo(
     () => `${runtimeId}-${Date.now()}`,
     [runtimeId]
@@ -254,11 +251,7 @@ export const HtmlRuntimeManager: React.FC<HtmlRuntimeManagerProps> = ({
       });
 
       // Displace any existing active runtime sessions for this notebook
-      const existingSessions = store.query(
-        queryDb(tables.runtimeSessions.select().where({ isActive: true }))
-      );
-
-      for (const session of existingSessions) {
+      for (const session of activeRuntimeSessions) {
         store.commit(
           events.runtimeSessionTerminated({
             sessionId: session.sessionId,
@@ -316,7 +309,7 @@ export const HtmlRuntimeManager: React.FC<HtmlRuntimeManagerProps> = ({
     runtimeId,
     sessionId,
     store,
-    user,
+    activeRuntimeSessions,
   ]);
 
   const stopRuntime = useCallback(async () => {
