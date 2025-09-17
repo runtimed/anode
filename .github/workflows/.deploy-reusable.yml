@@ -158,7 +158,7 @@ jobs:
             echo "- **Base App:** https://app.runt.run" >> $GITHUB_STEP_SUMMARY
             echo "- **Iframe Outputs:** https://runtusercontent.com" >> $GITHUB_STEP_SUMMARY
           else
-            echo "- **Preview App:** https://anode-preview.rgbkrk.workers.dev" >> $GITHUB_STEP_SUMMARY
+            echo "- **Preview App:** https://preview.runt.run" >> $GITHUB_STEP_SUMMARY
           fi
 
           echo "" >> $GITHUB_STEP_SUMMARY
