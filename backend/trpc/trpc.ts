@@ -5,6 +5,11 @@ import { PermissionsProvider } from "backend/notebook-permissions/types";
 
 export let permissionCheckOn = false;
 
+export function setPermissionCheckEnabled(enabled: boolean) {
+  permissionCheckOn = enabled;
+  return permissionCheckOn;
+}
+
 export type TrcpContext = {
   env: Env;
   user?: ValidatedUser;

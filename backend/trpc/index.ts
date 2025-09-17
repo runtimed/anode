@@ -25,7 +25,13 @@ import {
   updateTag,
   getNotebookCollaborators,
 } from "./db.ts";
-import { authedProcedure, publicProcedure, router } from "./trpc";
+import {
+  authedProcedure,
+  permissionCheckOn,
+  publicProcedure,
+  router,
+  setPermissionCheckEnabled,
+} from "./trpc";
 import { NotebookPermission, TagColor } from "./types.ts";
 
 // Create the tRPC router
@@ -34,6 +40,17 @@ export const appRouter = router({
   debug: publicProcedure.query(async () => {
     return "Hello, world!";
   }),
+
+  getPermissionCheckEnabled: publicProcedure.query(async () => {
+    return permissionCheckOn;
+  }),
+
+  setPermissionCheckEnabled: publicProcedure
+    .input(z.boolean())
+    .mutation(async (opts) => {
+      const { input } = opts;
+      return setPermissionCheckEnabled(input);
+    }),
 
   // Context endpoint
   context: publicProcedure.query(async (opts) => {
