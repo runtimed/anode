@@ -226,6 +226,12 @@ export default {
       ) as unknown as WorkerResponse;
     }
 
+    if (pathname.startsWith("/api/colo")) {
+      return new workerGlobals.Response(
+        JSON.stringify(request.cf?.colo, null, 2)
+      );
+    }
+
     // Route 3: API routes → Hono app
     if (
       pathname.startsWith("/api/") ||
