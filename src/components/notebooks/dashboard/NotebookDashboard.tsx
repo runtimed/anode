@@ -76,8 +76,8 @@ export const NotebookDashboard: React.FC = () => {
 
         {/* Content Area */}
         <div className="flex-1 overflow-auto p-6">
-          {isLoading && <LoadingState message="Loading notebooks..." />}
           {debug.enabled && <DebugNotebooks notebooks={filteredNotebooks} />}
+          {isLoading && <LoadingState message="Loading notebooks..." />}
 
           {!isLoading && filteredNotebooks.length === 0 && <NoResults />}
 
