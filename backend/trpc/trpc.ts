@@ -3,10 +3,12 @@ import { ValidatedUser } from "backend/auth";
 import { Env } from "backend/types";
 import { PermissionsProvider } from "backend/notebook-permissions/types";
 
+export let permissionCheckOn = false;
+
 export type TrcpContext = {
   env: Env;
-  user: ValidatedUser | null;
-  permissionsProvider: PermissionsProvider;
+  user?: ValidatedUser;
+  permissionsProvider?: PermissionsProvider;
 };
 
 /**

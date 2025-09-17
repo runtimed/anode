@@ -13,8 +13,8 @@ import { nanoid } from "nanoid";
 export async function getNotebooks(
   ctx: {
     user: ValidatedUser;
-    env: { DB: D1Database };
-    permissionsProvider: PermissionsProvider;
+    env?: { DB: D1Database };
+    permissionsProvider?: PermissionsProvider;
   },
   options: {
     owned?: boolean;
@@ -24,16 +24,16 @@ export async function getNotebooks(
   }
 ) {
   const { owned, shared, limit, offset } = options;
-  const {
-    user,
-    env: { DB },
-    permissionsProvider,
-  } = ctx;
+  const { user, env: { DB } = { DB: null }, permissionsProvider } = ctx;
+
+  if (!permissionsProvider || !DB) {
+    return [];
+  }
 
   let accessibleNotebookIds: string[];
 
   if (owned && !shared) {
-    accessibleNotebookIds = await permissionsProvider.listAccessibleResources(
+    accessibleNotebookIds = await permissionsProvider?.listAccessibleResources(
       user.id,
       "notebook",
       ["owner"]

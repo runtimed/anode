@@ -81,6 +81,8 @@ export const appRouter = router({
         const { ctx, input } = opts;
         const { owned, shared, limit, offset } = input;
 
+        if (!ctx.permissionsProvider) return [];
+
         return await getNotebooks(ctx, {
           owned,
           shared,
@@ -106,6 +108,10 @@ export const appRouter = router({
         env: { DB },
         permissionsProvider,
       } = ctx;
+
+      if (!permissionsProvider || !DB) {
+        return null;
+      }
 
       try {
         const permissionResult = await permissionsProvider.checkPermission(
@@ -202,6 +208,10 @@ export const appRouter = router({
         permissionsProvider,
       } = ctx;
 
+      if (!permissionsProvider || !DB) {
+        return;
+      }
+
       try {
         const isOwner = await permissionsProvider.isOwner(user.id, nbId);
         if (!isOwner) {
@@ -254,6 +264,10 @@ export const appRouter = router({
         permissionsProvider,
       } = ctx;
 
+      if (!permissionsProvider || !DB) {
+        return;
+      }
+
       try {
         // Check if user is owner
         const isOwner = await permissionsProvider.isOwner(user.id, nbId);
@@ -296,6 +310,10 @@ export const appRouter = router({
       const { ctx, input } = opts;
       const { user, permissionsProvider } = ctx;
 
+      if (!permissionsProvider) {
+        return;
+      }
+
       try {
         await permissionsProvider.grantPermission({
           notebookId: input.nbId,
@@ -323,6 +341,10 @@ export const appRouter = router({
     .mutation(async (opts) => {
       const { ctx, input } = opts;
       const { user, permissionsProvider } = ctx;
+
+      if (!permissionsProvider) {
+        return;
+      }
 
       try {
         await permissionsProvider.revokePermission({
@@ -379,6 +401,10 @@ export const appRouter = router({
         permissionsProvider,
       } = ctx;
 
+      if (!permissionsProvider || !DB) {
+        return [];
+      }
+
       try {
         // Use the permissions provider to list all users with "writer" permission for this notebook
         const writers = (
@@ -417,6 +443,10 @@ export const appRouter = router({
       const { nbId } = input;
       const { user, permissionsProvider } = ctx;
 
+      if (!permissionsProvider) {
+        return "NONE";
+      }
+
       try {
         const result = await permissionsProvider.checkPermission(user.id, nbId);
         if (!result.hasAccess) return "NONE";
@@ -437,6 +467,10 @@ export const appRouter = router({
       env: { DB },
     } = ctx;
     const user_id = ctx.user.id;
+
+    if (!DB) {
+      return [];
+    }
 
     try {
       return await getUserTags(DB, user_id);
@@ -466,6 +500,10 @@ export const appRouter = router({
         env: { DB },
       } = ctx;
       const user_id = ctx.user.id;
+
+      if (!DB) {
+        return;
+      }
 
       try {
         const tag = await createTag(DB, {
@@ -596,6 +634,10 @@ export const appRouter = router({
         permissionsProvider,
       } = ctx;
 
+      if (!permissionsProvider || !DB) {
+        return [];
+      }
+
       try {
         const permissionResult = await permissionsProvider.checkPermission(
           ctx.user.id,
@@ -628,6 +670,10 @@ export const appRouter = router({
         env: { DB },
         permissionsProvider,
       } = ctx;
+
+      if (!permissionsProvider || !DB) {
+        return;
+      }
 
       try {
         // Check if user has write access to the notebook
@@ -663,6 +709,10 @@ export const appRouter = router({
         env: { DB },
         permissionsProvider,
       } = ctx;
+
+      if (!permissionsProvider || !DB) {
+        return;
+      }
 
       try {
         // Check if user has write access to the notebook
