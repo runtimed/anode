@@ -145,28 +145,6 @@ export const HtmlRuntimeManager: React.FC<HtmlRuntimeManagerProps> = ({
         const cell = cells.find((c) => c.id === execution.cellId);
         const cellContent = cell?.source || "";
 
-        // Simple HTML rendering - just wrap content in HTML structure
-        const htmlOutput = `
-<!DOCTYPE html>
-<html>
-<head>
-  <meta charset="utf-8">
-  <title>HTML Cell Output</title>
-  <style>
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-      margin: 20px;
-      line-height: 1.6;
-    }
-    pre { background: #f5f5f5; padding: 10px; border-radius: 4px; }
-    code { background: #f0f0f0; padding: 2px 4px; border-radius: 2px; }
-  </style>
-</head>
-<body>
-  ${cellContent}
-</body>
-</html>`;
-
         // Store HTML output directly in outputs table
         store.commit(
           events.multimediaResultOutputAdded({
@@ -176,7 +154,7 @@ export const HtmlRuntimeManager: React.FC<HtmlRuntimeManagerProps> = ({
             representations: {
               "text/html": {
                 type: "inline",
-                data: htmlOutput,
+                data: cellContent,
                 metadata: {},
               },
             },
