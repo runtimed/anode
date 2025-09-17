@@ -201,7 +201,7 @@ export default {
         const result = await db.prepare("SELECT 1").all();
         const end = Date.now();
         results.push(result);
-        const time = end - start + "ms";
+        const time = end - start;
         times.push(time);
       }
       return new workerGlobals.Response(
@@ -226,7 +226,7 @@ export default {
           .all();
         const end = Date.now();
         results.push(result);
-        const time = end - start + "ms";
+        const time = end - start;
         times.push(time);
       }
       return new workerGlobals.Response(
