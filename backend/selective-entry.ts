@@ -214,6 +214,31 @@ export default {
       );
     }
 
+    if (pathname.startsWith("/api/db-test-users")) {
+      const count = parseInt(request.url.split("=")[1]);
+      const db = env.DB;
+      let results = [];
+      let times = [];
+      for (let i = 0; i < count; i++) {
+        const start = Date.now();
+        const result = await db
+          .prepare("SELECT id, given_name, first_seen_at from users limit 10")
+          .all();
+        const end = Date.now();
+        results.push(result);
+        const time = end - start + "ms";
+        times.push(time);
+      }
+      return new workerGlobals.Response(
+        JSON.stringify({
+          message: "DB test",
+          results,
+          times,
+        }),
+        { status: 200, headers: { "Content-Type": "application/json" } }
+      );
+    }
+
     if (
       pathname.startsWith("/livestore") &&
       request.headers.get("upgrade") === "websocket"
