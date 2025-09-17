@@ -1,10 +1,10 @@
 import React, { useState } from "react";
 import { useQuery, useStore } from "@livestore/react";
-import { queryDb, sql, Schema } from "@livestore/livestore";
+import { queryDb, sql, Schema } from "@runtimed/schema";
 
-import { tables, events, queries } from "@/schema";
-import { schema } from "../../schema.js";
-import { Bug, Database } from "lucide-react";
+import { tables, events, queries } from "@runtimed/schema";
+import { schema } from "@runtimed/schema";
+import { Database } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 const useAvailableTables = () => {
@@ -27,6 +27,7 @@ const DebugCell = ({
   cellIndex: number;
 }) => {
   const cell = useQuery(queries.cellQuery.byId(cellId));
+
   if (!cell) {
     return (
       <div className="animate-pulse border-4 border-red-500 bg-red-900 p-4 text-xl font-bold text-white">
@@ -36,14 +37,58 @@ const DebugCell = ({
   }
 
   return (
-    <details className="group">
+    <details className="group open:bg-muted/50">
       <summary className="hover:bg-muted/50 cursor-pointer rounded p-1 font-mono text-xs">
         {cellIndex + 1}. {cell.cellType} ({cellId.slice(-8)})
       </summary>
-      <pre className="bg-card mt-1 overflow-x-auto rounded border p-2 text-xs">
-        {JSON.stringify(cell, null, 2)}
-      </pre>
+      <div className="px-2">
+        <pre className="bg-card mt-1 max-w-full overflow-x-auto rounded border p-2 text-xs">
+          {JSON.stringify(cell, null, 2)}
+        </pre>
+        <DebugCellOutputs key={cellId} cellId={cellId} cellIndex={cellIndex} />
+      </div>
     </details>
+  );
+};
+
+const DebugCellOutputs = ({
+  cellId,
+  cellIndex,
+}: {
+  cellId: string;
+  cellIndex: number;
+}) => {
+  const outputs = useQuery(queries.cellQuery.outputs(cellId));
+  const cell = useQuery(queries.cellQuery.byId(cellId));
+
+  if (!cell) {
+    return null; // Don't show outputs for non-existent cells
+  }
+
+  if (!outputs || outputs.length === 0) {
+    return (
+      <details className="group">
+        <summary className="hover:bg-muted/50 text-muted-foreground cursor-pointer rounded p-1 font-mono text-xs">
+          {cellIndex + 1}. {cell.cellType} ({cellId.slice(-8)}) - No outputs
+        </summary>
+      </details>
+    );
+  }
+
+  return (
+    <>
+      {outputs.map((output, outputIndex) => (
+        <details key={output.id} className="group">
+          <summary className="hover:bg-muted/30 bg-muted/20 cursor-pointer rounded p-1 font-mono text-xs">
+            Output {outputIndex + 1}: (pos: {output.position})
+            {output.mimeType && ` - ${output.mimeType}`}
+          </summary>
+          <pre className="bg-card mt-1 max-w-full overflow-x-auto rounded border p-2 text-xs">
+            {JSON.stringify(output, null, 2)}
+          </pre>
+        </details>
+      ))}
+    </>
   );
 };
 
@@ -72,25 +117,18 @@ const DebugPanel: React.FC = () => {
   const executionQueue = useQuery(inflightExecutionQueue$);
 
   return (
-    <div className="bg-muted/5 w-96 overflow-y-auto border-l">
-      <div className="bg-card border-b p-4">
-        <h3 className="flex items-center gap-2 text-sm font-semibold">
-          <Bug className="h-4 w-4" />
-          Runt Debug Panel
-        </h3>
-      </div>
-
+    <div className="bg-muted/5 w-full overflow-y-auto">
       <a
         target="_blank"
         rel="noopener noreferrer"
         href={`${window.location.protocol}//${window.location.hostname}${window.location.port ? `:${window.location.port}` : ""}/_livestore/web/${store.storeId}/${store.clientSession.clientId}/${store.sessionId}/default`}
-        className="hover:bg-muted flex items-center gap-1 border-b px-4 py-2 text-sm text-blue-500 hover:underline"
+        className="hover:bg-muted flex items-center gap-1 border-b py-2 text-sm text-blue-500 hover:underline"
       >
         <Database className="size-4" />
         LiveStore DevTools →
       </a>
 
-      <div className="space-y-4 p-4">
+      <div className="space-y-4 pt-4">
         <DebugVersion />
         {/* Available Tables */}
         <div>
@@ -119,7 +157,7 @@ const DebugPanel: React.FC = () => {
           <h4 className="text-muted-foreground mb-2 text-xs font-medium tracking-wide uppercase">
             Notebook
           </h4>
-          <pre className="bg-card overflow-x-auto rounded border p-2 text-xs">
+          <pre className="bg-card max-w-full overflow-x-auto rounded border p-2 text-xs">
             {JSON.stringify(
               Object.fromEntries(notebookMetadata.map((m) => [m.key, m.value])),
               null,
@@ -154,7 +192,7 @@ const DebugPanel: React.FC = () => {
                     <span className="ml-1 text-green-600">●</span>
                   )}
                 </summary>
-                <pre className="bg-card mt-1 overflow-x-auto rounded border p-2 text-xs">
+                <pre className="bg-card mt-1 max-w-full overflow-x-auto rounded border p-2 text-xs">
                   {JSON.stringify(session, null, 2)}
                 </pre>
               </details>
@@ -174,7 +212,7 @@ const DebugPanel: React.FC = () => {
                   {index + 1}. {entry.status} - Cell{" "}
                   {entry.cellId?.slice(-8) || "unknown"}
                 </summary>
-                <pre className="bg-card mt-1 overflow-x-auto rounded border p-2 text-xs">
+                <pre className="bg-card mt-1 max-w-full overflow-x-auto rounded border p-2 text-xs">
                   {JSON.stringify(entry, null, 2)}
                 </pre>
               </details>

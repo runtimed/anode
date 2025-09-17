@@ -46,8 +46,8 @@ export const EmptyStateCellAdder: React.FC = () => {
         />
       </div>
       <div className="text-muted-foreground hidden text-xs sm:block">
-        💡 Use ↑↓ arrow keys to navigate • Shift+Enter to run and move •
-        Ctrl+Enter to run
+        💡 Real-time collaborative computing. Pick a cell type to start
+        experimenting.
       </div>
     </div>
   );

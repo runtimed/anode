@@ -1,6 +1,6 @@
 import { useQuery } from "@livestore/react";
-import { queryDb } from "@livestore/livestore";
-import { tables } from "@/schema";
+import { queryDb } from "@runtimed/schema";
+import { tables } from "@runtimed/schema";
 import { useCallback } from "react";
 
 import { useAuthenticatedUser } from "../auth/index.js";

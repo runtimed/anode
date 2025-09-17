@@ -9,6 +9,14 @@
       }
     },
     {
+      "name": "runtime",
+      "script": "pnpm",
+      "args": "run dev:runtime",
+      "env": {
+        "NODE_ENV": "development"
+      }
+    },
+    {
       "name": "iframe-outputs",
       "script": "pnpm",
       "args": "run dev:iframe",
@@ -20,14 +28,6 @@
       "name": "sync",
       "script": "pnpm",
       "args": "run dev:sync",
-      "env": {
-        "NODE_ENV": "development"
-      }
-    },
-    {
-      "name": "watcher",
-      "script": "node",
-      "args": "scripts/watch-script.cjs",
       "env": {
         "NODE_ENV": "development"
       }

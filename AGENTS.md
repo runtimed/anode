@@ -15,9 +15,9 @@ Anode is a real-time collaborative notebook system built on LiveStore, an event-
 
 ## Architecture
 
-- **Schema** (`jsr:@runt/schema`): LiveStore schema definitions (events, state,
-  materializers) - Published JSR package imported by all packages with full type
-  inference. Comes via https://github.com/runtimed/runt's deno monorepo
+- **Schema** (`@runtimed/schema`): LiveStore schema definitions (events, state,
+  materializers) - Published npm package imported by all packages with full type
+  inference. Comes from packages/schema in this monorepo
 - **Web Client**: React-based web interface (locally served via vite, deployed as `ASSETS` from the cloudflare worker)
 - **Document Worker**: Cloudflare Worker for sync backend and API (permissions, database, artifact storage)
 - **Pyodide Runtime Agent**: Python execution client using @runt packages
@@ -113,12 +113,12 @@ pnpm build    # Build web UI
 
 ## Schema Linking for Development
 
-The `@runt/schema` package provides the shared types and events between Anode and Runt. The linking method depends on your development phase:
+The `@runtimed/schema` package provides the shared types and events for Anode. The linking method depends on your development phase:
 
 ### Production (JSR Package)
 
 ```json
-"@runt/schema": "jsr:^0.11.1"
+"@runtimed/schema": "^0.1.0"
 ```
 
 Use this for stable releases and production deployments.
@@ -126,7 +126,7 @@ Use this for stable releases and production deployments.
 ### Testing PR Changes (GitHub Reference)
 
 ```json
-"@runt/schema": "github:runtimed/runt#1d52f9e51b9f28e81e366a7053d1e5fa6164c390&path:/packages/schema"
+"@runtimed/schema": "workspace:*"
 ```
 
 Use this when testing changes from a merged PR in the Runt repository. Replace the commit hash with the specific commit you want to test.
@@ -134,7 +134,7 @@ Use this when testing changes from a merged PR in the Runt repository. Replace t
 ### Local Development (File Link)
 
 ```json
-"@runt/schema": "file:../runt/packages/schema"
+"@runtimed/schema": "workspace:*"
 ```
 
 Use this when developing locally with both Anode and Runt repositories side-by-side.
@@ -160,7 +160,7 @@ Use this when developing locally with both Anode and Runt repositories side-by-s
 
 ### Schema Design
 
-- **JSR schema package**: `jsr:@runt/schema` provides zero-build-step imports
+- **npm schema package**: `@runtimed/schema` provides zero-build-step imports
   with type inference across all packages
 
 ### Use top-level `useQuery` rather than `store.useQuery`
@@ -304,12 +304,10 @@ const titleMetadata = useQuery(
 │   ├── deploy-iframe-outputs.sh
 │   ├── dev-runtime.sh
 │   ├── optimize-build.sh
-│   ├── start-nb.sh
+│   ├── open-browser.sh
 │   ├── start-runt-dev.sh
 │   ├── test-api-key-flow.sh
 │   ├── test-api-keys.sh
-│   ├── use-runt.sh
-│   └── watch-script.cjs
 ├── src
 │   ├── auth
 │   │   ├── AuthGuard.tsx

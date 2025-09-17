@@ -5,7 +5,7 @@ import {
 import { type Env, type ExecutionContext } from "./types";
 
 import { getValidatedUser } from "./auth";
-import { Schema } from "@livestore/livestore";
+import { Schema } from "@runtimed/schema";
 
 export class WebSocketServer extends makeDurableObject({
   onPush: async (message) => {

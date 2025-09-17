@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useStore, useQuery } from "@livestore/react";
-import { queryDb } from "@livestore/livestore";
-import { events, tables } from "@/schema";
+import { queryDb } from "@runtimed/schema";
+import { events, tables } from "@runtimed/schema";
 import { useAuthenticatedUser } from "../auth/index.js";
 
 export type ToolApprovalRequest = {

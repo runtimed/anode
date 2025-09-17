@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useState } from "react";
 import { useStore, useQuery } from "@livestore/react";
-import { events, tables } from "@/schema";
-import { queryDb } from "@livestore/livestore";
+import { events, tables } from "@runtimed/schema";
+import { queryDb } from "@runtimed/schema";
 import { Input } from "@/components/ui/input";
 
 interface NotebookTitleProps {

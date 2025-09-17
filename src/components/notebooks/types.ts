@@ -8,7 +8,7 @@ type NotebookUser = {
   familyName: string | null;
 };
 
-type Collaborator = {
+export type Collaborator = {
   id: string;
   givenName: string | null;
   familyName: string | null;

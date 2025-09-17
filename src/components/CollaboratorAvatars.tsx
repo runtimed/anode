@@ -10,9 +10,9 @@ export function CollaboratorAvatars() {
   const otherUsers = presentUsers.filter((user) => user.id !== userId);
   const LIMIT = 5;
   return (
-    <div className="group/users flex items-center gap-2">
-      <div className="flex -space-x-2 group-hover/users:space-x-1">
-        {otherUsers.slice(0, LIMIT).map((user) => {
+    <div className="group/users flex items-center gap-1 sm:gap-2">
+      <div className="flex -space-x-1 group-hover/users:space-x-0.5 sm:-space-x-2 sm:group-hover/users:space-x-1">
+        {otherUsers.slice(0, LIMIT).map((user, index) => {
           const userInfo = getUserInfo(user.id);
           const clientInfo = getClientTypeInfo(user.id);
           const IconComponent = clientInfo.icon;
@@ -20,7 +20,9 @@ export function CollaboratorAvatars() {
           return (
             <div
               key={user.id}
-              className="shrink-0 overflow-hidden rounded-full border-2 transition-[margin]"
+              className={`shrink-0 overflow-hidden rounded-full border-2 transition-[margin] ${
+                index >= 3 ? "hidden sm:block" : ""
+              }`}
               style={{
                 borderColor: getClientColor(user.id, getUserColor),
               }}
@@ -32,19 +34,21 @@ export function CollaboratorAvatars() {
             >
               {IconComponent ? (
                 <div
-                  className={`flex size-8 items-center justify-center rounded-full ${clientInfo.backgroundColor}`}
+                  className={`flex size-6 items-center justify-center rounded-full sm:size-8 ${clientInfo.backgroundColor}`}
                 >
-                  <IconComponent className={`size-4 ${clientInfo.textColor}`} />
+                  <IconComponent
+                    className={`size-3 sm:size-4 ${clientInfo.textColor}`}
+                  />
                 </div>
               ) : userInfo?.picture ? (
                 <img
                   src={userInfo.picture}
                   alt={userInfo.name ?? "User"}
-                  className="h-8 w-8 rounded-full bg-gray-300"
+                  className="size-6 rounded-full bg-gray-300 sm:size-8"
                 />
               ) : (
-                <Avatar>
-                  <AvatarFallback>
+                <Avatar className="size-6 sm:size-8">
+                  <AvatarFallback className="text-xs">
                     {userInfo?.name?.charAt(0).toUpperCase() ?? "?"}
                   </AvatarFallback>
                 </Avatar>
@@ -57,6 +61,13 @@ export function CollaboratorAvatars() {
         <div className="flex items-center gap-1">
           <span className="text-muted-foreground text-xs">
             +{otherUsers.length - LIMIT}
+          </span>
+        </div>
+      )}
+      {otherUsers.length > 3 && otherUsers.length <= LIMIT && (
+        <div className="flex items-center gap-1 sm:hidden">
+          <span className="text-muted-foreground text-xs">
+            +{otherUsers.length - 3}
           </span>
         </div>
       )}

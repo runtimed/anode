@@ -1,7 +1,7 @@
 // NOTE: code here is shared between the iframe and the parent page.
 // It's done to colocate types to ensure typesafety across the two bundles.
 
-import { OutputData } from "@/schema";
+import { OutputData } from "@runtimed/schema";
 import { useEffect, useRef, useState } from "react";
 
 type UpdateOutputsEvent = {
@@ -18,8 +18,15 @@ type IframeHeightEvent = {
   height: number;
 };
 
+type IframeDoubleClickEvent = {
+  type: "iframe-double-click";
+};
+
 export type ToIframeEvent = UpdateOutputsEvent;
-export type FromIframeEvent = IframeHeightEvent | IframeLoadedEvent;
+export type FromIframeEvent =
+  | IframeHeightEvent
+  | IframeLoadedEvent
+  | IframeDoubleClickEvent;
 
 export function sendFromIframe(event: FromIframeEvent) {
   window.parent.postMessage(event, "*");
@@ -52,10 +59,12 @@ export function useIframeCommsParent({
   defaultHeight,
   onHeightChange,
   outputs,
+  onDoubleClick,
 }: {
   defaultHeight: string;
   onHeightChange?: (height: number) => void;
   outputs?: OutputData[];
+  onDoubleClick?: () => void;
 }) {
   const iframeRef = useRef<HTMLIFrameElement>(null);
 
@@ -86,6 +95,9 @@ export function useIframeCommsParent({
       if (event.data && event.data.type === "iframe-loaded") {
         setIframeLoaded(true);
       }
+      if (event.data && event.data.type === "iframe-double-click") {
+        onDoubleClick?.();
+      }
     };
 
     // Add message listener
@@ -94,7 +106,7 @@ export function useIframeCommsParent({
     return () => {
       removeParentMessageListener(handleMessage);
     };
-  }, [onHeightChange]);
+  }, [onHeightChange, onDoubleClick]);
 
   useEffect(() => {
     // We cannot send content to iframe before it is loaded
@@ -103,7 +115,6 @@ export function useIframeCommsParent({
     }
     // Send content to iframe when it changes
     if (iframeRef.current && iframeRef.current.contentWindow) {
-      console.log("Sending outputs to iframe", outputs);
       sendToIframe(iframeRef.current, {
         type: "update-outputs",
         outputs: outputs || [],
@@ -125,7 +136,6 @@ export function useIframeCommsChild() {
     function sendHeight() {
       const BUFFER = 1; // Add a small buffer to prevent scrollbars
       const height = document.body.scrollHeight;
-      console.log("sending height 2", height);
       sendFromIframe({
         type: "iframe-height",
         height: height + BUFFER,
@@ -137,10 +147,8 @@ export function useIframeCommsChild() {
 
     // Handle incoming content updates
     window.addEventListener("message", (event: MessageEvent<ToIframeEvent>) => {
-      console.log("received message", event.data);
       const data = event.data;
       if (data && data.type === "update-outputs") {
-        console.log("update-outputs", data.outputs);
         setOutputs(data.outputs || []);
         setTimeout(sendHeight, 50);
       }

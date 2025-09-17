@@ -77,12 +77,12 @@ Your notebook is now connected to a Python runtime and can execute code cells.
 
 ## Schema Linking for Development
 
-The `@runt/schema` package provides shared types and events between Anode and Runt. The linking method depends on your development phase:
+The `@runtimed/schema` package provides shared types and events for Anode. The linking method depends on your development phase:
 
 ### Production (JSR Package)
 
 ```json
-"@runt/schema": "jsr:^0.9.0"
+"@runtimed/schema": "^0.1.0"
 ```
 
 Use this for stable releases and production deployments.
@@ -90,7 +90,7 @@ Use this for stable releases and production deployments.
 ### Testing PR Changes (GitHub Reference)
 
 ```json
-"@runt/schema": "github:runtimed/runt#1d52f9e51b9f28e81e366a7053d1e5fa6164c390&path:/packages/schema"
+"@runtimed/schema": "workspace:*"
 ```
 
 Use this when testing changes from a merged PR in the Runt repository. Replace the commit hash with the specific commit you want to test.
@@ -98,7 +98,7 @@ Use this when testing changes from a merged PR in the Runt repository. Replace t
 ### Local Development (File Link)
 
 ```json
-"@runt/schema": "file:../runt/packages/schema"
+"@runtimed/schema": "workspace:*"
 ```
 
 Use this when developing locally with both Anode and Runt repositories side-by-side.
@@ -110,16 +110,6 @@ Use this when developing locally with both Anode and Runt repositories side-by-s
 3. **Restart your development server** (`pnpm dev`)
 
 **Important**: Always ensure both repositories are using compatible schema versions. Type errors usually indicate schema mismatches.
-
-### Git Hook Protection (Husky)
-
-A Husky pre-commit hook is configured to prevent accidentally committing `package.json` with `@runt/schema` using the `file:` protocol. This ensures that:
-
-- Production deployments work correctly
-- Other developers can install dependencies without local file paths
-- The repository remains distributable
-
-**Note**: The hook is managed by Husky and stored in `.husky/pre-commit`. It will be automatically installed for all developers when they run `pnpm install`.
 
 ## Deployment
 

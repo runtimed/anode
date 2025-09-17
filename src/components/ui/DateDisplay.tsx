@@ -1,5 +1,5 @@
 import React from "react";
-import { formatDistanceToNow } from "date-fns";
+import { formatDistanceToNow, parseISO } from "date-fns";
 import { Tooltip, TooltipContent, TooltipTrigger } from "./tooltip";
 import { cn } from "@/lib/utils";
 
@@ -16,7 +16,8 @@ export const DateDisplay: React.FC<DateDisplayProps> = ({
   showTooltip = true,
   className = "",
 }) => {
-  const dateObj = typeof date === "string" ? new Date(date) : date;
+  // API returns proper ISO strings with timezone info
+  const dateObj = typeof date === "string" ? parseISO(date) : date;
 
   const getDisplayText = () => {
     switch (format) {

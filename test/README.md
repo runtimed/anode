@@ -194,7 +194,7 @@ Tests are designed to be fast (~2 seconds for full suite), reliable (no flaky te
 
 ### Schema Import Issues
 
-- **Solution**: Use JSR imports for schema (e.g., `import { events } from "@runt/schema"`). No build step needed - direct TypeScript imports from JSR package.
+- **Solution**: Use npm imports for schema (e.g., `import { events } from "@runtimed/schema"`). No build step needed - direct TypeScript imports from npm package.
 
 ### Date Handling
 
@@ -230,7 +230,7 @@ When adding new tests:
 
 ### Common Issues
 
-- **Import errors**: Check that schema import is correct (`@runt/schema`).
+- **Import errors**: Check that schema import is correct (`@runtimed/schema`).
 - **Type errors**: TypeScript catches invalid queries at compile time.
 - **Timeout errors**: Increase timeout in `vitest.config.ts`.
 - **Memory issues**: Verify store cleanup in `afterEach`.
