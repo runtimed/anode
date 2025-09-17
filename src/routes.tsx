@@ -3,6 +3,7 @@ import { AuthProvider } from "@/auth/AuthProvider";
 import { FPSMeter } from "@/components/debug/FPSMeter.tsx";
 import { LoadingState } from "@/components/loading/LoadingState.js";
 import { Toaster } from "@/components/ui/sonner.js";
+import { HtmlRuntimeProvider } from "@/runtime/html-runtime-provider.js";
 import AuthorizePage from "@/pages/AuthorizePage.tsx";
 import {
   isLoadingScreenVisible,
@@ -55,53 +56,55 @@ export const App: React.FC = () => {
 
   return (
     <AuthProvider>
-      <ErrorBoundary
-        // Note: this must a render prop for error fallback
-        fallbackRender={({ error }) => <ErrorFallbackPage error={error} />}
-      >
-        <Routes>
-          <Route path="/oidc" element={<OidcCallbackPage />} />
-          <Route path="/local_oidc/authorize" element={<AuthorizePage />} />
-          <Route
-            path="/nb/:id/*"
-            element={
-              <AuthGuard>
-                <Suspense
-                  fallback={
-                    <LoadingState
-                      variant="fullscreen"
-                      message="Loading notebook..."
-                    />
-                  }
-                >
-                  <NotebookPage />
-                </Suspense>
-              </AuthGuard>
-            }
-          />
-          <Route
-            path="/nb"
-            element={
-              <AuthGuard>
-                <Suspense
-                  fallback={
-                    <LoadingState
-                      variant="fullscreen"
-                      message="Loading notebooks..."
-                    />
-                  }
-                >
-                  <NotebooksDashboardPage />
-                </Suspense>
-              </AuthGuard>
-            }
-          />
-          <Route path="/" element={<Navigate to="/nb" replace />} />
-          <Route path="/demo/geojson" element={<GeoJsonDemoPage />} />
-        </Routes>
-        <FPSMeter />
-        <Toaster />
-      </ErrorBoundary>
+      <HtmlRuntimeProvider>
+        <ErrorBoundary
+          // Note: this must a render prop for error fallback
+          fallbackRender={({ error }) => <ErrorFallbackPage error={error} />}
+        >
+          <Routes>
+            <Route path="/oidc" element={<OidcCallbackPage />} />
+            <Route path="/local_oidc/authorize" element={<AuthorizePage />} />
+            <Route
+              path="/nb/:id/*"
+              element={
+                <AuthGuard>
+                  <Suspense
+                    fallback={
+                      <LoadingState
+                        variant="fullscreen"
+                        message="Loading notebook..."
+                      />
+                    }
+                  >
+                    <NotebookPage />
+                  </Suspense>
+                </AuthGuard>
+              }
+            />
+            <Route
+              path="/nb"
+              element={
+                <AuthGuard>
+                  <Suspense
+                    fallback={
+                      <LoadingState
+                        variant="fullscreen"
+                        message="Loading notebooks..."
+                      />
+                    }
+                  >
+                    <NotebooksDashboardPage />
+                  </Suspense>
+                </AuthGuard>
+              }
+            />
+            <Route path="/" element={<Navigate to="/nb" replace />} />
+            <Route path="/demo/geojson" element={<GeoJsonDemoPage />} />
+          </Routes>
+          <FPSMeter />
+          <Toaster />
+        </ErrorBoundary>
+      </HtmlRuntimeProvider>
     </AuthProvider>
   );
 };

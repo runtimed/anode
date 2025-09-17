@@ -4,6 +4,7 @@ import { Link, useLocation, useParams } from "react-router-dom";
 import { useScroll } from "react-use";
 
 import { CustomLiveStoreProvider } from "../../../livestore/index.js";
+import { HtmlRuntimeManager } from "../../../runtime/managers/HtmlRuntimeManager.js";
 import { LoadingState } from "../../loading/LoadingState.js";
 
 import { NotebookContent } from "../../notebook/NotebookContent.js";
@@ -24,9 +25,11 @@ export const NotebookPage: React.FC = () => {
 
   return (
     <CustomLiveStoreProvider storeId={id}>
-      <ChatModeProvider>
-        <NotebookPageWithId id={id} />
-      </ChatModeProvider>
+      <HtmlRuntimeManager notebookId={id}>
+        <ChatModeProvider>
+          <NotebookPageWithId id={id} />
+        </ChatModeProvider>
+      </HtmlRuntimeManager>
     </CustomLiveStoreProvider>
   );
 };
