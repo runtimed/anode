@@ -135,8 +135,8 @@ class_name = "WebSocketServer"
 
 [[env.preview.d1_databases]]
 binding = "DB"
-database_name = "anode-docworker-preview-db-2"
-database_id = "519e1644-2b21-420f-ac6b-38d096877853"
+database_name = "anode-docworker-preview-db-3"
+database_id = "ccfabfd6-a5b6-4ffb-9609-af5e0461ed3f"
 
 [[env.preview.r2_buckets]]
 binding = "ARTIFACT_BUCKET"
