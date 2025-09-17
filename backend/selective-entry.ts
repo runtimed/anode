@@ -168,7 +168,19 @@ export default {
             const permissionsProvider = createPermissionsProvider(env);
 
             return {
-              env,
+              env: {
+                ...env,
+                DB: {
+                  prepare: (query: string) => {
+                    console.log("📦 prepare query");
+                    return env.DB.prepare.bind(env.DB)(query);
+                  },
+                  batch: env.DB.batch.bind(env.DB),
+                  exec: env.DB.exec.bind(env.DB),
+                  withSession: env.DB.withSession.bind(env.DB),
+                  dump: env.DB.dump.bind(env.DB),
+                },
+              },
               user: auth,
               permissionsProvider,
             };
