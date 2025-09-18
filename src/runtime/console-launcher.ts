@@ -83,10 +83,20 @@ class ConsoleLauncher {
     const pathParts = window.location.pathname.split("/");
     const notebookIndex = pathParts.findIndex((part) => part === "notebook");
 
+    console.log("🔍 URL Debug:", {
+      pathname: window.location.pathname,
+      pathParts,
+      notebookIndex,
+      candidateId: pathParts[notebookIndex + 1],
+    });
+
     if (notebookIndex !== -1 && pathParts[notebookIndex + 1]) {
-      return pathParts[notebookIndex + 1];
+      const notebookId = pathParts[notebookIndex + 1];
+      console.log(`📝 Found notebook ID: ${notebookId}`);
+      return notebookId;
     }
 
+    console.log("❌ No notebook ID found in URL");
     return null;
   }
 

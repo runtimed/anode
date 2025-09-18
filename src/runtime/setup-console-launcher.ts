@@ -69,9 +69,18 @@ export function setupConsoleLauncher(
 export function debugConsoleAuth() {
   console.log("🔍 Console launcher auth debug:");
   console.log("  Status:", window.__RUNT_LAUNCHER__?.getStatus());
-  console.log("  Current URL:", window.location.pathname);
+  console.log("  Full URL:", window.location.href);
+  console.log("  Pathname:", window.location.pathname);
+  console.log("  Path parts:", window.location.pathname.split("/"));
+
+  // Test URL parsing logic
+  const pathParts = window.location.pathname.split("/");
+  const notebookIndex = pathParts.findIndex((part) => part === "notebook");
+  console.log("  Notebook index:", notebookIndex);
+  console.log("  Next part:", pathParts[notebookIndex + 1]);
+
   console.log(
-    "  Notebook ID:",
+    "  Detected Notebook ID:",
     window.__RUNT_LAUNCHER__?.getCurrentNotebookId()
   );
 }
