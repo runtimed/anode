@@ -10,7 +10,12 @@
  *   window.__RUNT_LAUNCHER__.shutdown()
  */
 
-import { RuntimeAgent, RuntimeConfig } from "@runtimed/agent-core";
+import {
+  RuntimeAgent,
+  RuntimeConfig,
+  createStorePromise,
+  createRuntimeSyncPayload,
+} from "@runtimed/agent-core";
 import type {
   ExecutionHandler,
   RuntimeCapabilities,
@@ -31,6 +36,7 @@ declare global {
       setStore: (store: Store) => void;
       setAuth: (userId: string, authToken: string) => void;
       useExistingStore: (store: any) => void;
+      createNewStore: (notebookId: string) => Promise<Store>;
     };
   }
 }
@@ -84,6 +90,14 @@ class ConsoleLauncher {
     this.existingStore = store;
     console.log("📦 Using existing LiveStore instance directly");
     console.log("🎯 Now try: await window.__RUNT_LAUNCHER__.launchHtmlAgent()");
+  }
+
+  get currentUserId(): string | null {
+    return this.userId;
+  }
+
+  get currentAuthToken(): string | null {
+    return this.authToken;
   }
 
   getCurrentNotebookId(): string | null {
@@ -207,6 +221,16 @@ class ConsoleLauncher {
         canExecuteAi: false,
       };
 
+      // Use existing store or create a new one
+      let store: Store;
+      if (this.existingStore) {
+        console.log("🔄 Using existing store instance");
+        store = this.existingStore;
+      } else {
+        console.log("🏗️ Creating new store instance");
+        store = await this.createNewStore(notebookId, userId, authToken);
+      }
+
       const config = new RuntimeConfig({
         runtimeId: `console-html-${crypto.randomUUID()}`,
         runtimeType: "html",
@@ -214,8 +238,7 @@ class ConsoleLauncher {
         syncUrl: "ws://localhost:8787", // Dev sync server
         authToken,
         notebookId,
-        store: this.existingStore, // Use existing store if available
-        adapter: this.existingStore ? undefined : sharedLiveStoreAdapter,
+        store,
         userId,
       });
 
@@ -271,6 +294,16 @@ class ConsoleLauncher {
         ],
       };
 
+      // Use existing store or create a new one
+      let store: Store;
+      if (this.existingStore) {
+        console.log("🔄 Using existing store instance");
+        store = this.existingStore;
+      } else {
+        console.log("🏗️ Creating new store instance");
+        store = await this.createNewStore(notebookId, userId, authToken);
+      }
+
       const config = new RuntimeConfig({
         runtimeId: `console-python-${crypto.randomUUID()}`,
         runtimeType: "python",
@@ -278,7 +311,7 @@ class ConsoleLauncher {
         syncUrl: "ws://localhost:8787",
         authToken,
         notebookId,
-        adapter: sharedLiveStoreAdapter,
+        store,
         userId,
       });
 
@@ -316,6 +349,28 @@ class ConsoleLauncher {
     };
   }
 
+  async createNewStore(
+    notebookId: string,
+    userId: string,
+    authToken: string
+  ): Promise<Store> {
+    const runtimeId = `console-${crypto.randomUUID()}`;
+    const sessionId = `${runtimeId}-${Date.now()}`;
+
+    const syncPayload = createRuntimeSyncPayload({
+      authToken,
+      runtimeId,
+      sessionId,
+      userId,
+    });
+
+    return await createStorePromise({
+      adapter: sharedLiveStoreAdapter,
+      notebookId,
+      syncPayload,
+    });
+  }
+
   async shutdown(): Promise<void> {
     if (this.currentAgent) {
       console.log("🛑 Shutting down runtime agent...");
@@ -342,6 +397,12 @@ if (typeof window !== "undefined") {
     setAuth: (userId: string, authToken: string) =>
       launcher.setAuth(userId, authToken),
     useExistingStore: (store: any) => launcher.useExistingStore(store),
+    createNewStore: (notebookId: string) =>
+      launcher.createNewStore(
+        notebookId,
+        launcher.currentUserId || "unknown",
+        launcher.currentAuthToken || "unknown"
+      ),
   };
 }
 

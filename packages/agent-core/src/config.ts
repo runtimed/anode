@@ -4,7 +4,7 @@
 // extended by specific runtime implementations (Python, JavaScript, etc.).
 
 import { logger } from "./logging.ts";
-import type { Adapter, Store } from "@runtimed/schema";
+import type { Store } from "@runtimed/schema";
 import type {
   IArtifactClient,
   RuntimeAgentOptions,
@@ -34,8 +34,7 @@ export class RuntimeConfig {
   public readonly sessionId: string;
   public readonly imageArtifactThresholdBytes: number;
   public readonly artifactClient: IArtifactClient;
-  public readonly adapter: Adapter | undefined;
-  public readonly store: Store | undefined;
+  public readonly store: Store;
   public readonly userId: string;
 
   constructor(options: RuntimeAgentOptions) {
@@ -48,7 +47,6 @@ export class RuntimeConfig {
     this.imageArtifactThresholdBytes =
       options.imageArtifactThresholdBytes ??
       DEFAULT_CONFIG.imageArtifactThresholdBytes;
-    this.adapter = options.adapter;
     this.store = options.store;
     this.userId = options.userId;
 
