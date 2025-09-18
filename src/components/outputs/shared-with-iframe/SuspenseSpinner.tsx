@@ -23,8 +23,8 @@ export function SuspenseSpinner({ children }: { children: React.ReactNode }) {
   return <Suspense fallback={<DelayedSpinner />}>{children}</Suspense>;
 }
 
-export const LoadingSpinner = ({ size = "md" }: { size?: SpinnerSize }) => (
-  <div className="flex items-center justify-center p-4">
+const LoadingSpinner = ({ size = "md" }: { size?: SpinnerSize }) => (
+  <div className="p-1 text-black/50">
     <Spinner size={size} />
   </div>
 );
