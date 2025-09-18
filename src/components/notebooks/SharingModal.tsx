@@ -50,18 +50,20 @@ export const SharingModal: React.FC<SharingModalProps> = ({
   // Query for user by email using debounced value
   const { data: userByEmail, isFetching: lookingUpUser } = useQuery({
     ...trpc.userByEmail.queryOptions({ email: debouncedEmail.trim() }),
-    enabled: shouldLookupUser,
+    enabled: shouldLookupUser && isOpen,
   });
 
   // Query for notebook owner
-  const { data: owner } = useQuery(
-    trpc.notebookOwner.queryOptions({ nbId: notebook.id })
-  );
+  const { data: owner } = useQuery({
+    ...trpc.notebookOwner.queryOptions({ nbId: notebook.id }),
+    enabled: isOpen,
+  });
 
   // Query for notebook collaborators
-  const { data: collaborators, refetch: refetchCollaborators } = useQuery(
-    trpc.notebookCollaborators.queryOptions({ nbId: notebook.id })
-  );
+  const { data: collaborators, refetch: refetchCollaborators } = useQuery({
+    ...trpc.notebookCollaborators.queryOptions({ nbId: notebook.id }),
+    enabled: isOpen,
+  });
 
   // Share notebook mutation
   const shareMutation = useMutation(trpc.shareNotebook.mutationOptions());

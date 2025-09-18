@@ -33,14 +33,14 @@ export const TagBadge: React.FC<TagBadgeProps> = ({ tag, className = "" }) => {
   return (
     <Badge
       variant="secondary"
-      className={`rounded-full border-0 px-2.5 py-0.5 text-xs font-medium ${className}`}
+      className={`max-w-full rounded-full border-0 px-2.5 py-0.5 text-xs font-medium ${className}`}
       data-tag-id={tag.id}
       style={{
         backgroundColor: tag.color,
         color: textColor,
       }}
     >
-      {tag.name}
+      <span className="truncate">{tag.name}</span>
     </Badge>
   );
 };
