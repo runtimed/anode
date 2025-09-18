@@ -54,12 +54,19 @@ export class RuntimeAgent {
 
   private artifactClient: IArtifactClient;
 
+  config: RuntimeConfig;
+  capabilities: RuntimeCapabilities;
+  handlers: RuntimeAgentEventHandlers;
+
   constructor(
-    public config: RuntimeConfig,
-    private capabilities: RuntimeCapabilities,
-    private handlers: RuntimeAgentEventHandlers = {}
+    config: RuntimeConfig,
+    capabilities: RuntimeCapabilities,
+    handlers: RuntimeAgentEventHandlers = {}
   ) {
+    this.config = config;
+    this.capabilities = capabilities;
     this.artifactClient = config.artifactClient;
+    this.handlers = handlers;
   }
 
   /**

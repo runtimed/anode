@@ -24,14 +24,18 @@ export function decodeImageData(base64String: string): Uint8Array<ArrayBuffer> {
  * Client for interacting with the anode artifact service
  */
 export class ArtifactClient implements IArtifactClient {
+  baseUrl: string;
+
   // TODO: Make artifact service URL configuration more general for @runt/lib package
-  constructor(private baseUrl: string = "https://api.runt.run") {}
+  constructor(baseUrl: string = "https://app.runt.run") {
+    this.baseUrl = baseUrl;
+  }
 
   /**
    * Submit content data to artifact service
    */
   async submitContent(
-    data: Uint8Array,
+    data: Uint8Array<ArrayBuffer>,
     options: ArtifactSubmissionOptions
   ): Promise<ArtifactSubmissionResult> {
     // For now, delegate to PNG-specific implementation
@@ -179,22 +183,9 @@ export function createArtifactClient(baseUrl?: string): ArtifactClient {
  * Process and submit PNG images to the artifact service
  */
 export class PngProcessor {
-  constructor(private client: ArtifactClient) {}
-
-  /**
-   * Process PNG from various sources and submit to artifact service
-   */
-  async processPngData(
-    source: Uint8Array | string,
-    options: ArtifactSubmissionOptions
-  ): Promise<ArtifactSubmissionResult> {
-    if (typeof source === "string") {
-      // Assume base64 encoded
-      return await this.client.submitPngFromBase64(source, options);
-    } else {
-      // Raw binary data
-      return await this.client.submitPng(source, options);
-    }
+  client: ArtifactClient;
+  constructor(client: ArtifactClient) {
+    this.client = client;
   }
 
   /**
