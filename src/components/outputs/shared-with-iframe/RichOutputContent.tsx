@@ -9,9 +9,6 @@ import {
   isAiToolCallData,
   isAiToolResultData,
 } from "@runtimed/schema";
-import { prefetchOutputsAdaptive } from "@/util/prefetch";
-
-prefetchOutputsAdaptive();
 
 // Dynamic imports for heavy components
 const MarkdownRenderer = React.lazy(() =>
