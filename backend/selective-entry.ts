@@ -228,7 +228,10 @@ export default {
     }
 
     if (pathname.startsWith("/api/db-test")) {
-      const count = parseInt(request.url.split("=")[1]);
+      let count = parseInt(request.url.split("=")[1]);
+      if (isNaN(count) || count > 50) {
+        count = 50;
+      }
       const db = env.DB;
       let results = [];
       let times = [];
