@@ -8,19 +8,24 @@ import { context, SpanKind, SpanStatusCode, trace } from "@opentelemetry/api";
 /**
  * Log levels in order of severity
  */
-export enum LogLevel {
-  DEBUG = 0,
-  INFO = 1,
-  WARN = 2,
-  ERROR = 3,
-}
+export const LogLevel = {
+  DEBUG: 0,
+  INFO: 1,
+  WARN: 2,
+  ERROR: 3,
+} as const;
+
+export type LogLevelValue = (typeof LogLevel)[keyof typeof LogLevel];
+
+/** Reverse mapping from numeric level to string name */
+const LogLevelNames = ["DEBUG", "INFO", "WARN", "ERROR"] as const;
 
 /**
  * Configuration for the logger
  */
 export interface LoggerConfig {
   /** Minimum log level to output */
-  level: LogLevel;
+  level: LogLevelValue;
   /** Whether to also output to console */
   console: boolean;
   /** Service name for structured logs */
@@ -53,7 +58,7 @@ class Logger {
     return { ...this.config };
   }
 
-  getLevel(): LogLevel {
+  getLevel(): LogLevelValue {
     return this.config.level;
   }
 
@@ -171,7 +176,7 @@ class Logger {
    * Internal logging method
    */
   private log(
-    level: LogLevel,
+    level: LogLevelValue,
     message: string,
     context?: Record<string, unknown>
   ): void {
@@ -181,7 +186,7 @@ class Logger {
 
     const logData = {
       timestamp: new Date().toISOString(),
-      level: LogLevel[level],
+      level: LogLevelNames[level],
       service: this.config.service,
       message,
       ...context,
@@ -191,7 +196,7 @@ class Logger {
     const activeSpan = trace.getActiveSpan();
     if (activeSpan) {
       activeSpan.addEvent(message, {
-        level: LogLevel[level],
+        level: LogLevelNames[level],
         ...context,
       });
     }
@@ -206,12 +211,12 @@ class Logger {
    * Console logging with appropriate formatting
    */
   private consoleLog(
-    level: LogLevel,
+    level: LogLevelValue,
     message: string,
     data: Record<string, unknown>
   ): void {
     const timestamp = new Date().toISOString().substring(11, 19); // HH:mm:ss
-    const levelStr = LogLevel[level].padEnd(5);
+    const levelStr = LogLevelNames[level].padEnd(5);
     const prefix = `${timestamp} ${levelStr} [${this.config.service}]`;
 
     switch (level) {
