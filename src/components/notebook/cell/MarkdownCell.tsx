@@ -3,7 +3,7 @@ import { useCellContent } from "@/hooks/useCellContent.js";
 import { useCellKeyboardNavigation } from "@/hooks/useCellKeyboardNavigation.js";
 import { useDeleteCell } from "@/hooks/useDeleteCell.js";
 import { useEditorRegistry } from "@/hooks/useEditorRegistry.js";
-import { events, queries, tables } from "@runtimed/schema";
+import { events, queries, tables, CellTypeNoRaw } from "@runtimed/schema";
 import { useStore } from "@livestore/react";
 import React, {
   useCallback,
@@ -28,10 +28,8 @@ import { Editor, EditorRef } from "./shared/Editor.js";
 import { PresenceBookmarks } from "./shared/PresenceBookmarks.js";
 import { IframeOutput } from "@/components/outputs/MaybeCellOutputs.js";
 
-type CellType = typeof tables.cells.Type;
-
 interface MarkdownCellProps {
-  cell: CellType;
+  cell: typeof tables.cells.Type;
   autoFocus?: boolean;
   contextSelectionMode?: boolean;
 }
@@ -83,7 +81,7 @@ export const MarkdownCell: React.FC<MarkdownCellProps> = ({
   );
 
   const changeCellType = useCallback(
-    (newType: "code" | "markdown" | "sql" | "ai") => {
+    (newType: CellTypeNoRaw) => {
       store.commit(
         events.cellTypeChanged({
           id: cell.id,

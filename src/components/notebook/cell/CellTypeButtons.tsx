@@ -1,5 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { CellTypeNoRaw } from "@runtimed/schema";
 import { Bot, Code, Database, FileText, Plus } from "lucide-react";
 import { type ComponentProps } from "react";
 
@@ -14,7 +15,7 @@ const cellTypeStyles = {
 
 interface CellTypeButtonProps
   extends Omit<ComponentProps<typeof Button>, "children"> {
-  cellType: "code" | "markdown" | "sql" | "ai";
+  cellType: CellTypeNoRaw;
   showIcon?: boolean;
   showPlus?: boolean;
   label?: string;

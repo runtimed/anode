@@ -18,17 +18,17 @@ export const MediaRepresentationSchema = Schema.Union(
   })
 );
 
-// TypeScript type for cell types
-export type CellType = "code" | "markdown" | "sql" | "raw" | "ai";
-
 // Schema for cell type validation
 export const CellTypeSchema = Schema.Literal(
   "code",
   "markdown",
   "sql",
-  "raw",
-  "ai"
+  "ai",
+  "raw"
 );
+
+export type CellType = typeof CellTypeSchema.Type;
+export type CellTypeNoRaw = Exclude<CellType, "raw">;
 
 // Execution state types
 export type ExecutionState =

@@ -7,11 +7,11 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Bot, Code, Database, FileText } from "lucide-react";
-import { tables } from "@runtimed/schema";
+import { CellTypeNoRaw, tables } from "@runtimed/schema";
 
 interface CellTypeSelectorProps {
   cell: typeof tables.cells.Type;
-  onCellTypeChange: (newType: "code" | "markdown" | "sql" | "ai") => void;
+  onCellTypeChange: (newType: CellTypeNoRaw) => void;
 }
 
 export const CellTypeSelector: React.FC<CellTypeSelectorProps> = ({
