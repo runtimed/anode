@@ -19,6 +19,8 @@ import { extractAndValidateUser } from "./auth.ts";
 import { createPermissionsProvider } from "./notebook-permissions/factory.ts";
 import { TrcpContext } from "./trpc/trpc.ts";
 
+let count = 0;
+
 // NOTE: This export is necessary at the root entry point for the Workers
 // runtime for Durable Object usage
 export { WebSocketServer };
@@ -151,6 +153,27 @@ export default {
       });
     }
 
+    if (
+      pathname.startsWith("/api/reset-prepare-count") &&
+      request.method === "POST"
+    ) {
+      count = 0;
+      return new workerGlobals.Response(
+        JSON.stringify({ message: "Prepare count reset" }),
+        { status: 200, headers: { "Content-Type": "application/json" } }
+      );
+    }
+
+    if (
+      pathname.startsWith("/api/get-prepare-count") &&
+      request.method === "GET"
+    ) {
+      return new workerGlobals.Response(
+        JSON.stringify({ message: "Prepare count", count }),
+        { status: 200, headers: { "Content-Type": "application/json" } }
+      );
+    }
+
     if (pathname.startsWith("/api/trpc")) {
       console.log("🚀 Routing to tRPC");
       try {
@@ -172,7 +195,8 @@ export default {
                 ...env,
                 DB: {
                   prepare: (query: string) => {
-                    console.log("📦 prepare query");
+                    console.log("📦 prepare query ", query);
+                    count++;
                     return env.DB.prepare.bind(env.DB)(query);
                   },
                   batch: env.DB.batch.bind(env.DB),
