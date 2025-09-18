@@ -53,7 +53,18 @@ class ConsoleLauncher {
 
   constructor() {
     console.log("🚀 Runt Console Launcher initialized");
-    console.log("Use window.__RUNT_LAUNCHER__ to launch runtime agents");
+    console.log("📖 Usage Guide:");
+    console.log("  • Check status: window.__RUNT_LAUNCHER__.getStatus()");
+    console.log(
+      "  • Launch HTML agent: await window.__RUNT_LAUNCHER__.launchHtmlAgent()"
+    );
+    console.log(
+      "  • Shutdown agent: await window.__RUNT_LAUNCHER__.shutdown()"
+    );
+    console.log("  • Debug auth: window.__RUNT_DEBUG__.debugAuth()");
+    console.log(
+      "💡 Navigate to a notebook page first, then try launching an agent!"
+    );
   }
 
   setStore(store: Store): void {
