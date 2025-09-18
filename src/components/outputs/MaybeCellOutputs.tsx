@@ -120,6 +120,7 @@ export const IframeOutput: React.FC<IframeOutputProps> = ({
       style={style}
       allow="accelerometer; autoplay; gyroscope; magnetometer; xr-spatial-tracking; clipboard-write; fullscreen"
       sandbox="allow-downloads allow-forms allow-pointer-lock allow-popups allow-popups-to-escape-sandbox allow-same-origin allow-scripts allow-storage-access-by-user-activation allow-modals allow-top-navigation-by-user-activation"
+      loading="lazy"
     />
   );
 };
