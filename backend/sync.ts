@@ -16,10 +16,26 @@ export class WebSocketServer extends makeDurableObject({
   },
 }) {}
 
-const SyncPayloadSchema = Schema.Struct({
+// User sync payload (runtime is false or undefined)
+const UserSyncPayloadSchema = Schema.Struct({
   authToken: Schema.String,
-  runtime: Schema.optional(Schema.Boolean),
+  runtime: Schema.optional(Schema.Literal(false)),
 });
+
+// Runtime sync payload (runtime is true with additional fields)
+const RuntimeSyncPayloadSchema = Schema.Struct({
+  authToken: Schema.String,
+  runtime: Schema.Literal(true),
+  runtimeId: Schema.String,
+  sessionId: Schema.String,
+  userId: Schema.String,
+});
+
+// Union schema for all sync payload types
+const SyncPayloadSchema = Schema.Union(
+  UserSyncPayloadSchema,
+  RuntimeSyncPayloadSchema
+);
 
 const decodePayload = Schema.decodeUnknownSync(SyncPayloadSchema);
 
@@ -45,13 +61,21 @@ export default {
 
           // User identity is validated via JWT token
           // LiveStore will manage clientId for device/app instance identification
-          if (validatedUser.id === "runtime-agent") {
-            console.log("✅ Runtime agent authenticated");
-          } else if (payload?.runtime === true) {
-            // For API key authenticated runtime agents
-            console.log("✅ API key authenticated runtime agent:", {
-              userId: validatedUser.id,
+          if (payload?.runtime === true) {
+            // For runtime agents with full payload
+            console.log("✅ Runtime agent authenticated:", {
+              runtimeId: payload.runtimeId,
+              sessionId: payload.sessionId,
+              userId: payload.userId,
+              validatedUserId: validatedUser.id,
             });
+
+            // Verify that the runtime's claimed userId matches the authenticated user
+            if (payload.userId !== validatedUser.id) {
+              throw new Error(
+                `Runtime userId mismatch: payload claims ${payload.userId}, but token is for ${validatedUser.id}`
+              );
+            }
           } else {
             // For regular users
             console.log("✅ Authenticated user:", {

@@ -4,19 +4,12 @@ import {
   events,
   type ImageMimeType,
   isImageMimeType,
-  materializers,
   type MediaContainer,
   tables,
-  createStorePromise,
   queryDb,
   type Store,
 } from "@runtimed/schema";
 import { logger } from "./logging.ts";
-import { makeSchema, State } from "@runtimed/schema";
-
-// Create schema locally
-const state = State.SQLite.makeState({ tables, materializers });
-const schema = makeSchema({ events, state });
 import type {
   ArtifactSubmissionOptions,
   CancellationHandler,
@@ -84,30 +77,10 @@ export class RuntimeAgent {
         notebookId: this.config.notebookId,
       });
 
-      // Create store with required adapter
-      const adapter = this.config.adapter;
-      if (!adapter) {
-        throw new Error(
-          "RuntimeAgent requires an adapter to be provided via config.adapter"
-        );
-      }
-
-      this.#store = await createStorePromise({
-        adapter,
-        schema,
+      // Use the provided LiveStore instance
+      this.#store = this.config.store;
+      logger.info("Using provided LiveStore instance", {
         storeId: this.config.notebookId,
-        syncPayload: {
-          authToken: this.config.authToken,
-          runtime: true,
-          runtimeId: this.config.runtimeId,
-          sessionId: this.config.sessionId,
-          userId: this.config.userId,
-        },
-      });
-
-      logger.info("LiveStore initialized", {
-        storeId: this.config.notebookId,
-        hasCustomAdapter: !!this.config.adapter,
       });
 
       // Register runtime session

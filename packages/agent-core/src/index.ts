@@ -29,3 +29,21 @@ export type {
   ArtifactSubmissionOptions,
   ArtifactSubmissionResult,
 } from "./types.ts";
+
+// Store factory for creating LiveStore instances
+export { createStorePromise } from "./store-factory.ts";
+export type { CreateStoreConfig } from "./store-factory.ts";
+
+// Sync payload types for LiveStore connections
+export type {
+  SyncPayload,
+  RuntimeSyncPayload,
+  UserSyncPayload,
+  BaseSyncPayload,
+} from "./sync-types.ts";
+export {
+  isRuntimeSyncPayload,
+  isUserSyncPayload,
+  createRuntimeSyncPayload,
+  createUserSyncPayload,
+} from "./sync-types.ts";

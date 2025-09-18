@@ -16,6 +16,7 @@ import { SharingModal } from "../SharingModal.js";
 import type { NotebookProcessed } from "../types.js";
 import { useNavigateToCanonicalUrl, useNotebook } from "./helpers.js";
 import { NotebookHeader } from "./NotebookHeader.js";
+import { useConsoleRuntimeLauncher } from "../../../runtime/setup-console-launcher.js";
 
 export const NotebookPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -32,6 +33,9 @@ export const NotebookPage: React.FC = () => {
 };
 
 function NotebookPageWithId({ id }: { id: string }) {
+  // Setup console runtime launcher for this notebook
+  useConsoleRuntimeLauncher();
+
   const location = useLocation();
   // Get initial notebook data from router state (if navigated from creation)
   const initialNotebook = location.state?.initialNotebook as
