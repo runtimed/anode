@@ -44,14 +44,18 @@ export type SyncPayload = RuntimeSyncPayload | UserSyncPayload;
 /**
  * Type guard to check if payload is from a runtime agent
  */
-export function isRuntimeSyncPayload(payload: SyncPayload): payload is RuntimeSyncPayload {
+export function isRuntimeSyncPayload(
+  payload: SyncPayload
+): payload is RuntimeSyncPayload {
   return payload.runtime === true;
 }
 
 /**
  * Type guard to check if payload is from a regular user
  */
-export function isUserSyncPayload(payload: SyncPayload): payload is UserSyncPayload {
+export function isUserSyncPayload(
+  payload: SyncPayload
+): payload is UserSyncPayload {
   return payload.runtime !== true;
 }
 
