@@ -4,7 +4,7 @@ import { Link, useLocation, useParams } from "react-router-dom";
 import { useScroll } from "react-use";
 
 import { CustomLiveStoreProvider } from "../../../livestore/index.js";
-import { HtmlRuntimeManager } from "../../../runtime/managers/HtmlRuntimeManager.js";
+import { RuntimeRegistryWrapper as HtmlRuntimeManager } from "../../../runtime/registry/index.js";
 import { LoadingState } from "../../loading/LoadingState.js";
 
 import { NotebookContent } from "../../notebook/NotebookContent.js";
