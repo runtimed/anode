@@ -75,7 +75,7 @@ export function debugConsoleAuth() {
 
   // Test URL parsing logic
   const pathParts = window.location.pathname.split("/");
-  const notebookIndex = pathParts.findIndex((part) => part === "notebook");
+  const notebookIndex = pathParts.findIndex((part) => part === "nb");
   console.log("  Notebook index:", notebookIndex);
   console.log("  Next part:", pathParts[notebookIndex + 1]);
 

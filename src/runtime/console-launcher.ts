@@ -30,6 +30,7 @@ declare global {
       getCurrentNotebookId: () => string | null;
       setStore: (store: Store) => void;
       setAuth: (userId: string, authToken: string) => void;
+      useExistingStore: (store: any) => void;
     };
   }
 }
@@ -47,6 +48,7 @@ interface LauncherStatus {
 class ConsoleLauncher {
   private currentAgent: RuntimeAgent | null = null;
   private store: Store | null = null;
+  private existingStore: any = null;
   private userId: string | null = null;
   private authToken: string | null = null;
   private lastError: string | null = null;
@@ -78,10 +80,16 @@ class ConsoleLauncher {
     console.log("🔐 Authentication configured");
   }
 
+  useExistingStore(store: any): void {
+    this.existingStore = store;
+    console.log("📦 Using existing LiveStore instance directly");
+    console.log("🎯 Now try: await window.__RUNT_LAUNCHER__.launchHtmlAgent()");
+  }
+
   getCurrentNotebookId(): string | null {
-    // Extract notebook ID from current URL path like /notebook/{id}
+    // Extract notebook ID from current URL path like /nb/{id}
     const pathParts = window.location.pathname.split("/");
-    const notebookIndex = pathParts.findIndex((part) => part === "notebook");
+    const notebookIndex = pathParts.findIndex((part) => part === "nb");
 
     console.log("🔍 URL Debug:", {
       pathname: window.location.pathname,
@@ -206,7 +214,8 @@ class ConsoleLauncher {
         syncUrl: "ws://localhost:8787", // Dev sync server
         authToken,
         notebookId,
-        adapter: sharedLiveStoreAdapter,
+        store: this.existingStore, // Use existing store if available
+        adapter: this.existingStore ? undefined : sharedLiveStoreAdapter,
         userId,
       });
 
@@ -332,6 +341,7 @@ if (typeof window !== "undefined") {
     setStore: (store: Store) => launcher.setStore(store),
     setAuth: (userId: string, authToken: string) =>
       launcher.setAuth(userId, authToken),
+    useExistingStore: (store: any) => launcher.useExistingStore(store),
   };
 }
 

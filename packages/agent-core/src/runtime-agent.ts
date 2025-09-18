@@ -84,31 +84,38 @@ export class RuntimeAgent {
         notebookId: this.config.notebookId,
       });
 
-      // Create store with required adapter
-      const adapter = this.config.adapter;
-      if (!adapter) {
-        throw new Error(
-          "RuntimeAgent requires an adapter to be provided via config.adapter"
-        );
+      // Use provided store or create new one with adapter
+      if (this.config.store) {
+        logger.info("Using provided LiveStore instance", {
+          storeId: this.config.notebookId,
+        });
+        this.#store = this.config.store;
+      } else {
+        const adapter = this.config.adapter;
+        if (!adapter) {
+          throw new Error(
+            "RuntimeAgent requires either a store or an adapter to be provided via config"
+          );
+        }
+
+        this.#store = await createStorePromise({
+          adapter,
+          schema,
+          storeId: this.config.notebookId,
+          syncPayload: {
+            authToken: this.config.authToken,
+            runtime: true,
+            runtimeId: this.config.runtimeId,
+            sessionId: this.config.sessionId,
+            userId: this.config.userId,
+          },
+        });
+
+        logger.info("LiveStore initialized", {
+          storeId: this.config.notebookId,
+          hasCustomAdapter: !!this.config.adapter,
+        });
       }
-
-      this.#store = await createStorePromise({
-        adapter,
-        schema,
-        storeId: this.config.notebookId,
-        syncPayload: {
-          authToken: this.config.authToken,
-          runtime: true,
-          runtimeId: this.config.runtimeId,
-          sessionId: this.config.sessionId,
-          userId: this.config.userId,
-        },
-      });
-
-      logger.info("LiveStore initialized", {
-        storeId: this.config.notebookId,
-        hasCustomAdapter: !!this.config.adapter,
-      });
 
       // Register runtime session
       // Displace any existing active sessions for this notebook
