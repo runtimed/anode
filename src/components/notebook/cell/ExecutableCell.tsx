@@ -12,7 +12,7 @@ import { useAddCell } from "@/hooks/useAddCell.js";
 
 import { useStore } from "@livestore/react";
 import { focusedCellSignal$, hasManuallyFocused$ } from "../signals/focus.js";
-import { events, tables, queries } from "@runtimed/schema";
+import { events, tables, queries, CellTypeNoRaw } from "@runtimed/schema";
 import { ChevronDown, ChevronUp } from "lucide-react";
 import React, { useCallback, useEffect, useRef } from "react";
 import { ErrorBoundary } from "react-error-boundary";
@@ -115,7 +115,7 @@ export const ExecutableCell: React.FC<ExecutableCellProps> = ({
 
   // Shared event handlers
   const changeCellType = useCallback(
-    (newType: "code" | "markdown" | "sql" | "ai") => {
+    (newType: CellTypeNoRaw) => {
       store.commit(
         events.cellTypeChanged({
           id: cell.id,

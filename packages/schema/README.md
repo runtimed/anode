@@ -134,7 +134,7 @@ moveCellBetween(
 ## Key Types
 
 ```typescript
-type CellType = "code" | "markdown" | "ai";
+type CellType = "code" | "markdown" | "sql" | "ai";
 
 interface CellData {
   id: string;
