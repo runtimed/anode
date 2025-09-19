@@ -19,6 +19,8 @@ import { extractAndValidateUser } from "./auth.ts";
 import { createPermissionsProvider } from "./notebook-permissions/factory.ts";
 import { TrcpContext } from "./trpc/trpc.ts";
 
+let count = 0;
+
 // NOTE: This export is necessary at the root entry point for the Workers
 // runtime for Durable Object usage
 export { WebSocketServer };
@@ -151,6 +153,27 @@ export default {
       });
     }
 
+    if (
+      pathname.startsWith("/api/reset-prepare-count") &&
+      request.method === "POST"
+    ) {
+      count = 0;
+      return new workerGlobals.Response(
+        JSON.stringify({ message: "Prepare count reset" }),
+        { status: 200, headers: { "Content-Type": "application/json" } }
+      );
+    }
+
+    if (
+      pathname.startsWith("/api/get-prepare-count") &&
+      request.method === "GET"
+    ) {
+      return new workerGlobals.Response(
+        JSON.stringify({ message: "Prepare count", count }),
+        { status: 200, headers: { "Content-Type": "application/json" } }
+      );
+    }
+
     if (pathname.startsWith("/api/trpc")) {
       console.log("🚀 Routing to tRPC");
       try {
@@ -168,7 +191,20 @@ export default {
             const permissionsProvider = createPermissionsProvider(env);
 
             return {
-              env,
+              env: {
+                ...env,
+                DB: {
+                  prepare: (query: string) => {
+                    console.log("📦 prepare query ", query);
+                    count++;
+                    return env.DB.prepare.bind(env.DB)(query);
+                  },
+                  batch: env.DB.batch.bind(env.DB),
+                  exec: env.DB.exec.bind(env.DB),
+                  withSession: env.DB.withSession.bind(env.DB),
+                  dump: env.DB.dump.bind(env.DB),
+                },
+              },
               user: auth,
               permissionsProvider,
             };
@@ -191,6 +227,57 @@ export default {
       }
     }
 
+    if (pathname.startsWith("/api/db-test")) {
+      let count = parseInt(request.url.split("=")[1]);
+      if (isNaN(count) || count > 50) {
+        count = 50;
+      }
+      const db = env.DB;
+      let results = [];
+      let times = [];
+      for (let i = 0; i < count; i++) {
+        const start = Date.now();
+        const result = await db.prepare("SELECT 1").all();
+        const end = Date.now();
+        results.push(result);
+        const time = end - start;
+        times.push(time);
+      }
+      return new workerGlobals.Response(
+        JSON.stringify({
+          message: "DB test",
+          results,
+          times,
+        }),
+        { status: 200, headers: { "Content-Type": "application/json" } }
+      );
+    }
+
+    if (pathname.startsWith("/api/db-test-users")) {
+      const count = parseInt(request.url.split("=")[1]);
+      const db = env.DB;
+      let results = [];
+      let times = [];
+      for (let i = 0; i < count; i++) {
+        const start = Date.now();
+        const result = await db
+          .prepare("SELECT id, given_name, first_seen_at from users limit 10")
+          .all();
+        const end = Date.now();
+        results.push(result);
+        const time = end - start;
+        times.push(time);
+      }
+      return new workerGlobals.Response(
+        JSON.stringify({
+          message: "DB test",
+          results,
+          times,
+        }),
+        { status: 200, headers: { "Content-Type": "application/json" } }
+      );
+    }
+
     if (
       pathname.startsWith("/livestore") &&
       request.headers.get("upgrade") === "websocket"
@@ -201,6 +288,12 @@ export default {
         env,
         ctx
       ) as unknown as WorkerResponse;
+    }
+
+    if (pathname.startsWith("/api/colo")) {
+      return new workerGlobals.Response(
+        JSON.stringify(request.cf?.colo, null, 2)
+      );
     }
 
     // Route 3: API routes → Hono app
