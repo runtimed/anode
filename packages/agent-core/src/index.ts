@@ -1,6 +1,6 @@
 // @runt/lib - Core library for building Anode runtime agents
 
-export const VERSION = "0.2.0";
+export const VERSION = "0.2.1";
 
 export { RuntimeAgent } from "./runtime-agent.ts";
 export { DEFAULT_CONFIG, RuntimeConfig } from "./config.ts";
