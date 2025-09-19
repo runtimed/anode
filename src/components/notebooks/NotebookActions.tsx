@@ -4,18 +4,12 @@ import React, { useState } from "react";
 import { useTrpc } from "../TrpcProvider";
 import { Button } from "../ui/button";
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "../ui/dialog";
-import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "../ui/dropdown-menu";
+import { useConfirm } from "../ui/confirm";
 import { SharingModal } from "./SharingModal";
 import { TagSelectionDialog } from "./TagSelectionDialog";
 import type { NotebookProcessed } from "./types";
@@ -32,9 +26,9 @@ export const NotebookActions: React.FC<NotebookActionsProps> = ({
   className = "",
 }) => {
   const [isSharingModalOpen, setIsSharingModalOpen] = useState(false);
-  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [isTagSelectionOpen, setIsTagSelectionOpen] = useState(false);
   const trpc = useTrpc();
+  const { confirm } = useConfirm();
 
   // Delete notebook mutation
   const deleteNotebookMutation = useMutation(
@@ -53,7 +47,12 @@ export const NotebookActions: React.FC<NotebookActionsProps> = ({
   const handleDeleteClick = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    setIsDeleteDialogOpen(true);
+    confirm({
+      title: "Delete Notebook",
+      description: `Are you sure you want to delete "${notebook.title || "Untitled Notebook"}"? This action cannot be undone and will permanently remove the notebook and all its contents.`,
+      onConfirm: handleDeleteConfirm,
+      actionButtonText: "Delete",
+    });
   };
 
   const handleTagSelectionClick = (e: React.MouseEvent) => {
@@ -70,7 +69,6 @@ export const NotebookActions: React.FC<NotebookActionsProps> = ({
 
       // Call onUpdate to refresh the notebook list
       onUpdate?.();
-      setIsDeleteDialogOpen(false);
     } catch (error) {
       console.error("Failed to delete notebook:", error);
       // TODO: Show error toast
@@ -123,36 +121,6 @@ export const NotebookActions: React.FC<NotebookActionsProps> = ({
         onClose={() => setIsSharingModalOpen(false)}
         onUpdate={onUpdate}
       />
-
-      {/* Delete Confirmation Dialog */}
-      <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Delete Notebook</DialogTitle>
-            <DialogDescription>
-              Are you sure you want to delete "
-              {notebook.title || "Untitled Notebook"}"? This action cannot be
-              undone and will permanently remove the notebook and all its
-              contents.
-            </DialogDescription>
-          </DialogHeader>
-          <div className="flex justify-end gap-2 pt-4">
-            <Button
-              variant="outline"
-              onClick={() => setIsDeleteDialogOpen(false)}
-            >
-              Cancel
-            </Button>
-            <Button
-              onClick={handleDeleteConfirm}
-              className="bg-red-600 hover:bg-red-700 focus:ring-red-600"
-              disabled={deleteNotebookMutation.isPending}
-            >
-              {deleteNotebookMutation.isPending ? "Deleting..." : "Delete"}
-            </Button>
-          </div>
-        </DialogContent>
-      </Dialog>
 
       {/* Tag Selection Dialog */}
       <TagSelectionDialog
