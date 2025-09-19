@@ -1,8 +1,8 @@
 {
   "name": "@runtimed/agent-core",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "type": "module",
-  "description": "",
+  "description": "Core library for building Anode runtime agents",
   "exports": "./src/index.ts",
   "main": "./src/index.ts",
   "types": "./src/index.ts",
@@ -35,17 +35,21 @@
     "pnpm": ">=10.9.0"
   },
   "keywords": [
+    "agent",
+    "runtime",
+    "livestore",
+    "notebook",
     "runt",
     "anode"
   ],
   "repository": {
     "type": "git",
     "url": "git+https://github.com/runtimed/anode.git",
-    "directory": "packages/schema"
+    "directory": "packages/agent-core"
   },
   "publishConfig": {
     "access": "public"
   },
   "author": "Runt Team",
-  "license": "MIT"
+  "license": "BSD-3-Clause"
 }
