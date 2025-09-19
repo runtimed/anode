@@ -1,5 +1,7 @@
 // @runt/lib - Core library for building Anode runtime agents
 
+export const VERSION = "0.2.0";
+
 export { RuntimeAgent } from "./runtime-agent.ts";
 export { DEFAULT_CONFIG, RuntimeConfig } from "./config.ts";
 export { logger, LogLevel, withQuietLogging } from "./logging.ts";
@@ -47,3 +49,7 @@ export {
   createRuntimeSyncPayload,
   createUserSyncPayload,
 } from "./sync-types.ts";
+
+// Media types and utilities for rich content handling
+export type { MediaBundle } from "./media.ts";
+export { validateMediaBundle } from "./media.ts";
