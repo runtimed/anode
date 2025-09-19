@@ -1,7 +1,7 @@
-import { useQuery } from "@livestore/react";
-import { queryDb } from "@runtimed/schema";
+import { useQuery, useStore } from "@livestore/react";
+import { queryDb, RUNTIME_SESSION_TIMEOUT_MS, events } from "@runtimed/schema";
 import { RuntimeSessionData, tables } from "@runtimed/schema";
-import { useCallback } from "react";
+import { useCallback, useEffect } from "react";
 
 export type RuntimeHealth =
   | "healthy"
@@ -41,9 +41,37 @@ export const useRuntimeHealth = (): RuntimeHealthState => {
     )
   ) as any[];
 
-  // Check runtime status
+  // Check runtime status with session expiry logic
   const getRuntimeHealth = useCallback(
     (session: RuntimeSessionData): RuntimeHealth => {
+      const now = new Date();
+
+      // Check session expiry first (most important for browser runtimes)
+      if (session.lastRenewedAt) {
+        const timeSinceRenewal =
+          now.getTime() - session.lastRenewedAt.getTime();
+        const toleranceMs = 15000; // 15s tolerance for clock skew/network delays
+        const maxAllowedGap = RUNTIME_SESSION_TIMEOUT_MS + toleranceMs; // 45s total
+
+        if (timeSinceRenewal > maxAllowedGap) {
+          return "disconnected";
+        }
+
+        // Warning if getting close to expiry
+        if (timeSinceRenewal > RUNTIME_SESSION_TIMEOUT_MS) {
+          return "warning";
+        }
+      }
+
+      // Alternative check using expiresAt if available
+      if (session.expiresAt && now > session.expiresAt) {
+        // Add small tolerance for clock skew
+        const toleranceMs = 15000;
+        if (now.getTime() - session.expiresAt.getTime() > toleranceMs) {
+          return "disconnected";
+        }
+      }
+
       if (session.status === "starting") {
         // If session is starting, it's connecting
         return session.isActive ? "connecting" : "unknown";
@@ -95,4 +123,63 @@ export const useRuntimeHealth = (): RuntimeHealthState => {
     runningExecutions,
     executionQueue,
   };
+};
+
+/**
+ * Enhanced runtime health hook with automatic cleanup of expired sessions
+ */
+export const useRuntimeHealthWithCleanup = (): RuntimeHealthState => {
+  const health = useRuntimeHealth();
+  const { store } = useStore();
+
+  // Get runtime sessions directly for cleanup logic
+  const runtimeSessions = useQuery(
+    queryDb(tables.runtimeSessions.select().where({ isActive: true }))
+  );
+
+  useEffect(() => {
+    // Clean up expired sessions every 30 seconds
+    const cleanup = setInterval(() => {
+      const now = new Date();
+      const toleranceMs = 15000; // 15s tolerance for clock skew
+
+      runtimeSessions?.forEach((session: RuntimeSessionData) => {
+        let shouldCleanup = false;
+
+        // Check if session has expired using lastRenewedAt
+        if (session.lastRenewedAt) {
+          const timeSinceRenewal =
+            now.getTime() - session.lastRenewedAt.getTime();
+          const maxAllowedGap = RUNTIME_SESSION_TIMEOUT_MS + toleranceMs;
+
+          if (timeSinceRenewal > maxAllowedGap) {
+            shouldCleanup = true;
+          }
+        }
+
+        // Alternative check using expiresAt
+        if (session.expiresAt && now > session.expiresAt) {
+          if (now.getTime() - session.expiresAt.getTime() > toleranceMs) {
+            shouldCleanup = true;
+          }
+        }
+
+        // Clean up expired but still active sessions
+        if (shouldCleanup && session.isActive) {
+          console.log(`🧹 Cleaning up expired session: ${session.sessionId}`);
+
+          store.commit(
+            events.runtimeSessionTerminated({
+              sessionId: session.sessionId,
+              reason: "timeout",
+            })
+          );
+        }
+      });
+    }, 30000); // Every 30 seconds
+
+    return () => clearInterval(cleanup);
+  }, [runtimeSessions, store]);
+
+  return health;
 };

@@ -17,19 +17,25 @@ This launcher provides a minimal interface to create and manage runtime agents u
 
 2. **Open Chrome DevTools** (F12)
 
-3. **Check launcher status**:
+3. **Connect to existing store**:
+
+   ```javascript
+   window.__RUNT_LAUNCHER__.useExistingStore(__debugLiveStore._);
+   ```
+
+4. **Check launcher status**:
 
    ```javascript
    window.__RUNT_LAUNCHER__.getStatus();
    ```
 
-4. **Launch HTML runtime agent**:
+5. **Launch HTML runtime agent**:
 
    ```javascript
    await window.__RUNT_LAUNCHER__.launchHtmlAgent();
    ```
 
-5. **Create and run an HTML cell** - it will execute through your agent!
+6. **Create and run an HTML cell** - it will execute through your agent!
 
 ## Available Commands
 
@@ -184,6 +190,7 @@ await agent.start();
 ### "No LiveStore instance"
 
 - Ensure you're in a notebook page where LiveStore is initialized
+- Connect to the existing store: `window.__RUNT_LAUNCHER__.useExistingStore(__debugLiveStore._)`
 - Try refreshing the page
 - Check browser console for setup messages
 
@@ -201,6 +208,9 @@ await agent.start();
 ## Development Debug Commands
 
 ```javascript
+// Connect to existing store first
+window.__RUNT_LAUNCHER__.useExistingStore(__debugLiveStore._);
+
 // Debug authentication state
 window.__RUNT_DEBUG__.debugAuth();
 
