@@ -8,6 +8,7 @@ import {
   tables,
   queryDb,
   type Store,
+  RUNTIME_SESSION_TIMEOUT_MS,
 } from "@runtimed/schema";
 import { logger } from "./logging.ts";
 import type {
@@ -44,6 +45,7 @@ export class RuntimeAgent {
   private subscriptions: (() => void)[] = [];
   private activeExecutions = new Map<string, AbortController>();
   private cancellationHandlers: CancellationHandler[] = [];
+  private renewalInterval?: NodeJS.Timeout;
 
   private artifactClient: IArtifactClient;
 
@@ -135,6 +137,9 @@ export class RuntimeAgent {
         `\n\x1b[33m💡 Runtime is now listening for notebook events...\x1b[0m\n`
       );
 
+      // Start session renewal to keep runtime alive
+      this.startSessionRenewal();
+
       // Set up shutdown handlers
       this.setupShutdownHandlers();
 
@@ -188,6 +193,12 @@ export class RuntimeAgent {
 
       // Clean up shutdown handlers
       this.cleanupShutdownHandlers();
+
+      // Stop session renewal
+      if (this.renewalInterval) {
+        clearInterval(this.renewalInterval);
+        this.renewalInterval = undefined;
+      }
 
       // Close LiveStore connection
       if (this.#store) {
@@ -1070,5 +1081,38 @@ export class RuntimeAgent {
     while (!this.isShuttingDown) {
       await new Promise((resolve) => setTimeout(resolve, 1000));
     }
+  }
+
+  /**
+   * Start session renewal to keep the runtime session alive
+   */
+  private startSessionRenewal(): void {
+    // Renew every 15 seconds (half of the 30 second timeout for safety margin)
+    this.renewalInterval = setInterval(() => {
+      if (!this.isShuttingDown && this.#store) {
+        const renewedAt = new Date();
+        const validForMs = RUNTIME_SESSION_TIMEOUT_MS;
+
+        this.store.commit(
+          events.runtimeSessionRenewal({
+            sessionId: this.config.sessionId,
+            renewedAt,
+            validForMs,
+          })
+        );
+
+        logger.debug("Session renewed", {
+          sessionId: this.config.sessionId,
+          renewedAt: renewedAt.toISOString(),
+          validForMs,
+        });
+      }
+    }, 15000); // Renew every 15 seconds
+
+    logger.info("Session renewal started", {
+      sessionId: this.config.sessionId,
+      renewalIntervalMs: 15000,
+      sessionTimeoutMs: RUNTIME_SESSION_TIMEOUT_MS,
+    });
   }
 }

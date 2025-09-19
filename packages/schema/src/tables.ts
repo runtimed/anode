@@ -146,6 +146,10 @@ export const tables = {
         nullable: true,
         schema: Schema.Any,
       }),
+
+      // Session renewal tracking
+      lastRenewedAt: State.SQLite.datetime({ nullable: true }),
+      expiresAt: State.SQLite.datetime({ nullable: true }),
     },
   }),
 

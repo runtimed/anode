@@ -66,6 +66,9 @@ export { tables };
 export * from "./types.ts";
 export * from "./queries/index.ts";
 
+// Runtime session constants
+export const RUNTIME_SESSION_TIMEOUT_MS = 30000; // 30 seconds
+
 /**
  * CLIENT AUTHENTICATION PATTERNS
  *
@@ -253,6 +256,19 @@ export const events = {
         canExecuteSql: Schema.Boolean,
         canExecuteAi: Schema.Boolean,
         availableAiModels: Schema.optional(Schema.Any),
+      }),
+    }),
+  }),
+
+  runtimeSessionRenewal: Events.synced({
+    name: "v1.RuntimeSessionRenewal",
+    schema: Schema.Struct({
+      sessionId: Schema.String,
+      renewedAt: Schema.Date.annotations({
+        description: "UTC timestamp when session was renewed",
+      }),
+      validForMs: Schema.Number.annotations({
+        description: "Duration in milliseconds that this renewal is valid for",
       }),
     }),
   }),
@@ -822,6 +838,17 @@ export const materializers = State.SQLite.materializers(events, {
         isActive: false,
       })
       .where({ sessionId }),
+
+  "v1.RuntimeSessionRenewal": ({ sessionId, renewedAt, validForMs }) => {
+    // Deterministic computation of expiry time from renewal time + duration
+    const expiresAt = new Date(renewedAt.getTime() + validForMs);
+    return tables.runtimeSessions
+      .update({
+        lastRenewedAt: renewedAt,
+        expiresAt: expiresAt,
+      })
+      .where({ sessionId });
+  },
 
   // Execution queue materializers
   "v1.ExecutionRequested": ({

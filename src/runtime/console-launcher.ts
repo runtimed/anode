@@ -49,6 +49,9 @@ interface LauncherStatus {
   storeConnected: boolean;
   authConfigured: boolean;
   error: string | null;
+  sessionRenewalActive: boolean;
+  lastRenewal: string | null;
+  nextRenewal: string | null;
 }
 
 class ConsoleLauncher {
@@ -338,6 +341,9 @@ class ConsoleLauncher {
   }
 
   getStatus(): LauncherStatus {
+    const hasRenewalInterval =
+      this.currentAgent && !!(this.currentAgent as any).renewalInterval;
+
     return {
       hasAgent: !!this.currentAgent,
       agentType: this.currentAgent?.config.runtimeType || null,
@@ -346,6 +352,9 @@ class ConsoleLauncher {
       storeConnected: !!this.store,
       authConfigured: !!(this.userId && this.authToken),
       error: this.lastError,
+      sessionRenewalActive: !!hasRenewalInterval,
+      lastRenewal: this.currentAgent ? "Active (every 15s)" : null,
+      nextRenewal: hasRenewalInterval ? "Within 15 seconds" : null,
     };
   }
 
