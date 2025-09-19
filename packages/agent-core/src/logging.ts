@@ -15,7 +15,7 @@ export const LogLevel = {
   ERROR: 3,
 } as const;
 
-export type LogLevelValue = (typeof LogLevel)[keyof typeof LogLevel];
+export type LogLevel = (typeof LogLevel)[keyof typeof LogLevel];
 
 /** Reverse mapping from numeric level to string name */
 const LogLevelNames = ["DEBUG", "INFO", "WARN", "ERROR"] as const;
@@ -25,7 +25,7 @@ const LogLevelNames = ["DEBUG", "INFO", "WARN", "ERROR"] as const;
  */
 export interface LoggerConfig {
   /** Minimum log level to output */
-  level: LogLevelValue;
+  level: LogLevel;
   /** Whether to also output to console */
   console: boolean;
   /** Service name for structured logs */
@@ -58,7 +58,7 @@ class Logger {
     return { ...this.config };
   }
 
-  getLevel(): LogLevelValue {
+  getLevel(): LogLevel {
     return this.config.level;
   }
 
@@ -176,7 +176,7 @@ class Logger {
    * Internal logging method
    */
   private log(
-    level: LogLevelValue,
+    level: LogLevel,
     message: string,
     context?: Record<string, unknown>
   ): void {
@@ -211,7 +211,7 @@ class Logger {
    * Console logging with appropriate formatting
    */
   private consoleLog(
-    level: LogLevelValue,
+    level: LogLevel,
     message: string,
     data: Record<string, unknown>
   ): void {
