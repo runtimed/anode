@@ -28,6 +28,12 @@ const buttonVariants = cva(
         lg: "h-10 rounded-md px-6 has-[>svg]:px-4",
         icon: "size-9",
       },
+      // Default `focus-visible` means we only show the focus ring AFTER a user tabs to it
+      // But sometimes we want to show the focus right away
+      showFocusRing: {
+        true: "focus:border-ring focus:ring-ring/50 focus:ring-[3px]",
+        false: "",
+      },
     },
     defaultVariants: {
       variant: "default",
@@ -41,17 +47,21 @@ function Button({
   variant,
   size,
   asChild = false,
+  showFocusRing = false,
   ...props
 }: React.ComponentProps<"button"> &
   VariantProps<typeof buttonVariants> & {
     asChild?: boolean;
+    showFocusRing?: boolean;
   }) {
   const Comp = asChild ? Slot : "button";
 
   return (
     <Comp
       data-slot="button"
-      className={cn(buttonVariants({ variant, size, className }))}
+      className={cn(
+        buttonVariants({ variant, size, className, showFocusRing })
+      )}
       {...props}
     />
   );
