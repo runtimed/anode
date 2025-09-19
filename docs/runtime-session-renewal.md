@@ -55,7 +55,7 @@ runtimeSessionRenewal: Events.synced({
 ```typescript
 runtimeSessions: State.SQLite.table({
   // ... existing columns ...
-  
+
   // Session renewal tracking
   lastRenewedAt: State.SQLite.datetime({ nullable: true }),
   expiresAt: State.SQLite.datetime({ nullable: true }),
@@ -86,28 +86,30 @@ Runtime agents automatically start session renewal when they start:
 ```typescript
 class RuntimeAgent {
   private renewalInterval?: NodeJS.Timeout;
-  
+
   async start() {
     // ... existing startup logic ...
     this.startSessionRenewal();
   }
-  
+
   private startSessionRenewal(): void {
     // Renew every 15 seconds (half of 30s timeout for safety)
     this.renewalInterval = setInterval(() => {
       if (!this.isShuttingDown && this.store) {
         const renewedAt = new Date();
         const validForMs = RUNTIME_SESSION_TIMEOUT_MS;
-        
-        this.store.commit(events.runtimeSessionRenewal({
-          sessionId: this.config.sessionId,
-          renewedAt,
-          validForMs,
-        }));
+
+        this.store.commit(
+          events.runtimeSessionRenewal({
+            sessionId: this.config.sessionId,
+            renewedAt,
+            validForMs,
+          })
+        );
       }
     }, 15000);
   }
-  
+
   async shutdown() {
     // Clean up renewal interval
     if (this.renewalInterval) {
@@ -125,23 +127,23 @@ The `useRuntimeHealth` hook includes expiry detection:
 ```typescript
 const getRuntimeHealth = (session: RuntimeSessionData): RuntimeHealth => {
   const now = new Date();
-  
+
   // Check session expiry first (most important for browser runtimes)
   if (session.lastRenewedAt) {
     const timeSinceRenewal = now.getTime() - session.lastRenewedAt.getTime();
     const toleranceMs = 15000; // 15s tolerance for clock skew/network delays
     const maxAllowedGap = RUNTIME_SESSION_TIMEOUT_MS + toleranceMs; // 45s total
-    
+
     if (timeSinceRenewal > maxAllowedGap) {
       return "disconnected";
     }
-    
+
     // Warning if getting close to expiry
     if (timeSinceRenewal > RUNTIME_SESSION_TIMEOUT_MS) {
       return "warning";
     }
   }
-  
+
   // ... standard status checks
 };
 ```
@@ -154,30 +156,33 @@ The enhanced hook includes cleanup of expired sessions:
 export const useRuntimeHealthWithCleanup = () => {
   const health = useRuntimeHealth();
   const { store } = useStore();
-  
+
   useEffect(() => {
     const cleanup = setInterval(() => {
       const now = new Date();
       const toleranceMs = 15000;
-      
+
       runtimeSessions.forEach((session) => {
         if (session.lastRenewedAt) {
-          const timeSinceRenewal = now.getTime() - session.lastRenewedAt.getTime();
+          const timeSinceRenewal =
+            now.getTime() - session.lastRenewedAt.getTime();
           const maxAllowedGap = RUNTIME_SESSION_TIMEOUT_MS + toleranceMs;
-          
+
           if (timeSinceRenewal > maxAllowedGap && session.isActive) {
-            store.commit(events.runtimeSessionTerminated({
-              sessionId: session.sessionId,
-              reason: "timeout",
-            }));
+            store.commit(
+              events.runtimeSessionTerminated({
+                sessionId: session.sessionId,
+                reason: "timeout",
+              })
+            );
           }
         }
       });
     }, 30000); // Check every 30 seconds
-    
+
     return () => clearInterval(cleanup);
   }, [runtimeSessions, store]);
-  
+
   return health;
 };
 ```
@@ -246,7 +251,7 @@ import { useRuntimeHealthWithCleanup } from '../hooks/useRuntimeHealth';
 
 const MyComponent = () => {
   const { runtimeHealth, hasActiveRuntime } = useRuntimeHealthWithCleanup();
-  
+
   return (
     <div>
       Status: {runtimeHealth}
@@ -262,8 +267,8 @@ The console launcher shows renewal status:
 
 ```typescript
 const status = window.__RUNT_LAUNCHER__.getStatus();
-console.log('Session renewal active:', status.sessionRenewalActive);
-console.log('Last renewal:', status.lastRenewal);
+console.log("Session renewal active:", status.sessionRenewalActive);
+console.log("Last renewal:", status.lastRenewal);
 ```
 
 ## Troubleshooting
@@ -277,7 +282,8 @@ console.log('Last renewal:', status.lastRenewal);
 ### High Event Volume
 
 If renewal events are too frequent:
-1. Increase `RUNTIME_SESSION_TIMEOUT_MS` 
+
+1. Increase `RUNTIME_SESSION_TIMEOUT_MS`
 2. Renewal frequency automatically adjusts to half the timeout
 
 ### Sessions Not Cleaning Up
@@ -309,10 +315,10 @@ Replace basic health hook:
 
 ```typescript
 // Before
-import { useRuntimeHealth } from '../hooks/useRuntimeHealth';
+import { useRuntimeHealth } from "../hooks/useRuntimeHealth";
 
 // After
-import { useRuntimeHealthWithCleanup as useRuntimeHealth } from '../hooks/useRuntimeHealth';
+import { useRuntimeHealthWithCleanup as useRuntimeHealth } from "../hooks/useRuntimeHealth";
 ```
 
 ## Future Enhancements
@@ -332,6 +338,7 @@ npm test runtime-session-renewal.test.ts
 ```
 
 Key test scenarios:
+
 - Renewal events are committed periodically
 - Expiry detection works correctly
 - Cleanup stops after shutdown
