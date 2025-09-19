@@ -2,5 +2,8 @@
   "name": "@runtimed/agent-core",
   "version": "0.2.0",
   "exports": "./src/index.ts",
-  "license": "BSD-3-Clause"
+  "license": "BSD-3-Clause",
+  "imports": {
+    "@runtimed/schema": "jsr:@runtimed/schema@^0.2.0"
+  }
 }

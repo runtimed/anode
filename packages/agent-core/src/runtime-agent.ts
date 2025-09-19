@@ -45,7 +45,7 @@ export class RuntimeAgent {
   private subscriptions: (() => void)[] = [];
   private activeExecutions = new Map<string, AbortController>();
   private cancellationHandlers: CancellationHandler[] = [];
-  private renewalInterval?: NodeJS.Timeout;
+  private renewalInterval?: number;
 
   private artifactClient: IArtifactClient;
 
