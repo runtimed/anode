@@ -10,7 +10,7 @@ import { queryDb } from "@runtimed/schema";
 // Get all cells with their fractional indices, sorted
 export const cellsWithIndices$ = queryDb(
   tables.cells
-    .select("id", "fractionalIndex", "cellType")
+    .select("id", "fractionalIndex", "cellType", "executionCount")
     .orderBy("fractionalIndex", "asc"),
   { label: "cells.withIndices" }
 );

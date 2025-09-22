@@ -6,6 +6,7 @@ import { Collaborator } from "../types.js";
 import { Button } from "../../ui/button.js";
 import { SimpleUserProfile } from "../SimpleUserProfile.js";
 import type { NotebookProcessed } from "../types.js";
+import { NotebookControls } from "./NotebookControls.js";
 import { TitleEditor } from "./TitleEditor.js";
 
 export function NotebookHeader({
@@ -23,12 +24,13 @@ export function NotebookHeader({
     <div className="border-b bg-white">
       <div className="mx-auto px-2 py-3 sm:px-4 sm:py-4">
         <div className="flex items-center justify-between gap-1 sm:gap-4">
-          <div className="min-w-0 flex-1">
+          <div className="flex min-w-0 flex-1 items-center gap-2">
             <TitleEditor
               notebook={notebook}
               onTitleSaved={onTitleSaved}
               canEdit={canEdit}
             />
+            <NotebookControls />
           </div>
 
           {/* Right side - Mobile optimized */}
