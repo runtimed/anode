@@ -1,9 +1,9 @@
-import React, { useCallback } from "react";
+import React, { useCallback, useState } from "react";
 import { RuntimeHealthIndicator } from "@/components/notebook/RuntimeHealthIndicator";
 import { useRuntimeHealth } from "@/hooks/useRuntimeHealth";
 import { getRuntimeCommand } from "@/util/runtime-command";
 import { Button } from "@/components/ui/button";
-import { Copy, Trash2 } from "lucide-react";
+import { Copy, Trash2, Globe } from "lucide-react";
 import { events, tables } from "@runtimed/schema";
 import { queryDb } from "@runtimed/schema";
 import { useQuery, useStore } from "@livestore/react";
@@ -14,6 +14,8 @@ export const RuntimePanel: React.FC<SidebarPanelProps> = ({ notebook }) => {
   const { store } = useStore();
   const { hasActiveRuntime, activeRuntime } = useRuntimeHealth();
   const userId = useAuthenticatedUser();
+  const [isLaunchingLocal, setIsLaunchingLocal] = useState(false);
+  const [localError, setLocalError] = useState<string | null>(null);
 
   const runtimeCommand = getRuntimeCommand(notebook.id);
 
@@ -61,6 +63,55 @@ export const RuntimePanel: React.FC<SidebarPanelProps> = ({ notebook }) => {
       );
     });
   }, [activeRuntimeSessions, store, userId]);
+
+  const launchLocalHtmlRuntime = useCallback(async () => {
+    try {
+      setIsLaunchingLocal(true);
+      setLocalError(null);
+
+      if (!window.__RUNT_LAUNCHER__) {
+        throw new Error("Console launcher not available");
+      }
+
+      // Use existing store connection
+      window.__RUNT_LAUNCHER__.useExistingStore(store);
+
+      // Launch the HTML runtime
+      await window.__RUNT_LAUNCHER__.launchHtmlAgent();
+    } catch (err) {
+      const message =
+        err instanceof Error ? err.message : "Failed to launch runtime";
+      setLocalError(message);
+      console.error("Local runtime launch failed:", err);
+    } finally {
+      setIsLaunchingLocal(false);
+    }
+  }, [store]);
+
+  const stopLocalRuntime = useCallback(async () => {
+    try {
+      setLocalError(null);
+
+      if (!window.__RUNT_LAUNCHER__) {
+        throw new Error("Console launcher not available");
+      }
+
+      await window.__RUNT_LAUNCHER__.shutdown();
+    } catch (err) {
+      const message =
+        err instanceof Error ? err.message : "Failed to stop runtime";
+      setLocalError(message);
+      console.error("Local runtime stop failed:", err);
+    }
+  }, []);
+
+  const isLocalRuntime = useCallback(() => {
+    if (!activeRuntime || !window.__RUNT_LAUNCHER__) {
+      return false;
+    }
+    const status = window.__RUNT_LAUNCHER__.getStatus();
+    return status.hasAgent && status.sessionId === activeRuntime.sessionId;
+  }, [activeRuntime]);
 
   return (
     <div className="space-y-4">
@@ -115,6 +166,21 @@ export const RuntimePanel: React.FC<SidebarPanelProps> = ({ notebook }) => {
                       activeRuntime.status.slice(1)}
               </span>
             </div>
+            {isLocalRuntime() && (
+              <div className="mt-2 border-t pt-2">
+                <Button
+                  onClick={stopLocalRuntime}
+                  size="sm"
+                  variant="outline"
+                  className="w-full text-xs"
+                >
+                  Stop Local Runtime
+                </Button>
+                {localError && (
+                  <p className="mt-1 text-xs text-red-600">{localError}</p>
+                )}
+              </div>
+            )}
           </div>
         </div>
       )}
@@ -151,6 +217,37 @@ export const RuntimePanel: React.FC<SidebarPanelProps> = ({ notebook }) => {
             <p className="text-xs text-gray-500">
               Each notebook needs its own runtime instance.
             </p>
+          </div>
+
+          <div className="mt-3 border-t pt-3">
+            <div className="space-y-3">
+              <div>
+                <h4 className="mb-2 text-xs font-medium text-gray-700">
+                  Local Runtime
+                </h4>
+                <p className="mb-2 text-xs text-gray-500">
+                  Run HTML directly in your browser
+                </p>
+              </div>
+
+              <Button
+                onClick={launchLocalHtmlRuntime}
+                disabled={isLaunchingLocal}
+                size="sm"
+                className="flex w-full items-center gap-1"
+              >
+                <Globe className="h-3 w-3" />
+                {isLaunchingLocal ? "Starting..." : "Launch HTML Runtime"}
+              </Button>
+
+              {localError && (
+                <p className="text-xs text-red-600">{localError}</p>
+              )}
+
+              <p className="text-xs text-gray-400">
+                Limited capabilities. Other users will see "Local (You)".
+              </p>
+            </div>
           </div>
         </div>
       )}
