@@ -10,8 +10,12 @@ export function languageFromCellType(
     if (runtimeType === "html") {
       return "html";
     }
+    // TODO: Get language from runtime rather than looking for python string
+    if (runtimeType?.includes("python")) {
+      return "python";
+    }
     // Default to python for other runtime types
-    return "python";
+    return undefined;
   } else if (cellType === "markdown") {
     return "markdown";
   } else if (cellType === "ai") {
