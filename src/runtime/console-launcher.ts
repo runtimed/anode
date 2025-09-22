@@ -23,7 +23,8 @@ import type {
 } from "@runtimed/agent-core";
 import type { Store } from "@runtimed/schema";
 import { sharedLiveStoreAdapter } from "../livestore/adapter.js";
-import { HtmlRuntimeAgent, type LocalRuntimeConfig } from "./html-agent.js";
+import { HtmlRuntimeAgent } from "./html-agent.js";
+import type { LocalRuntimeConfig } from "./LocalRuntimeAgent.js";
 
 // Global interface for console access
 declare global {
