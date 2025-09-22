@@ -92,7 +92,9 @@ export abstract class LocalRuntimeAgent {
     // Allow subclasses to perform post-start actions
     await this.onAfterStart?.(this.agent);
 
-    console.log(`${this.getLogIcon()} ${this.getRuntimeType()} runtime agent started successfully!`);
+    console.log(
+      `${this.getLogIcon()} ${this.getRuntimeType()} runtime agent started successfully!`
+    );
     console.log(`   Runtime ID: ${runtimeConfig.runtimeId}`);
     console.log(`   Session ID: ${this.agent.config.sessionId}`);
 
@@ -113,7 +115,9 @@ export abstract class LocalRuntimeAgent {
 
     this.agent = null;
 
-    console.log(`🛑 ${this.getRuntimeType()} runtime agent stopped (store preserved)`);
+    console.log(
+      `🛑 ${this.getRuntimeType()} runtime agent stopped (store preserved)`
+    );
   }
 
   /**
@@ -207,7 +211,10 @@ export abstract class LocalRuntimeAgent {
       // NOTE: We deliberately do NOT call agent.store.shutdown()
       // because local runtimes share the store with the UI
     } catch (error) {
-      console.error(`Error during ${this.getRuntimeType()} agent soft shutdown:`, error);
+      console.error(
+        `Error during ${this.getRuntimeType()} agent soft shutdown:`,
+        error
+      );
       throw error;
     }
   }
