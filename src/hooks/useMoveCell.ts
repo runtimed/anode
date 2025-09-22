@@ -7,108 +7,93 @@ export const useMoveCell = (cellId: string) => {
   const { store } = useStore();
   const userId = useAuthenticatedUser();
 
-  const moveCellUp = useCallback(() => {
+  // Helper function to get cell references and current index
+  const getCellContext = useCallback(() => {
     const cellReferences = store.query(queries.cellsWithIndices$);
     const currentIndex = cellReferences.findIndex((c) => c.id === cellId);
+    return { cellReferences, currentIndex };
+  }, [store, cellId]);
 
-    if (currentIndex <= 0) {
-      // Already at the top, can't move up
-      return;
-    }
+  // Helper function to execute a move operation
+  const executeMove = useCallback(
+    (beforeCell: any, afterCell: any) => {
+      const { cellReferences, currentIndex } = getCellContext();
+      const currentCell = cellReferences[currentIndex];
 
-    const currentCell = cellReferences[currentIndex];
+      const moveEvent = moveCellBetween(
+        currentCell,
+        beforeCell,
+        afterCell,
+        userId
+      );
+      if (moveEvent) {
+        store.commit(moveEvent);
+      }
+    },
+    [getCellContext, userId, store]
+  );
+
+  // Helper function to check if movement is possible
+  const canMove = useCallback(
+    (direction: "up" | "down") => {
+      const { cellReferences, currentIndex } = getCellContext();
+      if (direction === "up") {
+        return currentIndex > 0;
+      } else {
+        return currentIndex < cellReferences.length - 1;
+      }
+    },
+    [getCellContext]
+  );
+
+  const canMoveUp = useCallback(() => canMove("up"), [canMove]);
+  const canMoveDown = useCallback(() => canMove("down"), [canMove]);
+
+  // ---
+
+  const moveCellUp = useCallback(() => {
+    if (!canMove("up")) return;
+
+    const { cellReferences, currentIndex } = getCellContext();
+
     const previousCell = cellReferences[currentIndex - 1];
     const cellBefore =
       currentIndex > 1 ? cellReferences[currentIndex - 2] : null;
 
-    // Move current cell to position before the previous cell
-    const moveEvent = moveCellBetween(
-      currentCell,
-      cellBefore,
-      previousCell,
-      userId
-    );
-
-    if (moveEvent) {
-      store.commit(moveEvent);
-    }
-  }, [store, cellId, userId]);
+    executeMove(cellBefore, previousCell);
+  }, [getCellContext, canMove, executeMove]);
 
   const moveCellDown = useCallback(() => {
-    const cellReferences = store.query(queries.cellsWithIndices$);
-    const currentIndex = cellReferences.findIndex((c) => c.id === cellId);
+    if (!canMove("down")) return;
 
-    if (currentIndex >= cellReferences.length - 1) {
-      // Already at the bottom, can't move down
-      return;
-    }
+    const { cellReferences, currentIndex } = getCellContext();
 
-    const currentCell = cellReferences[currentIndex];
     const nextCell = cellReferences[currentIndex + 1];
     const cellAfter =
       currentIndex < cellReferences.length - 2
         ? cellReferences[currentIndex + 2]
         : null;
 
-    // Move current cell to position after the next cell
-    const moveEvent = moveCellBetween(currentCell, nextCell, cellAfter, userId);
-
-    if (moveEvent) {
-      store.commit(moveEvent);
-    }
-  }, [store, cellId, userId]);
-
-  const canMoveUp = useCallback(() => {
-    const cellReferences = store.query(queries.cellsWithIndices$);
-    const currentIndex = cellReferences.findIndex((c) => c.id === cellId);
-    return currentIndex > 0;
-  }, [store, cellId]);
-
-  const canMoveDown = useCallback(() => {
-    const cellReferences = store.query(queries.cellsWithIndices$);
-    const currentIndex = cellReferences.findIndex((c) => c.id === cellId);
-    return currentIndex < cellReferences.length - 1;
-  }, [store, cellId]);
+    executeMove(nextCell, cellAfter);
+  }, [getCellContext, canMove, executeMove]);
 
   const moveCellToTop = useCallback(() => {
-    const cellReferences = store.query(queries.cellsWithIndices$);
-    const currentIndex = cellReferences.findIndex((c) => c.id === cellId);
+    if (!canMove("up")) return;
 
-    if (currentIndex <= 0) {
-      // Already at the top, can't move to top
-      return;
-    }
+    const { cellReferences } = getCellContext();
 
-    const currentCell = cellReferences[currentIndex];
     const firstCell = cellReferences[0];
-
-    // Move current cell to position before the first cell (i.e., to the top)
-    const moveEvent = moveCellBetween(currentCell, null, firstCell, userId);
-
-    if (moveEvent) {
-      store.commit(moveEvent);
-    }
-  }, [store, cellId, userId]);
+    executeMove(null, firstCell);
+  }, [getCellContext, canMove, executeMove]);
 
   const moveCellToBottom = useCallback(() => {
-    const cellReferences = store.query(queries.cellsWithIndices$);
-    const currentIndex = cellReferences.findIndex((c) => c.id === cellId);
+    if (!canMove("down")) return;
 
-    if (currentIndex >= cellReferences.length - 1) {
-      // Already at the bottom, can't move to bottom
-      return;
-    }
+    const { cellReferences } = getCellContext();
 
-    const currentCell = cellReferences[currentIndex];
     const lastCell = cellReferences[cellReferences.length - 1];
-
-    // Move current cell to position after the last cell (i.e., to the bottom)
-    const moveEvent = moveCellBetween(currentCell, lastCell, null, userId);
-
-    if (moveEvent) {
-      store.commit(moveEvent);
-    }
-  }, [store, cellId, userId]);
+    executeMove(lastCell, null);
+  }, [getCellContext, canMove, executeMove]);
 
   return {
     moveCellUp,
