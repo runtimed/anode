@@ -53,6 +53,8 @@ export function NotebookControls() {
     stopAllExecution(cellQueue.map((cell) => cell.id));
   }, [stopAllExecution, cellQueue]);
 
+  const showBadge = cellQueue.length > 0 || hideAiCells;
+
   return (
     <div className="flex items-center gap-1">
       {cellQueue.length > 0 && (
@@ -63,8 +65,11 @@ export function NotebookControls() {
       )}
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <Button variant="ghost" size="sm">
+          <Button variant="ghost" size="sm" className="relative">
             <MoreHorizontal className="h-4 w-4" />
+            {showBadge && (
+              <div className="absolute top-1 right-1 size-2 rounded-full bg-blue-500 text-white" />
+            )}
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
