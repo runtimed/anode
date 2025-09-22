@@ -10,6 +10,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Switch } from "@/components/ui/switch";
 import { useRuntimeHealth } from "@/hooks/useRuntimeHealth";
+import { useHideAiCells } from "@/hooks/useHideAiCells";
 import { useQuery, useStore } from "@livestore/react";
 import { events, queries, queryDb, tables } from "@runtimed/schema";
 import {
@@ -21,7 +22,7 @@ import {
   Trash,
   Undo2,
 } from "lucide-react";
-import { useCallback, useState } from "react";
+import { useCallback } from "react";
 import { toast } from "sonner";
 
 export function NotebookControls() {
@@ -41,7 +42,7 @@ export function NotebookControls() {
   const { stopAllExecution } = useStopAllExecution();
   const { clearAllOutputs } = useClearAllOutputs();
   const { restartAndRunAllCells } = useRestartAndRunAllCells();
-  const [showAICells, setShowAICells] = useState(false);
+  const { hideAiCells, toggleHideAiCells } = useHideAiCells();
 
   const handleStopAll = useCallback(() => {
     if (cellQueue.length === 0) {
@@ -98,8 +99,8 @@ export function NotebookControls() {
                 Hide AI Cells
               </div>
               <Switch
-                checked={showAICells}
-                onCheckedChange={() => setShowAICells(!showAICells)}
+                checked={hideAiCells}
+                onCheckedChange={toggleHideAiCells}
               />
             </label>
           </DropdownMenuItem>
