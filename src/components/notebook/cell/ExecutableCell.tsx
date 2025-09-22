@@ -9,6 +9,7 @@ import { useUserRegistry } from "@/hooks/useUserRegistry.js";
 import { useEditorRegistry } from "@/hooks/useEditorRegistry.js";
 import { useDeleteCell } from "@/hooks/useDeleteCell.js";
 import { useAddCell } from "@/hooks/useAddCell.js";
+import { useActiveRuntime } from "@/hooks/useRuntimeHealth.js";
 
 import { useStore } from "@livestore/react";
 import { focusedCellSignal$, hasManuallyFocused$ } from "../signals/focus.js";
@@ -86,6 +87,7 @@ export const ExecutableCell: React.FC<ExecutableCellProps> = ({
 
   const userId = useAuthenticatedUser();
   const { getUsersOnCell, getUserColor } = useUserRegistry();
+  const activeRuntime = useActiveRuntime();
 
   // Get users present on this cell (excluding current user)
   const usersOnCell = getUsersOnCell(cell.id).filter(
@@ -480,7 +482,10 @@ export const ExecutableCell: React.FC<ExecutableCellProps> = ({
                   handleSourceChange={handleSourceChange}
                   onBlur={updateSource}
                   handleFocus={handleFocus}
-                  language={languageFromCellType(cell.cellType)}
+                  language={languageFromCellType(
+                    cell.cellType,
+                    activeRuntime?.runtimeType
+                  )}
                   placeholder={placeholderFromCellType(cell.cellType)}
                   enableLineWrapping={shouldEnableLineWrapping(cell.cellType)}
                   autoFocus={autoFocus}
