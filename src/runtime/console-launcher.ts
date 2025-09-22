@@ -342,7 +342,7 @@ class ConsoleLauncher {
 
   getStatus(): LauncherStatus {
     const hasRenewalInterval =
-      this.currentAgent && !!(this.currentAgent as any).renewalInterval;
+      this.currentAgent && !!this.currentAgent.renewalInterval;
 
     return {
       hasAgent: !!this.currentAgent,
@@ -382,12 +382,58 @@ class ConsoleLauncher {
 
   async shutdown(): Promise<void> {
     if (this.currentAgent) {
-      console.log("🛑 Shutting down runtime agent...");
-      await this.currentAgent.shutdown();
+      console.log("🛑 Shutting down local runtime agent...");
+      await this.softShutdownAgent(this.currentAgent);
       this.currentAgent = null;
-      console.log("✅ Runtime agent shut down");
+      console.log("✅ Local runtime agent shut down (store preserved)");
     } else {
       console.log("ℹ️ No active runtime agent to shutdown");
+    }
+  }
+
+  /**
+   * Soft shutdown that preserves the LiveStore instance
+   * This is needed for local runtimes that share the store with the UI
+   */
+  private async softShutdownAgent(agent: RuntimeAgent): Promise<void> {
+    try {
+      // Call onShutdown handler if present
+      await agent.handlers?.onShutdown?.();
+
+      // Unsubscribe from all reactive queries
+      const subscriptions = agent.subscriptions || [];
+      subscriptions.forEach((unsubscribe: () => void) => unsubscribe());
+      agent.subscriptions = [];
+
+      // Mark session as terminated
+      try {
+        agent.store.commit(
+          (await import("@runtimed/schema")).events.runtimeSessionTerminated({
+            sessionId: agent.config.sessionId,
+            reason: "shutdown",
+          })
+        );
+      } catch (error) {
+        console.warn("Failed to mark session as terminated:", error);
+      }
+
+      // Stop session renewal
+      const renewalInterval = agent.renewalInterval;
+      if (renewalInterval) {
+        clearInterval(renewalInterval);
+        agent.renewalInterval = undefined;
+      }
+
+      // Clean up shutdown handlers
+      agent.cleanupShutdownHandlers?.();
+
+      // Mark as shutting down
+      agent.isShuttingDown = true;
+
+      // NOTE: We deliberately do NOT call agent.store.shutdown()
+      // because local runtimes share the store with the UI
+    } catch (error) {
+      console.error("Error during soft shutdown:", error);
     }
   }
 }

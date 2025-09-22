@@ -88,6 +88,31 @@ export const RuntimePanel: React.FC<SidebarPanelProps> = ({ notebook }) => {
     }
   }, [store]);
 
+  const stopLocalRuntime = useCallback(async () => {
+    try {
+      setLocalError(null);
+
+      if (!window.__RUNT_LAUNCHER__) {
+        throw new Error("Console launcher not available");
+      }
+
+      await window.__RUNT_LAUNCHER__.shutdown();
+    } catch (err) {
+      const message =
+        err instanceof Error ? err.message : "Failed to stop runtime";
+      setLocalError(message);
+      console.error("Local runtime stop failed:", err);
+    }
+  }, []);
+
+  const isLocalRuntime = useCallback(() => {
+    if (!activeRuntime || !window.__RUNT_LAUNCHER__) {
+      return false;
+    }
+    const status = window.__RUNT_LAUNCHER__.getStatus();
+    return status.hasAgent && status.sessionId === activeRuntime.sessionId;
+  }, [activeRuntime]);
+
   return (
     <div className="space-y-4">
       <div>
@@ -141,6 +166,21 @@ export const RuntimePanel: React.FC<SidebarPanelProps> = ({ notebook }) => {
                       activeRuntime.status.slice(1)}
               </span>
             </div>
+            {isLocalRuntime() && (
+              <div className="mt-2 border-t pt-2">
+                <Button
+                  onClick={stopLocalRuntime}
+                  size="sm"
+                  variant="outline"
+                  className="w-full text-xs"
+                >
+                  Stop Local Runtime
+                </Button>
+                {localError && (
+                  <p className="mt-1 text-xs text-red-600">{localError}</p>
+                )}
+              </div>
+            )}
           </div>
         </div>
       )}
