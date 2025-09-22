@@ -3,10 +3,24 @@ import { Button } from "@/components/ui/button";
 import { useConfirm } from "@/components/ui/confirm";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { useRuntimeHealth } from "@/hooks/useRuntimeHealth";
 import { useQuery, useStore } from "@livestore/react";
 import { events, queries, queryDb, tables } from "@runtimed/schema";
-import { Eraser, Play, Square, Trash, Undo2 } from "lucide-react";
+import {
+  Eraser,
+  MoreHorizontal,
+  Play,
+  Square,
+  Trash,
+  Undo2,
+} from "lucide-react";
 import { useCallback, useState } from "react";
 import { toast } from "sonner";
 
@@ -31,52 +45,59 @@ export function NotebookControls() {
 
   return (
     <>
-      <Button
-        variant="ghost"
-        size="sm"
-        onClick={() =>
-          confirm({
-            title: "Delete All Cells",
-            description: "Are you sure you want to delete all cells?",
-            onConfirm: deleteAllCells,
-            actionButtonText: "Delete All Cells",
-          })
-        }
-      >
-        <Trash className="h-3 w-3" />
-        Delete All Cells
-      </Button>
-      <Button variant="ghost" size="sm" onClick={clearAllOutputs}>
-        <Eraser className="h-3 w-3" />
-        Clear All Outputs
-      </Button>
-      {cellQueue.length > 0 ? (
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={() => stopAllExecution(cellQueue.map((cell) => cell.id))}
-        >
-          <Square className="h-3 w-3" />
-          Stop All
-        </Button>
-      ) : (
-        <>
-          <Button variant="ghost" size="sm" onClick={runAllCells}>
-            <Play className="h-3 w-3" />
-            Run All Cells
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button variant="ghost" size="sm">
+            <MoreHorizontal className="h-4 w-4" />
           </Button>
-          <Button variant="ghost" size="sm" onClick={restartAndRunAllCells}>
-            <span className="relative">
-              <Play className="h-3 w-3" />
-              <Undo2
-                className="absolute bottom-0 left-0 size-3 -translate-x-[3px] translate-y-[3px] rounded-full bg-white p-[1px] text-gray-700"
-                strokeWidth={3}
-              />
-            </span>
-            Restart and Run All Cells
-          </Button>
-        </>
-      )}
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end">
+          {cellQueue.length > 0 ? (
+            <DropdownMenuItem
+              onClick={() => stopAllExecution(cellQueue.map((cell) => cell.id))}
+            >
+              <Square className="mr-2 h-4 w-4" />
+              Stop All
+            </DropdownMenuItem>
+          ) : (
+            <>
+              <DropdownMenuItem onClick={runAllCells}>
+                <Play className="mr-2 h-4 w-4" />
+                Run All Cells
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={restartAndRunAllCells}>
+                <span className="relative mr-2">
+                  <Play className="h-4 w-4" />
+                  <Undo2
+                    className="absolute bottom-0 left-0 size-3 -translate-x-[3px] translate-y-[3px] rounded-full bg-white p-[1px] text-gray-700"
+                    strokeWidth={3}
+                  />
+                </span>
+                Restart and Run All Cells
+              </DropdownMenuItem>
+            </>
+          )}
+          <DropdownMenuSeparator />
+          <DropdownMenuItem onClick={clearAllOutputs}>
+            <Eraser className="mr-2 h-4 w-4" />
+            Clear All Outputs
+          </DropdownMenuItem>
+          <DropdownMenuItem
+            onClick={() =>
+              confirm({
+                title: "Delete All Cells",
+                description: "Are you sure you want to delete all cells?",
+                onConfirm: deleteAllCells,
+                actionButtonText: "Delete All Cells",
+              })
+            }
+            className="text-red-600 focus:text-red-600"
+          >
+            <Trash className="mr-2 h-4 w-4" />
+            Delete All Cells
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
       <Label className="flex items-center gap-2">
         Hide AI Cells
         <Switch

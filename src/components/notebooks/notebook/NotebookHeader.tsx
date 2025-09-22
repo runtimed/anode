@@ -30,7 +30,6 @@ export function NotebookHeader({
               onTitleSaved={onTitleSaved}
               canEdit={canEdit}
             />
-            <NotebookControls />
           </div>
 
           {/* Right side - Mobile optimized */}
@@ -46,8 +45,8 @@ export function NotebookHeader({
         </div>
 
         {/* Metadata - Mobile optimized */}
-        <div className="mt-2 flex flex-col gap-2 text-xs text-gray-500 sm:mt-3 sm:flex-row sm:items-center sm:justify-between">
-          <div className="flex items-center gap-2 sm:gap-4">
+        <div className="mt-2 flex flex-col gap-2 text-xs sm:mt-3 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex items-center gap-2 text-gray-500 sm:gap-4">
             {/* Owner name - Mobile: Show on mobile with CollaboratorAvatars */}
             <div className="flex items-center gap-1.5">
               <User className="h-3 w-3" />
@@ -69,6 +68,7 @@ export function NotebookHeader({
               setIsSharingDialogOpen={() => setIsSharingDialogOpen(true)}
             />
           </div>
+          <NotebookControls />
         </div>
       </div>
     </div>
