@@ -12,11 +12,14 @@ import {
   type ExecutionHandler,
   type ExecutionContext,
   type RuntimeCapabilities,
+  type AiModel,
 } from "@runtimed/agent-core";
 import {
   LocalRuntimeAgent,
   type LocalRuntimeConfig,
 } from "./LocalRuntimeAgent.js";
+
+import { discoverAvailableAiModels } from "@runtimed/ai-core";
 
 /**
  * HTML Runtime Agent
@@ -50,7 +53,7 @@ export class HtmlRuntimeAgent extends LocalRuntimeAgent {
     return {
       canExecuteCode: true,
       canExecuteSql: false,
-      canExecuteAi: false,
+      canExecuteAi: true,
     };
   }
 
@@ -65,6 +68,58 @@ export class HtmlRuntimeAgent extends LocalRuntimeAgent {
 
       // Clear previous outputs
       context.clear();
+
+      if (cell.cellType === "ai") {
+        try {
+          console.log(`🤖 Discovering AI models for cell: ${cell.id}`);
+
+          // Discover available AI models
+          const models = await discoverAvailableAiModels();
+
+          // Format models for display
+          const modelsList = models
+            .map(
+              (model: AiModel) =>
+                `<li><strong>${model.displayName}</strong> - ${model.provider} ${model.metadata?.description ? `(${model.metadata.description})` : ""}</li>`
+            )
+            .join("\n");
+
+          const htmlOutput = `
+            <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; padding: 16px; border: 1px solid #e1e5e9; border-radius: 8px; background: #f6f8fa;">
+              <h3 style="margin-top: 0; color: #24292f;">Available AI Models</h3>
+              <p style="color: #656d76; margin-bottom: 16px;">Found ${models.length} available model${models.length === 1 ? "" : "s"}:</p>
+              <ul style="margin: 0; padding-left: 20px;">
+                ${modelsList}
+              </ul>
+            </div>
+          `;
+
+          await context.display({
+            "text/html": htmlOutput,
+            "text/plain": `Available AI Models (${models.length}):\n${models.map((m: AiModel) => `- ${m.displayName} (${m.provider})`).join("\n")}`,
+          });
+
+          console.log(`✅ AI model discovery completed for cell: ${cell.id}`);
+          return { success: true };
+        } catch (error) {
+          const errorMsg =
+            error instanceof Error ? error.message : String(error);
+          console.error(
+            `❌ AI model discovery failed for cell: ${cell.id}`,
+            error
+          );
+
+          context.error("AIModelDiscoveryError", errorMsg, [
+            `Error discovering AI models for cell: ${cell.id}`,
+            errorMsg,
+          ]);
+
+          return {
+            success: false,
+            error: errorMsg,
+          };
+        }
+      }
 
       // Only handle code cells
       if (cell.cellType !== "code") {
