@@ -17,6 +17,8 @@ import {
   Eraser,
   ArrowUp,
   ArrowDown,
+  ArrowUpToLine,
+  ArrowDownToLine,
 } from "lucide-react";
 interface CellControlsProps {
   sourceVisible: boolean;
@@ -30,6 +32,8 @@ interface CellControlsProps {
   playButton?: React.ReactNode;
   onMoveUp?: () => void;
   onMoveDown?: () => void;
+  onMoveToTop?: () => void;
+  onMoveToBottom?: () => void;
   canMoveUp?: boolean;
   canMoveDown?: boolean;
 }
@@ -46,6 +50,8 @@ export const CellControls: React.FC<CellControlsProps> = ({
   playButton,
   onMoveUp,
   onMoveDown,
+  onMoveToTop,
+  onMoveToBottom,
   canMoveUp = false,
   canMoveDown = false,
 }) => {
@@ -108,6 +114,12 @@ export const CellControls: React.FC<CellControlsProps> = ({
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
+            {onMoveToTop && (
+              <DropdownMenuItem onClick={onMoveToTop} disabled={!canMoveUp}>
+                <ArrowUpToLine className="mr-2 h-4 w-4" />
+                <span>Move to top</span>
+              </DropdownMenuItem>
+            )}
             {onMoveUp && (
               <DropdownMenuItem onClick={onMoveUp} disabled={!canMoveUp}>
                 <ArrowUp className="mr-2 h-4 w-4" />
@@ -120,7 +132,18 @@ export const CellControls: React.FC<CellControlsProps> = ({
                 <span>Move down</span>
               </DropdownMenuItem>
             )}
-            {(onMoveUp || onMoveDown) && <DropdownMenuSeparator />}
+            {onMoveToBottom && (
+              <DropdownMenuItem
+                onClick={onMoveToBottom}
+                disabled={!canMoveDown}
+              >
+                <ArrowDownToLine className="mr-2 h-4 w-4" />
+                <span>Move to bottom</span>
+              </DropdownMenuItem>
+            )}
+            {(onMoveUp || onMoveDown || onMoveToTop || onMoveToBottom) && (
+              <DropdownMenuSeparator />
+            )}
             <DropdownMenuItem onClick={onClearOutputs} disabled={!hasOutputs}>
               <Eraser className="mr-2 h-4 w-4" />
               <span>Clear outputs</span>
