@@ -85,9 +85,14 @@ export const ExecutableCell: React.FC<ExecutableCellProps> = ({
 
   const { handleDeleteCell } = useDeleteCell(cell.id);
   const { addCell } = useAddCell();
-  const { moveCellUp, moveCellDown, canMoveUp, canMoveDown } = useMoveCell(
-    cell.id
-  );
+  const {
+    moveCellUp,
+    moveCellDown,
+    moveCellToTop,
+    moveCellToBottom,
+    canMoveUp,
+    canMoveDown,
+  } = useMoveCell(cell.id);
 
   const userId = useAuthenticatedUser();
   const { getUsersOnCell, getUserColor } = useUserRegistry();
@@ -434,6 +439,8 @@ export const ExecutableCell: React.FC<ExecutableCellProps> = ({
             toggleAiContextVisibility={toggleAiContextVisibility}
             onMoveUp={moveCellUp}
             onMoveDown={moveCellDown}
+            onMoveToTop={moveCellToTop}
+            onMoveToBottom={moveCellToBottom}
             canMoveUp={canMoveUp}
             canMoveDown={canMoveDown}
             playButton={
