@@ -486,7 +486,10 @@ export const ExecutableCell: React.FC<ExecutableCellProps> = ({
                     cell.cellType,
                     activeRuntime?.runtimeType
                   )}
-                  placeholder={placeholderFromCellType(cell.cellType)}
+                  placeholder={placeholderFromCellType(
+                    cell.cellType,
+                    activeRuntime?.runtimeType
+                  )}
                   enableLineWrapping={shouldEnableLineWrapping(cell.cellType)}
                   autoFocus={autoFocus}
                   keyMap={keyMap}

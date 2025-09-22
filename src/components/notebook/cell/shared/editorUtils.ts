@@ -22,9 +22,14 @@ export function languageFromCellType(
   return undefined;
 }
 
-export function placeholderFromCellType(cellType: CellType) {
+export function placeholderFromCellType(
+  cellType: CellType,
+  runtimeType?: string
+) {
   if (cellType === "code") {
-    return "Enter your code here...";
+    return runtimeType === "html"
+      ? "Enter your HTML here..."
+      : "Enter your Python code here...";
   } else if (cellType === "markdown") {
     return "Enter markdown...";
   } else if (cellType === "ai") {
