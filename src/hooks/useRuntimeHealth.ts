@@ -19,6 +19,17 @@ export type RuntimeHealthState = {
   executionQueue: any[];
 };
 
+export function useActiveRuntime(): RuntimeSessionData | undefined {
+  const runtimeSessions = useQuery(
+    queryDb(tables.runtimeSessions.select().where({ isActive: true }))
+  );
+
+  return runtimeSessions.find(
+    (session: RuntimeSessionData) =>
+      session.status === "ready" || session.status === "busy"
+  );
+}
+
 export const useRuntimeHealth = (): RuntimeHealthState => {
   const runtimeSessions = useQuery(
     queryDb(tables.runtimeSessions.select().where({ isActive: true }))

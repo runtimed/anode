@@ -1,9 +1,16 @@
 import { CellType } from "@runtimed/schema";
 import { SupportedLanguage } from "@/types/misc.js";
 
-export function languageFromCellType(cellType: CellType): SupportedLanguage {
+export function languageFromCellType(
+  cellType: CellType,
+  runtimeType?: string
+): SupportedLanguage {
   if (cellType === "code") {
-    // TODO: Pull from runtime agent session and/or notebook
+    // Use runtime type to determine language for code cells
+    if (runtimeType === "html") {
+      return "html";
+    }
+    // Default to python for other runtime types
     return "python";
   } else if (cellType === "markdown") {
     return "markdown";
@@ -15,9 +22,14 @@ export function languageFromCellType(cellType: CellType): SupportedLanguage {
   return undefined;
 }
 
-export function placeholderFromCellType(cellType: CellType) {
+export function placeholderFromCellType(
+  cellType: CellType,
+  runtimeType?: string
+) {
   if (cellType === "code") {
-    return "Enter your code here...";
+    return runtimeType === "html"
+      ? "Enter your HTML here..."
+      : "Enter your Python code here...";
   } else if (cellType === "markdown") {
     return "Enter markdown...";
   } else if (cellType === "ai") {
