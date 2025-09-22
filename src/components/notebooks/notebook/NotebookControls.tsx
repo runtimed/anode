@@ -190,21 +190,27 @@ function useRestartAndRunAllCells() {
 
 function useStopAllExecution() {
   const { store } = useStore();
-
   const userId = useAuthenticatedUser();
 
   const stopAllExecution = useCallback(
     (cellIds: string[]) => {
-      for (const cellId of cellIds) {
+      const queueEntries = store.query(
+        queryDb(
+          tables.executionQueue
+            .select()
+            .where({ cellId: { op: "IN", value: cellIds } })
+        )
+      );
+      queueEntries.forEach((queueEntry) => {
         store.commit(
           events.executionCancelled({
-            queueId: cellId,
-            cellId: cellId,
+            queueId: queueEntry.id,
+            cellId: queueEntry.cellId,
             cancelledBy: userId,
             reason: "User interrupted execution",
           })
         );
-      }
+      });
     },
     [store, userId]
   );
