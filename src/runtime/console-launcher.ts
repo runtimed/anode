@@ -23,7 +23,7 @@ import type {
 } from "@runtimed/agent-core";
 import type { Store } from "@runtimed/schema";
 import { sharedLiveStoreAdapter } from "../livestore/adapter.js";
-import { HtmlRuntimeAgent } from "./html-agent.js";
+import { HtmlRuntimeAgent, type LocalRuntimeConfig } from "./html-agent.js";
 
 // Global interface for console access
 declare global {
@@ -203,13 +203,15 @@ class ConsoleLauncher {
       }
 
       // Create HTML agent with new dedicated class
-      this.currentHtmlAgent = new HtmlRuntimeAgent({
+      const htmlConfig: LocalRuntimeConfig = {
         store,
         authToken,
         notebookId,
         userId,
         syncUrl: "ws://localhost:8787",
-      });
+      };
+
+      this.currentHtmlAgent = new HtmlRuntimeAgent(htmlConfig);
 
       const agent = await this.currentHtmlAgent.start();
       this.currentAgent = agent;
