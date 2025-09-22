@@ -24,6 +24,7 @@ import {
 } from "lucide-react";
 import { useCallback } from "react";
 import { toast } from "sonner";
+import { generateQueueId } from "@/util/queue-id";
 
 export function NotebookControls() {
   const { confirm } = useConfirm();
@@ -164,7 +165,7 @@ function useRunAllCells() {
             executionCount: (cell.executionCount || 0) + 1,
             requestedBy: userId,
             actorId: userId,
-            queueId: `exec-${Date.now()}-${Math.random().toString(36).slice(2)}`,
+            queueId: generateQueueId(),
           })
         );
       });

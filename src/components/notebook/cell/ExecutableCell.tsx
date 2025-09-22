@@ -38,6 +38,7 @@ import { MaybeCellOutputs } from "@/components/outputs/MaybeCellOutputs.js";
 import { useToolApprovals } from "@/hooks/useToolApprovals.js";
 import { AiToolApprovalOutput } from "../../outputs/shared-with-iframe/AiToolApprovalOutput.js";
 import { cn } from "@/lib/utils.js";
+import { generateQueueId } from "@/util/queue-id.js";
 
 // Cell-specific styling configuration
 const getCellStyling = (cellType: "code" | "sql" | "ai") => {
@@ -191,15 +192,12 @@ export const ExecutableCell: React.FC<ExecutableCellProps> = ({
       );
 
       // Generate unique queue ID
-      const queueId = `exec-${Date.now()}-${Math.random()
-        .toString(36)
-        .slice(2)}`;
       const executionCount = (cell.executionCount || 0) + 1;
 
       // Add to execution queue - runtimes will pick this up
       store.commit(
         events.executionRequested({
-          queueId,
+          queueId: generateQueueId(),
           cellId: cell.id,
           executionCount,
           requestedBy: userId,
