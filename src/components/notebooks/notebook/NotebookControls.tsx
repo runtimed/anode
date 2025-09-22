@@ -43,10 +43,14 @@ export function NotebookControls() {
   const { restartAndRunAllCells } = useRestartAndRunAllCells();
   const [showAICells, setShowAICells] = useState(false);
 
-  const handleStopAll = useCallback(
-    () => stopAllExecution(cellQueue.map((cell) => cell.id)),
-    [stopAllExecution, cellQueue]
-  );
+  const handleStopAll = useCallback(() => {
+    if (cellQueue.length === 0) {
+      toast.info("No cells to stop");
+      return;
+    }
+    toast.info("Stopping all cells");
+    stopAllExecution(cellQueue.map((cell) => cell.id));
+  }, [stopAllExecution, cellQueue]);
 
   return (
     <div className="flex items-center gap-1">
