@@ -1,8 +1,6 @@
 import { useAuthenticatedUser } from "@/auth/index.js";
 import { Button } from "@/components/ui/button";
 import { useConfirm } from "@/components/ui/confirm";
-import { Label } from "@/components/ui/label";
-import { Switch } from "@/components/ui/switch";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -10,10 +8,12 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { Switch } from "@/components/ui/switch";
 import { useRuntimeHealth } from "@/hooks/useRuntimeHealth";
 import { useQuery, useStore } from "@livestore/react";
 import { events, queries, queryDb, tables } from "@runtimed/schema";
 import {
+  Bot,
   Eraser,
   MoreHorizontal,
   Play,
@@ -43,8 +43,19 @@ export function NotebookControls() {
   const { restartAndRunAllCells } = useRestartAndRunAllCells();
   const [showAICells, setShowAICells] = useState(false);
 
+  const handleStopAll = useCallback(
+    () => stopAllExecution(cellQueue.map((cell) => cell.id)),
+    [stopAllExecution, cellQueue]
+  );
+
   return (
-    <>
+    <div className="flex items-center gap-1">
+      {cellQueue.length > 0 && (
+        <Button variant="outline" size="sm" onClick={handleStopAll}>
+          <Square className="mr-2 h-4 w-4" />
+          Stop All
+        </Button>
+      )}
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <Button variant="ghost" size="sm">
@@ -53,9 +64,7 @@ export function NotebookControls() {
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
           {cellQueue.length > 0 ? (
-            <DropdownMenuItem
-              onClick={() => stopAllExecution(cellQueue.map((cell) => cell.id))}
-            >
+            <DropdownMenuItem onClick={handleStopAll}>
               <Square className="mr-2 h-4 w-4" />
               Stop All
             </DropdownMenuItem>
@@ -78,6 +87,19 @@ export function NotebookControls() {
             </>
           )}
           <DropdownMenuSeparator />
+          <DropdownMenuItem asChild onSelect={(e) => e.preventDefault()}>
+            <label>
+              <Bot className="mr-2 h-4 w-4" />
+              <div className="flex flex-grow items-center gap-2">
+                Hide AI Cells
+              </div>
+              <Switch
+                checked={showAICells}
+                onCheckedChange={() => setShowAICells(!showAICells)}
+              />
+            </label>
+          </DropdownMenuItem>
+          <DropdownMenuSeparator />
           <DropdownMenuItem onClick={clearAllOutputs}>
             <Eraser className="mr-2 h-4 w-4" />
             Clear All Outputs
@@ -98,14 +120,7 @@ export function NotebookControls() {
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
-      <Label className="flex items-center gap-2">
-        Hide AI Cells
-        <Switch
-          checked={showAICells}
-          onCheckedChange={() => setShowAICells(!showAICells)}
-        />
-      </Label>
-    </>
+    </div>
   );
 }
 
