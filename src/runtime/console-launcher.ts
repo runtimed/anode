@@ -23,6 +23,8 @@ import type {
 } from "@runtimed/agent-core";
 import type { Store } from "@runtimed/schema";
 import { sharedLiveStoreAdapter } from "../livestore/adapter.js";
+import { HtmlRuntimeAgent } from "./html-agent.js";
+import type { LocalRuntimeConfig } from "./LocalRuntimeAgent.js";
 
 // Global interface for console access
 declare global {
@@ -56,6 +58,7 @@ interface LauncherStatus {
 
 class ConsoleLauncher {
   private currentAgent: RuntimeAgent | null = null;
+  private currentHtmlAgent: HtmlRuntimeAgent | null = null;
   private store: Store | null = null;
   private existingStore: any = null;
   private userId: string | null = null;
@@ -158,41 +161,6 @@ class ConsoleLauncher {
     };
   }
 
-  private createHtmlExecutionHandler(): ExecutionHandler {
-    return async (context: ExecutionContext) => {
-      const { cell } = context;
-
-      console.log(`🔄 Executing HTML cell: ${cell.id}`);
-
-      // Clear previous outputs
-      context.clear();
-
-      if (cell.cellType !== "code") {
-        return {
-          success: false,
-          error: "HTML handler only supports code cells",
-        };
-      }
-
-      try {
-        // Display HTML content using context.display()
-        await context.display({
-          "text/html": cell.source,
-          "text/plain": cell.source,
-        });
-
-        console.log(`✅ HTML execution completed for cell: ${cell.id}`);
-        return { success: true };
-      } catch (error) {
-        const errorMsg = error instanceof Error ? error.message : String(error);
-        console.error(`❌ HTML execution failed for cell: ${cell.id}`, error);
-
-        context.error("HTMLError", errorMsg, []);
-        return { success: false, error: errorMsg };
-      }
-    };
-  }
-
   private createPythonExecutionHandler(): ExecutionHandler {
     return async (_context: ExecutionContext) => {
       // Placeholder - Python execution would delegate to external agent
@@ -207,9 +175,16 @@ class ConsoleLauncher {
     try {
       this.lastError = null;
 
+      // Shutdown existing agents
+      if (this.currentHtmlAgent) {
+        console.log("🔄 Shutting down existing HTML agent...");
+        await this.currentHtmlAgent.stop();
+        this.currentHtmlAgent = null;
+      }
       if (this.currentAgent) {
         console.log("🔄 Shutting down existing agent...");
-        await this.currentAgent.shutdown();
+        await this.softShutdownAgent(this.currentAgent);
+        this.currentAgent = null;
       }
 
       const { notebookId, userId, authToken } = this.validatePrerequisites();
@@ -217,12 +192,6 @@ class ConsoleLauncher {
       console.log(
         `🚀 Launching HTML runtime agent for notebook: ${notebookId}`
       );
-
-      const capabilities: RuntimeCapabilities = {
-        canExecuteCode: true,
-        canExecuteSql: false,
-        canExecuteAi: false,
-      };
 
       // Use existing store or create a new one
       let store: Store;
@@ -234,29 +203,22 @@ class ConsoleLauncher {
         store = await this.createNewStore(notebookId, userId, authToken);
       }
 
-      const config = new RuntimeConfig({
-        runtimeId: `console-html-${crypto.randomUUID()}`,
-        runtimeType: "html",
-        capabilities,
-        syncUrl: "ws://localhost:8787", // Dev sync server
+      // Create HTML agent with new dedicated class
+      const htmlConfig: LocalRuntimeConfig = {
+        store,
         authToken,
         notebookId,
-        store,
         userId,
-      });
+        syncUrl: "ws://localhost:8787",
+      };
 
-      const agent = new RuntimeAgent(config, capabilities);
+      this.currentHtmlAgent = new HtmlRuntimeAgent(htmlConfig);
 
-      // Register HTML execution handler
-      agent.onExecution(this.createHtmlExecutionHandler());
-
-      // Start the agent
-      await agent.start();
-
+      const agent = await this.currentHtmlAgent.start();
       this.currentAgent = agent;
 
       console.log(`✅ HTML runtime agent started successfully!`);
-      console.log(`   Runtime ID: ${config.runtimeId}`);
+      console.log(`   Runtime ID: ${agent.config.runtimeId}`);
       console.log(`   Session ID: ${agent.config.sessionId}`);
       console.log(`   Notebook ID: ${notebookId}`);
 
@@ -381,11 +343,17 @@ class ConsoleLauncher {
   }
 
   async shutdown(): Promise<void> {
-    if (this.currentAgent) {
-      console.log("🛑 Shutting down local runtime agent...");
+    if (this.currentHtmlAgent) {
+      console.log("🛑 Shutting down HTML runtime agent...");
+      await this.currentHtmlAgent.stop();
+      this.currentHtmlAgent = null;
+      this.currentAgent = null;
+      console.log("✅ HTML runtime agent shut down (store preserved)");
+    } else if (this.currentAgent) {
+      console.log("🛑 Shutting down runtime agent...");
       await this.softShutdownAgent(this.currentAgent);
       this.currentAgent = null;
-      console.log("✅ Local runtime agent shut down (store preserved)");
+      console.log("✅ Runtime agent shut down (store preserved)");
     } else {
       console.log("ℹ️ No active runtime agent to shutdown");
     }
