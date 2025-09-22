@@ -139,7 +139,7 @@ Once configured, your AI cells will work with real OpenAI models!`;
     return configMessage;
   }
 
-  isReady(): boolean {
+  async isReady(): Promise<boolean> {
     // Try to configure if not already configured and not already failed
     if (!this.isConfigured && this.client === null) {
       this.configure();
@@ -321,8 +321,8 @@ Once configured, your AI cells will work with real OpenAI models!`;
   /**
    * Discover available AI models with their capabilities
    */
-  discoverAiModels(): Promise<AiModel[]> {
-    if (!this.isReady()) {
+  async discoverAiModels(): Promise<AiModel[]> {
+    if (!(await this.isReady())) {
       logger.warn(
         `${this.provider} client not ready, returning empty models list`
       );
@@ -374,7 +374,7 @@ Once configured, your AI cells will work with real OpenAI models!`;
       interruptSignal,
     } = options;
 
-    if (!this.isReady()) {
+    if (!(await this.isReady())) {
       const configOutputs = this.createConfigHelpOutput();
       for (const output of configOutputs) {
         if (output.type === "display_data") {

@@ -25,10 +25,7 @@ export interface OutputData {
 
 export interface AgenticOptions {
   maxIterations?: number;
-  onIteration?: (
-    iteration: number,
-    messages: unknown[],
-  ) => Promise<boolean>;
+  onIteration?: (iteration: number, messages: unknown[]) => Promise<boolean>;
   interruptSignal?: AbortSignal;
 }
 
@@ -49,7 +46,7 @@ export interface AnodeCellMetadata {
  */
 export function formatToolCall(
   _toolName: string,
-  args: Record<string, unknown>,
+  args: Record<string, unknown>
 ): string {
   const formattedArgs = Object.entries(args)
     .map(([key, value]) => `${key}: ${JSON.stringify(value)}`)
@@ -63,23 +60,25 @@ export function formatToolCall(
  */
 export function createConfigHelpOutput(
   provider: string,
-  requirements: string[],
+  requirements: string[]
 ): OutputData[] {
-  return [{
-    type: "display_data" as const,
-    data: {
-      "text/markdown": `## ${provider} Configuration Required\n\n${
-        requirements.join("\n")
-      }\n\nPlease configure ${provider} to use AI features.`,
-      "text/plain": `${provider} configuration required: ${
-        requirements.join(", ")
-      }`,
+  return [
+    {
+      type: "display_data" as const,
+      data: {
+        "text/markdown": `## ${provider} Configuration Required\n\n${requirements.join(
+          "\n"
+        )}\n\nPlease configure ${provider} to use AI features.`,
+        "text/plain": `${provider} configuration required: ${requirements.join(
+          ", "
+        )}`,
+      },
+      metadata: {
+        "anode/ai_config_help": true,
+        "anode/ai_provider": provider.toLowerCase(),
+      },
     },
-    metadata: {
-      "anode/ai_config_help": true,
-      "anode/ai_provider": provider.toLowerCase(),
-    },
-  }];
+  ];
 }
 
 /**
@@ -87,20 +86,22 @@ export function createConfigHelpOutput(
  */
 export function createErrorOutput(
   message: string,
-  provider?: string,
+  provider?: string
 ): OutputData[] {
-  return [{
-    type: "error" as const,
-    data: {
-      ename: `${
-        provider ? provider.charAt(0).toUpperCase() + provider.slice(1) : "AI"
-      }Error`,
-      evalue: message,
-      traceback: [message],
+  return [
+    {
+      type: "error" as const,
+      data: {
+        ename: `${
+          provider ? provider.charAt(0).toUpperCase() + provider.slice(1) : "AI"
+        }Error`,
+        evalue: message,
+        traceback: [message],
+      },
+      metadata: {
+        "anode/ai_error": true,
+        ...(provider && { "anode/ai_provider": provider }),
+      },
     },
-    metadata: {
-      "anode/ai_error": true,
-      ...(provider && { "anode/ai_provider": provider }),
-    },
-  }];
+  ];
 }

@@ -65,7 +65,8 @@ export class RuntOllamaClient {
     const host =
       config?.host ||
       this.config.host ||
-      process.env.VITE_OLLAMA_HOST ||
+      // @ts-ignore
+      import.meta.env.VITE_OLLAMA_HOST ||
       "http://localhost:11434";
     const headers = config?.headers || this.config.headers;
     const proxy = config?.proxy ?? this.config.proxy ?? false;

@@ -24,6 +24,8 @@ import { OpenAIClient } from "./openai-client.ts";
 import { RuntOllamaClient } from "./ollama-client.ts";
 import { AnacondaAIClient, GroqClient } from "./groq-client.ts";
 import type { NotebookTool } from "./tool-registry.ts";
+import type { AgenticOptions } from "./shared-types.ts";
+import type { ToolCall } from "./shared-types.ts";
 
 export type { NotebookTool };
 
@@ -445,15 +447,78 @@ const getDefaultModel = (provider: string): string => {
  * Execute AI prompts using OpenAI, Ollama, or other providers
  */
 // Export the AI clients and MCP client for external use
-export { OpenAIClient, RuntOllamaClient };
+export { OpenAIClient, RuntOllamaClient, AnacondaAIClient, GroqClient };
 export { getAllTools } from "./tool-registry.ts";
 
-const AI_ClIENTS: { [key: string]: OpenAIClient | RuntOllamaClient } = {
-  anaconda: new AnacondaAIClient(),
-  openai: new OpenAIClient(),
-  groq: new GroqClient(),
-  ollama: new RuntOllamaClient(),
-} as const;
+type AgenticResponseOptions = {
+  model?: string;
+  provider?: string;
+  maxTokens?: number;
+  temperature?: number;
+  enableTools?: boolean;
+  onToolCall?: (toolCall: ToolCall) => Promise<string>;
+} & AgenticOptions;
+
+interface AiClient {
+  provider: string;
+  discoverAiModels(): Promise<AiModel[]>;
+  isReady(): Promise<boolean>;
+  setNotebookTools(notebookTools: NotebookTool[]): void;
+  getConfigMessage(): string;
+  generateAgenticResponse(
+    messages: ChatMessage[],
+    context: ExecutionContext,
+    options: AgenticResponseOptions
+  ): Promise<void>;
+}
+
+/**
+ * Registry for AI client factories. Only Ollama is registered by default.
+ *
+ * For clients requiring API keys (like Anaconda), register them at runtime:
+ *
+ * @example
+ * ```typescript
+ * // Register Anaconda client with API key
+ * aiRegistry.register("anaconda", () =>
+ *   new AnacondaAIClient({ apiKey: "your-api-key" })
+ * );
+ *
+ * // Register OpenAI client with API key
+ * aiRegistry.register("openai", () =>
+ *   new OpenAIClient({ apiKey: "your-openai-key" })
+ * );
+ * ```
+ */
+class AiClientRegistry {
+  private clientFactories = new Map<string, () => AiClient>();
+
+  constructor() {
+    // Register default clients
+    this.register("ollama", () => new RuntOllamaClient());
+  }
+
+  register(provider: string, factory: () => AiClient): void {
+    this.clientFactories.set(provider, factory);
+  }
+
+  createClient(provider: string): AiClient {
+    const factory = this.clientFactories.get(provider);
+    if (!factory) {
+      throw new Error(`Unknown AI provider: ${provider}`);
+    }
+    return factory();
+  }
+
+  getProviders(): string[] {
+    return Array.from(this.clientFactories.keys());
+  }
+}
+
+const aiRegistry = new AiClientRegistry();
+
+export { aiRegistry, AiClientRegistry };
+export type { AiClient, AgenticResponseOptions };
 
 /**
  * Discover available AI models from all configured providers
@@ -461,13 +526,14 @@ const AI_ClIENTS: { [key: string]: OpenAIClient | RuntOllamaClient } = {
 export async function discoverAvailableAiModels(): Promise<AiModel[]> {
   const allModels: AiModel[] = [];
 
-  for (const client of Object.values(AI_ClIENTS)) {
+  for (const provider of aiRegistry.getProviders()) {
     try {
+      const client = aiRegistry.createClient(provider);
       const models = await client.discoverAiModels();
       allModels.push(...models);
     } catch (error) {
       console.warn(
-        `Failed to discover ${client.provider} models - API may not be configured`
+        `Failed to discover ${provider} models - API may not be configured`
       );
       console.error(error);
     }
@@ -544,15 +610,12 @@ export async function executeAI(
 
     let client;
     try {
-      client = AI_ClIENTS[provider];
-      if (!client) {
-        throw new Error(`No AI client found for provider: ${provider}`);
-      }
+      client = aiRegistry.createClient(provider);
     } catch (err) {
       logger.error(`Failed to get AI client for provider ${provider}:`, err);
       throw err;
     }
-    if (client.isReady()) {
+    if (await client.isReady()) {
       client.setNotebookTools(notebookTools);
 
       const conversationMessages = buildConversationMessages(

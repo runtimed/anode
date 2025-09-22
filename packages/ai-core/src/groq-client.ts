@@ -67,7 +67,6 @@ Groq API key not found. Please set \`GROQ_API_KEY\` environment variable.`;
 
 export class AnacondaAIClient extends GroqClient {
   override provider: string = "anaconda";
-  override envPrefix: string = "RUNT";
   override defaultConfig: OpenAIConfig = {
     baseURL: "https://anaconda.com/api/assistant/v3/groq",
     defaultHeaders: {
@@ -75,6 +74,28 @@ export class AnacondaAIClient extends GroqClient {
       "X-Client-Source": "anaconda-runt-dev",
     },
   };
+
+  constructor(config: OpenAIConfig & { apiKey: string }) {
+    // Define defaults inline to avoid accessing 'this' before super
+    const defaultConfig = {
+      baseURL: "https://anaconda.com/api/assistant/v3/groq",
+      defaultHeaders: {
+        "X-Client-Version": "0.2.0",
+        "X-Client-Source": "anaconda-runt-dev",
+      },
+    };
+
+    // Merge provided config with defaults
+    const mergedConfig: OpenAIConfig = {
+      ...defaultConfig,
+      ...config,
+      defaultHeaders: {
+        ...defaultConfig.defaultHeaders,
+        ...config.defaultHeaders,
+      },
+    };
+    super(mergedConfig);
+  }
 
   override async discoverAiModels(): Promise<AiModel[]> {
     const models = await super.discoverAiModels();
