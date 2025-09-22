@@ -4,6 +4,7 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import {
@@ -14,6 +15,8 @@ import {
   X,
   MoreVertical,
   Eraser,
+  ArrowUp,
+  ArrowDown,
 } from "lucide-react";
 interface CellControlsProps {
   sourceVisible: boolean;
@@ -25,6 +28,10 @@ interface CellControlsProps {
   toggleSourceVisibility: () => void;
   toggleAiContextVisibility?: () => void;
   playButton?: React.ReactNode;
+  onMoveUp?: () => void;
+  onMoveDown?: () => void;
+  canMoveUp?: boolean;
+  canMoveDown?: boolean;
 }
 
 export const CellControls: React.FC<CellControlsProps> = ({
@@ -37,6 +44,10 @@ export const CellControls: React.FC<CellControlsProps> = ({
   toggleSourceVisibility,
   toggleAiContextVisibility,
   playButton,
+  onMoveUp,
+  onMoveDown,
+  canMoveUp = false,
+  canMoveDown = false,
 }) => {
   return (
     <div className="cell-controls flex items-center gap-0.5 opacity-100 transition-opacity sm:opacity-0 sm:group-hover:opacity-100">
@@ -97,6 +108,19 @@ export const CellControls: React.FC<CellControlsProps> = ({
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
+            {onMoveUp && (
+              <DropdownMenuItem onClick={onMoveUp} disabled={!canMoveUp}>
+                <ArrowUp className="mr-2 h-4 w-4" />
+                <span>Move up</span>
+              </DropdownMenuItem>
+            )}
+            {onMoveDown && (
+              <DropdownMenuItem onClick={onMoveDown} disabled={!canMoveDown}>
+                <ArrowDown className="mr-2 h-4 w-4" />
+                <span>Move down</span>
+              </DropdownMenuItem>
+            )}
+            {(onMoveUp || onMoveDown) && <DropdownMenuSeparator />}
             <DropdownMenuItem onClick={onClearOutputs} disabled={!hasOutputs}>
               <Eraser className="mr-2 h-4 w-4" />
               <span>Clear outputs</span>
