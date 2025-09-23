@@ -33,7 +33,7 @@ export function useConsoleRuntimeLauncher() {
       console.log("  await window.__RUNT_LAUNCHER__.launchHtmlAgent()");
       console.log("  await window.__RUNT_LAUNCHER__.shutdown()");
     }
-  }, [store, isAuthenticated, userId]);
+  }, [store, isAuthenticated, userId, accessToken]);
 
   // Return current status for debugging
   return {

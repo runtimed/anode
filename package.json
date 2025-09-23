@@ -80,6 +80,7 @@
     "@react-spring/web": "^10.0.1",
     "@runtimed/agent-core": "workspace:*",
     "@runtimed/schema": "workspace:*",
+    "@runtimed/ai-core": "workspace:*",
     "@tanstack/react-query": "^5.85.5",
     "@tanstack/react-query-devtools": "^5.85.5",
     "@tanstack/react-virtual": "^3.13.12",
