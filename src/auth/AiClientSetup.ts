@@ -32,6 +32,16 @@ export interface AiSetupStatus {
   lastSetupAttempt: number | null;
 }
 
+/**
+ * Registry of AI clients created during auth setup
+ */
+const registeredClients: Record<string, any> = {};
+
+/**
+ * Cached Anaconda client instance
+ */
+let cachedAnacondaClient: AnacondaAIClient | null = null;
+
 // Global state to track setup status
 let aiSetupStatus: AiSetupStatus = {
   isSetup: false,
@@ -91,23 +101,29 @@ function setupAnacondaAI(
       );
     }
 
-    // Register Anaconda AI client
-    aiRegistry.register("anaconda", () => {
-      if (enableLogging) {
-        console.log(
-          "🔍 Debug: Creating Anaconda client with API key:",
-          apiKey ? `${apiKey.substring(0, 20)}...` : "null/undefined"
-        );
-      }
-      return new AnacondaAIClient({
-        apiKey,
-        baseURL: "https://anaconda.com/api/assistant/v3/groq",
-        defaultHeaders: {
-          "X-Client-Version": "0.2.0",
-          "X-Client-Source": "anaconda-runt-dev",
-        },
-      });
+    // Create Anaconda AI client instance
+    if (enableLogging) {
+      console.log(
+        "🔍 Debug: Creating Anaconda client with API key:",
+        apiKey ? `${apiKey.substring(0, 20)}...` : "null/undefined"
+      );
+    }
+
+    const anacondaClient = new AnacondaAIClient({
+      apiKey,
+      baseURL: "https://anaconda.com/api/assistant/v3/groq",
+      defaultHeaders: {
+        "X-Client-Version": "0.2.0",
+        "X-Client-Source": "anaconda-runt-dev",
+      },
     });
+
+    // Cache the client instance
+    cachedAnacondaClient = anacondaClient;
+
+    // Register the client in both local registry and aiRegistry
+    registeredClients.anaconda = anacondaClient;
+    aiRegistry.register("anaconda", () => anacondaClient);
 
     if (enableLogging) {
       console.log("✅ Anaconda AI client registered");
@@ -135,6 +151,14 @@ function setupAnacondaAI(
  */
 export function setupEarlyAiClients(config: EarlyAiSetupConfig): void {
   const { accessToken, enableLogging = true } = config;
+
+  // Guard: Skip if clients are already set up (prevent excessive calls)
+  if (areAiClientsReady()) {
+    if (enableLogging) {
+      console.log("🔗 AI clients already set up, skipping...");
+    }
+    return;
+  }
 
   // Reset status
   aiSetupStatus = {
@@ -174,10 +198,24 @@ export function setupEarlyAiClients(config: EarlyAiSetupConfig): void {
 }
 
 /**
- * Get the current AI setup status
+ * Get current AI setup status
  */
 export function getAiSetupStatus(): AiSetupStatus {
   return { ...aiSetupStatus };
+}
+
+/**
+ * Get registered AI clients
+ */
+export function getRegisteredClients() {
+  return { ...registeredClients };
+}
+
+/**
+ * Get the cached Anaconda client (if available)
+ */
+export function getAnacondaClient(): AnacondaAIClient | null {
+  return cachedAnacondaClient;
 }
 
 /**
@@ -186,7 +224,13 @@ export function getAiSetupStatus(): AiSetupStatus {
  * Runtime agents can use this to skip their own AI setup if it's already done.
  */
 export function areAiClientsReady(): boolean {
-  return aiSetupStatus.isSetup;
+  // Check if we have actual clients registered, not just status flags
+  const hasAnaconda =
+    registeredClients.anaconda ||
+    aiRegistry.getProviders().includes("anaconda");
+  const hasLocalClients = Object.keys(registeredClients).length > 0;
+
+  return aiSetupStatus.isSetup && (hasAnaconda || hasLocalClients);
 }
 
 /**
@@ -199,4 +243,13 @@ export function resetAiSetup(): void {
     error: null,
     lastSetupAttempt: null,
   };
+
+  // Clear client registries
+  Object.keys(registeredClients).forEach(
+    (key) => delete registeredClients[key]
+  );
+  cachedAnacondaClient = null;
+
+  // Note: aiRegistry doesn't have a clearClients method
+  // Individual clients are cleared when registeredClients is cleared
 }
