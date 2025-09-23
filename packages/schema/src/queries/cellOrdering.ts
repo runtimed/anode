@@ -15,6 +15,14 @@ export const cellsWithIndices$ = queryDb(
   { label: "cells.withIndices" }
 );
 
+export const runnableCellsWithIndices$ = queryDb(
+  tables.cells
+    .select("id", "fractionalIndex", "cellType", "executionCount")
+    .where({ cellType: { op: "IN", value: ["code", "sql"] } })
+    .orderBy("fractionalIndex", "asc"),
+  { label: "cells.withIndices.runnable" }
+);
+
 // TODO: if we want to keep the AI filter, we should update all call sites of `cellsWithIndices$` with this one
 export const cellsWithIndices2$ = ({
   filterOutAiCells,
