@@ -50,12 +50,14 @@ export function AuthProvider({ children }: AuthProviderProps) {
           });
 
           // Setup AI clients as soon as auth is available
-          setupEarlyAiClients({
-            accessToken: user.accessToken,
-            enableLogging: true,
-          }).catch((error) => {
+          try {
+            setupEarlyAiClients({
+              accessToken: user.accessToken,
+              enableLogging: true,
+            });
+          } catch (error) {
             console.warn("Early AI client setup failed:", error);
-          });
+          }
         } else {
           setAuthState({ valid: false, loading: false });
         }

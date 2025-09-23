@@ -23,7 +23,7 @@ export function AiSetupProvider({ children }: AiSetupProviderProps) {
       try {
         console.log("🚀 Setting up AI clients with dedicated API key...");
         setupEarlyAiClients({
-          apiKey,
+          accessToken: apiKey,
           enableLogging: true,
         });
       } catch (error) {
