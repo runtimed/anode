@@ -1,6 +1,7 @@
 import { tables } from "@runtimed/schema";
-import { forwardRef, ReactNode } from "react";
+import { forwardRef, ReactNode, useState } from "react";
 import "./PresenceIndicators.css";
+import { useDragDropCellSort } from "@/hooks/useDragDropCellSort";
 
 interface CellContainerProps {
   cell: typeof tables.cells.Type;
@@ -25,6 +26,11 @@ export const CellContainer = forwardRef<HTMLDivElement, CellContainerProps>(
     },
     ref
   ) => {
+    const [draggingOverPosition, setDraggingOverPosition] = useState<
+      "before" | "after" | undefined
+    >();
+    const { onDrop } = useDragDropCellSort();
+
     return (
       <div
         ref={ref}
@@ -44,6 +50,18 @@ export const CellContainer = forwardRef<HTMLDivElement, CellContainerProps>(
         style={{
           position: "relative",
         }}
+        draggable
+        onDragStart={(e) => (e.dataTransfer.effectAllowed = "move")}
+        onDragOver={(e) => {
+          const rect = e.currentTarget.getBoundingClientRect();
+          const y = e.clientY - rect.top;
+          const isTopHalf = y < rect.height / 2;
+          setDraggingOverPosition(isTopHalf ? "before" : "after");
+          console.log(
+            `Drag over ${cell.id} - ${isTopHalf ? "top" : "bottom"} half`
+          );
+        }}
+        onDrop={() => onDrop(cell.id, draggingOverPosition)}
       >
         {/* Custom left border with controlled height */}
         <div

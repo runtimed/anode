@@ -8,6 +8,8 @@ import { CellBetweener } from "./cell/CellBetweener.js";
 import { EmptyStateCellAdder } from "./EmptyStateCellAdder";
 import { contextSelectionMode$ } from "./signals/ai-context.js";
 import { focusedCellSignal$, hasManuallyFocused$ } from "./signals/focus.js";
+import { GripVerticalIcon } from "lucide-react";
+import { DragDropSortProvider } from "@/hooks/useDragDropCellSort.js";
 
 export const NotebookContent = () => {
   const { store } = useStore();
@@ -65,21 +67,28 @@ export const CellList: React.FC<CellListProps> = ({ cellReferences }) => {
 
   return (
     <div style={{ paddingLeft: "1rem" }}>
-      {cellReferences.map((cellReference, index) => (
-        <div key={cellReference.id}>
-          <ErrorBoundary fallback={<div>Error rendering cell</div>}>
-            {index === 0 && (
-              <CellBetweener cell={cellReference} position="before" />
-            )}
-            <Cell
-              cellId={cellReference.id}
-              isFocused={cellReference.id === focusedCellId}
-              contextSelectionMode={contextSelectionMode}
-            />
-            <CellBetweener cell={cellReference} position="after" />
-          </ErrorBoundary>
-        </div>
-      ))}
+      <DragDropSortProvider>
+        {cellReferences.map((cellReference, index) => (
+          <div key={cellReference.id}>
+            <ErrorBoundary fallback={<div>Error rendering cell</div>}>
+              {index === 0 && (
+                <CellBetweener cell={cellReference} position="before" />
+              )}
+              <Cell
+                cellId={cellReference.id}
+                isFocused={cellReference.id === focusedCellId}
+                contextSelectionMode={contextSelectionMode}
+                dragHandle={
+                  <div className="flex w-6 cursor-grab items-center justify-center transition-colors">
+                    <GripVerticalIcon className="text-muted-foreground h-4 w-4" />
+                  </div>
+                }
+              />
+              <CellBetweener cell={cellReference} position="after" />
+            </ErrorBoundary>
+          </div>
+        ))}
+      </DragDropSortProvider>
     </div>
   );
 };

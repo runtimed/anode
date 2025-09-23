@@ -66,12 +66,14 @@ interface ExecutableCellProps {
   cell: typeof tables.cells.Type;
   autoFocus?: boolean;
   contextSelectionMode?: boolean;
+  dragHandle?: React.ReactNode;
 }
 
 export const ExecutableCell: React.FC<ExecutableCellProps> = ({
   cell,
   autoFocus = false,
   contextSelectionMode = false,
+  dragHandle,
 }) => {
   const hasRunRef = useRef(false);
   const cellRef = useRef<HTMLDivElement>(null);
@@ -360,7 +362,8 @@ export const ExecutableCell: React.FC<ExecutableCellProps> = ({
       {/* Cell Header */}
       {!isSourceLessAiOutput && (
         <div className="cell-header mb-2 flex items-center justify-between pr-1 pl-6 sm:pr-4">
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-1">
+            {dragHandle}
             <CellTypeSelector cell={cell} onCellTypeChange={changeCellType} />
 
             {/* Cell-type-specific toolbars */}
