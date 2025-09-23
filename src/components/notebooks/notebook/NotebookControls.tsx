@@ -50,8 +50,8 @@ export function NotebookControls() {
       toast.info("No cells to stop");
       return;
     }
-    toast.info("Cancelling all executions");
     store.commit(events.allExecutionsCancelled());
+    toast.info("Cancelled all executions");
   }, [store, cellQueue]);
 
   const handleClearAll = useCallback(() => {
