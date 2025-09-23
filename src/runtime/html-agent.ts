@@ -6,6 +6,16 @@
  *
  * Extends LocalRuntimeAgent to inherit common local runtime functionality
  * while focusing on HTML-specific execution logic.
+ *
+ * ## AI Integration
+ *
+ * The HTML agent automatically detects the service provider and sets up AI clients:
+ * - **Anaconda Provider**: Uses authenticated user access tokens for AI models
+ * - **Local Provider**: Relies on Ollama for local AI execution
+ * - **Fallback**: Always includes Ollama client for offline capability
+ *
+ * AI model discovery happens during startup to ensure capabilities are available
+ * when the runtime announces itself to the system.
  */
 
 import {
@@ -109,6 +119,14 @@ export class HtmlRuntimeAgent extends LocalRuntimeAgent {
 
   /**
    * Setup Anaconda AI client with user's authentication if using Anaconda provider
+   *
+   * This method:
+   * 1. Checks if we're using the Anaconda service provider via /api/config
+   * 2. Uses the user's access token for AI API authentication
+   * 3. Registers the Anaconda AI client with the authentication
+   * 4. Refreshes available models to include Anaconda-hosted models
+   *
+   * Falls back gracefully to Ollama-only if authentication fails.
    */
   private async setupAnacondaAI(): Promise<void> {
     if (!(await this.isUsingAnacondaProvider())) {
