@@ -970,32 +970,25 @@ export const materializers = State.SQLite.materializers(events, {
     updatePresence(actorId || cancelledBy, cellId),
   ],
 
-  "v1.AllExecutionsCancelled": () => {
-    const ops = [];
-
-    ops.push(
-      tables.executionQueue
-        .update({
-          status: "cancelled",
-        })
-        .where({
-          status: { op: "IN", value: ["pending", "assigned", "executing"] },
-        })
-    );
+  "v1.AllExecutionsCancelled": () => [
+    tables.executionQueue
+      .update({
+        status: "cancelled",
+      })
+      .where({
+        status: { op: "IN", value: ["pending", "assigned", "executing"] },
+      }),
 
     // Update cell execution state
-    ops.push(
-      tables.cells
-        .update({
-          executionState: "idle",
-        })
-        .where({
-          executionState: { op: "IN", value: ["queued", "running"] },
-        })
-    );
 
-    return ops;
-  },
+    tables.cells
+      .update({
+        executionState: "idle",
+      })
+      .where({
+        executionState: { op: "IN", value: ["queued", "running"] },
+      }),
+  ],
 
   "v1.MultipleExecutionRequested": ({ requestedBy, cellsInfo }) => {
     // Generate execution requests for each cell
