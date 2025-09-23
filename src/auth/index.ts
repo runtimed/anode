@@ -15,3 +15,12 @@ export function useAuthenticatedUser() {
   const { user } = useAuth();
   return user.sub;
 }
+
+// Export AI setup utilities for debugging and manual control
+export {
+  setupEarlyAiClients,
+  getAiSetupStatus,
+  areAiClientsReady,
+  resetAiSetup,
+} from "./AiClientSetup.js";
+export type { EarlyAiSetupConfig, AiSetupStatus } from "./AiClientSetup.js";

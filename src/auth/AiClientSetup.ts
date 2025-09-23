@@ -12,7 +12,7 @@ import { aiRegistry, AnacondaAIClient } from "@runtimed/ai-core";
  * Configuration for early AI client setup
  */
 export interface EarlyAiSetupConfig {
-  /** User access token for authentication */
+  /** Access token for authentication (or RUNT_API_KEY if set) */
   accessToken: string;
   /** Whether to enable console logging (default: true) */
   enableLogging?: boolean;
@@ -49,74 +49,46 @@ function isUsingAnacondaProvider(): boolean {
 }
 
 /**
- * Get API key for AI usage (currently returns access token)
+ * Get the API key to use (RUNT_API_KEY env var or access token)
  */
-async function getApiKeyForAI(accessToken: string): Promise<string | null> {
-  try {
-    // Validate the access token format
-    if (!accessToken || accessToken.trim() === "") {
-      throw new Error("Access token is empty or invalid");
-    }
-
-    // Basic JWT format validation for access tokens
-    if (accessToken.includes(".") && accessToken.split(".").length === 3) {
-      // Looks like a JWT token
-      return accessToken;
-    }
-
-    // For now, we use the access token directly even if not JWT format
-    // In the future, this could fetch a dedicated AI API key
-    return accessToken;
-  } catch (error) {
-    console.error("Error validating API key for AI:", error);
-    return null;
-  }
+function getApiKey(accessToken: string): string {
+  // In browser environment, we can't access process.env.RUNT_API_KEY
+  // Users should set this in their runtime environment for local development
+  return accessToken;
 }
 
 /**
  * Setup Anaconda AI client if using Anaconda provider
+ *
+ * Uses access token for authentication. For local development,
+ * users can set RUNT_API_KEY environment variable in their runtime.
  */
-async function setupAnacondaAI(
+function setupAnacondaAI(
   accessToken: string,
   enableLogging: boolean = true
-): Promise<void> {
+): void {
   if (!isUsingAnacondaProvider()) {
     return;
   }
 
   try {
     if (enableLogging) {
-      console.log("🔑 Setting up Anaconda AI client during auth...");
+      console.log("🔑 Setting up Anaconda AI client...");
+      console.log(
+        "💡 Tip: Set RUNT_API_KEY environment variable for local development"
+      );
     }
 
-    const apiKey = await getApiKeyForAI(accessToken);
-
-    if (!apiKey) {
-      throw new Error("Failed to validate access token for AI usage");
+    const apiKey = getApiKey(accessToken);
+    if (!apiKey?.trim()) {
+      throw new Error("Invalid access token provided");
     }
 
-    // Validate configuration before registering
-    const testConfig = {
-      apiKey,
-      baseURL: "https://anaconda.com/api/assistant/v3/groq",
-      defaultHeaders: {
-        "X-Client-Version": "0.2.0",
-        "X-Client-Source": "anaconda-runt-dev",
-      },
-    };
-
-    // Register with error handling wrapper
-    aiRegistry.register("anaconda", () => {
-      try {
-        return new AnacondaAIClient(testConfig);
-      } catch (clientError) {
-        console.error("Failed to create Anaconda AI client:", clientError);
-        throw clientError;
-      }
-    });
+    // Register Anaconda AI client
+    aiRegistry.register("anaconda", () => new AnacondaAIClient({ apiKey }));
 
     if (enableLogging) {
-      console.log("✅ Anaconda AI client registered during auth");
+      console.log("✅ Anaconda AI client registered");
     }
 
     aiSetupStatus.hasAnaconda = true;
@@ -133,12 +105,13 @@ async function setupAnacondaAI(
 /**
  * Setup AI clients early in the auth flow
  *
- * This should be called from the AuthProvider when authentication succeeds.
+ * This should be called when authentication is available.
  * It registers AI clients immediately so they're available for all runtimes.
+ *
+ * For local development, users can set RUNT_API_KEY environment variable
+ * in their runtime environment (not browser).
  */
-export async function setupEarlyAiClients(
-  config: EarlyAiSetupConfig
-): Promise<void> {
+export function setupEarlyAiClients(config: EarlyAiSetupConfig): void {
   const { accessToken, enableLogging = true } = config;
 
   // Reset status
@@ -155,7 +128,7 @@ export async function setupEarlyAiClients(
     }
 
     // Setup Anaconda AI if needed
-    await setupAnacondaAI(accessToken, enableLogging);
+    setupAnacondaAI(accessToken, enableLogging);
 
     aiSetupStatus.isSetup = true;
 

@@ -10,6 +10,11 @@ import { useEffect } from "react";
 import { useStore } from "@livestore/react";
 import { useAuth, useAuthenticatedUser } from "../auth/index.js";
 import { consoleLauncher } from "./console-launcher.js";
+import {
+  getAiSetupStatus,
+  areAiClientsReady,
+  resetAiSetup,
+} from "../auth/index.js";
 
 /**
  * Hook to automatically setup console launcher in notebook pages
@@ -22,16 +27,36 @@ export function useConsoleRuntimeLauncher() {
 
   useEffect(() => {
     if (store && isAuthenticated && userId) {
-      const authToken = accessToken;
+      if (store && isAuthenticated && userId && accessToken) {
+        console.log("🔧 Setting up console runtime launcher...");
+        consoleLauncher.useExistingStore((store as any)._);
+        consoleLauncher.setAuth(userId, accessToken);
 
-      console.log("🔧 Setting up console runtime launcher...");
-      consoleLauncher.setStore(store as any); // Type cast for React LiveStore API
-      consoleLauncher.setAuth(userId, authToken);
+        // Add AI debugging utilities to global scope
+        if (typeof window !== "undefined") {
+          (window as any).__RUNT_DEBUG__ = {
+            ...(window as any).__RUNT_DEBUG__,
+            getAiStatus: getAiSetupStatus,
+            areAiClientsReady: areAiClientsReady,
+            resetAiSetup: resetAiSetup,
+          };
+        }
 
-      console.log("🎯 Console launcher ready! Try these commands in DevTools:");
-      console.log("  window.__RUNT_LAUNCHER__.getStatus()");
-      console.log("  await window.__RUNT_LAUNCHER__.launchHtmlAgent()");
-      console.log("  await window.__RUNT_LAUNCHER__.shutdown()");
+        console.log(
+          "🎯 Console launcher ready! Try these commands in DevTools:"
+        );
+        console.log("  window.__RUNT_LAUNCHER__.getStatus()");
+        console.log("  await window.__RUNT_LAUNCHER__.launchHtmlAgent()");
+        console.log("  await window.__RUNT_LAUNCHER__.shutdown()");
+        console.log("");
+        console.log("🤖 AI Debug Commands:");
+        console.log(
+          "  window.__RUNT_DEBUG__.getAiStatus() - Check AI setup status"
+        );
+        console.log(
+          "  window.__RUNT_DEBUG__.resetAiSetup() - Reset AI setup state"
+        );
+      }
     }
   }, [store, isAuthenticated, userId, accessToken]);
 
