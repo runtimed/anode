@@ -356,8 +356,8 @@ export const events = {
     }),
   }),
 
-  cancelAllExecutions: Events.synced({
-    name: "v1.CancelAllExecutions",
+  allExecutionsCancelled: Events.synced({
+    name: "v1.AllExecutionsCancelled",
     schema: Schema.Void,
   }),
 
@@ -976,7 +976,7 @@ export const materializers = State.SQLite.materializers(events, {
     updatePresence(actorId || cancelledBy, cellId),
   ],
 
-  "v1.CancelAllExecutions": () => {
+  "v1.AllExecutionsCancelled": () => {
     const ops = [];
 
     ops.push(

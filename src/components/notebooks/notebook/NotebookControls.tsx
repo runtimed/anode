@@ -51,7 +51,7 @@ export function NotebookControls() {
       return;
     }
     toast.info("Cancelling all executions");
-    store.commit(events.cancelAllExecutions());
+    store.commit(events.allExecutionsCancelled());
   }, [store, cellQueue]);
 
   const showBadge = cellQueue.length > 0 || hideAiCells;
