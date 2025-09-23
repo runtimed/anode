@@ -356,6 +356,18 @@ export const events = {
     }),
   }),
 
+  multipleExecutionCancelled: Events.synced({
+    name: "v1.MultipleExecutionCancelled",
+    schema: Schema.Struct({
+      cellsInfo: Schema.Array(
+        Schema.Struct({
+          queueId: Schema.String,
+          cellId: Schema.String,
+        })
+      ),
+    }),
+  }),
+
   multipleExecutionRequested: Events.synced({
     name: "v1.MultipleExecutionRequested",
     schema: Schema.Struct({
@@ -485,6 +497,19 @@ export const events = {
       cellId: Schema.String,
       wait: Schema.Boolean,
       clearedBy: Schema.String,
+    }),
+  }),
+
+  multipleCellOutputsCleared: Events.synced({
+    name: "v1.MultipleCellOutputsCleared",
+    schema: Schema.Struct({
+      cellsInfo: Schema.Array(
+        Schema.Struct({
+          cellId: Schema.String,
+        })
+      ),
+      clearedBy: Schema.String,
+      wait: Schema.Boolean,
     }),
   }),
 
@@ -958,6 +983,31 @@ export const materializers = State.SQLite.materializers(events, {
     updatePresence(actorId || cancelledBy, cellId),
   ],
 
+  "v1.MultipleExecutionCancelled": ({ cellsInfo }) => {
+    const ops = [];
+    for (const cell of cellsInfo) {
+      // Update execution queue
+      ops.push(
+        tables.executionQueue
+          .update({
+            status: "cancelled",
+          })
+          .where({ id: cell.queueId })
+      );
+
+      // Update cell execution state
+      ops.push(
+        tables.cells
+          .update({
+            executionState: "idle",
+          })
+          .where({ id: cell.cellId })
+      );
+    }
+
+    return ops;
+  },
+
   "v1.MultipleExecutionRequested": ({ requestedBy, cellsInfo }) => {
     // Generate execution requests for each cell
     const ops = [];
@@ -1259,6 +1309,26 @@ export const materializers = State.SQLite.materializers(events, {
     // Add presence update if user is provided
     if (clearedBy) {
       ops.push(updatePresence(clearedBy, cellId));
+    }
+
+    return ops;
+  },
+
+  "v1.MultipleCellOutputsCleared": ({ clearedBy, cellsInfo, wait }) => {
+    const ops = [];
+    for (const cell of cellsInfo) {
+      if (wait) {
+        // Store pending clear for wait=True
+        ops.push(
+          tables.pendingClears
+            .insert({ cellId: cell.cellId, clearedBy })
+            .onConflict("cellId", "replace")
+        );
+      } else {
+        // Immediate clear for wait=False
+        ops.push(tables.outputs.delete().where({ cellId: cell.cellId }));
+        ops.push(tables.pendingClears.delete().where({ cellId: cell.cellId }));
+      }
     }
 
     return ops;
