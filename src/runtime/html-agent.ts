@@ -56,20 +56,15 @@ export class HtmlRuntimeAgent extends LocalRuntimeAgent {
   }
 
   /**
-   * Check if we're using the Anaconda provider by querying backend config
+   * Check if we're using the Anaconda provider by checking build-time environment
    */
-  private async isUsingAnacondaProvider(): Promise<boolean> {
-    try {
-      const response = await fetch("/api/config");
-      if (!response.ok) {
-        return false;
-      }
-      const config = await response.json();
-      return config.service_provider === "anaconda";
-    } catch (error) {
-      console.error("Failed to check service provider:", error);
-      return false;
-    }
+  private isUsingAnacondaProvider(): boolean {
+    const authUri = import.meta.env.VITE_AUTH_URI;
+    return Boolean(
+      authUri &&
+        !authUri.includes("localhost") &&
+        !authUri.includes("local_oidc")
+    );
   }
 
   /**
@@ -121,7 +116,7 @@ export class HtmlRuntimeAgent extends LocalRuntimeAgent {
    * Setup Anaconda AI client with user's authentication if using Anaconda provider
    *
    * This method:
-   * 1. Checks if we're using the Anaconda service provider via /api/config
+   * 1. Checks if we're using the Anaconda service provider via VITE_AUTH_URI
    * 2. Uses the user's access token for AI API authentication
    * 3. Registers the Anaconda AI client with the authentication
    * 4. Refreshes available models to include Anaconda-hosted models
@@ -129,7 +124,7 @@ export class HtmlRuntimeAgent extends LocalRuntimeAgent {
    * Falls back gracefully to Ollama-only if authentication fails.
    */
   private async setupAnacondaAI(): Promise<void> {
-    if (!(await this.isUsingAnacondaProvider())) {
+    if (!this.isUsingAnacondaProvider()) {
       return;
     }
 
