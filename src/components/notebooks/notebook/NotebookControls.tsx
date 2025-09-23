@@ -40,7 +40,7 @@ export function NotebookControls() {
 
   const { runAllCells } = useRunAllCells();
   const { deleteAllCells } = useDeleteAllCells();
-  const { stopAllExecution } = useStopAllExecution();
+  const { cancelAllExecutions } = useCancelAllExecutions();
   const { clearAllOutputs } = useClearAllOutputs();
   const { restartAndRunAllCells } = useRestartAndRunAllCells();
   const { hideAiCells, toggleHideAiCells } = useHideAiCells();
@@ -50,9 +50,9 @@ export function NotebookControls() {
       toast.info("No cells to stop");
       return;
     }
-    toast.info("Stopping all cells");
-    stopAllExecution(cellQueue.map((cell) => cell.id));
-  }, [stopAllExecution, cellQueue]);
+    toast.info("Cancelling all executions");
+    cancelAllExecutions(cellQueue.map((cell) => cell.id));
+  }, [cancelAllExecutions, cellQueue]);
 
   const showBadge = cellQueue.length > 0 || hideAiCells;
 
@@ -189,10 +189,10 @@ function useRestartAndRunAllCells() {
   return { restartAndRunAllCells };
 }
 
-function useStopAllExecution() {
+function useCancelAllExecutions() {
   const { store } = useStore();
 
-  const stopAllExecution = useCallback(
+  const cancelAllExecutions = useCallback(
     (cellIds: string[]) => {
       const queueEntries = store.query(
         queryDb(
@@ -214,7 +214,7 @@ function useStopAllExecution() {
     [store]
   );
 
-  return { stopAllExecution };
+  return { cancelAllExecutions };
 }
 
 function useClearAllOutputs() {
