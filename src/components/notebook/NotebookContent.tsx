@@ -12,19 +12,13 @@ import { useHideAiCells } from "../../hooks/useHideAiCells";
 
 export const NotebookContent = () => {
   const { store } = useStore();
-  const allCellReferences = useQuery(queries.cellsWithIndices$);
   const { hideAiCells } = useHideAiCells();
+  const cellReferences = useQuery(
+    queries.cellsWithIndices2$({ filterOutAiCells: hideAiCells })
+  );
 
   const focusedCellId = useQuery(focusedCellSignal$);
   const hasManuallyFocused = useQuery(hasManuallyFocused$);
-
-  // Filter out AI cells if hideAiCells is true
-  const cellReferences = React.useMemo(() => {
-    if (!hideAiCells) {
-      return allCellReferences;
-    }
-    return allCellReferences.filter((cell) => cell.cellType !== "ai");
-  }, [allCellReferences, hideAiCells]);
 
   // Reset focus when focused cell changes or is removed
   React.useEffect(() => {
