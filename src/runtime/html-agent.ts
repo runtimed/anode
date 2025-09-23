@@ -10,8 +10,8 @@
  * ## AI Integration
  *
  * The HTML agent automatically detects the service provider and sets up AI clients:
- * - **Anaconda Provider**: Uses authenticated user access tokens for AI models
- * - **Local Provider**: Relies on Ollama for local AI execution
+ * - **Anaconda Provider**: Detected via VITE_AUTH_URI starting with https://auth.anaconda.com/
+ * - **Local Provider**: All other configurations rely on Ollama for local AI execution
  * - **Fallback**: Always includes Ollama client for offline capability
  *
  * AI model discovery happens during startup to ensure capabilities are available
@@ -60,11 +60,7 @@ export class HtmlRuntimeAgent extends LocalRuntimeAgent {
    */
   private isUsingAnacondaProvider(): boolean {
     const authUri = import.meta.env.VITE_AUTH_URI;
-    return Boolean(
-      authUri &&
-        !authUri.includes("localhost") &&
-        !authUri.includes("local_oidc")
-    );
+    return authUri?.startsWith("https://auth.anaconda.com/") ?? false;
   }
 
   /**
@@ -116,7 +112,7 @@ export class HtmlRuntimeAgent extends LocalRuntimeAgent {
    * Setup Anaconda AI client with user's authentication if using Anaconda provider
    *
    * This method:
-   * 1. Checks if we're using the Anaconda service provider via VITE_AUTH_URI
+   * 1. Checks if VITE_AUTH_URI starts with https://auth.anaconda.com/
    * 2. Uses the user's access token for AI API authentication
    * 3. Registers the Anaconda AI client with the authentication
    * 4. Refreshes available models to include Anaconda-hosted models
