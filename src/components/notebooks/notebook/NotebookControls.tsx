@@ -191,7 +191,6 @@ function useRestartAndRunAllCells() {
 
 function useStopAllExecution() {
   const { store } = useStore();
-  const userId = useAuthenticatedUser();
 
   const stopAllExecution = useCallback(
     (cellIds: string[]) => {
@@ -202,18 +201,17 @@ function useStopAllExecution() {
             .where({ cellId: { op: "IN", value: cellIds } })
         )
       );
-      queueEntries.forEach((queueEntry) => {
-        store.commit(
-          events.executionCancelled({
+
+      store.commit(
+        events.multipleExecutionCancelled({
+          cellsInfo: queueEntries.map((queueEntry) => ({
             queueId: queueEntry.id,
             cellId: queueEntry.cellId,
-            cancelledBy: userId,
-            reason: "User interrupted execution",
-          })
-        );
-      });
+          })),
+        })
+      );
     },
-    [store, userId]
+    [store]
   );
 
   return { stopAllExecution };
@@ -225,16 +223,16 @@ function useClearAllOutputs() {
   const userId = useAuthenticatedUser();
 
   const clearAllOutputs = useCallback(() => {
-    cells.forEach((cell) => {
-      store.commit(
-        events.cellOutputsCleared({
+    store.commit(
+      events.multipleCellOutputsCleared({
+        clearedBy: userId,
+        cellsInfo: cells.map((cell) => ({
           cellId: cell.id,
-          clearedBy: userId,
-          wait: false,
-        })
-      );
-    });
-  }, [cells, store, userId]);
+        })),
+        wait: false,
+      })
+    );
+  }, [store, userId, cells]);
 
   return { clearAllOutputs };
 }
