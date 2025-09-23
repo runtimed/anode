@@ -37,6 +37,7 @@ import {
 import type { AiModel } from "@runtimed/agent-core";
 import { cellReferences$ } from "@runtimed/schema";
 import { AiClientManager } from "./AiClientManager.js";
+import { areAiClientsReady, getAiSetupStatus } from "../auth/AiClientSetup.js";
 
 /**
  * HTML Runtime Agent
@@ -80,16 +81,33 @@ export class HtmlRuntimeAgent extends LocalRuntimeAgent {
   }
 
   /**
-   * Start the HTML runtime agent with AI model discovery
+   * Start the HTML runtime agent with optimized AI setup
    */
   async start(): Promise<RuntimeAgent> {
     console.log(`🌐 Starting ${this.getRuntimeType()} runtime agent`);
 
-    // Setup AI clients (including Anaconda if needed)
-    await this.aiManager.setupAiClients();
+    // Check if AI clients were already set up during auth
+    if (areAiClientsReady()) {
+      const status = getAiSetupStatus();
+      console.log("⚡ Using AI clients from auth setup - fast startup");
+      if (status.hasAnaconda) {
+        console.log("   ✓ Anaconda client ready");
+      }
+      console.log("   ✓ Ollama client ready");
 
-    // Get discovered models from the manager
-    this.discoveredAiModels = this.aiManager.getDiscoveredModels();
+      // Quick model discovery since clients are pre-registered
+      this.discoveredAiModels = this.aiManager.getDiscoveredModels();
+      if (this.discoveredAiModels.length === 0) {
+        // Only do discovery if we don't have models yet
+        await this.aiManager.setupAiClients();
+        this.discoveredAiModels = this.aiManager.getDiscoveredModels();
+      }
+    } else {
+      // Fallback to full setup if auth setup didn't happen
+      console.log("🔧 Setting up AI clients during runtime startup");
+      await this.aiManager.setupAiClients();
+      this.discoveredAiModels = this.aiManager.getDiscoveredModels();
+    }
 
     // Call parent to start the agent - capabilities now include discovered models
     return await super.start();

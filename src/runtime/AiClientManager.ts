@@ -22,6 +22,7 @@ import {
 } from "@runtimed/ai-core";
 import type { AiModel } from "@runtimed/agent-core";
 import { Scope, type ApiKey } from "../hooks/useApiKeys.js";
+import { areAiClientsReady, getAiSetupStatus } from "../auth/AiClientSetup.js";
 
 /**
  * Configuration for AI client management
@@ -210,8 +211,35 @@ export class AiClientManager {
    * Setup all AI clients (Anaconda + any others)
    *
    * This is the main entry point that should be called during runtime startup.
+   * If AI clients were already set up during authentication, this will skip
+   * client registration and only do model discovery.
    */
   public async setupAiClients(): Promise<void> {
+    // Check if AI clients were already set up during auth
+    if (areAiClientsReady()) {
+      if (this.config.enableLogging) {
+        const status = getAiSetupStatus();
+        console.log("🔗 AI clients already registered during auth");
+        if (status.hasAnaconda) {
+          console.log("   ✓ Anaconda client ready");
+        }
+        console.log("   ✓ Ollama client ready (built-in)");
+      }
+
+      // Just do model discovery since clients are already registered
+      if (this.config.discoverModelsOnSetup) {
+        await this.performInitialModelDiscovery();
+      }
+      return;
+    }
+
+    // Fallback: Setup clients here if auth setup didn't happen
+    if (this.config.enableLogging) {
+      console.log(
+        "🔧 Setting up AI clients during runtime startup (auth setup skipped)"
+      );
+    }
+
     // Setup Anaconda AI client with user's authentication if needed
     await this.setupAnacondaAI();
 
