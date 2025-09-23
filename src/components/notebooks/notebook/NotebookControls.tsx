@@ -28,6 +28,7 @@ import { generateQueueId } from "@/util/queue-id";
 
 export function NotebookControls() {
   const { confirm } = useConfirm();
+  const { store } = useStore();
 
   const cellQueue = useQuery(
     queryDb(
@@ -40,26 +41,25 @@ export function NotebookControls() {
 
   const { runAllCells } = useRunAllCells();
   const { deleteAllCells } = useDeleteAllCells();
-  const { cancelAllExecutions } = useCancelAllExecutions();
   const { clearAllOutputs } = useClearAllOutputs();
   const { restartAndRunAllCells } = useRestartAndRunAllCells();
   const { hideAiCells, toggleHideAiCells } = useHideAiCells();
 
-  const handleStopAll = useCallback(() => {
+  const handleCancelAll = useCallback(() => {
     if (cellQueue.length === 0) {
       toast.info("No cells to stop");
       return;
     }
     toast.info("Cancelling all executions");
-    cancelAllExecutions(cellQueue.map((cell) => cell.id));
-  }, [cancelAllExecutions, cellQueue]);
+    store.commit(events.cancelAllExecutions());
+  }, [store, cellQueue]);
 
   const showBadge = cellQueue.length > 0 || hideAiCells;
 
   return (
     <div className="flex items-center gap-1">
       {cellQueue.length > 0 && (
-        <Button variant="outline" size="sm" onClick={handleStopAll}>
+        <Button variant="outline" size="sm" onClick={handleCancelAll}>
           <Square className="mr-2 h-4 w-4" />
           Stop All
         </Button>
@@ -75,7 +75,7 @@ export function NotebookControls() {
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
           {cellQueue.length > 0 ? (
-            <DropdownMenuItem onClick={handleStopAll}>
+            <DropdownMenuItem onClick={handleCancelAll}>
               <Square className="mr-2 h-4 w-4" />
               Stop All
             </DropdownMenuItem>
@@ -187,34 +187,6 @@ function useRestartAndRunAllCells() {
   }, [hasActiveRuntime]);
 
   return { restartAndRunAllCells };
-}
-
-function useCancelAllExecutions() {
-  const { store } = useStore();
-
-  const cancelAllExecutions = useCallback(
-    (cellIds: string[]) => {
-      const queueEntries = store.query(
-        queryDb(
-          tables.executionQueue
-            .select()
-            .where({ cellId: { op: "IN", value: cellIds } })
-        )
-      );
-
-      store.commit(
-        events.multipleExecutionCancelled({
-          cellsInfo: queueEntries.map((queueEntry) => ({
-            queueId: queueEntry.id,
-            cellId: queueEntry.cellId,
-          })),
-        })
-      );
-    },
-    [store]
-  );
-
-  return { cancelAllExecutions };
 }
 
 function useClearAllOutputs() {

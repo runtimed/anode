@@ -356,16 +356,9 @@ export const events = {
     }),
   }),
 
-  multipleExecutionCancelled: Events.synced({
-    name: "v1.MultipleExecutionCancelled",
-    schema: Schema.Struct({
-      cellsInfo: Schema.Array(
-        Schema.Struct({
-          queueId: Schema.String,
-          cellId: Schema.String,
-        })
-      ),
-    }),
+  cancelAllExecutions: Events.synced({
+    name: "v1.CancelAllExecutions",
+    schema: Schema.Void,
   }),
 
   multipleExecutionRequested: Events.synced({
@@ -983,27 +976,29 @@ export const materializers = State.SQLite.materializers(events, {
     updatePresence(actorId || cancelledBy, cellId),
   ],
 
-  "v1.MultipleExecutionCancelled": ({ cellsInfo }) => {
+  "v1.CancelAllExecutions": () => {
     const ops = [];
-    for (const cell of cellsInfo) {
-      // Update execution queue
-      ops.push(
-        tables.executionQueue
-          .update({
-            status: "cancelled",
-          })
-          .where({ id: cell.queueId })
-      );
 
-      // Update cell execution state
-      ops.push(
-        tables.cells
-          .update({
-            executionState: "idle",
-          })
-          .where({ id: cell.cellId })
-      );
-    }
+    ops.push(
+      tables.executionQueue
+        .update({
+          status: "cancelled",
+        })
+        .where({
+          status: { op: "IN", value: ["pending", "assigned", "executing"] },
+        })
+    );
+
+    // Update cell execution state
+    ops.push(
+      tables.cells
+        .update({
+          executionState: "idle",
+        })
+        .where({
+          executionState: { op: "IN", value: ["queued", "running"] },
+        })
+    );
 
     return ops;
   },
