@@ -123,7 +123,14 @@ function setupAnacondaAI(
 
     // Register the client in both local registry and aiRegistry
     registeredClients.anaconda = anacondaClient;
-    aiRegistry.register("anaconda", () => anacondaClient);
+    aiRegistry.register("anaconda", () => {
+      if (!cachedAnacondaClient) {
+        throw new Error(
+          "Anaconda client not properly initialized during auth setup"
+        );
+      }
+      return cachedAnacondaClient;
+    });
 
     if (enableLogging) {
       console.log("✅ Anaconda AI client registered");

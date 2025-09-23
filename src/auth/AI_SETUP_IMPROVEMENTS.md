@@ -7,21 +7,25 @@ This document summarizes the major improvements made to AI client setup and inte
 ## Problems Addressed
 
 ### 1. Runtime Startup Delays
+
 **Problem**: AI client setup was happening during runtime agent startup, causing noticeable delays before runtimes were ready.
 
 **Solution**: Moved AI client registration to the authentication flow, so clients are pre-registered when runtimes start.
 
-### 2. Complex API Key Management  
+### 2. Complex API Key Management
+
 **Problem**: System was trying to list and filter through multiple API keys, adding complexity and potential failure points.
 
 **Solution**: Simplified to use a single, well-known approach with clear fallback to access tokens.
 
 ### 3. Deployment Environment Issues
+
 **Problem**: CORS issues and configuration errors in production environment where localhost resources aren't available.
 
 **Solution**: Improved provider detection and error handling for production deployments.
 
 ### 4. Code Duplication Across Runtimes
+
 **Problem**: Each runtime agent would need to implement its own AI client setup.
 
 **Solution**: Created reusable `AiClientManager` that any runtime agent can use.
@@ -33,7 +37,7 @@ This document summarizes the major improvements made to AI client setup and inte
 **File**: `src/auth/AiClientSetup.ts`
 
 - AI clients are now registered immediately when authentication succeeds
-- Uses `VITE_AUTH_URI` for reliable provider detection at build time  
+- Uses `VITE_AUTH_URI` for reliable provider detection at build time
 - Simple, synchronous setup that handles errors gracefully
 - Clear user guidance about `RUNT_API_KEY` environment variable option
 
@@ -92,16 +96,19 @@ if (areAiClientsReady()) {
 ## Technical Benefits
 
 ### Performance
+
 - **Startup Time**: Runtime agents start ~2-3x faster (no AI setup blocking)
 - **Network Calls**: Reduced redundant API calls for model discovery
 - **Parallel Setup**: AI clients setup happens in parallel with UI loading
 
-### Reliability  
+### Reliability
+
 - **Error Handling**: Graceful fallbacks when AI setup fails
 - **Environment Detection**: Robust detection of Anaconda vs local environments
 - **CORS Protection**: Better handling of localhost resource access in production
 
 ### Developer Experience
+
 - **Reusability**: Same AI integration patterns across all runtime types
 - **Debugging**: Clear status tracking and console utilities
 - **Configuration**: Simple environment variable setup for local development
@@ -109,12 +116,14 @@ if (areAiClientsReady()) {
 ## User Benefits
 
 ### For Anaconda Platform Users
+
 - AI models appear immediately when authenticated ✅
-- No manual configuration required ✅  
+- No manual configuration required ✅
 - Automatic provider detection ✅
 - Clear error messages when issues occur ✅
 
 ### For Local Development
+
 - Clear guidance on setting `RUNT_API_KEY` environment variable ✅
 - Ollama support works out-of-the-box ✅
 - Fallback authentication using access tokens ✅
@@ -123,18 +132,21 @@ if (areAiClientsReady()) {
 ## Implementation Timeline
 
 ### Phase 1: Early Setup (Completed)
+
 - ✅ Move AI client registration to auth flow
 - ✅ Create reusable `AiClientManager`
 - ✅ Update HTML runtime agent
 - ✅ Add debugging utilities
 
 ### Phase 2: API Key Management (Future)
-- ⏳ Implement single "AI Runtime Key" creation  
+
+- ⏳ Implement single "AI Runtime Key" creation
 - ⏳ Add UI for API key management
 - ⏳ Backend support for dedicated AI API keys
 - ⏳ Migration from access tokens to dedicated keys
 
-### Phase 3: Cross-Runtime Support (Future)  
+### Phase 3: Cross-Runtime Support (Future)
+
 - ⏳ Update Python runtime agent to use `AiClientManager`
 - ⏳ Add AI support to other runtime types
 - ⏳ Unified AI capability reporting
@@ -142,35 +154,38 @@ if (areAiClientsReady()) {
 ## Usage Examples
 
 ### For Runtime Agent Developers
+
 ```typescript
 export class MyRuntimeAgent extends LocalRuntimeAgent {
   private aiManager = new AiClientManager(config.authToken);
-  
+
   async start() {
     // Setup AI clients (fast if already done during auth)
     await this.aiManager.setupAiClients();
-    
+
     // Get models for capabilities
     this.discoveredModels = this.aiManager.getDiscoveredModels();
-    
+
     return await super.start();
   }
 }
 ```
 
 ### For Debugging
+
 ```javascript
 // Check AI setup status
-window.__RUNT_DEBUG__.getAiStatus()
+window.__RUNT_DEBUG__.getAiStatus();
 
-// Reset AI setup state  
-window.__RUNT_DEBUG__.resetAiSetup()
+// Reset AI setup state
+window.__RUNT_DEBUG__.resetAiSetup();
 
 // Check if clients are ready
-window.__RUNT_DEBUG__.areAiClientsReady()
+window.__RUNT_DEBUG__.areAiClientsReady();
 ```
 
 ### For Local Development
+
 ```bash
 # Set environment variable for local runtime
 export RUNT_API_KEY="your-api-key-here"
@@ -182,11 +197,13 @@ echo "RUNT_API_KEY=your-api-key-here" >> .env
 ## Migration Notes
 
 ### Existing Runtime Agents
+
 - Add `AiClientManager` to constructor
-- Call `aiManager.setupAiClients()` in start method  
+- Call `aiManager.setupAiClients()` in start method
 - Update capabilities to include `aiManager.getDiscoveredModels()`
 
 ### Environment Configuration
+
 - Anaconda deployments: No changes needed (automatic detection)
 - Local development: Optionally set `RUNT_API_KEY` environment variable
 - CI/CD: Ensure `VITE_AUTH_URI` is set correctly for provider detection
@@ -194,12 +211,14 @@ echo "RUNT_API_KEY=your-api-key-here" >> .env
 ## Monitoring and Observability
 
 ### Console Logging
+
 - AI setup progress with clear status messages
-- Provider detection results  
+- Provider detection results
 - Model discovery counts and providers
 - Error messages with actionable guidance
 
 ### Status Tracking
+
 - `getAiSetupStatus()` provides complete setup state
 - `areAiClientsReady()` for quick ready checks
 - Error tracking with timestamps and details
@@ -207,12 +226,14 @@ echo "RUNT_API_KEY=your-api-key-here" >> .env
 ## Future Enhancements
 
 ### Planned Features
+
 1. **Dedicated API Keys**: Single "AI Runtime Key" per user
-2. **Model Preferences**: User-configurable default models  
+2. **Model Preferences**: User-configurable default models
 3. **Health Monitoring**: Provider availability checking
 4. **Caching**: Model discovery result caching
 
 ### Extensibility Points
+
 1. **Additional Providers**: Easy to add new AI providers
 2. **Authentication Methods**: Support for different auth flows
 3. **Model Filtering**: Filter models by capabilities or preferences

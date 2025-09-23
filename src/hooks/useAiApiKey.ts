@@ -77,12 +77,14 @@ export function useAiApiKey() {
       const response = await makeAuthenticatedRequest(API_BASE);
       const apiKeys: ApiKey[] = response || [];
 
-      return apiKeys.find(
-        (key) =>
-          !key.revoked &&
-          key.name === AI_API_KEY_NAME &&
-          key.scopes.includes(Scope.RuntExecute)
-      ) || null;
+      return (
+        apiKeys.find(
+          (key) =>
+            !key.revoked &&
+            key.name === AI_API_KEY_NAME &&
+            key.scopes.includes(Scope.RuntExecute)
+        ) || null
+      );
     } catch (err) {
       console.error("Error finding existing AI key:", err);
       return null;
@@ -143,7 +145,8 @@ export function useAiApiKey() {
 
       return newKeyValue;
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : "Failed to get AI API key";
+      const errorMessage =
+        err instanceof Error ? err.message : "Failed to get AI API key";
       setError(errorMessage);
       throw new Error(errorMessage);
     } finally {
@@ -176,10 +179,10 @@ export function useAiApiKey() {
 
     return `To use this key in your local environment:
 
-export RUNT_API_KEY="${aiApiKey || '[your-api-key]'}"
+export RUNT_API_KEY="${aiApiKey || "[your-api-key]"}"
 
 Or add to your .env file:
-RUNT_API_KEY=${aiApiKey || '[your-api-key]'}
+RUNT_API_KEY=${aiApiKey || "[your-api-key]"}
 
 Key Name: ${keyMetadata.name}
 Key ID: ${keyMetadata.id}
