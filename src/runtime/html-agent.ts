@@ -30,6 +30,7 @@ import {
 } from "@runtimed/ai-core";
 import type { AiModel } from "@runtimed/agent-core";
 import { cellReferences$ } from "@runtimed/schema";
+import { Scope, type ApiKey } from "../hooks/useApiKeys.js";
 
 /**
  * HTML Runtime Agent
@@ -42,6 +43,99 @@ export class HtmlRuntimeAgent extends LocalRuntimeAgent {
 
   constructor(config: LocalRuntimeConfig) {
     super(config);
+  }
+
+  /**
+   * Check if we're using the Anaconda provider by querying backend config
+   */
+  private async isUsingAnacondaProvider(): Promise<boolean> {
+    try {
+      const response = await fetch("/api/config");
+      if (!response.ok) {
+        return false;
+      }
+      const config = await response.json();
+      return config.service_provider === "anaconda";
+    } catch (error) {
+      console.error("Failed to check service provider:", error);
+      return false;
+    }
+  }
+
+  /**
+   * Create or get an API key for AI usage from the backend
+   */
+  private async getApiKeyForAI(): Promise<string | null> {
+    try {
+      // First, check if there are existing API keys with execution scope
+      const listResponse = await fetch("/api/api-keys", {
+        headers: {
+          Authorization: `Bearer ${this.config.authToken}`,
+          "Content-Type": "application/json",
+        },
+      });
+
+      if (!listResponse.ok) {
+        console.warn("Failed to fetch API keys for AI usage");
+        return null;
+      }
+
+      const apiKeys: ApiKey[] = await listResponse.json();
+
+      // Check if we have an existing valid key for AI execution
+      const existingKey = apiKeys.find(
+        (key) =>
+          !key.revoked &&
+          key.scopes.includes(Scope.RuntExecute) &&
+          key.name?.includes("AI Runtime")
+      );
+
+      if (existingKey) {
+        console.log("Using existing API key for AI:", existingKey.id);
+        // For now, we'll need to use the access token directly as we can't get the key value
+        // This is a limitation - we may need backend changes to support this properly
+        return this.config.authToken;
+      }
+
+      // If no existing key, we could create one, but that requires user permission
+      // For now, fall back to using the access token directly
+      console.log("Using access token for AI authentication");
+      return this.config.authToken;
+    } catch (error) {
+      console.error("Error getting API key for AI:", error);
+      return null;
+    }
+  }
+
+  /**
+   * Setup Anaconda AI client with user's authentication if using Anaconda provider
+   */
+  private async setupAnacondaAI(): Promise<void> {
+    if (!(await this.isUsingAnacondaProvider())) {
+      return;
+    }
+
+    try {
+      console.log("🔑 Setting up Anaconda AI client for authenticated user...");
+      const apiKey = await this.getApiKeyForAI();
+
+      if (apiKey) {
+        this.registerAIClient("anaconda", { apiKey });
+        console.log(
+          "✅ Anaconda AI client registered - refreshing available models..."
+        );
+
+        // Refresh models after registering the authenticated client
+        await this.refreshAIModels();
+      } else {
+        console.warn(
+          "⚠️  Authentication failed for Anaconda AI - only Ollama models will be available"
+        );
+      }
+    } catch (error) {
+      console.error("❌ Failed to setup Anaconda AI client:", error);
+      console.warn("Continuing with Ollama-only AI support...");
+    }
   }
 
   /**
@@ -76,27 +170,12 @@ export class HtmlRuntimeAgent extends LocalRuntimeAgent {
   async start(): Promise<RuntimeAgent> {
     console.log(`🌐 Starting ${this.getRuntimeType()} runtime agent`);
 
-    // Discover available AI models BEFORE calling super.start()
-    // This ensures capabilities are ready when runtime announces itself
-    try {
-      console.log("🔍 Discovering available AI models...");
-      this.discoveredAiModels = await discoverAvailableAiModels();
+    // Setup Anaconda AI client with user's authentication if needed
+    await this.setupAnacondaAI();
 
-      if (this.discoveredAiModels.length === 0) {
-        console.warn(
-          "⚠️  No AI models discovered - API keys may not be configured or Ollama server may not be available"
-        );
-      } else {
-        console.log(
-          `✅ Discovered ${this.discoveredAiModels.length} AI model${this.discoveredAiModels.length === 1 ? "" : "s"} from providers: ${[...new Set(this.discoveredAiModels.map((m) => m.provider))].join(", ")}`
-        );
-      }
-    } catch (error) {
-      console.error("❌ Failed to discover AI models", {
-        error: error instanceof Error ? error.message : String(error),
-      });
-      // Continue with empty models array on error
-      this.discoveredAiModels = [];
+    // If Anaconda setup didn't refresh models, do initial discovery
+    if (this.discoveredAiModels.length === 0) {
+      await this.performInitialModelDiscovery();
     }
 
     // Call parent to start the agent - capabilities now include discovered models
@@ -265,6 +344,34 @@ export class HtmlRuntimeAgent extends LocalRuntimeAgent {
   }
 
   /**
+   * Perform initial AI model discovery with user feedback
+   */
+  private async performInitialModelDiscovery(): Promise<void> {
+    try {
+      console.log("🔍 Discovering available AI models...");
+      this.discoveredAiModels = await discoverAvailableAiModels();
+
+      if (this.discoveredAiModels.length === 0) {
+        console.warn(
+          "⚠️  No AI models discovered - check if Ollama is running or API keys are configured"
+        );
+      } else {
+        const providers = [
+          ...new Set(this.discoveredAiModels.map((m) => m.provider)),
+        ];
+        console.log(
+          `✅ Discovered ${this.discoveredAiModels.length} AI model${this.discoveredAiModels.length === 1 ? "" : "s"} from providers: ${providers.join(", ")}`
+        );
+      }
+    } catch (error) {
+      console.error("❌ Failed to discover AI models", {
+        error: error instanceof Error ? error.message : String(error),
+      });
+      this.discoveredAiModels = [];
+    }
+  }
+
+  /**
    * Refresh available AI models after registering new clients
    *
    * This updates the runtime capabilities with newly discovered models
@@ -272,11 +379,14 @@ export class HtmlRuntimeAgent extends LocalRuntimeAgent {
    */
   public async refreshAIModels(): Promise<void> {
     try {
-      console.log("🔄 Refreshing AI models...");
+      console.log("🔄 Refreshing AI models after authentication setup...");
       this.discoveredAiModels = await discoverAvailableAiModels();
 
+      const providers = [
+        ...new Set(this.discoveredAiModels.map((m) => m.provider)),
+      ];
       console.log(
-        `✅ Refreshed AI models: ${this.discoveredAiModels.length} model${this.discoveredAiModels.length === 1 ? "" : "s"} from providers: ${[...new Set(this.discoveredAiModels.map((m) => m.provider))].join(", ")}`
+        `✅ Models refreshed: ${this.discoveredAiModels.length} available from ${providers.join(", ")}`
       );
     } catch (error) {
       console.error("❌ Failed to refresh AI models", {
