@@ -51,7 +51,7 @@ export class RuntOllamaClient {
   private isConfigured = false;
   // Use global logger instance
   private config: OllamaConfig;
-  private notebookTools: NotebookTool[];
+  notebookTools: NotebookTool[];
   provider: string = "ollama";
 
   constructor(config?: OllamaConfig, notebookTools: NotebookTool[] = []) {

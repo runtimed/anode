@@ -205,7 +205,7 @@ Once configured, your AI cells will work with real OpenAI models!`;
   /**
    * Check if model is a reasoning model (starts with 'o')
    */
-  private isReasoningModel(modelName: string): boolean {
+  isReasoningModel(modelName: string): boolean {
     return (
       modelName.startsWith("o1") ||
       modelName.startsWith("o3") ||
