@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useEffect, useState } from "react";
 import { getOpenIdService, UserInfo } from "./openid";
+import { setupEarlyAiClients } from "./AiClientSetup.js";
 export type { UserInfo } from "./openid";
 
 type AuthState =
@@ -47,6 +48,16 @@ export function AuthProvider({ children }: AuthProviderProps) {
             token: user.accessToken,
             user: user.claims,
           });
+
+          // Setup AI clients as soon as auth is available
+          try {
+            setupEarlyAiClients({
+              accessToken: user.accessToken,
+              enableLogging: true,
+            });
+          } catch (error) {
+            console.warn("Early AI client setup failed:", error);
+          }
         } else {
           setAuthState({ valid: false, loading: false });
         }

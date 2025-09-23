@@ -6,6 +6,16 @@
  *
  * Extends LocalRuntimeAgent to inherit common local runtime functionality
  * while focusing on HTML-specific execution logic.
+ *
+ * ## AI Integration
+ *
+ * The HTML agent automatically detects the service provider and sets up AI clients:
+ * - **Anaconda Provider**: Detected via VITE_AUTH_URI starting with https://auth.anaconda.com/
+ * - **Local Provider**: All other configurations rely on Ollama for local AI execution
+ * - **Fallback**: Always includes Ollama client for offline capability
+ *
+ * AI model discovery happens during startup to ensure capabilities are available
+ * when the runtime announces itself to the system.
  */
 
 import {
@@ -20,16 +30,14 @@ import {
 } from "./LocalRuntimeAgent.js";
 
 import {
-  discoverAvailableAiModels,
   executeAI,
   gatherNotebookContext,
-  aiRegistry,
-  AnacondaAIClient,
-  OpenAIClient,
   type NotebookTool,
 } from "@runtimed/ai-core";
 import type { AiModel } from "@runtimed/agent-core";
 import { cellReferences$ } from "@runtimed/schema";
+import { AiClientManager } from "./AiClientManager.js";
+import { areAiClientsReady, getAiSetupStatus } from "../auth/AiClientSetup.js";
 
 /**
  * HTML Runtime Agent
@@ -39,9 +47,11 @@ import { cellReferences$ } from "@runtimed/schema";
  */
 export class HtmlRuntimeAgent extends LocalRuntimeAgent {
   private discoveredAiModels: AiModel[] = [];
+  private aiManager: AiClientManager;
 
   constructor(config: LocalRuntimeConfig) {
     super(config);
+    this.aiManager = new AiClientManager(config.authToken);
   }
 
   /**
@@ -71,32 +81,32 @@ export class HtmlRuntimeAgent extends LocalRuntimeAgent {
   }
 
   /**
-   * Start the HTML runtime agent with AI model discovery
+   * Start the HTML runtime agent with optimized AI setup
    */
   async start(): Promise<RuntimeAgent> {
     console.log(`🌐 Starting ${this.getRuntimeType()} runtime agent`);
 
-    // Discover available AI models BEFORE calling super.start()
-    // This ensures capabilities are ready when runtime announces itself
-    try {
-      console.log("🔍 Discovering available AI models...");
-      this.discoveredAiModels = await discoverAvailableAiModels();
-
-      if (this.discoveredAiModels.length === 0) {
-        console.warn(
-          "⚠️  No AI models discovered - API keys may not be configured or Ollama server may not be available"
-        );
-      } else {
-        console.log(
-          `✅ Discovered ${this.discoveredAiModels.length} AI model${this.discoveredAiModels.length === 1 ? "" : "s"} from providers: ${[...new Set(this.discoveredAiModels.map((m) => m.provider))].join(", ")}`
-        );
+    // Check if AI clients were already set up during auth
+    if (areAiClientsReady()) {
+      const status = getAiSetupStatus();
+      console.log("⚡ Using AI clients from auth setup - fast startup");
+      if (status.hasAnaconda) {
+        console.log("   ✓ Anaconda client ready");
       }
-    } catch (error) {
-      console.error("❌ Failed to discover AI models", {
-        error: error instanceof Error ? error.message : String(error),
-      });
-      // Continue with empty models array on error
-      this.discoveredAiModels = [];
+      console.log("   ✓ Ollama client ready");
+
+      // Quick model discovery since clients are pre-registered
+      this.discoveredAiModels = this.aiManager.getDiscoveredModels();
+      if (this.discoveredAiModels.length === 0) {
+        // Only do discovery if we don't have models yet
+        await this.aiManager.setupAiClients();
+        this.discoveredAiModels = this.aiManager.getDiscoveredModels();
+      }
+    } else {
+      // Fallback to full setup if auth setup didn't happen
+      console.log("🔧 Setting up AI clients during runtime startup");
+      await this.aiManager.setupAiClients();
+      this.discoveredAiModels = this.aiManager.getDiscoveredModels();
     }
 
     // Call parent to start the agent - capabilities now include discovered models
@@ -250,18 +260,7 @@ export class HtmlRuntimeAgent extends LocalRuntimeAgent {
     provider: "anaconda" | "openai",
     config: { apiKey: string; [key: string]: any }
   ): void {
-    switch (provider) {
-      case "anaconda":
-        aiRegistry.register(provider, () => new AnacondaAIClient(config));
-        break;
-      case "openai":
-        aiRegistry.register(provider, () => new OpenAIClient(config));
-        break;
-      default:
-        throw new Error(`Unsupported AI provider: ${provider}`);
-    }
-
-    console.log(`🔗 Registered ${provider} AI client for HTML runtime`);
+    this.aiManager.registerAIClient(provider, config);
   }
 
   /**
@@ -271,18 +270,8 @@ export class HtmlRuntimeAgent extends LocalRuntimeAgent {
    * and should be called after registering AI clients with API keys.
    */
   public async refreshAIModels(): Promise<void> {
-    try {
-      console.log("🔄 Refreshing AI models...");
-      this.discoveredAiModels = await discoverAvailableAiModels();
-
-      console.log(
-        `✅ Refreshed AI models: ${this.discoveredAiModels.length} model${this.discoveredAiModels.length === 1 ? "" : "s"} from providers: ${[...new Set(this.discoveredAiModels.map((m) => m.provider))].join(", ")}`
-      );
-    } catch (error) {
-      console.error("❌ Failed to refresh AI models", {
-        error: error instanceof Error ? error.message : String(error),
-      });
-    }
+    await this.aiManager.refreshModels();
+    this.discoveredAiModels = this.aiManager.getDiscoveredModels();
   }
 }
 
