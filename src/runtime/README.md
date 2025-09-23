@@ -136,6 +136,57 @@ Console Launcher
     └── Exposes global launcher API
 ```
 
+## AI Client Management
+
+The `AiClientManager` utility provides reusable AI client setup across different runtime agents:
+
+### Features
+
+- **Automatic Anaconda Detection**: Detects Anaconda provider via `VITE_AUTH_URI`
+- **Authentication Integration**: Uses user access tokens for AI API calls
+- **Model Discovery**: Discovers available models from all configured providers
+- **Fallback Support**: Always includes Ollama for offline capability
+
+### Usage in Runtime Agents
+
+```javascript
+import { AiClientManager } from './AiClientManager.js';
+
+class MyRuntimeAgent extends LocalRuntimeAgent {
+  private aiManager: AiClientManager;
+
+  constructor(config) {
+    super(config);
+    this.aiManager = new AiClientManager(config.authToken);
+  }
+
+  async start() {
+    // Setup AI clients automatically
+    await this.aiManager.setupAiClients();
+    
+    // Get discovered models for capabilities
+    const models = this.aiManager.getDiscoveredModels();
+    
+    return await super.start();
+  }
+}
+```
+
+### Configuration Options
+
+```javascript
+const aiManager = new AiClientManager({
+  authToken: "user-access-token",
+  discoverModelsOnSetup: true,  // Auto-discover models
+  enableLogging: true,          // Console logging
+});
+```
+
+### Provider Detection Logic
+
+- **Anaconda**: `VITE_AUTH_URI` starts with `https://auth.anaconda.com/`
+- **Local**: All other configurations (uses Ollama only)
+
 ## Execution Flow
 
 1. **Agent Creation**: Uses `RuntimeAgent` from `@runtimed/agent-core`
