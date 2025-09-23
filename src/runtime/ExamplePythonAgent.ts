@@ -146,9 +146,7 @@ export class ExamplePythonAgent extends LocalRuntimeAgent {
       );
 
       if (!currentCellRef) {
-        throw new Error(
-          `Could not find cell reference for cell ${cell.id}`
-        );
+        throw new Error(`Could not find cell reference for cell ${cell.id}`);
       }
 
       const notebookContext = gatherNotebookContext(
@@ -190,8 +188,7 @@ export class ExamplePythonAgent extends LocalRuntimeAgent {
         maxIterations
       );
     } catch (error) {
-      const errorMsg =
-        error instanceof Error ? error.message : String(error);
+      const errorMsg = error instanceof Error ? error.message : String(error);
       console.error(`❌ AI execution failed for cell: ${cell.id}`, error);
 
       context.error("AIExecutionError", errorMsg, [
@@ -232,7 +229,7 @@ export class ExamplePythonAgent extends LocalRuntimeAgent {
       const language = isSQL ? "SQL" : "Python";
 
       // Simulate execution delay
-      await new Promise(resolve => setTimeout(resolve, 100));
+      await new Promise((resolve) => setTimeout(resolve, 100));
 
       // Display placeholder output
       await context.display({
@@ -252,7 +249,10 @@ export class ExamplePythonAgent extends LocalRuntimeAgent {
     } catch (error) {
       const errorMsg = error instanceof Error ? error.message : String(error);
 
-      console.error(`❌ ${cell.cellType} execution failed for cell: ${cell.id}`, error);
+      console.error(
+        `❌ ${cell.cellType} execution failed for cell: ${cell.id}`,
+        error
+      );
 
       // Emit error to the notebook
       context.error("PythonExecutionError", errorMsg, [

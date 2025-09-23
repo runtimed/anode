@@ -163,10 +163,10 @@ class MyRuntimeAgent extends LocalRuntimeAgent {
   async start() {
     // Setup AI clients automatically
     await this.aiManager.setupAiClients();
-    
+
     // Get discovered models for capabilities
     const models = this.aiManager.getDiscoveredModels();
-    
+
     return await super.start();
   }
 }
@@ -177,8 +177,8 @@ class MyRuntimeAgent extends LocalRuntimeAgent {
 ```javascript
 const aiManager = new AiClientManager({
   authToken: "user-access-token",
-  discoverModelsOnSetup: true,  // Auto-discover models
-  enableLogging: true,          // Console logging
+  discoverModelsOnSetup: true, // Auto-discover models
+  enableLogging: true, // Console logging
 });
 ```
 

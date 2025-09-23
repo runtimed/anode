@@ -28,6 +28,7 @@ private isUsingAnacondaProvider(): boolean {
 ```
 
 **Detection Rules:**
+
 - **Anaconda**: `VITE_AUTH_URI` starts with `https://auth.anaconda.com/`
 - **Local Development**: All other configurations (Ollama only)
 
@@ -78,17 +79,17 @@ The `AiClientManager` provides centralized AI client management:
 ```typescript
 export class AiClientManager {
   constructor(authTokenOrConfig: string | AiClientManagerConfig);
-  
+
   // Main setup method - call during runtime startup
   async setupAiClients(): Promise<void>;
-  
+
   // Model management
   async refreshModels(): Promise<void>;
   getDiscoveredModels(): AiModel[];
-  
+
   // Client registration
   registerAIClient(provider: "anaconda" | "openai", config: Config): void;
-  
+
   // Status queries
   hasModels(): boolean;
   getAvailableProviders(): string[];
@@ -118,10 +119,10 @@ export class MyRuntimeAgent extends LocalRuntimeAgent {
 async start(): Promise<RuntimeAgent> {
   // Setup AI clients automatically
   await this.aiManager.setupAiClients();
-  
+
   // Get discovered models for capabilities
   this.discoveredModels = this.aiManager.getDiscoveredModels();
-  
+
   // Parent start() will announce capabilities including AI models
   return await super.start();
 }
@@ -165,7 +166,7 @@ const aiStatus = pythonAgent.getAIStatus();
 console.log(`AI Status:`, {
   models: aiStatus.modelsCount,
   providers: aiStatus.providers,
-  hasAnaconda: aiStatus.hasAnaconda
+  hasAnaconda: aiStatus.hasAnaconda,
 });
 ```
 
@@ -184,17 +185,17 @@ await agent.refreshAIModels();
 ```typescript
 const aiManager = new AiClientManager({
   authToken: "user-access-token",
-  discoverModelsOnSetup: true,  // Auto-discover models during setup
-  enableLogging: true,          // Console progress logging
+  discoverModelsOnSetup: true, // Auto-discover models during setup
+  enableLogging: true, // Console progress logging
 });
 ```
 
 ### Environment Variables
 
-| Variable | Purpose | Example |
-|----------|---------|---------|
+| Variable        | Purpose            | Example                      |
+| --------------- | ------------------ | ---------------------------- |
 | `VITE_AUTH_URI` | Provider detection | `https://auth.anaconda.com/` |
-| `RUNT_API_KEY` | Local development | User's local API key |
+| `RUNT_API_KEY`  | Local development  | User's local API key         |
 
 ## Benefits
 
@@ -269,17 +270,17 @@ The AI client registry enables:
 ### From Manual AI Setup
 
 **Before:**
+
 ```typescript
 // Manual client registration
 import { aiRegistry, AnacondaAIClient } from "@runtimed/ai-core";
 
-aiRegistry.register("anaconda", () => 
-  new AnacondaAIClient({ apiKey: "..." })
-);
+aiRegistry.register("anaconda", () => new AnacondaAIClient({ apiKey: "..." }));
 const models = await discoverAvailableAiModels();
 ```
 
 **After:**
+
 ```typescript
 // Automatic setup via AiClientManager
 const aiManager = new AiClientManager(authToken);
@@ -297,7 +298,7 @@ const models = aiManager.getDiscoveredModels();
 ```typescript
 export class MyRuntimeAgent extends LocalRuntimeAgent {
   private aiManager = new AiClientManager(this.config.authToken);
-  
+
   async start() {
     await this.aiManager.setupAiClients();
     this.discoveredModels = this.aiManager.getDiscoveredModels();
@@ -368,8 +369,9 @@ console.log("Providers:", aiManager.getAvailableProviders());
 The AI Client Integration feature provides a robust, reusable system for automatic AI model discovery and authentication across runtime agents. It eliminates manual configuration while maintaining flexibility and providing clear fallback behavior for all deployment environments.
 
 Key achievements:
+
 - ✅ Zero-configuration AI setup based on deployment environment
-- ✅ Reusable patterns across multiple runtime agent types  
+- ✅ Reusable patterns across multiple runtime agent types
 - ✅ Secure authentication using existing user sessions
 - ✅ Graceful fallbacks to ensure reliability
 - ✅ Type-safe implementation with comprehensive error handling
