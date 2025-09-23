@@ -29,6 +29,7 @@ import { generateQueueId } from "@/util/queue-id";
 export function NotebookControls() {
   const { confirm } = useConfirm();
   const { store } = useStore();
+  const userId = useAuthenticatedUser();
 
   const cellQueue = useQuery(
     queryDb(
@@ -41,7 +42,6 @@ export function NotebookControls() {
 
   const { runAllCells } = useRunAllCells();
   const { deleteAllCells } = useDeleteAllCells();
-  const { clearAllOutputs } = useClearAllOutputs();
   const { restartAndRunAllCells } = useRestartAndRunAllCells();
   const { hideAiCells, toggleHideAiCells } = useHideAiCells();
 
@@ -53,6 +53,10 @@ export function NotebookControls() {
     toast.info("Cancelling all executions");
     store.commit(events.allExecutionsCancelled());
   }, [store, cellQueue]);
+
+  const handleClearAll = useCallback(() => {
+    store.commit(events.allOutputsCleared({ clearedBy: userId }));
+  }, [store, userId]);
 
   const showBadge = cellQueue.length > 0 || hideAiCells;
 
@@ -114,7 +118,7 @@ export function NotebookControls() {
             </label>
           </DropdownMenuItem>
           <DropdownMenuSeparator />
-          <DropdownMenuItem onClick={clearAllOutputs}>
+          <DropdownMenuItem onClick={handleClearAll}>
             <Eraser className="mr-2 h-4 w-4" />
             Clear All Outputs
           </DropdownMenuItem>
@@ -187,24 +191,4 @@ function useRestartAndRunAllCells() {
   }, [hasActiveRuntime]);
 
   return { restartAndRunAllCells };
-}
-
-function useClearAllOutputs() {
-  const { store } = useStore();
-  const cells = useQuery(queries.cellsWithIndices$);
-  const userId = useAuthenticatedUser();
-
-  const clearAllOutputs = useCallback(() => {
-    store.commit(
-      events.multipleCellOutputsCleared({
-        clearedBy: userId,
-        cellsInfo: cells.map((cell) => ({
-          cellId: cell.id,
-        })),
-        wait: false,
-      })
-    );
-  }, [store, userId, cells]);
-
-  return { clearAllOutputs };
 }

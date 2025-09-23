@@ -493,16 +493,10 @@ export const events = {
     }),
   }),
 
-  multipleCellOutputsCleared: Events.synced({
-    name: "v1.MultipleCellOutputsCleared",
+  allOutputsCleared: Events.synced({
+    name: "v1.AllOutputsCleared",
     schema: Schema.Struct({
-      cellsInfo: Schema.Array(
-        Schema.Struct({
-          cellId: Schema.String,
-        })
-      ),
       clearedBy: Schema.String,
-      wait: Schema.Boolean,
     }),
   }),
 
@@ -1309,22 +1303,13 @@ export const materializers = State.SQLite.materializers(events, {
     return ops;
   },
 
-  "v1.MultipleCellOutputsCleared": ({ clearedBy, cellsInfo, wait }) => {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  "v1.AllOutputsCleared": ({ clearedBy }) => {
     const ops = [];
-    for (const cell of cellsInfo) {
-      if (wait) {
-        // Store pending clear for wait=True
-        ops.push(
-          tables.pendingClears
-            .insert({ cellId: cell.cellId, clearedBy })
-            .onConflict("cellId", "replace")
-        );
-      } else {
-        // Immediate clear for wait=False
-        ops.push(tables.outputs.delete().where({ cellId: cell.cellId }));
-        ops.push(tables.pendingClears.delete().where({ cellId: cell.cellId }));
-      }
-    }
+
+    // Immediate clear
+    ops.push(tables.outputs.delete());
+    ops.push(tables.pendingClears.delete());
 
     return ops;
   },
