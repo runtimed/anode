@@ -84,8 +84,30 @@ function setupAnacondaAI(
       throw new Error("Invalid access token provided");
     }
 
+    if (enableLogging) {
+      console.log(
+        "🔍 Debug: API key for Anaconda client:",
+        apiKey ? `${apiKey.substring(0, 20)}...` : "null/undefined"
+      );
+    }
+
     // Register Anaconda AI client
-    aiRegistry.register("anaconda", () => new AnacondaAIClient({ apiKey }));
+    aiRegistry.register("anaconda", () => {
+      if (enableLogging) {
+        console.log(
+          "🔍 Debug: Creating Anaconda client with API key:",
+          apiKey ? `${apiKey.substring(0, 20)}...` : "null/undefined"
+        );
+      }
+      return new AnacondaAIClient({
+        apiKey,
+        baseURL: "https://anaconda.com/api/assistant/v3/groq",
+        defaultHeaders: {
+          "X-Client-Version": "0.2.0",
+          "X-Client-Source": "anaconda-runt-dev",
+        },
+      });
+    });
 
     if (enableLogging) {
       console.log("✅ Anaconda AI client registered");
