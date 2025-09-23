@@ -101,8 +101,11 @@ export function NotebookControls() {
           <DropdownMenuItem asChild onSelect={(e) => e.preventDefault()}>
             <label>
               <Bot className="mr-2 h-4 w-4" />
-              <div className="flex flex-grow items-center gap-2">
-                Hide AI Cells
+              <div className="flex flex-grow flex-col">
+                Hide AI Cells (experimental)
+                <div className="text-xs text-gray-500">
+                  Some features may not work as expected
+                </div>
               </div>
               <Switch
                 checked={hideAiCells}
