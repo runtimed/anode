@@ -21,8 +21,6 @@ import {
 } from "@runtimed/ai-core";
 import type { AiModel } from "@runtimed/agent-core";
 
-import { getAiSetupStatus } from "../auth/AiClientSetup.js";
-
 /**
  * Configuration for AI client management
  */
@@ -79,19 +77,12 @@ export class AiClientManager {
    * Register appropriate AI clients for the current environment
    */
   private async registerEnvironmentClients(): Promise<void> {
-    if (this.config.enableLogging) {
-      console.log("🔧 Registering environment-specific AI clients...");
-    }
     if (this.isUsingAnacondaProvider()) {
-      // Register Anaconda client with authentication
       if (this.config.enableLogging) {
-        console.log("🔑 Registering Anaconda AI client...");
-        console.log("🔍 Auth token available:", !!this.authToken);
-        console.log("🔍 Auth token length:", this.authToken?.length || 0);
+        console.log("🔑 Registering Anaconda AI client with JWT token");
       }
 
-      const authToken = this.authToken;
-      if (!authToken) {
+      if (!this.authToken) {
         if (this.config.enableLogging) {
           console.warn("⚠️  No auth token available for Anaconda client");
         }
@@ -100,28 +91,16 @@ export class AiClientManager {
 
       aiRegistry.register("anaconda", () => {
         return new AnacondaAIClient({
-          apiKey: authToken,
+          apiKey: this.authToken,
         });
       });
 
       if (this.config.enableLogging) {
         console.log("✅ Anaconda AI client registered");
-        console.log("🔍 Available providers:", aiRegistry.getProviders());
-
-        // Test if we can actually create the client
-        try {
-          const testClient = aiRegistry.createClient("anaconda");
-          console.log("✅ Anaconda client creation test: SUCCESS");
-          console.log("🔍 Client isReady check:", await testClient.isReady());
-        } catch (error) {
-          console.error("❌ Anaconda client creation test: FAILED", error);
-        }
       }
     } else {
-      // Development mode - Ollama is available by default
       if (this.config.enableLogging) {
-        console.log("🔧 Development mode - using Ollama client");
-        console.log("🔍 Available providers:", aiRegistry.getProviders());
+        console.log("🔧 Development mode - Ollama client available");
       }
     }
   }
@@ -175,19 +154,8 @@ export class AiClientManager {
     // Runtime agents always register their own clients
     await this.registerEnvironmentClients();
 
-    if (this.config.enableLogging) {
-      console.log("🔍 Post-registration debug:");
-      console.log("   Available providers:", aiRegistry.getProviders());
-      console.log("   Environment status:", getAiSetupStatus());
-    }
-
     // Perform initial model discovery after client registration
     if (this.config.discoverModelsOnSetup) {
-      if (this.config.enableLogging) {
-        console.log(
-          "🔄 Performing model discovery after client registration..."
-        );
-      }
       await this.performInitialModelDiscovery();
     }
   }

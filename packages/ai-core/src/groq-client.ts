@@ -59,59 +59,125 @@ Groq API key not found. Please set \`GROQ_API_KEY\` environment variable.`;
   }
 }
 
-export class AnacondaAIClient extends GroqClient {
-  override provider: string = "anaconda";
-  override defaultConfig: OpenAIConfig = {
-    baseURL: "https://anaconda.com/api/assistant/v3/groq",
-    defaultHeaders: {
-      "X-Client-Version": "0.2.0",
-      "X-Client-Source": "anaconda-runt-dev",
-    },
-  };
+export class AnacondaAIClient {
+  provider: string = "anaconda";
+  private authToken: string;
 
-  constructor(config: OpenAIConfig & { apiKey: string }) {
-    // Extract JWT token for Authorization header
-    const jwtToken = config.apiKey;
-
-    // Define defaults inline to avoid accessing 'this' before super
-    const defaultConfig = {
-      baseURL: "https://anaconda.com/api/assistant/v3/groq",
-      defaultHeaders: {
-        "X-Client-Version": "0.2.0",
-        "X-Client-Source": "anaconda-runt-dev",
-        // Use JWT token as Bearer token for Anaconda API
-        Authorization: `Bearer ${jwtToken}`,
-      },
-    };
-
-    // Merge provided config with defaults, but use placeholder API key
-    const mergedConfig: OpenAIConfig = {
-      ...defaultConfig,
-      ...config,
-      // Use placeholder API key since parent OpenAI client expects one
-      apiKey: "anaconda-jwt-placeholder",
-      defaultHeaders: {
-        ...defaultConfig.defaultHeaders,
-        ...config.defaultHeaders,
-      },
-    };
-    super(mergedConfig);
+  constructor(config: { apiKey: string }) {
+    this.authToken = config.apiKey;
   }
 
-  override async discoverAiModels(): Promise<AiModel[]> {
-    const models = await super.discoverAiModels();
+  async isReady(): Promise<boolean> {
+    return !!(this.authToken && this.authToken.length > 0);
+  }
 
-    for (const model of models) {
-      model.provider = "anaconda";
-    }
+  setNotebookTools(_notebookTools: any[]): void {
+    // No-op for now
+  }
 
+  async discoverAiModels(): Promise<AiModel[]> {
+    const models: AiModel[] = [
+      {
+        provider: "anaconda",
+        name: "moonshotai/kimi-k2-instruct-0905",
+        displayName: "Kimi K2 Instruct 0905",
+        capabilities: ["completion", "tools", "thinking"],
+      },
+      {
+        provider: "anaconda",
+        name: "moonshotai/kimi-k2-instruct",
+        displayName: "Kimi K2 Instruct",
+        capabilities: ["completion", "tools", "thinking"],
+      },
+      {
+        provider: "anaconda",
+        name: "llama3-70b-8192",
+        displayName: "Llama 3.1 70B",
+        capabilities: ["completion", "tools", "thinking"],
+      },
+      {
+        provider: "anaconda",
+        name: "mixtral-8x7b-32768",
+        displayName: "Mixtral 8x7B",
+        capabilities: ["completion", "tools"],
+      },
+      {
+        provider: "anaconda",
+        name: "gemma2-9b-it",
+        displayName: "Gemma 2 9B",
+        capabilities: ["completion", "tools"],
+      },
+    ];
     return models;
   }
 
-  override getConfigMessage(): string {
-    const configMessage = `# Anaconda/Runt Configuration Required
+  async generateAgenticResponse(
+    messages: any[],
+    context: any,
+    options: any
+  ): Promise<void> {
+    try {
+      const response = await fetch(
+        "https://anaconda.com/api/assistant/v3/groq/chat/completions",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${this.authToken}`,
+            "X-Client-Version": "0.2.0",
+            "X-Client-Source": "anaconda-runt-dev",
+          },
+          body: JSON.stringify({
+            model: options.model || "moonshotai/kimi-k2-instruct-0905",
+            messages: messages,
+            max_tokens: 2048,
+            temperature: 0.7,
+          }),
+        }
+      );
+
+      if (!response.ok) {
+        const errorText = await response.text();
+
+        // Handle token expiration gracefully
+        if (response.status === 403 && errorText.includes("auth token")) {
+          context.display({
+            "text/markdown":
+              "## Authentication Expired\n\nYour authentication token has expired. Please refresh the page to continue using AI features.",
+            "text/plain":
+              "Authentication expired. Please refresh the page to continue using AI features.",
+          });
+          return;
+        }
+
+        throw new Error(`Anaconda API error: ${response.status} ${errorText}`);
+      }
+
+      const data = await response.json();
+      const content = data.choices?.[0]?.message?.content;
+
+      if (content) {
+        context.display({
+          "text/markdown": content,
+          "text/plain": content,
+        });
+      }
+    } catch (error) {
+      if (
+        error instanceof Error &&
+        error.message?.includes("Authentication Expired")
+      ) {
+        // Don't log auth expiration as an error
+        return;
+      }
+      logger.error("Anaconda API error", error);
+      throw error;
+    }
+  }
+
+  getConfigMessage(): string {
+    return `# Anaconda/Runt Configuration Required
 
 Authentication not available. AI features require proper authentication setup.`;
-    return configMessage;
   }
 }
