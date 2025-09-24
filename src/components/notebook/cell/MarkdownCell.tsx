@@ -253,7 +253,7 @@ export const MarkdownCell: React.FC<MarkdownCellProps> = ({
     >
       {/* Cell Header */}
       <div
-        className="cell-header relative mb-2 flex items-center justify-between pr-1 pl-1 sm:pr-4"
+        className="cell-header relative mb-2 flex items-center justify-between pr-1 pl-4 sm:pr-4"
         onKeyDown={!isEditing ? handleKeyDown : undefined}
       >
         <div className="relative flex items-center gap-3">
