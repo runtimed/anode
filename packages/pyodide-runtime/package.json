@@ -17,7 +17,8 @@
     "format:check": "prettier --check ."
   },
   "dependencies": {
-    "@runtimed/agent-core": "workspace:*"
+    "@runtimed/agent-core": "workspace:*",
+    "pyodide": "^0.27.7"
   },
   "devDependencies": {
     "@types/node": "^24.0.10",
