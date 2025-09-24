@@ -437,9 +437,7 @@ globals()['js_clear_callback'] = runt_runtime.js_clear_callback
 
   // Install micropip packages in background without blocking
   // Skip during tests to prevent execution interference
-  const isTest =
-    globalThis.Deno?.env?.get("DENO_TESTING") === "true" ||
-    globalThis.location?.search?.includes("test");
+  const isTest = globalThis.location?.search?.includes("test");
 
   if (!isTest) {
     // Use setTimeout to isolate from execution pipeline
