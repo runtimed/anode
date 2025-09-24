@@ -470,8 +470,11 @@ importers:
   packages/pyodide-runtime:
     dependencies:
       '@runtimed/agent-core':
-        specifier: ^0.2.0
-        version: 0.2.0(c81ddf317de4335edf30a2b149c166b0)
+        specifier: workspace:*
+        version: link:../agent-core
+      pyodide:
+        specifier: ^0.27.7
+        version: 0.27.7
     devDependencies:
       '@types/node':
         specifier: ^24.0.10
@@ -2300,10 +2303,6 @@ packages:
     resolution: {integrity: sha512-SRf1cytG7wqcHVLrBc9VtPK4pU5wxiB/lNIkNmW2ApKXIg+RpqwHfsaEK+e7eH4A1BpI6BX/aBWXxZCIrJg3uA==}
     cpu: [x64]
     os: [win32]
-
-  '@runtimed/agent-core@0.2.0':
-    resolution: {integrity: sha512-i/zE5S+ilvucggKeMmM7OiR3gzl8meFOZs6rkOb2t/JoWVDwh/18Yhy9Q4pgYN4SLgW9t50uQjBG1bHx3AWvww==}
-    engines: {node: '>=23.0.0', pnpm: '>=10.9.0'}
 
   '@sindresorhus/is@7.0.2':
     resolution: {integrity: sha512-d9xRovfKNz1SKieM0qJdO+PQonjnnIfSNWfHYnBSJ9hkjm0ZPw6HlxscDXYstp3z+7V2GOFHc+J0CYrYTjqCJw==}
@@ -4591,6 +4590,10 @@ packages:
 
   pure-rand@6.1.0:
     resolution: {integrity: sha512-bVWawvoZoBYpp6yIoQtQXHZjmz35RSVHnUOTefl8Vcjr8snTPY1wnpSPMWekcFwbxI6gtmT7rSYPFvz71ldiOA==}
+
+  pyodide@0.27.7:
+    resolution: {integrity: sha512-RUSVJlhQdfWfgO9hVHCiXoG+nVZQRS5D9FzgpLJ/VcgGBLSAKoPL8kTiOikxbHQm1kRISeWUBdulEgO26qpSRA==}
+    engines: {node: '>=18.0.0'}
 
   qs@6.14.0:
     resolution: {integrity: sha512-YWWTjgABSKcvs/nWBi9PycY/JiPJqOD4JA6o9Sej2AtvSGarXxKC3OQSk4pAarbdQlKAh5D4FCQkJNkW+GAn3w==}
@@ -7417,28 +7420,6 @@ snapshots:
   '@rollup/rollup-win32-x64-msvc@4.45.0':
     optional: true
 
-  '@runtimed/agent-core@0.2.0(c81ddf317de4335edf30a2b149c166b0)':
-    dependencies:
-      '@livestore/livestore': 0.3.1(f9c23af240f2640c0a9abef8711d3cc6)
-      '@opentelemetry/api': 1.9.0
-      effect: 3.15.5
-      zod: 4.0.17
-    transitivePeerDependencies:
-      - '@effect/cli'
-      - '@effect/cluster'
-      - '@effect/experimental'
-      - '@effect/opentelemetry'
-      - '@effect/platform'
-      - '@effect/platform-browser'
-      - '@effect/platform-bun'
-      - '@effect/platform-node'
-      - '@effect/printer'
-      - '@effect/printer-ansi'
-      - '@effect/rpc'
-      - '@effect/sql'
-      - '@effect/typeclass'
-      - '@opentelemetry/resources'
-
   '@sindresorhus/is@7.0.2': {}
 
   '@speed-highlight/core@1.2.7': {}
@@ -10096,6 +10077,13 @@ snapshots:
   punycode@2.3.1: {}
 
   pure-rand@6.1.0: {}
+
+  pyodide@0.27.7:
+    dependencies:
+      ws: 8.18.3
+    transitivePeerDependencies:
+      - bufferutil
+      - utf-8-validate
 
   qs@6.14.0:
     dependencies:
