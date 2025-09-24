@@ -356,6 +356,25 @@ export const events = {
     }),
   }),
 
+  allExecutionsCancelled: Events.synced({
+    name: "v1.AllExecutionsCancelled",
+    schema: Schema.Void,
+  }),
+
+  multipleExecutionRequested: Events.synced({
+    name: "v1.MultipleExecutionRequested",
+    schema: Schema.Struct({
+      requestedBy: Schema.String,
+      cellsInfo: Schema.Array(
+        Schema.Struct({
+          id: Schema.String,
+          executionCount: Schema.Number,
+          queueId: Schema.String,
+        })
+      ),
+    }),
+  }),
+
   // Unified output system - granular events replacing cellOutputAdded
   multimediaDisplayOutputAdded: Events.synced({
     name: "v1.MultimediaDisplayOutputAdded",
@@ -471,6 +490,19 @@ export const events = {
       cellId: Schema.String,
       wait: Schema.Boolean,
       clearedBy: Schema.String,
+    }),
+  }),
+
+  multipleCellOutputsCleared: Events.synced({
+    name: "v1.MultipleCellOutputsCleared",
+    schema: Schema.Struct({
+      cellsInfo: Schema.Array(
+        Schema.Struct({
+          cellId: Schema.String,
+        })
+      ),
+      clearedBy: Schema.String,
+      wait: Schema.Boolean,
     }),
   }),
 
@@ -944,6 +976,63 @@ export const materializers = State.SQLite.materializers(events, {
     updatePresence(actorId || cancelledBy, cellId),
   ],
 
+  "v1.AllExecutionsCancelled": () => {
+    const ops = [];
+
+    ops.push(
+      tables.executionQueue
+        .update({
+          status: "cancelled",
+        })
+        .where({
+          status: { op: "IN", value: ["pending", "assigned", "executing"] },
+        })
+    );
+
+    // Update cell execution state
+    ops.push(
+      tables.cells
+        .update({
+          executionState: "idle",
+        })
+        .where({
+          executionState: { op: "IN", value: ["queued", "running"] },
+        })
+    );
+
+    return ops;
+  },
+
+  "v1.MultipleExecutionRequested": ({ requestedBy, cellsInfo }) => {
+    // Generate execution requests for each cell
+    const ops = [];
+    for (const cell of cellsInfo) {
+      ops.push(
+        tables.executionQueue
+          .insert({
+            id: cell.queueId,
+            cellId: cell.id,
+            executionCount: cell.executionCount,
+            requestedBy,
+            status: "pending",
+          })
+          .onConflict("id", "ignore")
+      );
+
+      // Update cell execution state
+      ops.push(
+        tables.cells
+          .update({
+            executionState: "queued",
+            executionCount: cell.executionCount,
+          })
+          .where({ id: cell.id })
+      );
+    }
+
+    return ops;
+  },
+
   // Unified output system materializers with pending clear support
   "v1.MultimediaDisplayOutputAdded": (
     { id, cellId, position, representations, displayId },
@@ -1215,6 +1304,26 @@ export const materializers = State.SQLite.materializers(events, {
     // Add presence update if user is provided
     if (clearedBy) {
       ops.push(updatePresence(clearedBy, cellId));
+    }
+
+    return ops;
+  },
+
+  "v1.MultipleCellOutputsCleared": ({ clearedBy, cellsInfo, wait }) => {
+    const ops = [];
+    for (const cell of cellsInfo) {
+      if (wait) {
+        // Store pending clear for wait=True
+        ops.push(
+          tables.pendingClears
+            .insert({ cellId: cell.cellId, clearedBy })
+            .onConflict("cellId", "replace")
+        );
+      } else {
+        // Immediate clear for wait=False
+        ops.push(tables.outputs.delete().where({ cellId: cell.cellId }));
+        ops.push(tables.pendingClears.delete().where({ cellId: cell.cellId }));
+      }
     }
 
     return ops;
