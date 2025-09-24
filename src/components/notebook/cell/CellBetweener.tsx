@@ -8,15 +8,16 @@ import { useDragDropCellSort } from "@/hooks/useDragDropCellSort";
 export const CellBetweener = memo(function CellBetweener({
   cell,
   position = "after",
+  isDraggingOver = false,
 }: {
   cell: CellReference;
   position: "before" | "after";
+  isDraggingOver: boolean;
 }) {
   const { addCell } = useAddCell();
-  const { draggingOverCell, draggingOverPosition, setDraggingCell, onDrop } =
-    useDragDropCellSort();
+  const { setDraggingOverCell, onDrop } = useDragDropCellSort();
 
-  if (draggingOverCell === cell.id && draggingOverPosition === position) {
+  if (isDraggingOver) {
     return (
       <div className="group relative flex h-6 w-full items-center justify-center">
         <div className="h-1 w-full bg-blue-500" />
@@ -27,7 +28,7 @@ export const CellBetweener = memo(function CellBetweener({
   return (
     <div
       className="group relative flex h-6 w-full items-center justify-center"
-      onDragOver={() => setDraggingCell(cell.id, position)}
+      onDragOver={() => setDraggingOverCell(cell.id, position)}
       onDrop={() => onDrop(cell.id, position)}
     >
       <div className="absolute -left-[13px] z-10 flex h-px w-full items-center bg-transparent has-hover:bg-neutral-500">

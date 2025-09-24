@@ -9,7 +9,10 @@ import { EmptyStateCellAdder } from "./EmptyStateCellAdder";
 import { contextSelectionMode$ } from "./signals/ai-context.js";
 import { focusedCellSignal$, hasManuallyFocused$ } from "./signals/focus.js";
 import { GripVerticalIcon } from "lucide-react";
-import { DragDropSortProvider } from "@/hooks/useDragDropCellSort.js";
+import {
+  DragDropSortProvider,
+  useDragDropCellSort,
+} from "@/hooks/useDragDropCellSort";
 
 export const NotebookContent = () => {
   const { store } = useStore();
@@ -62,33 +65,63 @@ interface CellListProps {
 }
 
 export const CellList: React.FC<CellListProps> = ({ cellReferences }) => {
-  const focusedCellId = useQuery(focusedCellSignal$);
-  const contextSelectionMode = useQuery(contextSelectionMode$);
-
   return (
     <div style={{ paddingLeft: "1rem" }}>
       <DragDropSortProvider>
-        {cellReferences.map((cellReference, index) => (
-          <div key={cellReference.id}>
-            <ErrorBoundary fallback={<div>Error rendering cell</div>}>
-              {index === 0 && (
-                <CellBetweener cell={cellReference} position="before" />
-              )}
-              <Cell
-                cellId={cellReference.id}
-                isFocused={cellReference.id === focusedCellId}
-                contextSelectionMode={contextSelectionMode}
-                dragHandle={
-                  <div className="flex w-6 cursor-grab items-center justify-center transition-colors">
-                    <GripVerticalIcon className="text-muted-foreground h-4 w-4" />
-                  </div>
-                }
-              />
-              <CellBetweener cell={cellReference} position="after" />
-            </ErrorBoundary>
-          </div>
-        ))}
+        <DragDropCellList cellReferences={cellReferences} />
       </DragDropSortProvider>
     </div>
   );
 };
+
+function DragDropCellList({
+  cellReferences,
+}: {
+  cellReferences: readonly CellReference[];
+}) {
+  const focusedCellId = useQuery(focusedCellSignal$);
+  const contextSelectionMode = useQuery(contextSelectionMode$);
+
+  const { draggingOverCell, draggingOverPosition, draggingCellId } =
+    useDragDropCellSort();
+
+  return cellReferences.map((cellReference, index) => (
+    <div key={cellReference.id}>
+      <ErrorBoundary fallback={<div>Error rendering cell</div>}>
+        {index === 0 && (
+          <CellBetweener
+            isDraggingOver={
+              draggingOverCell === cellReference.id &&
+              draggingOverPosition === "before" &&
+              draggingCellId !== cellReference.id
+            }
+            cell={cellReference}
+            position="before"
+          />
+        )}
+        <Cell
+          cellId={cellReference.id}
+          isFocused={cellReference.id === focusedCellId}
+          contextSelectionMode={contextSelectionMode}
+          dragHandle={
+            <div className="flex w-6 cursor-grab items-center justify-center transition-colors">
+              <GripVerticalIcon className="text-muted-foreground h-4 w-4" />
+            </div>
+          }
+        />
+        <CellBetweener
+          isDraggingOver={
+            (index < cellReferences.length - 1 &&
+              draggingOverCell === cellReferences[index + 1].id &&
+              draggingOverPosition === "before") ||
+            (draggingOverCell === cellReference.id &&
+              draggingOverPosition === "after")
+            // TODO: hide when dragging results in a move to the same cell
+          }
+          cell={cellReference}
+          position="after"
+        />
+      </ErrorBoundary>
+    </div>
+  ));
+}
