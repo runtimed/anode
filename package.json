@@ -81,6 +81,7 @@
     "@runtimed/agent-core": "workspace:*",
     "@runtimed/schema": "workspace:*",
     "@runtimed/ai-core": "workspace:*",
+    "@runtimed/pyodide-runtime": "workspace:*",
     "@tanstack/react-query": "^5.85.5",
     "@tanstack/react-query-devtools": "^5.85.5",
     "@tanstack/react-virtual": "^3.13.12",
