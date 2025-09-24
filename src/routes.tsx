@@ -19,6 +19,7 @@ import { ErrorBoundary } from "react-error-boundary";
 import { ErrorFallbackPage } from "./components/ErrorFallbackPage";
 import { GeoJsonDemoPage } from "./pages/demo/geojson/GeoJsonDemoPage";
 import { Confirmer, ConfirmProvider } from "./components/ui/confirm";
+import { ReorderDemoPage } from "./pages/ReorderDemoPage";
 
 export const App: React.FC = () => {
   // Safety net: Auto-remove loading screen if no component has handled it
@@ -100,6 +101,7 @@ export const App: React.FC = () => {
             />
             <Route path="/" element={<Navigate to="/nb" replace />} />
             <Route path="/demo/geojson" element={<GeoJsonDemoPage />} />
+            <Route path="/demo/reorder" element={<ReorderDemoPage />} />
           </Routes>
           <FPSMeter />
           <Toaster />
