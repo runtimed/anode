@@ -38,12 +38,6 @@ Groq API key not found. Please set \`GROQ_API_KEY\` environment variable.`;
       },
       {
         provider: "groq",
-        name: "llama3-8b-8192",
-        displayName: "Llama 3.1 8B",
-        capabilities: ["completion", "tools", "thinking"],
-      },
-      {
-        provider: "groq",
         name: "llama3-70b-8192",
         displayName: "Llama 3.1 70B",
         capabilities: ["completion", "tools", "thinking"],
@@ -76,19 +70,26 @@ export class AnacondaAIClient extends GroqClient {
   };
 
   constructor(config: OpenAIConfig & { apiKey: string }) {
+    // Extract JWT token for Authorization header
+    const jwtToken = config.apiKey;
+
     // Define defaults inline to avoid accessing 'this' before super
     const defaultConfig = {
       baseURL: "https://anaconda.com/api/assistant/v3/groq",
       defaultHeaders: {
         "X-Client-Version": "0.2.0",
         "X-Client-Source": "anaconda-runt-dev",
+        // Use JWT token as Bearer token for Anaconda API
+        Authorization: `Bearer ${jwtToken}`,
       },
     };
 
-    // Merge provided config with defaults
+    // Merge provided config with defaults, but use placeholder API key
     const mergedConfig: OpenAIConfig = {
       ...defaultConfig,
       ...config,
+      // Use placeholder API key since parent OpenAI client expects one
+      apiKey: "anaconda-jwt-placeholder",
       defaultHeaders: {
         ...defaultConfig.defaultHeaders,
         ...config.defaultHeaders,
@@ -110,7 +111,7 @@ export class AnacondaAIClient extends GroqClient {
   override getConfigMessage(): string {
     const configMessage = `# Anaconda/Runt Configuration Required
 
-RUNT API key not found. Please set \`RUNT_API_KEY\` environment variable.`;
+Authentication not available. AI features require proper authentication setup.`;
     return configMessage;
   }
 }

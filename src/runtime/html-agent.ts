@@ -256,12 +256,6 @@ export class HtmlRuntimeAgent extends LocalRuntimeAgent {
    * htmlAgent.registerAIClient("openai", { apiKey: "your-openai-key" });
    * ```
    */
-  public registerAIClient(
-    provider: "anaconda" | "openai",
-    config: { apiKey: string; [key: string]: any }
-  ): void {
-    this.aiManager.registerAIClient(provider, config);
-  }
 
   /**
    * Refresh available AI models after registering new clients

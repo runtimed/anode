@@ -18,11 +18,10 @@ import {
   discoverAvailableAiModels,
   aiRegistry,
   AnacondaAIClient,
-  OpenAIClient,
 } from "@runtimed/ai-core";
 import type { AiModel } from "@runtimed/agent-core";
-import { Scope, type ApiKey } from "../hooks/useApiKeys.js";
-import { areAiClientsReady, getAiSetupStatus } from "../auth/AiClientSetup.js";
+
+import { getAiSetupStatus } from "../auth/AiClientSetup.js";
 
 /**
  * Configuration for AI client management
@@ -77,97 +76,52 @@ export class AiClientManager {
   }
 
   /**
-   * Create or get an API key for AI usage from the backend
+   * Register appropriate AI clients for the current environment
    */
-  private async getApiKeyForAI(): Promise<string | null> {
-    try {
-      // First, check if there are existing API keys with execution scope
-      const listResponse = await fetch("/api/api-keys", {
-        headers: {
-          Authorization: `Bearer ${this.authToken}`,
-          "Content-Type": "application/json",
-        },
+  private async registerEnvironmentClients(): Promise<void> {
+    if (this.config.enableLogging) {
+      console.log("🔧 Registering environment-specific AI clients...");
+    }
+    if (this.isUsingAnacondaProvider()) {
+      // Register Anaconda client with authentication
+      if (this.config.enableLogging) {
+        console.log("🔑 Registering Anaconda AI client...");
+        console.log("🔍 Auth token available:", !!this.authToken);
+        console.log("🔍 Auth token length:", this.authToken?.length || 0);
+      }
+
+      const authToken = this.authToken;
+      if (!authToken) {
+        if (this.config.enableLogging) {
+          console.warn("⚠️  No auth token available for Anaconda client");
+        }
+        return;
+      }
+
+      aiRegistry.register("anaconda", () => {
+        return new AnacondaAIClient({
+          apiKey: authToken,
+        });
       });
 
-      if (!listResponse.ok) {
-        if (this.config.enableLogging) {
-          console.warn("Failed to fetch API keys for AI usage");
-        }
-        return null;
-      }
-
-      const apiKeys: ApiKey[] = await listResponse.json();
-
-      // Check if we have an existing valid key for AI execution
-      const existingKey = apiKeys.find(
-        (key) =>
-          !key.revoked &&
-          key.scopes.includes(Scope.RuntExecute) &&
-          key.name?.includes("AI Runtime")
-      );
-
-      if (existingKey && this.config.enableLogging) {
-        console.log("Using existing API key for AI:", existingKey.id);
-      }
-
-      // For now, use the access token directly as we can't get the key value
-      // This is a limitation - we may need backend changes to support this properly
-      return this.authToken;
-    } catch (error) {
       if (this.config.enableLogging) {
-        console.error("Error getting API key for AI:", error);
-      }
-      return null;
-    }
-  }
+        console.log("✅ Anaconda AI client registered");
+        console.log("🔍 Available providers:", aiRegistry.getProviders());
 
-  /**
-   * Setup Anaconda AI client with user's authentication if using Anaconda provider
-   *
-   * This method:
-   * 1. Checks if VITE_AUTH_URI starts with https://auth.anaconda.com/
-   * 2. Uses the user's access token for AI API authentication
-   * 3. Registers the Anaconda AI client with the authentication
-   * 4. Refreshes available models to include Anaconda-hosted models
-   *
-   * Falls back gracefully to Ollama-only if authentication fails.
-   */
-  private async setupAnacondaAI(): Promise<void> {
-    if (!this.isUsingAnacondaProvider()) {
-      return;
-    }
-
-    try {
-      if (this.config.enableLogging) {
-        console.log(
-          "🔑 Setting up Anaconda AI client for authenticated user..."
-        );
-      }
-
-      const apiKey = await this.getApiKeyForAI();
-
-      if (apiKey) {
-        this.registerAIClient("anaconda", { apiKey });
-
-        if (this.config.enableLogging) {
-          console.log(
-            "✅ Anaconda AI client registered - refreshing available models..."
-          );
-        }
-
-        // Refresh models after registering the authenticated client
-        await this.refreshModels();
-      } else {
-        if (this.config.enableLogging) {
-          console.warn(
-            "⚠️  Authentication failed for Anaconda AI - only Ollama models will be available"
-          );
+        // Test if we can actually create the client
+        try {
+          const testClient = aiRegistry.createClient("anaconda");
+          console.log("✅ Anaconda client creation test: SUCCESS");
+          console.log("🔍 Client isReady check:", await testClient.isReady());
+        } catch (error) {
+          console.error("❌ Anaconda client creation test: FAILED", error);
         }
       }
-    } catch (error) {
+    } else {
+      // Development mode - Ollama is available by default
       if (this.config.enableLogging) {
-        console.error("❌ Failed to setup Anaconda AI client:", error);
-        console.warn("Continuing with Ollama-only AI support...");
+        console.log("🔧 Development mode - using Ollama client");
+        console.log("🔍 Available providers:", aiRegistry.getProviders());
       }
     }
   }
@@ -208,73 +162,33 @@ export class AiClientManager {
   }
 
   /**
-   * Setup all AI clients (Anaconda + any others)
+   * Setup AI clients for the runtime agent
    *
-   * This is the main entry point that should be called during runtime startup.
-   * If AI clients were already set up during authentication, this will skip
-   * client registration and only do model discovery.
+   * Runtime agents are responsible for registering their own AI clients
+   * based on the environment (Anaconda vs development).
    */
   public async setupAiClients(): Promise<void> {
-    // Check if AI clients were already set up during auth
-    if (areAiClientsReady()) {
+    if (this.config.enableLogging) {
+      console.log("🔧 Setting up AI clients for runtime environment");
+    }
+
+    // Runtime agents always register their own clients
+    await this.registerEnvironmentClients();
+
+    if (this.config.enableLogging) {
+      console.log("🔍 Post-registration debug:");
+      console.log("   Available providers:", aiRegistry.getProviders());
+      console.log("   Environment status:", getAiSetupStatus());
+    }
+
+    // Perform initial model discovery after client registration
+    if (this.config.discoverModelsOnSetup) {
       if (this.config.enableLogging) {
-        const status = getAiSetupStatus();
-        console.log("🔗 AI clients already registered during auth");
-        if (status.hasAnaconda) {
-          console.log("   ✓ Anaconda client ready");
-        }
-        console.log("   ✓ Ollama client ready (built-in)");
+        console.log(
+          "🔄 Performing model discovery after client registration..."
+        );
       }
-
-      // Just do model discovery since clients are already registered
-      if (this.config.discoverModelsOnSetup) {
-        await this.performInitialModelDiscovery();
-      }
-      return;
-    }
-
-    // Fallback: Setup clients here if auth setup didn't happen
-    if (this.config.enableLogging) {
-      console.log(
-        "🔧 Setting up AI clients during runtime startup (auth setup skipped)"
-      );
-    }
-
-    // Setup Anaconda AI client with user's authentication if needed
-    await this.setupAnacondaAI();
-
-    // If Anaconda setup didn't refresh models, do initial discovery
-    if (
-      this.config.discoverModelsOnSetup &&
-      this.discoveredModels.length === 0
-    ) {
       await this.performInitialModelDiscovery();
-    }
-  }
-
-  /**
-   * Register an AI client with the global registry
-   *
-   * @param provider - AI provider name ("anaconda", "openai", etc.)
-   * @param config - Configuration object with apiKey and other settings
-   */
-  public registerAIClient(
-    provider: "anaconda" | "openai",
-    config: { apiKey: string; [key: string]: any }
-  ): void {
-    switch (provider) {
-      case "anaconda":
-        aiRegistry.register(provider, () => new AnacondaAIClient(config));
-        break;
-      case "openai":
-        aiRegistry.register(provider, () => new OpenAIClient(config));
-        break;
-      default:
-        throw new Error(`Unsupported AI provider: ${provider}`);
-    }
-
-    if (this.config.enableLogging) {
-      console.log(`🔗 Registered ${provider} AI client`);
     }
   }
 

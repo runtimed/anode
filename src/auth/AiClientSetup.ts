@@ -6,7 +6,7 @@
  * ensures AI capabilities are ready immediately.
  */
 
-import { aiRegistry, AnacondaAIClient } from "@runtimed/ai-core";
+// AI client imports removed - environment detection only
 
 /**
  * Configuration for early AI client setup
@@ -37,10 +37,7 @@ export interface AiSetupStatus {
  */
 const registeredClients: Record<string, any> = {};
 
-/**
- * Cached Anaconda client instance
- */
-let cachedAnacondaClient: AnacondaAIClient | null = null;
+// Client caching removed - runtime agents handle client registration
 
 // Global state to track setup status
 let aiSetupStatus: AiSetupStatus = {
@@ -51,96 +48,59 @@ let aiSetupStatus: AiSetupStatus = {
 };
 
 /**
- * Check if we're using the Anaconda provider
+ * Check if we're using the Anaconda provider by checking hostname
  */
 function isUsingAnacondaProvider(): boolean {
+  const hostname =
+    typeof window !== "undefined" ? window.location.hostname : "";
   const authUri = import.meta.env.VITE_AUTH_URI;
-  return authUri?.startsWith("https://auth.anaconda.com/") ?? false;
+
+  // Check if we're on a *.runt.run domain
+  const isRuntDomain = hostname.endsWith(".runt.run");
+
+  // Fallback to auth URI check for backwards compatibility
+  const isAnacondaAuth =
+    authUri?.startsWith("https://auth.anaconda.com/") ?? false;
+
+  const result = isRuntDomain || isAnacondaAuth;
+
+  console.log("🔍 Environment detection:", {
+    hostname,
+    authUri,
+    isRuntDomain,
+    isAnacondaAuth,
+    result: result ? "Anaconda" : "Development",
+  });
+
+  return result;
 }
 
 /**
- * Get the API key to use (RUNT_API_KEY env var or access token)
+ * Setup environment flags for AI client detection
  */
-function getApiKey(accessToken: string): string {
-  // In browser environment, we can't access process.env.RUNT_API_KEY
-  // Users should set this in their runtime environment for local development
-  return accessToken;
-}
-
-/**
- * Setup Anaconda AI client if using Anaconda provider
- *
- * Uses access token for authentication. For local development,
- * users can set RUNT_API_KEY environment variable in their runtime.
- */
-function setupAnacondaAI(
-  accessToken: string,
-  enableLogging: boolean = true
-): void {
-  if (!isUsingAnacondaProvider()) {
-    return;
-  }
-
+function setupEnvironmentFlags(enableLogging: boolean = true): void {
   try {
-    if (enableLogging) {
-      console.log("🔑 Setting up Anaconda AI client...");
-      console.log(
-        "💡 Tip: Set RUNT_API_KEY environment variable for local development"
-      );
-    }
+    const isAnaconda = isUsingAnacondaProvider();
 
-    const apiKey = getApiKey(accessToken);
-    if (!apiKey?.trim()) {
-      throw new Error("Invalid access token provided");
-    }
-
-    if (enableLogging) {
-      console.log(
-        "🔍 Debug: API key for Anaconda client:",
-        apiKey ? `${apiKey.substring(0, 20)}...` : "null/undefined"
-      );
-    }
-
-    // Create Anaconda AI client instance
-    if (enableLogging) {
-      console.log(
-        "🔍 Debug: Creating Anaconda client with API key:",
-        apiKey ? `${apiKey.substring(0, 20)}...` : "null/undefined"
-      );
-    }
-
-    const anacondaClient = new AnacondaAIClient({
-      apiKey,
-      baseURL: "https://anaconda.com/api/assistant/v3/groq",
-      defaultHeaders: {
-        "X-Client-Version": "0.2.0",
-        "X-Client-Source": "anaconda-runt-dev",
-      },
-    });
-
-    // Cache the client instance
-    cachedAnacondaClient = anacondaClient;
-
-    // Register the client in both local registry and aiRegistry
-    registeredClients.anaconda = anacondaClient;
-    aiRegistry.register("anaconda", () => {
-      if (!cachedAnacondaClient) {
-        throw new Error(
-          "Anaconda client not properly initialized during auth setup"
+    if (isAnaconda) {
+      aiSetupStatus.hasAnaconda = true;
+      if (enableLogging) {
+        console.log(
+          "🏢 Detected Anaconda environment - will register Anaconda AI client"
         );
       }
-      return cachedAnacondaClient;
-    });
-
-    if (enableLogging) {
-      console.log("✅ Anaconda AI client registered");
+    } else {
+      aiSetupStatus.hasAnaconda = false;
+      if (enableLogging) {
+        console.log(
+          "🔧 Detected development environment - will register Ollama client"
+        );
+      }
     }
-
-    aiSetupStatus.hasAnaconda = true;
   } catch (error) {
     const errorMsg = error instanceof Error ? error.message : String(error);
     if (enableLogging) {
-      console.error("❌ Failed to setup Anaconda AI client:", errorMsg);
+      console.error("❌ Failed to detect environment:", errorMsg);
     }
     aiSetupStatus.error = errorMsg;
     aiSetupStatus.hasAnaconda = false;
@@ -148,21 +108,18 @@ function setupAnacondaAI(
 }
 
 /**
- * Setup AI clients early in the auth flow
+ * Setup environment detection for AI clients
  *
- * This should be called when authentication is available.
- * It registers AI clients immediately so they're available for all runtimes.
- *
- * For local development, users can set RUNT_API_KEY environment variable
- * in their runtime environment (not browser).
+ * This detects the deployment environment and sets up flags.
+ * Actual AI client registration happens in the runtime agents.
  */
 export function setupEarlyAiClients(config: EarlyAiSetupConfig): void {
-  const { accessToken, enableLogging = true } = config;
+  const { enableLogging = true } = config;
 
-  // Guard: Skip if clients are already set up (prevent excessive calls)
-  if (areAiClientsReady()) {
+  // Guard: Skip if already set up (prevent excessive calls)
+  if (aiSetupStatus.isSetup) {
     if (enableLogging) {
-      console.log("🔗 AI clients already set up, skipping...");
+      console.log("🔗 Environment already detected, skipping...");
     }
     return;
   }
@@ -177,29 +134,26 @@ export function setupEarlyAiClients(config: EarlyAiSetupConfig): void {
 
   try {
     if (enableLogging) {
-      console.log("🚀 Setting up AI clients during authentication...");
+      console.log("🚀 Setting up AI environment detection...");
     }
 
-    // Setup Anaconda AI if needed
-    setupAnacondaAI(accessToken, enableLogging);
+    // Set up environment flags
+    setupEnvironmentFlags(enableLogging);
 
     aiSetupStatus.isSetup = true;
 
     if (enableLogging) {
-      const providers = [];
-      if (aiSetupStatus.hasAnaconda) providers.push("anaconda");
-      providers.push("ollama"); // Always available
-
-      console.log(
-        `✅ AI clients ready: ${providers.join(", ")} (${providers.length} provider${providers.length === 1 ? "" : "s"})`
-      );
+      const environment = aiSetupStatus.hasAnaconda
+        ? "Anaconda"
+        : "Development";
+      console.log(`✅ Environment detected: ${environment}`);
     }
   } catch (error) {
     const errorMsg = error instanceof Error ? error.message : String(error);
     aiSetupStatus.error = errorMsg;
 
     if (enableLogging) {
-      console.error("❌ Failed to setup AI clients during auth:", error);
+      console.error("❌ Failed to setup AI environment detection:", error);
     }
   }
 }
@@ -218,26 +172,16 @@ export function getRegisteredClients() {
   return { ...registeredClients };
 }
 
-/**
- * Get the cached Anaconda client (if available)
- */
-export function getAnacondaClient(): AnacondaAIClient | null {
-  return cachedAnacondaClient;
-}
+// getAnacondaClient removed - clients are managed by runtime agents
 
 /**
- * Check if AI clients are already set up
+ * Check if environment detection is complete
  *
- * Runtime agents can use this to skip their own AI setup if it's already done.
+ * This only checks if we've detected the environment, not if clients are registered.
+ * Runtime agents handle actual client registration based on environment.
  */
 export function areAiClientsReady(): boolean {
-  // Check if we have actual clients registered, not just status flags
-  const hasAnaconda =
-    registeredClients.anaconda ||
-    aiRegistry.getProviders().includes("anaconda");
-  const hasLocalClients = Object.keys(registeredClients).length > 0;
-
-  return aiSetupStatus.isSetup && (hasAnaconda || hasLocalClients);
+  return aiSetupStatus.isSetup;
 }
 
 /**
@@ -255,7 +199,6 @@ export function resetAiSetup(): void {
   Object.keys(registeredClients).forEach(
     (key) => delete registeredClients[key]
   );
-  cachedAnacondaClient = null;
 
   // Note: aiRegistry doesn't have a clearClients method
   // Individual clients are cleared when registeredClients is cleared

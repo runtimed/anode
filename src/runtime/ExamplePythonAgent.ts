@@ -273,12 +273,6 @@ export class ExamplePythonAgent extends LocalRuntimeAgent {
    * This delegates to the shared AiClientManager, demonstrating
    * how the same AI setup can be reused across different runtime types.
    */
-  public registerAIClient(
-    provider: "anaconda" | "openai",
-    config: { apiKey: string; [key: string]: any }
-  ): void {
-    this.aiManager.registerAIClient(provider, config);
-  }
 
   /**
    * Refresh available AI models after registering new clients

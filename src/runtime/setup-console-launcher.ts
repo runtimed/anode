@@ -31,6 +31,59 @@ export function useConsoleRuntimeLauncher() {
       consoleLauncher.setStore(store as any); // Type cast for React LiveStore API
       consoleLauncher.setAuth(userId, accessToken);
 
+      // Create test function for raw Anaconda API calls
+      const testAnacondaAPI = async (
+        prompt: string = "Hello, how are you?"
+      ) => {
+        console.log("🧪 Testing raw Anaconda API call...");
+        console.log(
+          "🔑 Using access token:",
+          accessToken ? `${accessToken.substring(0, 20)}...` : "null"
+        );
+
+        try {
+          const response = await fetch(
+            "https://anaconda.com/api/assistant/v3/groq/chat/completions",
+            {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${accessToken}`,
+                "X-Client-Version": "0.2.0",
+                "X-Client-Source": "anaconda-runt-dev",
+              },
+              body: JSON.stringify({
+                model: "moonshotai/kimi-k2-instruct-0905",
+                messages: [{ role: "user", content: prompt }],
+                max_tokens: 100,
+                temperature: 0.7,
+              }),
+            }
+          );
+
+          console.log("📡 API Response status:", response.status);
+          console.log(
+            "📡 API Response headers:",
+            Object.fromEntries(response.headers.entries())
+          );
+
+          if (!response.ok) {
+            const errorText = await response.text();
+            console.error("❌ API Error:", errorText);
+            return { error: errorText, status: response.status };
+          }
+
+          const data = await response.json();
+          console.log("✅ API Success:", data);
+          return data;
+        } catch (error) {
+          console.error("❌ Network Error:", error);
+          return {
+            error: error instanceof Error ? error.message : String(error),
+          };
+        }
+      };
+
       // Add AI debugging utilities to global scope
       if (typeof window !== "undefined") {
         (window as any).__RUNT_DEBUG__ = {
@@ -38,6 +91,7 @@ export function useConsoleRuntimeLauncher() {
           getAiStatus: getAiSetupStatus,
           areAiClientsReady: areAiClientsReady,
           resetAiSetup: resetAiSetup,
+          testAnacondaAPI: testAnacondaAPI,
         };
       }
 
@@ -52,6 +106,9 @@ export function useConsoleRuntimeLauncher() {
       );
       console.log(
         "  window.__RUNT_DEBUG__.resetAiSetup() - Reset AI setup state"
+      );
+      console.log(
+        "  await window.__RUNT_DEBUG__.testAnacondaAPI('your prompt') - Test raw API call"
       );
     }
   }, [store, isAuthenticated, userId, accessToken]);
