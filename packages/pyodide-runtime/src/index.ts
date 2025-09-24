@@ -166,6 +166,8 @@ export class PyodideRuntimeAgent extends LocalRuntimeAgent {
         await context.display({
           "text/plain": "Not yet implemented",
         });
+
+        return { success: true };
       } catch (error) {
         const errorMsg = error instanceof Error ? error.message : String(error);
 
