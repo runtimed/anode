@@ -176,7 +176,7 @@ async function initializePyodide(
         data: { type: "stderr", text },
       });
     },
-    fsInit: async (FS, info) => {
+    fsInit: async (FS: any, info: any) => {
       // Preload Python modules as proper files in the filesystem
       self.postMessage({
         type: "log",
@@ -453,7 +453,7 @@ globals()['js_clear_callback'] = runt_runtime.js_clear_callback
             });
           }
         })
-        .catch((error) => {
+        .catch((error: unknown) => {
           if (!isShuttingDown) {
             self.postMessage({
               type: "log",

@@ -281,6 +281,6 @@ export async function createLocalRuntimeAgent<T extends LocalRuntimeAgent>(
 /**
  * Type guard to check if an object is a LocalRuntimeAgent
  */
-export function isLocalRuntimeAgent(obj: any): obj is LocalRuntimeAgent {
+export function isLocalRuntimeAgent(obj: unknown): obj is LocalRuntimeAgent {
   return obj instanceof LocalRuntimeAgent;
 }
