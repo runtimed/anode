@@ -363,6 +363,8 @@ export const ExecutableCell: React.FC<ExecutableCellProps> = ({
       {!isSourceLessAiOutput && (
         <div className="cell-header mb-2 flex items-center justify-between pr-1 pl-4 sm:pr-4">
           <div className="flex items-center gap-1">
+            <pre>fracIndex: {cell.fractionalIndex}</pre>
+
             {dragHandle}
             <CellTypeSelector cell={cell} onCellTypeChange={changeCellType} />
 

@@ -1,7 +1,6 @@
 import { useAuthenticatedUser } from "@/auth";
 import { AuthGuard } from "@/auth/AuthGuard";
 import { cellTypeStyles } from "@/components/notebook/cell/CellTypeButtons";
-import { ExecutableCell } from "@/components/notebook/cell/ExecutableCell";
 import { RuntimePanel } from "@/components/notebook/sidebar-panels/RuntimePanel";
 import { useNotebook } from "@/components/notebooks/notebook/helpers";
 import { TitleEditor } from "@/components/notebooks/notebook/TitleEditor";
@@ -9,7 +8,6 @@ import { SimpleUserProfile } from "@/components/notebooks/SimpleUserProfile";
 import { TrpcProvider, useTrpc } from "@/components/TrpcProvider";
 import { Button } from "@/components/ui/button";
 import { useAddCell } from "@/hooks/useAddCell";
-import { DragDropSortProvider } from "@/hooks/useDragDropCellSort";
 import { CustomLiveStoreProvider } from "@/livestore";
 import { useQuery, useStore } from "@livestore/react";
 import {
@@ -196,43 +194,49 @@ function AddCellButtons() {
 }
 
 function CellList() {
-  const cellReferences = useQuery(cellReferences$);
+  const cellReferences = useQuery(
+    queryDb(
+      tables.cells
+        .select("id", "fractionalIndex", "cellType", "source")
+        .orderBy("fractionalIndex", "asc"),
+      { label: "cells.withIndices" }
+    )
+  );
 
   return (
-    <DragDropSortProvider>
-      {/* Cell list */}
-      <div className="relative flex flex-col gap-2">
-        {cellReferences.map((cell) => (
-          <div key={cell.id}>
-            <Cell cell={cell} />
-          </div>
-        ))}
-      </div>
-    </DragDropSortProvider>
+    <div className="relative flex flex-col gap-2">
+      {cellReferences.map((cell) => (
+        <div key={cell.id}>
+          {cell.id}
+          <br />
+          Fractional Index from cellReferences: {cell.fractionalIndex}
+          <br />
+          <Cell cellId={cell.id} />
+        </div>
+      ))}
+    </div>
   );
 }
 
-function Cell({
-  cell,
-}: {
-  cell: {
-    id: string;
-    fractionalIndex: string | null;
-    cellType: string;
-    source: string;
-  };
-}) {
-  const cell2 = useQuery(queries.cellQuery.byId(cell.id));
-
-  if (!cell2) {
-    console.warn("Asked to render a cell that does not exist");
-    return null;
-  }
+function Cell({ cellId }: { cellId: string }) {
+  const cell = useQuery(
+    queryDb(
+      tables.cells
+        .select()
+        .where({ id: cellId })
+        .first({
+          fallback: () => null,
+        }),
+      {
+        deps: [cellId],
+        label: `cell.${cellId}`,
+      }
+    )
+  );
 
   return (
-    <div className="border border-gray-200">
-      <pre className="text-right text-xs">{JSON.stringify(cell)}</pre>
-      <ExecutableCell cell={cell2} />
+    <div>
+      Fractional Index from individual cell query: {cell?.fractionalIndex}
     </div>
   );
 }
