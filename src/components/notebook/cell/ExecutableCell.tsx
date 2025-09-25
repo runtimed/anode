@@ -350,7 +350,7 @@ export const ExecutableCell: React.FC<ExecutableCellProps> = ({
     >
       {/* Cell Header */}
       {!isSourceLessAiOutput && (
-        <div className="cell-header mb-2 flex items-center justify-between pr-1 pl-6 sm:pr-4">
+        <div className="cell-header flex items-center justify-between pr-1 pb-2 pl-6 sm:pr-4">
           <div className="flex items-center gap-3">
             <CellTypeSelector cell={cell} onCellTypeChange={changeCellType} />
 
