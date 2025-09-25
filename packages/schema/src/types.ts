@@ -18,14 +18,10 @@ export const MediaRepresentationSchema = Schema.Union(
   })
 );
 
+export const cellTypes = ["code", "markdown", "sql", "ai", "raw"] as const;
+
 // Schema for cell type validation
-export const CellTypeSchema = Schema.Literal(
-  "code",
-  "markdown",
-  "sql",
-  "ai",
-  "raw"
-);
+export const CellTypeSchema = Schema.Literal(...cellTypes);
 
 export type CellType = typeof CellTypeSchema.Type;
 export type CellTypeNoRaw = Exclude<CellType, "raw">;
