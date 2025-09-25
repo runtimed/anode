@@ -15,6 +15,7 @@ import {
   cellTypes,
   events,
   moveCellBetween,
+  moveCellBetweenWithRebalancing,
   queries,
   queryDb,
   tables,
@@ -148,7 +149,8 @@ function AddCellButtons() {
   const cellReferences = useQuery(cellReferences$);
   const userId = useAuthenticatedUser();
   const { store } = useStore();
-  const moveLastCellToTop = useMoveLastCellToTop();
+  const { moveLastCellToTop, moveLastCellToTopWithRebalancing } =
+    useMoveLastCellToTop();
 
   const { addCell } = useAddCell();
 
@@ -176,6 +178,9 @@ function AddCellButtons() {
           </Button>
         ))}
         <Button onClick={moveLastCellToTop}>Move Last Cell to Top</Button>
+        <Button onClick={moveLastCellToTopWithRebalancing}>
+          Move Last Cell to Top With Rebalancing
+        </Button>
       </div>
     </>
   );
@@ -216,8 +221,8 @@ function Cell({
   }
 
   return (
-    <div>
-      {/* <pre>{JSON.stringify(cell)}</pre> */}
+    <div className="border border-gray-200">
+      <pre className="text-right text-xs">{JSON.stringify(cell)}</pre>
       <ExecutableCell cell={cell2} />
     </div>
   );
@@ -240,18 +245,22 @@ export function useMoveLastCellToTop() {
     if (moveEvent) {
       store.commit(moveEvent);
     }
-
-    // const moveEvent = moveCellBetweenWithRebalancing(
-    //   lastCell,
-    //   null,
-    //   cellReferences[0],
-    //   cellReferences,
-    //   userId
-    // );
-    // if (moveEvent.events) {
-    //   moveEvent.events.forEach((event) => store.commit(event));
-    // }
   }, [store, userId]);
 
-  return moveLastCellToTop;
+  const moveLastCellToTopWithRebalancing = useCallback(() => {
+    const cellReferences = store.query(queries.cellsWithIndices$);
+    const lastCell = cellReferences[cellReferences.length - 1];
+    const moveEvent = moveCellBetweenWithRebalancing(
+      lastCell,
+      null,
+      cellReferences[0],
+      cellReferences,
+      userId
+    );
+    if (moveEvent.events) {
+      moveEvent.events.forEach((event) => store.commit(event));
+    }
+  }, [store, userId]);
+
+  return { moveLastCellToTop, moveLastCellToTopWithRebalancing };
 }
