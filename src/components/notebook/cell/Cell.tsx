@@ -9,10 +9,11 @@ interface CellProps {
   cellId: string;
   isFocused: boolean;
   contextSelectionMode: boolean;
+  dragHandle?: React.ReactNode;
 }
 
 export const Cell: React.FC<CellProps> = memo(
-  ({ cellId, isFocused, contextSelectionMode }) => {
+  ({ cellId, isFocused, contextSelectionMode, dragHandle }) => {
     const cell = useQuery(queries.cellQuery.byId(cellId));
 
     if (!cell) {
@@ -27,12 +28,14 @@ export const Cell: React.FC<CellProps> = memo(
             cell={cell}
             autoFocus={isFocused}
             contextSelectionMode={contextSelectionMode}
+            dragHandle={dragHandle}
           />
         ) : (
           <ExecutableCell
             cell={cell}
             autoFocus={isFocused}
             contextSelectionMode={contextSelectionMode}
+            dragHandle={dragHandle}
           />
         )}
       </ErrorBoundary>
