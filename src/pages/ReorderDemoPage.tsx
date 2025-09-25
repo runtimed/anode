@@ -40,10 +40,6 @@ export const ReorderDemoPage = () => {
 function InnerDemo() {
   const trpc = useTrpc();
 
-  const createNotebookMutation = useMutation(
-    trpc.createNotebook.mutationOptions()
-  );
-
   const deleteNotebookMutation = useMutation(
     trpc.deleteNotebook.mutationOptions()
   );
@@ -52,25 +48,7 @@ function InnerDemo() {
 
   if (nbId === undefined || nbId === "") {
     console.log("Creating new nb", nbId);
-    return (
-      <div>
-        <Button
-          onClick={async () => {
-            const result = await createNotebookMutation.mutateAsync({
-              title: "Test Nb",
-            });
-            if (result === null) {
-              alert("There was an error creating notebook");
-              return;
-            }
-            setNbId(result.id);
-            document.location.search = `?nbId=${result.id}`;
-          }}
-        >
-          Create Nb
-        </Button>
-      </div>
-    );
+    return <EmptyState onCreate={setNbId} />;
   }
 
   return (
@@ -101,6 +79,36 @@ function InnerDemo() {
         </div>
       </CustomLiveStoreProvider>
     </>
+  );
+}
+
+function EmptyState({ onCreate }: { onCreate: (nbId: string) => void }) {
+  const trpc = useTrpc();
+
+  const createNotebookMutation = useMutation(
+    trpc.createNotebook.mutationOptions()
+  );
+
+  return (
+    <div className="flex flex-col gap-2 p-2">
+      <h1 className="text-2xl font-bold">Reorder Demo</h1>
+      <Button
+        size="lg"
+        onClick={async () => {
+          const result = await createNotebookMutation.mutateAsync({
+            title: "Test Nb",
+          });
+          if (result === null) {
+            alert("There was an error creating notebook");
+            return;
+          }
+          onCreate(result.id);
+          document.location.search = `?nbId=${result.id}`;
+        }}
+      >
+        Create Nb
+      </Button>
+    </div>
   );
 }
 
