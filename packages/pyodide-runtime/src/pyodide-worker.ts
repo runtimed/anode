@@ -156,8 +156,11 @@ async function initializePyodide(
   // Store interrupt buffer (if available)
   interruptBuffer = buffer || null;
 
-  // Get cache configuration and packages to load
-  const basePackages: string[] = [];
+  // Get cache configuration and packages to load - minimal set required for runtime
+  const basePackages: string[] = [
+    "ipython", // Required for IPython shell
+    "micropip", // Required for dynamic package installation
+  ];
 
   // Load Pyodide with bootstrap packages for maximum efficiency
   pyodide = await loadPyodide({
@@ -415,8 +418,10 @@ async function setupIPythonEnvironment(): Promise<void> {
     data: "Loading pseudo-IPython environment from preloaded modules",
   });
 
-  // Install pydantic first (required by registry.py)
-  await pyodide!.loadPackage("pydantic");
+  // Install pydantic first (required by registry.py) using micropip
+  await pyodide!.runPythonAsync(
+    "import micropip; await micropip.install('pydantic')"
+  );
 
   // Import and initialize the runt_runtime package
   await pyodide!.runPythonAsync(`
