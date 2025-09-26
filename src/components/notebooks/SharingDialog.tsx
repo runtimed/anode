@@ -45,16 +45,12 @@ export const SharingDialog: React.FC<SharingDialogProps> = ({
 
   const canShare = true; // TODO: Check actual permission
 
-  const handleOpenChange = (isOpen: boolean) => {
-    onOpenChange(isOpen);
-  };
-
   if (isLoading || !nb) {
     return null;
   }
 
   return (
-    <Dialog open={isOpen} onOpenChange={handleOpenChange}>
+    <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogContent
         className={cn("max-w-md", isRefetching && "animate-pulse")}
       >
@@ -67,25 +63,69 @@ export const SharingDialog: React.FC<SharingDialogProps> = ({
 
         <div className="space-y-6">
           {canShare && <AddCollaborator notebookId={notebookId} />}
-          <CurrentAccess canShare={canShare} notebookId={notebookId}>
-            {nb.collaborators?.map((collaborator) => (
-              <CollaboratorItem
-                key={collaborator.id}
-                notebookId={notebookId}
-                collaborator={collaborator}
-                canShare={canShare}
-              />
-            ))}
+          <CurrentAccess>
+            <OwnerItem notebookId={notebookId} />
+            <Collaborators notebookId={notebookId} canShare={canShare} />
           </CurrentAccess>
         </div>
         <DialogFooter>
           <CopyLinkButton notebookId={notebookId} />
-          <Button onClick={() => handleOpenChange(false)}>Done</Button>
+          <Button onClick={() => onOpenChange(false)}>Done</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
   );
 };
+
+function Collaborators({
+  notebookId,
+  canShare,
+}: {
+  notebookId: string;
+  canShare: boolean;
+}) {
+  const trpc = useTrpc();
+
+  const {
+    data: collaborators,
+    isLoading: isLoadingCollaborators,
+    isRefetching: isRefetchingCollaborators,
+  } = useQuery(trpc.notebookCollaborators.queryOptions({ nbId: notebookId }));
+
+  if (
+    !collaborators ||
+    (collaborators.length === 0 && !isLoadingCollaborators)
+  ) {
+    return (
+      <div className="rounded border-2 border-dashed border-gray-200 p-6 text-center">
+        <div className="text-sm text-gray-500">No collaborators yet</div>
+        {!canShare && (
+          <div className="mt-1 text-xs text-gray-400">
+            Only the owner can add collaborators
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  return (
+    <div
+      className={cn(
+        "space-y-2",
+        (isLoadingCollaborators || isRefetchingCollaborators) && "animate-pulse"
+      )}
+    >
+      {collaborators?.map((collaborator) => (
+        <CollaboratorItem
+          key={collaborator.id}
+          notebookId={notebookId}
+          collaborator={collaborator}
+          canShare={canShare}
+        />
+      ))}
+    </div>
+  );
+}
 
 function AddCollaborator({ notebookId }: { notebookId: string }) {
   const trpc = useTrpc();
@@ -251,6 +291,25 @@ function FoundUserMessage({
   );
 }
 
+function OwnerItem({ notebookId }: { notebookId: string }) {
+  const trpc = useTrpc();
+
+  const { data: owner } = useQuery(
+    trpc.notebookOwner.queryOptions({ nbId: notebookId })
+  );
+
+  if (!owner) {
+    return null;
+  }
+
+  return (
+    <div className="flex items-center justify-between rounded border bg-blue-50 p-3">
+      <div className="font-medium">{formatUserName(owner)}</div>
+      <Badge variant="default">Owner</Badge>
+    </div>
+  );
+}
+
 function CollaboratorItem({
   notebookId,
   collaborator,
@@ -306,67 +365,14 @@ function CollaboratorItem({
   );
 }
 
-function CurrentAccess({
-  canShare,
-  children,
-  notebookId,
-}: {
-  canShare: boolean;
-  children: React.ReactNode;
-  notebookId: string;
-}) {
-  const trpc = useTrpc();
-
-  const { data: owner, isLoading: isLoadingOwner } = useQuery(
-    trpc.notebookOwner.queryOptions({ nbId: notebookId })
-  );
-
-  const {
-    data: collaborators,
-    isLoading: isLoadingCollaborators,
-    isRefetching: isRefetchingCollaborators,
-  } = useQuery(trpc.notebookCollaborators.queryOptions({ nbId: notebookId }));
-
+function CurrentAccess({ children }: { children: React.ReactNode }) {
   return (
     <div className="space-y-3">
       <div className="flex items-center gap-2">
         <User className="h-4 w-4 text-gray-500" />
         <label className="text-sm font-medium">Current access</label>
       </div>
-
-      <div
-        className={cn(
-          "space-y-2",
-          (isLoadingCollaborators || isRefetchingCollaborators) &&
-            "animate-pulse"
-        )}
-      >
-        {/* Owner */}
-        <div className="flex items-center justify-between rounded border bg-blue-50 p-3">
-          <div>
-            <div className="font-medium">
-              {isLoadingOwner ? "Loading..." : formatUserName(owner)}
-            </div>
-            <div className="text-xs text-gray-600">Owner</div>
-          </div>
-          <Badge variant="default">Owner</Badge>
-        </div>
-
-        {/* Collaborators */}
-        {children}
-
-        {(!collaborators ||
-          (collaborators.length === 0 && !isLoadingCollaborators)) && (
-          <div className="rounded border-2 border-dashed border-gray-200 p-6 text-center">
-            <div className="text-sm text-gray-500">No collaborators yet</div>
-            {!canShare && (
-              <div className="mt-1 text-xs text-gray-400">
-                Only the owner can add collaborators
-              </div>
-            )}
-          </div>
-        )}
-      </div>
+      <div className="space-y-2">{children}</div>
     </div>
   );
 }
