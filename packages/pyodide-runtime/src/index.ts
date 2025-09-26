@@ -8,6 +8,12 @@ import {
   type ExecutionContext,
   type RuntimeCapabilities,
 } from "@runtimed/agent-core";
+
+// Extend global scope for debugging
+declare global {
+  var __PYODIDE_WORKER__: Worker | null;
+  var __PYODIDE_RUNTIME_AGENT__: PyodideRuntimeAgent | null;
+}
 import {
   LocalRuntimeAgent,
   type LocalRuntimeConfig,
@@ -213,6 +219,12 @@ export class PyodideRuntimeAgent extends LocalRuntimeAgent {
 
     // Initialize Pyodide worker
     await this.initializePyodideWorker();
+
+    // Expose runtime agent globally for debugging
+    globalThis.__PYODIDE_RUNTIME_AGENT__ = this;
+    console.log(
+      "🔧 Pyodide runtime agent exposed as globalThis.__PYODIDE_RUNTIME_AGENT__ for debugging"
+    );
 
     return agent;
   }
@@ -551,6 +563,12 @@ export class PyodideRuntimeAgent extends LocalRuntimeAgent {
         this.handleWorkerCrash("Worker message error");
       });
 
+      // Expose worker globally for debugging
+      globalThis.__PYODIDE_WORKER__ = this.worker;
+      console.log(
+        "🔧 Pyodide worker exposed as globalThis.__PYODIDE_WORKER__ for debugging"
+      );
+
       const packagesToLoad: string[] = [];
 
       // Initialize Pyodide in worker
@@ -619,6 +637,13 @@ export class PyodideRuntimeAgent extends LocalRuntimeAgent {
   }
 
   /**
+   * Send message to worker for debugging
+   */
+  public async sendDebugMessage(type: string, data: unknown): Promise<unknown> {
+    return this.sendWorkerMessage(type, data);
+  }
+
+  /**
    * Cleanup worker resources
    */
   private async cleanupWorker(): Promise<void> {
@@ -656,4 +681,71 @@ export async function createAgent(
   const agent = new PyodideRuntimeAgent(config);
   await agent.start();
   return agent;
+}
+
+// Global debug helpers
+if (typeof globalThis !== "undefined") {
+  globalThis.__PYODIDE_DEBUG__ = {
+    async runPython(code: string) {
+      const agent = globalThis.__PYODIDE_RUNTIME_AGENT__;
+      if (!agent) {
+        throw new Error(
+          "No Pyodide runtime agent available. Launch Python runtime first."
+        );
+      }
+      return await agent.sendDebugMessage("debug", { code });
+    },
+
+    async checkStatus() {
+      const agent = globalThis.__PYODIDE_RUNTIME_AGENT__;
+      if (!agent) {
+        return { agent: null, worker: null };
+      }
+      return {
+        agent: !!agent,
+        worker: !!globalThis.__PYODIDE_WORKER__,
+        status: agent.getStatus?.() || "unknown",
+      };
+    },
+
+    async loadPackage(packageName: string) {
+      const agent = globalThis.__PYODIDE_RUNTIME_AGENT__;
+      if (!agent) {
+        throw new Error("No Pyodide runtime agent available");
+      }
+      return await agent.sendDebugMessage("debug", {
+        code: `await pyodide.loadPackage("${packageName}")`,
+      });
+    },
+
+    async installPackage(packageName: string) {
+      const agent = globalThis.__PYODIDE_RUNTIME_AGENT__;
+      if (!agent) {
+        throw new Error("No Pyodide runtime agent available");
+      }
+      return await agent.sendDebugMessage("debug", {
+        code: `import micropip; await micropip.install("${packageName}")`,
+      });
+    },
+
+    help() {
+      console.log("🔧 Pyodide Debug Helpers:");
+      console.log("  __PYODIDE_DEBUG__.runPython(code) - Run Python code");
+      console.log("  __PYODIDE_DEBUG__.checkStatus() - Check runtime status");
+      console.log(
+        "  __PYODIDE_DEBUG__.loadPackage(name) - Load Pyodide package"
+      );
+      console.log(
+        "  __PYODIDE_DEBUG__.installPackage(name) - Install via micropip"
+      );
+      console.log("  __PYODIDE_RUNTIME_AGENT__ - Runtime agent instance");
+      console.log("  __PYODIDE_WORKER__ - Worker instance");
+    },
+  };
+
+  // Show help on first load
+  console.log(
+    "🔧 Pyodide debug helpers available at globalThis.__PYODIDE_DEBUG__"
+  );
+  console.log("   Try: __PYODIDE_DEBUG__.help()");
 }

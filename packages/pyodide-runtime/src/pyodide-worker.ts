@@ -21,6 +21,11 @@ import runtRuntimeInterruptPatchesPy from "./runt_runtime_interrupt_patches.py?r
 
 declare const self: DedicatedWorkerGlobalScope;
 
+// Extend global scope for debugging
+declare global {
+  var pyodide: PyodideInterface | null;
+}
+
 let pyodide: PyodideInterface | null = null;
 let interruptBuffer: SharedArrayBuffer | null = null;
 let isShuttingDown = false;
@@ -113,6 +118,33 @@ await run_registered_tool("${data.toolName}", kwargs_string)
 
           // Also log to console for debugging
           console.error(`Tool execution failed for ${data.toolName}:`, error);
+        }
+        break;
+      }
+
+      case "debug": {
+        // Debug message handler - allows direct access to pyodide instance
+        try {
+          if (!pyodide) {
+            throw new Error("Pyodide not initialized");
+          }
+
+          // Execute debug command
+          const result = await pyodide.runPythonAsync(
+            data.code || "print('Debug mode active')"
+          );
+          self.postMessage({
+            id,
+            type: "response",
+            data: { result, pyodideReady: !!pyodide },
+          });
+        } catch (error) {
+          self.postMessage({
+            id,
+            type: "response",
+            error: error instanceof Error ? error.message : String(error),
+            data: { pyodideReady: !!pyodide },
+          });
         }
         break;
       }
@@ -234,6 +266,13 @@ async function initializePyodide(
       data: "Interrupt buffer not available - continuing without interrupt support",
     });
   }
+
+  // Expose pyodide globally for debugging
+  globalThis.pyodide = pyodide;
+  self.postMessage({
+    type: "log",
+    data: "Pyodide exposed as globalThis.pyodide for debugging",
+  });
 
   // Create mounted directories and copy files from host
   if (mountData && mountData.length > 0) {
