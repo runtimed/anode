@@ -74,7 +74,7 @@ export const SharingDialog: React.FC<SharingDialogProps> = ({
         </div>
         <DialogFooter>
           <CopyLinkButton notebookId={notebookId} />
-          <Button onClick={() => handleOpenChange(true)}>Done</Button>
+          <Button onClick={() => handleOpenChange(false)}>Done</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
