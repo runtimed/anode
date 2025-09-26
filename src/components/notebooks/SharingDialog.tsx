@@ -164,15 +164,13 @@ function FoundUserMessage({
 }) {
   const trpc = useTrpc();
 
-  const { data: owner, isLoading: isLoadingOwner } = useQuery(
+  const { data: owner } = useQuery(
     trpc.notebookOwner.queryOptions({ nbId: notebookId })
   );
 
-  const { data: collaborators, isLoading: isLoadingCollaborators } = useQuery(
+  const { data: collaborators } = useQuery(
     trpc.notebookCollaborators.queryOptions({ nbId: notebookId })
   );
-
-  const [isSharing, setIsSharing] = useState(false);
 
   // Share notebook mutation
   const shareMutation = useMutation(trpc.shareNotebook.mutationOptions());
@@ -180,26 +178,26 @@ function FoundUserMessage({
   const handleShare = async () => {
     if (
       !foundUser ||
-      isSharing ||
+      shareMutation.isPending ||
       isUserAlreadyCollaborator ||
       isOwnerTryingToShareWithSelf
     ) {
       return;
     }
 
-    setIsSharing(true);
     try {
       await shareMutation.mutateAsync({
         nbId: notebookId,
         userId: foundUser.id,
       });
       onShare();
-      trpcQueryClient.invalidateQueries();
+      // Give chance for UI to update search before invalidating queries
+      setTimeout(() => {
+        trpcQueryClient.invalidateQueries();
+      }, 200);
     } catch (error) {
       console.error("Failed to share notebook:", error);
       // TODO: Show error toast
-    } finally {
-      setIsSharing(false);
     }
   };
 
@@ -236,11 +234,11 @@ function FoundUserMessage({
         <Button
           size="sm"
           onClick={handleShare}
-          disabled={isSharing}
+          disabled={shareMutation.isPending}
           className="w-full"
         >
           <Plus className="mr-1 h-3 w-3" />
-          {isSharing ? "Adding..." : "Add as collaborator"}
+          {shareMutation.isPending ? "Adding..." : "Add as collaborator"}
         </Button>
       )}
     </div>
