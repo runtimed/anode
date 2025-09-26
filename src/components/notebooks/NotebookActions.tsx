@@ -116,7 +116,7 @@ export const NotebookActions: React.FC<NotebookActionsProps> = ({
 
       {/* Sharing Dialog */}
       <SharingDialog
-        notebook={notebook}
+        notebookId={notebook.id}
         isOpen={isSharingDialogOpen}
         onClose={() => setIsSharingDialogOpen(false)}
         onUpdate={onUpdate}

@@ -122,7 +122,7 @@ function NotebookPageWithIdAndNotebook({
       </div>
 
       <SharingDialog
-        notebook={notebook}
+        notebookId={notebook.id}
         isOpen={isSharingDialogOpen}
         onClose={() => setIsSharingDialogOpen(false)}
         onUpdate={refetch}
