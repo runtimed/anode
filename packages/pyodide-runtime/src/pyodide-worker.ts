@@ -131,7 +131,7 @@ await run_registered_tool("${data.toolName}", kwargs_string)
  * Initialize Pyodide with advanced IPython integration
  */
 async function initializePyodide(
-  buffer: SharedArrayBuffer,
+  buffer: SharedArrayBuffer | null | undefined,
   packagesToLoad?: string[],
   mountData?: Array<{
     hostPath: string;
@@ -145,8 +145,8 @@ async function initializePyodide(
     data: "Loading Pyodide with display support",
   });
 
-  // Store interrupt buffer
-  interruptBuffer = buffer;
+  // Store interrupt buffer (if available)
+  interruptBuffer = buffer || null;
 
   // Get cache configuration and packages to load
   const basePackages = packagesToLoad || getEssentialPackages();
@@ -225,11 +225,16 @@ async function initializePyodide(
     },
   });
 
-  // Set up interrupt buffer
+  // Set up interrupt buffer (if available)
   if (interruptBuffer) {
     const interruptView = new Int32Array(interruptBuffer);
     pyodide.setInterruptBuffer(interruptView);
     self.postMessage({ type: "log", data: "Interrupt buffer configured" });
+  } else {
+    self.postMessage({
+      type: "log",
+      data: "Interrupt buffer not available - continuing without interrupt support",
+    });
   }
 
   // Create mounted directories and copy files from host
