@@ -124,8 +124,7 @@ function NotebookPageWithIdAndNotebook({
       <SharingDialog
         notebookId={notebook.id}
         isOpen={isSharingDialogOpen}
-        onClose={() => setIsSharingDialogOpen(false)}
-        onUpdate={refetch}
+        onOpenChange={setIsSharingDialogOpen}
       />
     </div>
   );

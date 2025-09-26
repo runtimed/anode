@@ -118,8 +118,7 @@ export const NotebookActions: React.FC<NotebookActionsProps> = ({
       <SharingDialog
         notebookId={notebook.id}
         isOpen={isSharingDialogOpen}
-        onClose={() => setIsSharingDialogOpen(false)}
-        onUpdate={onUpdate}
+        onOpenChange={setIsSharingDialogOpen}
       />
 
       {/* Tag Selection Dialog */}

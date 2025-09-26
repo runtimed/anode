@@ -23,15 +23,13 @@ import { Collaborator } from "./types";
 interface SharingDialogProps {
   notebookId: string;
   isOpen: boolean;
-  onClose: () => void;
-  onUpdate?: () => void;
+  onOpenChange: (isOpen: boolean) => void;
 }
 
 export const SharingDialog: React.FC<SharingDialogProps> = ({
   notebookId,
   isOpen,
-  onClose,
-  onUpdate,
+  onOpenChange,
 }) => {
   const trpc = useTrpc();
 
@@ -43,12 +41,8 @@ export const SharingDialog: React.FC<SharingDialogProps> = ({
 
   const canShare = true; // TODO: Check actual permission
 
-  const handleClose = (isOpen: boolean) => {
-    if (!isOpen) {
-      return;
-    }
-    onUpdate?.();
-    onClose();
+  const handleOpenChange = (isOpen: boolean) => {
+    onOpenChange(isOpen);
   };
 
   if (isLoading || !nb) {
@@ -56,7 +50,7 @@ export const SharingDialog: React.FC<SharingDialogProps> = ({
   }
 
   return (
-    <Dialog open={isOpen} onOpenChange={handleClose}>
+    <Dialog open={isOpen} onOpenChange={handleOpenChange}>
       <DialogContent className="max-w-md">
         <DialogHeader>
           <DialogTitle>Share Notebook</DialogTitle>
@@ -80,7 +74,7 @@ export const SharingDialog: React.FC<SharingDialogProps> = ({
         </div>
         <DialogFooter>
           <CopyLinkButton notebookId={notebookId} />
-          <Button onClick={() => handleClose(true)}>Done</Button>
+          <Button onClick={() => handleOpenChange(true)}>Done</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
