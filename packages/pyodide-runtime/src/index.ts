@@ -7,7 +7,6 @@ import {
   type ExecutionHandler,
   type ExecutionContext,
   type RuntimeCapabilities,
-  validateMediaBundle,
 } from "@runtimed/agent-core";
 import {
   LocalRuntimeAgent,
@@ -15,6 +14,7 @@ import {
 } from "./LocalRuntimeAgent.ts";
 
 import {
+  ensureTextPlainFallback,
   // discoverAvailableAiModels,
   executeAI,
   gatherNotebookContext,
@@ -30,6 +30,8 @@ import {
   isTextBasedMimeType,
   KNOWN_MIME_TYPES,
   type KnownMimeType,
+  MediaBundle,
+  validateMediaBundle,
 } from "@runtimed/schema";
 
 // Type guard for objects with string indexing
