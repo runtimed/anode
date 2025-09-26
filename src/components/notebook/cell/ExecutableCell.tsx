@@ -9,6 +9,7 @@ import { useUserRegistry } from "@/hooks/useUserRegistry.js";
 import { useEditorRegistry } from "@/hooks/useEditorRegistry.js";
 import { useDeleteCell } from "@/hooks/useDeleteCell.js";
 import { useAddCell } from "@/hooks/useAddCell.js";
+import { useMoveCell } from "@/hooks/useMoveCell.js";
 import { useActiveRuntime } from "@/hooks/useRuntimeHealth.js";
 
 import { useStore } from "@livestore/react";
@@ -84,6 +85,14 @@ export const ExecutableCell: React.FC<ExecutableCellProps> = ({
 
   const { handleDeleteCell } = useDeleteCell(cell.id);
   const { addCell } = useAddCell();
+  const {
+    moveCellUp,
+    moveCellDown,
+    moveCellToTop,
+    moveCellToBottom,
+    canMoveUp,
+    canMoveDown,
+  } = useMoveCell(cell.id);
 
   const userId = useAuthenticatedUser();
   const { getUsersOnCell, getUserColor } = useUserRegistry();
@@ -428,6 +437,12 @@ export const ExecutableCell: React.FC<ExecutableCellProps> = ({
             hasOutputs={hasOutputs}
             toggleSourceVisibility={toggleSourceVisibility}
             toggleAiContextVisibility={toggleAiContextVisibility}
+            onMoveUp={moveCellUp}
+            onMoveDown={moveCellDown}
+            onMoveToTop={moveCellToTop}
+            onMoveToBottom={moveCellToBottom}
+            canMoveUp={canMoveUp}
+            canMoveDown={canMoveDown}
             playButton={
               <PlayButton
                 executionState={cell.executionState}

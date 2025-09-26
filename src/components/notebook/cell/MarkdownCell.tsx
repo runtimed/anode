@@ -2,6 +2,7 @@ import { useAddCell } from "@/hooks/useAddCell.js";
 import { useCellContent } from "@/hooks/useCellContent.js";
 import { useCellKeyboardNavigation } from "@/hooks/useCellKeyboardNavigation.js";
 import { useDeleteCell } from "@/hooks/useDeleteCell.js";
+import { useMoveCell } from "@/hooks/useMoveCell.js";
 import { useEditorRegistry } from "@/hooks/useEditorRegistry.js";
 import { events, queries, tables, CellTypeNoRaw } from "@runtimed/schema";
 import { useStore } from "@livestore/react";
@@ -51,6 +52,9 @@ export const MarkdownCell: React.FC<MarkdownCellProps> = ({
 
   const { handleDeleteCell } = useDeleteCell(cell.id);
   const { addCell } = useAddCell();
+  const { moveCellUp, moveCellDown, canMoveUp, canMoveDown } = useMoveCell(
+    cell.id
+  );
   // Use shared content management hook
   const { localSource, setLocalSource, updateSource, handleSourceChange } =
     useCellContent({
@@ -286,6 +290,10 @@ export const MarkdownCell: React.FC<MarkdownCellProps> = ({
           hasOutputs={true}
           toggleSourceVisibility={toggleSourceVisibility}
           toggleAiContextVisibility={toggleAiContextVisibility}
+          onMoveUp={moveCellUp}
+          onMoveDown={moveCellDown}
+          canMoveUp={canMoveUp}
+          canMoveDown={canMoveDown}
         />
       </div>
 
