@@ -224,9 +224,7 @@ function FoundUserMessage({
     trpc.shareNotebook.mutationOptions({
       onSuccess: () => {
         onShare();
-        setTimeout(() => {
-          trpcQueryClient.invalidateQueries();
-        }, 0);
+        setTimeout(() => trpcQueryClient.invalidateQueries(), 0);
       },
       onError: () => {
         toast.error("Failed to share notebook");
@@ -326,7 +324,7 @@ function CollaboratorItem({
 
   const unshareMutation = useMutation(
     trpc.unshareNotebook.mutationOptions({
-      onSuccess: () => trpcQueryClient.invalidateQueries,
+      onSuccess: () => trpcQueryClient.invalidateQueries(),
       onError: () => toast.error("Failed to unshare notebook"),
     })
   );
