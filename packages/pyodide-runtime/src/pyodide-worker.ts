@@ -7,7 +7,7 @@
 
 /// <reference lib="webworker" />
 
-import { getEssentialPackages } from "./pypackages.ts";
+import { getBootstrapPackages } from "./pypackages.ts";
 
 import { loadPyodide, type PyodideInterface } from "pyodide";
 
@@ -156,13 +156,11 @@ async function initializePyodide(
   // Store interrupt buffer (if available)
   interruptBuffer = buffer || null;
 
-  // Get cache configuration and packages to load - minimal set required for runtime
-  const basePackages: string[] = [
-    "ipython", // Required for IPython shell
-    "micropip", // Required for dynamic package installation
-  ];
+  // Hybrid approach: local core files, CDN packages
+  // Core Pyodide runtime files from local /pyodide/, packages loaded separately from CDN
+  const basePackages: string[] = [];
 
-  // Load Pyodide with bootstrap packages for maximum efficiency
+  // Load Pyodide with local core files but no initial packages
   pyodide = await loadPyodide({
     indexURL: "/pyodide/",
     packages: basePackages,
@@ -418,7 +416,13 @@ async function setupIPythonEnvironment(): Promise<void> {
     data: "Loading pseudo-IPython environment from preloaded modules",
   });
 
-  // Install pydantic first (required by registry.py) using micropip
+  // Load bootstrap packages from CDN using loadPackage (bypasses local SRI issues)
+  const bootstrapPackages = ["micropip", "ipython"];
+  for (const pkg of bootstrapPackages) {
+    await pyodide!.loadPackage(pkg);
+  }
+
+  // Install pydantic (required by registry.py) using micropip from CDN
   await pyodide!.runPythonAsync(
     "import micropip; await micropip.install('pydantic')"
   );
