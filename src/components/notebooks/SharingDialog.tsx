@@ -357,6 +357,7 @@ function CollaboratorItem({
             variant="ghost"
             size="sm"
             onClick={handleShareRemove}
+            disabled={unshareMutation.isPending}
             className="text-red-600 hover:text-red-700"
           >
             <Trash2 className="h-3 w-3" />
