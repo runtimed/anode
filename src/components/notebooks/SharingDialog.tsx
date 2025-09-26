@@ -267,7 +267,7 @@ function CollaboratorItem({
       trpcQueryClient.invalidateQueries();
     } catch (error) {
       console.error("Failed to unshare notebook:", error);
-      // TODO: Show error toast
+      toast.error("Failed to unshare notebook");
     }
   };
 
