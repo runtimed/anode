@@ -11,6 +11,14 @@ import { getEssentialPackages } from "./pypackages.ts";
 
 import { loadPyodide, type PyodideInterface } from "pyodide";
 
+// Import Python files as text assets
+import runtRuntimePy from "./runt_runtime.py?raw";
+import runtRuntimeRegistryPy from "./runt_runtime_registry.py?raw";
+import runtRuntimeDisplayPy from "./runt_runtime_display.py?raw";
+import runtRuntimeBootstrapPy from "./runt_runtime_bootstrap.py?raw";
+import runtRuntimeShellPy from "./runt_runtime_shell.py?raw";
+import runtRuntimeInterruptPatchesPy from "./runt_runtime_interrupt_patches.py?raw";
+
 declare const self: DedicatedWorkerGlobalScope;
 
 let pyodide: PyodideInterface | null = null;
@@ -183,30 +191,18 @@ async function initializePyodide(
         data: "Preloading runt_runtime modules into filesystem",
       });
 
-      // Load all module files directly to site-packages
-      // TODO: Fetch in parallel
-      const moduleFiles = [
-        "runt_runtime.py",
-        "runt_runtime_registry.py",
-        "runt_runtime_display.py",
-        "runt_runtime_bootstrap.py",
-        "runt_runtime_shell.py",
-        "runt_runtime_interrupt_patches.py",
-      ];
+      // Load all module files directly to site-packages using imported content
+      const moduleFiles = {
+        "runt_runtime.py": runtRuntimePy,
+        "runt_runtime_registry.py": runtRuntimeRegistryPy,
+        "runt_runtime_display.py": runtRuntimeDisplayPy,
+        "runt_runtime_bootstrap.py": runtRuntimeBootstrapPy,
+        "runt_runtime_shell.py": runtRuntimeShellPy,
+        "runt_runtime_interrupt_patches.py": runtRuntimeInterruptPatchesPy,
+      };
 
-      for (const moduleFile of moduleFiles) {
+      for (const [moduleFile, moduleCode] of Object.entries(moduleFiles)) {
         try {
-          const moduleCode = await fetch(
-            new URL(`./${moduleFile}`, import.meta.url)
-          ).then((response) => {
-            if (!response.ok) {
-              throw new Error(
-                `HTTP ${response.status}: ${response.statusText}`
-              );
-            }
-            return response.text();
-          });
-
           FS.writeFile(`${info.sitePackages}/${moduleFile}`, moduleCode);
         } catch (error) {
           self.postMessage({
