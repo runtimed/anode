@@ -1,7 +1,7 @@
 import { trpcQueryClient } from "@/lib/trpc-client";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { AlertCircle, Link2, Mail, Plus, Trash2, User } from "lucide-react";
-import React, { useMemo, useState } from "react";
+import React, { useCallback, useMemo, useState } from "react";
 import { useDebounce } from "react-use";
 import { toast } from "sonner";
 import { getNotebookVanityUrl } from "../../util/url-utils";
@@ -34,18 +34,14 @@ export const SharingDialog: React.FC<SharingDialogProps> = ({
   const trpc = useTrpc();
 
   // Query notebook data
-  const {
-    data: nb,
-    isLoading,
-    isRefetching,
-  } = useQuery({
+  const { data: nb, isRefetching } = useQuery({
     ...trpc.notebook.queryOptions({ id: notebookId }),
     enabled: isOpen,
   });
 
   const canShare = true; // TODO: Check actual permission
 
-  if (isLoading || !nb) {
+  if (!nb) {
     return null;
   }
 
@@ -97,7 +93,12 @@ function Collaborators({
     (collaborators.length === 0 && !isLoadingCollaborators)
   ) {
     return (
-      <div className="rounded border-2 border-dashed border-gray-200 p-6 text-center">
+      <div
+        className={cn(
+          "rounded border-2 border-dashed border-gray-200 p-6 text-center",
+          isRefetchingCollaborators && "animate-pulse"
+        )}
+      >
         <div className="text-sm text-gray-500">No collaborators yet</div>
         {!canShare && (
           <div className="mt-1 text-xs text-gray-400">
@@ -219,7 +220,19 @@ function FoundUserMessage({
   );
 
   // Share notebook mutation
-  const shareMutation = useMutation(trpc.shareNotebook.mutationOptions());
+  const shareMutation = useMutation(
+    trpc.shareNotebook.mutationOptions({
+      onSuccess: () => {
+        onShare();
+        setTimeout(() => {
+          trpcQueryClient.invalidateQueries();
+        }, 0);
+      },
+      onError: () => {
+        toast.error("Failed to share notebook");
+      },
+    })
+  );
 
   const handleShare = async () => {
     if (
@@ -231,20 +244,10 @@ function FoundUserMessage({
       return;
     }
 
-    try {
-      await shareMutation.mutateAsync({
-        nbId: notebookId,
-        userId: foundUser.id,
-      });
-      onShare();
-      // Give chance for UI to update search before invalidating queries
-      setTimeout(() => {
-        trpcQueryClient.invalidateQueries();
-      }, 200);
-    } catch (error) {
-      console.error("Failed to share notebook:", error);
-      // TODO: Show error toast
-    }
+    shareMutation.mutate({
+      nbId: notebookId,
+      userId: foundUser.id,
+    });
   };
 
   const isUserAlreadyCollaborator = useMemo(() => {
@@ -321,20 +324,19 @@ function CollaboratorItem({
 }) {
   const trpc = useTrpc();
 
-  const unshareMutation = useMutation(trpc.unshareNotebook.mutationOptions());
+  const unshareMutation = useMutation(
+    trpc.unshareNotebook.mutationOptions({
+      onSuccess: () => trpcQueryClient.invalidateQueries,
+      onError: () => toast.error("Failed to unshare notebook"),
+    })
+  );
 
-  const handleShareRemove = async (userId: string) => {
-    try {
-      await unshareMutation.mutateAsync({
-        nbId: notebookId,
-        userId,
-      });
-      trpcQueryClient.invalidateQueries();
-    } catch (error) {
-      console.error("Failed to unshare notebook:", error);
-      toast.error("Failed to unshare notebook");
-    }
-  };
+  const handleShareRemove = useCallback(() => {
+    unshareMutation.mutate({
+      nbId: notebookId,
+      userId: collaborator.id,
+    });
+  }, [notebookId, collaborator.id, unshareMutation]);
 
   return (
     <div
@@ -354,7 +356,7 @@ function CollaboratorItem({
           <Button
             variant="ghost"
             size="sm"
-            onClick={() => handleShareRemove(collaborator.id)}
+            onClick={handleShareRemove}
             className="text-red-600 hover:text-red-700"
           >
             <Trash2 className="h-3 w-3" />
