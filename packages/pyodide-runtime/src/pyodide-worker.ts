@@ -184,6 +184,7 @@ async function initializePyodide(
       });
 
       // Load all module files directly to site-packages
+      // TODO: Fetch in parallel
       const moduleFiles = [
         "runt_runtime.py",
         "runt_runtime_registry.py",
