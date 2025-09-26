@@ -483,7 +483,11 @@ async function executePython(code: string): Promise<{
   }
 
   let result = null;
-  let executionError = null;
+  let executionError: {
+    ename: string;
+    evalue: string;
+    traceback: string[];
+  } | null = null;
 
   self.postMessage({
     type: "log",
