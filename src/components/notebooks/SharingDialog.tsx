@@ -89,8 +89,8 @@ function Collaborators({
   } = useQuery(trpc.notebookCollaborators.queryOptions({ nbId: notebookId }));
 
   if (
-    !collaborators ||
-    (collaborators.length === 0 && !isLoadingCollaborators)
+    (!collaborators || collaborators.length === 0) &&
+    !isLoadingCollaborators
   ) {
     return (
       <div
