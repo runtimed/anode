@@ -17,8 +17,8 @@ import {
   DialogTitle,
 } from "../ui/dialog";
 import { Input } from "../ui/input";
-import { Spinner } from "../ui/Spinner";
 import { Collaborator } from "./types";
+import { cn } from "@/lib/utils";
 
 interface SharingDialogProps {
   notebookId: string;
@@ -34,7 +34,11 @@ export const SharingDialog: React.FC<SharingDialogProps> = ({
   const trpc = useTrpc();
 
   // Query notebook data
-  const { data: nb, isLoading } = useQuery({
+  const {
+    data: nb,
+    isLoading,
+    isRefetching,
+  } = useQuery({
     ...trpc.notebook.queryOptions({ id: notebookId }),
     enabled: isOpen,
   });
@@ -51,7 +55,9 @@ export const SharingDialog: React.FC<SharingDialogProps> = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={handleOpenChange}>
-      <DialogContent className="max-w-md">
+      <DialogContent
+        className={cn("max-w-md", isRefetching && "animate-pulse")}
+      >
         <DialogHeader>
           <DialogTitle>Share Notebook</DialogTitle>
           <DialogDescription>
@@ -274,7 +280,10 @@ function CollaboratorItem({
   return (
     <div
       key={collaborator.id}
-      className="flex items-center justify-between rounded border bg-gray-50 p-3"
+      className={cn(
+        "flex items-center justify-between rounded border bg-gray-50 p-3",
+        unshareMutation.isPending && "animate-pulse"
+      )}
     >
       <div>
         <div className="font-medium">{formatUserName(collaborator)}</div>
@@ -312,9 +321,11 @@ function CurrentAccess({
     trpc.notebookOwner.queryOptions({ nbId: notebookId })
   );
 
-  const { data: collaborators, isLoading: isLoadingCollaborators } = useQuery(
-    trpc.notebookCollaborators.queryOptions({ nbId: notebookId })
-  );
+  const {
+    data: collaborators,
+    isLoading: isLoadingCollaborators,
+    isRefetching: isRefetchingCollaborators,
+  } = useQuery(trpc.notebookCollaborators.queryOptions({ nbId: notebookId }));
 
   return (
     <div className="space-y-3">
@@ -323,7 +334,13 @@ function CurrentAccess({
         <label className="text-sm font-medium">Current access</label>
       </div>
 
-      <div className="space-y-2">
+      <div
+        className={cn(
+          "space-y-2",
+          (isLoadingCollaborators || isRefetchingCollaborators) &&
+            "animate-pulse"
+        )}
+      >
         {/* Owner */}
         <div className="flex items-center justify-between rounded border bg-blue-50 p-3">
           <div>
@@ -337,8 +354,6 @@ function CurrentAccess({
 
         {/* Collaborators */}
         {children}
-
-        {isLoadingCollaborators && <Spinner />}
 
         {(!collaborators ||
           (collaborators.length === 0 && !isLoadingCollaborators)) && (
