@@ -1,7 +1,9 @@
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { AlertCircle, Mail, Plus, Trash2, User } from "lucide-react";
+import { AlertCircle, Link2, Mail, Plus, Trash2, User } from "lucide-react";
 import React, { useMemo, useState } from "react";
 import { useDebounce } from "react-use";
+import { toast } from "sonner";
+import { getNotebookVanityUrl } from "../../util/url-utils";
 import { useTrpc } from "../TrpcProvider";
 import { Badge } from "../ui/badge";
 import { Button } from "../ui/button";
@@ -9,6 +11,7 @@ import {
   Dialog,
   DialogContent,
   DialogDescription,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
 } from "../ui/dialog";
@@ -102,7 +105,6 @@ export const SharingDialog: React.FC<SharingDialogProps> = ({
       });
       setEmail("");
       refetchCollaborators();
-      onUpdate?.();
     } catch (error) {
       console.error("Failed to share notebook:", error);
       // TODO: Show error toast
@@ -118,7 +120,6 @@ export const SharingDialog: React.FC<SharingDialogProps> = ({
         userId,
       });
       refetchCollaborators();
-      onUpdate?.();
     } catch (error) {
       console.error("Failed to unshare notebook:", error);
       // TODO: Show error toast
@@ -135,8 +136,24 @@ export const SharingDialog: React.FC<SharingDialogProps> = ({
     return user.givenName || user.familyName;
   };
 
-  const handleClose = () => {
+  const handleCopyLink = async () => {
+    try {
+      const notebookUrl = getNotebookVanityUrl(notebook.id, notebook.title);
+      const fullUrl = `${window.location.origin}${notebookUrl}`;
+      await navigator.clipboard.writeText(fullUrl);
+      toast.success("Link copied to clipboard!");
+    } catch (error) {
+      console.error("Failed to copy link:", error);
+      toast.error("Failed to copy link");
+    }
+  };
+
+  const handleClose = (isOpen: boolean) => {
+    if (!isOpen) {
+      return;
+    }
     setEmail("");
+    onUpdate?.();
     onClose();
   };
 
@@ -289,6 +306,13 @@ export const SharingDialog: React.FC<SharingDialogProps> = ({
             </div>
           </div>
         </div>
+        <DialogFooter>
+          <Button variant="outline" onClick={handleCopyLink}>
+            <Link2 className="mr-1 h-3 w-3" />
+            Copy link
+          </Button>
+          <Button onClick={() => handleClose(true)}>Done</Button>
+        </DialogFooter>
       </DialogContent>
     </Dialog>
   );
