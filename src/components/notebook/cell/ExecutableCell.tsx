@@ -9,6 +9,7 @@ import { useUserRegistry } from "@/hooks/useUserRegistry.js";
 import { useEditorRegistry } from "@/hooks/useEditorRegistry.js";
 import { useDeleteCell } from "@/hooks/useDeleteCell.js";
 import { useAddCell } from "@/hooks/useAddCell.js";
+import { useMoveCell } from "@/hooks/useMoveCell.js";
 import { useActiveRuntime } from "@/hooks/useRuntimeHealth.js";
 
 import { useStore } from "@livestore/react";
@@ -65,12 +66,14 @@ interface ExecutableCellProps {
   cell: typeof tables.cells.Type;
   autoFocus?: boolean;
   contextSelectionMode?: boolean;
+  dragHandle?: React.ReactNode;
 }
 
 export const ExecutableCell: React.FC<ExecutableCellProps> = ({
   cell,
   autoFocus = false,
   contextSelectionMode = false,
+  dragHandle,
 }) => {
   const hasRunRef = useRef(false);
   const cellRef = useRef<HTMLDivElement>(null);
@@ -84,6 +87,14 @@ export const ExecutableCell: React.FC<ExecutableCellProps> = ({
 
   const { handleDeleteCell } = useDeleteCell(cell.id);
   const { addCell } = useAddCell();
+  const {
+    moveCellUp,
+    moveCellDown,
+    moveCellToTop,
+    moveCellToBottom,
+    canMoveUp,
+    canMoveDown,
+  } = useMoveCell(cell.id);
 
   const userId = useAuthenticatedUser();
   const { getUsersOnCell, getUserColor } = useUserRegistry();
@@ -350,8 +361,11 @@ export const ExecutableCell: React.FC<ExecutableCellProps> = ({
     >
       {/* Cell Header */}
       {!isSourceLessAiOutput && (
-        <div className="cell-header mb-2 flex items-center justify-between pr-1 pl-6 sm:pr-4">
-          <div className="flex items-center gap-3">
+        <div className="cell-header mb-2 flex items-center justify-between pr-1 pl-4 sm:pr-4">
+          <div className="flex items-center gap-1">
+            <pre>fracIndex: {cell.fractionalIndex}</pre>
+
+            {dragHandle}
             <CellTypeSelector cell={cell} onCellTypeChange={changeCellType} />
 
             {/* Cell-type-specific toolbars */}
@@ -428,6 +442,12 @@ export const ExecutableCell: React.FC<ExecutableCellProps> = ({
             hasOutputs={hasOutputs}
             toggleSourceVisibility={toggleSourceVisibility}
             toggleAiContextVisibility={toggleAiContextVisibility}
+            onMoveUp={moveCellUp}
+            onMoveDown={moveCellDown}
+            onMoveToTop={moveCellToTop}
+            onMoveToBottom={moveCellToBottom}
+            canMoveUp={canMoveUp}
+            canMoveDown={canMoveDown}
             playButton={
               <PlayButton
                 executionState={cell.executionState}

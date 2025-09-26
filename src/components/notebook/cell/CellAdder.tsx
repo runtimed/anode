@@ -6,6 +6,8 @@ import {
   SqlCellButton,
   AiCellButton,
 } from "./CellTypeButtons";
+import { Button } from "@/components/ui/button";
+import { useMoveLastCellToTop } from "@/pages/ReorderDemoPage";
 
 export function CellAdder({
   position,
@@ -15,6 +17,8 @@ export function CellAdder({
   className?: string;
 }) {
   const { addCell } = useAddCell();
+  const { moveLastCellToTop } = useMoveLastCellToTop();
+
   return (
     <div className={cn("flex justify-center gap-2", className)}>
       <CodeCellButton
@@ -37,6 +41,7 @@ export function CellAdder({
         showPlus={true}
         onClick={() => addCell(undefined, "ai", position)}
       />
+      <Button onClick={() => moveLastCellToTop()}>Move Last Cell to Top</Button>
     </div>
   );
 }

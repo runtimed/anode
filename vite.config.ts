@@ -46,26 +46,7 @@ export default defineConfig(({ mode }) => {
   const plugins = [
     envValidationPlugin(env),
     injectLoadingScreen(),
-    react({
-      babel: {
-        plugins: [
-          [
-            "babel-plugin-react-compiler",
-            {
-              // Enable React Compiler
-              enable: true,
-              // Optional: Configure which files to compile
-              include: ["src/**/*.{js,jsx,ts,tsx}"],
-              // Optional: Exclude certain files
-              exclude: [
-                "src/**/*.test.{js,jsx,ts,tsx}",
-                "src/**/*.spec.{js,jsx,ts,tsx}",
-              ],
-            },
-          ],
-        ],
-      },
-    }),
+    // Removing react compiler for now
     tailwindcss(),
     livestoreDevtoolsPlugin({ schemaPath: "./packages/schema/src/index.ts" }),
   ];

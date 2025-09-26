@@ -2,6 +2,7 @@ import { useAddCell } from "@/hooks/useAddCell.js";
 import { useCellContent } from "@/hooks/useCellContent.js";
 import { useCellKeyboardNavigation } from "@/hooks/useCellKeyboardNavigation.js";
 import { useDeleteCell } from "@/hooks/useDeleteCell.js";
+import { useMoveCell } from "@/hooks/useMoveCell.js";
 import { useEditorRegistry } from "@/hooks/useEditorRegistry.js";
 import { events, queries, tables, CellTypeNoRaw } from "@runtimed/schema";
 import { useStore } from "@livestore/react";
@@ -32,12 +33,14 @@ interface MarkdownCellProps {
   cell: typeof tables.cells.Type;
   autoFocus?: boolean;
   contextSelectionMode?: boolean;
+  dragHandle?: React.ReactNode;
 }
 
 export const MarkdownCell: React.FC<MarkdownCellProps> = ({
   cell,
   autoFocus = false,
   contextSelectionMode = false,
+  dragHandle,
 }) => {
   const editButtonRef = useRef<HTMLButtonElement>(null);
   const cellContainerRef = useRef<HTMLDivElement>(null);
@@ -51,6 +54,9 @@ export const MarkdownCell: React.FC<MarkdownCellProps> = ({
 
   const { handleDeleteCell } = useDeleteCell(cell.id);
   const { addCell } = useAddCell();
+  const { moveCellUp, moveCellDown, canMoveUp, canMoveDown } = useMoveCell(
+    cell.id
+  );
   // Use shared content management hook
   const { localSource, setLocalSource, updateSource, handleSourceChange } =
     useCellContent({
@@ -247,10 +253,11 @@ export const MarkdownCell: React.FC<MarkdownCellProps> = ({
     >
       {/* Cell Header */}
       <div
-        className="cell-header mb-2 flex items-center justify-between pr-1 pl-6 sm:pr-4"
+        className="cell-header relative mb-2 flex items-center justify-between pr-1 pl-4 sm:pr-4"
         onKeyDown={!isEditing ? handleKeyDown : undefined}
       >
-        <div className="flex items-center gap-3">
+        <div className="relative flex items-center gap-3">
+          {dragHandle}
           <CellTypeSelector cell={cell} onCellTypeChange={changeCellType} />
           {isEditing ? (
             <Button
@@ -286,6 +293,10 @@ export const MarkdownCell: React.FC<MarkdownCellProps> = ({
           hasOutputs={true}
           toggleSourceVisibility={toggleSourceVisibility}
           toggleAiContextVisibility={toggleAiContextVisibility}
+          onMoveUp={moveCellUp}
+          onMoveDown={moveCellDown}
+          canMoveUp={canMoveUp}
+          canMoveDown={canMoveDown}
         />
       </div>
 
