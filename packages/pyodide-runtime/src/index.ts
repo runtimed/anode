@@ -30,6 +30,7 @@ import {
   isTextBasedMimeType,
   KNOWN_MIME_TYPES,
   type KnownMimeType,
+  maxAiIterations$,
   MediaBundle,
   validateMediaBundle,
 } from "@runtimed/schema";
@@ -46,6 +47,7 @@ function hasDataProperty(value: unknown): value is { data: unknown } {
 const logger = console;
 
 export class PyodideRuntimeAgent extends LocalRuntimeAgent {
+  private worker: Worker | null = null;
   private currentExecutionContext: ExecutionContext | null = null;
   private executionQueue: Array<{
     context: ExecutionContext;
@@ -61,14 +63,125 @@ export class PyodideRuntimeAgent extends LocalRuntimeAgent {
       reject: (error: unknown) => void;
     }
   >();
+  private interruptBuffer?: SharedArrayBuffer;
   private currentAIExecution: {
     cellId: string;
     abortController: AbortController;
   } | null = null;
   private signalHandlers = new Map<string, () => void>();
 
+  private isInitialized = false;
+
   constructor(config: LocalRuntimeConfig) {
     super(config);
+  }
+
+  private async processExecutionQueue(): Promise<void> {
+    if (this.isExecuting || this.executionQueue.length === 0) {
+      return;
+    }
+
+    this.isExecuting = true;
+    const { context, code, resolve, reject } = this.executionQueue.shift()!;
+
+    try {
+      const result = await this.executeCodeSerialized(context, code);
+      resolve(result);
+    } catch (error) {
+      reject(error);
+    } finally {
+      this.isExecuting = false;
+      // Process next item in queue
+      this.processExecutionQueue();
+    }
+  }
+
+  /**
+   * Execute code with proper context isolation
+   */
+  private async executeCodeSerialized(
+    context: ExecutionContext,
+    code: string
+  ): Promise<{ success: boolean; error?: string }> {
+    const { stderr, result, error, abortSignal } = context;
+
+    try {
+      // Set up abort handling
+      let isAborted = false;
+      const abortHandler = () => {
+        isAborted = true;
+        if (this.interruptBuffer) {
+          const view = new Int32Array(this.interruptBuffer);
+          view[0] = 2; // SIGINT
+        }
+      };
+
+      if (abortSignal.aborted) {
+        // TODO: Use a special display for this
+        stderr("Execution was already cancelled\n");
+        return { success: false, error: "Execution cancelled" };
+      }
+
+      abortSignal.addEventListener("abort", abortHandler);
+
+      try {
+        // Set current execution context for real-time streaming
+        this.currentExecutionContext = context;
+
+        const executionResult = (await this.sendWorkerMessage("execute", {
+          code,
+        })) as { result: unknown };
+
+        if (isAborted) {
+          stderr("Python execution was cancelled\n");
+          return { success: false, error: "Execution cancelled" };
+        }
+
+        // Note: Most outputs are already streamed via handleWorkerMessage
+        // Only handle final result if it wasn't already streamed
+        if (
+          executionResult.result !== null &&
+          executionResult.result !== undefined
+        ) {
+          result(this.formatRichOutput(executionResult.result));
+        }
+
+        return { success: true };
+      } finally {
+        abortSignal.removeEventListener("abort", abortHandler);
+        // Clear interrupt signal
+        if (this.interruptBuffer) {
+          const view = new Int32Array(this.interruptBuffer);
+          view[0] = 0;
+        }
+        // Clear execution context
+        this.currentExecutionContext = null;
+      }
+    } catch (err) {
+      if (
+        abortSignal.aborted ||
+        (err instanceof Error &&
+          (err.message.includes("cancelled") ||
+            err.message.includes("KeyboardInterrupt") ||
+            err.message.includes("Worker crashed")))
+      ) {
+        stderr("Python execution was cancelled\n");
+        return { success: false, error: "Execution cancelled" };
+      }
+
+      // Handle Python errors
+      if (err instanceof Error) {
+        const errorLines = err.message.split("\n");
+        const errorName = errorLines[0] || "PythonError";
+        const errorValue = errorLines[1] || err.message;
+        const traceback = errorLines.length > 2 ? errorLines : [err.message];
+
+        error(errorName, errorValue, traceback);
+        return { success: false, error: errorValue };
+      }
+
+      throw err;
+    }
   }
 
   protected getRuntimeType(): string {
@@ -104,7 +217,11 @@ export class PyodideRuntimeAgent extends LocalRuntimeAgent {
     // This ensures capabilities are ready when runtime announces itself
 
     // Call parent to start the agent - capabilities now include discovered models
-    return await super.start();
+    const agent = await super.start();
+
+    agent.onExecution(this.executeCell.bind(this));
+
+    return agent;
   }
 
   /**
@@ -409,6 +526,238 @@ export class PyodideRuntimeAgent extends LocalRuntimeAgent {
         };
       }
     };
+  }
+
+  /**
+   * Execute Python code or AI prompts using Pyodide worker or OpenAI
+   */
+  async executeCell(
+    context: ExecutionContext
+  ): Promise<{ success: boolean; error?: string }> {
+    const { cell } = context;
+    const code = cell.source?.trim() || "";
+
+    if (!this.agent) {
+      throw new Error("Agent not initialized");
+    }
+
+    // When an AI cell, hand it off to `@runt/ai` to handle, providing it notebook context
+    if (cell.cellType === "ai") {
+      // Find the current cell reference for context gathering
+      const cellReferences = this.agent.store.query(cellReferences$);
+      const currentCellRef = cellReferences.find((ref) => ref.id === cell.id);
+
+      if (!currentCellRef) {
+        throw new Error(`Could not find cell reference for cell ${cell.id}`);
+      }
+
+      const notebookContext = gatherNotebookContext(
+        this.agent.store,
+        currentCellRef
+      );
+
+      const maxAiIterations: number =
+        parseInt(this.agent.store.query(maxAiIterations$)) || 10;
+
+      // Track AI execution for cancellation
+      const aiAbortController = new AbortController();
+      this.currentAIExecution = {
+        cellId: cell.id,
+        abortController: aiAbortController,
+      };
+
+      // Connect the AI abort controller to the execution context's abort signal
+      if (context.abortSignal.aborted) {
+        aiAbortController.abort();
+      } else {
+        context.abortSignal.addEventListener("abort", () => {
+          aiAbortController.abort();
+        });
+      }
+
+      // Create a modified context with the AI-specific abort signal and bound sendWorkerMessage
+      const aiContext = {
+        ...context,
+        abortSignal: aiAbortController.signal,
+        sendWorkerMessage: this.sendWorkerMessage.bind(this),
+      };
+
+      const notebookTools = (await this.sendWorkerMessage(
+        "get_registered_tools",
+        {}
+      )) as NotebookTool[];
+
+      try {
+        return await executeAI(
+          aiContext,
+          notebookContext,
+          this.agent.store,
+          this.agent.config.sessionId,
+          notebookTools,
+          maxAiIterations
+        );
+      } finally {
+        this.currentAIExecution = null;
+      }
+    }
+
+    if (!this.worker) {
+      // Try to reinitialize worker if it crashed
+      await this.initializePyodideWorker();
+    }
+
+    if (!code) {
+      return { success: true };
+    }
+
+    // Queue the execution to ensure serialization
+    return new Promise((resolve, reject) => {
+      this.executionQueue.push({
+        context,
+        code,
+        resolve,
+        reject,
+      });
+      this.processExecutionQueue();
+    });
+  }
+
+  async initializePyodideWorker() {
+    try {
+      logger.info("Initializing Pyodide worker");
+
+      // Determine packages to load based on options
+      // const packagesToLoad =
+      // this.pyodideOptions.packages || getEssentialPackages();
+
+      // Create SharedArrayBuffer for interrupt signaling
+      this.interruptBuffer = new SharedArrayBuffer(4);
+      const interruptView = new Int32Array(this.interruptBuffer);
+      interruptView[0] = 0; // Initialize to no interrupt
+
+      // Create worker with Pyodide
+      this.worker = new Worker(
+        new URL("./pyodide-worker.ts", import.meta.url),
+        { type: "module" }
+      );
+
+      // Set up worker message handling
+      this.worker.addEventListener(
+        "message",
+        this.handleWorkerMessage.bind(this)
+      );
+      this.worker.addEventListener("error", (error) => {
+        logger.error("Worker error", {
+          message: error.message || "Unknown worker error",
+          filename: error.filename,
+          lineno: error.lineno,
+        });
+        this.handleWorkerCrash("Worker error event");
+      });
+      this.worker.addEventListener("messageerror", (error) => {
+        logger.error("Worker message error", {
+          type: error.type,
+          data: error.data,
+        });
+        this.handleWorkerCrash("Worker message error");
+      });
+
+      const packagesToLoad = ["pandas"];
+
+      // Initialize Pyodide in worker
+      await this.sendWorkerMessage("init", {
+        interruptBuffer: this.interruptBuffer,
+        packages: packagesToLoad,
+      });
+
+      this.isInitialized = true;
+      logger.info("Pyodide worker initialized successfully");
+    } catch (error) {
+      logger.error("Failed to initialize Pyodide worker", {
+        error: error instanceof Error ? error.message : String(error),
+      });
+      throw error;
+    }
+  }
+
+  /**
+   * Handle worker crash and cleanup
+   */
+  private handleWorkerCrash(reason: string): void {
+    logger.error("Uncaught error", { error: "null" });
+
+    // Reject all pending executions
+    for (const [id, pending] of this.pendingExecutions) {
+      logger.error(`Rejected execution ${id}: ${reason}`);
+      pending.reject(new Error(`Worker crashed: ${reason}`));
+    }
+    this.pendingExecutions.clear();
+
+    // Reject all queued executions
+    for (const { reject } of this.executionQueue) {
+      reject(new Error(`Worker crashed: ${reason}`));
+    }
+    this.executionQueue.length = 0;
+
+    // Mark as uninitialized to trigger restart
+    this.isInitialized = false;
+    this.currentExecutionContext = null;
+
+    // Clean up worker (async but don't wait for it in crash handler)
+    this.cleanupWorker().catch((error) => {
+      logger.debug("Error during worker cleanup after crash", {
+        error: error instanceof Error ? error.message : String(error),
+      });
+    });
+  }
+
+  /**
+   * Send message to worker and wait for response
+   */
+  private sendWorkerMessage(type: string, data: unknown): Promise<unknown> {
+    return new Promise((resolve, reject) => {
+      if (!this.worker) {
+        reject(new Error("Worker not initialized"));
+        return;
+      }
+
+      const messageId = crypto.randomUUID();
+      this.pendingExecutions.set(messageId, { resolve, reject });
+
+      this.worker.postMessage({
+        id: messageId,
+        type,
+        data,
+      });
+    });
+  }
+
+  /**
+   * Cleanup worker resources
+   */
+  private async cleanupWorker(): Promise<void> {
+    if (this.worker) {
+      try {
+        // Send shutdown signal to worker before terminating
+        await this.sendWorkerMessage("shutdown", {});
+
+        // Give the worker a moment to clean up
+        await new Promise((resolve) => setTimeout(resolve, 100));
+      } catch (error) {
+        // Ignore errors during shutdown - worker might already be terminated
+        logger.debug(
+          "Worker shutdown message failed (expected during cleanup)",
+          {
+            error: error instanceof Error ? error.message : String(error),
+          }
+        );
+      }
+
+      this.worker.terminate();
+      this.worker = null;
+    }
+
+    logger.info("Pyodide worker cleanup completed");
   }
 }
 
