@@ -12,7 +12,7 @@ import { NotebookSidebar } from "../../notebook/NotebookSidebar.js";
 import { useIsMobile } from "@/hooks/use-mobile.js";
 import { ChatModeProvider } from "@/hooks/useChatMode.js";
 import { Button } from "../../ui/button.js";
-import { SharingModal } from "../SharingModal.js";
+import { SharingDialog } from "../SharingDialog.js";
 import type { NotebookProcessed } from "../types.js";
 import { useNavigateToCanonicalUrl, useNotebook } from "./helpers.js";
 import { NotebookHeader } from "./NotebookHeader.js";
@@ -70,7 +70,7 @@ function NotebookPageWithIdAndNotebook({
   useNavigateToCanonicalUrl(notebook);
 
   const isMobile = useIsMobile();
-  const [isSharingModalOpen, setIsSharingModalOpen] = useState(false);
+  const [isSharingDialogOpen, setIsSharingDialogOpen] = useState(false);
   const [isAiPanelOpen, setIsAiPanelOpen] = useState(false);
   const nbContentScrollRef = useRef<HTMLDivElement>(null);
 
@@ -95,7 +95,7 @@ function NotebookPageWithIdAndNotebook({
         <NotebookHeader
           notebook={notebook}
           onTitleSaved={refetch}
-          setIsSharingModalOpen={() => setIsSharingModalOpen(true)}
+          setIsSharingDialogOpen={() => setIsSharingDialogOpen(true)}
         />
 
         <div
@@ -121,11 +121,10 @@ function NotebookPageWithIdAndNotebook({
         )}
       </div>
 
-      {/* Sharing Modal */}
-      <SharingModal
+      <SharingDialog
         notebook={notebook}
-        isOpen={isSharingModalOpen}
-        onClose={() => setIsSharingModalOpen(false)}
+        isOpen={isSharingDialogOpen}
+        onClose={() => setIsSharingDialogOpen(false)}
         onUpdate={refetch}
       />
     </div>

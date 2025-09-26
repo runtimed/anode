@@ -15,14 +15,14 @@ import {
 import { Input } from "../ui/input";
 import { NotebookProcessed } from "./types";
 
-interface SharingModalProps {
+interface SharingDialogProps {
   notebook: NotebookProcessed;
   isOpen: boolean;
   onClose: () => void;
   onUpdate?: () => void;
 }
 
-export const SharingModal: React.FC<SharingModalProps> = ({
+export const SharingDialog: React.FC<SharingDialogProps> = ({
   notebook,
   isOpen,
   onClose,
