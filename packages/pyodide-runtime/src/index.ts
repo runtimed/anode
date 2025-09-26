@@ -551,7 +551,7 @@ export class PyodideRuntimeAgent extends LocalRuntimeAgent {
         this.handleWorkerCrash("Worker message error");
       });
 
-      const packagesToLoad = ["pandas"];
+      const packagesToLoad: string[] = [];
 
       // Initialize Pyodide in worker
       await this.sendWorkerMessage("init", {

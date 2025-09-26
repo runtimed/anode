@@ -157,7 +157,7 @@ async function initializePyodide(
   interruptBuffer = buffer || null;
 
   // Get cache configuration and packages to load
-  const basePackages = packagesToLoad || getEssentialPackages();
+  const basePackages: string[] = [];
 
   // Load Pyodide with bootstrap packages for maximum efficiency
   pyodide = await loadPyodide({

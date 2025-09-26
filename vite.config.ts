@@ -88,7 +88,9 @@ export default defineConfig(({ mode }) => {
             "pyodide.asm.js",
             "pyodide.asm.wasm",
             "pyodide.js",
+            "pyodide.js.map",
             "pyodide.mjs",
+            "pyodide.mjs.map",
             "python_stdlib.zip",
             "pyodide-lock.json",
           ];
