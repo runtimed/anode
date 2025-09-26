@@ -161,6 +161,7 @@ async function initializePyodide(
 
   // Load Pyodide with bootstrap packages for maximum efficiency
   pyodide = await loadPyodide({
+    indexURL: "/pyodide/",
     packages: basePackages,
     stdout: (text: string) => {
       // Log startup messages to our telemetry for debugging

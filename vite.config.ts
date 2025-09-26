@@ -1,6 +1,7 @@
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { execSync } from "child_process";
+import { copyFileSync, mkdirSync, existsSync } from "node:fs";
 
 import { livestoreDevtoolsPlugin } from "@livestore/devtools-vite";
 import react from "@vitejs/plugin-react";
@@ -68,6 +69,45 @@ export default defineConfig(({ mode }) => {
     }),
     tailwindcss(),
     livestoreDevtoolsPlugin({ schemaPath: "./packages/schema/src/index.ts" }),
+    {
+      name: "copy-pyodide-assets",
+      buildStart() {
+        // Copy Pyodide assets to public directory for local serving
+        const pyodidePath = path.resolve(
+          __dirname,
+          "node_modules/.pnpm/pyodide@0.27.7/node_modules/pyodide"
+        );
+        const publicPyodidePath = path.resolve(__dirname, "public/pyodide");
+
+        if (existsSync(pyodidePath)) {
+          if (!existsSync(publicPyodidePath)) {
+            mkdirSync(publicPyodidePath, { recursive: true });
+          }
+
+          const assetFiles = [
+            "pyodide.asm.js",
+            "pyodide.asm.wasm",
+            "pyodide.js",
+            "pyodide.mjs",
+            "python_stdlib.zip",
+            "pyodide-lock.json",
+          ];
+
+          for (const file of assetFiles) {
+            const srcPath = path.join(pyodidePath, file);
+            const destPath = path.join(publicPyodidePath, file);
+
+            if (existsSync(srcPath)) {
+              try {
+                copyFileSync(srcPath, destPath);
+              } catch (error) {
+                console.warn(`Warning: Could not copy ${file}:`, error);
+              }
+            }
+          }
+        }
+      },
+    },
   ];
 
   // Include Cloudflare plugin in development and auth modes
@@ -111,7 +151,7 @@ export default defineConfig(({ mode }) => {
       },
     },
     optimizeDeps: {
-      exclude: ["@livestore/wa-sqlite"],
+      exclude: ["@livestore/wa-sqlite", "pyodide"],
       include: [
         "react",
         "react-dom",
@@ -124,6 +164,7 @@ export default defineConfig(({ mode }) => {
         target: "esnext",
       },
     },
+    assetsInclude: ["**/*.wasm"],
     plugins,
     define: {
       "import.meta.env.VITE_GIT_COMMIT_HASH": JSON.stringify(gitCommitHash),
