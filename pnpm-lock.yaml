@@ -65,23 +65,23 @@ importers:
         specifier: ^0.4.0
         version: 0.4.0
       '@livestore/adapter-web':
-        specifier: 0.4.0-dev.7
-        version: 0.4.0-dev.7(b7b3788e3871b1f8421339ceef8bb27d)
+        specifier: 0.4.0-dev.9
+        version: 0.4.0-dev.9(@effect/cluster@0.34.2(@effect/platform@0.90.7(effect@3.17.13))(@effect/rpc@0.69.2(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/sql@0.35.8(@effect/experimental@0.46.8(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(effect@3.17.13))(@effect/experimental@0.46.8(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/platform@0.90.7(effect@3.17.13))(@effect/printer-ansi@0.45.0(@effect/typeclass@0.34.2(effect@3.17.13))(effect@3.17.13))(@effect/printer@0.45.0(@effect/typeclass@0.34.2(effect@3.17.13))(effect@3.17.13))(@effect/rpc@0.69.2(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/sql@0.35.8(@effect/experimental@0.46.8(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/typeclass@0.34.2(effect@3.17.13))(@opentelemetry/resources@2.0.1(@opentelemetry/api@1.9.0))(effect@3.17.13)
       '@livestore/livestore':
-        specifier: 0.4.0-dev.7
-        version: 0.4.0-dev.7(b7b3788e3871b1f8421339ceef8bb27d)
+        specifier: 0.4.0-dev.9
+        version: 0.4.0-dev.9(@effect/cluster@0.34.2(@effect/platform@0.90.7(effect@3.17.13))(@effect/rpc@0.69.2(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/sql@0.35.8(@effect/experimental@0.46.8(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(effect@3.17.13))(@effect/experimental@0.46.8(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/platform@0.90.7(effect@3.17.13))(@effect/printer-ansi@0.45.0(@effect/typeclass@0.34.2(effect@3.17.13))(effect@3.17.13))(@effect/printer@0.45.0(@effect/typeclass@0.34.2(effect@3.17.13))(effect@3.17.13))(@effect/rpc@0.69.2(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/sql@0.35.8(@effect/experimental@0.46.8(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/typeclass@0.34.2(effect@3.17.13))(@opentelemetry/resources@2.0.1(@opentelemetry/api@1.9.0))(effect@3.17.13)
       '@livestore/react':
-        specifier: 0.4.0-dev.7
-        version: 0.4.0-dev.7(60d0cd7ec2500fa084d53cf1794acea2)
+        specifier: 0.4.0-dev.9
+        version: 0.4.0-dev.9(@effect/cluster@0.34.2(@effect/platform@0.90.7(effect@3.17.13))(@effect/rpc@0.69.2(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/sql@0.35.8(@effect/experimental@0.46.8(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(effect@3.17.13))(@effect/experimental@0.46.8(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/platform@0.90.7(effect@3.17.13))(@effect/printer-ansi@0.45.0(@effect/typeclass@0.34.2(effect@3.17.13))(effect@3.17.13))(@effect/printer@0.45.0(@effect/typeclass@0.34.2(effect@3.17.13))(effect@3.17.13))(@effect/rpc@0.69.2(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/sql@0.35.8(@effect/experimental@0.46.8(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/typeclass@0.34.2(effect@3.17.13))(@opentelemetry/resources@2.0.1(@opentelemetry/api@1.9.0))(effect@3.17.13)(react@19.0.0)
       '@livestore/sync-cf':
-        specifier: 0.4.0-dev.7
-        version: 0.4.0-dev.7(676275bee9841bcab5beb100ee1da758)
+        specifier: 0.4.0-dev.9
+        version: 0.4.0-dev.9(@effect/cluster@0.34.2(@effect/platform@0.90.7(effect@3.17.13))(@effect/rpc@0.69.2(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/sql@0.35.8(@effect/experimental@0.46.8(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(effect@3.17.13))(@effect/experimental@0.46.8(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/platform@0.90.7(effect@3.17.13))(@effect/printer-ansi@0.45.0(@effect/typeclass@0.34.2(effect@3.17.13))(effect@3.17.13))(@effect/printer@0.45.0(@effect/typeclass@0.34.2(effect@3.17.13))(effect@3.17.13))(@effect/rpc@0.69.2(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/sql@0.35.8(@effect/experimental@0.46.8(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/typeclass@0.34.2(effect@3.17.13))(@opentelemetry/api@1.9.0)(@opentelemetry/resources@2.0.1(@opentelemetry/api@1.9.0))(effect@3.17.13)
       '@livestore/wa-sqlite':
         specifier: 1.0.5-dev.2
         version: 1.0.5-dev.2
       '@livestore/webmesh':
-        specifier: 0.4.0-dev.7
-        version: 0.4.0-dev.7(676275bee9841bcab5beb100ee1da758)
+        specifier: 0.4.0-dev.9
+        version: 0.4.0-dev.9(@effect/cluster@0.34.2(@effect/platform@0.90.7(effect@3.17.13))(@effect/rpc@0.69.2(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/sql@0.35.8(@effect/experimental@0.46.8(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(effect@3.17.13))(@effect/experimental@0.46.8(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/platform@0.90.7(effect@3.17.13))(@effect/printer-ansi@0.45.0(@effect/typeclass@0.34.2(effect@3.17.13))(effect@3.17.13))(@effect/printer@0.45.0(@effect/typeclass@0.34.2(effect@3.17.13))(effect@3.17.13))(@effect/rpc@0.69.2(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/sql@0.35.8(@effect/experimental@0.46.8(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/typeclass@0.34.2(effect@3.17.13))(@opentelemetry/api@1.9.0)(@opentelemetry/resources@2.0.1(@opentelemetry/api@1.9.0))(effect@3.17.13)
       '@microlink/react-json-view':
         specifier: ^1.26.2
         version: 1.26.2(@types/react@19.1.8)(react-dom@19.0.0(react@19.0.0))(react@19.0.0)
@@ -250,10 +250,10 @@ importers:
         version: 9.31.0
       '@livestore/adapter-node':
         specifier: 0.4.0-dev.7
-        version: 0.4.0-dev.7(3c61e82d2462dca28e66c573df24f08b)
+        version: 0.4.0-dev.7(8b03fe1d42c28c08c2858dff405dc23c)
       '@livestore/devtools-vite':
         specifier: 0.4.0-dev.7
-        version: 0.4.0-dev.7(4e5d828f923ad0a2a6224b25cb66c9cc)
+        version: 0.4.0-dev.7(ba465d6712840ab59b316e1fee03a0ff)
       '@tailwindcss/cli':
         specifier: ^4.1.10
         version: 4.1.11
@@ -586,6 +586,9 @@ packages:
   '@cloudflare/workers-types@4.20250823.0':
     resolution: {integrity: sha512-z5pCggF3jG//h083+GEWCyQLW0A5GHq20akG+jN6ChyHQi/yZj1FcQcMhnvbBY4PiGq+SBiEj/LClG/lDPm+jg==}
 
+  '@cloudflare/workers-types@4.20250923.0':
+    resolution: {integrity: sha512-EMs5wF70f9Dt9QtxX/lSyaZIcMdcDP0VhXOW0u5HrDaIHeXDjPJw76W1lkoGF1x8XAVclhiD5zGJZTdZnoXJiQ==}
+
   '@codemirror/autocomplete@6.18.6':
     resolution: {integrity: sha512-PHHBXFomUs5DF+9tCOM/UoW6XQ4R44lLNNhRaW9PKPTU0D7lIjRg3ElxaJnTwsl/oHiR93WSXDBrekhoUGCPtg==}
 
@@ -639,22 +642,6 @@ packages:
     resolution: {integrity: sha512-dBVuXR082gk3jsFp7Rd/JI4kytwGHecnCoTtXFb7DB6CNHp4rg5k1bhg0nWdLGLnOV71lmDzGQaLMy8iPLY0pw==}
     engines: {node: '>=10.0.0'}
 
-  '@effect/ai@0.26.1':
-    resolution: {integrity: sha512-FisoFF5ghyvPx3975OFzCPlzG3UEKzY7RHdOxdmrPTeoM8/5NXi0oPGKyGpHjJmC/6efhhlwmGfRT4BTtuwTdg==}
-    peerDependencies:
-      '@effect/experimental': 0.46.8
-      '@effect/platform': 0.90.7
-      '@effect/rpc': 0.69.2
-      effect: 3.17.13
-
-  '@effect/cli@0.69.2':
-    resolution: {integrity: sha512-1xYfEzW5f6jGWDb6V6DWTsWbtdp8DgQcchbewnCwKOXnJzF5VsTcfo4lYM4TXk/RAHA1owyq7OaEmeZ+qIt1/w==}
-    peerDependencies:
-      '@effect/platform': 0.90.7
-      '@effect/printer': ^0.45.0
-      '@effect/printer-ansi': ^0.45.0
-      effect: 3.17.13
-
   '@effect/cluster@0.34.2':
     resolution: {integrity: sha512-whQAzqKmxfGhwZvQKLGmZoXEFoebfOKHpZLpadDdXyO5MVJxUXCp/CtgV9C9qSFI/KohsTYfIDxDPzQNs+uong==}
     peerDependencies:
@@ -675,68 +662,6 @@ packages:
         optional: true
       lmdb:
         optional: true
-
-  '@effect/opentelemetry@0.56.5':
-    resolution: {integrity: sha512-H6/GJup83i13NydSzhVvO/IrjNyANc6sMVVIYQ3EGQfwqek6VLSHF7KuaPDmbYB1tvJ1o17nwFr/nq7IoCa15w==}
-    peerDependencies:
-      '@effect/platform': 0.90.7
-      '@opentelemetry/api': ^1.9
-      '@opentelemetry/resources': ^2.0.0
-      '@opentelemetry/sdk-logs': ^0.203.0
-      '@opentelemetry/sdk-metrics': ^2.0.0
-      '@opentelemetry/sdk-trace-base': ^2.0.0
-      '@opentelemetry/sdk-trace-node': ^2.0.0
-      '@opentelemetry/sdk-trace-web': ^2.0.0
-      '@opentelemetry/semantic-conventions': ^1.33.0
-      effect: 3.17.13
-    peerDependenciesMeta:
-      '@opentelemetry/api':
-        optional: true
-      '@opentelemetry/resources':
-        optional: true
-      '@opentelemetry/sdk-logs':
-        optional: true
-      '@opentelemetry/sdk-metrics':
-        optional: true
-      '@opentelemetry/sdk-trace-base':
-        optional: true
-      '@opentelemetry/sdk-trace-node':
-        optional: true
-      '@opentelemetry/sdk-trace-web':
-        optional: true
-
-  '@effect/platform-browser@0.70.0':
-    resolution: {integrity: sha512-dq2ukUralavQIipSsQVuIOLLxBlFWL5Mkg1Fnr8esYPuPv0BXAI39nwNNi75X2tPAgak8OCSD0qh9qhmNj2gPA==}
-    peerDependencies:
-      '@effect/platform': 0.90.7
-      effect: 3.17.13
-
-  '@effect/platform-bun@0.79.0':
-    resolution: {integrity: sha512-oWUUV7bgPmrCCdmIeE1osfpIOnwNFkBhqSxcI26/SX36nODGyg401xl9Fk51nDT9vBI+JxpZ7eoqY0wxKaThvA==}
-    peerDependencies:
-      '@effect/cluster': 0.34.2
-      '@effect/platform': 0.90.7
-      '@effect/rpc': 0.69.2
-      '@effect/sql': 0.35.8
-      effect: 3.17.13
-
-  '@effect/platform-node-shared@0.49.0':
-    resolution: {integrity: sha512-6ufPQUtofYW+jsADRI4Pa4sMY+kc0dcoXWpH1ozH/bD6I5c2au1n/wDffnLoXMeHGYSpt/54Dd7WOqqNcOdXlg==}
-    peerDependencies:
-      '@effect/cluster': 0.34.2
-      '@effect/platform': 0.90.7
-      '@effect/rpc': 0.69.2
-      '@effect/sql': 0.35.8
-      effect: 3.17.13
-
-  '@effect/platform-node@0.96.1':
-    resolution: {integrity: sha512-4nfB/XRJJ246MCdI7klTE/aVvA9txfI83RnymS7pNyoG4CXUKELi87JrkrWFTtOlewzt5UMWpmqsFmm2qHxx3A==}
-    peerDependencies:
-      '@effect/cluster': 0.34.2
-      '@effect/platform': 0.90.7
-      '@effect/rpc': 0.69.2
-      '@effect/sql': 0.35.8
-      effect: 3.17.13
 
   '@effect/platform@0.90.7':
     resolution: {integrity: sha512-HpDnxR9KQ8gn2cJA3hsz42A3sCX/BP0NSv2F+dkW7n0ohoL9Rsfx5i1zJervuZdPz4/iOmpH9xlAOkYzXg6z0w==}
@@ -1334,11 +1259,20 @@ packages:
   '@livestore/adapter-web@0.4.0-dev.7':
     resolution: {integrity: sha512-aNfzbCKDPkiWvppm+9hzSae7FQopTWkX1Eq02puiFU0S4hxTLmvJQxBCr/CZyoz13CuAHNY3IPMOYIeuLZcziA==}
 
+  '@livestore/adapter-web@0.4.0-dev.9':
+    resolution: {integrity: sha512-W/mfcmSungEWp/ZdCK8cAz9p4QCRopJEX2Xtt3d0rwMztNeEC7v/0EBaKAH/4X7OvTV7x2nrqIH3xc7lc0oqrw==}
+
   '@livestore/common-cf@0.4.0-dev.7':
     resolution: {integrity: sha512-yzckAhX2xowuJvj4mrNUlCvqp38N2Ydti8Nd6oI/x8smnXqxKDG0qAP0PclsfexyDDxszneQMaLhZGYFqDJ0BA==}
 
+  '@livestore/common-cf@0.4.0-dev.9':
+    resolution: {integrity: sha512-pcDfHeOSozBXsPMGxW5BgPlJN7HMgN/c90/1aHR7jVw5MZwVAAnHC3vSIUo/UyBrYWpCJEaFssOUUNW5ydy0Jw==}
+
   '@livestore/common@0.4.0-dev.7':
     resolution: {integrity: sha512-QAzUD2H3l01fA3FCFbfwMbt4RPTadJx1zZN5Qka/uozgm95pPBSUeeOgmSmvCGZmAQFyCk63z2Rk2tO3m8GxkA==}
+
+  '@livestore/common@0.4.0-dev.9':
+    resolution: {integrity: sha512-4ngzdxSxBVSYKjotsutLfJ7looyRaLVdp+b4DOlo3T4xqmIt8vsksTkBmuX+J9ygiJYDB/y65yBuk7wEClSHRA==}
 
   '@livestore/devtools-vite@0.4.0-dev.7':
     resolution: {integrity: sha512-/XztXLI+7+be4HesuUdTRe+T4O9sMqCtVFqZLAVCRgDj1kRdnOb4mIlmyEgLsD3064H47JWw+gT7A1j4Q9zuWQ==}
@@ -1348,19 +1282,25 @@ packages:
   '@livestore/devtools-web-common@0.4.0-dev.7':
     resolution: {integrity: sha512-lFXYije6Qgt+PcOobiAOQ2V3aqcwbm6HTcIJdqdYM6/R/FDLBsB+GtnFZAZJ7uADP8Vj3ZkHN8YCnqzBzgKeLQ==}
 
-  '@livestore/livestore@0.4.0-dev.7':
-    resolution: {integrity: sha512-501jg+0njMwwpkBxoFVETpJcXid4ZaX6GhtbzIUnQGIKnei3JU+llktL6lIMH+Lfi+5mCDaVK7u1Ap7YddP3KA==}
+  '@livestore/devtools-web-common@0.4.0-dev.9':
+    resolution: {integrity: sha512-eElN0hsBrdKiGchGwrRt03LFSEB301wAVSrLdgWKm6C+zrNSkuVO09cW0CrlhOt2SOqWGEgKx0d1s5H74N2PEw==}
 
-  '@livestore/react@0.4.0-dev.7':
-    resolution: {integrity: sha512-g9qMq77+fTS5YXzt0BHWqMqAejyyUH1xwg5/TRwGm6M5cP/+++WFHk2nKonIl32DVN3dJgDIDyt92hH1f+RXMA==}
+  '@livestore/livestore@0.4.0-dev.9':
+    resolution: {integrity: sha512-WXgfgPYb7W8/uA2t7LMXfwP9ikHCnoIxFDVV29L3hzyFUiT192aQjLCP6bIl/bNR2PBSFFjAtFwiG5sGUu6/aQ==}
+
+  '@livestore/react@0.4.0-dev.9':
+    resolution: {integrity: sha512-sQKfghEdVY7A30ANccaCOYqLPe85mQKjm3IZ2JclC4qK4tuHs8J1bswd5f4/0YIkm03LcEwnA5IkuaTpeVXM2A==}
     peerDependencies:
       react: 19.0.0
 
   '@livestore/sqlite-wasm@0.4.0-dev.7':
     resolution: {integrity: sha512-ByPqb7vlgippmNTQ/3tLWBGzpe6O+fWRiT4V/Xo6Nq4r9RGgrBqFVAxjx1NloyTEOIfSNusOdUrplDoNgWZvQg==}
 
-  '@livestore/sync-cf@0.4.0-dev.7':
-    resolution: {integrity: sha512-1AxrEa9XKzM0yBX9T24TqNUidg+96UNFn9+R7hSPP2gQuS1KxmaibhY1XTUB0FdlUjBnmKZGDBPP/LbOXgfEag==}
+  '@livestore/sqlite-wasm@0.4.0-dev.9':
+    resolution: {integrity: sha512-WfjGqttvlEvt3T5WaruXa1XAOOwZuChMdaYEdBz/XejRmZ6vUBhqjRNF30kQVV/myE3Ekp9wlagn82dK1smtyw==}
+
+  '@livestore/sync-cf@0.4.0-dev.9':
+    resolution: {integrity: sha512-iu1nYc7vsj7247vIiXE3SibYT71JiTJiFmGRfrl0GeTfH5k5S01USkp7rNMeGr3mzwqBLRbWsVbqMPWZvA5dTw==}
 
   '@livestore/utils@0.4.0-dev.7':
     resolution: {integrity: sha512-I9N1QxIWBJi4Tcb1aYeu0vbkFtyd+pIyOWnysT+oy4o8XA9oK8/dyVj0SnO39bc8pYN3TlvqWKTVfNTuBLeqLQ==}
@@ -1383,14 +1323,41 @@ packages:
       '@opentelemetry/resources': ^2.0.1
       effect: 3.17.13
 
+  '@livestore/utils@0.4.0-dev.9':
+    resolution: {integrity: sha512-EjMqxb282M41JYobJqbbiL2JgH9KjCX5TY/N3mGtmRzQogvt+1/R8DF9siDs3Hw61mtwFLs1bpecrO1EkZUeoA==}
+    peerDependencies:
+      '@effect/ai': ^0.28.0
+      '@effect/cli': ^0.70.0
+      '@effect/cluster': 0.34.2
+      '@effect/experimental': 0.46.8
+      '@effect/opentelemetry': ^0.57.0
+      '@effect/platform': 0.90.7
+      '@effect/platform-browser': ^0.71.0
+      '@effect/platform-bun': ^0.80.0
+      '@effect/platform-node': ^0.97.0
+      '@effect/printer': ^0.45.0
+      '@effect/printer-ansi': ^0.45.0
+      '@effect/rpc': 0.69.2
+      '@effect/sql': 0.35.8
+      '@effect/typeclass': 0.34.2
+      '@opentelemetry/api': ^1.9.0
+      '@opentelemetry/resources': ^2.0.1
+      effect: 3.17.13
+
   '@livestore/wa-sqlite@0.4.0-dev.7':
     resolution: {integrity: sha512-5KE/dfZqgppMDLRNohigfS/uonLzd8uvGTnnOucx5Xec7K8XYcLLkktWNEVauWgqfpul6taXwx6t3m5AZxz16A==}
+
+  '@livestore/wa-sqlite@0.4.0-dev.9':
+    resolution: {integrity: sha512-+6h/NPYYIKyPPrgfrz5A2hG0xuk4E2YKR0t0JD/dLg+EjJQBt6oivWaUCOqd/fb7QlnKDqnV9/0xTDfAAYtNgA==}
 
   '@livestore/wa-sqlite@1.0.5-dev.2':
     resolution: {integrity: sha512-i7tKFEp0m3+4tGLV9Z5eAr/3RZPuNOyuf4NaQ/ygF2KwzlHc3TnqouPuE2sMH06r3soXIilWYND/x0eT8x6D6Q==}
 
   '@livestore/webmesh@0.4.0-dev.7':
     resolution: {integrity: sha512-DIvJuTYTWRNdtlvPIfHkJT3tpB5cVk/H5v0Kb8+SkbnFGjXEvTDH93J9KqDedmN8zw0CKazkOyEoLUEjzs0+7w==}
+
+  '@livestore/webmesh@0.4.0-dev.9':
+    resolution: {integrity: sha512-H9DH46D44zHF1JJh/YQej0qFDUFeNmUsaWwHQG3yW2WpMV1+akIXYcXDYnkgcTfrSeJeVC8xZICw6sh0QqkEwg==}
 
   '@marijn/find-cluster-break@1.0.2':
     resolution: {integrity: sha512-l0h88YhZFyKdXIFNfSWpyjStDjGHwZ/U7iobcK1cQQD8sejsONdQtTVU+1wVN1PBw40PiiHB1vA5S7VTfQiP9g==}
@@ -3405,10 +3372,6 @@ packages:
   ini@1.3.8:
     resolution: {integrity: sha512-JV/yugV2uzW5iMRSiZAyDtQd+nxtUnjeLt0acNdw98kKLrvuRVyB80tsREOE7yvGVgalhZ6RNXCmEHkUKBKxew==}
 
-  ini@4.1.3:
-    resolution: {integrity: sha512-X7rqawQBvfdjS10YU1y1YVreA3SsLrW9dX2CewP2EbBJM4ypVNLDkO5y04gejPwKIY9lR+7r9gn3rFPt/kmWFg==}
-    engines: {node: ^14.17.0 || ^16.13.0 || >=18.0.0}
-
   inline-style-parser@0.2.4:
     resolution: {integrity: sha512-0aO8FkhNZlj/ZIbNi7Lxxr12obT7cL1moPfE4tg1LkX7LlLfC6DeX4l2ZEud1ukP9jNQyNnfzQVqwbwmAATY4Q==}
 
@@ -4657,9 +4620,6 @@ packages:
   toggle-selection@1.0.6:
     resolution: {integrity: sha512-BiZS+C1OS8g/q2RRbJmy59xpyghNBqrr6k5L/uKBGRsTfxmu3ffiRnd8mlGPUVayg8pvfi5urfnu8TU7DVOkLQ==}
 
-  toml@3.0.0:
-    resolution: {integrity: sha512-y/mWCZinnvxjTKYhJ+pYxwD0mRLVvOtdS2Awbgxln6iEnt4rk0yBxeSBHkGJcPucRiG0e55mwWp+g/05rsrd6w==}
-
   totalist@3.0.1:
     resolution: {integrity: sha512-sf4i37nQ2LBx4m3wB74y+ubopq6W/dIzXg0FDGjsYnZHVa1Da8FH853wlL2gtUhg+xJXjfk3kUZS3BRoQeoQBQ==}
     engines: {node: '>=6'}
@@ -5026,18 +4986,6 @@ packages:
       utf-8-validate:
         optional: true
 
-  ws@8.18.3:
-    resolution: {integrity: sha512-PEIGCY5tSlUt50cqyMXfCzX+oOPqN0vuGqWzbcJ2xvnkzkq46oOpz7dQaTDBdfICb4N14+GARUDw2XV2N4tvzg==}
-    engines: {node: '>=10.0.0'}
-    peerDependencies:
-      bufferutil: ^4.0.1
-      utf-8-validate: '>=5.0.2'
-    peerDependenciesMeta:
-      bufferutil:
-        optional: true
-      utf-8-validate:
-        optional: true
-
   xtend@4.0.2:
     resolution: {integrity: sha512-LKYU1iAXJXUgAXn9URjiu+MWhyUXHsvfp7mcuYm9dSUKK0/CjtrUwFAxD82/mCWbtLsGjFIad0wIsod4zrTAEQ==}
     engines: {node: '>=0.4'}
@@ -5343,6 +5291,8 @@ snapshots:
 
   '@cloudflare/workers-types@4.20250823.0': {}
 
+  '@cloudflare/workers-types@4.20250923.0': {}
+
   '@codemirror/autocomplete@6.18.6':
     dependencies:
       '@codemirror/language': 6.11.2
@@ -5466,24 +5416,6 @@ snapshots:
 
   '@discoveryjs/json-ext@0.5.7': {}
 
-  '@effect/ai@0.26.1(@effect/experimental@0.46.8(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/platform@0.90.7(effect@3.17.13))(@effect/rpc@0.69.2(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(effect@3.17.13)':
-    dependencies:
-      '@effect/experimental': 0.46.8(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13)
-      '@effect/platform': 0.90.7(effect@3.17.13)
-      '@effect/rpc': 0.69.2(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13)
-      effect: 3.17.13
-      find-my-way-ts: 0.1.6
-
-  '@effect/cli@0.69.2(@effect/platform@0.90.7(effect@3.17.13))(@effect/printer-ansi@0.45.0(@effect/typeclass@0.34.2(effect@3.17.13))(effect@3.17.13))(@effect/printer@0.45.0(@effect/typeclass@0.34.2(effect@3.17.13))(effect@3.17.13))(effect@3.17.13)':
-    dependencies:
-      '@effect/platform': 0.90.7(effect@3.17.13)
-      '@effect/printer': 0.45.0(@effect/typeclass@0.34.2(effect@3.17.13))(effect@3.17.13)
-      '@effect/printer-ansi': 0.45.0(@effect/typeclass@0.34.2(effect@3.17.13))(effect@3.17.13)
-      effect: 3.17.13
-      ini: 4.1.3
-      toml: 3.0.0
-      yaml: 2.8.1
-
   '@effect/cluster@0.34.2(@effect/platform@0.90.7(effect@3.17.13))(@effect/rpc@0.69.2(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/sql@0.35.8(@effect/experimental@0.46.8(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(effect@3.17.13)':
     dependencies:
       '@effect/platform': 0.90.7(effect@3.17.13)
@@ -5496,63 +5428,6 @@ snapshots:
       '@effect/platform': 0.90.7(effect@3.17.13)
       effect: 3.17.13
       uuid: 11.1.0
-
-  '@effect/opentelemetry@0.56.5(@effect/platform@0.90.7(effect@3.17.13))(@opentelemetry/api@1.9.0)(@opentelemetry/resources@2.0.1(@opentelemetry/api@1.9.0))(@opentelemetry/semantic-conventions@1.36.0)(effect@3.17.13)':
-    dependencies:
-      '@effect/platform': 0.90.7(effect@3.17.13)
-      '@opentelemetry/semantic-conventions': 1.36.0
-      effect: 3.17.13
-    optionalDependencies:
-      '@opentelemetry/api': 1.9.0
-      '@opentelemetry/resources': 2.0.1(@opentelemetry/api@1.9.0)
-
-  '@effect/platform-browser@0.70.0(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13)':
-    dependencies:
-      '@effect/platform': 0.90.7(effect@3.17.13)
-      effect: 3.17.13
-      multipasta: 0.2.7
-
-  '@effect/platform-bun@0.79.0(@effect/cluster@0.34.2(@effect/platform@0.90.7(effect@3.17.13))(@effect/rpc@0.69.2(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/sql@0.35.8(@effect/experimental@0.46.8(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(effect@3.17.13))(@effect/platform@0.90.7(effect@3.17.13))(@effect/rpc@0.69.2(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/sql@0.35.8(@effect/experimental@0.46.8(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(effect@3.17.13)':
-    dependencies:
-      '@effect/cluster': 0.34.2(@effect/platform@0.90.7(effect@3.17.13))(@effect/rpc@0.69.2(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/sql@0.35.8(@effect/experimental@0.46.8(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(effect@3.17.13)
-      '@effect/platform': 0.90.7(effect@3.17.13)
-      '@effect/platform-node-shared': 0.49.0(@effect/cluster@0.34.2(@effect/platform@0.90.7(effect@3.17.13))(@effect/rpc@0.69.2(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/sql@0.35.8(@effect/experimental@0.46.8(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(effect@3.17.13))(@effect/platform@0.90.7(effect@3.17.13))(@effect/rpc@0.69.2(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/sql@0.35.8(@effect/experimental@0.46.8(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(effect@3.17.13)
-      '@effect/rpc': 0.69.2(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13)
-      '@effect/sql': 0.35.8(@effect/experimental@0.46.8(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13)
-      effect: 3.17.13
-      multipasta: 0.2.7
-    transitivePeerDependencies:
-      - bufferutil
-      - utf-8-validate
-
-  '@effect/platform-node-shared@0.49.0(@effect/cluster@0.34.2(@effect/platform@0.90.7(effect@3.17.13))(@effect/rpc@0.69.2(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/sql@0.35.8(@effect/experimental@0.46.8(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(effect@3.17.13))(@effect/platform@0.90.7(effect@3.17.13))(@effect/rpc@0.69.2(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/sql@0.35.8(@effect/experimental@0.46.8(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(effect@3.17.13)':
-    dependencies:
-      '@effect/cluster': 0.34.2(@effect/platform@0.90.7(effect@3.17.13))(@effect/rpc@0.69.2(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/sql@0.35.8(@effect/experimental@0.46.8(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(effect@3.17.13)
-      '@effect/platform': 0.90.7(effect@3.17.13)
-      '@effect/rpc': 0.69.2(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13)
-      '@effect/sql': 0.35.8(@effect/experimental@0.46.8(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13)
-      '@parcel/watcher': 2.5.1
-      effect: 3.17.13
-      multipasta: 0.2.7
-      ws: 8.18.3
-    transitivePeerDependencies:
-      - bufferutil
-      - utf-8-validate
-
-  '@effect/platform-node@0.96.1(@effect/cluster@0.34.2(@effect/platform@0.90.7(effect@3.17.13))(@effect/rpc@0.69.2(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/sql@0.35.8(@effect/experimental@0.46.8(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(effect@3.17.13))(@effect/platform@0.90.7(effect@3.17.13))(@effect/rpc@0.69.2(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/sql@0.35.8(@effect/experimental@0.46.8(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(effect@3.17.13)':
-    dependencies:
-      '@effect/cluster': 0.34.2(@effect/platform@0.90.7(effect@3.17.13))(@effect/rpc@0.69.2(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/sql@0.35.8(@effect/experimental@0.46.8(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(effect@3.17.13)
-      '@effect/platform': 0.90.7(effect@3.17.13)
-      '@effect/platform-node-shared': 0.49.0(@effect/cluster@0.34.2(@effect/platform@0.90.7(effect@3.17.13))(@effect/rpc@0.69.2(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/sql@0.35.8(@effect/experimental@0.46.8(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(effect@3.17.13))(@effect/platform@0.90.7(effect@3.17.13))(@effect/rpc@0.69.2(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/sql@0.35.8(@effect/experimental@0.46.8(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(effect@3.17.13)
-      '@effect/rpc': 0.69.2(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13)
-      '@effect/sql': 0.35.8(@effect/experimental@0.46.8(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13)
-      effect: 3.17.13
-      mime: 3.0.0
-      undici: 7.13.0
-      ws: 8.18.3
-    transitivePeerDependencies:
-      - bufferutil
-      - utf-8-validate
 
   '@effect/platform@0.90.7(effect@3.17.13)':
     dependencies:
@@ -5981,13 +5856,13 @@ snapshots:
       '@lezer/highlight': 1.2.1
       '@lezer/lr': 1.4.2
 
-  '@livestore/adapter-node@0.4.0-dev.7(3c61e82d2462dca28e66c573df24f08b)':
+  '@livestore/adapter-node@0.4.0-dev.7(8b03fe1d42c28c08c2858dff405dc23c)':
     dependencies:
-      '@livestore/common': 0.4.0-dev.7(b7b3788e3871b1f8421339ceef8bb27d)
-      '@livestore/devtools-vite': 0.4.0-dev.7(4e5d828f923ad0a2a6224b25cb66c9cc)
-      '@livestore/sqlite-wasm': 0.4.0-dev.7(676275bee9841bcab5beb100ee1da758)
-      '@livestore/utils': 0.4.0-dev.7(676275bee9841bcab5beb100ee1da758)
-      '@livestore/webmesh': 0.4.0-dev.7(676275bee9841bcab5beb100ee1da758)
+      '@livestore/common': 0.4.0-dev.7(@effect/cluster@0.34.2(@effect/platform@0.90.7(effect@3.17.13))(@effect/rpc@0.69.2(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/sql@0.35.8(@effect/experimental@0.46.8(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(effect@3.17.13))(@effect/experimental@0.46.8(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/platform@0.90.7(effect@3.17.13))(@effect/printer-ansi@0.45.0(@effect/typeclass@0.34.2(effect@3.17.13))(effect@3.17.13))(@effect/printer@0.45.0(@effect/typeclass@0.34.2(effect@3.17.13))(effect@3.17.13))(@effect/rpc@0.69.2(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/sql@0.35.8(@effect/experimental@0.46.8(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/typeclass@0.34.2(effect@3.17.13))(@opentelemetry/resources@2.0.1(@opentelemetry/api@1.9.0))(effect@3.17.13)
+      '@livestore/devtools-vite': 0.4.0-dev.7(ba465d6712840ab59b316e1fee03a0ff)
+      '@livestore/sqlite-wasm': 0.4.0-dev.7(@effect/cluster@0.34.2(@effect/platform@0.90.7(effect@3.17.13))(@effect/rpc@0.69.2(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/sql@0.35.8(@effect/experimental@0.46.8(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(effect@3.17.13))(@effect/experimental@0.46.8(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/platform@0.90.7(effect@3.17.13))(@effect/printer-ansi@0.45.0(@effect/typeclass@0.34.2(effect@3.17.13))(effect@3.17.13))(@effect/printer@0.45.0(@effect/typeclass@0.34.2(effect@3.17.13))(effect@3.17.13))(@effect/rpc@0.69.2(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/sql@0.35.8(@effect/experimental@0.46.8(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/typeclass@0.34.2(effect@3.17.13))(@opentelemetry/api@1.9.0)(@opentelemetry/resources@2.0.1(@opentelemetry/api@1.9.0))(effect@3.17.13)
+      '@livestore/utils': 0.4.0-dev.7(@effect/cluster@0.34.2(@effect/platform@0.90.7(effect@3.17.13))(@effect/rpc@0.69.2(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/sql@0.35.8(@effect/experimental@0.46.8(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(effect@3.17.13))(@effect/experimental@0.46.8(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/platform@0.90.7(effect@3.17.13))(@effect/printer-ansi@0.45.0(@effect/typeclass@0.34.2(effect@3.17.13))(effect@3.17.13))(@effect/printer@0.45.0(@effect/typeclass@0.34.2(effect@3.17.13))(effect@3.17.13))(@effect/rpc@0.69.2(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/sql@0.35.8(@effect/experimental@0.46.8(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/typeclass@0.34.2(effect@3.17.13))(@opentelemetry/api@1.9.0)(@opentelemetry/resources@2.0.1(@opentelemetry/api@1.9.0))(effect@3.17.13)
+      '@livestore/webmesh': 0.4.0-dev.7(@effect/cluster@0.34.2(@effect/platform@0.90.7(effect@3.17.13))(@effect/rpc@0.69.2(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/sql@0.35.8(@effect/experimental@0.46.8(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(effect@3.17.13))(@effect/experimental@0.46.8(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/platform@0.90.7(effect@3.17.13))(@effect/printer-ansi@0.45.0(@effect/typeclass@0.34.2(effect@3.17.13))(effect@3.17.13))(@effect/printer@0.45.0(@effect/typeclass@0.34.2(effect@3.17.13))(effect@3.17.13))(@effect/rpc@0.69.2(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/sql@0.35.8(@effect/experimental@0.46.8(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/typeclass@0.34.2(effect@3.17.13))(@opentelemetry/api@1.9.0)(@opentelemetry/resources@2.0.1(@opentelemetry/api@1.9.0))(effect@3.17.13)
       '@opentelemetry/api': 1.9.0
       vite: 7.1.4(@types/node@24.0.13)(jiti@2.4.2)(lightningcss@1.30.1)(yaml@2.8.1)
     transitivePeerDependencies:
@@ -6019,13 +5894,13 @@ snapshots:
       - tsx
       - yaml
 
-  '@livestore/adapter-web@0.4.0-dev.7(b7b3788e3871b1f8421339ceef8bb27d)':
+  '@livestore/adapter-web@0.4.0-dev.7(@effect/cluster@0.34.2(@effect/platform@0.90.7(effect@3.17.13))(@effect/rpc@0.69.2(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/sql@0.35.8(@effect/experimental@0.46.8(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(effect@3.17.13))(@effect/experimental@0.46.8(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/platform@0.90.7(effect@3.17.13))(@effect/printer-ansi@0.45.0(@effect/typeclass@0.34.2(effect@3.17.13))(effect@3.17.13))(@effect/printer@0.45.0(@effect/typeclass@0.34.2(effect@3.17.13))(effect@3.17.13))(@effect/rpc@0.69.2(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/sql@0.35.8(@effect/experimental@0.46.8(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/typeclass@0.34.2(effect@3.17.13))(@opentelemetry/resources@2.0.1(@opentelemetry/api@1.9.0))(effect@3.17.13)':
     dependencies:
-      '@livestore/common': 0.4.0-dev.7(b7b3788e3871b1f8421339ceef8bb27d)
-      '@livestore/devtools-web-common': 0.4.0-dev.7(676275bee9841bcab5beb100ee1da758)
-      '@livestore/sqlite-wasm': 0.4.0-dev.7(676275bee9841bcab5beb100ee1da758)
-      '@livestore/utils': 0.4.0-dev.7(676275bee9841bcab5beb100ee1da758)
-      '@livestore/webmesh': 0.4.0-dev.7(676275bee9841bcab5beb100ee1da758)
+      '@livestore/common': 0.4.0-dev.7(@effect/cluster@0.34.2(@effect/platform@0.90.7(effect@3.17.13))(@effect/rpc@0.69.2(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/sql@0.35.8(@effect/experimental@0.46.8(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(effect@3.17.13))(@effect/experimental@0.46.8(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/platform@0.90.7(effect@3.17.13))(@effect/printer-ansi@0.45.0(@effect/typeclass@0.34.2(effect@3.17.13))(effect@3.17.13))(@effect/printer@0.45.0(@effect/typeclass@0.34.2(effect@3.17.13))(effect@3.17.13))(@effect/rpc@0.69.2(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/sql@0.35.8(@effect/experimental@0.46.8(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/typeclass@0.34.2(effect@3.17.13))(@opentelemetry/resources@2.0.1(@opentelemetry/api@1.9.0))(effect@3.17.13)
+      '@livestore/devtools-web-common': 0.4.0-dev.7(@effect/cluster@0.34.2(@effect/platform@0.90.7(effect@3.17.13))(@effect/rpc@0.69.2(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/sql@0.35.8(@effect/experimental@0.46.8(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(effect@3.17.13))(@effect/experimental@0.46.8(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/platform@0.90.7(effect@3.17.13))(@effect/printer-ansi@0.45.0(@effect/typeclass@0.34.2(effect@3.17.13))(effect@3.17.13))(@effect/printer@0.45.0(@effect/typeclass@0.34.2(effect@3.17.13))(effect@3.17.13))(@effect/rpc@0.69.2(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/sql@0.35.8(@effect/experimental@0.46.8(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/typeclass@0.34.2(effect@3.17.13))(@opentelemetry/api@1.9.0)(@opentelemetry/resources@2.0.1(@opentelemetry/api@1.9.0))(effect@3.17.13)
+      '@livestore/sqlite-wasm': 0.4.0-dev.7(@effect/cluster@0.34.2(@effect/platform@0.90.7(effect@3.17.13))(@effect/rpc@0.69.2(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/sql@0.35.8(@effect/experimental@0.46.8(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(effect@3.17.13))(@effect/experimental@0.46.8(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/platform@0.90.7(effect@3.17.13))(@effect/printer-ansi@0.45.0(@effect/typeclass@0.34.2(effect@3.17.13))(effect@3.17.13))(@effect/printer@0.45.0(@effect/typeclass@0.34.2(effect@3.17.13))(effect@3.17.13))(@effect/rpc@0.69.2(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/sql@0.35.8(@effect/experimental@0.46.8(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/typeclass@0.34.2(effect@3.17.13))(@opentelemetry/api@1.9.0)(@opentelemetry/resources@2.0.1(@opentelemetry/api@1.9.0))(effect@3.17.13)
+      '@livestore/utils': 0.4.0-dev.7(@effect/cluster@0.34.2(@effect/platform@0.90.7(effect@3.17.13))(@effect/rpc@0.69.2(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/sql@0.35.8(@effect/experimental@0.46.8(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(effect@3.17.13))(@effect/experimental@0.46.8(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/platform@0.90.7(effect@3.17.13))(@effect/printer-ansi@0.45.0(@effect/typeclass@0.34.2(effect@3.17.13))(effect@3.17.13))(@effect/printer@0.45.0(@effect/typeclass@0.34.2(effect@3.17.13))(effect@3.17.13))(@effect/rpc@0.69.2(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/sql@0.35.8(@effect/experimental@0.46.8(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/typeclass@0.34.2(effect@3.17.13))(@opentelemetry/api@1.9.0)(@opentelemetry/resources@2.0.1(@opentelemetry/api@1.9.0))(effect@3.17.13)
+      '@livestore/webmesh': 0.4.0-dev.7(@effect/cluster@0.34.2(@effect/platform@0.90.7(effect@3.17.13))(@effect/rpc@0.69.2(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/sql@0.35.8(@effect/experimental@0.46.8(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(effect@3.17.13))(@effect/experimental@0.46.8(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/platform@0.90.7(effect@3.17.13))(@effect/printer-ansi@0.45.0(@effect/typeclass@0.34.2(effect@3.17.13))(effect@3.17.13))(@effect/printer@0.45.0(@effect/typeclass@0.34.2(effect@3.17.13))(effect@3.17.13))(@effect/rpc@0.69.2(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/sql@0.35.8(@effect/experimental@0.46.8(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/typeclass@0.34.2(effect@3.17.13))(@opentelemetry/api@1.9.0)(@opentelemetry/resources@2.0.1(@opentelemetry/api@1.9.0))(effect@3.17.13)
       '@opentelemetry/api': 1.9.0
     transitivePeerDependencies:
       - '@effect/ai'
@@ -6045,11 +5920,37 @@ snapshots:
       - '@opentelemetry/resources'
       - effect
 
-  '@livestore/common-cf@0.4.0-dev.7(676275bee9841bcab5beb100ee1da758)':
+  '@livestore/adapter-web@0.4.0-dev.9(@effect/cluster@0.34.2(@effect/platform@0.90.7(effect@3.17.13))(@effect/rpc@0.69.2(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/sql@0.35.8(@effect/experimental@0.46.8(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(effect@3.17.13))(@effect/experimental@0.46.8(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/platform@0.90.7(effect@3.17.13))(@effect/printer-ansi@0.45.0(@effect/typeclass@0.34.2(effect@3.17.13))(effect@3.17.13))(@effect/printer@0.45.0(@effect/typeclass@0.34.2(effect@3.17.13))(effect@3.17.13))(@effect/rpc@0.69.2(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/sql@0.35.8(@effect/experimental@0.46.8(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/typeclass@0.34.2(effect@3.17.13))(@opentelemetry/resources@2.0.1(@opentelemetry/api@1.9.0))(effect@3.17.13)':
     dependencies:
+      '@livestore/common': 0.4.0-dev.9(@effect/cluster@0.34.2(@effect/platform@0.90.7(effect@3.17.13))(@effect/rpc@0.69.2(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/sql@0.35.8(@effect/experimental@0.46.8(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(effect@3.17.13))(@effect/experimental@0.46.8(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/platform@0.90.7(effect@3.17.13))(@effect/printer-ansi@0.45.0(@effect/typeclass@0.34.2(effect@3.17.13))(effect@3.17.13))(@effect/printer@0.45.0(@effect/typeclass@0.34.2(effect@3.17.13))(effect@3.17.13))(@effect/rpc@0.69.2(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/sql@0.35.8(@effect/experimental@0.46.8(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/typeclass@0.34.2(effect@3.17.13))(@opentelemetry/resources@2.0.1(@opentelemetry/api@1.9.0))(effect@3.17.13)
+      '@livestore/devtools-web-common': 0.4.0-dev.9(@effect/cluster@0.34.2(@effect/platform@0.90.7(effect@3.17.13))(@effect/rpc@0.69.2(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/sql@0.35.8(@effect/experimental@0.46.8(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(effect@3.17.13))(@effect/experimental@0.46.8(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/platform@0.90.7(effect@3.17.13))(@effect/printer-ansi@0.45.0(@effect/typeclass@0.34.2(effect@3.17.13))(effect@3.17.13))(@effect/printer@0.45.0(@effect/typeclass@0.34.2(effect@3.17.13))(effect@3.17.13))(@effect/rpc@0.69.2(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/sql@0.35.8(@effect/experimental@0.46.8(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/typeclass@0.34.2(effect@3.17.13))(@opentelemetry/api@1.9.0)(@opentelemetry/resources@2.0.1(@opentelemetry/api@1.9.0))(effect@3.17.13)
+      '@livestore/sqlite-wasm': 0.4.0-dev.9(@effect/cluster@0.34.2(@effect/platform@0.90.7(effect@3.17.13))(@effect/rpc@0.69.2(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/sql@0.35.8(@effect/experimental@0.46.8(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(effect@3.17.13))(@effect/experimental@0.46.8(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/platform@0.90.7(effect@3.17.13))(@effect/printer-ansi@0.45.0(@effect/typeclass@0.34.2(effect@3.17.13))(effect@3.17.13))(@effect/printer@0.45.0(@effect/typeclass@0.34.2(effect@3.17.13))(effect@3.17.13))(@effect/rpc@0.69.2(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/sql@0.35.8(@effect/experimental@0.46.8(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/typeclass@0.34.2(effect@3.17.13))(@opentelemetry/api@1.9.0)(@opentelemetry/resources@2.0.1(@opentelemetry/api@1.9.0))(effect@3.17.13)
+      '@livestore/utils': 0.4.0-dev.9(@effect/cluster@0.34.2(@effect/platform@0.90.7(effect@3.17.13))(@effect/rpc@0.69.2(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/sql@0.35.8(@effect/experimental@0.46.8(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(effect@3.17.13))(@effect/experimental@0.46.8(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/platform@0.90.7(effect@3.17.13))(@effect/printer-ansi@0.45.0(@effect/typeclass@0.34.2(effect@3.17.13))(effect@3.17.13))(@effect/printer@0.45.0(@effect/typeclass@0.34.2(effect@3.17.13))(effect@3.17.13))(@effect/rpc@0.69.2(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/sql@0.35.8(@effect/experimental@0.46.8(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/typeclass@0.34.2(effect@3.17.13))(@opentelemetry/api@1.9.0)(@opentelemetry/resources@2.0.1(@opentelemetry/api@1.9.0))(effect@3.17.13)
+      '@livestore/webmesh': 0.4.0-dev.9(@effect/cluster@0.34.2(@effect/platform@0.90.7(effect@3.17.13))(@effect/rpc@0.69.2(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/sql@0.35.8(@effect/experimental@0.46.8(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(effect@3.17.13))(@effect/experimental@0.46.8(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/platform@0.90.7(effect@3.17.13))(@effect/printer-ansi@0.45.0(@effect/typeclass@0.34.2(effect@3.17.13))(effect@3.17.13))(@effect/printer@0.45.0(@effect/typeclass@0.34.2(effect@3.17.13))(effect@3.17.13))(@effect/rpc@0.69.2(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/sql@0.35.8(@effect/experimental@0.46.8(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/typeclass@0.34.2(effect@3.17.13))(@opentelemetry/api@1.9.0)(@opentelemetry/resources@2.0.1(@opentelemetry/api@1.9.0))(effect@3.17.13)
+      '@opentelemetry/api': 1.9.0
+    transitivePeerDependencies:
+      - '@effect/ai'
+      - '@effect/cli'
+      - '@effect/cluster'
+      - '@effect/experimental'
+      - '@effect/opentelemetry'
+      - '@effect/platform'
+      - '@effect/platform-browser'
+      - '@effect/platform-bun'
+      - '@effect/platform-node'
+      - '@effect/printer'
+      - '@effect/printer-ansi'
+      - '@effect/rpc'
+      - '@effect/sql'
+      - '@effect/typeclass'
+      - '@opentelemetry/resources'
+      - effect
+
+  ? '@livestore/common-cf@0.4.0-dev.7(@effect/cluster@0.34.2(@effect/platform@0.90.7(effect@3.17.13))(@effect/rpc@0.69.2(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/sql@0.35.8(@effect/experimental@0.46.8(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(effect@3.17.13))(@effect/experimental@0.46.8(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/platform@0.90.7(effect@3.17.13))(@effect/printer-ansi@0.45.0(@effect/typeclass@0.34.2(effect@3.17.13))(effect@3.17.13))(@effect/printer@0.45.0(@effect/typeclass@0.34.2(effect@3.17.13))(effect@3.17.13))(@effect/rpc@0.69.2(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/sql@0.35.8(@effect/experimental@0.46.8(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/typeclass@0.34.2(effect@3.17.13))(@opentelemetry/api@1.9.0)(@opentelemetry/resources@2.0.1(@opentelemetry/api@1.9.0))(effect@3.17.13)'
+  : dependencies:
       '@cloudflare/workers-types': 4.20250823.0
-      '@livestore/common': 0.4.0-dev.7(b7b3788e3871b1f8421339ceef8bb27d)
-      '@livestore/utils': 0.4.0-dev.7(676275bee9841bcab5beb100ee1da758)
+      '@livestore/common': 0.4.0-dev.7(@effect/cluster@0.34.2(@effect/platform@0.90.7(effect@3.17.13))(@effect/rpc@0.69.2(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/sql@0.35.8(@effect/experimental@0.46.8(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(effect@3.17.13))(@effect/experimental@0.46.8(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/platform@0.90.7(effect@3.17.13))(@effect/printer-ansi@0.45.0(@effect/typeclass@0.34.2(effect@3.17.13))(effect@3.17.13))(@effect/printer@0.45.0(@effect/typeclass@0.34.2(effect@3.17.13))(effect@3.17.13))(@effect/rpc@0.69.2(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/sql@0.35.8(@effect/experimental@0.46.8(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/typeclass@0.34.2(effect@3.17.13))(@opentelemetry/resources@2.0.1(@opentelemetry/api@1.9.0))(effect@3.17.13)
+      '@livestore/utils': 0.4.0-dev.7(@effect/cluster@0.34.2(@effect/platform@0.90.7(effect@3.17.13))(@effect/rpc@0.69.2(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/sql@0.35.8(@effect/experimental@0.46.8(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(effect@3.17.13))(@effect/experimental@0.46.8(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/platform@0.90.7(effect@3.17.13))(@effect/printer-ansi@0.45.0(@effect/typeclass@0.34.2(effect@3.17.13))(effect@3.17.13))(@effect/printer@0.45.0(@effect/typeclass@0.34.2(effect@3.17.13))(effect@3.17.13))(@effect/rpc@0.69.2(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/sql@0.35.8(@effect/experimental@0.46.8(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/typeclass@0.34.2(effect@3.17.13))(@opentelemetry/api@1.9.0)(@opentelemetry/resources@2.0.1(@opentelemetry/api@1.9.0))(effect@3.17.13)
     transitivePeerDependencies:
       - '@effect/ai'
       - '@effect/cli'
@@ -6069,10 +5970,34 @@ snapshots:
       - '@opentelemetry/resources'
       - effect
 
-  '@livestore/common@0.4.0-dev.7(b7b3788e3871b1f8421339ceef8bb27d)':
+  ? '@livestore/common-cf@0.4.0-dev.9(@effect/cluster@0.34.2(@effect/platform@0.90.7(effect@3.17.13))(@effect/rpc@0.69.2(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/sql@0.35.8(@effect/experimental@0.46.8(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(effect@3.17.13))(@effect/experimental@0.46.8(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/platform@0.90.7(effect@3.17.13))(@effect/printer-ansi@0.45.0(@effect/typeclass@0.34.2(effect@3.17.13))(effect@3.17.13))(@effect/printer@0.45.0(@effect/typeclass@0.34.2(effect@3.17.13))(effect@3.17.13))(@effect/rpc@0.69.2(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/sql@0.35.8(@effect/experimental@0.46.8(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/typeclass@0.34.2(effect@3.17.13))(@opentelemetry/api@1.9.0)(@opentelemetry/resources@2.0.1(@opentelemetry/api@1.9.0))(effect@3.17.13)'
+  : dependencies:
+      '@cloudflare/workers-types': 4.20250923.0
+      '@livestore/common': 0.4.0-dev.9(@effect/cluster@0.34.2(@effect/platform@0.90.7(effect@3.17.13))(@effect/rpc@0.69.2(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/sql@0.35.8(@effect/experimental@0.46.8(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(effect@3.17.13))(@effect/experimental@0.46.8(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/platform@0.90.7(effect@3.17.13))(@effect/printer-ansi@0.45.0(@effect/typeclass@0.34.2(effect@3.17.13))(effect@3.17.13))(@effect/printer@0.45.0(@effect/typeclass@0.34.2(effect@3.17.13))(effect@3.17.13))(@effect/rpc@0.69.2(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/sql@0.35.8(@effect/experimental@0.46.8(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/typeclass@0.34.2(effect@3.17.13))(@opentelemetry/resources@2.0.1(@opentelemetry/api@1.9.0))(effect@3.17.13)
+      '@livestore/utils': 0.4.0-dev.9(@effect/cluster@0.34.2(@effect/platform@0.90.7(effect@3.17.13))(@effect/rpc@0.69.2(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/sql@0.35.8(@effect/experimental@0.46.8(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(effect@3.17.13))(@effect/experimental@0.46.8(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/platform@0.90.7(effect@3.17.13))(@effect/printer-ansi@0.45.0(@effect/typeclass@0.34.2(effect@3.17.13))(effect@3.17.13))(@effect/printer@0.45.0(@effect/typeclass@0.34.2(effect@3.17.13))(effect@3.17.13))(@effect/rpc@0.69.2(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/sql@0.35.8(@effect/experimental@0.46.8(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/typeclass@0.34.2(effect@3.17.13))(@opentelemetry/api@1.9.0)(@opentelemetry/resources@2.0.1(@opentelemetry/api@1.9.0))(effect@3.17.13)
+    transitivePeerDependencies:
+      - '@effect/ai'
+      - '@effect/cli'
+      - '@effect/cluster'
+      - '@effect/experimental'
+      - '@effect/opentelemetry'
+      - '@effect/platform'
+      - '@effect/platform-browser'
+      - '@effect/platform-bun'
+      - '@effect/platform-node'
+      - '@effect/printer'
+      - '@effect/printer-ansi'
+      - '@effect/rpc'
+      - '@effect/sql'
+      - '@effect/typeclass'
+      - '@opentelemetry/api'
+      - '@opentelemetry/resources'
+      - effect
+
+  '@livestore/common@0.4.0-dev.7(@effect/cluster@0.34.2(@effect/platform@0.90.7(effect@3.17.13))(@effect/rpc@0.69.2(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/sql@0.35.8(@effect/experimental@0.46.8(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(effect@3.17.13))(@effect/experimental@0.46.8(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/platform@0.90.7(effect@3.17.13))(@effect/printer-ansi@0.45.0(@effect/typeclass@0.34.2(effect@3.17.13))(effect@3.17.13))(@effect/printer@0.45.0(@effect/typeclass@0.34.2(effect@3.17.13))(effect@3.17.13))(@effect/rpc@0.69.2(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/sql@0.35.8(@effect/experimental@0.46.8(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/typeclass@0.34.2(effect@3.17.13))(@opentelemetry/resources@2.0.1(@opentelemetry/api@1.9.0))(effect@3.17.13)':
     dependencies:
-      '@livestore/utils': 0.4.0-dev.7(676275bee9841bcab5beb100ee1da758)
-      '@livestore/webmesh': 0.4.0-dev.7(676275bee9841bcab5beb100ee1da758)
+      '@livestore/utils': 0.4.0-dev.7(@effect/cluster@0.34.2(@effect/platform@0.90.7(effect@3.17.13))(@effect/rpc@0.69.2(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/sql@0.35.8(@effect/experimental@0.46.8(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(effect@3.17.13))(@effect/experimental@0.46.8(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/platform@0.90.7(effect@3.17.13))(@effect/printer-ansi@0.45.0(@effect/typeclass@0.34.2(effect@3.17.13))(effect@3.17.13))(@effect/printer@0.45.0(@effect/typeclass@0.34.2(effect@3.17.13))(effect@3.17.13))(@effect/rpc@0.69.2(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/sql@0.35.8(@effect/experimental@0.46.8(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/typeclass@0.34.2(effect@3.17.13))(@opentelemetry/api@1.9.0)(@opentelemetry/resources@2.0.1(@opentelemetry/api@1.9.0))(effect@3.17.13)
+      '@livestore/webmesh': 0.4.0-dev.7(@effect/cluster@0.34.2(@effect/platform@0.90.7(effect@3.17.13))(@effect/rpc@0.69.2(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/sql@0.35.8(@effect/experimental@0.46.8(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(effect@3.17.13))(@effect/experimental@0.46.8(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/platform@0.90.7(effect@3.17.13))(@effect/printer-ansi@0.45.0(@effect/typeclass@0.34.2(effect@3.17.13))(effect@3.17.13))(@effect/printer@0.45.0(@effect/typeclass@0.34.2(effect@3.17.13))(effect@3.17.13))(@effect/rpc@0.69.2(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/sql@0.35.8(@effect/experimental@0.46.8(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/typeclass@0.34.2(effect@3.17.13))(@opentelemetry/api@1.9.0)(@opentelemetry/resources@2.0.1(@opentelemetry/api@1.9.0))(effect@3.17.13)
       '@opentelemetry/api': 1.9.0
       graphology: 0.26.0-alpha1(graphology-types@0.24.8)
       graphology-dag: 0.4.1(graphology-types@0.24.8)
@@ -6095,10 +6020,36 @@ snapshots:
       - '@opentelemetry/resources'
       - effect
 
-  '@livestore/devtools-vite@0.4.0-dev.7(4e5d828f923ad0a2a6224b25cb66c9cc)':
+  '@livestore/common@0.4.0-dev.9(@effect/cluster@0.34.2(@effect/platform@0.90.7(effect@3.17.13))(@effect/rpc@0.69.2(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/sql@0.35.8(@effect/experimental@0.46.8(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(effect@3.17.13))(@effect/experimental@0.46.8(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/platform@0.90.7(effect@3.17.13))(@effect/printer-ansi@0.45.0(@effect/typeclass@0.34.2(effect@3.17.13))(effect@3.17.13))(@effect/printer@0.45.0(@effect/typeclass@0.34.2(effect@3.17.13))(effect@3.17.13))(@effect/rpc@0.69.2(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/sql@0.35.8(@effect/experimental@0.46.8(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/typeclass@0.34.2(effect@3.17.13))(@opentelemetry/resources@2.0.1(@opentelemetry/api@1.9.0))(effect@3.17.13)':
     dependencies:
-      '@livestore/adapter-web': 0.4.0-dev.7(b7b3788e3871b1f8421339ceef8bb27d)
-      '@livestore/utils': 0.4.0-dev.7(676275bee9841bcab5beb100ee1da758)
+      '@livestore/utils': 0.4.0-dev.9(@effect/cluster@0.34.2(@effect/platform@0.90.7(effect@3.17.13))(@effect/rpc@0.69.2(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/sql@0.35.8(@effect/experimental@0.46.8(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(effect@3.17.13))(@effect/experimental@0.46.8(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/platform@0.90.7(effect@3.17.13))(@effect/printer-ansi@0.45.0(@effect/typeclass@0.34.2(effect@3.17.13))(effect@3.17.13))(@effect/printer@0.45.0(@effect/typeclass@0.34.2(effect@3.17.13))(effect@3.17.13))(@effect/rpc@0.69.2(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/sql@0.35.8(@effect/experimental@0.46.8(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/typeclass@0.34.2(effect@3.17.13))(@opentelemetry/api@1.9.0)(@opentelemetry/resources@2.0.1(@opentelemetry/api@1.9.0))(effect@3.17.13)
+      '@livestore/webmesh': 0.4.0-dev.9(@effect/cluster@0.34.2(@effect/platform@0.90.7(effect@3.17.13))(@effect/rpc@0.69.2(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/sql@0.35.8(@effect/experimental@0.46.8(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(effect@3.17.13))(@effect/experimental@0.46.8(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/platform@0.90.7(effect@3.17.13))(@effect/printer-ansi@0.45.0(@effect/typeclass@0.34.2(effect@3.17.13))(effect@3.17.13))(@effect/printer@0.45.0(@effect/typeclass@0.34.2(effect@3.17.13))(effect@3.17.13))(@effect/rpc@0.69.2(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/sql@0.35.8(@effect/experimental@0.46.8(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/typeclass@0.34.2(effect@3.17.13))(@opentelemetry/api@1.9.0)(@opentelemetry/resources@2.0.1(@opentelemetry/api@1.9.0))(effect@3.17.13)
+      '@opentelemetry/api': 1.9.0
+      graphology: 0.26.0-alpha1(graphology-types@0.24.8)
+      graphology-dag: 0.4.1(graphology-types@0.24.8)
+      graphology-types: 0.24.8
+    transitivePeerDependencies:
+      - '@effect/ai'
+      - '@effect/cli'
+      - '@effect/cluster'
+      - '@effect/experimental'
+      - '@effect/opentelemetry'
+      - '@effect/platform'
+      - '@effect/platform-browser'
+      - '@effect/platform-bun'
+      - '@effect/platform-node'
+      - '@effect/printer'
+      - '@effect/printer-ansi'
+      - '@effect/rpc'
+      - '@effect/sql'
+      - '@effect/typeclass'
+      - '@opentelemetry/resources'
+      - effect
+
+  '@livestore/devtools-vite@0.4.0-dev.7(ba465d6712840ab59b316e1fee03a0ff)':
+    dependencies:
+      '@livestore/adapter-web': 0.4.0-dev.7(@effect/cluster@0.34.2(@effect/platform@0.90.7(effect@3.17.13))(@effect/rpc@0.69.2(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/sql@0.35.8(@effect/experimental@0.46.8(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(effect@3.17.13))(@effect/experimental@0.46.8(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/platform@0.90.7(effect@3.17.13))(@effect/printer-ansi@0.45.0(@effect/typeclass@0.34.2(effect@3.17.13))(effect@3.17.13))(@effect/printer@0.45.0(@effect/typeclass@0.34.2(effect@3.17.13))(effect@3.17.13))(@effect/rpc@0.69.2(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/sql@0.35.8(@effect/experimental@0.46.8(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/typeclass@0.34.2(effect@3.17.13))(@opentelemetry/resources@2.0.1(@opentelemetry/api@1.9.0))(effect@3.17.13)
+      '@livestore/utils': 0.4.0-dev.7(@effect/cluster@0.34.2(@effect/platform@0.90.7(effect@3.17.13))(@effect/rpc@0.69.2(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/sql@0.35.8(@effect/experimental@0.46.8(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(effect@3.17.13))(@effect/experimental@0.46.8(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/platform@0.90.7(effect@3.17.13))(@effect/printer-ansi@0.45.0(@effect/typeclass@0.34.2(effect@3.17.13))(effect@3.17.13))(@effect/printer@0.45.0(@effect/typeclass@0.34.2(effect@3.17.13))(effect@3.17.13))(@effect/rpc@0.69.2(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/sql@0.35.8(@effect/experimental@0.46.8(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/typeclass@0.34.2(effect@3.17.13))(@opentelemetry/api@1.9.0)(@opentelemetry/resources@2.0.1(@opentelemetry/api@1.9.0))(effect@3.17.13)
       vite: 7.1.4(@types/node@24.0.13)(jiti@2.4.2)(lightningcss@1.30.1)(yaml@2.8.1)
     transitivePeerDependencies:
       - '@effect/ai'
@@ -6119,11 +6070,11 @@ snapshots:
       - '@opentelemetry/resources'
       - effect
 
-  '@livestore/devtools-web-common@0.4.0-dev.7(676275bee9841bcab5beb100ee1da758)':
-    dependencies:
-      '@livestore/common': 0.4.0-dev.7(b7b3788e3871b1f8421339ceef8bb27d)
-      '@livestore/utils': 0.4.0-dev.7(676275bee9841bcab5beb100ee1da758)
-      '@livestore/webmesh': 0.4.0-dev.7(676275bee9841bcab5beb100ee1da758)
+  ? '@livestore/devtools-web-common@0.4.0-dev.7(@effect/cluster@0.34.2(@effect/platform@0.90.7(effect@3.17.13))(@effect/rpc@0.69.2(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/sql@0.35.8(@effect/experimental@0.46.8(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(effect@3.17.13))(@effect/experimental@0.46.8(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/platform@0.90.7(effect@3.17.13))(@effect/printer-ansi@0.45.0(@effect/typeclass@0.34.2(effect@3.17.13))(effect@3.17.13))(@effect/printer@0.45.0(@effect/typeclass@0.34.2(effect@3.17.13))(effect@3.17.13))(@effect/rpc@0.69.2(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/sql@0.35.8(@effect/experimental@0.46.8(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/typeclass@0.34.2(effect@3.17.13))(@opentelemetry/api@1.9.0)(@opentelemetry/resources@2.0.1(@opentelemetry/api@1.9.0))(effect@3.17.13)'
+  : dependencies:
+      '@livestore/common': 0.4.0-dev.7(@effect/cluster@0.34.2(@effect/platform@0.90.7(effect@3.17.13))(@effect/rpc@0.69.2(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/sql@0.35.8(@effect/experimental@0.46.8(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(effect@3.17.13))(@effect/experimental@0.46.8(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/platform@0.90.7(effect@3.17.13))(@effect/printer-ansi@0.45.0(@effect/typeclass@0.34.2(effect@3.17.13))(effect@3.17.13))(@effect/printer@0.45.0(@effect/typeclass@0.34.2(effect@3.17.13))(effect@3.17.13))(@effect/rpc@0.69.2(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/sql@0.35.8(@effect/experimental@0.46.8(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/typeclass@0.34.2(effect@3.17.13))(@opentelemetry/resources@2.0.1(@opentelemetry/api@1.9.0))(effect@3.17.13)
+      '@livestore/utils': 0.4.0-dev.7(@effect/cluster@0.34.2(@effect/platform@0.90.7(effect@3.17.13))(@effect/rpc@0.69.2(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/sql@0.35.8(@effect/experimental@0.46.8(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(effect@3.17.13))(@effect/experimental@0.46.8(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/platform@0.90.7(effect@3.17.13))(@effect/printer-ansi@0.45.0(@effect/typeclass@0.34.2(effect@3.17.13))(effect@3.17.13))(@effect/printer@0.45.0(@effect/typeclass@0.34.2(effect@3.17.13))(effect@3.17.13))(@effect/rpc@0.69.2(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/sql@0.35.8(@effect/experimental@0.46.8(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/typeclass@0.34.2(effect@3.17.13))(@opentelemetry/api@1.9.0)(@opentelemetry/resources@2.0.1(@opentelemetry/api@1.9.0))(effect@3.17.13)
+      '@livestore/webmesh': 0.4.0-dev.7(@effect/cluster@0.34.2(@effect/platform@0.90.7(effect@3.17.13))(@effect/rpc@0.69.2(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/sql@0.35.8(@effect/experimental@0.46.8(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(effect@3.17.13))(@effect/experimental@0.46.8(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/platform@0.90.7(effect@3.17.13))(@effect/printer-ansi@0.45.0(@effect/typeclass@0.34.2(effect@3.17.13))(effect@3.17.13))(@effect/printer@0.45.0(@effect/typeclass@0.34.2(effect@3.17.13))(effect@3.17.13))(@effect/rpc@0.69.2(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/sql@0.35.8(@effect/experimental@0.46.8(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/typeclass@0.34.2(effect@3.17.13))(@opentelemetry/api@1.9.0)(@opentelemetry/resources@2.0.1(@opentelemetry/api@1.9.0))(effect@3.17.13)
     transitivePeerDependencies:
       - '@effect/ai'
       - '@effect/cli'
@@ -6143,10 +6094,34 @@ snapshots:
       - '@opentelemetry/resources'
       - effect
 
-  '@livestore/livestore@0.4.0-dev.7(b7b3788e3871b1f8421339ceef8bb27d)':
+  ? '@livestore/devtools-web-common@0.4.0-dev.9(@effect/cluster@0.34.2(@effect/platform@0.90.7(effect@3.17.13))(@effect/rpc@0.69.2(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/sql@0.35.8(@effect/experimental@0.46.8(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(effect@3.17.13))(@effect/experimental@0.46.8(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/platform@0.90.7(effect@3.17.13))(@effect/printer-ansi@0.45.0(@effect/typeclass@0.34.2(effect@3.17.13))(effect@3.17.13))(@effect/printer@0.45.0(@effect/typeclass@0.34.2(effect@3.17.13))(effect@3.17.13))(@effect/rpc@0.69.2(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/sql@0.35.8(@effect/experimental@0.46.8(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/typeclass@0.34.2(effect@3.17.13))(@opentelemetry/api@1.9.0)(@opentelemetry/resources@2.0.1(@opentelemetry/api@1.9.0))(effect@3.17.13)'
+  : dependencies:
+      '@livestore/common': 0.4.0-dev.9(@effect/cluster@0.34.2(@effect/platform@0.90.7(effect@3.17.13))(@effect/rpc@0.69.2(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/sql@0.35.8(@effect/experimental@0.46.8(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(effect@3.17.13))(@effect/experimental@0.46.8(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/platform@0.90.7(effect@3.17.13))(@effect/printer-ansi@0.45.0(@effect/typeclass@0.34.2(effect@3.17.13))(effect@3.17.13))(@effect/printer@0.45.0(@effect/typeclass@0.34.2(effect@3.17.13))(effect@3.17.13))(@effect/rpc@0.69.2(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/sql@0.35.8(@effect/experimental@0.46.8(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/typeclass@0.34.2(effect@3.17.13))(@opentelemetry/resources@2.0.1(@opentelemetry/api@1.9.0))(effect@3.17.13)
+      '@livestore/utils': 0.4.0-dev.9(@effect/cluster@0.34.2(@effect/platform@0.90.7(effect@3.17.13))(@effect/rpc@0.69.2(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/sql@0.35.8(@effect/experimental@0.46.8(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(effect@3.17.13))(@effect/experimental@0.46.8(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/platform@0.90.7(effect@3.17.13))(@effect/printer-ansi@0.45.0(@effect/typeclass@0.34.2(effect@3.17.13))(effect@3.17.13))(@effect/printer@0.45.0(@effect/typeclass@0.34.2(effect@3.17.13))(effect@3.17.13))(@effect/rpc@0.69.2(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/sql@0.35.8(@effect/experimental@0.46.8(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/typeclass@0.34.2(effect@3.17.13))(@opentelemetry/api@1.9.0)(@opentelemetry/resources@2.0.1(@opentelemetry/api@1.9.0))(effect@3.17.13)
+      '@livestore/webmesh': 0.4.0-dev.9(@effect/cluster@0.34.2(@effect/platform@0.90.7(effect@3.17.13))(@effect/rpc@0.69.2(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/sql@0.35.8(@effect/experimental@0.46.8(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(effect@3.17.13))(@effect/experimental@0.46.8(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/platform@0.90.7(effect@3.17.13))(@effect/printer-ansi@0.45.0(@effect/typeclass@0.34.2(effect@3.17.13))(effect@3.17.13))(@effect/printer@0.45.0(@effect/typeclass@0.34.2(effect@3.17.13))(effect@3.17.13))(@effect/rpc@0.69.2(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/sql@0.35.8(@effect/experimental@0.46.8(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/typeclass@0.34.2(effect@3.17.13))(@opentelemetry/api@1.9.0)(@opentelemetry/resources@2.0.1(@opentelemetry/api@1.9.0))(effect@3.17.13)
+    transitivePeerDependencies:
+      - '@effect/ai'
+      - '@effect/cli'
+      - '@effect/cluster'
+      - '@effect/experimental'
+      - '@effect/opentelemetry'
+      - '@effect/platform'
+      - '@effect/platform-browser'
+      - '@effect/platform-bun'
+      - '@effect/platform-node'
+      - '@effect/printer'
+      - '@effect/printer-ansi'
+      - '@effect/rpc'
+      - '@effect/sql'
+      - '@effect/typeclass'
+      - '@opentelemetry/api'
+      - '@opentelemetry/resources'
+      - effect
+
+  '@livestore/livestore@0.4.0-dev.9(@effect/cluster@0.34.2(@effect/platform@0.90.7(effect@3.17.13))(@effect/rpc@0.69.2(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/sql@0.35.8(@effect/experimental@0.46.8(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(effect@3.17.13))(@effect/experimental@0.46.8(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/platform@0.90.7(effect@3.17.13))(@effect/printer-ansi@0.45.0(@effect/typeclass@0.34.2(effect@3.17.13))(effect@3.17.13))(@effect/printer@0.45.0(@effect/typeclass@0.34.2(effect@3.17.13))(effect@3.17.13))(@effect/rpc@0.69.2(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/sql@0.35.8(@effect/experimental@0.46.8(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/typeclass@0.34.2(effect@3.17.13))(@opentelemetry/resources@2.0.1(@opentelemetry/api@1.9.0))(effect@3.17.13)':
     dependencies:
-      '@livestore/common': 0.4.0-dev.7(b7b3788e3871b1f8421339ceef8bb27d)
-      '@livestore/utils': 0.4.0-dev.7(676275bee9841bcab5beb100ee1da758)
+      '@livestore/common': 0.4.0-dev.9(@effect/cluster@0.34.2(@effect/platform@0.90.7(effect@3.17.13))(@effect/rpc@0.69.2(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/sql@0.35.8(@effect/experimental@0.46.8(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(effect@3.17.13))(@effect/experimental@0.46.8(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/platform@0.90.7(effect@3.17.13))(@effect/printer-ansi@0.45.0(@effect/typeclass@0.34.2(effect@3.17.13))(effect@3.17.13))(@effect/printer@0.45.0(@effect/typeclass@0.34.2(effect@3.17.13))(effect@3.17.13))(@effect/rpc@0.69.2(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/sql@0.35.8(@effect/experimental@0.46.8(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/typeclass@0.34.2(effect@3.17.13))(@opentelemetry/resources@2.0.1(@opentelemetry/api@1.9.0))(effect@3.17.13)
+      '@livestore/utils': 0.4.0-dev.9(@effect/cluster@0.34.2(@effect/platform@0.90.7(effect@3.17.13))(@effect/rpc@0.69.2(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/sql@0.35.8(@effect/experimental@0.46.8(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(effect@3.17.13))(@effect/experimental@0.46.8(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/platform@0.90.7(effect@3.17.13))(@effect/printer-ansi@0.45.0(@effect/typeclass@0.34.2(effect@3.17.13))(effect@3.17.13))(@effect/printer@0.45.0(@effect/typeclass@0.34.2(effect@3.17.13))(effect@3.17.13))(@effect/rpc@0.69.2(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/sql@0.35.8(@effect/experimental@0.46.8(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/typeclass@0.34.2(effect@3.17.13))(@opentelemetry/api@1.9.0)(@opentelemetry/resources@2.0.1(@opentelemetry/api@1.9.0))(effect@3.17.13)
       '@opentelemetry/api': 1.9.0
     transitivePeerDependencies:
       - '@effect/ai'
@@ -6166,11 +6141,11 @@ snapshots:
       - '@opentelemetry/resources'
       - effect
 
-  '@livestore/react@0.4.0-dev.7(60d0cd7ec2500fa084d53cf1794acea2)':
+  '@livestore/react@0.4.0-dev.9(@effect/cluster@0.34.2(@effect/platform@0.90.7(effect@3.17.13))(@effect/rpc@0.69.2(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/sql@0.35.8(@effect/experimental@0.46.8(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(effect@3.17.13))(@effect/experimental@0.46.8(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/platform@0.90.7(effect@3.17.13))(@effect/printer-ansi@0.45.0(@effect/typeclass@0.34.2(effect@3.17.13))(effect@3.17.13))(@effect/printer@0.45.0(@effect/typeclass@0.34.2(effect@3.17.13))(effect@3.17.13))(@effect/rpc@0.69.2(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/sql@0.35.8(@effect/experimental@0.46.8(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/typeclass@0.34.2(effect@3.17.13))(@opentelemetry/resources@2.0.1(@opentelemetry/api@1.9.0))(effect@3.17.13)(react@19.0.0)':
     dependencies:
-      '@livestore/common': 0.4.0-dev.7(b7b3788e3871b1f8421339ceef8bb27d)
-      '@livestore/livestore': 0.4.0-dev.7(b7b3788e3871b1f8421339ceef8bb27d)
-      '@livestore/utils': 0.4.0-dev.7(676275bee9841bcab5beb100ee1da758)
+      '@livestore/common': 0.4.0-dev.9(@effect/cluster@0.34.2(@effect/platform@0.90.7(effect@3.17.13))(@effect/rpc@0.69.2(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/sql@0.35.8(@effect/experimental@0.46.8(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(effect@3.17.13))(@effect/experimental@0.46.8(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/platform@0.90.7(effect@3.17.13))(@effect/printer-ansi@0.45.0(@effect/typeclass@0.34.2(effect@3.17.13))(effect@3.17.13))(@effect/printer@0.45.0(@effect/typeclass@0.34.2(effect@3.17.13))(effect@3.17.13))(@effect/rpc@0.69.2(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/sql@0.35.8(@effect/experimental@0.46.8(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/typeclass@0.34.2(effect@3.17.13))(@opentelemetry/resources@2.0.1(@opentelemetry/api@1.9.0))(effect@3.17.13)
+      '@livestore/livestore': 0.4.0-dev.9(@effect/cluster@0.34.2(@effect/platform@0.90.7(effect@3.17.13))(@effect/rpc@0.69.2(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/sql@0.35.8(@effect/experimental@0.46.8(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(effect@3.17.13))(@effect/experimental@0.46.8(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/platform@0.90.7(effect@3.17.13))(@effect/printer-ansi@0.45.0(@effect/typeclass@0.34.2(effect@3.17.13))(effect@3.17.13))(@effect/printer@0.45.0(@effect/typeclass@0.34.2(effect@3.17.13))(effect@3.17.13))(@effect/rpc@0.69.2(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/sql@0.35.8(@effect/experimental@0.46.8(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/typeclass@0.34.2(effect@3.17.13))(@opentelemetry/resources@2.0.1(@opentelemetry/api@1.9.0))(effect@3.17.13)
+      '@livestore/utils': 0.4.0-dev.9(@effect/cluster@0.34.2(@effect/platform@0.90.7(effect@3.17.13))(@effect/rpc@0.69.2(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/sql@0.35.8(@effect/experimental@0.46.8(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(effect@3.17.13))(@effect/experimental@0.46.8(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/platform@0.90.7(effect@3.17.13))(@effect/printer-ansi@0.45.0(@effect/typeclass@0.34.2(effect@3.17.13))(effect@3.17.13))(@effect/printer@0.45.0(@effect/typeclass@0.34.2(effect@3.17.13))(effect@3.17.13))(@effect/rpc@0.69.2(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/sql@0.35.8(@effect/experimental@0.46.8(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/typeclass@0.34.2(effect@3.17.13))(@opentelemetry/api@1.9.0)(@opentelemetry/resources@2.0.1(@opentelemetry/api@1.9.0))(effect@3.17.13)
       '@opentelemetry/api': 1.9.0
       react: 19.0.0
     transitivePeerDependencies:
@@ -6191,12 +6166,12 @@ snapshots:
       - '@opentelemetry/resources'
       - effect
 
-  '@livestore/sqlite-wasm@0.4.0-dev.7(676275bee9841bcab5beb100ee1da758)':
-    dependencies:
+  ? '@livestore/sqlite-wasm@0.4.0-dev.7(@effect/cluster@0.34.2(@effect/platform@0.90.7(effect@3.17.13))(@effect/rpc@0.69.2(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/sql@0.35.8(@effect/experimental@0.46.8(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(effect@3.17.13))(@effect/experimental@0.46.8(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/platform@0.90.7(effect@3.17.13))(@effect/printer-ansi@0.45.0(@effect/typeclass@0.34.2(effect@3.17.13))(effect@3.17.13))(@effect/printer@0.45.0(@effect/typeclass@0.34.2(effect@3.17.13))(effect@3.17.13))(@effect/rpc@0.69.2(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/sql@0.35.8(@effect/experimental@0.46.8(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/typeclass@0.34.2(effect@3.17.13))(@opentelemetry/api@1.9.0)(@opentelemetry/resources@2.0.1(@opentelemetry/api@1.9.0))(effect@3.17.13)'
+  : dependencies:
       '@cloudflare/workers-types': 4.20250823.0
-      '@livestore/common': 0.4.0-dev.7(b7b3788e3871b1f8421339ceef8bb27d)
-      '@livestore/common-cf': 0.4.0-dev.7(676275bee9841bcab5beb100ee1da758)
-      '@livestore/utils': 0.4.0-dev.7(676275bee9841bcab5beb100ee1da758)
+      '@livestore/common': 0.4.0-dev.7(@effect/cluster@0.34.2(@effect/platform@0.90.7(effect@3.17.13))(@effect/rpc@0.69.2(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/sql@0.35.8(@effect/experimental@0.46.8(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(effect@3.17.13))(@effect/experimental@0.46.8(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/platform@0.90.7(effect@3.17.13))(@effect/printer-ansi@0.45.0(@effect/typeclass@0.34.2(effect@3.17.13))(effect@3.17.13))(@effect/printer@0.45.0(@effect/typeclass@0.34.2(effect@3.17.13))(effect@3.17.13))(@effect/rpc@0.69.2(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/sql@0.35.8(@effect/experimental@0.46.8(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/typeclass@0.34.2(effect@3.17.13))(@opentelemetry/resources@2.0.1(@opentelemetry/api@1.9.0))(effect@3.17.13)
+      '@livestore/common-cf': 0.4.0-dev.7(@effect/cluster@0.34.2(@effect/platform@0.90.7(effect@3.17.13))(@effect/rpc@0.69.2(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/sql@0.35.8(@effect/experimental@0.46.8(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(effect@3.17.13))(@effect/experimental@0.46.8(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/platform@0.90.7(effect@3.17.13))(@effect/printer-ansi@0.45.0(@effect/typeclass@0.34.2(effect@3.17.13))(effect@3.17.13))(@effect/printer@0.45.0(@effect/typeclass@0.34.2(effect@3.17.13))(effect@3.17.13))(@effect/rpc@0.69.2(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/sql@0.35.8(@effect/experimental@0.46.8(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/typeclass@0.34.2(effect@3.17.13))(@opentelemetry/api@1.9.0)(@opentelemetry/resources@2.0.1(@opentelemetry/api@1.9.0))(effect@3.17.13)
+      '@livestore/utils': 0.4.0-dev.7(@effect/cluster@0.34.2(@effect/platform@0.90.7(effect@3.17.13))(@effect/rpc@0.69.2(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/sql@0.35.8(@effect/experimental@0.46.8(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(effect@3.17.13))(@effect/experimental@0.46.8(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/platform@0.90.7(effect@3.17.13))(@effect/printer-ansi@0.45.0(@effect/typeclass@0.34.2(effect@3.17.13))(effect@3.17.13))(@effect/printer@0.45.0(@effect/typeclass@0.34.2(effect@3.17.13))(effect@3.17.13))(@effect/rpc@0.69.2(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/sql@0.35.8(@effect/experimental@0.46.8(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/typeclass@0.34.2(effect@3.17.13))(@opentelemetry/api@1.9.0)(@opentelemetry/resources@2.0.1(@opentelemetry/api@1.9.0))(effect@3.17.13)
       '@livestore/wa-sqlite': 0.4.0-dev.7
     transitivePeerDependencies:
       - '@effect/ai'
@@ -6217,12 +6192,13 @@ snapshots:
       - '@opentelemetry/resources'
       - effect
 
-  '@livestore/sync-cf@0.4.0-dev.7(676275bee9841bcab5beb100ee1da758)':
-    dependencies:
-      '@cloudflare/workers-types': 4.20250823.0
-      '@livestore/common': 0.4.0-dev.7(b7b3788e3871b1f8421339ceef8bb27d)
-      '@livestore/common-cf': 0.4.0-dev.7(676275bee9841bcab5beb100ee1da758)
-      '@livestore/utils': 0.4.0-dev.7(676275bee9841bcab5beb100ee1da758)
+  ? '@livestore/sqlite-wasm@0.4.0-dev.9(@effect/cluster@0.34.2(@effect/platform@0.90.7(effect@3.17.13))(@effect/rpc@0.69.2(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/sql@0.35.8(@effect/experimental@0.46.8(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(effect@3.17.13))(@effect/experimental@0.46.8(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/platform@0.90.7(effect@3.17.13))(@effect/printer-ansi@0.45.0(@effect/typeclass@0.34.2(effect@3.17.13))(effect@3.17.13))(@effect/printer@0.45.0(@effect/typeclass@0.34.2(effect@3.17.13))(effect@3.17.13))(@effect/rpc@0.69.2(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/sql@0.35.8(@effect/experimental@0.46.8(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/typeclass@0.34.2(effect@3.17.13))(@opentelemetry/api@1.9.0)(@opentelemetry/resources@2.0.1(@opentelemetry/api@1.9.0))(effect@3.17.13)'
+  : dependencies:
+      '@cloudflare/workers-types': 4.20250923.0
+      '@livestore/common': 0.4.0-dev.9(@effect/cluster@0.34.2(@effect/platform@0.90.7(effect@3.17.13))(@effect/rpc@0.69.2(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/sql@0.35.8(@effect/experimental@0.46.8(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(effect@3.17.13))(@effect/experimental@0.46.8(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/platform@0.90.7(effect@3.17.13))(@effect/printer-ansi@0.45.0(@effect/typeclass@0.34.2(effect@3.17.13))(effect@3.17.13))(@effect/printer@0.45.0(@effect/typeclass@0.34.2(effect@3.17.13))(effect@3.17.13))(@effect/rpc@0.69.2(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/sql@0.35.8(@effect/experimental@0.46.8(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/typeclass@0.34.2(effect@3.17.13))(@opentelemetry/resources@2.0.1(@opentelemetry/api@1.9.0))(effect@3.17.13)
+      '@livestore/common-cf': 0.4.0-dev.9(@effect/cluster@0.34.2(@effect/platform@0.90.7(effect@3.17.13))(@effect/rpc@0.69.2(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/sql@0.35.8(@effect/experimental@0.46.8(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(effect@3.17.13))(@effect/experimental@0.46.8(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/platform@0.90.7(effect@3.17.13))(@effect/printer-ansi@0.45.0(@effect/typeclass@0.34.2(effect@3.17.13))(effect@3.17.13))(@effect/printer@0.45.0(@effect/typeclass@0.34.2(effect@3.17.13))(effect@3.17.13))(@effect/rpc@0.69.2(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/sql@0.35.8(@effect/experimental@0.46.8(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/typeclass@0.34.2(effect@3.17.13))(@opentelemetry/api@1.9.0)(@opentelemetry/resources@2.0.1(@opentelemetry/api@1.9.0))(effect@3.17.13)
+      '@livestore/utils': 0.4.0-dev.9(@effect/cluster@0.34.2(@effect/platform@0.90.7(effect@3.17.13))(@effect/rpc@0.69.2(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/sql@0.35.8(@effect/experimental@0.46.8(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(effect@3.17.13))(@effect/experimental@0.46.8(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/platform@0.90.7(effect@3.17.13))(@effect/printer-ansi@0.45.0(@effect/typeclass@0.34.2(effect@3.17.13))(effect@3.17.13))(@effect/printer@0.45.0(@effect/typeclass@0.34.2(effect@3.17.13))(effect@3.17.13))(@effect/rpc@0.69.2(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/sql@0.35.8(@effect/experimental@0.46.8(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/typeclass@0.34.2(effect@3.17.13))(@opentelemetry/api@1.9.0)(@opentelemetry/resources@2.0.1(@opentelemetry/api@1.9.0))(effect@3.17.13)
+      '@livestore/wa-sqlite': 0.4.0-dev.9
     transitivePeerDependencies:
       - '@effect/ai'
       - '@effect/cli'
@@ -6242,17 +6218,53 @@ snapshots:
       - '@opentelemetry/resources'
       - effect
 
-  '@livestore/utils@0.4.0-dev.7(676275bee9841bcab5beb100ee1da758)':
-    dependencies:
-      '@effect/ai': 0.26.1(@effect/experimental@0.46.8(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/platform@0.90.7(effect@3.17.13))(@effect/rpc@0.69.2(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(effect@3.17.13)
-      '@effect/cli': 0.69.2(@effect/platform@0.90.7(effect@3.17.13))(@effect/printer-ansi@0.45.0(@effect/typeclass@0.34.2(effect@3.17.13))(effect@3.17.13))(@effect/printer@0.45.0(@effect/typeclass@0.34.2(effect@3.17.13))(effect@3.17.13))(effect@3.17.13)
+  ? '@livestore/sync-cf@0.4.0-dev.9(@effect/cluster@0.34.2(@effect/platform@0.90.7(effect@3.17.13))(@effect/rpc@0.69.2(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/sql@0.35.8(@effect/experimental@0.46.8(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(effect@3.17.13))(@effect/experimental@0.46.8(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/platform@0.90.7(effect@3.17.13))(@effect/printer-ansi@0.45.0(@effect/typeclass@0.34.2(effect@3.17.13))(effect@3.17.13))(@effect/printer@0.45.0(@effect/typeclass@0.34.2(effect@3.17.13))(effect@3.17.13))(@effect/rpc@0.69.2(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/sql@0.35.8(@effect/experimental@0.46.8(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/typeclass@0.34.2(effect@3.17.13))(@opentelemetry/api@1.9.0)(@opentelemetry/resources@2.0.1(@opentelemetry/api@1.9.0))(effect@3.17.13)'
+  : dependencies:
+      '@cloudflare/workers-types': 4.20250923.0
+      '@livestore/common': 0.4.0-dev.9(@effect/cluster@0.34.2(@effect/platform@0.90.7(effect@3.17.13))(@effect/rpc@0.69.2(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/sql@0.35.8(@effect/experimental@0.46.8(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(effect@3.17.13))(@effect/experimental@0.46.8(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/platform@0.90.7(effect@3.17.13))(@effect/printer-ansi@0.45.0(@effect/typeclass@0.34.2(effect@3.17.13))(effect@3.17.13))(@effect/printer@0.45.0(@effect/typeclass@0.34.2(effect@3.17.13))(effect@3.17.13))(@effect/rpc@0.69.2(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/sql@0.35.8(@effect/experimental@0.46.8(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/typeclass@0.34.2(effect@3.17.13))(@opentelemetry/resources@2.0.1(@opentelemetry/api@1.9.0))(effect@3.17.13)
+      '@livestore/common-cf': 0.4.0-dev.9(@effect/cluster@0.34.2(@effect/platform@0.90.7(effect@3.17.13))(@effect/rpc@0.69.2(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/sql@0.35.8(@effect/experimental@0.46.8(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(effect@3.17.13))(@effect/experimental@0.46.8(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/platform@0.90.7(effect@3.17.13))(@effect/printer-ansi@0.45.0(@effect/typeclass@0.34.2(effect@3.17.13))(effect@3.17.13))(@effect/printer@0.45.0(@effect/typeclass@0.34.2(effect@3.17.13))(effect@3.17.13))(@effect/rpc@0.69.2(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/sql@0.35.8(@effect/experimental@0.46.8(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/typeclass@0.34.2(effect@3.17.13))(@opentelemetry/api@1.9.0)(@opentelemetry/resources@2.0.1(@opentelemetry/api@1.9.0))(effect@3.17.13)
+      '@livestore/utils': 0.4.0-dev.9(@effect/cluster@0.34.2(@effect/platform@0.90.7(effect@3.17.13))(@effect/rpc@0.69.2(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/sql@0.35.8(@effect/experimental@0.46.8(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(effect@3.17.13))(@effect/experimental@0.46.8(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/platform@0.90.7(effect@3.17.13))(@effect/printer-ansi@0.45.0(@effect/typeclass@0.34.2(effect@3.17.13))(effect@3.17.13))(@effect/printer@0.45.0(@effect/typeclass@0.34.2(effect@3.17.13))(effect@3.17.13))(@effect/rpc@0.69.2(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/sql@0.35.8(@effect/experimental@0.46.8(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/typeclass@0.34.2(effect@3.17.13))(@opentelemetry/api@1.9.0)(@opentelemetry/resources@2.0.1(@opentelemetry/api@1.9.0))(effect@3.17.13)
+    transitivePeerDependencies:
+      - '@effect/ai'
+      - '@effect/cli'
+      - '@effect/cluster'
+      - '@effect/experimental'
+      - '@effect/opentelemetry'
+      - '@effect/platform'
+      - '@effect/platform-browser'
+      - '@effect/platform-bun'
+      - '@effect/platform-node'
+      - '@effect/printer'
+      - '@effect/printer-ansi'
+      - '@effect/rpc'
+      - '@effect/sql'
+      - '@effect/typeclass'
+      - '@opentelemetry/api'
+      - '@opentelemetry/resources'
+      - effect
+
+  ? '@livestore/utils@0.4.0-dev.7(@effect/cluster@0.34.2(@effect/platform@0.90.7(effect@3.17.13))(@effect/rpc@0.69.2(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/sql@0.35.8(@effect/experimental@0.46.8(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(effect@3.17.13))(@effect/experimental@0.46.8(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/platform@0.90.7(effect@3.17.13))(@effect/printer-ansi@0.45.0(@effect/typeclass@0.34.2(effect@3.17.13))(effect@3.17.13))(@effect/printer@0.45.0(@effect/typeclass@0.34.2(effect@3.17.13))(effect@3.17.13))(@effect/rpc@0.69.2(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/sql@0.35.8(@effect/experimental@0.46.8(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/typeclass@0.34.2(effect@3.17.13))(@opentelemetry/api@1.9.0)(@opentelemetry/resources@2.0.1(@opentelemetry/api@1.9.0))(effect@3.17.13)'
+  : dependencies:
       '@effect/cluster': 0.34.2(@effect/platform@0.90.7(effect@3.17.13))(@effect/rpc@0.69.2(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/sql@0.35.8(@effect/experimental@0.46.8(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(effect@3.17.13)
       '@effect/experimental': 0.46.8(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13)
-      '@effect/opentelemetry': 0.56.5(@effect/platform@0.90.7(effect@3.17.13))(@opentelemetry/api@1.9.0)(@opentelemetry/resources@2.0.1(@opentelemetry/api@1.9.0))(@opentelemetry/semantic-conventions@1.36.0)(effect@3.17.13)
       '@effect/platform': 0.90.7(effect@3.17.13)
-      '@effect/platform-browser': 0.70.0(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13)
-      '@effect/platform-bun': 0.79.0(@effect/cluster@0.34.2(@effect/platform@0.90.7(effect@3.17.13))(@effect/rpc@0.69.2(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/sql@0.35.8(@effect/experimental@0.46.8(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(effect@3.17.13))(@effect/platform@0.90.7(effect@3.17.13))(@effect/rpc@0.69.2(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/sql@0.35.8(@effect/experimental@0.46.8(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(effect@3.17.13)
-      '@effect/platform-node': 0.96.1(@effect/cluster@0.34.2(@effect/platform@0.90.7(effect@3.17.13))(@effect/rpc@0.69.2(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/sql@0.35.8(@effect/experimental@0.46.8(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(effect@3.17.13))(@effect/platform@0.90.7(effect@3.17.13))(@effect/rpc@0.69.2(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/sql@0.35.8(@effect/experimental@0.46.8(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(effect@3.17.13)
+      '@effect/printer': 0.45.0(@effect/typeclass@0.34.2(effect@3.17.13))(effect@3.17.13)
+      '@effect/printer-ansi': 0.45.0(@effect/typeclass@0.34.2(effect@3.17.13))(effect@3.17.13)
+      '@effect/rpc': 0.69.2(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13)
+      '@effect/sql': 0.35.8(@effect/experimental@0.46.8(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13)
+      '@effect/typeclass': 0.34.2(effect@3.17.13)
+      '@opentelemetry/api': 1.9.0
+      '@opentelemetry/resources': 2.0.1(@opentelemetry/api@1.9.0)
+      '@standard-schema/spec': 1.0.0
+      effect: 3.17.13
+      nanoid: 5.1.5
+      pretty-bytes: 7.0.1
+
+  ? '@livestore/utils@0.4.0-dev.9(@effect/cluster@0.34.2(@effect/platform@0.90.7(effect@3.17.13))(@effect/rpc@0.69.2(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/sql@0.35.8(@effect/experimental@0.46.8(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(effect@3.17.13))(@effect/experimental@0.46.8(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/platform@0.90.7(effect@3.17.13))(@effect/printer-ansi@0.45.0(@effect/typeclass@0.34.2(effect@3.17.13))(effect@3.17.13))(@effect/printer@0.45.0(@effect/typeclass@0.34.2(effect@3.17.13))(effect@3.17.13))(@effect/rpc@0.69.2(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/sql@0.35.8(@effect/experimental@0.46.8(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/typeclass@0.34.2(effect@3.17.13))(@opentelemetry/api@1.9.0)(@opentelemetry/resources@2.0.1(@opentelemetry/api@1.9.0))(effect@3.17.13)'
+  : dependencies:
+      '@effect/cluster': 0.34.2(@effect/platform@0.90.7(effect@3.17.13))(@effect/rpc@0.69.2(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/sql@0.35.8(@effect/experimental@0.46.8(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(effect@3.17.13)
+      '@effect/experimental': 0.46.8(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13)
+      '@effect/platform': 0.90.7(effect@3.17.13)
       '@effect/printer': 0.45.0(@effect/typeclass@0.34.2(effect@3.17.13))(effect@3.17.13)
       '@effect/printer-ansi': 0.45.0(@effect/typeclass@0.34.2(effect@3.17.13))(effect@3.17.13)
       '@effect/rpc': 0.69.2(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13)
@@ -6267,11 +6279,35 @@ snapshots:
 
   '@livestore/wa-sqlite@0.4.0-dev.7': {}
 
+  '@livestore/wa-sqlite@0.4.0-dev.9': {}
+
   '@livestore/wa-sqlite@1.0.5-dev.2': {}
 
-  '@livestore/webmesh@0.4.0-dev.7(676275bee9841bcab5beb100ee1da758)':
-    dependencies:
-      '@livestore/utils': 0.4.0-dev.7(676275bee9841bcab5beb100ee1da758)
+  ? '@livestore/webmesh@0.4.0-dev.7(@effect/cluster@0.34.2(@effect/platform@0.90.7(effect@3.17.13))(@effect/rpc@0.69.2(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/sql@0.35.8(@effect/experimental@0.46.8(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(effect@3.17.13))(@effect/experimental@0.46.8(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/platform@0.90.7(effect@3.17.13))(@effect/printer-ansi@0.45.0(@effect/typeclass@0.34.2(effect@3.17.13))(effect@3.17.13))(@effect/printer@0.45.0(@effect/typeclass@0.34.2(effect@3.17.13))(effect@3.17.13))(@effect/rpc@0.69.2(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/sql@0.35.8(@effect/experimental@0.46.8(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/typeclass@0.34.2(effect@3.17.13))(@opentelemetry/api@1.9.0)(@opentelemetry/resources@2.0.1(@opentelemetry/api@1.9.0))(effect@3.17.13)'
+  : dependencies:
+      '@livestore/utils': 0.4.0-dev.7(@effect/cluster@0.34.2(@effect/platform@0.90.7(effect@3.17.13))(@effect/rpc@0.69.2(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/sql@0.35.8(@effect/experimental@0.46.8(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(effect@3.17.13))(@effect/experimental@0.46.8(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/platform@0.90.7(effect@3.17.13))(@effect/printer-ansi@0.45.0(@effect/typeclass@0.34.2(effect@3.17.13))(effect@3.17.13))(@effect/printer@0.45.0(@effect/typeclass@0.34.2(effect@3.17.13))(effect@3.17.13))(@effect/rpc@0.69.2(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/sql@0.35.8(@effect/experimental@0.46.8(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/typeclass@0.34.2(effect@3.17.13))(@opentelemetry/api@1.9.0)(@opentelemetry/resources@2.0.1(@opentelemetry/api@1.9.0))(effect@3.17.13)
+    transitivePeerDependencies:
+      - '@effect/ai'
+      - '@effect/cli'
+      - '@effect/cluster'
+      - '@effect/experimental'
+      - '@effect/opentelemetry'
+      - '@effect/platform'
+      - '@effect/platform-browser'
+      - '@effect/platform-bun'
+      - '@effect/platform-node'
+      - '@effect/printer'
+      - '@effect/printer-ansi'
+      - '@effect/rpc'
+      - '@effect/sql'
+      - '@effect/typeclass'
+      - '@opentelemetry/api'
+      - '@opentelemetry/resources'
+      - effect
+
+  ? '@livestore/webmesh@0.4.0-dev.9(@effect/cluster@0.34.2(@effect/platform@0.90.7(effect@3.17.13))(@effect/rpc@0.69.2(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/sql@0.35.8(@effect/experimental@0.46.8(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(effect@3.17.13))(@effect/experimental@0.46.8(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/platform@0.90.7(effect@3.17.13))(@effect/printer-ansi@0.45.0(@effect/typeclass@0.34.2(effect@3.17.13))(effect@3.17.13))(@effect/printer@0.45.0(@effect/typeclass@0.34.2(effect@3.17.13))(effect@3.17.13))(@effect/rpc@0.69.2(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/sql@0.35.8(@effect/experimental@0.46.8(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/typeclass@0.34.2(effect@3.17.13))(@opentelemetry/api@1.9.0)(@opentelemetry/resources@2.0.1(@opentelemetry/api@1.9.0))(effect@3.17.13)'
+  : dependencies:
+      '@livestore/utils': 0.4.0-dev.9(@effect/cluster@0.34.2(@effect/platform@0.90.7(effect@3.17.13))(@effect/rpc@0.69.2(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/sql@0.35.8(@effect/experimental@0.46.8(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(effect@3.17.13))(@effect/experimental@0.46.8(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/platform@0.90.7(effect@3.17.13))(@effect/printer-ansi@0.45.0(@effect/typeclass@0.34.2(effect@3.17.13))(effect@3.17.13))(@effect/printer@0.45.0(@effect/typeclass@0.34.2(effect@3.17.13))(effect@3.17.13))(@effect/rpc@0.69.2(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/sql@0.35.8(@effect/experimental@0.46.8(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/platform@0.90.7(effect@3.17.13))(effect@3.17.13))(@effect/typeclass@0.34.2(effect@3.17.13))(@opentelemetry/api@1.9.0)(@opentelemetry/resources@2.0.1(@opentelemetry/api@1.9.0))(effect@3.17.13)
     transitivePeerDependencies:
       - '@effect/ai'
       - '@effect/cli'
@@ -8296,8 +8332,6 @@ snapshots:
 
   ini@1.3.8: {}
 
-  ini@4.1.3: {}
-
   inline-style-parser@0.2.4: {}
 
   inline-style-prefixer@7.0.1:
@@ -9775,8 +9809,6 @@ snapshots:
 
   toggle-selection@1.0.6: {}
 
-  toml@3.0.0: {}
-
   totalist@3.0.1: {}
 
   trim-lines@3.0.1: {}
@@ -10119,8 +10151,6 @@ snapshots:
 
   ws@8.18.0: {}
 
-  ws@8.18.3: {}
-
   xtend@4.0.2: {}
 
   y18n@5.0.8: {}
@@ -10131,7 +10161,8 @@ snapshots:
 
   yallist@5.0.0: {}
 
-  yaml@2.8.1: {}
+  yaml@2.8.1:
+    optional: true
 
   yargs-parser@21.1.1: {}
 
