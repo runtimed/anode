@@ -112,7 +112,7 @@ export function useNotebooks(
     filteredNotebooks,
     recentScratchNotebooks,
     namedNotebooks,
-    isLoading: isLoading || isFetching,
+    isLoading: isLoading,
     error,
     refetch,
   };
