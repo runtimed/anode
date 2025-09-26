@@ -184,6 +184,7 @@ async function initializePyodide(
       });
 
       // Load all module files directly to site-packages
+      // TODO: Fetch in parallel
       const moduleFiles = [
         "runt_runtime.py",
         "runt_runtime_registry.py",
@@ -483,7 +484,11 @@ async function executePython(code: string): Promise<{
   }
 
   let result = null;
-  let executionError = null;
+  let executionError: {
+    ename: string;
+    evalue: string;
+    traceback: string[];
+  } | null = null;
 
   self.postMessage({
     type: "log",
