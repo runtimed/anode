@@ -117,7 +117,7 @@ export const SystemPromptEditor: React.FC = () => {
         value={systemPrompt}
         onChange={(e) => setSystemPrompt(e.target.value)}
         placeholder="Enter your system prompt here..."
-        className="min-h-24 resize-none"
+        className="min-h-24 resize-y"
         disabled={!isEditing}
       />
 
