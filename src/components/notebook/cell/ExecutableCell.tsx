@@ -246,6 +246,7 @@ export const ExecutableCell: React.FC<ExecutableCellProps> = ({
       );
     }
   }, [
+    systemPrompt?.system_prompt,
     cell.id,
     localSource,
     cell.source,
