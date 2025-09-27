@@ -1,5 +1,11 @@
 import type { D1Database } from "@cloudflare/workers-types";
-import { NotebookPermissionRow, NotebookRow, TagRow, TagColor } from "./types";
+import {
+  NotebookPermissionRow,
+  NotebookRow,
+  TagRow,
+  TagColor,
+  SystemPromptRow,
+} from "./types";
 import { PermissionsProvider } from "backend/notebook-permissions/types";
 import { ValidatedUser } from "backend/auth";
 import {
@@ -528,4 +534,106 @@ export async function getNotebookTags(
   const result = await db.prepare(query).bind(notebookId, userId).all<TagRow>();
 
   return result.results;
+}
+
+// System prompt-related functions
+
+// Create or update system prompt for user
+export async function upsertSystemPrompt(
+  db: D1Database,
+  params: {
+    user_id: string;
+    system_prompt: string;
+    ai_model?: string | null;
+  }
+): Promise<SystemPromptRow | null> {
+  const { user_id, system_prompt, ai_model = null } = params;
+  const now = new Date().toISOString();
+
+  // First, try to get existing system prompt for this user
+  const existing = await db
+    .prepare("SELECT id FROM system_prompts WHERE user_id = ?")
+    .bind(user_id)
+    .first<{ id: string }>();
+
+  if (existing) {
+    // Update existing system prompt
+    const result = await db
+      .prepare(
+        `
+        UPDATE system_prompts
+        SET system_prompt = ?, ai_model = ?, updated_at = ?
+        WHERE user_id = ?
+      `
+      )
+      .bind(system_prompt, ai_model, now, user_id)
+      .run();
+
+    if (result.meta.changes > 0) {
+      return {
+        id: existing.id,
+        user_id,
+        system_prompt,
+        ai_model,
+        created_at: now, // We don't have the original created_at, so use current time
+        updated_at: now,
+      };
+    }
+  } else {
+    // Create new system prompt
+    const id = nanoid();
+    const result = await db
+      .prepare(
+        `
+        INSERT INTO system_prompts (id, user_id, system_prompt, ai_model, created_at, updated_at)
+        VALUES (?, ?, ?, ?, ?, ?)
+      `
+      )
+      .bind(id, user_id, system_prompt, ai_model, now, now)
+      .run();
+
+    if (result.success) {
+      return {
+        id,
+        user_id,
+        system_prompt,
+        ai_model,
+        created_at: now,
+        updated_at: now,
+      };
+    }
+  }
+
+  return null;
+}
+
+// Get system prompt for user
+export async function getSystemPrompt(
+  db: D1Database,
+  user_id: string
+): Promise<SystemPromptRow | null> {
+  const result = await db
+    .prepare(
+      `SELECT id, user_id, system_prompt, ai_model,
+              strftime('%Y-%m-%dT%H:%M:%SZ', created_at) as created_at,
+              strftime('%Y-%m-%dT%H:%M:%SZ', updated_at) as updated_at
+              FROM system_prompts WHERE user_id = ?`
+    )
+    .bind(user_id)
+    .first<SystemPromptRow>();
+
+  return result || null;
+}
+
+// Delete system prompt for user
+export async function deleteSystemPrompt(
+  db: D1Database,
+  user_id: string
+): Promise<boolean> {
+  const result = await db
+    .prepare("DELETE FROM system_prompts WHERE user_id = ?")
+    .bind(user_id)
+    .run();
+
+  return result.meta.changes > 0;
 }
