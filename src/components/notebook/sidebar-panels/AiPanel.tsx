@@ -53,7 +53,8 @@ export const AiPanel: React.FC<SidebarPanelProps> = () => {
 
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { useTRPCClient } from "@/lib/trpc-client";
+import { trpcQueryClient, useTRPCClient } from "@/lib/trpc-client";
+import { cn } from "@/lib/utils";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 
@@ -61,7 +62,7 @@ export const SystemPromptEditor: React.FC = () => {
   const trpc = useTRPCClient();
 
   // Fetch current system prompt
-  const { data: currentSystemPrompt } = useQuery(
+  const { data: currentSystemPrompt, isFetching } = useQuery(
     trpc.getSystemPrompt.queryOptions()
   );
 
@@ -69,8 +70,8 @@ export const SystemPromptEditor: React.FC = () => {
   const updateSystemPromptMutation = useMutation(
     trpc.upsertSystemPrompt.mutationOptions({
       onSuccess: (data) => {
-        setIsEditing(false);
         setSystemPrompt(data.system_prompt);
+        trpcQueryClient.invalidateQueries(trpc.getSystemPrompt.queryOptions());
       },
     })
   );
@@ -80,31 +81,37 @@ export const SystemPromptEditor: React.FC = () => {
     trpc.deleteSystemPrompt.mutationOptions({
       onSuccess: () => {
         setSystemPrompt("");
-        setIsEditing(false);
+        trpcQueryClient.invalidateQueries(trpc.getSystemPrompt.queryOptions());
       },
     })
   );
 
-  const [isEditing, setIsEditing] = useState(false);
   const [systemPrompt, setSystemPrompt] = useState(
-    !isEditing ? currentSystemPrompt?.system_prompt || "" : ""
+    currentSystemPrompt?.system_prompt || ""
   );
 
   const handleSave = () => {
-    updateSystemPromptMutation.mutate({
-      system_prompt: systemPrompt,
-      ai_model: null, // Default to null for now
-    });
-  };
-
-  const handleDelete = async () => {
-    deleteSystemPromptMutation.mutate();
+    const isEmpty = systemPrompt.trim() === "";
+    if (isEmpty) {
+      deleteSystemPromptMutation.mutate();
+    } else {
+      updateSystemPromptMutation.mutate({
+        system_prompt: systemPrompt,
+        ai_model: null, // Default to null for now
+      });
+    }
   };
 
   const handleCancel = () => {
     setSystemPrompt(currentSystemPrompt?.system_prompt || "");
-    setIsEditing(false);
   };
+
+  const isEditing = systemPrompt !== (currentSystemPrompt?.system_prompt ?? "");
+
+  const isLoading =
+    isFetching ||
+    updateSystemPromptMutation.isPending ||
+    deleteSystemPromptMutation.isPending;
 
   return (
     <div className="space-y-3">
@@ -113,48 +120,29 @@ export const SystemPromptEditor: React.FC = () => {
         onChange={(e) => setSystemPrompt(e.target.value)}
         placeholder="Enter your system prompt here..."
         className="min-h-24 resize-y"
-        disabled={!isEditing}
+        readOnly={isLoading}
+        disabled={isLoading}
       />
 
-      <div className="flex gap-2">
-        {isEditing ? (
+      <div className={cn("gap-2", isEditing ? "flex" : "hidden")}>
+        {isEditing && (
           <>
-            <Button
-              size="sm"
-              onClick={handleSave}
-              disabled={updateSystemPromptMutation.isPending}
-            >
-              {updateSystemPromptMutation.isPending ? "Saving..." : "Save"}
+            <Button size="sm" onClick={handleSave} disabled={isLoading}>
+              {updateSystemPromptMutation.isPending ||
+              deleteSystemPromptMutation.isPending
+                ? "Saving..."
+                : "Save"}
             </Button>
+
             <Button
               size="sm"
               variant="outline"
               onClick={handleCancel}
-              disabled={updateSystemPromptMutation.isPending}
+              disabled={isLoading}
             >
               Cancel
             </Button>
-            {currentSystemPrompt && (
-              <Button
-                size="sm"
-                variant="destructive"
-                onClick={handleDelete}
-                disabled={deleteSystemPromptMutation.isPending}
-              >
-                {deleteSystemPromptMutation.isPending
-                  ? "Deleting..."
-                  : "Delete"}
-              </Button>
-            )}
           </>
-        ) : (
-          <Button
-            size="sm"
-            variant="outline"
-            onClick={() => setIsEditing(true)}
-          >
-            Edit
-          </Button>
         )}
       </div>
     </div>
