@@ -13,6 +13,13 @@ import {
 declare global {
   var __PYODIDE_WORKER__: Worker | null;
   var __PYODIDE_RUNTIME_AGENT__: PyodideRuntimeAgent | null;
+  var __PYODIDE_DEBUG__: {
+    runPython(code: string): Promise<unknown>;
+    checkStatus(): Promise<unknown>;
+    loadPackage(packageName: string): Promise<unknown>;
+    installPackage(packageName: string): Promise<unknown>;
+    help(): void;
+  };
 }
 import {
   LocalRuntimeAgent,

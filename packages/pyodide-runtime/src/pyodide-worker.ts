@@ -7,8 +7,6 @@
 
 /// <reference lib="webworker" />
 
-import { getBootstrapPackages } from "./pypackages.ts";
-
 import { loadPyodide, type PyodideInterface } from "pyodide";
 
 // Import Python files as text assets
@@ -192,9 +190,9 @@ async function initializePyodide(
   // Core Pyodide runtime files from local /pyodide/, packages loaded separately from CDN
   const basePackages: string[] = [];
 
-  // Load Pyodide with local core files but no initial packages
+  // Load Pyodide with CDN packages to avoid SRI issues
   pyodide = await loadPyodide({
-    indexURL: "/pyodide/",
+    indexURL: "https://cdn.jsdelivr.net/pyodide/v0.27.7/full/",
     packages: basePackages,
     stdout: (text: string) => {
       // Log startup messages to our telemetry for debugging
@@ -455,16 +453,56 @@ async function setupIPythonEnvironment(): Promise<void> {
     data: "Loading pseudo-IPython environment from preloaded modules",
   });
 
-  // Load bootstrap packages from CDN using loadPackage (bypasses local SRI issues)
-  const bootstrapPackages = ["micropip", "ipython"];
-  for (const pkg of bootstrapPackages) {
-    await pyodide!.loadPackage(pkg);
-  }
+  // Load bootstrap packages from CDN to avoid SRI integrity issues
+  const bootstrapPackages = ["micropip", "packaging"];
 
-  // Install pydantic (required by registry.py) using micropip from CDN
-  await pyodide!.runPythonAsync(
-    "import micropip; await micropip.install('pydantic')"
-  );
+  try {
+    self.postMessage({
+      type: "log",
+      data: `Loading micropip, packaging`,
+    });
+
+    for (const pkg of bootstrapPackages) {
+      await pyodide!.loadPackage(pkg);
+    }
+
+    self.postMessage({
+      type: "log",
+      data: `Loading Pygments, asttokens, six, sqlite3, stack-data, traitlets, wcwidth`,
+    });
+
+    // Load IPython dependencies first
+    const ipythonDeps = [
+      "ipython",
+      "decorator",
+      "executing",
+      "asttokens",
+      "six",
+      "matplotlib-inline",
+      "prompt_toolkit",
+      "stack-data",
+      "traitlets",
+      "pure-eval",
+      "Pygments",
+      "sqlite3",
+      "wcwidth",
+    ];
+
+    for (const pkg of ipythonDeps) {
+      await pyodide!.loadPackage(pkg);
+    }
+
+    // Install pydantic (required by registry.py) using micropip from CDN
+    await pyodide!.runPythonAsync(
+      "import micropip; await micropip.install('pydantic')"
+    );
+  } catch (error) {
+    self.postMessage({
+      type: "log",
+      data: `Failed to load ${JSON.stringify(bootstrapPackages)}: ${error}`,
+    });
+    throw error;
+  }
 
   // Import and initialize the runt_runtime package
   await pyodide!.runPythonAsync(`
