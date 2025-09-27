@@ -12,19 +12,15 @@
 
 import {
   RuntimeAgent,
-  RuntimeConfig,
   createStorePromise,
   createRuntimeSyncPayload,
 } from "@runtimed/agent-core";
-import type {
-  ExecutionHandler,
-  RuntimeCapabilities,
-  ExecutionContext,
-} from "@runtimed/agent-core";
+
 import type { Store } from "@runtimed/schema";
 import { sharedLiveStoreAdapter } from "../livestore/adapter.js";
 import { HtmlRuntimeAgent } from "./html-agent.js";
 import type { LocalRuntimeConfig } from "./LocalRuntimeAgent.js";
+import { PyodideRuntimeAgent } from "@runtimed/pyodide-runtime";
 
 // Global interface for console access
 declare global {
@@ -59,6 +55,7 @@ interface LauncherStatus {
 class ConsoleLauncher {
   private currentAgent: RuntimeAgent | null = null;
   private currentHtmlAgent: HtmlRuntimeAgent | null = null;
+  private currentPyodideAgent: PyodideRuntimeAgent | null = null;
   private store: Store | null = null;
   private existingStore: any = null;
   private userId: string | null = null;
@@ -161,16 +158,6 @@ class ConsoleLauncher {
     };
   }
 
-  private createPythonExecutionHandler(): ExecutionHandler {
-    return async (_context: ExecutionContext) => {
-      // Placeholder - Python execution would delegate to external agent
-      console.log(
-        "🐍 Python execution handler called - this would delegate to external agent"
-      );
-      return { success: true };
-    };
-  }
-
   async launchHtmlAgent(): Promise<RuntimeAgent> {
     try {
       this.lastError = null;
@@ -234,30 +221,28 @@ class ConsoleLauncher {
     try {
       this.lastError = null;
 
+      // Shutdown existing agents
+      if (this.currentPyodideAgent) {
+        console.log("🔄 Shutting down existing Pyodide agent...");
+        await this.currentPyodideAgent.stop();
+        this.currentPyodideAgent = null;
+      }
+      if (this.currentHtmlAgent) {
+        console.log("🔄 Shutting down existing HTML agent...");
+        await this.currentHtmlAgent.stop();
+        this.currentHtmlAgent = null;
+      }
       if (this.currentAgent) {
         console.log("🔄 Shutting down existing agent...");
-        await this.currentAgent.shutdown();
+        await this.softShutdownAgent(this.currentAgent);
+        this.currentAgent = null;
       }
 
       const { notebookId, userId, authToken } = this.validatePrerequisites();
 
       console.log(
-        `🚀 Launching Python runtime agent for notebook: ${notebookId}`
+        `🚀 Launching Pyodide runtime agent for notebook: ${notebookId}`
       );
-
-      const capabilities: RuntimeCapabilities = {
-        canExecuteCode: true,
-        canExecuteSql: true,
-        canExecuteAi: true,
-        availableAiModels: [
-          {
-            name: "gpt-4o-mini",
-            displayName: "GPT-4o Mini",
-            provider: "openai",
-            capabilities: ["completion", "tools", "vision"],
-          },
-        ],
-      };
 
       // Use existing store or create a new one
       let store: Store;
@@ -269,35 +254,29 @@ class ConsoleLauncher {
         store = await this.createNewStore(notebookId, userId, authToken);
       }
 
-      const config = new RuntimeConfig({
-        runtimeId: `console-python-${crypto.randomUUID()}`,
-        runtimeType: "python",
-        capabilities,
-        syncUrl: "ws://localhost:8787",
+      // Create Pyodide agent with new dedicated class
+      const pyodideConfig: LocalRuntimeConfig = {
+        store,
         authToken,
         notebookId,
-        store,
         userId,
-      });
+        syncUrl: "ws://localhost:8787",
+      };
 
-      const agent = new RuntimeAgent(config, capabilities);
+      this.currentPyodideAgent = new PyodideRuntimeAgent(pyodideConfig);
 
-      // Register Python execution handler (placeholder)
-      agent.onExecution(this.createPythonExecutionHandler());
-
-      await agent.start();
-
+      const agent = await this.currentPyodideAgent.start();
       this.currentAgent = agent;
 
-      console.log(`✅ Python runtime agent started successfully!`);
-      console.log(`   Runtime ID: ${config.runtimeId}`);
+      console.log(`✅ Pyodide runtime agent started successfully!`);
+      console.log(`   Runtime ID: ${agent.config.runtimeId}`);
       console.log(`   Session ID: ${agent.config.sessionId}`);
       console.log(`   Notebook ID: ${notebookId}`);
 
       return agent;
     } catch (error) {
       this.lastError = error instanceof Error ? error.message : String(error);
-      console.error("❌ Failed to launch Python agent:", error);
+      console.error("❌ Failed to launch Pyodide agent:", error);
       throw error;
     }
   }
@@ -343,7 +322,13 @@ class ConsoleLauncher {
   }
 
   async shutdown(): Promise<void> {
-    if (this.currentHtmlAgent) {
+    if (this.currentPyodideAgent) {
+      console.log("🛑 Shutting down Pyodide runtime agent...");
+      await this.currentPyodideAgent.stop();
+      this.currentPyodideAgent = null;
+      this.currentAgent = null;
+      console.log("✅ Pyodide runtime agent shut down (store preserved)");
+    } else if (this.currentHtmlAgent) {
       console.log("🛑 Shutting down HTML runtime agent...");
       await this.currentHtmlAgent.stop();
       this.currentHtmlAgent = null;

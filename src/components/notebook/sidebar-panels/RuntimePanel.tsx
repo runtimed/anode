@@ -3,7 +3,7 @@ import { RuntimeHealthIndicator } from "@/components/notebook/RuntimeHealthIndic
 import { useRuntimeHealth } from "@/hooks/useRuntimeHealth";
 import { getRuntimeCommand } from "@/util/runtime-command";
 import { Button } from "@/components/ui/button";
-import { Copy, Trash2, Globe } from "lucide-react";
+import { Copy, Trash2, Globe, Code2 } from "lucide-react";
 import { events, tables } from "@runtimed/schema";
 import { queryDb } from "@runtimed/schema";
 import { useQuery, useStore } from "@livestore/react";
@@ -16,6 +16,8 @@ export const RuntimePanel: React.FC<SidebarPanelProps> = ({ notebook }) => {
   const userId = useAuthenticatedUser();
   const [isLaunchingLocal, setIsLaunchingLocal] = useState(false);
   const [localError, setLocalError] = useState<string | null>(null);
+  const [isLaunchingPyodide, setIsLaunchingPyodide] = useState(false);
+  const [pyodideError, setPyodideError] = useState<string | null>(null);
 
   const activeRuntimeSessions = useQuery(
     queryDb(tables.runtimeSessions.select().where("isActive", "=", true))
@@ -82,9 +84,34 @@ export const RuntimePanel: React.FC<SidebarPanelProps> = ({ notebook }) => {
     }
   }, [store]);
 
+  const launchLocalPyodideRuntime = useCallback(async () => {
+    try {
+      setIsLaunchingPyodide(true);
+      setPyodideError(null);
+
+      if (!window.__RUNT_LAUNCHER__) {
+        throw new Error("Console launcher not available");
+      }
+
+      // Use existing store connection
+      window.__RUNT_LAUNCHER__.useExistingStore(store);
+
+      // Launch the Pyodide runtime
+      await window.__RUNT_LAUNCHER__.launchPythonAgent();
+    } catch (err) {
+      const message =
+        err instanceof Error ? err.message : "Failed to launch runtime";
+      setPyodideError(message);
+      console.error("Pyodide runtime launch failed:", err);
+    } finally {
+      setIsLaunchingPyodide(false);
+    }
+  }, [store]);
+
   const stopLocalRuntime = useCallback(async () => {
     try {
       setLocalError(null);
+      setPyodideError(null);
 
       if (!window.__RUNT_LAUNCHER__) {
         throw new Error("Console launcher not available");
@@ -95,6 +122,7 @@ export const RuntimePanel: React.FC<SidebarPanelProps> = ({ notebook }) => {
       const message =
         err instanceof Error ? err.message : "Failed to stop runtime";
       setLocalError(message);
+      setPyodideError(message);
       console.error("Local runtime stop failed:", err);
     }
   }, []);
@@ -221,6 +249,20 @@ export const RuntimePanel: React.FC<SidebarPanelProps> = ({ notebook }) => {
 
               {localError && (
                 <p className="text-xs text-red-600">{localError}</p>
+              )}
+
+              <Button
+                onClick={launchLocalPyodideRuntime}
+                disabled={isLaunchingPyodide}
+                size="sm"
+                className="flex w-full items-center gap-1"
+              >
+                <Code2 className="h-3 w-3" />
+                {isLaunchingPyodide ? "Starting..." : "Launch Python Runtime"}
+              </Button>
+
+              {pyodideError && (
+                <p className="text-xs text-red-600">{pyodideError}</p>
               )}
 
               <p className="text-xs text-gray-400">
