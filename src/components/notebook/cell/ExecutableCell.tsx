@@ -12,6 +12,7 @@ import { useAddCell } from "@/hooks/useAddCell.js";
 import { useActiveRuntime } from "@/hooks/useRuntimeHealth.js";
 
 import { useStore } from "@livestore/react";
+import { useQuery as useTanstackQuery } from "@tanstack/react-query";
 import { focusedCellSignal$, hasManuallyFocused$ } from "../signals/focus.js";
 import { events, tables, queries, CellTypeNoRaw } from "@runtimed/schema";
 import { ChevronDown, ChevronUp } from "lucide-react";
@@ -39,6 +40,7 @@ import { MaybeCellOutputs } from "@/components/outputs/MaybeCellOutputs.js";
 import { useToolApprovals } from "@/hooks/useToolApprovals.js";
 import { AiToolApprovalOutput } from "../../outputs/shared-with-iframe/AiToolApprovalOutput.js";
 import { cn } from "@/lib/utils.js";
+import { useTrpc } from "@/components/TrpcProvider.js";
 
 // Cell-specific styling configuration
 const getCellStyling = (cellType: "code" | "sql" | "ai") => {
@@ -72,10 +74,17 @@ export const ExecutableCell: React.FC<ExecutableCellProps> = ({
   autoFocus = false,
   contextSelectionMode = false,
 }) => {
+  const trpc = useTrpc();
+  const { store } = useStore();
+
+  const { data: systemPrompt } = useTanstackQuery({
+    ...trpc.getSystemPrompt.queryOptions(),
+    enabled: autoFocus && cell.cellType === "ai",
+  });
+
   const hasRunRef = useRef(false);
   const cellRef = useRef<HTMLDivElement>(null);
 
-  const { store } = useStore();
   const {
     registerEditor,
     unregisterEditor,
@@ -182,6 +191,13 @@ export const ExecutableCell: React.FC<ExecutableCellProps> = ({
     try {
       // Save old outputs to be shown while new ones are being generated
       setStaleOutputs(outputs);
+
+      store.commit(
+        events.notebookMetadataSet({
+          key: "user_system_prompt",
+          value: systemPrompt?.system_prompt || "",
+        })
+      );
 
       // Clear previous outputs before generating new ones
       store.commit(
