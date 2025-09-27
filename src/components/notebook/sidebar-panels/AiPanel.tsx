@@ -59,8 +59,6 @@ import { useState } from "react";
 
 export const SystemPromptEditor: React.FC = () => {
   const trpc = useTRPCClient();
-  const [systemPrompt, setSystemPrompt] = useState("");
-  const [isEditing, setIsEditing] = useState(false);
 
   // Fetch current system prompt
   const { data: currentSystemPrompt } = useQuery(
@@ -69,41 +67,38 @@ export const SystemPromptEditor: React.FC = () => {
 
   // Update system prompt mutation
   const updateSystemPromptMutation = useMutation(
-    trpc.upsertSystemPrompt.mutationOptions()
+    trpc.upsertSystemPrompt.mutationOptions({
+      onSuccess: (data) => {
+        setIsEditing(false);
+        setSystemPrompt(data.system_prompt);
+      },
+    })
   );
 
   // Delete system prompt mutation
   const deleteSystemPromptMutation = useMutation(
-    trpc.deleteSystemPrompt.mutationOptions()
+    trpc.deleteSystemPrompt.mutationOptions({
+      onSuccess: () => {
+        setSystemPrompt("");
+        setIsEditing(false);
+      },
+    })
   );
 
-  // Initialize system prompt from fetched data
-  React.useEffect(() => {
-    if (currentSystemPrompt && !isEditing) {
-      setSystemPrompt(currentSystemPrompt.system_prompt || "");
-    }
-  }, [currentSystemPrompt, isEditing]);
+  const [isEditing, setIsEditing] = useState(false);
+  const [systemPrompt, setSystemPrompt] = useState(
+    !isEditing ? currentSystemPrompt?.system_prompt || "" : ""
+  );
 
-  const handleSave = async () => {
-    try {
-      await updateSystemPromptMutation.mutateAsync({
-        system_prompt: systemPrompt,
-        ai_model: null, // Default to null for now
-      });
-      setIsEditing(false);
-    } catch (error) {
-      console.error("Failed to save system prompt:", error);
-    }
+  const handleSave = () => {
+    updateSystemPromptMutation.mutate({
+      system_prompt: systemPrompt,
+      ai_model: null, // Default to null for now
+    });
   };
 
   const handleDelete = async () => {
-    try {
-      await deleteSystemPromptMutation.mutateAsync();
-      setSystemPrompt("");
-      setIsEditing(false);
-    } catch (error) {
-      console.error("Failed to delete system prompt:", error);
-    }
+    deleteSystemPromptMutation.mutate();
   };
 
   const handleCancel = () => {
