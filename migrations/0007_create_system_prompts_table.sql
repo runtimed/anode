@@ -1,4 +1,4 @@
--- Migration number: 0007 	 2025-01-27T00:00:00.000Z
+-- Migration number: 0007 	 2025-09-27T23:41:22.653Z
 
 -- System prompts table
 CREATE TABLE system_prompts (
