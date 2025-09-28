@@ -735,7 +735,7 @@ export const appRouter = router({
         if (!result) {
           throw new TRPCError({
             code: "INTERNAL_SERVER_ERROR",
-            message: "Failed to create or update system prompt",
+            message: "Failed to update system prompt",
           });
         }
 
@@ -744,7 +744,7 @@ export const appRouter = router({
         if (error instanceof TRPCError) throw error;
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
-          message: `Failed to upsert system prompt: ${error instanceof Error ? error.message : "Unknown error"}`,
+          message: `Failed to update system prompt: ${error instanceof Error ? error.message : "Unknown error"}`,
         });
       }
     }),
