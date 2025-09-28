@@ -548,7 +548,6 @@ export async function upsertSystemPrompt(
   }
 ): Promise<SystemPromptRow | null> {
   const { user_id, system_prompt, ai_model = null } = params;
-  const now = new Date().toISOString();
 
   // First, try to get existing system prompt for this user
   const existing = await db
@@ -562,49 +561,37 @@ export async function upsertSystemPrompt(
       .prepare(
         `
         UPDATE system_prompts
-        SET system_prompt = ?, ai_model = ?, updated_at = ?
+        SET system_prompt = ?, ai_model = ?, updated_at = CURRENT_TIMESTAMP
         WHERE user_id = ?
       `
       )
-      .bind(system_prompt, ai_model, now, user_id)
+      .bind(system_prompt, ai_model, user_id)
       .run();
 
-    if (result.meta.changes > 0) {
-      return {
-        id: existing.id,
-        user_id,
-        system_prompt,
-        ai_model,
-        created_at: now, // We don't have the original created_at, so use current time
-        updated_at: now,
-      };
+    if (result.success) {
+      // Return the updated system prompt
+      return await getSystemPrompt(db, user_id);
     }
+    return null;
   } else {
     // Create new system prompt
     const id = nanoid();
     const result = await db
       .prepare(
         `
-        INSERT INTO system_prompts (id, user_id, system_prompt, ai_model, created_at, updated_at)
-        VALUES (?, ?, ?, ?, ?, ?)
+        INSERT INTO system_prompts (id, user_id, system_prompt, ai_model)
+        VALUES (?, ?, ?, ?)
       `
       )
-      .bind(id, user_id, system_prompt, ai_model, now, now)
+      .bind(id, user_id, system_prompt, ai_model)
       .run();
 
     if (result.success) {
-      return {
-        id,
-        user_id,
-        system_prompt,
-        ai_model,
-        created_at: now,
-        updated_at: now,
-      };
+      // Return the newly created system prompt
+      return await getSystemPrompt(db, user_id);
     }
+    return null;
   }
-
-  return null;
 }
 
 // Get system prompt for user
@@ -612,6 +599,7 @@ export async function getSystemPrompt(
   db: D1Database,
   user_id: string
 ): Promise<SystemPromptRow | null> {
+  // Only return one system prompt for the user for now
   const result = await db
     .prepare(
       `SELECT id, user_id, system_prompt, ai_model,

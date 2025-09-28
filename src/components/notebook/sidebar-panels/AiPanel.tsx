@@ -57,6 +57,7 @@ import { trpcQueryClient, useTRPCClient } from "@/lib/trpc-client";
 import { cn } from "@/lib/utils";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { useState } from "react";
+import { toast } from "sonner";
 
 export const SystemPromptEditor: React.FC = () => {
   const trpc = useTRPCClient();
@@ -70,8 +71,12 @@ export const SystemPromptEditor: React.FC = () => {
   const updateSystemPromptMutation = useMutation(
     trpc.upsertSystemPrompt.mutationOptions({
       onSuccess: (data) => {
-        setSystemPrompt(data.system_prompt);
+        toast.success("System prompt updated");
+        setSystemPrompt(data.system_prompt || "");
         trpcQueryClient.invalidateQueries(trpc.getSystemPrompt.queryOptions());
+      },
+      onError: (error) => {
+        toast.error(error.message);
       },
     })
   );
