@@ -127,6 +127,13 @@ export const SystemPromptEditor: React.FC = () => {
         className="min-h-24 resize-y"
         readOnly={isLoading}
         disabled={isLoading}
+        onKeyDown={(e) => {
+          // Ctrl+Enter: Save system prompt
+          if ((e.metaKey || e.ctrlKey) && e.key === "Enter" && !isLoading) {
+            e.preventDefault();
+            handleSave();
+          }
+        }}
       />
 
       <div className={cn("gap-2", isEditing ? "flex" : "hidden")}>
