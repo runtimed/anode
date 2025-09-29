@@ -11,6 +11,8 @@ import { useDeleteCell } from "@/hooks/useDeleteCell.js";
 import { useAddCell } from "@/hooks/useAddCell.js";
 import { useMoveCell } from "@/hooks/useMoveCell.js";
 import { useActiveRuntime } from "@/hooks/useRuntimeHealth.js";
+import { useAutoLaunchRuntime } from "@/hooks/useAutoLaunchRuntime.js";
+import { useDetectedRuntimeType } from "@/hooks/useNotebookRuntimeType.js";
 
 import { useStore } from "@livestore/react";
 import { focusedCellSignal$, hasManuallyFocused$ } from "../signals/focus.js";
@@ -97,6 +99,10 @@ export const ExecutableCell: React.FC<ExecutableCellProps> = ({
   const userId = useAuthenticatedUser();
   const { getUsersOnCell, getUserColor } = useUserRegistry();
   const activeRuntime = useActiveRuntime();
+  const detectedRuntimeType = useDetectedRuntimeType();
+  const { ensureRuntime, status: autoLaunchStatus } = useAutoLaunchRuntime({
+    runtimeType: detectedRuntimeType,
+  });
 
   // Get users present on this cell (excluding current user)
   const usersOnCell = getUsersOnCell(cell.id).filter(
@@ -188,6 +194,18 @@ export const ExecutableCell: React.FC<ExecutableCellProps> = ({
       return;
     }
 
+    // Ensure runtime is available before execution
+    console.log("🔍 Ensuring runtime is available for execution...");
+    const runtimeAvailable = await ensureRuntime();
+
+    if (!runtimeAvailable) {
+      console.warn(
+        "⚠️ Could not launch runtime automatically. User may need to start runtime manually."
+      );
+      // Still proceed with execution - the runtime might become available
+      // or the user might have an external runtime running
+    }
+
     try {
       // Save old outputs to be shown while new ones are being generated
       setStaleOutputs(outputs);
@@ -247,6 +265,7 @@ export const ExecutableCell: React.FC<ExecutableCellProps> = ({
     userId,
     setStaleOutputs,
     outputs,
+    ensureRuntime,
   ]);
 
   const { interruptExecution: interruptCell } = useInterruptExecution({
@@ -451,6 +470,7 @@ export const ExecutableCell: React.FC<ExecutableCellProps> = ({
                 onExecute={executeCell}
                 onInterrupt={interruptCell}
                 className="mobile-play-btn block sm:hidden"
+                isAutoLaunching={autoLaunchStatus.isLaunching}
               />
             }
           />
@@ -477,6 +497,7 @@ export const ExecutableCell: React.FC<ExecutableCellProps> = ({
               focusedClass={
                 cell.cellType === "ai" ? "text-purple-600" : undefined
               }
+              isAutoLaunching={autoLaunchStatus.isLaunching}
             />
           </div>
 

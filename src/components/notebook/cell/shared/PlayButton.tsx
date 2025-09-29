@@ -1,5 +1,5 @@
 import { cn } from "@/lib/utils";
-import { Play, Square } from "lucide-react";
+import { Play, Square, Loader2 } from "lucide-react";
 import React from "react";
 
 interface PlayButtonProps {
@@ -10,6 +10,7 @@ interface PlayButtonProps {
   onInterrupt: () => void;
   className?: string;
   focusedClass?: string;
+  isAutoLaunching?: boolean;
 }
 
 export const PlayButton: React.FC<PlayButtonProps> = ({
@@ -20,23 +21,32 @@ export const PlayButton: React.FC<PlayButtonProps> = ({
   onInterrupt,
   className = "",
   focusedClass = "text-foreground",
+  isAutoLaunching = false,
 }) => {
   const isRunning = executionState === "running" || executionState === "queued";
-  const title = isRunning ? "Stop execution" : `Execute ${cellType} cell`;
+  const title = isAutoLaunching
+    ? "Starting runtime..."
+    : isRunning
+      ? "Stop execution"
+      : `Execute ${cellType} cell`;
 
   return (
     <button
       onClick={isRunning ? onInterrupt : onExecute}
+      disabled={isAutoLaunching}
       className={cn(
         "hover:bg-muted/80 flex items-center justify-center rounded-sm bg-white p-1 transition-colors",
         isFocused
           ? focusedClass
           : "text-muted-foreground/40 hover:text-foreground group-hover:text-foreground",
+        isAutoLaunching && "cursor-wait opacity-75",
         className
       )}
       title={title}
     >
-      {isRunning ? (
+      {isAutoLaunching ? (
+        <Loader2 className="size-4 animate-spin" />
+      ) : isRunning ? (
         <Square fill="white" className="size-4" />
       ) : (
         <Play fill="white" className="size-4" />
