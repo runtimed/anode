@@ -12,7 +12,7 @@ import {
 } from "./providers/api-key-factory.ts";
 
 // Import notebook utilities
-import { createNotebookId } from "./utils/notebook-id.ts";
+import { createNotebookId } from "./utils/notebook-id";
 import {
   createNotebook,
   getNotebookById,
@@ -20,7 +20,8 @@ import {
   getTagByName,
   assignTagToNotebook,
   getNotebookTags,
-} from "./trpc/db.ts";
+  invalidateNotebookCache,
+} from "./trpc/db";
 import { createPermissionsProvider } from "./notebook-permissions/factory.ts";
 import type { TagColor } from "./trpc/types.ts";
 
@@ -139,7 +140,10 @@ api.post("/notebooks", authMiddleware, async (c) => {
       );
     }
 
-    // Handle tag assignment if tags were provided
+    // Invalidate cache for this user since we created a new notebook
+    await invalidateNotebookCache(passport.user.id);
+
+    // Handle tags if provided
     if (tags && tags.length > 0) {
       try {
         for (const tagName of tags) {
