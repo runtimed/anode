@@ -5,17 +5,15 @@ import { useTrpc } from "@/components/TrpcProvider";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { useQuery } from "@tanstack/react-query";
-import { Clock, Plus, Search, Tag, Users, X } from "lucide-react";
+import { Plus, Search, Tag, Users, X } from "lucide-react";
 import { useCreateNotebookAndNavigate, useDashboardParams } from "./helpers";
 
 export function Results({
   refetch,
-  recentScratchNotebooks,
   namedNotebooks,
   filteredNotebooks,
 }: {
   refetch: () => void;
-  recentScratchNotebooks: NotebookProcessed[];
   namedNotebooks: NotebookProcessed[];
   filteredNotebooks: NotebookProcessed[];
 }) {
@@ -102,9 +100,7 @@ export function Results({
               <h2 className="text-lg font-semibold text-gray-900">
                 {activeFilter === "shared"
                   ? "Shared with Me"
-                  : activeFilter === "scratch"
-                    ? "All Scratch Work"
-                    : "All My Notebooks"}
+                  : "All My Notebooks"}
               </h2>
               <Badge variant="secondary" className="ml-2">
                 {filteredNotebooks.length}

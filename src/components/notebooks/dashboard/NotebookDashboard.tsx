@@ -36,7 +36,6 @@ export const NotebookDashboard: React.FC = () => {
   const {
     allNotebooks,
     filteredNotebooks,
-    recentScratchNotebooks,
     namedNotebooks,
     isLoading,
     error,
@@ -94,7 +93,6 @@ export const NotebookDashboard: React.FC = () => {
           {!isLoading && filteredNotebooks.length > 0 && (
             <Results
               refetch={refetch}
-              recentScratchNotebooks={recentScratchNotebooks}
               namedNotebooks={namedNotebooks}
               filteredNotebooks={filteredNotebooks}
             />
