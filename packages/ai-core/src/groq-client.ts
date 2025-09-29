@@ -115,23 +115,26 @@ export class AnacondaAIClient extends GroqClient {
   }
 
   override getConfigMessage(): string {
-    const configMessage = `# Anaconda AI Configuration Required
+    const configMessage = `# Anaconda AI Configuration
 
-Anaconda API key not found. For browser development, please set \`VITE_ANACONDA_API_KEY\` in your .env file.
+The AI provider will automatically use your authenticated access token when available.
 
-## Setup Instructions
+## For Deployed Usage
+- No additional setup required - uses your personal access token automatically
+- Token refreshes automatically with your session
 
-1. Add to your .env file:
-   \`\`\`
-   VITE_ANACONDA_API_KEY=your-anaconda-api-key-here
-   \`\`\`
+## For Local Development
+- Add to your .env file:
+  \`\`\`
+  VITE_ANACONDA_API_KEY=your-anaconda-api-key-here
+  \`\`\`
+- Restart your development server
 
-2. Restart your development server
-
-3. Or configure manually in console:
-   \`\`\`javascript
-   window.__RUNT_AI__.configure('anaconda', { apiKey: 'your-key' })
-   \`\`\``;
+## Manual Configuration
+- Configure in console:
+  \`\`\`javascript
+  window.__RUNT_AI__.configure('anaconda', { apiKey: 'your-key' })
+  \`\`\``;
     return configMessage;
   }
 }

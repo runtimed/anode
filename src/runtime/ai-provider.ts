@@ -39,6 +39,8 @@ declare global {
       testConnection: () => Promise<boolean>;
       configure: (provider: string, config: AIProviderConfig) => void;
       getAvailableProviders: () => string[];
+      updateAuthToken: (token: string) => void;
+      setAuthContext: (context: any) => void;
     };
   }
 }
@@ -67,6 +69,7 @@ class AIProviderRegistry {
   private lastError: string | null = null;
   private discoveredModels: AiModel[] = [];
   private lastModelDiscovery: Date | null = null;
+  private currentAuthToken: string | null = null;
 
   constructor() {
     console.log("🤖 AI Provider Registry initialized");
@@ -106,13 +109,15 @@ class AIProviderRegistry {
   }
 
   private initializeAnaconda(): void {
+    // Prefer auth token over environment variables
     const apiKey =
+      this.currentAuthToken ||
       import.meta.env.VITE_ANACONDA_API_KEY ||
       import.meta.env.VITE_RUNT_API_KEY;
 
     if (!apiKey) {
       console.log(
-        "💡 Anaconda AI not configured - set VITE_ANACONDA_API_KEY for local development"
+        "💡 Anaconda AI not configured - need auth token or set VITE_ANACONDA_API_KEY for local development"
       );
       return;
     }
@@ -143,11 +148,12 @@ class AIProviderRegistry {
   }
 
   private initializeOpenAI(): void {
-    const apiKey = import.meta.env.VITE_OPENAI_API_KEY;
+    // Prefer auth token over environment variables for OpenAI too
+    const apiKey = this.currentAuthToken || import.meta.env.VITE_OPENAI_API_KEY;
 
     if (!apiKey) {
       console.log(
-        "💡 OpenAI not configured - set VITE_OPENAI_API_KEY for local development"
+        "💡 OpenAI not configured - need auth token or set VITE_OPENAI_API_KEY for local development"
       );
       return;
     }
@@ -167,11 +173,12 @@ class AIProviderRegistry {
   }
 
   private initializeGroq(): void {
-    const apiKey = import.meta.env.VITE_GROQ_API_KEY;
+    // Prefer auth token over environment variables for Groq too
+    const apiKey = this.currentAuthToken || import.meta.env.VITE_GROQ_API_KEY;
 
     if (!apiKey) {
       console.log(
-        "💡 Groq not configured - set VITE_GROQ_API_KEY for local development"
+        "💡 Groq not configured - need auth token or set VITE_GROQ_API_KEY for local development"
       );
       return;
     }
@@ -383,6 +390,25 @@ class AIProviderRegistry {
   getAvailableProviders(): string[] {
     return aiRegistry.getProviders();
   }
+
+  setAuthContext(context: any): void {
+    // Extract access token if auth is valid
+    if (context?.authState?.valid) {
+      this.updateAuthToken(context.authState.token);
+    }
+  }
+
+  updateAuthToken(token: string): void {
+    if (this.currentAuthToken !== token) {
+      console.log("🔄 Updating AI provider with refreshed auth token");
+      this.currentAuthToken = token;
+
+      // Re-initialize the current provider with the new token
+      if (this.currentProvider) {
+        this.initializeFromEnvironment();
+      }
+    }
+  }
 }
 
 // Create singleton instance and expose on window
@@ -397,6 +423,8 @@ if (typeof window !== "undefined") {
     configure: (provider: string, config: AIProviderConfig) =>
       aiProvider.configure(provider, config),
     getAvailableProviders: () => aiProvider.getAvailableProviders(),
+    updateAuthToken: (token: string) => aiProvider.updateAuthToken(token),
+    setAuthContext: (context: any) => aiProvider.setAuthContext(context),
   };
 
   // Show usage help after a short delay to let other console messages settle
@@ -406,12 +434,20 @@ if (typeof window !== "undefined") {
       console.log("🧪 Try: await window.__RUNT_AI__.testConnection()");
     } else {
       console.log("🤖 AI Provider initialized (no provider configured)");
-      console.log("💡 Set VITE_ANACONDA_API_KEY or configure manually");
+      console.log(
+        "💡 Will use auth token when available, or set VITE_ANACONDA_API_KEY for local development"
+      );
       console.log(
         "🔧 Example: window.__RUNT_AI__.configure('anaconda', { apiKey: 'your-key' })"
       );
     }
   }, 1000);
+
+  // Set up auth token monitoring if we're in a React context
+  if (typeof document !== "undefined") {
+    // We'll set up the auth integration from a React component
+    (globalThis as any).__AI_PROVIDER_INSTANCE__ = aiProvider;
+  }
 }
 
 export { aiProvider };
