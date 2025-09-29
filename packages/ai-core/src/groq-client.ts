@@ -107,10 +107,31 @@ export class AnacondaAIClient extends GroqClient {
     return models;
   }
 
-  override getConfigMessage(): string {
-    const configMessage = `# Anaconda/Runt Configuration Required
+  override async isReady(): Promise<boolean> {
+    // Don't call configure() again since we're already configured in constructor
+    // This prevents losing the API key that was passed during initialization
+    // Access the private client property directly to avoid reconfigure
+    return (this as any).client !== null;
+  }
 
-RUNT API key not found. Please set \`RUNT_API_KEY\` environment variable.`;
+  override getConfigMessage(): string {
+    const configMessage = `# Anaconda AI Configuration Required
+
+Anaconda API key not found. For browser development, please set \`VITE_ANACONDA_API_KEY\` in your .env file.
+
+## Setup Instructions
+
+1. Add to your .env file:
+   \`\`\`
+   VITE_ANACONDA_API_KEY=your-anaconda-api-key-here
+   \`\`\`
+
+2. Restart your development server
+
+3. Or configure manually in console:
+   \`\`\`javascript
+   window.__RUNT_AI__.configure('anaconda', { apiKey: 'your-key' })
+   \`\`\``;
     return configMessage;
   }
 }

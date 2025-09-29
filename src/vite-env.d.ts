@@ -8,6 +8,11 @@ interface ImportMetaEnv {
   VITE_LIVESTORE_URL?: string;
   VITE_RUNTIME_COMMAND?: string;
   VITE_GIT_COMMIT_HASH?: string;
+  VITE_AI_PROVIDER?: string;
+  VITE_ANACONDA_API_KEY?: string;
+  VITE_RUNT_API_KEY?: string;
+  VITE_OPENAI_API_KEY?: string;
+  VITE_GROQ_API_KEY?: string;
 }
 
 interface ImportMeta {
