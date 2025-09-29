@@ -21,7 +21,9 @@ export function AuthAwareAIProvider({ children }: AuthAwareAIProviderProps) {
     const aiProviderInstance = (globalThis as any).__AI_PROVIDER_INSTANCE__;
 
     if (!aiProviderInstance) {
-      console.warn("⚠️ AI provider instance not found - auth integration skipped");
+      console.warn(
+        "⚠️ AI provider instance not found - auth integration skipped"
+      );
       return;
     }
 
@@ -32,7 +34,6 @@ export function AuthAwareAIProvider({ children }: AuthAwareAIProviderProps) {
       isAuthenticated: auth.isAuthenticated,
       hasToken: auth.isAuthenticated && !!auth.accessToken,
     });
-
   }, [auth]);
 
   useEffect(() => {
