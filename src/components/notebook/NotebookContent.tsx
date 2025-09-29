@@ -1,5 +1,5 @@
 import { useQuery, useStore } from "@livestore/react";
-import { CellReference, queries } from "@runtimed/schema";
+import { CellData, queries } from "@runtimed/schema";
 import React from "react";
 import { ErrorBoundary } from "react-error-boundary";
 import { Cell } from "./cell/Cell.js";
@@ -42,7 +42,7 @@ export const NotebookContent = () => {
       ) : (
         <>
           <ErrorBoundary fallback={<div>Error rendering cell list</div>}>
-            <CellList cellReferences={cellReferences} />
+            <CellList cells={cellReferences} />
           </ErrorBoundary>
           {/* Add Cell Buttons */}
           <div className="border-border/30 mt-6 border-t px-4 pt-4 sm:mt-8 sm:px-0 sm:pt-6">
@@ -60,27 +60,25 @@ export const NotebookContent = () => {
 };
 
 interface CellListProps {
-  cellReferences: readonly CellReference[];
+  cells: readonly CellData[];
 }
 
-export const CellList: React.FC<CellListProps> = ({ cellReferences }) => {
+export const CellList: React.FC<CellListProps> = ({ cells }) => {
   const focusedCellId = useQuery(focusedCellSignal$);
   const contextSelectionMode = useQuery(contextSelectionMode$);
 
   return (
     <div style={{ paddingLeft: "1rem" }}>
-      {cellReferences.map((cellReference, index) => (
-        <div key={cellReference.id}>
+      {cells.map((cell, index) => (
+        <div key={cell.id}>
           <ErrorBoundary fallback={<div>Error rendering cell</div>}>
-            {index === 0 && (
-              <CellBetweener cell={cellReference} position="before" />
-            )}
+            {index === 0 && <CellBetweener cell={cell} position="before" />}
             <Cell
-              cellId={cellReference.id}
-              isFocused={cellReference.id === focusedCellId}
+              cell={cell}
+              isFocused={cell.id === focusedCellId}
               contextSelectionMode={contextSelectionMode}
             />
-            <CellBetweener cell={cellReference} position="after" />
+            <CellBetweener cell={cell} position="after" />
           </ErrorBoundary>
         </div>
       ))}
