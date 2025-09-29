@@ -403,10 +403,8 @@ class AIProviderRegistry {
       console.log("🔄 Updating AI provider with refreshed auth token");
       this.currentAuthToken = token;
 
-      // Re-initialize the current provider with the new token
-      if (this.currentProvider) {
-        this.initializeFromEnvironment();
-      }
+      // Re-initialize with the new token (regardless of previous provider state)
+      this.initializeFromEnvironment();
     }
   }
 }

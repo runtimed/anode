@@ -33,6 +33,12 @@ export function AuthAwareAIProvider({ children }: AuthAwareAIProviderProps) {
     console.log("🔗 AI provider connected to auth system", {
       isAuthenticated: auth.isAuthenticated,
       hasToken: auth.isAuthenticated ? "yes" : "no",
+      authStateValid: auth.authState.valid,
+      hasAuthStateToken: auth.authState.valid && !!auth.authState.token,
+      tokenPreview:
+        auth.authState.valid && auth.authState.token
+          ? `${auth.authState.token.substring(0, 20)}...`
+          : "none",
     });
   }, [auth]);
 
@@ -40,14 +46,42 @@ export function AuthAwareAIProvider({ children }: AuthAwareAIProviderProps) {
   const authToken = auth.authState.valid ? auth.authState.token : null;
 
   useEffect(() => {
+    console.log("📡 Auth state changed:", {
+      isAuthenticated: auth.isAuthenticated,
+      authStateValid: auth.authState.valid,
+      hasToken: auth.authState.valid && !!auth.authState.token,
+      tokenLength:
+        auth.authState.valid && auth.authState.token
+          ? auth.authState.token.length
+          : 0,
+    });
+
     // Monitor access token changes - only when authenticated
     if (auth.isAuthenticated) {
       const aiProviderInstance = (globalThis as any).__AI_PROVIDER_INSTANCE__;
 
-      if (aiProviderInstance && authToken) {
-        console.log("🔄 Auth token updated, refreshing AI provider");
-        aiProviderInstance.updateAuthToken(authToken);
+      if (!aiProviderInstance) {
+        console.warn("⚠️ AI provider instance not found during token update");
+        return;
       }
+
+      // Use authToken from dependency array to avoid getter errors
+      if (authToken) {
+        console.log("🔄 Auth token updated, refreshing AI provider", {
+          tokenLength: authToken.length,
+          tokenPreview: authToken.substring(0, 20) + "...",
+        });
+        aiProviderInstance.updateAuthToken(authToken);
+      } else {
+        console.warn("⚠️ User authenticated but no valid token available", {
+          authStateValid: auth.authState.valid,
+          hasToken: auth.authState.valid && !!auth.authState.token,
+        });
+      }
+    } else {
+      console.log(
+        "🚫 User not authenticated, skipping AI provider token update"
+      );
     }
   }, [auth.isAuthenticated, authToken]);
 
