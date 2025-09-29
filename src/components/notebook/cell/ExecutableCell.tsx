@@ -359,7 +359,7 @@ export const ExecutableCell: React.FC<ExecutableCellProps> = ({
     >
       {/* Cell Header */}
       {!isSourceLessAiOutput && (
-        <div className="cell-header mb-2 flex items-center justify-between pr-1 pl-6 sm:pr-4">
+        <div className="cell-header flex items-center justify-between pr-1 pb-2 pl-6 sm:pr-4">
           <div className="flex items-center gap-3">
             <CellTypeSelector cell={cell} onCellTypeChange={changeCellType} />
 
@@ -447,11 +447,10 @@ export const ExecutableCell: React.FC<ExecutableCellProps> = ({
               <PlayButton
                 executionState={cell.executionState}
                 cellType={cell.cellType}
-                autoFocus={autoFocus}
+                isFocused={autoFocus}
                 onExecute={executeCell}
                 onInterrupt={interruptCell}
                 className="mobile-play-btn block sm:hidden"
-                primaryColor="text-foreground"
               />
             }
           />
@@ -463,21 +462,20 @@ export const ExecutableCell: React.FC<ExecutableCellProps> = ({
         <div className="relative">
           {/* Play Button Breaking Through Left Border - Desktop Only */}
           <div
-            className="desktop-play-btn absolute -left-3 z-10 hidden sm:block"
+            className="absolute z-20 hidden -translate-x-1/2 sm:block"
             style={{
-              top: cell.sourceVisible ? "0.35rem" : "-1.5rem",
+              top: cell.sourceVisible ? "0.35rem" : "-2.1rem",
             }}
           >
             <PlayButton
               executionState={cell.executionState}
               cellType={cell.cellType}
-              autoFocus={autoFocus}
+              isFocused={autoFocus}
               onExecute={executeCell}
               onInterrupt={interruptCell}
-              size="default"
-              className="h-6 w-6 rounded-sm border-0 bg-white p-0 transition-colors hover:bg-white"
-              primaryColor={
-                cell.cellType === "ai" ? "text-purple-600" : "text-foreground"
+              className="desktop-play-btn"
+              focusedClass={
+                cell.cellType === "ai" ? "text-purple-600" : undefined
               }
             />
           </div>

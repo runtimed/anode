@@ -9,14 +9,6 @@
       }
     },
     {
-      "name": "runtime",
-      "script": "pnpm",
-      "args": "run dev:runtime",
-      "env": {
-        "NODE_ENV": "development"
-      }
-    },
-    {
       "name": "iframe-outputs",
       "script": "pnpm",
       "args": "run dev:iframe",

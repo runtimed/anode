@@ -3,6 +3,7 @@ import { queryDb } from "@runtimed/schema";
 
 export * from "./outputDeltas.ts";
 export * from "./cellOrdering.ts";
+export * from "./ai.ts";
 
 export const cellIDs$ = queryDb(
   tables.cells.select("id").orderBy("fractionalIndex", "asc"),
