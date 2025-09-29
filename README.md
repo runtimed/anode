@@ -87,14 +87,16 @@ The example files contain sensible defaults that work for local development out 
 ### 3. Start a Runtime (Two Options)
 
 **Option A: External Runtime Agent**
+
 - Create a `RUNT_API_KEY` via your user profile
 - Click the **Runtime** button in the notebook header
 - Copy the exact `NOTEBOOK_ID=xxx pnpm dev:runtime` command shown
 - Run that command in your terminal
 
 **Option B: In-Browser Runtime Agent**
+
 - Click the **Runtime** button in the notebook header
-- Click **Launch HTML Runtime** or **Launch Python Runtime** 
+- Click **Launch HTML Runtime** or **Launch Python Runtime**
 - Runtime starts immediately in your browser (no terminal needed)
 
 ### 4. Execute Code
@@ -149,12 +151,14 @@ Anode now supports runtime agents that execute directly in your browser, elimina
 ### Available In-Browser Runtimes
 
 **HTML Runtime** - Immediate HTML rendering
+
 - Execute HTML/CSS/JavaScript code cells instantly
 - Direct DOM manipulation and styling
 - No setup required, works offline
 - Perfect for prototyping web components
 
 **Python Runtime (Pyodide)** - Full Python in the browser
+
 - Complete Python environment via Pyodide
 - Scientific computing stack (numpy, pandas, matplotlib)
 - AI integration with full notebook context
@@ -172,7 +176,7 @@ Anode now supports runtime agents that execute directly in your browser, elimina
 ### Technical Architecture
 
 - **Shared LiveStore**: In-browser agents use the same event-sourced store as the UI
-- **Real-time sync**: Execution results appear instantly across all connected clients  
+- **Real-time sync**: Execution results appear instantly across all connected clients
 - **AI capabilities**: Both runtimes support AI cells with full notebook context
 - **Soft shutdown**: Agents can be stopped without affecting the notebook state
 - **Session management**: Multiple runtime types can coexist (with manual switching)
