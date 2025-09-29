@@ -14,7 +14,7 @@ export const NotebookContent = () => {
   const { store } = useStore();
   const { hideAiCells } = useHideAiCells();
   const cellReferences = useQuery(
-    queries.cellsWithIndices2$({ filterOutAiCells: hideAiCells })
+    queries.cellsFilterAi$({ filterOutAiCells: hideAiCells })
   );
 
   const focusedCellId = useQuery(focusedCellSignal$);
