@@ -25,9 +25,11 @@ declare global {
 }
 
 let pyodide: PyodideInterface | null = null;
-let interruptBuffer: SharedArrayBuffer | null = null;
+let interruptBuffer: SharedArrayBuffer | null | undefined = null;
 let isShuttingDown = false;
-const backgroundOperations: Array<() => void> = [];
+let isBootstrapComplete = false;
+let bootstrapPromise: Promise<void> | null = null;
+const backgroundOperations: (() => void)[] = [];
 
 // Global error handler for uncaught worker errors
 self.addEventListener("error", (event) => {
@@ -524,41 +526,99 @@ globals()['js_clear_callback'] = runt_runtime.js_clear_callback
     data: "Pseudo-IPython environment loaded successfully from modules",
   });
 
-  // Install micropip packages in background without blocking
+  // Install micropip packages synchronously to prevent execution before bootstrap completes
   // Skip during tests to prevent execution interference
   const isTest = globalThis.location?.search?.includes("test");
 
   if (!isTest) {
-    // Use setTimeout to isolate from execution pipeline
-    const micropipTimeout = setTimeout(() => {
-      if (isShuttingDown) return;
-      pyodide!
-        .runPythonAsync(`await runt_runtime.bootstrap_micropip_packages()`)
-        .then(() => {
-          if (!isShuttingDown) {
-            self.postMessage({
-              type: "log",
-              data: "Micropip packages installed successfully",
-            });
-          }
-        })
-        .catch((error) => {
-          if (!isShuttingDown) {
-            self.postMessage({
-              type: "log",
-              data: `Warning: Micropip package installation failed: ${error}`,
-            });
-          }
-        });
-    }, 100);
+    self.postMessage({
+      type: "log",
+      data: "Installing essential packages (pandas, numpy)...",
+    });
 
-    backgroundOperations.push(() => clearTimeout(micropipTimeout));
+    bootstrapPromise = (async () => {
+      try {
+        await pyodide!.runPythonAsync(
+          `await runt_runtime.bootstrap_micropip_packages()`
+        );
+        isBootstrapComplete = true;
+        if (!isShuttingDown) {
+          self.postMessage({
+            type: "log",
+            data: "Essential packages installed successfully",
+          });
+        }
+      } catch (error) {
+        isBootstrapComplete = true; // Mark as complete even on error to avoid infinite waiting
+        if (!isShuttingDown) {
+          self.postMessage({
+            type: "log",
+            data: `Warning: Essential package installation failed: ${error}`,
+          });
+        }
+      }
+    })();
   } else {
+    isBootstrapComplete = true;
     self.postMessage({
       type: "log",
       data: "Skipping micropip bootstrap during tests",
     });
   }
+}
+
+/**
+ * Analyze Python code to detect required packages
+ */
+function analyzeRequiredPackages(code: string): string[] {
+  const requiredPackages: string[] = [];
+  const lines = code.split("\n");
+
+  for (const line of lines) {
+    const trimmed = line.trim();
+
+    // Match import statements
+    const importMatch = trimmed.match(/^(?:import|from)\s+(\w+)/);
+    if (importMatch) {
+      const packageName = importMatch[1];
+
+      // Map common package aliases to actual package names
+      const packageMap: Record<string, string> = {
+        pd: "pandas",
+        np: "numpy",
+        plt: "matplotlib",
+        sns: "seaborn",
+        sk: "scikit-learn",
+        sklearn: "scikit-learn",
+        bs4: "beautifulsoup4",
+        PIL: "pillow",
+        cv2: "opencv-python",
+      };
+
+      const actualPackage = packageMap[packageName] || packageName;
+
+      // Only track packages we know about
+      const knownPackages = [
+        "pandas",
+        "numpy",
+        "matplotlib",
+        "seaborn",
+        "scipy",
+        "sympy",
+        "scikit-learn",
+        "beautifulsoup4",
+        "pillow",
+        "requests",
+        "lxml",
+      ];
+
+      if (knownPackages.includes(actualPackage)) {
+        requiredPackages.push(actualPackage);
+      }
+    }
+  }
+
+  return [...new Set(requiredPackages)]; // Remove duplicates
 }
 
 /**
@@ -569,6 +629,49 @@ async function executePython(code: string): Promise<{
 }> {
   if (!pyodide) {
     throw new Error("Pyodide not initialized");
+  }
+
+  // Wait for bootstrap to complete before executing user code
+  if (!isBootstrapComplete && bootstrapPromise) {
+    self.postMessage({
+      type: "log",
+      data: "Waiting for essential packages to finish loading...",
+    });
+    await bootstrapPromise;
+  }
+
+  // Analyze code for required packages and wait for them
+  const requiredPackages = analyzeRequiredPackages(code);
+  if (requiredPackages.length > 0) {
+    self.postMessage({
+      type: "log",
+      data: `Checking availability of required packages: ${requiredPackages.join(", ")}`,
+    });
+
+    // Wait for each required package
+    for (const pkg of requiredPackages) {
+      try {
+        const available = await pyodide.runPythonAsync(`
+try:
+    await runt_runtime.wait_for_package("${pkg}", 10)
+    True
+except:
+    False
+        `);
+
+        if (!available) {
+          self.postMessage({
+            type: "log",
+            data: `Warning: Package ${pkg} may not be available`,
+          });
+        }
+      } catch (error) {
+        self.postMessage({
+          type: "log",
+          data: `Warning: Failed to check package ${pkg}: ${error}`,
+        });
+      }
+    }
   }
 
   let result = null;
