@@ -1,6 +1,7 @@
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { execSync } from "child_process";
+import { copyFileSync, mkdirSync, existsSync } from "node:fs";
 
 import { livestoreDevtoolsPlugin } from "@livestore/devtools-vite";
 import react from "@vitejs/plugin-react";
@@ -111,7 +112,7 @@ export default defineConfig(({ mode }) => {
       },
     },
     optimizeDeps: {
-      exclude: ["@livestore/wa-sqlite"],
+      exclude: ["@livestore/wa-sqlite", "pyodide"],
       include: [
         "react",
         "react-dom",
@@ -124,6 +125,7 @@ export default defineConfig(({ mode }) => {
         target: "esnext",
       },
     },
+    assetsInclude: ["**/*.wasm"],
     plugins,
     define: {
       "import.meta.env.VITE_GIT_COMMIT_HASH": JSON.stringify(gitCommitHash),
