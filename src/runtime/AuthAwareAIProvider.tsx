@@ -32,21 +32,27 @@ export function AuthAwareAIProvider({ children }: AuthAwareAIProviderProps) {
 
     console.log("🔗 AI provider connected to auth system", {
       isAuthenticated: auth.isAuthenticated,
-      hasToken: auth.isAuthenticated && !!auth.accessToken,
+      hasToken: auth.isAuthenticated ? "yes" : "no",
     });
   }, [auth]);
 
   useEffect(() => {
-    // Monitor access token changes
+    // Monitor access token changes - only when authenticated
     if (auth.isAuthenticated) {
       const aiProviderInstance = (globalThis as any).__AI_PROVIDER_INSTANCE__;
 
-      if (aiProviderInstance && auth.accessToken) {
-        console.log("🔄 Auth token updated, refreshing AI provider");
-        aiProviderInstance.updateAuthToken(auth.accessToken);
+      if (aiProviderInstance) {
+        // Access token directly from auth state to avoid getter errors
+        if (auth.authState.valid && auth.authState.token) {
+          console.log("🔄 Auth token updated, refreshing AI provider");
+          aiProviderInstance.updateAuthToken(auth.authState.token);
+        }
       }
     }
-  }, [auth.isAuthenticated, auth.accessToken]);
+  }, [
+    auth.isAuthenticated,
+    auth.authState.valid ? auth.authState.token : null,
+  ]);
 
   // This component doesn't render anything - it's just for auth integration
   return <>{children}</>;
