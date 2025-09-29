@@ -28,16 +28,12 @@ import {
 
 import {
   ensureTextPlainFallback,
-  // discoverAvailableAiModels,
   executeAI,
   gatherNotebookContext,
-  // aiRegistry,
-  // AnacondaAIClient,
-  // OpenAIClient,
   type NotebookTool,
   type AIMediaBundle,
 } from "@runtimed/ai-core";
-// import type { AiModel } from "@runtimed/agent-core";
+import type { AiModel } from "@runtimed/agent-core";
 import {
   cellReferences$,
   isJsonMimeType,
@@ -76,6 +72,7 @@ export class PyodideRuntimeAgent extends LocalRuntimeAgent {
     }
   >();
   private interruptBuffer?: SharedArrayBuffer;
+  private discoveredAiModels: AiModel[] = [];
 
   constructor(config: LocalRuntimeConfig) {
     super(config);
@@ -198,28 +195,60 @@ export class PyodideRuntimeAgent extends LocalRuntimeAgent {
   }
 
   /**
-   * Define capabilities for HTML runtime
+   * Define capabilities for Pyodide runtime
    */
   protected getCapabilities(): RuntimeCapabilities {
     return {
       canExecuteCode: true,
       canExecuteSql: false,
       canExecuteAi: true,
-      // For now, none
-      availableAiModels: [],
+      availableAiModels: this.discoveredAiModels,
     };
   }
 
   /**
-   * Start the HTML runtime agent with AI model discovery
+   * Start the Pyodide runtime agent with AI model discovery
    */
   async start(): Promise<RuntimeAgent> {
     console.log(
       `${this.getLogIcon()} Starting ${this.getRuntimeType()} runtime agent`
     );
 
-    // TODO: Discover available AI models BEFORE calling super.start()
-    // This ensures capabilities are ready when runtime announces itself
+    // Discover available AI models using shared browser AI provider
+    try {
+      console.log(
+        "🔍 Discovering available AI models from shared browser provider..."
+      );
+
+      // Access the global browser AI provider
+      const browserAiProvider =
+        (globalThis as any).__RUNT_AI__ ||
+        (globalThis as any).window?.__RUNT_AI__;
+
+      if (browserAiProvider) {
+        this.discoveredAiModels = await browserAiProvider.discoverModels();
+
+        if (this.discoveredAiModels.length === 0) {
+          console.warn(
+            "⚠️  No AI models discovered - provider may not be configured"
+          );
+        } else {
+          console.log(
+            `✅ Discovered ${this.discoveredAiModels.length} AI model${this.discoveredAiModels.length === 1 ? "" : "s"} from providers: ${[...new Set(this.discoveredAiModels.map((m) => m.provider))].join(", ")}`
+          );
+        }
+      } else {
+        console.warn(
+          "⚠️  No browser AI provider found - AI features may not be available"
+        );
+        this.discoveredAiModels = [];
+      }
+    } catch (error) {
+      console.error("❌ Failed to discover AI models", {
+        error: error instanceof Error ? error.message : String(error),
+      });
+      this.discoveredAiModels = [];
+    }
 
     // Call parent to start the agent - capabilities now include discovered models
     const agent = await super.start();

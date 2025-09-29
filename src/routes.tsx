@@ -1,5 +1,6 @@
 import { AuthGuard } from "@/auth/AuthGuard";
 import { AuthProvider } from "@/auth/AuthProvider";
+import { AuthAwareAIProvider } from "@/runtime/AuthAwareAIProvider";
 import { FPSMeter } from "@/components/debug/FPSMeter.tsx";
 import { LoadingState } from "@/components/loading/LoadingState.js";
 import { Toaster } from "@/components/ui/sonner.js";
@@ -57,57 +58,59 @@ export const App: React.FC = () => {
 
   return (
     <AuthProvider>
-      <ConfirmProvider>
-        <ErrorBoundary
-          // Note: this must a render prop for error fallback
-          fallbackRender={({ error }) => <ErrorFallbackPage error={error} />}
-        >
-          <Routes>
-            <Route path="/oidc" element={<OidcCallbackPage />} />
-            <Route path="/local_oidc/authorize" element={<AuthorizePage />} />
-            <Route
-              path="/nb/:id/*"
-              element={
-                <AuthGuard>
-                  <Suspense
-                    fallback={
-                      <LoadingState
-                        variant="fullscreen"
-                        message="Loading notebook..."
-                      />
-                    }
-                  >
-                    <NotebookPage />
-                  </Suspense>
-                </AuthGuard>
-              }
-            />
-            <Route
-              path="/nb"
-              element={
-                <AuthGuard>
-                  <Suspense
-                    fallback={
-                      <LoadingState
-                        variant="fullscreen"
-                        message="Loading notebooks..."
-                      />
-                    }
-                  >
-                    <NotebooksDashboardPage />
-                  </Suspense>
-                </AuthGuard>
-              }
-            />
-            <Route path="/" element={<Navigate to="/nb" replace />} />
-            <Route path="/demo/geojson" element={<GeoJsonDemoPage />} />
-            <Route path="/demo/reorder" element={<ReorderDemoPage />} />
-          </Routes>
-          <FPSMeter />
-          <Toaster />
-          <Confirmer />
-        </ErrorBoundary>
-      </ConfirmProvider>
+      <AuthAwareAIProvider>
+        <ConfirmProvider>
+          <ErrorBoundary
+            // Note: this must a render prop for error fallback
+            fallbackRender={({ error }) => <ErrorFallbackPage error={error} />}
+          >
+            <Routes>
+              <Route path="/oidc" element={<OidcCallbackPage />} />
+              <Route path="/local_oidc/authorize" element={<AuthorizePage />} />
+              <Route
+                path="/nb/:id/*"
+                element={
+                  <AuthGuard>
+                    <Suspense
+                      fallback={
+                        <LoadingState
+                          variant="fullscreen"
+                          message="Loading notebook..."
+                        />
+                      }
+                    >
+                      <NotebookPage />
+                    </Suspense>
+                  </AuthGuard>
+                }
+              />
+              <Route
+                path="/nb"
+                element={
+                  <AuthGuard>
+                    <Suspense
+                      fallback={
+                        <LoadingState
+                          variant="fullscreen"
+                          message="Loading notebooks..."
+                        />
+                      }
+                    >
+                      <NotebooksDashboardPage />
+                    </Suspense>
+                  </AuthGuard>
+                }
+              />
+              <Route path="/" element={<Navigate to="/nb" replace />} />
+              <Route path="/demo/geojson" element={<GeoJsonDemoPage />} />
+              <Route path="/demo/reorder" element={<ReorderDemoPage />} />
+            </Routes>
+            <FPSMeter />
+            <Toaster />
+            <Confirmer />
+          </ErrorBoundary>
+        </ConfirmProvider>
+      </AuthAwareAIProvider>
     </AuthProvider>
   );
 };
