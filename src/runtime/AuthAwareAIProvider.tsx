@@ -36,23 +36,20 @@ export function AuthAwareAIProvider({ children }: AuthAwareAIProviderProps) {
     });
   }, [auth]);
 
+  // Extract complex expression to avoid dependency array warning
+  const authToken = auth.authState.valid ? auth.authState.token : null;
+
   useEffect(() => {
     // Monitor access token changes - only when authenticated
     if (auth.isAuthenticated) {
       const aiProviderInstance = (globalThis as any).__AI_PROVIDER_INSTANCE__;
 
-      if (aiProviderInstance) {
-        // Access token directly from auth state to avoid getter errors
-        if (auth.authState.valid && auth.authState.token) {
-          console.log("🔄 Auth token updated, refreshing AI provider");
-          aiProviderInstance.updateAuthToken(auth.authState.token);
-        }
+      if (aiProviderInstance && authToken) {
+        console.log("🔄 Auth token updated, refreshing AI provider");
+        aiProviderInstance.updateAuthToken(authToken);
       }
     }
-  }, [
-    auth.isAuthenticated,
-    auth.authState.valid ? auth.authState.token : null,
-  ]);
+  }, [auth.isAuthenticated, authToken]);
 
   // This component doesn't render anything - it's just for auth integration
   return <>{children}</>;
