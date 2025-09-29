@@ -36,9 +36,11 @@ export const PlayButton: React.FC<PlayButtonProps> = ({
       disabled={isAutoLaunching}
       className={cn(
         "hover:bg-muted/80 flex items-center justify-center rounded-sm bg-white p-1 transition-colors",
-        isFocused
-          ? focusedClass
-          : "text-muted-foreground/40 hover:text-foreground group-hover:text-foreground",
+        isRunning
+          ? "text-destructive hover:text-destructive shadow-destructive/20 animate-pulse drop-shadow-sm"
+          : isFocused
+            ? focusedClass
+            : "text-muted-foreground/40 hover:text-foreground group-hover:text-foreground",
         isAutoLaunching && "cursor-wait opacity-75",
         className
       )}
@@ -47,7 +49,12 @@ export const PlayButton: React.FC<PlayButtonProps> = ({
       {isAutoLaunching ? (
         <Loader2 className="size-4 animate-spin" />
       ) : isRunning ? (
-        <Square fill="white" className="size-4" />
+        <Square
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          className="size-4"
+        />
       ) : (
         <Play fill="white" className="size-4" />
       )}
