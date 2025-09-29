@@ -69,47 +69,6 @@ export default defineConfig(({ mode }) => {
     }),
     tailwindcss(),
     livestoreDevtoolsPlugin({ schemaPath: "./packages/schema/src/index.ts" }),
-    {
-      name: "copy-pyodide-assets",
-      buildStart() {
-        // Copy Pyodide assets to public directory for local serving
-        const pyodidePath = path.resolve(
-          __dirname,
-          "node_modules/.pnpm/pyodide@0.27.7/node_modules/pyodide"
-        );
-        const publicPyodidePath = path.resolve(__dirname, "public/pyodide");
-
-        if (existsSync(pyodidePath)) {
-          if (!existsSync(publicPyodidePath)) {
-            mkdirSync(publicPyodidePath, { recursive: true });
-          }
-
-          const assetFiles = [
-            "pyodide.asm.js",
-            "pyodide.asm.wasm",
-            "pyodide.js",
-            "pyodide.js.map",
-            "pyodide.mjs",
-            "pyodide.mjs.map",
-            "python_stdlib.zip",
-            "pyodide-lock.json",
-          ];
-
-          for (const file of assetFiles) {
-            const srcPath = path.join(pyodidePath, file);
-            const destPath = path.join(publicPyodidePath, file);
-
-            if (existsSync(srcPath)) {
-              try {
-                copyFileSync(srcPath, destPath);
-              } catch (error) {
-                console.warn(`Warning: Could not copy ${file}:`, error);
-              }
-            }
-          }
-        }
-      },
-    },
   ];
 
   // Include Cloudflare plugin in development and auth modes
