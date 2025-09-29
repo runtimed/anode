@@ -84,13 +84,18 @@ The example files contain sensible defaults that work for local development out 
 2. Click "New Notebook"
 3. Start creating cells and editing
 
-### 3. Get Runtime Command from UI
+### 3. Start a Runtime (Two Options)
 
-- Open the notebook interface
+**Option A: External Runtime Agent**
 - Create a `RUNT_API_KEY` via your user profile
 - Click the **Runtime** button in the notebook header
 - Copy the exact `NOTEBOOK_ID=xxx pnpm dev:runtime` command shown
 - Run that command in your terminal
+
+**Option B: In-Browser Runtime Agent**
+- Click the **Runtime** button in the notebook header
+- Click **Launch HTML Runtime** or **Launch Python Runtime** 
+- Runtime starts immediately in your browser (no terminal needed)
 
 ### 4. Execute Code
 
@@ -99,7 +104,7 @@ The example files contain sensible defaults that work for local development out 
 - Press **Ctrl+Enter** or click **Run**
 - See results appear instantly
 
-The Python runtime uses [@runt packages](https://github.com/runtimed/runt) for Python execution and AI features, providing a robust execution environment with rich output support.
+External runtime agents use [@runt packages](https://github.com/runtimed/runt) for Python execution and AI features, while in-browser agents provide immediate HTML/Python execution directly in the web client with shared LiveStore integration.
 
 ## Production Deployment
 
@@ -136,6 +141,61 @@ This unified architecture simplifies deployment while providing robust real-time
 - Mobile-responsive design for editing on any device
 - OIDC OAuth for secure access (when deployed)
 - Share notebooks by copying the URL
+
+## 🌐 In-Browser Runtime Agents
+
+Anode now supports runtime agents that execute directly in your browser, eliminating the need for external processes or terminal commands.
+
+### Available In-Browser Runtimes
+
+**HTML Runtime** - Immediate HTML rendering
+- Execute HTML/CSS/JavaScript code cells instantly
+- Direct DOM manipulation and styling
+- No setup required, works offline
+- Perfect for prototyping web components
+
+**Python Runtime (Pyodide)** - Full Python in the browser
+- Complete Python environment via Pyodide
+- Scientific computing stack (numpy, pandas, matplotlib)
+- AI integration with full notebook context
+- Persistent execution state within browser session
+
+### Quick Start with In-Browser Runtimes
+
+1. **Open any notebook** and click the **Runtime** button in the header
+2. **Choose your runtime**:
+   - **Launch HTML Runtime** - Instant HTML/CSS/JS execution
+   - **Launch Python Runtime** - Full Python with scientific stack
+3. **Start coding** - Create cells and run them immediately
+4. **Share results** - Other users see outputs in real-time
+
+### Technical Architecture
+
+- **Shared LiveStore**: In-browser agents use the same event-sourced store as the UI
+- **Real-time sync**: Execution results appear instantly across all connected clients  
+- **AI capabilities**: Both runtimes support AI cells with full notebook context
+- **Soft shutdown**: Agents can be stopped without affecting the notebook state
+- **Session management**: Multiple runtime types can coexist (with manual switching)
+
+### Console Development Access
+
+For advanced users and debugging, runtimes can be launched via Chrome DevTools:
+
+```javascript
+// Connect to existing store
+window.__RUNT_LAUNCHER__.useExistingStore(__debugLiveStore._);
+
+// Launch HTML runtime
+await window.__RUNT_LAUNCHER__.launchHtmlAgent();
+
+// Check status
+window.__RUNT_LAUNCHER__.getStatus();
+
+// Shutdown when done
+await window.__RUNT_LAUNCHER__.shutdown();
+```
+
+This provides direct access to runtime agents for experimentation and debugging without UI abstractions.
 
 ## Coming Soon
 
@@ -208,7 +268,7 @@ Anode supports **Groq** as a first-class AI provider alongside OpenAI and Ollama
 
 ### Configuration
 
-Python runtime and AI features are handled by the separate [@runt packages](https://github.com/runtimed/runt). The integrated development server runs both frontend and backend in a single process for convenience.
+External Python runtime and AI features are handled by the separate [@runt packages](https://github.com/runtimed/runt), while in-browser runtime agents execute directly in the web client. The integrated development server runs both frontend and backend in a single process for convenience.
 
 ## Troubleshooting
 
@@ -216,7 +276,7 @@ Python runtime and AI features are handled by the separate [@runt packages](http
 | ------------------------- | --------------------------------------------------------------------------- |
 | Schema version mismatches | Ensure all services (web, runtime, sync) are restarted after schema changes |
 | Type errors               | TypeScript catches invalid queries at compile time - check column names     |
-| Execution not working     | Check @runt runtime setup - see https://github.com/runtimed/runt            |
+| Execution not working     | For external runtimes: check @runt setup. For in-browser: try Runtime Panel |
 | Dev server crashes        | Restart with `pnpm dev` - .env file changes are ignored to prevent crashes  |
 | Build errors              | Run `pnpm type-check` to check for TypeScript issues                        |
 | Wrangler issues in logs   | Run `rm -rf .wrangler`. 🚨 IMPORTANT: you will also lose your notebooks     |
