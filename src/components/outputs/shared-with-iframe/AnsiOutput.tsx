@@ -1,7 +1,6 @@
-import React from "react";
 import Ansi from "ansi-to-react";
-import { Button } from "@/components/ui/button";
 import { Bug } from "lucide-react";
+import React from "react";
 
 interface AnsiOutputProps {
   children: string;
