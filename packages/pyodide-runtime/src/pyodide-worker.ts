@@ -192,6 +192,12 @@ async function initializePyodide(
   // Core Pyodide runtime files from local /pyodide/, packages loaded separately from CDN
   const basePackages: string[] = [];
 
+  // Set matplotlib backend environment variable early to prevent WebWorker DOM issues
+  self.postMessage({
+    type: "log",
+    data: "Configuring matplotlib backend for WebWorker compatibility",
+  });
+
   // Load Pyodide with CDN packages to avoid SRI issues
   pyodide = await loadPyodide({
     indexURL: "https://cdn.jsdelivr.net/pyodide/v0.27.7/full/",
@@ -476,6 +482,7 @@ async function setupIPythonEnvironment(): Promise<void> {
     // Load IPython dependencies first
     const ipythonDeps = [
       "ipython",
+      "matplotlib",
       "decorator",
       "executing",
       "asttokens",
