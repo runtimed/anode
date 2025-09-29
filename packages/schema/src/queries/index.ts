@@ -93,3 +93,16 @@ export const cells$ = queryDb(
   tables.cells.select().orderBy("fractionalIndex", "asc"),
   { label: "notebook.cells" }
 );
+
+export const cellsFilterAi$ = ({
+  filterOutAiCells,
+}: {
+  filterOutAiCells: boolean;
+}) =>
+  queryDb(
+    tables.cells
+      .select()
+      .where(filterOutAiCells ? { cellType: { op: "!=", value: "ai" } } : {})
+      .orderBy("fractionalIndex", "asc"),
+    { label: `notebook.cells.${filterOutAiCells ? "noAi" : "all"}` }
+  );

@@ -12,7 +12,10 @@ import { useHideAiCells } from "../../hooks/useHideAiCells";
 
 export const NotebookContent = () => {
   const { store } = useStore();
-  const cellReferences = useQuery(queries.cells$);
+  const { hideAiCells } = useHideAiCells();
+  const cellReferences = useQuery(
+    queries.cellsFilterAi$({ filterOutAiCells: hideAiCells })
+  );
 
   const focusedCellId = useQuery(focusedCellSignal$);
   const hasManuallyFocused = useQuery(hasManuallyFocused$);
