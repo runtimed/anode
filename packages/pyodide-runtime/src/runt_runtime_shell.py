@@ -94,20 +94,3 @@ def initialize_ipython_environment():
     setup_interrupt_patches()
 
     print("Pseudo-IPython environment ready with rich display support")
-
-
-# Configure matplotlib for headless PNG output (works in Deno workers)
-try:
-    import matplotlib
-    import matplotlib.pyplot as plt
-
-    matplotlib.use("Agg")
-    plt.rcParams["figure.dpi"] = 100
-    plt.rcParams["savefig.dpi"] = 100
-    plt.rcParams["figure.facecolor"] = "white"
-    plt.rcParams["savefig.facecolor"] = "white"
-    plt.rcParams["figure.figsize"] = (8, 6)
-
-except ImportError:
-    # Matplotlib not available
-    pass

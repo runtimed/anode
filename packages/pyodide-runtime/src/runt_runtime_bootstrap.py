@@ -15,6 +15,18 @@ _background_loading_started = False
 _loaded_packages = set()
 
 
+def _configure_matplotlib_backend():
+    """Configure matplotlib backend early to prevent WebWorker DOM issues"""
+    try:
+        import os
+
+        # Set environment variable to prevent auto-detection
+        os.environ["MPLBACKEND"] = "Agg"
+        print("Matplotlib backend environment set: Agg")
+    except Exception as e:
+        print(f"Warning: Failed to configure matplotlib backend: {e}")
+
+
 async def bootstrap_micropip_packages():
     """Bootstrap essential micropip packages for the runtime environment
 
@@ -22,11 +34,15 @@ async def bootstrap_micropip_packages():
     """
     global _critical_packages_loaded, _background_loading_started
 
+    # Configure matplotlib backend before loading any packages
+    _configure_matplotlib_backend()
+
     # Critical packages that must be available before user code runs
     critical_packages = [
         "pydantic",  # Required for function registry system
         "pandas",  # Most commonly used data analysis package
         "numpy",  # Fundamental numerical computing
+        "matplotlib",  # Required for pandas plotting and general plotting
     ]
 
     # Load critical packages synchronously
