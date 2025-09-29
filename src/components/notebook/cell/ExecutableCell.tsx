@@ -41,6 +41,7 @@ import { useToolApprovals } from "@/hooks/useToolApprovals.js";
 import { AiToolApprovalOutput } from "../../outputs/shared-with-iframe/AiToolApprovalOutput.js";
 import { cn } from "@/lib/utils.js";
 import { generateQueueId } from "@/util/queue-id.js";
+import { IframeFixCodeEvent } from "@/components/outputs/shared-with-iframe/comms.js";
 
 // Cell-specific styling configuration
 const getCellStyling = (cellType: "code" | "sql" | "ai") => {
@@ -345,6 +346,14 @@ export const ExecutableCell: React.FC<ExecutableCellProps> = ({
       cell.executionState === "running" ||
       staleOutputs.length > 0);
 
+  const handleFixCode = useCallback(
+    (event: IframeFixCodeEvent) => {
+      console.log("handleFixCode", event);
+      addCell(cell.id, "ai", "after", JSON.stringify(event));
+    },
+    [addCell, cell.id]
+  );
+
   return (
     <CellContainer
       ref={cellRef}
@@ -579,6 +588,7 @@ export const ExecutableCell: React.FC<ExecutableCellProps> = ({
           isLoading={cell.executionState === "running" && !hasOutputs}
           outputs={hasOutputs ? outputs : staleOutputs}
           showOutput={showOutput}
+          onFixCode={handleFixCode}
         />
       </ErrorBoundary>
     </CellContainer>
