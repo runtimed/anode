@@ -18,7 +18,8 @@ export const useAddCell = () => {
     (
       cellId?: string,
       cellType: CellType = "code",
-      position: "before" | "after" = "after"
+      position: "before" | "after" = "after",
+      source?: string
     ) => {
       const cellReferences = store.query(queries.cellsWithIndices$);
       const newCellId = `cell-${Date.now()}-${Math.random()
@@ -95,6 +96,39 @@ export const useAddCell = () => {
               temperature: 0.7,
               maxTokens: 1000,
             },
+          })
+        );
+      }
+
+      if (source) {
+        // set cell source
+        store.commit(
+          events.cellSourceChanged({
+            id: newCellId,
+            source,
+            modifiedBy: userId,
+          })
+        );
+
+        // hide cell input
+        store.commit(
+          events.cellSourceVisibilityToggled({
+            id: newCellId,
+            sourceVisible: false,
+            actorId: userId,
+          })
+        );
+
+        // run cell
+        store.commit(
+          events.executionRequested({
+            cellId: newCellId,
+            actorId: userId,
+            requestedBy: userId,
+            queueId: `exec-${Date.now()}-${Math.random().toString(36).slice(2)}`,
+            executionCount:
+              store.query(queries.cellQuery.byId(newCellId))?.executionCount ||
+              0 + 1,
           })
         );
       }
