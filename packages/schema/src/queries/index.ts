@@ -94,6 +94,7 @@ export const cells$ = queryDb(
   { label: "notebook.cells" }
 );
 
+// TODO: if we want to keep the AI filter, we should update all call sites of `cellsWithIndices$` with this one
 export const cellsFilterAi$ = ({
   filterOutAiCells,
 }: {
