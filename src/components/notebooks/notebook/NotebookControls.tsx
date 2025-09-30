@@ -8,6 +8,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { Spinner } from "@/components/ui/Spinner";
 import { useRuntimeHealth } from "@/hooks/useRuntimeHealth";
 import { generateQueueId } from "@/util/queue-id";
 import { useQuery, useStore } from "@livestore/react";
@@ -57,12 +58,20 @@ export function NotebookControls() {
   const showBadge = cellQueue.length > 0;
 
   return (
-    <div className="flex items-center gap-1">
+    <div className="flex items-center gap-2">
       {cellQueue.length > 0 && (
-        <Button variant="outline" size="sm" onClick={handleCancelAll}>
-          <Square className="mr-2 h-4 w-4" />
-          Stop All
-        </Button>
+        <>
+          <span className="flex items-center gap-1">
+            <Spinner size="md" />
+            <span className="text-muted-foreground text-sm">
+              Running {cellQueue.length} cells
+            </span>
+          </span>
+          <Button variant="outline" size="sm" onClick={handleCancelAll}>
+            <Square className="mr-2 h-4 w-4" />
+            Stop All
+          </Button>
+        </>
       )}
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
