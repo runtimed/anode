@@ -158,19 +158,21 @@ function useRunAllCells() {
   const userId = useAuthenticatedUser();
 
   const runAllCells = useCallback(() => {
-    store.commit(
-      events.multipleExecutionRequested({
-        requestedBy: userId,
-        cellsInfo: [
-          ...cells.map((cell) => ({
-            id: cell.id,
+    cells
+      // We especially don't want to run AI cells
+      .filter((cell) => cell.cellType === "code")
+      .forEach((cell) => {
+        store.commit(
+          events.executionRequested({
+            cellId: cell.id,
             executionCount: (cell.executionCount || 0) + 1,
+            requestedBy: userId,
+            actorId: userId,
             queueId: generateQueueId(),
-          })),
-        ],
-      })
-    );
-  }, [store, userId, cells]);
+          })
+        );
+      });
+  }, [cells, store, userId]);
 
   return { runAllCells };
 }

@@ -356,20 +356,6 @@ export const events = {
     }),
   }),
 
-  multipleExecutionRequested: Events.synced({
-    name: "v1.MultipleExecutionRequested",
-    schema: Schema.Struct({
-      requestedBy: Schema.String,
-      cellsInfo: Schema.Array(
-        Schema.Struct({
-          id: Schema.String,
-          executionCount: Schema.Number,
-          queueId: Schema.String,
-        })
-      ),
-    }),
-  }),
-
   // Unified output system - granular events replacing cellOutputAdded
   multimediaDisplayOutputAdded: Events.synced({
     name: "v1.MultimediaDisplayOutputAdded",
@@ -957,36 +943,6 @@ export const materializers = State.SQLite.materializers(events, {
     // Update presence table
     updatePresence(actorId || cancelledBy, cellId),
   ],
-
-  "v1.MultipleExecutionRequested": ({ requestedBy, cellsInfo }) => {
-    // Generate execution requests for each cell
-    const ops = [];
-    for (const cell of cellsInfo) {
-      ops.push(
-        tables.executionQueue
-          .insert({
-            id: cell.queueId,
-            cellId: cell.id,
-            executionCount: cell.executionCount,
-            requestedBy,
-            status: "pending",
-          })
-          .onConflict("id", "ignore")
-      );
-
-      // Update cell execution state
-      ops.push(
-        tables.cells
-          .update({
-            executionState: "queued",
-            executionCount: cell.executionCount,
-          })
-          .where({ id: cell.id })
-      );
-    }
-
-    return ops;
-  },
 
   // Unified output system materializers with pending clear support
   "v1.MultimediaDisplayOutputAdded": (
