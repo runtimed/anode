@@ -15,14 +15,6 @@ export const cellsWithIndices$ = queryDb(
   { label: "cells.withIndices" }
 );
 
-export const runnableCellsWithIndices$ = queryDb(
-  tables.cells
-    .select("id", "fractionalIndex", "cellType", "executionCount")
-    .where({ cellType: { op: "IN", value: ["code", "sql"] } })
-    .orderBy("fractionalIndex", "asc"),
-  { label: "cells.withIndices.runnable" }
-);
-
 // Get just the cell ordering information (minimal fields)
 export const cellOrdering$ = queryDb(
   tables.cells
