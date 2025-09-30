@@ -40,7 +40,7 @@ export function CellAdder({
         showPlus={true}
         onClick={() => {
           if (hideAiCells) {
-            toast.success("AI cells are hidden");
+            toast.info("AI cells are hidden");
           } else {
             addCell(undefined, "ai", position);
           }

@@ -47,7 +47,7 @@ export const EmptyStateCellAdder: React.FC = () => {
           label="AI Assistant"
           onClick={() => {
             if (hideAiCells) {
-              toast.success("AI cells are hidden");
+              toast.info("AI cells are hidden");
             } else {
               addCell(undefined, "ai");
             }
