@@ -1,0 +1,9 @@
+{
+  "name": "@runtimed/pyodide-runtime",
+  "version": "0.2.0",
+  "exports": "./src/index.ts",
+  "license": "BSD-3-Clause",
+  "imports": {
+    "@runtimed/agent-core": "jsr:@runtimed/agent-core@^0.2.0"
+  }
+}

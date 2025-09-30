@@ -1,1 +1,6 @@
-export type SupportedLanguage = "python" | "sql" | "markdown" | undefined;
+export type SupportedLanguage =
+  | "python"
+  | "sql"
+  | "markdown"
+  | "html"
+  | undefined;

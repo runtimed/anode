@@ -5,7 +5,7 @@ import { Bot, Code, Database, FileText, Plus } from "lucide-react";
 import { type ComponentProps } from "react";
 
 // Colocated cell type color styles that won't be affected by shadcn updates
-const cellTypeStyles = {
+export const cellTypeStyles = {
   code: "border-gray-300 focus-visible:border-gray-500 text-gray-600 hover:bg-gray-50 hover:text-gray-600 focus:bg-gray-50 focus-visible:ring-gray-100",
   markdown:
     "border-yellow-300 focus-visible:border-yellow-500 text-yellow-600 hover:bg-yellow-50 hover:text-yellow-600 focus:bg-yellow-50 focus-visible:ring-yellow-100",

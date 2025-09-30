@@ -1,34 +1,26 @@
-import { useCallback } from "react";
-import { useStore, useQuery } from "@livestore/react";
-import { useAuthenticatedUser } from "../auth/index.js";
-import { useAvailableAiModels } from "@/util/ai-models.js";
-import {
-  events,
-  queries,
-  createCellBetween,
-  CellTypeNoRaw,
-} from "@runtimed/schema";
-import { focusedCellSignal$ } from "@/components/notebook/signals/focus.js";
 import {
   lastUsedAiModel$,
   lastUsedAiProvider$,
 } from "@/components/notebook/signals/ai-context.js";
-import { getDefaultAiModel } from "@/util/ai-models.js";
+import { focusedCellSignal$ } from "@/components/notebook/signals/focus.js";
+import { getDefaultAiModel, useAvailableAiModels } from "@/util/ai-models.js";
+import { useStore } from "@livestore/react";
+import { CellType, createCellBetween, events, queries } from "@runtimed/schema";
+import { useCallback } from "react";
+import { useAuthenticatedUser } from "../auth/index.js";
 
 export const useAddCell = () => {
   const { store } = useStore();
   const userId = useAuthenticatedUser();
   const { models } = useAvailableAiModels();
-  const cellReferences = useQuery(queries.cellsWithIndices$);
-  const lastUsedAiModel = useQuery(lastUsedAiModel$);
-  const lastUsedAiProvider = useQuery(lastUsedAiProvider$);
 
   const addCell = useCallback(
     (
       cellId?: string,
-      cellType: CellTypeNoRaw = "code",
+      cellType: CellType = "code",
       position: "before" | "after" = "after"
     ) => {
+      const cellReferences = store.query(queries.cellsWithIndices$);
       const newCellId = `cell-${Date.now()}-${Math.random()
         .toString(36)
         .slice(2)}`;
@@ -36,6 +28,8 @@ export const useAddCell = () => {
       // Get default AI model if creating an AI cell
       let aiProvider, aiModel;
       if (cellType === "ai") {
+        const lastUsedAiModel = store.query(lastUsedAiModel$);
+        const lastUsedAiProvider = store.query(lastUsedAiProvider$);
         const defaultModel = getDefaultAiModel(
           models,
           lastUsedAiProvider,
@@ -110,7 +104,7 @@ export const useAddCell = () => {
 
       return newCellId;
     },
-    [cellReferences, store, userId, models, lastUsedAiModel, lastUsedAiProvider]
+    [store, userId, models]
   );
 
   return { addCell };

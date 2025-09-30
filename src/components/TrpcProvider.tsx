@@ -2,6 +2,7 @@ import { trpcQueryClient, useTRPCClient } from "@/lib/trpc-client";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import { ReactNode, useEffect, createContext, useContext } from "react";
+import { useDebug } from "@/components/debug/debug-mode";
 
 interface TrpcProviderProps {
   children: ReactNode;
@@ -57,12 +58,13 @@ function useCheckMountedOnlyOnce() {
 export const TrpcProvider = ({ children }: TrpcProviderProps) => {
   useCheckMountedOnlyOnce();
   const trpc = useTRPCClient();
+  const debug = useDebug();
 
   return (
     <QueryClientProvider client={trpcQueryClient}>
       <TrpcContext.Provider value={trpc}>
         {children}
-        {import.meta.env.DEV && (
+        {import.meta.env.DEV && debug.enabled && (
           <ReactQueryDevtools
             buttonPosition="bottom-left"
             initialIsOpen={false}

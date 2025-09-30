@@ -2,6 +2,7 @@ import { useAddCell } from "@/hooks/useAddCell.js";
 import { useCellContent } from "@/hooks/useCellContent.js";
 import { useCellKeyboardNavigation } from "@/hooks/useCellKeyboardNavigation.js";
 import { useDeleteCell } from "@/hooks/useDeleteCell.js";
+import { useMoveCell } from "@/hooks/useMoveCell.js";
 import { useEditorRegistry } from "@/hooks/useEditorRegistry.js";
 import { events, queries, tables, CellTypeNoRaw } from "@runtimed/schema";
 import { useStore } from "@livestore/react";
@@ -51,6 +52,9 @@ export const MarkdownCell: React.FC<MarkdownCellProps> = ({
 
   const { handleDeleteCell } = useDeleteCell(cell.id);
   const { addCell } = useAddCell();
+  const { moveCellUp, moveCellDown, canMoveUp, canMoveDown } = useMoveCell(
+    cell.id
+  );
   // Use shared content management hook
   const { localSource, setLocalSource, updateSource, handleSourceChange } =
     useCellContent({
@@ -247,7 +251,7 @@ export const MarkdownCell: React.FC<MarkdownCellProps> = ({
     >
       {/* Cell Header */}
       <div
-        className="cell-header mb-2 flex items-center justify-between pr-1 pl-6 sm:pr-4"
+        className="cell-header flex items-center justify-between pr-1 pb-2 pl-6 sm:pr-4"
         onKeyDown={!isEditing ? handleKeyDown : undefined}
       >
         <div className="flex items-center gap-3">
@@ -286,6 +290,10 @@ export const MarkdownCell: React.FC<MarkdownCellProps> = ({
           hasOutputs={true}
           toggleSourceVisibility={toggleSourceVisibility}
           toggleAiContextVisibility={toggleAiContextVisibility}
+          onMoveUp={moveCellUp}
+          onMoveDown={moveCellDown}
+          canMoveUp={canMoveUp}
+          canMoveDown={canMoveDown}
         />
       </div>
 
@@ -293,8 +301,9 @@ export const MarkdownCell: React.FC<MarkdownCellProps> = ({
       <div className="relative">
         <div
           className={cn(
-            "cell-content bg-white py-1 pr-4 pl-4 transition-colors",
-            cell.sourceVisible && !isEditing ? "h-auto" : "h-0 opacity-0"
+            "cell-content bg-white pr-4 pl-4 transition-colors",
+            // Ensure we don't add to parent height if hidden
+            cell.sourceVisible && !isEditing ? "h-auto py-1" : "h-0 opacity-0"
           )}
         >
           {/* Send markdown content to iframe */}
@@ -329,8 +338,9 @@ export const MarkdownCell: React.FC<MarkdownCellProps> = ({
         {/* Editor Content Area */}
         <div
           className={cn(
-            "cell-content bg-white py-1 pl-4 transition-colors",
-            cell.sourceVisible && isEditing ? "block" : "hidden"
+            "cell-content bg-white pl-4 transition-colors",
+            // Ensure we don't add to parent height if hidden
+            cell.sourceVisible && isEditing ? "block py-1" : "hidden"
           )}
         >
           <ErrorBoundary fallback={<div>Error rendering editor</div>}>

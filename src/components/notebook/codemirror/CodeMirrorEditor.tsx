@@ -18,6 +18,7 @@ import { markdown } from "@codemirror/lang-markdown";
 
 import { SupportedLanguage } from "@/types/misc.js";
 import { sql } from "@codemirror/lang-sql";
+import { html } from "@codemirror/lang-html";
 import { useCodeMirror } from "@uiw/react-codemirror";
 import { baseExtensions, aiBaseExtensions } from "./baseExtensions.js";
 
@@ -43,7 +44,9 @@ type CodeMirrorEditorProps = {
 };
 
 function languageExtension(language: SupportedLanguage) {
-  if (language === "python") {
+  if (language === "html") {
+    return html();
+  } else if (language === "python") {
     return python();
   } else if (language === "markdown") {
     return markdown();

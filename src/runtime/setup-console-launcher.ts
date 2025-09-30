@@ -17,14 +17,12 @@ import { consoleLauncher } from "./console-launcher.js";
  */
 export function useConsoleRuntimeLauncher() {
   const { store } = useStore();
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, accessToken } = useAuth();
   const userId = useAuthenticatedUser();
 
   useEffect(() => {
     if (store && isAuthenticated && userId) {
-      // Get auth token from somewhere - this might need adjustment based on how auth works
-      // For now, we'll use a placeholder that the user can override
-      const authToken = "dev-token"; // TODO: Get real auth token
+      const authToken = accessToken;
 
       console.log("🔧 Setting up console runtime launcher...");
       consoleLauncher.setStore(store as any); // Type cast for React LiveStore API
@@ -35,7 +33,7 @@ export function useConsoleRuntimeLauncher() {
       console.log("  await window.__RUNT_LAUNCHER__.launchHtmlAgent()");
       console.log("  await window.__RUNT_LAUNCHER__.shutdown()");
     }
-  }, [store, isAuthenticated, userId]);
+  }, [store, isAuthenticated, userId, accessToken]);
 
   // Return current status for debugging
   return {

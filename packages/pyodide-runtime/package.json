@@ -1,0 +1,53 @@
+{
+  "name": "@runtimed/pyodide-runtime",
+  "version": "0.2.0",
+  "type": "module",
+  "description": "Pyodide runtime agent",
+  "exports": "./src/index.ts",
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "files": [
+    "src"
+  ],
+  "scripts": {
+    "type-check": "tsc --noEmit",
+    "lint": "eslint src/",
+    "lint:check": "eslint src/ --max-warnings 0",
+    "format": "prettier --write .",
+    "format:check": "prettier --check ."
+  },
+  "dependencies": {
+    "@runtimed/agent-core": "workspace:*",
+    "pyodide": "^0.27.7"
+  },
+  "devDependencies": {
+    "@types/node": "^24.0.10",
+    "typescript": "^5.8.3",
+    "prettier": "^3.6.0",
+    "eslint": "^9.30.1",
+    "@typescript-eslint/eslint-plugin": "^8.35.1",
+    "@typescript-eslint/parser": "^8.35.1"
+  },
+  "engines": {
+    "node": ">=23.0.0",
+    "pnpm": ">=10.9.0"
+  },
+  "keywords": [
+    "agent",
+    "runtime",
+    "livestore",
+    "notebook",
+    "runt",
+    "anode"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/runtimed/anode.git",
+    "directory": "packages/pyodide-agent"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "author": "Runt Team",
+  "license": "BSD-3-Clause"
+}

@@ -10,7 +10,7 @@ import {
   DropdownMenuTrigger,
 } from "../ui/dropdown-menu";
 import { useConfirm } from "../ui/confirm";
-import { SharingModal } from "./SharingModal";
+import { SharingDialog } from "./SharingDialog";
 import { TagSelectionDialog } from "./TagSelectionDialog";
 import type { NotebookProcessed } from "./types";
 
@@ -25,7 +25,7 @@ export const NotebookActions: React.FC<NotebookActionsProps> = ({
   onUpdate,
   className = "",
 }) => {
-  const [isSharingModalOpen, setIsSharingModalOpen] = useState(false);
+  const [isSharingDialogOpen, setIsSharingDialogOpen] = useState(false);
   const [isTagSelectionOpen, setIsTagSelectionOpen] = useState(false);
   const trpc = useTrpc();
   const { confirm } = useConfirm();
@@ -41,7 +41,7 @@ export const NotebookActions: React.FC<NotebookActionsProps> = ({
   const handleShare = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    setIsSharingModalOpen(true);
+    setIsSharingDialogOpen(true);
   };
 
   const handleDeleteClick = (e: React.MouseEvent) => {
@@ -114,12 +114,11 @@ export const NotebookActions: React.FC<NotebookActionsProps> = ({
         </DropdownMenuContent>
       </DropdownMenu>
 
-      {/* Sharing Modal */}
-      <SharingModal
-        notebook={notebook}
-        isOpen={isSharingModalOpen}
-        onClose={() => setIsSharingModalOpen(false)}
-        onUpdate={onUpdate}
+      {/* Sharing Dialog */}
+      <SharingDialog
+        notebookId={notebook.id}
+        isOpen={isSharingDialogOpen}
+        onOpenChange={setIsSharingDialogOpen}
       />
 
       {/* Tag Selection Dialog */}

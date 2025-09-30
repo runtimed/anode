@@ -13,10 +13,10 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useNotebooks } from "@/hooks/use-notebooks";
-import { trpcQueryClient } from "@/lib/trpc-client";
+import { trpcQueryClient, tagQueryDefaults } from "@/lib/trpc-client";
 import { useQuery } from "@tanstack/react-query";
 import { Grid3X3, List, Plus, Search, User, Users } from "lucide-react";
-import React from "react";
+import React, { useMemo, useEffect } from "react";
 import {
   useCreateNotebookAndNavigate,
   useDashboardParams,
@@ -30,12 +30,12 @@ const DebugNotebooks = React.lazy(() =>
 
 export const NotebookDashboard: React.FC = () => {
   const debug = useDebug();
+  const trpc = useTrpc();
 
   const { activeFilter, searchQuery, selectedTagName } = useDashboardParams();
   const {
     allNotebooks,
     filteredNotebooks,
-    recentScratchNotebooks,
     namedNotebooks,
     isLoading,
     error,
@@ -43,6 +43,15 @@ export const NotebookDashboard: React.FC = () => {
   } = useNotebooks(selectedTagName, activeFilter, searchQuery);
 
   useSmartDefaultFilter({ allNotebooks });
+
+  // Cache warming: prefetch related queries when dashboard loads
+  useEffect(() => {
+    // Prefetch user data if not already cached
+    trpcQueryClient.prefetchQuery({
+      ...trpc.me.queryOptions(),
+      ...tagQueryDefaults,
+    });
+  }, [trpc.me]);
 
   if (error) {
     return (
@@ -84,7 +93,6 @@ export const NotebookDashboard: React.FC = () => {
           {!isLoading && filteredNotebooks.length > 0 && (
             <Results
               refetch={refetch}
-              recentScratchNotebooks={recentScratchNotebooks}
               namedNotebooks={namedNotebooks}
               filteredNotebooks={filteredNotebooks}
             />
@@ -100,7 +108,24 @@ function Filters({ allNotebooks }: { allNotebooks: NotebookProcessed[] }) {
     useDashboardParams();
 
   const trpc = useTrpc();
-  const { data: tagsData } = useQuery(trpc.tags.queryOptions());
+  const { data: tagsData } = useQuery({
+    ...trpc.tags.queryOptions(),
+    ...tagQueryDefaults,
+  });
+
+  // Memoize tag counts to prevent recalculation on every render
+  const tagCounts = useMemo(() => {
+    if (!tagsData || !allNotebooks) return {};
+    return tagsData.reduce(
+      (counts, tag) => {
+        counts[tag.id] = allNotebooks.filter((n) =>
+          n.tags?.some((t) => t.id === tag.id)
+        ).length;
+        return counts;
+      },
+      {} as Record<string, number>
+    );
+  }, [tagsData, allNotebooks]);
 
   if (!tagsData) {
     return <LoadingState message="Loading tags..." />;
@@ -224,11 +249,7 @@ function Filters({ allNotebooks }: { allNotebooks: NotebookProcessed[] }) {
                 </button>
                 <div className="flex flex-shrink-0 items-center gap-1">
                   <Badge variant="secondary" className="ml-2">
-                    {
-                      allNotebooks.filter((n) =>
-                        n.tags?.some((t) => t.id === tag.id)
-                      ).length
-                    }
+                    {tagCounts[tag.id] || 0}
                   </Badge>
                   <TagActions tag={tag} />
                 </div>

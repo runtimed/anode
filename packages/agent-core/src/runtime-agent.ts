@@ -39,15 +39,15 @@ import { decodeImageData } from "./artifact-client.ts";
 export class RuntimeAgent {
   #store!: Store;
   // Use global logger instance from logging module
-  private isShuttingDown = false;
-  private processedExecutions = new Set<string>();
+  isShuttingDown = false;
+  processedExecutions = new Set<string>();
 
-  private subscriptions: (() => void)[] = [];
-  private activeExecutions = new Map<string, AbortController>();
-  private cancellationHandlers: CancellationHandler[] = [];
-  private renewalInterval?: ReturnType<typeof setInterval>;
+  subscriptions: (() => void)[] = [];
+  activeExecutions = new Map<string, AbortController>();
+  cancellationHandlers: CancellationHandler[] = [];
+  renewalInterval?: ReturnType<typeof setInterval>;
 
-  private artifactClient: IArtifactClient;
+  artifactClient: IArtifactClient;
 
   config: RuntimeConfig;
   capabilities: RuntimeCapabilities;
@@ -925,7 +925,7 @@ export class RuntimeAgent {
    * Clean up shutdown handlers
    * Override this method in subclasses to clean up platform-specific handlers
    */
-  protected cleanupShutdownHandlers(): void {
+  cleanupShutdownHandlers(): void {
     // Base implementation does nothing
     // Subclasses can override to clean up their specific handlers
   }
