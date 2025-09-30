@@ -1296,9 +1296,7 @@ export const materializers = State.SQLite.materializers(events, {
     return ops;
   },
 
-  // Not using clearedBy
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  "v1.AllOutputsCleared": ({ clearedBy }) => {
+  "v1.AllOutputsCleared": () => {
     const ops = [];
 
     // Immediate clear
