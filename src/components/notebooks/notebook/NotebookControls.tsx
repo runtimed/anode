@@ -83,7 +83,7 @@ export function NotebookControls() {
             <>
               <DropdownMenuItem onClick={runAllCells}>
                 <Play className="mr-2 h-4 w-4" />
-                Run All Cells
+                Run All Code Cells
               </DropdownMenuItem>
               <DropdownMenuItem onClick={restartAndRunAllCells}>
                 <span className="relative mr-2">
@@ -93,7 +93,7 @@ export function NotebookControls() {
                     strokeWidth={3}
                   />
                 </span>
-                Restart and Run All Cells
+                Restart and Run All Code Cells
               </DropdownMenuItem>
             </>
           )}
