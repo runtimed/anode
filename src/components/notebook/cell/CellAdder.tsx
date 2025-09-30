@@ -6,8 +6,6 @@ import {
   SqlCellButton,
   AiCellButton,
 } from "./CellTypeButtons";
-import { toast } from "sonner";
-import { useHideAiCells } from "@/hooks/useHideAiCells";
 
 export function CellAdder({
   position,
@@ -17,7 +15,6 @@ export function CellAdder({
   className?: string;
 }) {
   const { addCell } = useAddCell();
-  const { hideAiCells } = useHideAiCells();
   return (
     <div className={cn("flex justify-center gap-2", className)}>
       <CodeCellButton
@@ -38,13 +35,7 @@ export function CellAdder({
       <AiCellButton
         size="sm"
         showPlus={true}
-        onClick={() => {
-          if (hideAiCells) {
-            toast.success("AI cells are hidden");
-          } else {
-            addCell(undefined, "ai", position);
-          }
-        }}
+        onClick={() => addCell(undefined, "ai", position)}
       />
     </div>
   );

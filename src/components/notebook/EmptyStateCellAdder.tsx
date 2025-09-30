@@ -7,12 +7,9 @@ import {
   SqlCellButton,
   AiCellButton,
 } from "./cell/CellTypeButtons";
-import { useHideAiCells } from "@/hooks/useHideAiCells";
-import { toast } from "sonner";
 
 export const EmptyStateCellAdder: React.FC = () => {
   const { addCell } = useAddCell();
-  const { hideAiCells } = useHideAiCells();
 
   return (
     <div className="px-4 pt-6 pb-6 text-center sm:px-0 sm:pt-12">
@@ -45,13 +42,7 @@ export const EmptyStateCellAdder: React.FC = () => {
         <AiCellButton
           size="lg"
           label="AI Assistant"
-          onClick={() => {
-            if (hideAiCells) {
-              toast.success("AI cells are hidden");
-            } else {
-              addCell(undefined, "ai");
-            }
-          }}
+          onClick={() => addCell(undefined, "ai")}
           className="flex items-center gap-2"
         />
       </div>

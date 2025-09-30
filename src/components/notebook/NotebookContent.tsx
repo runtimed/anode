@@ -8,14 +8,10 @@ import { CellBetweener } from "./cell/CellBetweener.js";
 import { EmptyStateCellAdder } from "./EmptyStateCellAdder";
 import { contextSelectionMode$ } from "./signals/ai-context.js";
 import { focusedCellSignal$, hasManuallyFocused$ } from "./signals/focus.js";
-import { useHideAiCells } from "../../hooks/useHideAiCells";
 
 export const NotebookContent = () => {
   const { store } = useStore();
-  const { hideAiCells } = useHideAiCells();
-  const cellReferences = useQuery(
-    queries.cellsFilterAi$({ filterOutAiCells: hideAiCells })
-  );
+  const cellReferences = useQuery(queries.cells$);
 
   const focusedCellId = useQuery(focusedCellSignal$);
   const hasManuallyFocused = useQuery(hasManuallyFocused$);

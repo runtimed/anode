@@ -8,13 +8,11 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Switch } from "@/components/ui/switch";
 import { useRuntimeHealth } from "@/hooks/useRuntimeHealth";
-import { useHideAiCells } from "@/hooks/useHideAiCells";
+import { generateQueueId } from "@/util/queue-id";
 import { useQuery, useStore } from "@livestore/react";
 import { events, queries, queryDb, tables } from "@runtimed/schema";
 import {
-  Bot,
   Eraser,
   MoreHorizontal,
   Play,
@@ -24,7 +22,6 @@ import {
 } from "lucide-react";
 import { useCallback } from "react";
 import { toast } from "sonner";
-import { generateQueueId } from "@/util/queue-id";
 
 export function NotebookControls() {
   const { confirm } = useConfirm();
@@ -43,7 +40,6 @@ export function NotebookControls() {
   const { runAllCells } = useRunAllCells();
   const { deleteAllCells } = useDeleteAllCells();
   const { restartAndRunAllCells } = useRestartAndRunAllCells();
-  const { hideAiCells, toggleHideAiCells } = useHideAiCells();
 
   const handleCancelAll = useCallback(() => {
     if (cellQueue.length === 0) {
@@ -58,7 +54,7 @@ export function NotebookControls() {
     store.commit(events.allOutputsCleared({ clearedBy: userId }));
   }, [store, userId]);
 
-  const showBadge = cellQueue.length > 0 || hideAiCells;
+  const showBadge = cellQueue.length > 0;
 
   return (
     <div className="flex items-center gap-1">
@@ -101,22 +97,6 @@ export function NotebookControls() {
               </DropdownMenuItem>
             </>
           )}
-          <DropdownMenuSeparator />
-          <DropdownMenuItem asChild onSelect={(e) => e.preventDefault()}>
-            <label>
-              <Bot className="mr-2 h-4 w-4" />
-              <div className="flex flex-grow flex-col">
-                Hide AI Cells (experimental)
-                <div className="text-xs text-gray-500">
-                  Some features may not work as expected
-                </div>
-              </div>
-              <Switch
-                checked={hideAiCells}
-                onCheckedChange={toggleHideAiCells}
-              />
-            </label>
-          </DropdownMenuItem>
           <DropdownMenuSeparator />
           <DropdownMenuItem onClick={handleClearAll}>
             <Eraser className="mr-2 h-4 w-4" />
