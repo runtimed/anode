@@ -24,6 +24,9 @@ import {
   updateNotebook,
   updateTag,
   getNotebookCollaborators,
+  upsertSystemPrompt,
+  getSystemPrompt,
+  deleteSystemPrompt,
 } from "./db.ts";
 import { authedProcedure, publicProcedure, router } from "./trpc";
 import { NotebookPermission, TagColor } from "./types.ts";
@@ -687,6 +690,82 @@ export const appRouter = router({
         });
       }
     }),
+
+  // System prompt endpoints
+  getSystemPrompt: authedProcedure.query(async (opts) => {
+    const { ctx } = opts;
+    const {
+      user,
+      env: { DB },
+    } = ctx;
+
+    try {
+      const systemPrompt = await getSystemPrompt(DB, user.id);
+      return systemPrompt;
+    } catch (error) {
+      throw new TRPCError({
+        code: "INTERNAL_SERVER_ERROR",
+        message: `Failed to get system prompt: ${error instanceof Error ? error.message : "Unknown error"}`,
+      });
+    }
+  }),
+
+  upsertSystemPrompt: authedProcedure
+    .input(
+      z.object({
+        system_prompt: z.string(),
+        ai_model: z.string().nullable().optional(),
+      })
+    )
+    .mutation(async (opts) => {
+      const { ctx, input } = opts;
+      const {
+        user,
+        env: { DB },
+      } = ctx;
+      const { system_prompt, ai_model } = input;
+
+      try {
+        const result = await upsertSystemPrompt(DB, {
+          user_id: user.id,
+          system_prompt,
+          ai_model,
+        });
+
+        if (!result) {
+          throw new TRPCError({
+            code: "INTERNAL_SERVER_ERROR",
+            message: "Failed to update system prompt",
+          });
+        }
+
+        return result;
+      } catch (error) {
+        if (error instanceof TRPCError) throw error;
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: `Failed to update system prompt: ${error instanceof Error ? error.message : "Unknown error"}`,
+        });
+      }
+    }),
+
+  deleteSystemPrompt: authedProcedure.mutation(async (opts) => {
+    const { ctx } = opts;
+    const {
+      user,
+      env: { DB },
+    } = ctx;
+
+    try {
+      const success = await deleteSystemPrompt(DB, user.id);
+      return { success };
+    } catch (error) {
+      throw new TRPCError({
+        code: "INTERNAL_SERVER_ERROR",
+        message: `Failed to delete system prompt: ${error instanceof Error ? error.message : "Unknown error"}`,
+      });
+    }
+  }),
 
   // Legacy endpoint for backward compatibility
   user: authedProcedure.query(async (opts) => {
