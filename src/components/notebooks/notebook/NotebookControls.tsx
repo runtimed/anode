@@ -55,8 +55,6 @@ export function NotebookControls() {
     store.commit(events.allOutputsCleared({ clearedBy: userId }));
   }, [store, userId]);
 
-  const showBadge = cellQueue.length > 0;
-
   return (
     <div className="flex items-center gap-2">
       {cellQueue.length > 0 && (
@@ -77,9 +75,6 @@ export function NotebookControls() {
         <DropdownMenuTrigger asChild>
           <Button variant="ghost" size="sm" className="relative">
             <MoreHorizontal className="h-4 w-4" />
-            {showBadge && (
-              <div className="absolute top-1 right-1 size-2 rounded-full bg-blue-500 text-white" />
-            )}
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
