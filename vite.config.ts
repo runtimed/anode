@@ -7,6 +7,7 @@ import { livestoreDevtoolsPlugin } from "@livestore/devtools-vite";
 import react from "@vitejs/plugin-react";
 import tailwindcss from "@tailwindcss/vite";
 import { defineConfig, loadEnv } from "vite";
+import { visualizer } from "rollup-plugin-visualizer";
 import { injectLoadingScreen } from "./vite-plugins/inject-loading-screen.js";
 import { envValidationPlugin } from "./vite-plugins/env-validation.js";
 
@@ -70,6 +71,18 @@ export default defineConfig(({ mode }) => {
     tailwindcss(),
     livestoreDevtoolsPlugin({ schemaPath: "./packages/schema/src/index.ts" }),
   ];
+
+  // Add bundle analyzer for bundle analysis
+  if (process.env.ANALYZE_BUNDLE) {
+    plugins.push(
+      visualizer({
+        filename: "dist/bundle-analysis.html",
+        open: true,
+        gzipSize: true,
+        brotliSize: true,
+      })
+    );
+  }
 
   // Include Cloudflare plugin in development and auth modes
   if (mode === "development" || mode === "auth") {
