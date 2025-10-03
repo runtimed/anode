@@ -94,12 +94,12 @@ export function useDuplicateNotebook() {
           cellIdMapping.set(sourceCell.id, newCellId);
 
           newCells.push({
-                          ...sourceCell,
-              id: newCellId,
-              createdBy: userId,
-              // Reset execution-related fields
-              executionCount: 0,
-                      });
+            ...sourceCell,
+            id: newCellId,
+            createdBy: userId,
+            // Reset execution-related fields
+            executionCount: 0,
+          });
         }
 
         // Second pass: create cells in the new store
@@ -140,8 +140,12 @@ export function useDuplicateNotebook() {
           };
         }
 
+        toast.success("Navigating to new notebook...");
         // Step 5: Navigate to the new notebook
-        window.location.assign(getNotebookVanityUrl(result.id, result.title));
+        setTimeout(() => {
+          // toast.success("Notebook duplicated successfully");
+          window.location.assign(getNotebookVanityUrl(result.id, result.title));
+        }, 1000);
       } catch (error) {
         console.error("Failed to duplicate notebook:", error);
         toast.error("Failed to duplicate notebook");
