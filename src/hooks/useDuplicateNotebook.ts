@@ -9,9 +9,15 @@ import {
   type CellData,
   type CellReference,
 } from "@runtimed/schema";
+import {
+  createStorePromise,
+  createRuntimeSyncPayload,
+} from "@runtimed/agent-core";
 import { useTrpc } from "../components/TrpcProvider.js";
 import { getNotebookVanityUrl } from "../util/url-utils.js";
 import { useAuthenticatedUser } from "../auth/index.js";
+import { sharedLiveStoreAdapter } from "../livestore/adapter.js";
+import { useAuth } from "../auth/index.js";
 
 /**
  * Hook for duplicating a notebook with all its cells and outputs
@@ -24,10 +30,11 @@ import { useAuthenticatedUser } from "../auth/index.js";
  * 5. Navigates to the new notebook
  */
 export function useDuplicateNotebook() {
-  const { store } = useStore();
+  const { store: sourceStore } = useStore();
   const navigate = useNavigate();
   const trpc = useTrpc();
   const userId = useAuthenticatedUser();
+  const { accessToken } = useAuth();
 
   // Create notebook mutation
   const createNotebookMutation = useMutation(
@@ -48,8 +55,7 @@ export function useDuplicateNotebook() {
         }
 
         // Step 2: Get all cells from source notebook
-        // We need to query the source notebook's store to get cells
-        const sourceCells = store.query(
+        const sourceCells = sourceStore.query(
           tables.cells.select().orderBy("fractionalIndex", "asc")
         );
 
@@ -61,11 +67,24 @@ export function useDuplicateNotebook() {
           return;
         }
 
-        // Step 3: Create cells in the new notebook
-        // We need to switch to the new notebook's store context
-        // For now, we'll create the cells in the current store and then navigate
-        // The proper approach would be to create a new store instance for the new notebook
+        // Step 3: Create a new store for the duplicated notebook
+        const runtimeId = `duplicate-${crypto.randomUUID()}`;
+        const sessionId = `${runtimeId}-${Date.now()}`;
 
+        const syncPayload = createRuntimeSyncPayload({
+          authToken: accessToken || "",
+          runtimeId,
+          sessionId,
+          userId,
+        });
+
+        const newStore = await createStorePromise({
+          adapter: sharedLiveStoreAdapter,
+          notebookId: result.id,
+          syncPayload,
+        });
+
+        // Step 4: Create cells in the new store
         const cellIdMapping = new Map<string, string>();
         const newCells: Array<{ cell: CellData; outputs: any[] }> = [];
 
@@ -75,7 +94,7 @@ export function useDuplicateNotebook() {
           cellIdMapping.set(sourceCell.id, newCellId);
 
           // Get outputs for this cell
-          const outputs = store.query(
+          const outputs = sourceStore.query(
             tables.outputs
               .select()
               .where({ cellId: sourceCell.id })
@@ -94,7 +113,7 @@ export function useDuplicateNotebook() {
           });
         }
 
-        // Second pass: create cells in order
+        // Second pass: create cells in the new store
         let cellBefore: CellReference | null = null;
 
         for (const { cell, outputs } of newCells) {
@@ -110,12 +129,12 @@ export function useDuplicateNotebook() {
             [] // Empty cell list for initial creation
           );
 
-          // Commit the cell creation event
-          cellCreationResult.events.forEach((event) => store.commit(event));
+          // Commit the cell creation event to the new store
+          cellCreationResult.events.forEach((event) => newStore.commit(event));
 
           // Set the cell source if it exists
           if (cell.source && cell.source.trim()) {
-            store.commit(
+            newStore.commit(
               events.cellSourceChanged({
                 id: cell.id,
                 source: cell.source,
@@ -131,7 +150,7 @@ export function useDuplicateNotebook() {
             // Commit the appropriate output event based on output type
             switch (output.outputType) {
               case "terminal_output":
-                store.commit(
+                newStore.commit(
                   events.terminalOutputAdded({
                     id: newOutputId,
                     cellId: cell.id,
@@ -143,7 +162,7 @@ export function useDuplicateNotebook() {
                 break;
 
               case "multimedia_display":
-                store.commit(
+                newStore.commit(
                   events.multimediaDisplayOutputAdded({
                     id: newOutputId,
                     cellId: cell.id,
@@ -155,7 +174,7 @@ export function useDuplicateNotebook() {
                 break;
 
               case "multimedia_result":
-                store.commit(
+                newStore.commit(
                   events.multimediaResultOutputAdded({
                     id: newOutputId,
                     cellId: cell.id,
@@ -167,7 +186,7 @@ export function useDuplicateNotebook() {
                 break;
 
               case "markdown_output":
-                store.commit(
+                newStore.commit(
                   events.markdownOutputAdded({
                     id: newOutputId,
                     cellId: cell.id,
@@ -178,7 +197,7 @@ export function useDuplicateNotebook() {
                 break;
 
               case "error_output":
-                store.commit(
+                newStore.commit(
                   events.errorOutputAdded({
                     id: newOutputId,
                     cellId: cell.id,
@@ -201,11 +220,7 @@ export function useDuplicateNotebook() {
           };
         }
 
-        // Step 4: Invalidate queries and navigate
-        // Note: We'll need to invalidate queries in the new notebook context
-        // For now, the navigation will handle refreshing the data
-
-        // Navigate to the new notebook
+        // Step 5: Navigate to the new notebook
         navigate(getNotebookVanityUrl(result.id, result.title), {
           state: { initialNotebook: result },
         });
@@ -215,7 +230,7 @@ export function useDuplicateNotebook() {
         throw error;
       }
     },
-    [store, navigate, userId, createNotebookMutation]
+    [sourceStore, navigate, userId, accessToken, createNotebookMutation]
   );
 
   return {
