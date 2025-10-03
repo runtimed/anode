@@ -43,6 +43,7 @@ export function useDuplicateNotebook() {
 
   const duplicateNotebook = useCallback(
     async (sourceTitle: string) => {
+      toast.info("Duplicating notebook...");
       try {
         // Step 1: Create new notebook
         const newNotebookTitle = `${sourceTitle} (Copy)`;
