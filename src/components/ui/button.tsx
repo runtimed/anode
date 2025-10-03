@@ -11,6 +11,7 @@ const buttonVariants = cva(
       variant: {
         default:
           "bg-primary text-primary-foreground shadow-xs hover:bg-primary/90",
+        success: "bg-green-500 text-white shadow-xs hover:bg-green-600",
         destructive:
           "bg-destructive text-white shadow-xs hover:bg-destructive/90 focus-visible:ring-destructive/20 dark:focus-visible:ring-destructive/40 dark:bg-destructive/60",
         outline:
@@ -26,6 +27,7 @@ const buttonVariants = cva(
         xs: "h-6 px-2 has-[>svg]:px-1.5",
         sm: "h-8 rounded-md gap-1.5 px-3 has-[>svg]:px-2.5",
         lg: "h-10 rounded-md px-6 has-[>svg]:px-4",
+        xl: "h-12 rounded-lg text-md px-6 has-[>svg]:px-5",
         icon: "size-9",
       },
       // Default `focus-visible` means we only show the focus ring AFTER a user tabs to it
