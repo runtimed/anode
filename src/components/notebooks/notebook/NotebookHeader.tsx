@@ -1,4 +1,4 @@
-import { User, Users } from "lucide-react";
+import { CopyPlus, User, Users } from "lucide-react";
 import { ErrorBoundary } from "react-error-boundary";
 import { CollaboratorAvatars } from "../../CollaboratorAvatars.js";
 import { Collaborator } from "../types.js";
@@ -7,6 +7,7 @@ import { Button } from "../../ui/button.js";
 import { SimpleUserProfile } from "../SimpleUserProfile.js";
 import type { NotebookProcessed } from "../types.js";
 import { TitleEditor } from "./TitleEditor.js";
+import { useDuplicateNotebook } from "../../../hooks/useDuplicateNotebook.js";
 
 export function NotebookHeader({
   notebook,
@@ -18,6 +19,16 @@ export function NotebookHeader({
   setIsSharingDialogOpen: (isOpen: boolean) => void;
 }) {
   const canEdit = notebook.myPermission === "OWNER";
+  const { duplicateNotebook, isDuplicating } = useDuplicateNotebook();
+
+  const handleDuplicateNotebook = async () => {
+    try {
+      await duplicateNotebook(notebook.title || "Untitled Notebook");
+    } catch (error) {
+      console.error("Failed to duplicate notebook:", error);
+      // TODO: Show error toast to user
+    }
+  };
 
   return (
     <div className="border-b bg-white">
@@ -66,6 +77,16 @@ export function NotebookHeader({
               canEdit={canEdit}
               setIsSharingDialogOpen={() => setIsSharingDialogOpen(true)}
             />
+
+            <Button
+              variant="ghost"
+              size="xs"
+              onClick={handleDuplicateNotebook}
+              disabled={isDuplicating}
+            >
+              <CopyPlus className="h-3 w-3" />
+              {isDuplicating ? "Duplicating..." : "Duplicate Notebook"}
+            </Button>
           </div>
         </div>
       </div>
