@@ -21,14 +21,13 @@ import { useAuth } from "../auth/index.js";
 import { toast } from "sonner";
 
 /**
- * Hook for duplicating a notebook with all its cells and outputs
+ * Hook for duplicating a notebook with all its cells (without outputs)
  *
  * This hook:
  * 1. Creates a new notebook via the backend API
  * 2. Queries all cells from the source notebook
  * 3. Creates corresponding cells in the new notebook with the same content
- * 4. Copies outputs, preserving artifact references
- * 5. Navigates to the new notebook
+ * 4. Navigates to the new notebook
  */
 export function useDuplicateNotebook() {
   const { store: sourceStore } = useStore();
@@ -87,37 +86,26 @@ export function useDuplicateNotebook() {
 
         // Step 4: Create cells in the new store
         const cellIdMapping = new Map<string, string>();
-        const newCells: Array<{ cell: CellData; outputs: any[] }> = [];
+        const newCells: CellData[] = [];
 
-        // First pass: collect all cell data and outputs
+        // First pass: collect all cell data (without outputs)
         for (const sourceCell of sourceCells) {
           const newCellId = `cell-${Date.now()}-${Math.random().toString(36).slice(2)}`;
           cellIdMapping.set(sourceCell.id, newCellId);
 
-          // Get outputs for this cell
-          const outputs = sourceStore.query(
-            tables.outputs
-              .select()
-              .where({ cellId: sourceCell.id })
-              .orderBy("position", "asc")
-          );
-
           newCells.push({
-            cell: {
-              ...sourceCell,
+                          ...sourceCell,
               id: newCellId,
               createdBy: userId,
               // Reset execution-related fields
               executionCount: 0,
-            },
-            outputs: [...outputs],
-          });
+                      });
         }
 
         // Second pass: create cells in the new store
         let cellBefore: CellReference | null = null;
 
-        for (const { cell, outputs } of newCells) {
+        for (const cell of newCells) {
           // Create the cell using the fractional indexing system
           const cellCreationResult = createCellBetween(
             {
@@ -142,75 +130,6 @@ export function useDuplicateNotebook() {
                 modifiedBy: userId,
               })
             );
-          }
-
-          // Copy outputs, preserving artifact references
-          for (const output of outputs) {
-            const newOutputId = `output-${Date.now()}-${Math.random().toString(36).slice(2)}`;
-
-            // Commit the appropriate output event based on output type
-            switch (output.outputType) {
-              case "terminal_output":
-                newStore.commit(
-                  events.terminalOutputAdded({
-                    id: newOutputId,
-                    cellId: cell.id,
-                    position: output.position,
-                    content: output.data,
-                    streamName: output.streamName,
-                  })
-                );
-                break;
-
-              case "multimedia_display":
-                newStore.commit(
-                  events.multimediaDisplayOutputAdded({
-                    id: newOutputId,
-                    cellId: cell.id,
-                    position: output.position,
-                    representations: output.representations || {},
-                    displayId: output.displayId,
-                  })
-                );
-                break;
-
-              case "multimedia_result":
-                newStore.commit(
-                  events.multimediaResultOutputAdded({
-                    id: newOutputId,
-                    cellId: cell.id,
-                    position: output.position,
-                    representations: output.representations || {},
-                    executionCount: 0, // Reset execution count
-                  })
-                );
-                break;
-
-              case "markdown_output":
-                newStore.commit(
-                  events.markdownOutputAdded({
-                    id: newOutputId,
-                    cellId: cell.id,
-                    position: output.position,
-                    content: output.data,
-                  })
-                );
-                break;
-
-              case "error_output":
-                newStore.commit(
-                  events.errorOutputAdded({
-                    id: newOutputId,
-                    cellId: cell.id,
-                    position: output.position,
-                    content: output.data,
-                  })
-                );
-                break;
-
-              default:
-                console.warn(`Unknown output type: ${output.outputType}`);
-            }
           }
 
           // Update cellBefore for next iteration
