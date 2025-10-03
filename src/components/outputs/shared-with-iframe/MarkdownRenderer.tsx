@@ -83,6 +83,14 @@ const generateSlug = (text: string): string => {
     .trim();
 };
 
+const remarkMathOptions = {
+  /**
+   * Single dollar symbol to render inline epxressions in Math often interferes with “normal” dollars in text.
+   * We turn this off so we use two-dollar symbols ($$) instead
+   */
+  singleDollarTextMath: false,
+};
+
 export const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({
   content,
   className = "prose prose-sm max-w-none prose-gray",
@@ -92,7 +100,7 @@ export const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({
   return (
     <div className={`${className} [&_pre]:!bg-gray-50`}>
       <ReactMarkdown
-        remarkPlugins={[remarkGfm, remarkMath]}
+        remarkPlugins={[remarkGfm, [remarkMath, remarkMathOptions]]}
         rehypePlugins={[rehypeKatex, rehypeRaw]}
         components={{
           a({ href, children, ...props }) {
