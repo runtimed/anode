@@ -138,7 +138,11 @@ const LoginPrompt: React.FC<LoginPromptProps> = ({
   const signinText = providerName ? (
     <>
       <span>Sign In with</span>
-      <span className="underline decoration-white/50 decoration-1 underline-offset-2">
+      {/* https://css-tricks.com/snippets/css/prevent-long-urls-from-breaking-out-of-container/ */}
+      <span
+        className="whitespace-normal underline decoration-white/50 decoration-1 underline-offset-2"
+        style={{ wordBreak: "break-word" }}
+      >
         {providerName}
       </span>
     </>
