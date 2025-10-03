@@ -1,5 +1,6 @@
 import { useAuthenticatedUser } from "@/auth/index.js";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { useBreakpoint } from "@/hooks/use-breakpoint";
 import {
   HoverCard,
   HoverCardContent,
@@ -14,7 +15,8 @@ export function CollaboratorAvatars() {
   const { presentUsers, getUserInfo, getUserColor } = useUserRegistry();
 
   const otherUsers = presentUsers.filter((user) => user.id !== userId);
-  const LIMIT = 5;
+  const isSmall = useBreakpoint("sm");
+  const LIMIT = isSmall ? 3 : 5;
 
   return (
     <div className="group/users flex items-center gap-1 sm:gap-2">
@@ -69,13 +71,6 @@ export function CollaboratorAvatars() {
         <div className="flex items-center gap-1">
           <span className="text-muted-foreground text-xs">
             +{otherUsers.length - LIMIT}
-          </span>
-        </div>
-      )}
-      {otherUsers.length > 3 && otherUsers.length <= LIMIT && (
-        <div className="flex items-center gap-1 sm:hidden">
-          <span className="text-muted-foreground text-xs">
-            +{otherUsers.length - 3}
           </span>
         </div>
       )}
