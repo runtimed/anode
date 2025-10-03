@@ -349,8 +349,7 @@ export async function handleToolCallWithResult(
 
     case "modify_cell": {
       const cellId = String(args.cellId || "");
-      const rawContent = String(args.source || args.content || "");
-      const content = unescapeContent(rawContent); // Process escaped characters
+      const content = String(args.source || args.content || "");
 
       if (!cellId) {
         logger.error("modify_cell: cellId is required");
