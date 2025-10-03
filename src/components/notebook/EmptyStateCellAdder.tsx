@@ -10,6 +10,7 @@ import {
 
 export const EmptyStateCellAdder: React.FC = () => {
   const { addCell } = useAddCell();
+
   return (
     <div className="px-4 pt-6 pb-6 text-center sm:px-0 sm:pt-12">
       <div className="text-muted-foreground mb-6">
