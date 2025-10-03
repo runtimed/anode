@@ -18,6 +18,7 @@ import { getNotebookVanityUrl } from "../util/url-utils.js";
 import { useAuthenticatedUser } from "../auth/index.js";
 import { sharedLiveStoreAdapter } from "../livestore/adapter.js";
 import { useAuth } from "../auth/index.js";
+import { toast } from "sonner";
 
 /**
  * Hook for duplicating a notebook with all its cells and outputs
@@ -221,12 +222,10 @@ export function useDuplicateNotebook() {
         }
 
         // Step 5: Navigate to the new notebook
-        navigate(getNotebookVanityUrl(result.id, result.title), {
-          state: { initialNotebook: result },
-        });
+        window.location.assign(getNotebookVanityUrl(result.id, result.title));
       } catch (error) {
         console.error("Failed to duplicate notebook:", error);
-        // TODO: Show error toast to user
+        toast.error("Failed to duplicate notebook");
         throw error;
       }
     },
