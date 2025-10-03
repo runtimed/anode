@@ -1,4 +1,4 @@
-import { User, Users } from "lucide-react";
+import { CopyPlus, User, Users } from "lucide-react";
 import { ErrorBoundary } from "react-error-boundary";
 import { CollaboratorAvatars } from "../../CollaboratorAvatars.js";
 import { Collaborator } from "../types.js";
@@ -18,6 +18,10 @@ export function NotebookHeader({
   setIsSharingDialogOpen: (isOpen: boolean) => void;
 }) {
   const canEdit = notebook.myPermission === "OWNER";
+
+  const handleDuplicateNotebook = () => {
+    console.log("Duplicate Notebook");
+  };
 
   return (
     <div className="border-b bg-white">
@@ -66,6 +70,11 @@ export function NotebookHeader({
               canEdit={canEdit}
               setIsSharingDialogOpen={() => setIsSharingDialogOpen(true)}
             />
+
+            <Button variant="ghost" size="xs" onClick={handleDuplicateNotebook}>
+              <CopyPlus className="h-3 w-3" />
+              Duplicate Notebook
+            </Button>
           </div>
         </div>
       </div>
