@@ -1,66 +1,23 @@
 import { useAuthenticatedUser } from "@/auth/index.js";
+import { CollaboratorContent } from "@/components/CollaboratorContent.js";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { useBreakpoint } from "@/hooks/use-breakpoint";
 import {
   HoverCard,
   HoverCardContent,
   HoverCardTrigger,
 } from "@/components/ui/hover-card";
-import { CollaboratorContent } from "@/components/CollaboratorContent.js";
-import { UserInfo, useUserRegistry } from "@/hooks/useUserRegistry.js";
-import {
-  ClientTypeInfo,
-  getClientColor,
-  getClientTypeInfo,
-} from "@/services/userTypes.js";
+import { useBreakpoint } from "@/hooks/use-breakpoint";
+import { useOrderedCollaboratorInfo } from "@/hooks/use-ordered-collaborator-info";
+import { useUserRegistry } from "@/hooks/useUserRegistry.js";
+import { getClientColor } from "@/services/userTypes.js";
 import { Button } from "./ui/button";
-import { useMemo } from "react";
-
-type UserInfoWithClientType = UserInfo & {
-  clientTypeInfo: ClientTypeInfo;
-};
 
 export function CollaboratorAvatars() {
   const userId = useAuthenticatedUser();
   const { presentUsers, getUserInfo, getUserColor } = useUserRegistry();
 
-  const allUsers = useMemo(() => {
-    const otherUsers = presentUsers.filter((user) => user.id !== userId);
-
-    // Split users into humans and bots using getClientTypeInfo
-    const { users, tuis, automations, bots } = otherUsers.reduce(
-      (acc, user) => {
-        const clientInfo = getClientTypeInfo(user.id);
-        switch (clientInfo.type) {
-          case "user":
-            acc.users.push({ ...user, clientTypeInfo: clientInfo });
-            break;
-          case "tui":
-            acc.tuis.push({ ...user, clientTypeInfo: clientInfo });
-            break;
-          case "automation":
-            acc.automations.push({ ...user, clientTypeInfo: clientInfo });
-            break;
-          case "runtime":
-            acc.bots.push({ ...user, clientTypeInfo: clientInfo });
-            break;
-        }
-        return acc;
-      },
-      {
-        users: [] as UserInfoWithClientType[],
-        tuis: [] as UserInfoWithClientType[],
-        automations: [] as UserInfoWithClientType[],
-        bots: [] as UserInfoWithClientType[],
-      }
-    );
-
-    const justOneBot = bots[0];
-
-    const allUsers = [...users, ...tuis, ...automations, justOneBot];
-
-    return allUsers;
-  }, [presentUsers, userId]);
+  const otherUsers = presentUsers.filter((user) => user.id !== userId);
+  const otherUsersOrdered = useOrderedCollaboratorInfo(otherUsers);
 
   const isSmall = useBreakpoint("sm");
   const LIMIT = isSmall ? 3 : 5;
@@ -68,7 +25,7 @@ export function CollaboratorAvatars() {
   return (
     <div className="flex items-center gap-1 sm:gap-1">
       <div className="relative flex -space-x-1 sm:-space-x-2">
-        {allUsers.slice(0, LIMIT).map((user, index) => {
+        {otherUsersOrdered.slice(0, LIMIT).map((user, index) => {
           const userInfo = getUserInfo(user.id);
           const IconComponent = user.clientTypeInfo.icon;
 
@@ -114,7 +71,7 @@ export function CollaboratorAvatars() {
           );
         })}
       </div>
-      {allUsers.length > LIMIT && (
+      {otherUsersOrdered.length > LIMIT && (
         <HoverCard>
           <HoverCardTrigger asChild>
             <Button
@@ -123,12 +80,12 @@ export function CollaboratorAvatars() {
               className="flex items-center gap-1"
             >
               <span className="text-muted-foreground text-xs">
-                +{allUsers.length - LIMIT}
+                +{otherUsersOrdered.length - LIMIT}
               </span>
             </Button>
           </HoverCardTrigger>
           <HoverCardContent className="w-80 space-y-4">
-            {allUsers.slice(LIMIT).map((user) => {
+            {otherUsersOrdered.slice(LIMIT).map((user) => {
               const userInfo = getUserInfo(user.id);
               return (
                 <CollaboratorContent
