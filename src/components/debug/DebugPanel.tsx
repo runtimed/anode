@@ -6,6 +6,7 @@ import { tables, events, queries } from "@runtimed/schema";
 import { schema } from "@runtimed/schema";
 import { Database } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { trpcQueryClient } from "@/lib/trpc-client";
 
 const useAvailableTables = () => {
   return useQuery(
@@ -149,6 +150,80 @@ const DebugPanel: React.FC = () => {
                 No tables discovered
               </div>
             )}
+          </div>
+        </div>
+
+        {/* Cache Stats */}
+        <div>
+          <h4 className="text-muted-foreground mb-2 text-xs font-medium tracking-wide uppercase">
+            Query Cache Stats
+          </h4>
+          <div className="bg-card space-y-2 rounded border p-2 text-xs">
+            <div>
+              Total Queries: {trpcQueryClient.getQueryCache().getAll().length}
+            </div>
+            <div>
+              Fresh Queries:{" "}
+              {
+                trpcQueryClient
+                  .getQueryCache()
+                  .getAll()
+                  .filter((q) => q.isStale() === false).length
+              }
+            </div>
+            <div>
+              Stale Queries:{" "}
+              {
+                trpcQueryClient
+                  .getQueryCache()
+                  .getAll()
+                  .filter((q) => q.isStale()).length
+              }
+            </div>
+            <div>
+              Fetching:{" "}
+              {
+                trpcQueryClient
+                  .getQueryCache()
+                  .getAll()
+                  .filter((q) => q.state.fetchStatus === "fetching").length
+              }
+            </div>
+            <details className="group">
+              <summary className="hover:bg-muted/50 cursor-pointer rounded p-1 font-mono text-xs">
+                Cache Entries ({trpcQueryClient.getQueryCache().getAll().length}
+                )
+              </summary>
+              <div className="mt-1 max-h-48 overflow-y-auto">
+                {trpcQueryClient
+                  .getQueryCache()
+                  .getAll()
+                  .map((query, index) => (
+                    <details key={query.queryHash} className="group ml-2">
+                      <summary className="hover:bg-muted/30 cursor-pointer rounded p-1 font-mono text-xs">
+                        {index + 1}. {query.queryKey.join(".")}
+                        <span
+                          className={`ml-2 ${query.isStale() ? "text-yellow-500" : "text-green-500"}`}
+                        >
+                          {query.isStale() ? "●stale" : "●fresh"}
+                        </span>
+                        {query.state.fetchStatus === "fetching" && (
+                          <span className="ml-1 text-blue-500">↻fetching</span>
+                        )}
+                      </summary>
+                      <pre className="bg-card mt-1 max-w-full overflow-x-auto rounded border p-2 text-xs">
+                        Key: {JSON.stringify(query.queryKey, null, 2)}
+                        Hash: {query.queryHash}
+                        DataUpdatedAt:{" "}
+                        {new Date(query.state.dataUpdatedAt).toLocaleString()}
+                        ErrorUpdatedAt:{" "}
+                        {new Date(query.state.errorUpdatedAt).toLocaleString()}
+                        Status: {query.state.status}
+                      </pre>
+                    </details>
+                  ))}
+              </div>
+            </details>
           </div>
         </div>
 
@@ -301,12 +376,14 @@ const DebugPanel: React.FC = () => {
                   (globalThis as any).tables = tables;
                   (globalThis as any).schema = schema;
                   (globalThis as any).events = events;
+                  (globalThis as any).queryClient = trpcQueryClient;
 
                   console.log("✅ Runt Debug Globals Set:");
                   console.log("📦 store  - LiveStore debug instance");
                   console.log("📋 tables - Database table definitions");
                   console.log("🔧 schema - LiveStore schema");
                   console.log("⚡ events - Event definitions");
+                  console.log("🔍 queryClient - TanStack Query client");
 
                   console.table({
                     "store._dev.downloadDb()": "Download SQLite DB",
@@ -319,6 +396,8 @@ const DebugPanel: React.FC = () => {
                       "Query Execution Queue",
                     "store.commit(events.cellCreated({id: 'new-id', cellType: 'code', position: 0}))":
                       "Create Cell Event",
+                    "queryClient.getQueryCache().clear()": "Clear Query Cache",
+                    "queryClient.invalidateQueries()": "Invalidate All Queries",
                   });
 
                   // Visual feedback
@@ -335,6 +414,16 @@ const DebugPanel: React.FC = () => {
               {buttonState === "success"
                 ? "✅ Globals Set in Console"
                 : "Set Debug Globals"}
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => {
+                trpcQueryClient.getQueryCache().clear();
+              }}
+              className="w-full text-xs text-red-600 hover:bg-red-50"
+            >
+              Clear Query Cache
             </Button>
           </div>
         </div>

@@ -1,5 +1,5 @@
 import { useQuery, useStore } from "@livestore/react";
-import { CellReference, queries } from "@runtimed/schema";
+import { CellData, queries } from "@runtimed/schema";
 import React from "react";
 import { ErrorBoundary } from "react-error-boundary";
 import { Cell } from "./cell/Cell.js";
@@ -16,7 +16,7 @@ import {
 
 export const NotebookContent = () => {
   const { store } = useStore();
-  const cellReferences = useQuery(queries.cellsWithIndices$);
+  const cellReferences = useQuery(queries.cells$);
 
   const focusedCellId = useQuery(focusedCellSignal$);
   const hasManuallyFocused = useQuery(hasManuallyFocused$);
@@ -43,7 +43,7 @@ export const NotebookContent = () => {
       ) : (
         <>
           <ErrorBoundary fallback={<div>Error rendering cell list</div>}>
-            <CellList cellReferences={cellReferences} />
+            <CellList cells={cellReferences} />
           </ErrorBoundary>
           {/* Add Cell Buttons */}
           <div className="border-border/30 mt-6 border-t px-4 pt-4 sm:mt-8 sm:px-0 sm:pt-6">
@@ -61,47 +61,43 @@ export const NotebookContent = () => {
 };
 
 interface CellListProps {
-  cellReferences: readonly CellReference[];
+  cells: readonly CellData[];
 }
 
-export const CellList: React.FC<CellListProps> = ({ cellReferences }) => {
+export const CellList: React.FC<CellListProps> = ({ cells }) => {
   return (
     <div style={{ paddingLeft: "1rem" }}>
       <DragDropSortProvider>
-        <DragDropCellList cellReferences={cellReferences} />
+        <DragDropCellList cells={cells} />
       </DragDropSortProvider>
     </div>
   );
 };
 
-function DragDropCellList({
-  cellReferences,
-}: {
-  cellReferences: readonly CellReference[];
-}) {
+function DragDropCellList({ cells }: { cells: readonly CellData[] }) {
   const focusedCellId = useQuery(focusedCellSignal$);
   const contextSelectionMode = useQuery(contextSelectionMode$);
 
   const { draggingOverCell, draggingOverPosition, draggingCellId } =
     useDragDropCellSort();
 
-  return cellReferences.map((cellReference, index) => (
-    <div key={cellReference.id}>
+  return cells.map((cell, index) => (
+    <div key={cell.id}>
       <ErrorBoundary fallback={<div>Error rendering cell</div>}>
         {index === 0 && (
           <CellBetweener
             isDraggingOver={
-              draggingOverCell === cellReference.id &&
+              draggingOverCell === cell.id &&
               draggingOverPosition === "before" &&
-              draggingCellId !== cellReference.id
+              draggingCellId !== cell.id
             }
-            cell={cellReference}
+            cell={cell}
             position="before"
           />
         )}
         <Cell
-          cellId={cellReference.id}
-          isFocused={cellReference.id === focusedCellId}
+          cell={cell}
+          isFocused={cell.id === focusedCellId}
           contextSelectionMode={contextSelectionMode}
           dragHandle={
             <div className="flex w-6 cursor-grab items-center justify-center transition-colors">
@@ -111,14 +107,13 @@ function DragDropCellList({
         />
         <CellBetweener
           isDraggingOver={
-            (index < cellReferences.length - 1 &&
-              draggingOverCell === cellReferences[index + 1].id &&
+            (index < cells.length - 1 &&
+              draggingOverCell === cells[index + 1].id &&
               draggingOverPosition === "before") ||
-            (draggingOverCell === cellReference.id &&
-              draggingOverPosition === "after")
+            (draggingOverCell === cell.id && draggingOverPosition === "after")
             // TODO: hide when dragging results in a move to the same cell
           }
-          cell={cellReference}
+          cell={cell}
           position="after"
         />
       </ErrorBoundary>

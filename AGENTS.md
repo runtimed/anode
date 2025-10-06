@@ -9,7 +9,7 @@ Current work state and next steps. What works, what doesn't. Last updated: Septe
 
 ## Project Overview
 
-Anode is a real-time collaborative notebook system built on LiveStore, an event-sourcing based local-first data synchronization library. In order to make this work, anode relies on runtime agents via the [`runt` packages released on jsr.io](https://github.com/runtimed/runt).
+Anode is a real-time collaborative notebook system built on LiveStore, an event-sourcing based local-first data synchronization library. In order to make this work, anode supports both external runtime agents via the [`runt` packages released on jsr.io](https://github.com/runtimed/runt) and in-browser runtime agents that execute directly in the web client.
 
 **Current Status**: A real-time collaborative notebook system deployed at https://app.runt.run. It features Python execution with rich outputs and integrated AI capabilities, all built on a unified, event-sourced output system. The system is stable and in production, with ongoing enhancements focused on runtime management.
 
@@ -20,7 +20,7 @@ Anode is a real-time collaborative notebook system built on LiveStore, an event-
   inference. Comes from packages/schema in this monorepo
 - **Web Client**: React-based web interface (locally served via vite, deployed as `ASSETS` from the cloudflare worker)
 - **Document Worker**: Cloudflare Worker for sync backend and API (permissions, database, artifact storage)
-- **Pyodide Runtime Agent**: Python execution client using @runt packages
+- **Runtime Agents**: Both external agents using @runt packages and in-browser agents for HTML/Python execution
 
 ## Key Dependencies
 
@@ -34,7 +34,7 @@ Anode is a real-time collaborative notebook system built on LiveStore, an event-
 ### What's Actually Working ✅
 
 - ✅ **LiveStore integration** - Event-sourcing with real-time collaboration
-- ✅ **Execution** - Code cells run Python via Pyodide with rich outputs. Other languages can be implemented as new runtime agents.
+- ✅ **Execution** - Code cells run via external runtime agents (Python via @runt packages) or in-browser agents (HTML, Python via Pyodide) with rich outputs. Other languages can be implemented as new runtime agents.
 - ✅ **Real-time collaboration** - Multiple users can edit notebooks
   simultaneously
 - ✅ **Cell management** - Create, edit, delete cells with proper state
@@ -43,7 +43,7 @@ Anode is a real-time collaborative notebook system built on LiveStore, an event-
   pandas HTML, colored terminal output, images
 - ✅ **AI integration** - Full notebook context awareness, sees previous cells
   and their outputs
-- ✅ **AI tool calling** - Runtime agents can create, run, and modify cells in the same notebook. The framework for tools is more extensible as the primary pyodide runtime agent supports `@tool` decorators as well as the Model Context Protocol.
+- ✅ **AI tool calling** - Both external and in-browser runtime agents can create, run, and modify cells in the same notebook. The framework for tools is more extensible as external runtime agents support `@tool` decorators as well as the Model Context Protocol.
 - ✅ **Context inclusion controls** - Users can exclude cells from AI context
   with visibility toggles
 - ✅ **Production deployment** - All-in-one worker deployed to Cloudflare at
@@ -57,6 +57,7 @@ Anode is a real-time collaborative notebook system built on LiveStore, an event-
 - ✅ **AI context with outputs** - AI sees execution results, not just source
   code, for intelligent assistance with data analysis
 - ✅ **Artifact service** - Deployed with upload/download endpoints and R2 storage
+- ✅ **In-browser runtime agents** - Local HTML and Python execution directly in the browser via Runtime Panel
 
 ### Core Architecture Constraints
 
@@ -100,10 +101,15 @@ pnpm dev           # Frontend at http://localhost:5173
 pnpm dev:sync      # Backend at http://localhost:8787
 pnpm dev:iframe    # Iframe outputs at http://localhost:8000
 
-# Start runtime (get command from notebook UI)
+# Start runtime (two options):
+
+# Option 1: External runtime agent (get command from notebook UI)
 # Runtime command is now dynamic via VITE_RUNTIME_COMMAND environment variable
 # Get runtime command from notebook UI, then:
 NOTEBOOK_ID=notebook-id-from-ui pnpm dev:runtime
+
+# Option 2: In-browser runtime agent (via Runtime Panel in UI)
+# Click Runtime button in notebook header -> Launch HTML/Python Runtime
 
 # Check work
 pnpm check    # Type check, lint, and format check
@@ -153,7 +159,7 @@ Use this when developing locally with both Anode and Runt repositories side-by-s
 
 ### Key Development Areas
 
-1.  **Automated Runtime Management**: Reducing manual friction in starting and managing runtimes.
+1.  **Automated Runtime Management**: Reducing manual friction in starting and managing both external and in-browser runtimes.
     - _Next Step_: Design runtime orchestration, implement one-click startup, and add health monitoring.
 
 ## Important Considerations
@@ -524,7 +530,7 @@ const titleMetadata = useQuery(
   - Frontend server running (`pnpm dev`) on port 5173
   - Backend sync server running (`pnpm dev:sync`) on port 8787
   - Iframe outputs server running (`pnpm dev:iframe`) on port 8000
-  - Runtime agent running on demand for notebooks they're working with (uses `@runt` JSR packages)
+  - Runtime agents: either external agents (uses `@runt` JSR packages) or in-browser agents launched via Runtime Panel
 
 **Checking Work**: To verify changes, run:
 

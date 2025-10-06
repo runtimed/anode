@@ -9,22 +9,154 @@ and environment setup.
 import micropip
 
 
+# Package loading state tracking
+_critical_packages_loaded = False
+_background_loading_started = False
+_loaded_packages = set()
+
+
+def _configure_matplotlib_backend():
+    """Configure matplotlib backend early to prevent WebWorker DOM issues"""
+    try:
+        import os
+
+        # Set environment variable to prevent auto-detection
+        os.environ["MPLBACKEND"] = "Agg"
+        print("Matplotlib backend environment set: Agg")
+    except Exception as e:
+        print(f"Warning: Failed to configure matplotlib backend: {e}")
+
+
 async def bootstrap_micropip_packages():
     """Bootstrap essential micropip packages for the runtime environment
 
     Note: this _must_ be run on start of this ipython session
     """
-    try:
-        # Install pydantic for the function registry system (fallback)
-        await micropip.install("pydantic")
-        print("Installed pydantic via micropip")
+    global _critical_packages_loaded, _background_loading_started
 
-        # Install seaborn for plotting capabilities
-        await micropip.install("seaborn")
-        print("Installed seaborn via micropip")
+    # Configure matplotlib backend before loading any packages
+    _configure_matplotlib_backend()
 
-    except Exception as e:
-        print(f"Warning: Failed to install packages: {e}")
+    # Critical packages that must be available before user code runs
+    critical_packages = [
+        "pydantic",  # Required for function registry system
+        "pandas",  # Most commonly used data analysis package
+        "numpy",  # Fundamental numerical computing
+        "matplotlib",  # Required for pandas plotting and general plotting
+    ]
+
+    # Load critical packages synchronously
+    print("Loading critical packages synchronously...")
+    failed_critical = []
+
+    for package in critical_packages:
+        try:
+            await micropip.install(package)
+            _loaded_packages.add(package)
+        except Exception as e:
+            failed_critical.append(package)
+            print(f"Warning: Failed to install critical package {package}: {e}")
+
+    _critical_packages_loaded = True
+
+    if failed_critical:
+        print(f"Warning: Critical packages failed to install: {failed_critical}")
+
+    # Start background loading of additional packages
+    await _start_background_package_loading()
+
+
+async def _start_background_package_loading():
+    """Start loading additional packages in the background"""
+    global _background_loading_started
+
+    if _background_loading_started:
+        return
+
+    _background_loading_started = True
+
+    # Additional packages to load in background
+    background_packages = [
+        "seaborn",  # Statistical plotting
+        "requests",  # HTTP requests
+        "scipy",  # Scientific computing
+        "sympy",  # Symbolic mathematics
+        "scikit-learn",  # Machine learning
+        "beautifulsoup4",  # HTML parsing
+        "pillow",  # Image processing
+    ]
+
+    # Background installation with minimal output
+
+    # Use asyncio to load packages concurrently in background
+    import asyncio
+
+    async def load_package_background(package):
+        try:
+            await micropip.install(package)
+            _loaded_packages.add(package)
+        except Exception as e:
+            # Continue silently for background packages
+            pass
+
+    # Fire and forget - don't wait for completion
+    for package in background_packages:
+        asyncio.create_task(load_package_background(package))
+
+
+def is_package_loaded(package_name: str) -> bool:
+    """Check if a specific package has been loaded"""
+    return package_name in _loaded_packages
+
+
+def are_critical_packages_loaded() -> bool:
+    """Check if critical packages have been loaded"""
+    return _critical_packages_loaded
+
+
+async def wait_for_package(package_name: str, timeout_seconds: int = 30) -> bool:
+    """Wait for a specific package to be available, with timeout
+
+    Args:
+        package_name: Name of the package to wait for
+        timeout_seconds: Maximum time to wait
+
+    Returns:
+        True if package is available, False if timeout
+    """
+    import asyncio
+
+    # Check if already loaded
+    if is_package_loaded(package_name):
+        return True
+
+    # Try to load the package if not already loaded
+    if package_name not in _loaded_packages:
+        try:
+            await micropip.install(package_name)
+            _loaded_packages.add(package_name)
+            return True
+        except Exception as e:
+            return False
+
+    # Wait for background loading with timeout
+    for _ in range(timeout_seconds * 10):  # Check every 100ms
+        if is_package_loaded(package_name):
+            return True
+        await asyncio.sleep(0.1)
+
+    # Silent timeout - package may still be loading in background
+    return False
+
+
+def get_package_loading_status():
+    """Get current package loading status for debugging"""
+    return {
+        "critical_packages_loaded": _critical_packages_loaded,
+        "background_loading_started": _background_loading_started,
+        "loaded_packages": list(_loaded_packages),
+        "total_loaded": len(_loaded_packages),
+    }
 
 
 async def install_package(package_name: str, fallback_to_micropip: bool = True):

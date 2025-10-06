@@ -439,6 +439,7 @@ function createMockJWT(
   const encodedHeader = btoa(JSON.stringify(header)).replace(/[+/=]/g, (m) => {
     return { "+": "-", "/": "_", "=": "" }[m] || m;
   });
+
   const encodedPayload = btoa(JSON.stringify(payload)).replace(
     /[+/=]/g,
     (m) => {

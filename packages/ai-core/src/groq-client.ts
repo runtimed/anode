@@ -38,26 +38,74 @@ Groq API key not found. Please set \`GROQ_API_KEY\` environment variable.`;
       },
       {
         provider: "groq",
-        name: "llama3-8b-8192",
-        displayName: "Llama 3.1 8B",
+        name: "qwen/qwen3-32b",
+        displayName: "Qwen 3 32B",
         capabilities: ["completion", "tools", "thinking"],
       },
       {
         provider: "groq",
-        name: "llama3-70b-8192",
-        displayName: "Llama 3.1 70B",
+        name: "llama-3.1-8b-instant",
+        displayName: "Llama 3.1 8B Instant",
         capabilities: ["completion", "tools", "thinking"],
       },
       {
         provider: "groq",
-        name: "mixtral-8x7b-32768",
-        displayName: "Mixtral 8x7B",
-        capabilities: ["completion", "tools"],
+        name: "openai/gpt-oss-120b",
+        displayName: "GPT OSS 120B",
+        capabilities: ["completion", "tools", "thinking"],
       },
       {
         provider: "groq",
         name: "gemma2-9b-it",
         displayName: "Gemma 2 9B",
+        capabilities: ["completion", "tools"],
+      },
+      {
+        provider: "groq",
+        name: "groq/compound-mini",
+        displayName: "Groq Compound Mini",
+        capabilities: ["completion", "tools", "thinking"],
+      },
+      {
+        provider: "groq",
+        name: "groq/compound",
+        displayName: "Groq Compound",
+        capabilities: ["completion", "tools", "thinking"],
+      },
+      {
+        provider: "groq",
+        name: "meta-llama/llama-4-scout-17b-16e-instruct",
+        displayName: "Llama 4 Scout 17B",
+        capabilities: ["completion", "tools", "thinking"],
+      },
+      {
+        provider: "groq",
+        name: "meta-llama/llama-4-maverick-17b-128e-instruct",
+        displayName: "Llama 4 Maverick 17B",
+        capabilities: ["completion", "tools", "thinking"],
+      },
+      {
+        provider: "groq",
+        name: "openai/gpt-oss-20b",
+        displayName: "GPT OSS 20B",
+        capabilities: ["completion", "tools", "thinking"],
+      },
+      {
+        provider: "groq",
+        name: "deepseek-r1-distill-llama-70b",
+        displayName: "DeepSeek R1 Distill Llama 70B",
+        capabilities: ["completion", "tools", "thinking"],
+      },
+      {
+        provider: "groq",
+        name: "llama-3.3-70b-versatile",
+        displayName: "Llama 3.3 70B Versatile",
+        capabilities: ["completion", "tools", "thinking"],
+      },
+      {
+        provider: "groq",
+        name: "allam-2-7b",
+        displayName: "Allam 2 7B",
         capabilities: ["completion", "tools"],
       },
     ];
@@ -107,10 +155,34 @@ export class AnacondaAIClient extends GroqClient {
     return models;
   }
 
-  override getConfigMessage(): string {
-    const configMessage = `# Anaconda/Runt Configuration Required
+  override async isReady(): Promise<boolean> {
+    // Don't call configure() again since we're already configured in constructor
+    // This prevents losing the API key that was passed during initialization
+    // Access the private client property directly to avoid reconfigure
+    return (this as any).client !== null;
+  }
 
-RUNT API key not found. Please set \`RUNT_API_KEY\` environment variable.`;
+  override getConfigMessage(): string {
+    const configMessage = `# Anaconda AI Configuration
+
+The AI provider will automatically use your authenticated access token when available.
+
+## For Deployed Usage
+- No additional setup required - uses your personal access token automatically
+- Token refreshes automatically with your session
+
+## For Local Development
+- Add to your .env file:
+  \`\`\`
+  VITE_ANACONDA_API_KEY=your-anaconda-api-key-here
+  \`\`\`
+- Restart your development server
+
+## Manual Configuration
+- Configure in console:
+  \`\`\`javascript
+  window.__RUNT_AI__.configure('anaconda', { apiKey: 'your-key' })
+  \`\`\``;
     return configMessage;
   }
 }

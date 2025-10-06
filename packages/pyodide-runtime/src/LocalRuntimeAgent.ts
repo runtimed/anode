@@ -52,8 +52,8 @@ export interface LocalRuntimeStatus {
  * subclasses to focus on execution-specific logic.
  */
 export abstract class LocalRuntimeAgent {
-  protected agent: RuntimeAgent | null = null;
-  protected config: LocalRuntimeConfig;
+  agent: RuntimeAgent | null = null;
+  config: LocalRuntimeConfig;
 
   constructor(config: LocalRuntimeConfig) {
     this.config = config;

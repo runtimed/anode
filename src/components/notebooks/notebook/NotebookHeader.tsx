@@ -11,11 +11,11 @@ import { TitleEditor } from "./TitleEditor.js";
 export function NotebookHeader({
   notebook,
   onTitleSaved,
-  setIsSharingModalOpen,
+  setIsSharingDialogOpen,
 }: {
   notebook: NotebookProcessed;
   onTitleSaved: () => void;
-  setIsSharingModalOpen: (isOpen: boolean) => void;
+  setIsSharingDialogOpen: (isOpen: boolean) => void;
 }) {
   const canEdit = notebook.myPermission === "OWNER";
 
@@ -34,7 +34,9 @@ export function NotebookHeader({
           {/* Right side - Mobile optimized */}
           <div className="flex shrink-0 items-center gap-1 sm:gap-3">
             <div className="hidden sm:block">
-              <CollaboratorAvatars />
+              <ErrorBoundary FallbackComponent={() => null}>
+                <CollaboratorAvatars />
+              </ErrorBoundary>
             </div>
 
             <ErrorBoundary fallback={<div>Error</div>}>
@@ -58,13 +60,15 @@ export function NotebookHeader({
 
             {/* Mobile CollaboratorAvatars */}
             <div className="sm:hidden">
-              <CollaboratorAvatars />
+              <ErrorBoundary FallbackComponent={() => null}>
+                <CollaboratorAvatars />
+              </ErrorBoundary>
             </div>
 
             <CollaboratorSection
               collaborators={notebook.collaborators}
               canEdit={canEdit}
-              setIsSharingModalOpen={() => setIsSharingModalOpen(true)}
+              setIsSharingDialogOpen={() => setIsSharingDialogOpen(true)}
             />
           </div>
         </div>
@@ -76,11 +80,11 @@ export function NotebookHeader({
 function CollaboratorSection({
   collaborators,
   canEdit,
-  setIsSharingModalOpen,
+  setIsSharingDialogOpen,
 }: {
   collaborators: readonly Collaborator[];
   canEdit: boolean;
-  setIsSharingModalOpen: (isOpen: boolean) => void;
+  setIsSharingDialogOpen: (isOpen: boolean) => void;
 }) {
   return (
     <>
@@ -99,7 +103,7 @@ function CollaboratorSection({
             <Button
               variant="ghost"
               size="sm"
-              onClick={() => setIsSharingModalOpen(true)}
+              onClick={() => setIsSharingDialogOpen(true)}
               className="h-5 px-1 text-xs text-gray-400 hover:text-gray-600 sm:px-2"
             >
               Share
@@ -113,7 +117,7 @@ function CollaboratorSection({
         <Button
           variant="ghost"
           size="sm"
-          onClick={() => setIsSharingModalOpen(true)}
+          onClick={() => setIsSharingDialogOpen(true)}
           className="h-5 px-1 text-xs text-gray-400 hover:text-gray-600 sm:px-2"
         >
           <Users className="mr-1 h-3 w-3 sm:mr-1.5" />

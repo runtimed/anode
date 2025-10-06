@@ -5,17 +5,15 @@ import { useTrpc } from "@/components/TrpcProvider";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { useQuery } from "@tanstack/react-query";
-import { Clock, Plus, Search, Tag, Users, X } from "lucide-react";
+import { Plus, Search, Tag, Users, X } from "lucide-react";
 import { useCreateNotebookAndNavigate, useDashboardParams } from "./helpers";
 
 export function Results({
   refetch,
-  recentScratchNotebooks,
   namedNotebooks,
   filteredNotebooks,
 }: {
   refetch: () => void;
-  recentScratchNotebooks: NotebookProcessed[];
   namedNotebooks: NotebookProcessed[];
   filteredNotebooks: NotebookProcessed[];
 }) {
@@ -68,22 +66,22 @@ export function Results({
           </section>
         )}
 
-      {/* Recent Scratch Work Section (for scratch filter when not searching) */}
+      {/* All Scratch Work Section (for scratch filter when not searching) */}
       {!isSearching &&
         activeFilter === "scratch" &&
-        recentScratchNotebooks.length > 0 && (
+        filteredNotebooks.length > 0 && (
           <section>
             <div className="mb-4 flex items-center">
-              <Clock className="mr-2 h-5 w-5 text-gray-500" />
+              <Users className="mr-2 h-5 w-5 text-gray-500" />
               <h2 className="text-lg font-semibold text-gray-900">
-                Recent Scratch Work
+                All Scratch Work
               </h2>
               <Badge variant="secondary" className="ml-2">
-                {recentScratchNotebooks.length}
+                {filteredNotebooks.length}
               </Badge>
             </div>
             <NotebooksCardOrTable
-              notebooks={recentScratchNotebooks}
+              notebooks={filteredNotebooks}
               viewMode={viewMode}
               onUpdate={() => refetch()}
             />
@@ -93,9 +91,6 @@ export function Results({
       {/* All Results (for shared filter or fallback when not searching) */}
       {!isSearching &&
         (activeFilter === "shared" ||
-          (activeFilter === "scratch" &&
-            !recentScratchNotebooks.length &&
-            filteredNotebooks.length > 0) ||
           (activeFilter === "named" &&
             !namedNotebooks.length &&
             filteredNotebooks.length > 0)) && (
@@ -105,9 +100,7 @@ export function Results({
               <h2 className="text-lg font-semibold text-gray-900">
                 {activeFilter === "shared"
                   ? "Shared with Me"
-                  : activeFilter === "scratch"
-                    ? "All Scratch Work"
-                    : "All My Notebooks"}
+                  : "All My Notebooks"}
               </h2>
               <Badge variant="secondary" className="ml-2">
                 {filteredNotebooks.length}

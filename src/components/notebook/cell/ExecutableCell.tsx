@@ -11,6 +11,8 @@ import { useDeleteCell } from "@/hooks/useDeleteCell.js";
 import { useAddCell } from "@/hooks/useAddCell.js";
 import { useMoveCell } from "@/hooks/useMoveCell.js";
 import { useActiveRuntime } from "@/hooks/useRuntimeHealth.js";
+import { useAutoLaunchRuntime } from "@/hooks/useAutoLaunchRuntime.js";
+import { useDetectedRuntimeType } from "@/hooks/useNotebookRuntimeType.js";
 
 import { useStore } from "@livestore/react";
 import { focusedCellSignal$, hasManuallyFocused$ } from "../signals/focus.js";
@@ -97,8 +99,12 @@ export const ExecutableCell: React.FC<ExecutableCellProps> = ({
   } = useMoveCell(cell.id);
 
   const userId = useAuthenticatedUser();
-  const { getUsersOnCell, getUserColor } = useUserRegistry();
+  const { getUsersOnCell, getUserColor, getUserInfo } = useUserRegistry();
   const activeRuntime = useActiveRuntime();
+  const detectedRuntimeType = useDetectedRuntimeType();
+  const { ensureRuntime, status: autoLaunchStatus } = useAutoLaunchRuntime({
+    runtimeType: detectedRuntimeType,
+  });
 
   // Get users present on this cell (excluding current user)
   const usersOnCell = getUsersOnCell(cell.id).filter(
@@ -190,6 +196,18 @@ export const ExecutableCell: React.FC<ExecutableCellProps> = ({
       return;
     }
 
+    // Ensure runtime is available before execution
+    console.log("🔍 Ensuring runtime is available for execution...");
+    const runtimeAvailable = await ensureRuntime();
+
+    if (!runtimeAvailable) {
+      console.warn(
+        "⚠️ Could not launch runtime automatically. User may need to start runtime manually."
+      );
+      // Still proceed with execution - the runtime might become available
+      // or the user might have an external runtime running
+    }
+
     try {
       // Save old outputs to be shown while new ones are being generated
       setStaleOutputs(outputs);
@@ -249,6 +267,7 @@ export const ExecutableCell: React.FC<ExecutableCellProps> = ({
     userId,
     setStaleOutputs,
     outputs,
+    ensureRuntime,
   ]);
 
   const { interruptExecution: interruptCell } = useInterruptExecution({
@@ -361,7 +380,7 @@ export const ExecutableCell: React.FC<ExecutableCellProps> = ({
     >
       {/* Cell Header */}
       {!isSourceLessAiOutput && (
-        <div className="cell-header mb-2 flex items-center justify-between pr-1 pl-4 sm:pr-4">
+        <div className="cell-header flex items-center justify-between pr-1 pb-2 pl-4 sm:pr-4">
           <div className="flex items-center gap-1">
             {dragHandle}
             <CellTypeSelector cell={cell} onCellTypeChange={changeCellType} />
@@ -425,10 +444,13 @@ export const ExecutableCell: React.FC<ExecutableCellProps> = ({
             )}
 
             <ExecutionStatus executionState={cell.executionState} />
-            <PresenceBookmarks
-              usersOnCell={usersOnCell}
-              getUserColor={getUserColor}
-            />
+            <ErrorBoundary FallbackComponent={() => null}>
+              <PresenceBookmarks
+                usersOnCell={usersOnCell}
+                getUserColor={getUserColor}
+                getUserInfo={getUserInfo}
+              />
+            </ErrorBoundary>
           </div>
 
           <CellControls
@@ -450,11 +472,11 @@ export const ExecutableCell: React.FC<ExecutableCellProps> = ({
               <PlayButton
                 executionState={cell.executionState}
                 cellType={cell.cellType}
-                autoFocus={autoFocus}
+                isFocused={autoFocus}
                 onExecute={executeCell}
                 onInterrupt={interruptCell}
                 className="mobile-play-btn block sm:hidden"
-                primaryColor="text-foreground"
+                isAutoLaunching={autoLaunchStatus.isLaunching}
               />
             }
           />
@@ -466,22 +488,22 @@ export const ExecutableCell: React.FC<ExecutableCellProps> = ({
         <div className="relative">
           {/* Play Button Breaking Through Left Border - Desktop Only */}
           <div
-            className="desktop-play-btn absolute -left-3 z-10 hidden sm:block"
+            className="absolute z-20 hidden -translate-x-1/2 sm:block"
             style={{
-              top: cell.sourceVisible ? "0.35rem" : "-1.5rem",
+              top: cell.sourceVisible ? "0.35rem" : "-2.1rem",
             }}
           >
             <PlayButton
               executionState={cell.executionState}
               cellType={cell.cellType}
-              autoFocus={autoFocus}
+              isFocused={autoFocus}
               onExecute={executeCell}
               onInterrupt={interruptCell}
-              size="default"
-              className="h-6 w-6 rounded-sm border-0 bg-white p-0 transition-colors hover:bg-white"
-              primaryColor={
-                cell.cellType === "ai" ? "text-purple-600" : "text-foreground"
+              className="desktop-play-btn"
+              focusedClass={
+                cell.cellType === "ai" ? "text-purple-600" : undefined
               }
+              isAutoLaunching={autoLaunchStatus.isLaunching}
             />
           </div>
 

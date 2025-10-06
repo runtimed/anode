@@ -99,6 +99,9 @@ export class RuntOpenAIClient {
         baseURL: baseURL,
         organization: config?.organization,
         defaultHeaders: config?.defaultHeaders,
+        // Enable browser usage for local development with browser runtime agents
+        // This is safe because API keys are only exposed in local dev environment
+        dangerouslyAllowBrowser: true,
         ...this.defaultConfig,
       });
       this.isConfigured = true;
