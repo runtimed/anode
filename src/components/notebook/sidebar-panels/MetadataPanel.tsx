@@ -231,9 +231,9 @@ export const MetadataPanel: React.FC<SidebarPanelProps> = ({
                       </Button>
                       <Button
                         size="sm"
-                        variant="ghost"
+                        variant="destructiveGhost"
                         onClick={() => handleDeleteTag(tag.id)}
-                        className="h-6 px-2 text-xs text-red-600 hover:text-red-700"
+                        className="h-6 px-2 text-xs"
                       >
                         <Trash2 className="h-3 w-3" />
                       </Button>
