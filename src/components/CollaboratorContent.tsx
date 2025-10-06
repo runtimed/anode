@@ -1,13 +1,10 @@
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { UserInfo } from "@/hooks/useUserRegistry";
 import { getClientTypeInfo } from "@/services/userTypes.js";
 
 interface CollaboratorContentProps {
   userId: string;
-  userInfo?: {
-    name?: string;
-    email?: string;
-    picture?: string;
-  } | null;
+  userInfo?: UserInfo | null;
 }
 
 export function CollaboratorContent({
