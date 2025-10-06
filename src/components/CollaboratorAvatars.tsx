@@ -30,7 +30,7 @@ export function CollaboratorAvatars() {
             <HoverCard key={user.id}>
               <HoverCardTrigger asChild>
                 <div
-                  className={`shrink-0 cursor-pointer overflow-hidden rounded-full border-2 transition-[margin] ${
+                  className={`relative shrink-0 cursor-pointer overflow-hidden rounded-full border-2 transition-[margin] ${
                     index >= 3 ? "hidden sm:block" : ""
                   }`}
                   style={{
