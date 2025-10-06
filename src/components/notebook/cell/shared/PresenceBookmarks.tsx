@@ -6,6 +6,8 @@ interface PresenceBookmarksProps {
   getUserColor: (userId: string) => string;
 }
 
+const LIMIT = 3;
+
 export const PresenceBookmarks: React.FC<PresenceBookmarksProps> = ({
   usersOnCell,
   getUserColor,
@@ -21,7 +23,7 @@ export const PresenceBookmarks: React.FC<PresenceBookmarksProps> = ({
       aria-label="Users present on this cell"
     >
       {/* Primary users - compact avatars */}
-      {usersOnCell.slice(0, 3).map((user, index) => {
+      {usersOnCell.slice(0, LIMIT).map((user, index) => {
         const clientInfo = getClientTypeInfo(user.id);
         const IconComponent = clientInfo.icon;
 
@@ -60,14 +62,14 @@ export const PresenceBookmarks: React.FC<PresenceBookmarksProps> = ({
       })}
 
       {/* Overflow indicator for many users */}
-      {usersOnCell.length > 3 && (
+      {usersOnCell.length > LIMIT && (
         <div
           className="flex h-6 w-6 items-center justify-center rounded-full border-2 border-white bg-gray-500 shadow-sm duration-300 sm:h-5 sm:w-5"
           style={{
             zIndex: 7,
           }}
           title={`+${usersOnCell.length - 3} more users: ${usersOnCell
-            .slice(3)
+            .slice(LIMIT)
             .map((u) => u.name)
             .join(", ")}`}
           role="button"
@@ -75,7 +77,7 @@ export const PresenceBookmarks: React.FC<PresenceBookmarksProps> = ({
           aria-label={`${usersOnCell.length - 3} more users present on this cell`}
         >
           <span className="text-xs font-bold text-white">
-            +{usersOnCell.length - 3}
+            +{usersOnCell.length - LIMIT}
           </span>
         </div>
       )}
