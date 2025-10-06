@@ -49,11 +49,8 @@ export function AuthAwareAIProvider({ children }: AuthAwareAIProviderProps) {
     console.log("📡 Auth state changed:", {
       isAuthenticated: auth.isAuthenticated,
       authStateValid: auth.authState.valid,
-      hasToken: auth.authState.valid && !!auth.authState.token,
-      tokenLength:
-        auth.authState.valid && auth.authState.token
-          ? auth.authState.token.length
-          : 0,
+      hasToken: auth.authState.valid && !!authToken,
+      tokenLength: auth.authState.valid && authToken ? authToken.length : 0,
     });
 
     // Monitor access token changes - only when authenticated
@@ -75,7 +72,7 @@ export function AuthAwareAIProvider({ children }: AuthAwareAIProviderProps) {
       } else {
         console.warn("⚠️ User authenticated but no valid token available", {
           authStateValid: auth.authState.valid,
-          hasToken: auth.authState.valid && !!auth.authState.token,
+          hasToken: auth.authState.valid && !!authToken,
         });
       }
     } else {
@@ -83,7 +80,7 @@ export function AuthAwareAIProvider({ children }: AuthAwareAIProviderProps) {
         "🚫 User not authenticated, skipping AI provider token update"
       );
     }
-  }, [auth.isAuthenticated, authToken]);
+  }, [auth.authState.valid, auth.isAuthenticated, authToken]);
 
   // This component doesn't render anything - it's just for auth integration
   return <>{children}</>;
