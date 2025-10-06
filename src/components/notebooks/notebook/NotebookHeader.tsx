@@ -34,7 +34,9 @@ export function NotebookHeader({
           {/* Right side - Mobile optimized */}
           <div className="flex shrink-0 items-center gap-1 sm:gap-3">
             <div className="hidden sm:block">
-              <CollaboratorAvatars />
+              <ErrorBoundary FallbackComponent={() => null}>
+                <CollaboratorAvatars />
+              </ErrorBoundary>
             </div>
 
             <ErrorBoundary fallback={<div>Error</div>}>
@@ -58,7 +60,9 @@ export function NotebookHeader({
 
             {/* Mobile CollaboratorAvatars */}
             <div className="sm:hidden">
-              <CollaboratorAvatars />
+              <ErrorBoundary FallbackComponent={() => null}>
+                <CollaboratorAvatars />
+              </ErrorBoundary>
             </div>
 
             <CollaboratorSection

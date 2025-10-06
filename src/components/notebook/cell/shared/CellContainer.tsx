@@ -1,6 +1,5 @@
 import { tables } from "@runtimed/schema";
 import { forwardRef, ReactNode } from "react";
-import "./PresenceIndicators.css";
 
 interface CellContainerProps {
   cell: typeof tables.cells.Type;
