@@ -71,7 +71,7 @@ export const MarkdownCell: React.FC<MarkdownCellProps> = ({
 
   // All hooks must be called at the top level before any conditional returns
   const userId = useAuthenticatedUser();
-  const { getUsersOnCell, getUserColor } = useUserRegistry();
+  const { getUsersOnCell, getUserColor, getUserInfo } = useUserRegistry();
   const [isEditing, setIsEditing] = useState(autoFocus);
 
   // If another cell causes this one to focus, we need to set the editing state to false
@@ -278,6 +278,7 @@ export const MarkdownCell: React.FC<MarkdownCellProps> = ({
           <PresenceBookmarks
             usersOnCell={usersOnCell}
             getUserColor={getUserColor}
+            getUserInfo={getUserInfo}
           />
         </div>
 
