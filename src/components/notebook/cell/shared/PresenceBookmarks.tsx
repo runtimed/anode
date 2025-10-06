@@ -1,6 +1,5 @@
 import React from "react";
 import { getClientTypeInfo, getClientColor } from "@/services/userTypes.js";
-import "./PresenceIndicators.css";
 
 interface PresenceBookmarksProps {
   usersOnCell: Array<{ id: string; name: string; picture?: string }>;
@@ -31,7 +30,7 @@ export const PresenceBookmarks: React.FC<PresenceBookmarksProps> = ({
         return (
           <div
             key={user.id}
-            className="presence-avatar-compact flex h-6 w-6 items-center justify-center rounded-full border-2 shadow-sm transition-all duration-300 hover:scale-110 hover:shadow-md sm:h-5 sm:w-5"
+            className="flex h-6 w-6 cursor-default items-center justify-center rounded-full border-2 shadow-sm transition-all duration-300 sm:h-5 sm:w-5"
             style={{
               backgroundColor,
               borderColor: backgroundColor,
@@ -63,9 +62,8 @@ export const PresenceBookmarks: React.FC<PresenceBookmarksProps> = ({
       {/* Overflow indicator for many users */}
       {usersOnCell.length > 3 && (
         <div
-          className="presence-avatar-compact-overflow flex h-6 w-6 items-center justify-center rounded-full border-2 border-white bg-gray-500 shadow-sm transition-all duration-300 hover:scale-110 hover:shadow-md sm:h-5 sm:w-5"
+          className="flex h-6 w-6 items-center justify-center rounded-full border-2 border-white bg-gray-500 shadow-sm duration-300 sm:h-5 sm:w-5"
           style={{
-            animationDelay: `${3 * 100}ms`,
             zIndex: 7,
           }}
           title={`+${usersOnCell.length - 3} more users: ${usersOnCell
