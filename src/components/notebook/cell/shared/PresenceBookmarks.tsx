@@ -6,7 +6,7 @@ interface PresenceBookmarksProps {
   getUserColor: (userId: string) => string;
 }
 
-const LIMIT = 3;
+const LIMIT = 5;
 
 export const PresenceBookmarks: React.FC<PresenceBookmarksProps> = ({
   usersOnCell,
