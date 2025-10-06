@@ -97,7 +97,7 @@ export const ExecutableCell: React.FC<ExecutableCellProps> = ({
   } = useMoveCell(cell.id);
 
   const userId = useAuthenticatedUser();
-  const { getUsersOnCell, getUserColor } = useUserRegistry();
+  const { getUsersOnCell, getUserColor, getUserInfo } = useUserRegistry();
   const activeRuntime = useActiveRuntime();
   const detectedRuntimeType = useDetectedRuntimeType();
   const { ensureRuntime, status: autoLaunchStatus } = useAutoLaunchRuntime({
@@ -444,6 +444,7 @@ export const ExecutableCell: React.FC<ExecutableCellProps> = ({
             <PresenceBookmarks
               usersOnCell={usersOnCell}
               getUserColor={getUserColor}
+              getUserInfo={getUserInfo}
             />
           </div>
 
