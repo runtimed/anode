@@ -5,23 +5,67 @@ import {
   HoverCardTrigger,
 } from "@/components/ui/hover-card";
 import { UserInfo } from "@/hooks/useUserRegistry";
-import { getClientColor, getClientTypeInfo } from "@/services/userTypes.js";
-import React from "react";
+import {
+  ClientTypeInfo,
+  getClientColor,
+  getClientTypeInfo,
+} from "@/services/userTypes.js";
+import React, { useMemo } from "react";
 
 interface PresenceBookmarksProps {
-  usersOnCell: Array<{ id: string; name: string; picture?: string }>;
+  usersOnCell: Array<UserInfo>;
   getUserColor: (userId: string) => string;
   getUserInfo: (userId: string) => UserInfo;
 }
 
 const LIMIT = 5;
 
+type UserInfoWithClientType = UserInfo & {
+  clientTypeInfo: ClientTypeInfo;
+};
+
 export const PresenceBookmarks: React.FC<PresenceBookmarksProps> = ({
   usersOnCell,
   getUserColor,
   getUserInfo,
 }) => {
-  if (usersOnCell.length === 0) {
+  const allUsers = useMemo(() => {
+    // Split users into humans and bots using getClientTypeInfo
+    const { users, tuis, automations, bots } = usersOnCell.reduce(
+      (acc, user) => {
+        const clientInfo = getClientTypeInfo(user.id);
+        switch (clientInfo.type) {
+          case "user":
+            acc.users.push({ ...user, clientTypeInfo: clientInfo });
+            break;
+          case "tui":
+            acc.tuis.push({ ...user, clientTypeInfo: clientInfo });
+            break;
+          case "automation":
+            acc.automations.push({ ...user, clientTypeInfo: clientInfo });
+            break;
+          case "runtime":
+            acc.bots.push({ ...user, clientTypeInfo: clientInfo });
+            break;
+        }
+        return acc;
+      },
+      {
+        users: [] as UserInfoWithClientType[],
+        tuis: [] as UserInfoWithClientType[],
+        automations: [] as UserInfoWithClientType[],
+        bots: [] as UserInfoWithClientType[],
+      }
+    );
+
+    const justOneBot = bots[0];
+
+    const allUsers = [...users, ...tuis, ...automations, justOneBot];
+
+    return allUsers;
+  }, [usersOnCell]);
+
+  if (allUsers.length === 0) {
     return null;
   }
 
@@ -32,7 +76,11 @@ export const PresenceBookmarks: React.FC<PresenceBookmarksProps> = ({
       aria-label="Users present on this cell"
     >
       {/* Primary users - compact avatars */}
-      {usersOnCell.slice(0, LIMIT).map((user, index) => {
+      {allUsers.slice(0, LIMIT).map((user, index) => {
+        if (!user) {
+          return null;
+        }
+
         const clientInfo = getClientTypeInfo(user.id);
         const IconComponent = clientInfo.icon;
 
@@ -80,22 +128,22 @@ export const PresenceBookmarks: React.FC<PresenceBookmarksProps> = ({
       })}
 
       {/* Overflow indicator for many users */}
-      {usersOnCell.length > LIMIT && (
+      {allUsers.length > LIMIT && (
         <div
           className="flex h-6 w-6 items-center justify-center rounded-full border-2 border-white bg-gray-500 shadow-sm duration-300 sm:h-5 sm:w-5"
           style={{
             zIndex: 7,
           }}
-          title={`+${usersOnCell.length - 3} more users: ${usersOnCell
+          title={`+${allUsers.length - 3} more users: ${allUsers
             .slice(LIMIT)
             .map((u) => u.name)
             .join(", ")}`}
           role="button"
           tabIndex={0}
-          aria-label={`${usersOnCell.length - 3} more users present on this cell`}
+          aria-label={`${allUsers.length - 3} more users present on this cell`}
         >
           <span className="text-xs font-bold text-white">
-            +{usersOnCell.length - LIMIT}
+            +{allUsers.length - LIMIT}
           </span>
         </div>
       )}
