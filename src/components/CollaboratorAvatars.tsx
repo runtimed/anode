@@ -67,7 +67,7 @@ export function CollaboratorAvatars() {
 
   return (
     <div className="flex items-center gap-1 sm:gap-1">
-      <div className="flex -space-x-1 sm:-space-x-2">
+      <div className="relative flex -space-x-1 sm:-space-x-2">
         {allUsers.slice(0, LIMIT).map((user, index) => {
           const userInfo = getUserInfo(user.id);
           const IconComponent = user.clientTypeInfo.icon;
@@ -81,6 +81,7 @@ export function CollaboratorAvatars() {
                   }`}
                   style={{
                     borderColor: getClientColor(user.id, getUserColor),
+                    zIndex: LIMIT - index,
                   }}
                 >
                   {IconComponent ? (
