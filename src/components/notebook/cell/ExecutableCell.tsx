@@ -441,11 +441,13 @@ export const ExecutableCell: React.FC<ExecutableCellProps> = ({
             )}
 
             <ExecutionStatus executionState={cell.executionState} />
-            <PresenceBookmarks
-              usersOnCell={usersOnCell}
-              getUserColor={getUserColor}
-              getUserInfo={getUserInfo}
-            />
+            <ErrorBoundary FallbackComponent={() => null}>
+              <PresenceBookmarks
+                usersOnCell={usersOnCell}
+                getUserColor={getUserColor}
+                getUserInfo={getUserInfo}
+              />
+            </ErrorBoundary>
           </div>
 
           <CellControls
