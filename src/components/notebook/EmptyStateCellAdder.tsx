@@ -7,6 +7,7 @@ import {
   SqlCellButton,
   AiCellButton,
 } from "./cell/CellTypeButtons";
+import { CsvUploadButton } from "./cell/CsvUploadButton";
 
 export const EmptyStateCellAdder: React.FC = () => {
   const { addCell } = useAddCell();
@@ -44,6 +45,7 @@ export const EmptyStateCellAdder: React.FC = () => {
           onClick={() => addCell(undefined, "ai")}
           className="flex items-center gap-2"
         />
+        <CsvUploadButton size="lg" className="flex items-center gap-2" />
       </div>
       <div className="text-muted-foreground hidden text-xs sm:block">
         💡 Real-time collaborative computing. Pick a cell type to start

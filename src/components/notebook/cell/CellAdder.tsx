@@ -6,6 +6,7 @@ import {
   SqlCellButton,
   AiCellButton,
 } from "./CellTypeButtons";
+import { CsvUploadButton } from "./CsvUploadButton";
 
 export function CellAdder({
   position,
@@ -37,6 +38,7 @@ export function CellAdder({
         showPlus={true}
         onClick={() => addCell(undefined, "ai", position)}
       />
+      <CsvUploadButton size="sm" position={position} />
     </div>
   );
 }
