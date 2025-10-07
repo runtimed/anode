@@ -43,12 +43,22 @@ export function NotebookHeader({
           </div>
 
           {/* Right side - Mobile optimized */}
-          <div className="flex shrink-0 items-center gap-2 sm:gap-3">
-            <div className="hidden sm:block">
-              <ErrorBoundary FallbackComponent={() => null}>
-                <CollaboratorAvatars />
-              </ErrorBoundary>
-            </div>
+          <div className="flex shrink-0 items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              className="px-1 text-xs sm:px-2"
+              onClick={handleDuplicateNotebook}
+              disabled={isDuplicating}
+            >
+              <CopyPlus className="h-3 w-3" />
+              <span className="sr-only sm:not-sr-only">
+                {isDuplicating ? "Duplicating..." : "Duplicate Notebook"}
+              </span>
+              <span className="sm:hidden">
+                {isDuplicating ? "Duplicating..." : "Duplicate"}
+              </span>
+            </Button>
 
             {canEdit && (
               <Button
@@ -61,6 +71,12 @@ export function NotebookHeader({
                 <span className="sr-only sm:not-sr-only">Share</span>
               </Button>
             )}
+
+            <div className="hidden sm:block">
+              <ErrorBoundary FallbackComponent={() => null}>
+                <CollaboratorAvatars />
+              </ErrorBoundary>
+            </div>
 
             <ErrorBoundary fallback={<div>Error</div>}>
               <SimpleUserProfile />
@@ -93,16 +109,6 @@ export function NotebookHeader({
               canEdit={canEdit}
               setIsSharingDialogOpen={() => setIsSharingDialogOpen(true)}
             />
-
-            <Button
-              variant="ghost"
-              size="xs"
-              onClick={handleDuplicateNotebook}
-              disabled={isDuplicating}
-            >
-              <CopyPlus className="h-3 w-3" />
-              {isDuplicating ? "Duplicating..." : "Duplicate Notebook"}
-            </Button>
           </div>
         </div>
       </div>
