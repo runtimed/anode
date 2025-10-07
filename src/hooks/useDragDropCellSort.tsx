@@ -172,7 +172,16 @@ export const useDragDropCellSort = () => {
   };
 };
 
+/**
+ * Distance from the top or bottom of the container to start scrolling.
+ */
 const DRAG_THRESHOLD_PERCENT = 20;
+
+/**
+ * Factor for slowing down scroll speed based on distance from threshold and edge of container.
+ * Lower factor means faster scroll speed. Less than 1 means speeding up.
+ */
+const DRAG_SCROLL_SLOWDOWN_FACTOR = 3;
 
 /**
  * Component that scrolls when dragging cells near top or bottom of the container.
@@ -209,10 +218,14 @@ export function DragDropScrollArea({
 
       // Adjust scroll speed based on how far the user is dragging from the top or bottom
       if (fromTopPercent < DRAG_THRESHOLD_PERCENT) {
-        const diff = (DRAG_THRESHOLD_PERCENT - fromTopPercent) / 5;
+        const diff =
+          (DRAG_THRESHOLD_PERCENT - fromTopPercent) /
+          DRAG_SCROLL_SLOWDOWN_FACTOR;
         dragSpeed = { x: 0, y: -diff };
       } else if (fromBottomPercent < DRAG_THRESHOLD_PERCENT) {
-        const diff = (DRAG_THRESHOLD_PERCENT - fromBottomPercent) / 5;
+        const diff =
+          (DRAG_THRESHOLD_PERCENT - fromBottomPercent) /
+          DRAG_SCROLL_SLOWDOWN_FACTOR;
         dragSpeed = { x: 0, y: diff };
       }
 
