@@ -8,6 +8,8 @@ import { SimpleUserProfile } from "../SimpleUserProfile.js";
 import type { NotebookProcessed } from "../types.js";
 import { TitleEditor } from "./TitleEditor.js";
 import { useDuplicateNotebook } from "../../../hooks/useDuplicateNotebook.js";
+import { useConfirm } from "@/components/ui/confirm.js";
+import { toast } from "sonner";
 
 export function NotebookHeader({
   notebook,
@@ -20,13 +22,22 @@ export function NotebookHeader({
 }) {
   const canEdit = notebook.myPermission === "OWNER";
   const { duplicateNotebook, isDuplicating } = useDuplicateNotebook();
+  const { confirm } = useConfirm();
 
   const handleDuplicateNotebook = async () => {
+    confirm({
+      title: "Duplicate Notebook",
+      description: `Please confirm that you want to duplicate "${notebook.title || "Untitled Notebook"}".`,
+      onConfirm: handleDuplicateNotebookConfirm,
+      nonDestructive: true,
+    });
+  };
+
+  const handleDuplicateNotebookConfirm = async () => {
     try {
       await duplicateNotebook(notebook.title || "Untitled Notebook");
     } catch (error) {
-      console.error("Failed to duplicate notebook:", error);
-      // TODO: Show error toast to user
+      toast.error("Failed to duplicate notebook");
     }
   };
 
