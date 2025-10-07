@@ -171,3 +171,62 @@ export const useDragDropCellSort = () => {
     clearDragState: context.clearDragState,
   };
 };
+
+const DRAG_THRESHOLD_PERCENT = 20;
+
+/**
+ * Component that scrolls when dragging cells near top or bottom of the container.
+ * Closer to the top or bottom, the scroll speed is faster. By default, the browser
+ * does scroll the container, but it can be hard to get it to trigger.
+ *
+ * NOTE: Some situations not handled well:
+ * - If user is dragging from top or bottom, it will start scroll right away
+ * - Don't have good handling of mouse position dragging outside of scroll area
+ */
+export function DragDropScrollArea({
+  ref,
+  children,
+  className,
+}: {
+  ref: React.RefObject<HTMLDivElement | null>;
+  children: React.ReactNode;
+  className: string;
+}) {
+  const { isDragging } = useDragDropCellSort();
+
+  // Mouse position tracking handlers
+  const handleMouseMove = (event: React.MouseEvent<HTMLDivElement>) => {
+    if (ref.current && isDragging) {
+      const rect = ref.current.getBoundingClientRect();
+      const fromTop = event.clientY - rect.top;
+      const fromBottom = rect.bottom - event.clientY;
+
+      const refHeight = rect.height;
+      const fromTopPercent = 100 * (fromTop / refHeight);
+      const fromBottomPercent = 100 * (fromBottom / refHeight);
+
+      let dragSpeed = { x: 0, y: 0 };
+
+      // Adjust scroll speed based on how far the user is dragging from the top or bottom
+      if (fromTopPercent < DRAG_THRESHOLD_PERCENT) {
+        const diff = (DRAG_THRESHOLD_PERCENT - fromTopPercent) / 5;
+        dragSpeed = { x: 0, y: -diff };
+      } else if (fromBottomPercent < DRAG_THRESHOLD_PERCENT) {
+        const diff = (DRAG_THRESHOLD_PERCENT - fromBottomPercent) / 5;
+        dragSpeed = { x: 0, y: diff };
+      }
+
+      if (dragSpeed.y !== 0) {
+        ref.current.scrollTo({
+          top: ref.current.scrollTop + dragSpeed.y,
+        });
+      }
+    }
+  };
+
+  return (
+    <div ref={ref} className={className} onDrag={handleMouseMove}>
+      {children}
+    </div>
+  );
+}

@@ -9,10 +9,7 @@ import { EmptyStateCellAdder } from "./EmptyStateCellAdder";
 import { contextSelectionMode$ } from "./signals/ai-context.js";
 import { focusedCellSignal$, hasManuallyFocused$ } from "./signals/focus.js";
 import { GripVerticalIcon } from "lucide-react";
-import {
-  DragDropSortProvider,
-  useDragDropCellSort,
-} from "@/hooks/useDragDropCellSort";
+import { useDragDropCellSort } from "@/hooks/useDragDropCellSort";
 
 export const NotebookContent = () => {
   const { store } = useStore();
@@ -67,9 +64,7 @@ interface CellListProps {
 export const CellList: React.FC<CellListProps> = ({ cells }) => {
   return (
     <div style={{ paddingLeft: "1rem" }}>
-      <DragDropSortProvider>
-        <DragDropCellList cells={cells} />
-      </DragDropSortProvider>
+      <DragDropCellList cells={cells} />
     </div>
   );
 };
