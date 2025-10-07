@@ -8,6 +8,7 @@ import { LoadingState } from "../../loading/LoadingState.js";
 
 import { NotebookContent } from "../../notebook/NotebookContent.js";
 import { NotebookSidebar } from "../../notebook/NotebookSidebar.js";
+import { HideAiCellsProvider } from "../../../contexts/HideAiCellsContext";
 
 import { useIsMobile } from "@/hooks/use-mobile.js";
 import { ChatModeProvider } from "@/hooks/useChatMode.js";
@@ -86,27 +87,28 @@ function NotebookPageWithIdAndNotebook({
         onUpdate={refetch}
         onAiPanelToggle={setIsAiPanelOpen}
       />
-
       <div
         className={`flex flex-1 flex-col overflow-x-hidden pb-16 transition-all duration-200 lg:pb-0 ${
           isAiPanelOpen ? "lg:ml-[368px]" : "lg:ml-12"
         }`}
       >
-        <NotebookHeader
-          notebook={notebook}
-          onTitleSaved={refetch}
-          setIsSharingDialogOpen={() => setIsSharingDialogOpen(true)}
-        />
+        <HideAiCellsProvider>
+          <NotebookHeader
+            notebook={notebook}
+            onTitleSaved={refetch}
+            setIsSharingDialogOpen={() => setIsSharingDialogOpen(true)}
+          />
 
-        <div
-          ref={nbContentScrollRef}
-          className="w-full min-w-0 flex-1 overflow-y-scroll"
-        >
-          <div className="px-2 sm:mx-auto sm:px-4 xl:container">
-            <NotebookContent />
-            <div className="h-[70vh]"></div>
+          <div
+            ref={nbContentScrollRef}
+            className="w-full min-w-0 flex-1 overflow-y-scroll"
+          >
+            <div className="px-2 sm:mx-auto sm:px-4 xl:container">
+              <NotebookContent />
+              <div className="h-[70vh]"></div>
+            </div>
           </div>
-        </div>
+        </HideAiCellsProvider>
         {isScrolled && !isMobile && (
           <Button
             variant="ghost"
