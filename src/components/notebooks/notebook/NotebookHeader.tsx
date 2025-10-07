@@ -1,4 +1,4 @@
-import { CopyPlus, User, Users } from "lucide-react";
+import { CopyPlus, Share2, User, Users } from "lucide-react";
 import { ErrorBoundary } from "react-error-boundary";
 import { CollaboratorAvatars } from "../../CollaboratorAvatars.js";
 import { Collaborator } from "../types.js";
@@ -43,10 +43,24 @@ export function NotebookHeader({
           </div>
 
           {/* Right side - Mobile optimized */}
-          <div className="flex shrink-0 items-center gap-1 sm:gap-3">
+          <div className="flex shrink-0 items-center gap-2 sm:gap-3">
             <div className="hidden sm:block">
-              <CollaboratorAvatars />
+              <ErrorBoundary FallbackComponent={() => null}>
+                <CollaboratorAvatars />
+              </ErrorBoundary>
             </div>
+
+            {canEdit && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setIsSharingDialogOpen(true)}
+                className="px-1 text-xs sm:px-2"
+              >
+                <Share2 />
+                <span className="sr-only sm:not-sr-only">Share</span>
+              </Button>
+            )}
 
             <ErrorBoundary fallback={<div>Error</div>}>
               <SimpleUserProfile />
@@ -69,7 +83,9 @@ export function NotebookHeader({
 
             {/* Mobile CollaboratorAvatars */}
             <div className="sm:hidden">
-              <CollaboratorAvatars />
+              <ErrorBoundary FallbackComponent={() => null}>
+                <CollaboratorAvatars />
+              </ErrorBoundary>
             </div>
 
             <CollaboratorSection
@@ -116,16 +132,6 @@ function CollaboratorSection({
             </span>
             <span className="sm:hidden">{collaborators.length}</span>
           </div>
-          {canEdit && (
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => setIsSharingDialogOpen(true)}
-              className="h-5 px-1 text-xs text-gray-400 hover:text-gray-600 sm:px-2"
-            >
-              Share
-            </Button>
-          )}
         </div>
       )}
 

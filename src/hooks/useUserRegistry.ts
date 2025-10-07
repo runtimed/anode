@@ -109,7 +109,13 @@ export const useUserRegistry = () => {
 
   // Memoize presentUsers to prevent reference instability
   const presentUsers = useMemo(
-    () => presence.map((p) => getUserInfo(p.userId)),
+    () =>
+      presence
+        .map((p) => getUserInfo(p.userId))
+        .sort((a, b) => {
+          if (a.isAnonymous === b.isAnonymous) return 0;
+          return a.isAnonymous ? 1 : -1; // anonymous last
+        }),
     [presence, getUserInfo]
   );
 
