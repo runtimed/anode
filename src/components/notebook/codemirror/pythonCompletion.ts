@@ -40,11 +40,11 @@ export function createPythonCompletionSource(
     const word = context.matchBefore(/\w*/);
 
     // Check if we're right after a dot (for module.attribute completion)
-    const beforeCursor = context.state.doc.sliceString(
+    const charBeforeCursor = context.state.doc.sliceString(
       Math.max(0, context.pos - 1),
       context.pos
     );
-    const isAfterDot = beforeCursor === ".";
+    const isAfterDot = charBeforeCursor === ".";
 
     console.log("🔍 Completion analysis:", {
       word: word,
@@ -52,6 +52,7 @@ export function createPythonCompletionSource(
       isExplicit: context.explicit,
       isAfterDot: isAfterDot,
       beforeCursor: JSON.stringify(beforeCursor),
+      charBeforeCursor: JSON.stringify(charBeforeCursor),
     });
 
     // Allow completion if we're after a dot, otherwise use existing logic
