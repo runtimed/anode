@@ -8,6 +8,7 @@ runt working with an interactive Python environment.
 """
 
 import os
+import json
 
 
 from IPython.core.interactiveshell import InteractiveShell
@@ -96,7 +97,7 @@ def initialize_ipython_environment():
     print("Pseudo-IPython environment ready with rich display support")
 
 
-def get_completions(code: str, cursor_pos: int) -> dict:
+def get_completions(code: str, cursor_pos: int) -> str:
     """Get code completions using IPython's built-in completer"""
     try:
         # Parse cursor position to find current line and position within line
@@ -119,12 +120,14 @@ def get_completions(code: str, cursor_pos: int) -> dict:
         # Use IPython's completer
         completions = shell.Completer.completions(current_line, cursor_in_line)
 
-        return {
+        result = {
             "matches": [c.text for c in completions],
             "cursor_start": current_pos
             + (completions[0].start if completions else cursor_in_line),
             "cursor_end": current_pos
             + (completions[0].end if completions else cursor_in_line),
         }
+        return json.dumps(result)
     except Exception as e:
-        return {"matches": [], "cursor_start": cursor_pos, "cursor_end": cursor_pos}
+        result = {"matches": [], "cursor_start": cursor_pos, "cursor_end": cursor_pos}
+        return json.dumps(result)
