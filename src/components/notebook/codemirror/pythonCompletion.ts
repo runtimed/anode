@@ -11,7 +11,17 @@ export function createPythonCompletionSource(
   return async (
     context: CompletionContext
   ): Promise<CompletionResult | null> => {
-    console.log("🐍 Python completion triggered at position:", context.pos);
+    const code = context.state.doc.toString();
+    const beforeCursor = code.substring(
+      Math.max(0, context.pos - 10),
+      context.pos
+    );
+    console.log(
+      "🐍 Python completion triggered at position:",
+      context.pos,
+      "before cursor:",
+      JSON.stringify(beforeCursor)
+    );
     const agent = getRuntimeAgent();
 
     // Only provide completions if we have an active Python runtime
@@ -28,17 +38,38 @@ export function createPythonCompletionSource(
     // Don't complete if we're in the middle of a word that's already long
     // This helps avoid too many completion requests while typing
     const word = context.matchBefore(/\w*/);
-    if (word && word.from === word.to && !context.explicit) {
+
+    // Check if we're right after a dot (for module.attribute completion)
+    const beforeCursor = context.state.doc.sliceString(
+      Math.max(0, context.pos - 1),
+      context.pos
+    );
+    const isAfterDot = beforeCursor === ".";
+
+    console.log("🔍 Completion analysis:", {
+      word: word,
+      wordFromTo: word ? { from: word.from, to: word.to } : null,
+      isExplicit: context.explicit,
+      isAfterDot: isAfterDot,
+      beforeCursor: JSON.stringify(beforeCursor),
+    });
+
+    // Allow completion if we're after a dot, otherwise use existing logic
+    if (word && word.from === word.to && !context.explicit && !isAfterDot) {
+      console.log(
+        "❌ Skipping completion: not after dot and no explicit trigger"
+      );
       return null;
     }
 
-    const code = context.state.doc.toString();
     const pos = context.pos;
 
     try {
       console.log(
         "🔍 Requesting completions for code:",
-        code.substring(Math.max(0, pos - 20), pos + 20)
+        JSON.stringify(code.substring(Math.max(0, pos - 20), pos + 20)),
+        "cursor at:",
+        pos
       );
       const result = await agent.getCompletions(code, pos);
       console.log("📝 Completion result:", result);

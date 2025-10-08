@@ -249,6 +249,10 @@ def get_completions(code: str, cursor_pos: int) -> str:
                         module_name = parts[-2].split()[-1]  # Get last word before dot
                         partial_attr = parts[-1] if len(parts) > 1 else ""
 
+                        # Handle case where cursor is right after dot (empty partial)
+                        if line_before_cursor.endswith("."):
+                            partial_attr = ""
+
                         print(
                             f"[COMPLETION DEBUG] Manual completion for module: {module_name}, partial: {partial_attr}"
                         )
@@ -268,6 +272,10 @@ def get_completions(code: str, cursor_pos: int) -> str:
                                 if not attr.startswith("_")
                                 and attr.startswith(partial_attr)
                             ]
+
+                            # For empty partial, limit to reasonable number of completions
+                            if partial_attr == "" and len(attrs) > 20:
+                                attrs = attrs[:20]  # Show first 20 attributes
 
                             if attrs:
                                 print(
@@ -375,6 +383,10 @@ def get_completions(code: str, cursor_pos: int) -> str:
                                     for attr in common_modules[module_name]
                                     if attr.startswith(partial_attr)
                                 ]
+
+                                print(
+                                    f"[COMPLETION DEBUG] Common module lookup for '{module_name}' with partial '{partial_attr}': found {len(attrs)} matches"
+                                )
 
                                 if attrs:
                                     print(
