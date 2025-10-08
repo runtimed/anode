@@ -5,6 +5,7 @@ import {
   placeholder as placeholderExt,
   EditorView,
 } from "@codemirror/view";
+import { CompletionSource } from "@codemirror/autocomplete";
 import {
   useCallback,
   useEffect,
@@ -20,7 +21,11 @@ import { SupportedLanguage } from "@/types/misc.js";
 import { sql } from "@codemirror/lang-sql";
 import { html } from "@codemirror/lang-html";
 import { useCodeMirror } from "@uiw/react-codemirror";
-import { baseExtensions, aiBaseExtensions } from "./baseExtensions.js";
+import {
+  baseExtensions,
+  aiBaseExtensions,
+  createPythonExtensions,
+} from "./baseExtensions.js";
 
 export interface CodeMirrorEditorRef {
   focus: () => void;
@@ -41,6 +46,7 @@ type CodeMirrorEditorProps = {
   maxHeight?: string;
   enableLineWrapping?: boolean;
   disableAutocompletion?: boolean;
+  completionSource?: CompletionSource;
 };
 
 function languageExtension(language: SupportedLanguage) {
@@ -74,6 +80,7 @@ export const CodeMirrorEditor = forwardRef<
       maxHeight,
       enableLineWrapping = false,
       disableAutocompletion = false,
+      completionSource,
     },
     ref
   ) => {
@@ -86,6 +93,23 @@ export const CodeMirrorEditor = forwardRef<
     );
 
     const extensions = useMemo(() => {
+      // Use Python-specific extensions if we have a completion source and it's Python
+      if (completionSource && language === "python") {
+        const pythonExts = createPythonExtensions(completionSource);
+        const exts = [keymap.of(keyMap || []), ...pythonExts, langExtension];
+
+        if (placeholder) {
+          exts.push(placeholderExt(placeholder));
+        }
+
+        if (enableLineWrapping) {
+          exts.push(EditorView.lineWrapping);
+        }
+
+        return exts;
+      }
+
+      // Default extensions for other languages or when no completion source
       const selectedBaseExtensions = disableAutocompletion
         ? aiBaseExtensions
         : baseExtensions;
@@ -111,6 +135,8 @@ export const CodeMirrorEditor = forwardRef<
       placeholder,
       enableLineWrapping,
       disableAutocompletion,
+      completionSource,
+      language,
     ]);
 
     const handleChange = useCallback(

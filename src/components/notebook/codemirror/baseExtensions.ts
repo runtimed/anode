@@ -2,6 +2,9 @@ import {
   closeBrackets,
   closeBracketsKeymap,
   completionKeymap,
+  autocompletion,
+  CompletionSource,
+  acceptCompletion,
 } from "@codemirror/autocomplete";
 import { defaultKeymap, history, historyKeymap } from "@codemirror/commands";
 import {
@@ -39,6 +42,16 @@ const customStyles = EditorView.theme({
   },
 });
 
+// Custom keymap for completion with Tab key support
+const completionKeyMap = [
+  {
+    key: "Tab",
+    run: acceptCompletion,
+    preventDefault: true,
+  },
+  ...completionKeymap,
+];
+
 export const basicSetup: Extension = (() => [
   history(),
   drawSelection(),
@@ -54,7 +67,7 @@ export const basicSetup: Extension = (() => [
     ...closeBracketsKeymap,
     ...defaultKeymap,
     ...historyKeymap,
-    ...completionKeymap,
+    ...completionKeyMap,
     ...lintKeymap,
   ]),
   customStyles,
@@ -84,3 +97,26 @@ export const aiBasicSetup: Extension = (() => [
 
 export const baseExtensions = [basicSetup, githubLight];
 export const aiBaseExtensions = [aiBasicSetup, githubLight];
+
+/**
+ * Create Python-specific extensions with optional completion source
+ */
+export function createPythonExtensions(completionSource?: CompletionSource) {
+  const extensions = [...baseExtensions];
+
+  if (completionSource) {
+    extensions.push(
+      autocompletion({
+        override: [completionSource],
+        closeOnBlur: true,
+        maxRenderedOptions: 10,
+        activateOnTyping: true,
+        selectOnOpen: false,
+      }),
+      // Add custom completion keymap with Tab support
+      keymap.of(completionKeyMap)
+    );
+  }
+
+  return extensions;
+}

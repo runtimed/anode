@@ -18,7 +18,7 @@ import { useStore } from "@livestore/react";
 import { focusedCellSignal$, hasManuallyFocused$ } from "../signals/focus.js";
 import { events, tables, queries, CellTypeNoRaw } from "@runtimed/schema";
 import { ChevronDown, ChevronUp } from "lucide-react";
-import React, { useCallback, useEffect, useRef } from "react";
+import React, { useCallback, useEffect, useRef, useMemo } from "react";
 import { ErrorBoundary } from "react-error-boundary";
 import { CellContainer } from "./shared/CellContainer.js";
 import { CellControls } from "./shared/CellControls.js";
@@ -42,6 +42,8 @@ import { MaybeCellOutputs } from "@/components/outputs/MaybeCellOutputs.js";
 import { useToolApprovals } from "@/hooks/useToolApprovals.js";
 import { AiToolApprovalOutput } from "../../outputs/shared-with-iframe/AiToolApprovalOutput.js";
 import { cn } from "@/lib/utils.js";
+import { createPythonCompletionSource } from "@/components/notebook/codemirror/pythonCompletion.js";
+import type { PyodideRuntimeAgent } from "@runtimed/pyodide-runtime";
 
 // Cell-specific styling configuration
 const getCellStyling = (cellType: "code" | "sql" | "ai") => {
@@ -100,6 +102,38 @@ export const ExecutableCell: React.FC<ExecutableCellProps> = ({
   const { getUsersOnCell, getUserColor, getUserInfo } = useUserRegistry();
   const activeRuntime = useActiveRuntime();
   const detectedRuntimeType = useDetectedRuntimeType();
+
+  // Create Python completion source if we have a code cell and active Python runtime
+  const pythonCompletionSource = useMemo(() => {
+    console.log("🔧 ExecutableCell: Checking completion source conditions", {
+      cellType: cell.cellType,
+      runtimeType: activeRuntime?.runtimeType,
+      hasActiveRuntime: !!activeRuntime,
+    });
+
+    if (cell.cellType === "code" && activeRuntime?.runtimeType === "python") {
+      console.log("✅ ExecutableCell: Creating Python completion source");
+      return createPythonCompletionSource(() => {
+        // Access the Pyodide runtime agent from the global launcher
+        if (typeof window !== "undefined" && window.__RUNT_LAUNCHER__) {
+          const launcher = window.__RUNT_LAUNCHER__ as any;
+          const agent = launcher.getCurrentPyodideAgent();
+          console.log("🔍 ExecutableCell: Getting runtime agent", {
+            hasLauncher: !!launcher,
+            hasAgent: !!agent,
+            agentRunning: agent?.isRunning(),
+          });
+          return agent;
+        }
+        console.log("❌ ExecutableCell: No runtime launcher available");
+        return null;
+      });
+    }
+    console.log(
+      "❌ ExecutableCell: Not creating completion source - conditions not met"
+    );
+    return undefined;
+  }, [cell.cellType, activeRuntime?.runtimeType]);
   const { ensureRuntime, status: autoLaunchStatus } = useAutoLaunchRuntime({
     runtimeType: detectedRuntimeType,
   });
@@ -530,7 +564,21 @@ export const ExecutableCell: React.FC<ExecutableCellProps> = ({
                   enableLineWrapping={shouldEnableLineWrapping(cell.cellType)}
                   autoFocus={autoFocus}
                   keyMap={keyMap}
+                  completionSource={pythonCompletionSource}
                 />
+                {/* Debug completion source status */}
+                {process.env.NODE_ENV === "development" && (
+                  <div
+                    style={{
+                      fontSize: "10px",
+                      color: "#666",
+                      marginTop: "2px",
+                    }}
+                  >
+                    🐍 Completion:{" "}
+                    {pythonCompletionSource ? "✅ Active" : "❌ Inactive"}
+                  </div>
+                )}
               </ErrorBoundary>
             </div>
           )}

@@ -155,6 +155,28 @@ await run_registered_tool("${data.toolName}", kwargs_string)
         break;
       }
 
+      case "get_completions": {
+        try {
+          const result = await pyodide!.runPythonAsync(`
+            get_completions(${JSON.stringify(data.code)}, ${data.cursor_pos})
+          `);
+          const parsed = JSON.parse(result);
+          self.postMessage({ id, type: "response", data: parsed });
+        } catch (error) {
+          console.debug("Python completion failed:", error);
+          self.postMessage({
+            id,
+            type: "response",
+            data: {
+              matches: [],
+              cursor_start: data.cursor_pos,
+              cursor_end: data.cursor_pos,
+            },
+          });
+        }
+        break;
+      }
+
       default:
         throw new Error(`Unknown message type: ${type}`);
     }
@@ -523,6 +545,7 @@ globals()['shell'] = runt_runtime.shell
 globals()['get_registered_tools'] = runt_runtime.get_registered_tools
 globals()['run_registered_tool'] = runt_runtime.run_registered_tool
 globals()['tool'] = runt_runtime.tool
+globals()['get_completions'] = runt_runtime.get_completions
 globals()['js_display_callback'] = runt_runtime.js_display_callback
 globals()['js_execution_callback'] = runt_runtime.js_execution_callback
 globals()['js_clear_callback'] = runt_runtime.js_clear_callback

@@ -15,7 +15,7 @@ Main components:
 """
 
 # Import all components from the individual modules
-from runt_runtime_shell import shell, initialize_ipython_environment
+from runt_runtime_shell import shell, initialize_ipython_environment, get_completions
 from runt_runtime_registry import (
     get_registered_tools,
     run_registered_tool,
@@ -34,6 +34,7 @@ __all__ = [
     # Core shell and initialization
     "shell",
     "initialize_ipython_environment",
+    "get_completions",
     # Function registry and tools
     "get_registered_tools",
     "run_registered_tool",

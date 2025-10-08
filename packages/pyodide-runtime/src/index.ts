@@ -680,6 +680,32 @@ export class PyodideRuntimeAgent extends LocalRuntimeAgent {
   }
 
   /**
+   * Get code completions from the Python runtime
+   */
+  async getCompletions(
+    code: string,
+    cursorPos: number
+  ): Promise<{
+    matches: string[];
+    cursor_start: number;
+    cursor_end: number;
+  }> {
+    if (!this.worker) {
+      return { matches: [], cursor_start: cursorPos, cursor_end: cursorPos };
+    }
+
+    try {
+      return (await this.sendWorkerMessage("get_completions", {
+        code,
+        cursor_pos: cursorPos,
+      })) as any;
+    } catch (error) {
+      console.warn("Python completion failed:", error);
+      return { matches: [], cursor_start: cursorPos, cursor_end: cursorPos };
+    }
+  }
+
+  /**
    * Cleanup worker resources
    */
   private async cleanupWorker(): Promise<void> {
