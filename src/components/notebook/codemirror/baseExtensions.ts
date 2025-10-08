@@ -2,6 +2,8 @@ import {
   closeBrackets,
   closeBracketsKeymap,
   completionKeymap,
+  autocompletion,
+  CompletionSource,
 } from "@codemirror/autocomplete";
 import { defaultKeymap, history, historyKeymap } from "@codemirror/commands";
 import {
@@ -84,3 +86,24 @@ export const aiBasicSetup: Extension = (() => [
 
 export const baseExtensions = [basicSetup, githubLight];
 export const aiBaseExtensions = [aiBasicSetup, githubLight];
+
+/**
+ * Create Python-specific extensions with optional completion source
+ */
+export function createPythonExtensions(completionSource?: CompletionSource) {
+  const extensions = [...baseExtensions];
+
+  if (completionSource) {
+    extensions.push(
+      autocompletion({
+        override: [completionSource],
+        closeOnBlur: true,
+        maxRenderedOptions: 10,
+        activateOnTyping: true,
+        selectOnOpen: false,
+      })
+    );
+  }
+
+  return extensions;
+}

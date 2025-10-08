@@ -1,5 +1,6 @@
 import { cn } from "@/lib/utils";
 import { KeyBinding } from "@codemirror/view";
+import { CompletionSource } from "@codemirror/autocomplete";
 import { SupportedLanguage } from "@/types/misc.js";
 import { Maximize2, Minimize2 } from "lucide-react";
 import {
@@ -36,6 +37,7 @@ interface EditorProps {
   enableLineWrapping?: boolean;
   autoFocus: boolean;
   keyMap: KeyBinding[];
+  completionSource?: CompletionSource;
 }
 
 export const Editor = forwardRef<EditorRef, EditorProps>(
@@ -50,6 +52,7 @@ export const Editor = forwardRef<EditorRef, EditorProps>(
       enableLineWrapping,
       autoFocus,
       keyMap,
+      completionSource,
     },
     ref
   ) => {
@@ -124,6 +127,7 @@ export const Editor = forwardRef<EditorRef, EditorProps>(
               keyMap={keyMap}
               onBlur={onBlur}
               enableLineWrapping={enableLineWrapping}
+              completionSource={completionSource}
             />
           </ErrorBoundary>
           <Button
@@ -158,6 +162,7 @@ export const Editor = forwardRef<EditorRef, EditorProps>(
                   value={localSource}
                   onValueChange={handleSourceChange}
                   autoFocus={true}
+                  completionSource={completionSource}
                   onFocus={handleFocus}
                   keyMap={keyMap}
                   onBlur={onBlur}

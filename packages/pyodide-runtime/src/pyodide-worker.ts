@@ -155,6 +155,28 @@ await run_registered_tool("${data.toolName}", kwargs_string)
         break;
       }
 
+      case "get_completions": {
+        try {
+          const result = await pyodide!.runPythonAsync(`
+            get_completions(${JSON.stringify(data.code)}, ${data.cursor_pos})
+          `);
+          const parsed = JSON.parse(result);
+          self.postMessage({ id, type: "response", data: parsed });
+        } catch (error) {
+          console.debug("Python completion failed:", error);
+          self.postMessage({
+            id,
+            type: "response",
+            data: {
+              matches: [],
+              cursor_start: data.cursor_pos,
+              cursor_end: data.cursor_pos,
+            },
+          });
+        }
+        break;
+      }
+
       default:
         throw new Error(`Unknown message type: ${type}`);
     }

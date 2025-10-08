@@ -94,3 +94,37 @@ def initialize_ipython_environment():
     setup_interrupt_patches()
 
     print("Pseudo-IPython environment ready with rich display support")
+
+
+def get_completions(code: str, cursor_pos: int) -> dict:
+    """Get code completions using IPython's built-in completer"""
+    try:
+        # Parse cursor position to find current line and position within line
+        lines = code.split("\n")
+        current_pos = 0
+        line_number = 0
+
+        for i, line in enumerate(lines):
+            if current_pos + len(line) >= cursor_pos:
+                line_number = i
+                cursor_in_line = cursor_pos - current_pos
+                break
+            current_pos += len(line) + 1  # +1 for newline
+        else:
+            line_number = len(lines) - 1
+            cursor_in_line = len(lines[-1]) if lines else 0
+
+        current_line = lines[line_number] if line_number < len(lines) else ""
+
+        # Use IPython's completer
+        completions = shell.Completer.completions(current_line, cursor_in_line)
+
+        return {
+            "matches": [c.text for c in completions],
+            "cursor_start": current_pos
+            + (completions[0].start if completions else cursor_in_line),
+            "cursor_end": current_pos
+            + (completions[0].end if completions else cursor_in_line),
+        }
+    except Exception as e:
+        return {"matches": [], "cursor_start": cursor_pos, "cursor_end": cursor_pos}
