@@ -33,12 +33,14 @@ interface MarkdownCellProps {
   cell: typeof tables.cells.Type;
   autoFocus?: boolean;
   contextSelectionMode?: boolean;
+  dragHandle?: React.ReactNode;
 }
 
 export const MarkdownCell: React.FC<MarkdownCellProps> = ({
   cell,
   autoFocus = false,
   contextSelectionMode = false,
+  dragHandle,
 }) => {
   const editButtonRef = useRef<HTMLButtonElement>(null);
   const cellContainerRef = useRef<HTMLDivElement>(null);
@@ -251,10 +253,11 @@ export const MarkdownCell: React.FC<MarkdownCellProps> = ({
     >
       {/* Cell Header */}
       <div
-        className="cell-header flex items-center justify-between pr-1 pb-2 pl-6 sm:pr-4"
+        className="cell-header relative flex items-center justify-between pr-1 pb-2 pl-4 sm:pr-4"
         onKeyDown={!isEditing ? handleKeyDown : undefined}
       >
-        <div className="flex items-center gap-3">
+        <div className="relative flex items-center gap-3">
+          {dragHandle}
           <CellTypeSelector cell={cell} onCellTypeChange={changeCellType} />
           {isEditing ? (
             <Button
