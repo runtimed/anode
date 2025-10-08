@@ -31,6 +31,7 @@ declare global {
       getStatus: () => LauncherStatus;
       shutdown: () => Promise<void>;
       getCurrentNotebookId: () => string | null;
+      getCurrentPyodideAgent: () => PyodideRuntimeAgent | null;
       setStore: (store: Store) => void;
       setAuth: (userId: string, authToken: string) => void;
       useExistingStore: (store: any) => void;
@@ -123,6 +124,10 @@ class ConsoleLauncher {
 
     console.log("❌ No notebook ID found in URL");
     return null;
+  }
+
+  getCurrentPyodideAgent(): PyodideRuntimeAgent | null {
+    return this.currentPyodideAgent;
   }
 
   private validatePrerequisites(): {
@@ -401,6 +406,7 @@ if (typeof window !== "undefined") {
     getStatus: () => launcher.getStatus(),
     shutdown: () => launcher.shutdown(),
     getCurrentNotebookId: () => launcher.getCurrentNotebookId(),
+    getCurrentPyodideAgent: () => launcher.getCurrentPyodideAgent(),
     setStore: (store: Store) => launcher.setStore(store),
     setAuth: (userId: string, authToken: string) =>
       launcher.setAuth(userId, authToken),

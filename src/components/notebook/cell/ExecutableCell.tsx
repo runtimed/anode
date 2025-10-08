@@ -117,8 +117,7 @@ export const ExecutableCell: React.FC<ExecutableCellProps> = ({
         // Access the Pyodide runtime agent from the global launcher
         if (typeof window !== "undefined" && window.__RUNT_LAUNCHER__) {
           const launcher = window.__RUNT_LAUNCHER__ as any;
-          const agent =
-            launcher.currentPyodideAgent as PyodideRuntimeAgent | null;
+          const agent = launcher.getCurrentPyodideAgent();
           console.log("🔍 ExecutableCell: Getting runtime agent", {
             hasLauncher: !!launcher,
             hasAgent: !!agent,
