@@ -545,6 +545,7 @@ globals()['shell'] = runt_runtime.shell
 globals()['get_registered_tools'] = runt_runtime.get_registered_tools
 globals()['run_registered_tool'] = runt_runtime.run_registered_tool
 globals()['tool'] = runt_runtime.tool
+globals()['get_completions'] = runt_runtime.get_completions
 globals()['js_display_callback'] = runt_runtime.js_display_callback
 globals()['js_execution_callback'] = runt_runtime.js_execution_callback
 globals()['js_clear_callback'] = runt_runtime.js_clear_callback
