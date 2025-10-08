@@ -105,16 +105,34 @@ export const ExecutableCell: React.FC<ExecutableCellProps> = ({
 
   // Create Python completion source if we have a code cell and active Python runtime
   const pythonCompletionSource = useMemo(() => {
+    console.log("🔧 ExecutableCell: Checking completion source conditions", {
+      cellType: cell.cellType,
+      runtimeType: activeRuntime?.runtimeType,
+      hasActiveRuntime: !!activeRuntime,
+    });
+
     if (cell.cellType === "code" && activeRuntime?.runtimeType === "python") {
+      console.log("✅ ExecutableCell: Creating Python completion source");
       return createPythonCompletionSource(() => {
         // Access the Pyodide runtime agent from the global launcher
         if (typeof window !== "undefined" && window.__RUNT_LAUNCHER__) {
           const launcher = window.__RUNT_LAUNCHER__ as any;
-          return launcher.currentPyodideAgent as PyodideRuntimeAgent | null;
+          const agent =
+            launcher.currentPyodideAgent as PyodideRuntimeAgent | null;
+          console.log("🔍 ExecutableCell: Getting runtime agent", {
+            hasLauncher: !!launcher,
+            hasAgent: !!agent,
+            agentRunning: agent?.isRunning(),
+          });
+          return agent;
         }
+        console.log("❌ ExecutableCell: No runtime launcher available");
         return null;
       });
     }
+    console.log(
+      "❌ ExecutableCell: Not creating completion source - conditions not met"
+    );
     return undefined;
   }, [cell.cellType, activeRuntime?.runtimeType]);
   const { ensureRuntime, status: autoLaunchStatus } = useAutoLaunchRuntime({
@@ -549,6 +567,19 @@ export const ExecutableCell: React.FC<ExecutableCellProps> = ({
                   keyMap={keyMap}
                   completionSource={pythonCompletionSource}
                 />
+                {/* Debug completion source status */}
+                {process.env.NODE_ENV === "development" && (
+                  <div
+                    style={{
+                      fontSize: "10px",
+                      color: "#666",
+                      marginTop: "2px",
+                    }}
+                  >
+                    🐍 Completion:{" "}
+                    {pythonCompletionSource ? "✅ Active" : "❌ Inactive"}
+                  </div>
+                )}
               </ErrorBoundary>
             </div>
           )}

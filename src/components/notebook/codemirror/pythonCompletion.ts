@@ -11,12 +11,19 @@ export function createPythonCompletionSource(
   return async (
     context: CompletionContext
   ): Promise<CompletionResult | null> => {
+    console.log("🐍 Python completion triggered at position:", context.pos);
     const agent = getRuntimeAgent();
 
     // Only provide completions if we have an active Python runtime
     if (!agent || !agent.isRunning()) {
+      console.log("🚫 Python completion: No agent or agent not running", {
+        hasAgent: !!agent,
+        isRunning: agent?.isRunning(),
+      });
       return null;
     }
+
+    console.log("✅ Python runtime available, requesting completions");
 
     // Don't complete if we're in the middle of a word that's already long
     // This helps avoid too many completion requests while typing
@@ -29,14 +36,20 @@ export function createPythonCompletionSource(
     const pos = context.pos;
 
     try {
+      console.log(
+        "🔍 Requesting completions for code:",
+        code.substring(Math.max(0, pos - 20), pos + 20)
+      );
       const result = await agent.getCompletions(code, pos);
+      console.log("📝 Completion result:", result);
 
       // Return null if no completions available
       if (!result.matches || result.matches.length === 0) {
+        console.log("❌ No completions found");
         return null;
       }
 
-      return {
+      const completionResult = {
         from: result.cursor_start,
         to: result.cursor_end,
         options: result.matches.map((match) => ({
@@ -45,9 +58,12 @@ export function createPythonCompletionSource(
           boost: 0, // Default boost
         })),
       };
+
+      console.log("🎯 Returning completions:", completionResult);
+      return completionResult;
     } catch (error) {
       // Log for debugging but don't show errors to user
-      console.debug("Python completion failed:", error);
+      console.error("❌ Python completion failed:", error);
       return null;
     }
   };
