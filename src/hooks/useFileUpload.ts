@@ -1,6 +1,8 @@
 import { useCallback, useState } from "react";
-import { useAuth } from "@/auth";
+import { useAuth, useAuthenticatedUser } from "@/auth";
 import { toast } from "sonner";
+import { useStore } from "@livestore/react";
+import { events } from "@runtimed/schema";
 
 interface FileUploadOptions {
   notebookId: string;
@@ -13,6 +15,8 @@ export const useFileUpload = ({
   notebookId,
   onFileUploaded,
 }: FileUploadOptions) => {
+  const { store } = useStore();
+  const userId = useAuthenticatedUser();
   const { accessToken, isAuthenticated } = useAuth();
   const [isUploading, setIsUploading] = useState(false);
 
@@ -51,11 +55,23 @@ export const useFileUpload = ({
       const result = await response.json();
       console.log("result", result);
 
+      store.commit(
+        events.fileUploaded({
+          notebookId,
+          artifactId: result.artifactId,
+          mimeType: file.type,
+          fileName: file.name,
+          createdAt: new Date(),
+          createdBy: userId,
+        })
+      );
+
       setIsUploading(false);
       onFileUploaded?.(result.artifactId, file.name);
+
       return result.artifactId;
     },
-    [accessToken, notebookId, isAuthenticated, onFileUploaded]
+    [accessToken, notebookId, isAuthenticated, onFileUploaded, store, userId]
   );
 
   return {
