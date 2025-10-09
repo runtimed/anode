@@ -30,21 +30,14 @@ export function CsvUploadButton({
   const { addCell } = useAddCell();
   const { uploadFile, isUploading } = useFileUpload({
     notebookId: store.storeId,
-    onFileUploaded: (artifactId, fileName) => {
+    onFileUploaded: ({ fileName }) => {
       toast.success(`File uploaded: ${fileName}`);
       // Create a new code cell with CSV loading code
       const newCellId = addCell(cellId, "code", position);
 
       // Set the cell content to load the CSV
       const csvCode = `import pandas as pd
-import pyodide
-
-# Load CSV file: ${fileName}
-dataset_url = "/api/artifacts/${artifactId}"
-df = pd.read_csv(pyodide.http.open_url(dataset_url))
-
-# Display basic info about the dataset
-print(f"Dataset shape: {df.shape}")
+df = pd.read_csv('${fileName}')
 df.head()`;
 
       store.commit(
