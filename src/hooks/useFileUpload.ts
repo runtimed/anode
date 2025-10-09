@@ -6,7 +6,13 @@ import { events } from "@runtimed/schema";
 
 interface FileUploadOptions {
   notebookId: string;
-  onFileUploaded?: (artifactId: string, fileName: string) => void;
+  onFileUploaded?: ({
+    artifactId,
+    fileName,
+  }: {
+    artifactId: string;
+    fileName: string;
+  }) => void;
 }
 
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
@@ -67,7 +73,7 @@ export const useFileUpload = ({
       );
 
       setIsUploading(false);
-      onFileUploaded?.(result.artifactId, file.name);
+      onFileUploaded?.({ artifactId: result.artifactId, fileName: file.name });
 
       return result.artifactId;
     },
