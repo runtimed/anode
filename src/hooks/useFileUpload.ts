@@ -63,7 +63,6 @@ export const useFileUpload = ({
 
       store.commit(
         events.fileUploaded({
-          notebookId,
           artifactId: result.artifactId,
           mimeType: file.type,
           fileName: file.name,

@@ -22,7 +22,6 @@ export const tables = {
   files: State.SQLite.table({
     name: "files",
     columns: {
-      notebookId: State.SQLite.text(),
       id: State.SQLite.text({ primaryKey: true }),
       mimeType: State.SQLite.text(),
       fileName: State.SQLite.text(),

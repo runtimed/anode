@@ -301,12 +301,9 @@ export class RuntimeAgent {
     );
 
     // Watch for file uploads
-    const fileUploadedQuery$ = queryDb(
-      tables.files.select().where({ notebookId: this.config.notebookId }),
-      {
-        label: "fileUploaded",
-      }
-    );
+    const fileUploadedQuery$ = queryDb(tables.files.select(), {
+      label: "fileUploaded",
+    });
 
     // Watch for cancelled executions
     const cancelledWorkQuery$ = queryDb(

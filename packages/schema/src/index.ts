@@ -109,7 +109,6 @@ export const events = {
   fileUploaded: Events.synced({
     name: "v1.FileUploaded",
     schema: Schema.Struct({
-      notebookId: Schema.String,
       artifactId: Schema.String,
       mimeType: Schema.String,
       fileName: Schema.String,
@@ -685,7 +684,6 @@ export const materializers = State.SQLite.materializers(events, {
   ],
 
   "v1.FileUploaded": ({
-    notebookId,
     artifactId,
     mimeType,
     fileName,
@@ -694,7 +692,6 @@ export const materializers = State.SQLite.materializers(events, {
   }) => [
     tables.files
       .insert({
-        notebookId,
         id: artifactId,
         mimeType,
         fileName,

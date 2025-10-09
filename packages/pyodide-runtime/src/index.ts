@@ -264,9 +264,7 @@ export class PyodideRuntimeAgent extends LocalRuntimeAgent {
     // Send uploaded files to worker
     if (this.agent) {
       const agent = this.agent;
-      const files = agent.store.query(
-        tables.files.select().where({ notebookId: agent.config.notebookId })
-      );
+      const files = agent.store.query(tables.files.select());
       if (files.length > 0) {
         const filesWithUrls = files.map((file) => ({
           ...file,
@@ -274,11 +272,7 @@ export class PyodideRuntimeAgent extends LocalRuntimeAgent {
         }));
         this.sendWorkerMessage("files", { files: filesWithUrls });
         this.agent.onFileUpload((id) => {
-          const files = agent.store.query(
-            tables.files
-              .select()
-              .where({ notebookId: agent.config.notebookId, id })
-          );
+          const files = agent.store.query(tables.files.select().where({ id }));
           const file = files[0];
           if (file) {
             this.sendWorkerMessage("files", { files: [file] });
