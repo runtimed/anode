@@ -12,7 +12,7 @@ function createMockEnv(pem: string, customFetch?: typeof fetch): Env {
   return {
     DEPLOYMENT_ENV: "development",
     AUTH_ISSUER: "http://localhost:8787/local_oidc",
-    WEBSOCKET_SERVER: {} as any,
+    SYNC_BACKEND_DO: {} as any,
     DB: {
       prepare: (sql: string) => ({
         run: async () => {},

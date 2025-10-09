@@ -30,7 +30,7 @@ export type Env = {
   SERVICE_PROVIDER?: string; // "local" | "anaconda"
 
   // Bindings from the original sync worker configuration
-  WEBSOCKET_SERVER: DurableObjectNamespace;
+  SYNC_BACKEND_DO: DurableObjectNamespace;
   DB: D1Database;
 
   // Secrets

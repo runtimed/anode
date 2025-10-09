@@ -17,7 +17,7 @@ compatibility_flags = ["nodejs_compat"]
 port = 8787
 
 [[durable_objects.bindings]]
-name = "WEBSOCKET_SERVER"
+name = "SYNC_BACKEND_DO"
 class_name = "WebSocketServer"
 
 [[migrations]]
@@ -62,7 +62,7 @@ name = "anode-docworker"
 main = "./backend/sync.ts"
 
 [[env.legacy.durable_objects.bindings]]
-name = "WEBSOCKET_SERVER"
+name = "SYNC_BACKEND_DO"
 class_name = "WebSocketServer"
 
 [[env.legacy.d1_databases]]
@@ -88,7 +88,7 @@ binding = "ASSETS"
 mode = "smart"
 
 [[env.production.durable_objects.bindings]]
-name = "WEBSOCKET_SERVER"
+name = "SYNC_BACKEND_DO"
 class_name = "WebSocketServer"
 
 [[env.production.d1_databases]]
@@ -132,7 +132,7 @@ binding = "ASSETS"
 mode = "smart"
 
 [[env.preview.durable_objects.bindings]]
-name = "WEBSOCKET_SERVER"
+name = "SYNC_BACKEND_DO"
 class_name = "WebSocketServer"
 
 [[env.preview.d1_databases]]

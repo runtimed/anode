@@ -28,6 +28,7 @@ export const cellFractionalIndex = (cellId: string) =>
       .select("fractionalIndex")
       .where({ id: cellId })
       .first({
+        behaviour: "fallback",
         fallback: () => null,
       }),
     {
@@ -50,6 +51,7 @@ export const cellQuery = {
         .select()
         .where({ id: cellId })
         .first({
+          behaviour: "fallback",
           fallback: () => null,
         }),
       {
