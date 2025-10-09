@@ -3,6 +3,10 @@ import { makeDurableObject, makeWorker } from "@livestore/sync-cf/cf-worker";
 import { Schema } from "@runtimed/schema";
 
 export class WebSocketServer extends makeDurableObject({
+  storage: {
+    _tag: "d1",
+    binding: "DB",
+  },
   onPush: async (message, { payload, storeId }) => {
     try {
       const decodedPayload = decodePayload(payload);
