@@ -12,6 +12,7 @@ import {
   RuntimePanel,
   HelpPanel,
   DebugPanel,
+  FilesPanel,
   type SidebarSection,
   type SidebarPanelProps,
 } from "./sidebar-panels";
@@ -31,6 +32,7 @@ interface NotebookSidebarProps {
 
 const PANEL_COMPONENTS: Record<SidebarSection, React.FC<SidebarPanelProps>> = {
   metadata: MetadataPanel,
+  files: FilesPanel,
   ai: AiPanel,
   runtime: RuntimePanel,
   debug: DebugPanel,
