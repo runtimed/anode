@@ -64,7 +64,7 @@ describe("Local OIDC handler", () => {
       undefined,
       undefined,
       {
-        [openidClient.customFetch]: customFetch,
+        [openidClient.customFetch]: customFetch as any,
         execute: [openidClient.allowInsecureRequests],
       }
     );

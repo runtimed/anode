@@ -99,7 +99,7 @@
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "date-fns": "^4.1.0",
-    "effect": "3.15.5",
+    "effect": "^3.18.4",
     "fractional-indexing": "^3.2.0",
     "geojson-map-fit-mercator": "^1.1.0",
     "hono": "^4.9.1",
@@ -178,15 +178,8 @@
   },
   "pnpm": {
     "overrides": {
-      "effect": "3.15.5",
       "react": "19.0.0",
-      "react-dom": "19.0.0",
-      "@effect/platform": "0.82.4",
-      "@effect/typeclass": "0.34.2",
-      "@effect/cluster": "0.34.2",
-      "@effect/experimental": "0.46.8",
-      "@effect/sql": "0.35.8",
-      "@effect/rpc": "0.59.9"
+      "react-dom": "19.0.0"
     },
     "onlyBuiltDependencies": [
       "@parcel/watcher",
