@@ -1331,6 +1331,7 @@ export type OutputData = typeof tables.outputs.Type;
 export type RuntimeSessionData = typeof tables.runtimeSessions.Type;
 export type ExecutionQueueData = typeof tables.executionQueue.Type;
 export type UiStateData = typeof tables.uiState.Type;
+export type FileData = typeof tables.files.Type;
 
 // Type guards for MediaContainer
 export function isInlineContainer<T>(

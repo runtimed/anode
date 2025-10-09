@@ -263,18 +263,27 @@ export class PyodideRuntimeAgent extends LocalRuntimeAgent {
 
     // Send uploaded files to worker
     if (this.agent) {
-      const files = this.agent.store.query(
-        tables.files
-          .select()
-          .where({ notebookId: this.agent.config.notebookId })
+      const agent = this.agent;
+      const files = agent.store.query(
+        tables.files.select().where({ notebookId: agent.config.notebookId })
       );
       if (files.length > 0) {
-        const agent = this.agent;
         const filesWithUrls = files.map((file) => ({
           ...file,
           url: agent.artifactClient.getArtifactUrl(file.id),
         }));
         this.sendWorkerMessage("files", { files: filesWithUrls });
+        this.agent.onFileUpload((id) => {
+          const files = agent.store.query(
+            tables.files
+              .select()
+              .where({ notebookId: agent.config.notebookId, id })
+          );
+          const file = files[0];
+          if (file) {
+            this.sendWorkerMessage("files", { files: [file] });
+          }
+        });
       }
     }
 
