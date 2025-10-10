@@ -22,11 +22,19 @@ type IframeDoubleClickEvent = {
   type: "iframe-double-click";
 };
 
+export type IframeFixCodeEvent = {
+  type: "iframe-fix-code";
+  ename?: string;
+  evalue?: string;
+  traceback?: string[] | string;
+};
+
 export type ToIframeEvent = UpdateOutputsEvent;
 export type FromIframeEvent =
   | IframeHeightEvent
   | IframeLoadedEvent
-  | IframeDoubleClickEvent;
+  | IframeDoubleClickEvent
+  | IframeFixCodeEvent;
 
 export function sendFromIframe(event: FromIframeEvent) {
   window.parent.postMessage(event, "*");
@@ -60,11 +68,13 @@ export function useIframeCommsParent({
   onHeightChange,
   outputs,
   onDoubleClick,
+  onFixCode,
 }: {
   defaultHeight: string;
   onHeightChange?: (height: number) => void;
   outputs?: OutputData[];
   onDoubleClick?: () => void;
+  onFixCode?: (event: IframeFixCodeEvent) => void;
 }) {
   const iframeRef = useRef<HTMLIFrameElement>(null);
 
@@ -98,6 +108,14 @@ export function useIframeCommsParent({
       if (event.data && event.data.type === "iframe-double-click") {
         onDoubleClick?.();
       }
+      if (event.data && event.data.type === "iframe-fix-code") {
+        onFixCode?.({
+          type: "iframe-fix-code",
+          ename: event.data.ename,
+          evalue: event.data.evalue,
+          traceback: event.data.traceback,
+        });
+      }
     };
 
     // Add message listener
@@ -106,7 +124,7 @@ export function useIframeCommsParent({
     return () => {
       removeParentMessageListener(handleMessage);
     };
-  }, [onHeightChange, onDoubleClick]);
+  }, [onHeightChange, onDoubleClick, onFixCode]);
 
   useEffect(() => {
     // We cannot send content to iframe before it is loaded

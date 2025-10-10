@@ -4,7 +4,10 @@ import { OutputData, SAFE_MIME_TYPES } from "@runtimed/schema";
 import { groupConsecutiveStreamOutputs } from "@/util/output-grouping";
 import { useQuery } from "@livestore/react";
 import { useMemo, useState } from "react";
-import { useIframeCommsParent } from "./shared-with-iframe/comms";
+import {
+  IframeFixCodeEvent,
+  useIframeCommsParent,
+} from "./shared-with-iframe/comms";
 import { SingleOutput } from "./shared-with-iframe/SingleOutput";
 import { useDebounce } from "react-use";
 import { OutputsContainer } from "./shared-with-iframe/OutputsContainer";
@@ -19,11 +22,13 @@ export const MaybeCellOutputs = ({
   shouldAlwaysUseIframe = false,
   isLoading,
   showOutput,
+  onFixCode,
 }: {
   outputs: readonly OutputData[];
   shouldAlwaysUseIframe?: boolean;
   isLoading: boolean;
   showOutput: boolean;
+  onFixCode?: (event: IframeFixCodeEvent) => void;
 }) => {
   const outputDeltas = useQuery(
     outputsDeltasQuery(outputs.map((output) => output.id))
@@ -60,6 +65,7 @@ export const MaybeCellOutputs = ({
             outputs={processedOutputs}
             className="transition-[height] duration-150 ease-out"
             isReact
+            onFixCode={onFixCode}
           />
         ) : (
           <SuspenseSpinner>
@@ -83,6 +89,7 @@ interface IframeOutputProps {
   isReact?: boolean;
   defaultHeight?: string;
   onDoubleClick?: () => void;
+  onFixCode?: (event: IframeFixCodeEvent) => void;
 }
 
 export const IframeOutput: React.FC<IframeOutputProps> = ({
@@ -93,12 +100,14 @@ export const IframeOutput: React.FC<IframeOutputProps> = ({
   onHeightChange,
   defaultHeight = "0px",
   onDoubleClick,
+  onFixCode,
 }) => {
   const { iframeRef, iframeHeight } = useIframeCommsParent({
     defaultHeight,
     onHeightChange,
     outputs,
     onDoubleClick,
+    onFixCode,
   });
 
   const [debouncedIframeHeight, setDebouncedIframeHeight] =
