@@ -181,7 +181,7 @@ export const trpcQueryClient = new QueryClient({
       // Enable background refetch on reconnect
       refetchOnReconnect: true,
       // Don't refetch on mount if we have cached data (let stale time handle freshness)
-      refetchOnMount: "always",
+      refetchOnMount: "always" as const,
       // Custom meta to identify cacheable queries
       meta: {
         cacheable: true,
@@ -238,9 +238,9 @@ export const notebookQueryDefaults = {
   // Enable background refresh on focus
   refetchOnWindowFocus: true,
   // Allow cached data on mount, let stale time handle freshness
-  refetchOnMount: "always",
+  refetchOnMount: "always" as const,
   // No polling - rely on user interactions and focus events
-  refetchInterval: false,
+  refetchInterval: false as const,
 };
 
 // Cache-and-refresh for tag queries (more cacheable since they change less)
@@ -248,7 +248,7 @@ export const tagQueryDefaults = {
   gcTime: 1000 * 60 * 15, // 15 minutes
   staleTime: 1000 * 30, // 30 seconds - tags change less frequently
   refetchOnWindowFocus: true,
-  refetchOnMount: "always",
+  refetchOnMount: "always" as const,
 };
 
 // Cache invalidation utilities for mutations
