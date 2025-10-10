@@ -5,9 +5,14 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { Store } from "@livestore/livestore";
+import { useStore } from "@livestore/react";
 import { FileDown, MoreHorizontal } from "lucide-react";
+import { tables } from "@runtimed/schema";
 
 export function NotebookControls() {
+  const { store } = useStore();
+
   return (
     <div className="flex items-center gap-1">
       <DropdownMenu>
@@ -17,7 +22,7 @@ export function NotebookControls() {
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
-          <DropdownMenuItem>
+          <DropdownMenuItem onSelect={() => exportAsIpynb(store)}>
             {/* Icon for export as .ipynb */}
             <FileDown />
             Export as .ipynb
@@ -26,4 +31,9 @@ export function NotebookControls() {
       </DropdownMenu>
     </div>
   );
+}
+
+function exportAsIpynb(store: Store) {
+  const notebook = store.query(tables.cells.select());
+  console.log(notebook);
 }
