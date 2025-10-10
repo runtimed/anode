@@ -7,6 +7,7 @@ import { Button } from "../../ui/button.js";
 import { SimpleUserProfile } from "../SimpleUserProfile.js";
 import type { NotebookProcessed } from "../types.js";
 import { TitleEditor } from "./TitleEditor.js";
+import { DebugModeToggle } from "@/components/debug/DebugModeToggle.js";
 
 export function NotebookHeader({
   notebook,
@@ -67,6 +68,9 @@ export function NotebookHeader({
             <ErrorBoundary FallbackComponent={() => null}>
               <CollaboratorAvatars />
             </ErrorBoundary>
+
+            {/* Debug Mode Toggle */}
+            {import.meta.env.DEV && <DebugModeToggle />}
 
             <ErrorBoundary fallback={<div>Error</div>}>
               <SimpleUserProfile />
