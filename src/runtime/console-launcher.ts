@@ -21,6 +21,7 @@ import { sharedLiveStoreAdapter } from "../livestore/adapter.js";
 import { HtmlRuntimeAgent } from "./html-agent.js";
 import type { LocalRuntimeConfig } from "./LocalRuntimeAgent.js";
 import { PyodideRuntimeAgent } from "@runtimed/pyodide-runtime";
+import { LogLevel, type LogLevelValue } from "@runtimed/agent-core";
 
 // Global interface for console access
 declare global {
@@ -254,6 +255,26 @@ class ConsoleLauncher {
         store = await this.createNewStore(notebookId, userId, authToken);
       }
 
+      // Configure logging based on environment variable
+      const getLogLevelFromEnv = (): LogLevelValue => {
+        const envLevel = import.meta.env.VITE_RUNT_LOG_LEVEL?.toUpperCase();
+        switch (envLevel) {
+          case "DEBUG":
+            return LogLevel.DEBUG;
+          case "INFO":
+            return LogLevel.INFO;
+          case "WARN":
+            return LogLevel.WARN;
+          case "ERROR":
+            return LogLevel.ERROR;
+          default:
+            return LogLevel.ERROR; // Default to ERROR (quiet)
+        }
+      };
+
+      const logLevel = getLogLevelFromEnv();
+      const enableConsoleLogging = logLevel <= LogLevel.INFO;
+
       // Create Pyodide agent with new dedicated class
       const pyodideConfig: LocalRuntimeConfig = {
         store,
@@ -261,6 +282,10 @@ class ConsoleLauncher {
         notebookId,
         userId,
         syncUrl: "ws://localhost:8787",
+        logging: {
+          level: logLevel,
+          console: enableConsoleLogging,
+        },
       };
 
       this.currentPyodideAgent = new PyodideRuntimeAgent(pyodideConfig);
