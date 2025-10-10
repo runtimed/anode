@@ -511,16 +511,21 @@ describe("Reactivity Debugging", () => {
       // Generate high-frequency updates
       const updateCount = 50;
       const heartbeatInterval = 10; // ms
+      const timeouts: NodeJS.Timeout[] = [];
+      let testCompleted = false;
 
       for (let i = 0; i < updateCount; i++) {
-        setTimeout(() => {
-          store.commit(
-            events.runtimeSessionStatusChanged({
-              sessionId: `high-freq-session-${i % 3}`, // Cycle through 3 sessions
-              status: i % 2 === 0 ? "ready" : "busy",
-            })
-          );
+        const timeout = setTimeout(() => {
+          if (!testCompleted) {
+            store.commit(
+              events.runtimeSessionStatusChanged({
+                sessionId: `high-freq-session-${i % 3}`, // Cycle through 3 sessions
+                status: i % 2 === 0 ? "ready" : "busy",
+              })
+            );
+          }
         }, i * heartbeatInterval);
+        timeouts.push(timeout);
       }
 
       // Start a runtime session first
@@ -547,6 +552,9 @@ describe("Reactivity Debugging", () => {
       const totalTime = Date.now() - startTime;
       expect(totalTime).toBeLessThan(5000); // Should complete within 5 seconds
 
+      // Clean up timeouts and mark test as completed
+      testCompleted = true;
+      timeouts.forEach((timeout) => clearTimeout(timeout));
       subscription();
     });
   });

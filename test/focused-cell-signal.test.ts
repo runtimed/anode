@@ -6,7 +6,10 @@ import { createTestStoreId, cleanupResources } from "./setup.js";
 
 console.log("🧪 Starting Anode test suite...");
 
-describe("Focused Cell Signal", () => {
+// Skip test in CI environments where native parcel watcher may fail
+const isCI = process.env.CI === "true" || process.env.GITHUB_ACTIONS === "true";
+
+describe.skipIf(isCI)("Focused Cell Signal", () => {
   let store: any;
   let storeId: string;
 
