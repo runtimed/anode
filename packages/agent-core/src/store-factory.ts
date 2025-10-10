@@ -47,10 +47,44 @@ export async function createStorePromise(
 ): Promise<Store> {
   const { adapter, notebookId, syncPayload } = config;
 
-  return await createLiveStorePromise({
-    adapter,
-    schema,
-    storeId: notebookId,
-    syncPayload: syncPayload as any,
+  console.log(`🏭 Store Factory: Creating store for notebook:`, {
+    notebookId,
+    hasSyncPayload: !!syncPayload,
+    syncPayloadKeys: syncPayload ? Object.keys(syncPayload) : [],
+    timestamp: new Date().toISOString(),
   });
+
+  try {
+    const store = await createLiveStorePromise({
+      adapter,
+      schema,
+      storeId: notebookId,
+      syncPayload: syncPayload as any,
+    });
+
+    console.log(`✅ Store Factory: Successfully created store for notebook:`, {
+      notebookId,
+      storeExists: !!store,
+      timestamp: new Date().toISOString(),
+    });
+
+    // Add debugging helpers to the store instance
+    (store as any)._debugInfo = {
+      notebookId,
+      createdAt: new Date().toISOString(),
+      syncPayload: syncPayload
+        ? { ...syncPayload, authToken: "[REDACTED]" }
+        : null,
+    };
+
+    return store;
+  } catch (error: any) {
+    console.error(`❌ Store Factory: Failed to create store for notebook:`, {
+      notebookId,
+      error: error.message,
+      stack: error.stack,
+      timestamp: new Date().toISOString(),
+    });
+    throw error;
+  }
 }

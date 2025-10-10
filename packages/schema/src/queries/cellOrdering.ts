@@ -28,7 +28,7 @@ export const firstCell$ = queryDb(
   tables.cells
     .select("id", "fractionalIndex")
     .orderBy("fractionalIndex", "asc")
-    .first({ fallback: () => null }),
+    .first({ behaviour: "fallback", fallback: () => null }),
   { label: "cells.first" }
 );
 
@@ -37,7 +37,7 @@ export const lastCell$ = queryDb(
   tables.cells
     .select("id", "fractionalIndex")
     .orderBy("fractionalIndex", "desc")
-    .first({ fallback: () => null }),
+    .first({ behaviour: "fallback", fallback: () => null }),
   { label: "cells.last" }
 );
 
@@ -88,7 +88,7 @@ export const getAdjacentCells = (cellId: string, fractionalIndex: string) => {
       .select("id", "fractionalIndex")
       .where("fractionalIndex", "<", fractionalIndex)
       .orderBy("fractionalIndex", "desc")
-      .first({ fallback: () => null }),
+      .first({ behaviour: "fallback", fallback: () => null }),
     {
       deps: [cellId, fractionalIndex],
       label: `cells.previous.${cellId}`,
@@ -100,7 +100,7 @@ export const getAdjacentCells = (cellId: string, fractionalIndex: string) => {
       .select("id", "fractionalIndex")
       .where("fractionalIndex", ">", fractionalIndex)
       .orderBy("fractionalIndex", "asc")
-      .first({ fallback: () => null }),
+      .first({ behaviour: "fallback", fallback: () => null }),
     {
       deps: [cellId, fractionalIndex],
       label: `cells.next.${cellId}`,
@@ -116,7 +116,7 @@ export const cellPositionInfo = (cellId: string) =>
     tables.cells
       .select("id", "fractionalIndex")
       .where({ id: cellId })
-      .first({ fallback: () => null }),
+      .first({ behaviour: "fallback", fallback: () => null }),
     {
       deps: [cellId],
       label: `cells.positionInfo.${cellId}`,

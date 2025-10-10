@@ -62,7 +62,7 @@ name = "anode-docworker"
 main = "./backend/sync.ts"
 
 [[env.legacy.durable_objects.bindings]]
-name = "WEBSOCKET_SERVER"
+name = "SYNC_BACKEND_DO"
 class_name = "WebSocketServer"
 
 [[env.legacy.d1_databases]]

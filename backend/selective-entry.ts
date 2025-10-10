@@ -196,11 +196,7 @@ export default {
       request.headers.get("upgrade") === "websocket"
     ) {
       console.log("🔄 Routing to LiveStore sync handler on", request.url);
-      return syncHandler.fetch(
-        request as unknown as Request,
-        env,
-        ctx
-      ) as unknown as WorkerResponse;
+      return syncHandler.fetch(request, env, ctx) as unknown as WorkerResponse;
     }
 
     // Route 3: API routes → Hono app

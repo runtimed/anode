@@ -21,7 +21,10 @@ import LiveStoreWorker from "./livestore.worker?worker";
  */
 function shouldResetPersistence(): boolean {
   if (typeof window === "undefined") return false;
-  return new URLSearchParams(window.location.search).get("reset") !== null;
+  const hasReset =
+    new URLSearchParams(window.location.search).get("reset") !== null;
+  console.log(`🔄 Persistence reset check:`, hasReset);
+  return hasReset;
 }
 
 /**
@@ -32,6 +35,7 @@ function cleanupResetParameter(): void {
 
   const searchParams = new URLSearchParams(window.location.search);
   if (searchParams.has("reset")) {
+    console.log(`🔄 Cleaning up reset parameter from URL`);
     searchParams.delete("reset");
     const newUrl = `${window.location.pathname}?${searchParams.toString()}`;
     window.history.replaceState(null, "", newUrl);
@@ -45,25 +49,55 @@ function cleanupResetParameter(): void {
  * Handles OPFS storage, shared workers, and persistence reset logic.
  */
 export const sharedLiveStoreAdapter = (() => {
+  console.log(`🚀 Creating shared LiveStore adapter`);
+
   const resetPersistence = shouldResetPersistence();
 
   // Clean up URL parameter after detection
   if (resetPersistence) {
+    console.log(`🔄 Persistence reset requested, cleaning up URL`);
     cleanupResetParameter();
   }
 
-  return makePersistedAdapter({
+  console.log(`🔧 Adapter configuration:`, {
+    storage: "opfs",
+    resetPersistence,
+    hasWorker: !!LiveStoreWorker,
+    hasSharedWorker: !!LiveStoreSharedWorker,
+  });
+
+  const adapter = makePersistedAdapter({
     storage: { type: "opfs" },
     worker: LiveStoreWorker,
     sharedWorker: LiveStoreSharedWorker,
     resetPersistence,
     // Let LiveStore generate and manage clientId automatically
   });
+
+  console.log(`✅ Shared LiveStore adapter created successfully`);
+  return adapter;
 })();
 
 /**
  * Utility function to check if persistence was reset on this session
  */
 export function wasPersistedDataReset(): boolean {
-  return shouldResetPersistence();
+  const wasReset = shouldResetPersistence();
+  console.log(`🔄 Was persistence reset check:`, wasReset);
+  return wasReset;
 }
+
+/**
+ * Debug helper to log adapter state
+ */
+export function debugAdapterState(): void {
+  console.log(`🔍 Adapter debug info:`, {
+    adapterExists: !!sharedLiveStoreAdapter,
+    timestamp: new Date().toISOString(),
+    userAgent: navigator.userAgent,
+    url: window.location.href,
+  });
+}
+
+// Log adapter creation on module load
+console.log(`📦 LiveStore adapter module loaded at:`, new Date().toISOString());
