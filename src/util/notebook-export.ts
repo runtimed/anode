@@ -219,10 +219,15 @@ export function exportNotebookToJupyter(
       .map(convertOutputToJupyter)
       .filter((output): output is JupyterOutput => output !== null);
 
-    // Add "AI PROMPT: " prefix for AI cells
+    // Add "AI PROMPT: " prefix for AI cells and ensure each line is a comment
     const source =
       cell.cellType === "ai"
-        ? `# AI PROMPT: ${cell.source || ""}`
+        ? (cell.source || "")
+            .split("\n")
+            .map((line: string, index: number) =>
+              index === 0 ? `# AI PROMPT: ${line}` : `# ${line}`
+            )
+            .join("\n")
         : cell.source || "";
 
     return {
