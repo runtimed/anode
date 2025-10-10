@@ -219,6 +219,12 @@ export function exportNotebookToJupyter(
       .map(convertOutputToJupyter)
       .filter((output): output is JupyterOutput => output !== null);
 
+    // Add "AI PROMPT: " prefix for AI cells
+    const source =
+      cell.cellType === "ai"
+        ? `# AI PROMPT: ${cell.source || ""}`
+        : cell.source || "";
+
     return {
       cell_type: anodeCellTypeToJupyter(cell.cellType),
       metadata: {
@@ -235,7 +241,7 @@ export function exportNotebookToJupyter(
         // Add execution count if available
         ...(cell.executionCount && { execution_count: cell.executionCount }),
       },
-      source: cell.source || "",
+      source: source,
       execution_count: cell.executionCount || null,
       outputs: jupyterOutputs.length > 0 ? jupyterOutputs : undefined,
     };
