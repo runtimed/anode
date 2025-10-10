@@ -62,6 +62,8 @@ function anodeCellTypeToJupyter(cellType: string): "code" | "markdown" | "raw" {
   }
 }
 
+const imageMimeTypes = ["image/png", "image/jpeg", "image/gif"];
+
 /**
  * Convert Anode output to Jupyter output format
  */
@@ -70,6 +72,7 @@ function convertOutputToJupyter(output: any): JupyterOutput | null {
 
   // Handle different output types
   switch (outputType) {
+    case "multimedia_display":
     case "multimedia_result":
       // Rich output with multiple representations
       if (representations) {
@@ -87,6 +90,11 @@ function convertOutputToJupyter(output: any): JupyterOutput | null {
           ) {
             const rep = representation as any;
             if (rep.type === "inline") {
+              if (imageMimeTypes.includes(mimeType)) {
+                jupyterData[mimeType] = `data:${mimeType};base64,${rep.data}`;
+              } else {
+                jupyterData[mimeType] = rep.data;
+              }
               jupyterData[mimeType] = rep.data;
             } else if (rep.type === "artifact") {
               // For artifacts, we'll include the artifact ID as metadata
