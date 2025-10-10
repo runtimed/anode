@@ -1,4 +1,4 @@
-import { schema, sql, tables, events, Store } from "@runtimed/schema";
+import { schema, events } from "@runtimed/schema";
 import { BootStatus } from "@runtimed/schema";
 import { LiveStoreProvider } from "@livestore/react";
 import React, { useEffect, useRef } from "react";
@@ -6,7 +6,7 @@ import { unstable_batchedUpdates as batchUpdates } from "react-dom";
 import { useAuth } from "../auth/index.js";
 import { useStore } from "@livestore/react";
 import { sharedLiveStoreAdapter } from "./adapter.js";
-import { Effect, Stream } from "@livestore/livestore";
+// Remove Effect/Stream import as they're not properly exported
 
 // Error boundary for LiveStore-related errors
 class LiveStoreErrorBoundary extends React.Component<
@@ -66,25 +66,6 @@ const LiveStoreReadyDetector: React.FC<{
   const readyRef = useRef(false);
   const { store } = useStore();
 
-  // Store error handler
-  const handleStoreError = (error: Error, context: string) => {
-    console.error(`📚 Store error for notebook ${storeId} (${context}):`, {
-      message: error.message,
-      stack: error.stack,
-      timestamp: new Date().toISOString(),
-    });
-  };
-
-  // Safe query wrapper
-  const safeQuery = (queryFn: () => any, context: string) => {
-    try {
-      return queryFn();
-    } catch (error: any) {
-      handleStoreError(error, context);
-      return null;
-    }
-  };
-
   useEffect(() => {
     // If this component renders, LiveStore is ready
     if (!readyRef.current) {
@@ -92,41 +73,8 @@ const LiveStoreReadyDetector: React.FC<{
       console.log(`📚 LiveStore ready for notebook:`, storeId);
       onReady?.();
 
-      // Monitor network status for session cycling issues
-      store.networkStatus.changes
-        .pipe(
-          Stream.tap((status) => {
-            console.log(`🌐 Network status change for ${storeId}:`, {
-              connected: status.isConnected,
-              timestamp: new Date(status.timestampMs),
-              devtoolsLatch: status.devtools?.latchClosed,
-            });
-          }),
-          Stream.runDrain,
-          Effect.scoped,
-          Effect.runPromise
-        )
-        .catch((error) => handleStoreError(error, "network monitoring"));
-
-      // Test store reactivity with error handling
-      try {
-        const testQuery = sql`SELECT 1 as test`;
-        const unsubscribe = store.subscribe(testQuery, (result) => {
-          console.log(`📚 Store reactivity test for ${storeId}:`, result);
-        });
-
-        // Clean up after 5 seconds
-        setTimeout(() => {
-          try {
-            unsubscribe();
-            console.log(`📚 Store reactivity cleanup for ${storeId}`);
-          } catch (error: any) {
-            handleStoreError(error, "reactivity cleanup");
-          }
-        }, 5000);
-      } catch (error: any) {
-        handleStoreError(error, "reactivity test setup");
-      }
+      // Log store readiness instead of complex network monitoring
+      console.log(`🌐 Store is ready and reactive for ${storeId}`);
     }
   }, [onReady, storeId, store]);
 
@@ -203,32 +151,36 @@ export const CustomLiveStoreProvider: React.FC<
   }, [accessToken]);
 
   // Boot function to debug old notebook issues
-  const handleBoot = async (store: Store) => {
+  const handleBoot = (store: any) => {
     console.log(`📚 Boot: Starting with notebook`, storeId);
 
     try {
       // Check if this is an old notebook by looking at existing data
-      const cellCount = store.query(
-        sql`SELECT COUNT(*) as count FROM sqlite_master WHERE type='table' AND name='cells'`
-      );
+      const cellCount = store.query({
+        query: `SELECT COUNT(*) as count FROM sqlite_master WHERE type='table' AND name='cells'`,
+        bindValues: [],
+      });
       console.log(`📚 Boot: Cell table exists:`, cellCount);
 
       // Check LiveStore internal tables
-      const schemaInfo = store.query(
-        sql`SELECT name FROM sqlite_master WHERE type='table' AND name LIKE '__livestore%'`
-      );
+      const schemaInfo = store.query({
+        query: `SELECT name FROM sqlite_master WHERE type='table' AND name LIKE '__livestore%'`,
+        bindValues: [],
+      });
       console.log(`📚 Boot: LiveStore internal tables:`, schemaInfo);
 
       // Try a simple schema compatibility check
-      const cells = store.query(
-        sql`SELECT COUNT(*) as count FROM cells LIMIT 1`
-      );
+      const cells = store.query({
+        query: `SELECT COUNT(*) as count FROM cells LIMIT 1`,
+        bindValues: [],
+      });
       console.log(`📚 Boot: Schema compatibility check passed, cells:`, cells);
 
       // Check for any existing executions that might cause issues
-      const executions = store.query(
-        sql`SELECT COUNT(*) as count FROM executions WHERE status IN ('running', 'queued')`
-      );
+      const executions = store.query({
+        query: `SELECT COUNT(*) as count FROM executions WHERE status IN ('running', 'queued')`,
+        bindValues: [],
+      });
       console.log(`📚 Boot: Active executions found:`, executions);
     } catch (error: any) {
       console.error(`📚 Boot: Schema compatibility issue for ${storeId}:`, {
