@@ -6,6 +6,7 @@ import { Collaborator } from "../types.js";
 import { Button } from "../../ui/button.js";
 import { SimpleUserProfile } from "../SimpleUserProfile.js";
 import type { NotebookProcessed } from "../types.js";
+import { NotebookControls } from "./NotebookControls.js";
 import { TitleEditor } from "./TitleEditor.js";
 
 export function NotebookHeader({
@@ -23,7 +24,7 @@ export function NotebookHeader({
     <div className="border-b bg-white">
       <div className="mx-auto px-2 py-3 sm:px-4 sm:py-4">
         <div className="flex items-center justify-between gap-1 sm:gap-4">
-          <div className="min-w-0 flex-1">
+          <div className="flex min-w-0 flex-1 items-center gap-2">
             <TitleEditor
               notebook={notebook}
               onTitleSaved={onTitleSaved}
@@ -58,8 +59,8 @@ export function NotebookHeader({
         </div>
 
         {/* Metadata - Mobile optimized */}
-        <div className="mt-2 flex flex-col gap-2 text-xs text-gray-500 sm:mt-3 sm:flex-row sm:items-center sm:justify-between">
-          <div className="flex items-center gap-2 sm:gap-4">
+        <div className="mt-2 flex flex-col gap-2 text-xs sm:mt-3 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex items-center gap-2 text-gray-500 sm:gap-4">
             {/* Owner name - Mobile: Show on mobile with CollaboratorAvatars */}
             <div className="flex items-center gap-1.5">
               <User className="h-3 w-3" />
@@ -83,6 +84,7 @@ export function NotebookHeader({
               setIsSharingDialogOpen={() => setIsSharingDialogOpen(true)}
             />
           </div>
+          <NotebookControls />
         </div>
       </div>
     </div>
