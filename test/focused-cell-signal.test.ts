@@ -6,8 +6,26 @@ import { createTestStoreId, cleanupResources } from "./setup.js";
 
 console.log("🧪 Starting Anode test suite...");
 
+// Debug CI environment variables
+console.log("🔍 CI Environment Debug:", {
+  CI: process.env.CI,
+  GITHUB_ACTIONS: process.env.GITHUB_ACTIONS,
+  CONTINUOUS_INTEGRATION: process.env.CONTINUOUS_INTEGRATION,
+  BUILD_NUMBER: process.env.BUILD_NUMBER,
+  RUNNER_OS: process.env.RUNNER_OS,
+  NODE_ENV: process.env.NODE_ENV,
+});
+
 // Skip test in CI environments where native parcel watcher may fail
-const isCI = process.env.CI === "true" || process.env.GITHUB_ACTIONS === "true";
+const isCI = !!(
+  process.env.CI ||
+  process.env.GITHUB_ACTIONS ||
+  process.env.CONTINUOUS_INTEGRATION ||
+  process.env.BUILD_NUMBER ||
+  process.env.RUNNER_OS
+);
+
+console.log("🔍 isCI result:", isCI);
 
 describe.skipIf(isCI)("Focused Cell Signal", () => {
   let store: any;
