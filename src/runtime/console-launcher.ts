@@ -61,9 +61,14 @@ class ConsoleLauncher {
   private userId: string | null = null;
   private authToken: string | null = null;
   private lastError: string | null = null;
+  private _debugInstanceId: string;
+  private _debugStoreCount: number = 0;
 
   constructor() {
-    console.log("🚀 Runt Console Launcher initialized");
+    this._debugInstanceId = Math.random().toString(36).substring(2, 15);
+    console.log(
+      `🚀 Runt Console Launcher initialized (${this._debugInstanceId})`
+    );
     console.log("📖 Usage Guide:");
     console.log("  • Check status: window.__RUNT_LAUNCHER__.getStatus()");
     console.log(
@@ -314,21 +319,70 @@ class ConsoleLauncher {
       userId,
     });
 
-    return await createStorePromise({
-      adapter: sharedLiveStoreAdapter,
+    console.log(`🏭 Console Launcher: Creating store for notebook:`, {
       notebookId,
-      syncPayload,
+      runtimeId,
+      sessionId,
+      userId,
+      timestamp: new Date().toISOString(),
     });
+
+    try {
+      const store = await createStorePromise({
+        adapter: sharedLiveStoreAdapter,
+        notebookId,
+        syncPayload,
+      });
+
+      // Track store creation
+      this._debugStoreCount += 1;
+
+      console.log(`✅ Console Launcher: Store created successfully:`, {
+        notebookId,
+        instanceId: this._debugInstanceId,
+        storeCount: this._debugStoreCount,
+        storeExists: !!store,
+        timestamp: new Date().toISOString(),
+      });
+
+      // Add debugging info to the store
+      (store as any)._debugInfo = {
+        ...(store as any)._debugInfo,
+        consoleLauncherInstance: this._debugInstanceId,
+        createdByConsoleLauncher: true,
+      };
+
+      return store;
+    } catch (error: any) {
+      console.error(`❌ Console Launcher: Store creation failed:`, {
+        notebookId,
+        error: error.message,
+        stack: error.stack,
+        timestamp: new Date().toISOString(),
+      });
+      throw error;
+    }
   }
 
   async shutdown(): Promise<void> {
+    console.log(
+      `🛑 Console Launcher shutdown requested (${this._debugInstanceId}):`,
+      {
+        hasPyodideAgent: !!this.currentPyodideAgent,
+        hasHtmlAgent: !!this.currentHtmlAgent,
+        storeCount: this._debugStoreCount,
+        timestamp: new Date().toISOString(),
+      }
+    );
+
     if (this.currentPyodideAgent) {
       console.log("🛑 Shutting down Pyodide runtime agent...");
       await this.currentPyodideAgent.stop();
       this.currentPyodideAgent = null;
       this.currentAgent = null;
       console.log("✅ Pyodide runtime agent shut down (store preserved)");
-    } else if (this.currentHtmlAgent) {
+    }
+    if (this.currentHtmlAgent) {
       console.log("🛑 Shutting down HTML runtime agent...");
       await this.currentHtmlAgent.stop();
       this.currentHtmlAgent = null;
