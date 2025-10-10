@@ -122,6 +122,23 @@ await run_registered_tool("${data.toolName}", kwargs_string)
         break;
       }
 
+      case "files": {
+        if (!pyodide) {
+          throw new Error("Pyodide not initialized");
+        }
+
+        for (const file of data.files) {
+          const response = await fetch(file.url);
+          const content = await response.text();
+          pyodide.FS.writeFile(`./${file.fileName}`, content);
+        }
+
+        console.log("worker wrote files", { data });
+
+        self.postMessage({ id, type: "response", data: { success: true } });
+        break;
+      }
+
       case "debug": {
         // Debug message handler - allows direct access to pyodide instance
         try {
