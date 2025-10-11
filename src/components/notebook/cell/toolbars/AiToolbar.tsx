@@ -8,13 +8,19 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { ChevronDown } from "lucide-react";
+import { Brain, ChevronDown, Eye, Wrench } from "lucide-react";
 import {
   useAvailableAiModels,
   getNotebookAiModels,
   getProviderBadgeColor,
   getModelSizeDisplay,
 } from "@/util/ai-models.js";
+import {
+  SimpleTooltip,
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 interface AiToolbarProps {
   provider: string;
@@ -89,6 +95,31 @@ export const AiToolbar: React.FC<AiToolbarProps> = ({
                   >
                     {model.displayName}
                     {model.provider === "ollama" && getModelSizeDisplay(model)}
+                    <div className="flex-1" />
+                    {model.capabilities.includes("thinking") && (
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Brain />
+                        </TooltipTrigger>
+                        <TooltipContent>Thinking</TooltipContent>
+                      </Tooltip>
+                    )}
+                    {model.capabilities.includes("tools") && (
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Wrench />
+                        </TooltipTrigger>
+                        <TooltipContent>Tools</TooltipContent>
+                      </Tooltip>
+                    )}
+                    {model.capabilities.includes("vision") && (
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Eye />
+                        </TooltipTrigger>
+                        <TooltipContent>Thinking</TooltipContent>
+                      </Tooltip>
+                    )}
                   </DropdownMenuItem>
                 ))}
               </React.Fragment>
