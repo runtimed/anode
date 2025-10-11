@@ -8,7 +8,7 @@ export const lastUsedAiModel$ = queryDb(
   tables.notebookMetadata
     .select()
     .where({ key: "lastUsedAiModel" })
-    .first({ fallback: () => null }),
+    .first({ behaviour: "fallback", fallback: () => null }),
   { label: "notebook.lastUsedAiModel" }
 );
 
@@ -16,6 +16,6 @@ export const lastUsedAiProvider$ = queryDb(
   tables.notebookMetadata
     .select()
     .where({ key: "lastUsedAiProvider" })
-    .first({ fallback: () => null }),
+    .first({ behaviour: "fallback", fallback: () => null }),
   { label: "notebook.lastUsedAiProvider" }
 );

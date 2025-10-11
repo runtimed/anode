@@ -5,5 +5,5 @@ export const maxAiIterations$ = queryDb(
   tables.notebookMetadata
     .select("value")
     .where("key", "=", "max_ai_iterations")
-    .first({ fallback: () => "10" })
+    .first({ behaviour: "fallback", fallback: () => "10" })
 );

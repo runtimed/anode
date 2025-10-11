@@ -483,8 +483,9 @@ export class PyodideRuntimeAgent extends LocalRuntimeAgent {
         currentCellRef
       );
 
-      const maxAiIterations: number =
-        parseInt(this.agent.store.query(maxAiIterations$)) || 10;
+      const maxAiIterations: number = parseInt(
+        this.agent.store.query(maxAiIterations$) || "10"
+      );
 
       // Track AI execution for cancellation
       const aiAbortController = new AbortController();
