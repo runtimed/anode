@@ -8,6 +8,15 @@ import { SimpleUserProfile } from "../SimpleUserProfile.js";
 import type { NotebookProcessed } from "../types.js";
 import { TitleEditor } from "./TitleEditor.js";
 import { DebugModeToggle } from "@/components/debug/DebugModeToggle.js";
+import { useAuthenticatedUser } from "@/auth/index.js";
+import {
+  HoverCard,
+  HoverCardContent,
+  HoverCardTrigger,
+} from "@/components/ui/hover-card.js";
+import { Avatar } from "@/components/ui/avatar.js";
+import { AvatarImage } from "@/components/ui/avatar.js";
+import { AvatarFallback } from "@/components/ui/avatar.js";
 
 export function NotebookHeader({
   notebook,
@@ -19,6 +28,12 @@ export function NotebookHeader({
   setIsSharingDialogOpen: (isOpen: boolean) => void;
 }) {
   const canEdit = notebook.myPermission === "OWNER";
+  const userId = useAuthenticatedUser();
+
+  const ownerName =
+    notebook.owner?.givenName || notebook.owner?.familyName
+      ? `${notebook.owner.givenName ?? ""} ${notebook.owner.familyName ?? ""}`.trim()
+      : "Unknown Owner";
 
   return (
     <div className="border-b bg-white">
@@ -40,16 +55,19 @@ export function NotebookHeader({
               <div className="flex flex-col gap-2 text-xs text-gray-500 sm:flex-row sm:items-center sm:justify-between">
                 <div className="flex items-center gap-2 sm:gap-4">
                   {/* Owner name - Mobile: Show on mobile with CollaboratorAvatars */}
-                  <div className="flex items-center gap-1.5">
-                    <User className="h-3 w-3" />
-                    <span className="truncate">
-                      {notebook.owner?.givenName && notebook.owner?.familyName
-                        ? `${notebook.owner.givenName} ${notebook.owner.familyName}`
-                        : "Unknown Owner"}
-                    </span>
-                  </div>
+                  {userId !== notebook.owner?.id && (
+                    <div className="flex items-center gap-1.5">
+                      <User className="h-3 w-3" />
+                      <span className="truncate">{ownerName}</span>
+                    </div>
+                  )}
 
-                  <CollaboratorSection collaborators={notebook.collaborators} />
+                  {notebook.collaborators &&
+                    notebook.collaborators.length > 0 && (
+                      <CollaboratorSection
+                        collaborators={notebook.collaborators}
+                      />
+                    )}
                 </div>
               </div>
             )}
@@ -89,10 +107,13 @@ function CollaboratorSection({
 }: {
   collaborators: readonly Collaborator[];
 }) {
+  if (collaborators.length === 0) {
+    return null;
+  }
+
   return (
-    <>
-      {/* Collaborators count with share button - More compact on mobile */}
-      {collaborators && collaborators.length > 0 && (
+    <HoverCard>
+      <HoverCardTrigger asChild>
         <div className="flex items-center gap-1 sm:gap-2">
           <div className="flex items-center gap-1 sm:gap-1.5">
             <Users className="h-3 w-3" />
@@ -103,7 +124,24 @@ function CollaboratorSection({
             <span className="sm:hidden">{collaborators.length}</span>
           </div>
         </div>
-      )}
-    </>
+      </HoverCardTrigger>
+      <HoverCardContent>
+        {collaborators.map((collaborator) => (
+          <div key={collaborator.id}>
+            <span>{collaboratorToName(collaborator)}</span>
+            <Avatar>
+              <AvatarImage src={collaborator.picture} />
+              <AvatarFallback>
+                {collaboratorToName(collaborator).charAt(0)}
+              </AvatarFallback>
+            </Avatar>
+          </div>
+        ))}
+      </HoverCardContent>
+    </HoverCard>
   );
+}
+
+function collaboratorToName(collaborator: Collaborator): string {
+  return `${collaborator.givenName ?? ""} ${collaborator.familyName ?? ""}`.trim();
 }
