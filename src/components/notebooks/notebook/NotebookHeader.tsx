@@ -7,6 +7,16 @@ import { Button } from "../../ui/button.js";
 import { SimpleUserProfile } from "../SimpleUserProfile.js";
 import type { NotebookProcessed } from "../types.js";
 import { TitleEditor } from "./TitleEditor.js";
+import { DebugModeToggle } from "@/components/debug/DebugModeToggle.js";
+import { useAuthenticatedUser } from "@/auth/index.js";
+import {
+  HoverCard,
+  HoverCardContent,
+  HoverCardTrigger,
+} from "@/components/ui/hover-card.js";
+import { Avatar } from "@/components/ui/avatar.js";
+import { AvatarImage } from "@/components/ui/avatar.js";
+import { AvatarFallback } from "@/components/ui/avatar.js";
 
 export function NotebookHeader({
   notebook,
@@ -18,12 +28,18 @@ export function NotebookHeader({
   setIsSharingDialogOpen: (isOpen: boolean) => void;
 }) {
   const canEdit = notebook.myPermission === "OWNER";
+  const userId = useAuthenticatedUser();
+
+  const ownerName =
+    notebook.owner?.givenName || notebook.owner?.familyName
+      ? `${notebook.owner.givenName ?? ""} ${notebook.owner.familyName ?? ""}`.trim()
+      : "Unknown Owner";
 
   return (
     <div className="border-b bg-white">
-      <div className="mx-auto px-2 py-3 sm:px-4 sm:py-4">
-        <div className="flex items-center justify-between gap-1 sm:gap-4">
-          <div className="min-w-0 flex-1">
+      <div className="mx-auto p-2 pl-5 sm:p-2 sm:pl-5">
+        <div className="flex items-center justify-start gap-1 sm:gap-4">
+          <div className="min-w-0">
             <TitleEditor
               notebook={notebook}
               onTitleSaved={onTitleSaved}
@@ -31,14 +47,30 @@ export function NotebookHeader({
             />
           </div>
 
-          {/* Right side - Mobile optimized */}
-          <div className="flex shrink-0 items-center gap-2 sm:gap-3">
-            <div className="hidden sm:block">
-              <ErrorBoundary FallbackComponent={() => null}>
-                <CollaboratorAvatars />
-              </ErrorBoundary>
-            </div>
+          <div className="flex-1" />
 
+          {/* Right side */}
+          <div className="flex shrink-0 items-center gap-1 sm:gap-2">
+            {notebook.collaborators && notebook.collaborators.length > 0 && (
+              <div className="flex flex-col gap-2 text-xs text-gray-500 sm:flex-row sm:items-center sm:justify-between">
+                <div className="flex items-center gap-2 sm:gap-4">
+                  {/* Owner name - Mobile: Show on mobile with CollaboratorAvatars */}
+                  {userId !== notebook.owner?.id && (
+                    <div className="flex items-center gap-1.5">
+                      <User className="h-3 w-3" />
+                      <span className="truncate">{ownerName}</span>
+                    </div>
+                  )}
+
+                  {notebook.collaborators &&
+                    notebook.collaborators.length > 0 && (
+                      <CollaboratorSection
+                        collaborators={notebook.collaborators}
+                      />
+                    )}
+                </div>
+              </div>
+            )}
             {canEdit && (
               <Button
                 variant="outline"
@@ -51,6 +83,13 @@ export function NotebookHeader({
               </Button>
             )}
 
+            <ErrorBoundary FallbackComponent={() => null}>
+              <CollaboratorAvatars />
+            </ErrorBoundary>
+
+            {/* Debug Mode Toggle */}
+            {import.meta.env.DEV && <DebugModeToggle />}
+
             <ErrorBoundary fallback={<div>Error</div>}>
               <SimpleUserProfile />
             </ErrorBoundary>
@@ -58,32 +97,6 @@ export function NotebookHeader({
         </div>
 
         {/* Metadata - Mobile optimized */}
-        <div className="mt-2 flex flex-col gap-2 text-xs text-gray-500 sm:mt-3 sm:flex-row sm:items-center sm:justify-between">
-          <div className="flex items-center gap-2 sm:gap-4">
-            {/* Owner name - Mobile: Show on mobile with CollaboratorAvatars */}
-            <div className="flex items-center gap-1.5">
-              <User className="h-3 w-3" />
-              <span className="truncate">
-                {notebook.owner?.givenName && notebook.owner?.familyName
-                  ? `${notebook.owner.givenName} ${notebook.owner.familyName}`
-                  : "Unknown Owner"}
-              </span>
-            </div>
-
-            {/* Mobile CollaboratorAvatars */}
-            <div className="sm:hidden">
-              <ErrorBoundary FallbackComponent={() => null}>
-                <CollaboratorAvatars />
-              </ErrorBoundary>
-            </div>
-
-            <CollaboratorSection
-              collaborators={notebook.collaborators}
-              canEdit={canEdit}
-              setIsSharingDialogOpen={() => setIsSharingDialogOpen(true)}
-            />
-          </div>
-        </div>
       </div>
     </div>
   );
@@ -91,17 +104,16 @@ export function NotebookHeader({
 
 function CollaboratorSection({
   collaborators,
-  canEdit,
-  setIsSharingDialogOpen,
 }: {
   collaborators: readonly Collaborator[];
-  canEdit: boolean;
-  setIsSharingDialogOpen: (isOpen: boolean) => void;
 }) {
+  if (collaborators.length === 0) {
+    return null;
+  }
+
   return (
-    <>
-      {/* Collaborators count with share button - More compact on mobile */}
-      {collaborators && collaborators.length > 0 && (
+    <HoverCard>
+      <HoverCardTrigger asChild>
         <div className="flex items-center gap-1 sm:gap-2">
           <div className="flex items-center gap-1 sm:gap-1.5">
             <Users className="h-3 w-3" />
@@ -112,21 +124,24 @@ function CollaboratorSection({
             <span className="sm:hidden">{collaborators.length}</span>
           </div>
         </div>
-      )}
-
-      {/* Show share button even when no collaborators */}
-      {(!collaborators || collaborators.length === 0) && canEdit && (
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={() => setIsSharingDialogOpen(true)}
-          className="h-5 px-1 text-xs text-gray-400 hover:text-gray-600 sm:px-2"
-        >
-          <Users className="mr-1 h-3 w-3 sm:mr-1.5" />
-          <span className="hidden sm:inline">Share</span>
-          <span className="sm:hidden">+</span>
-        </Button>
-      )}
-    </>
+      </HoverCardTrigger>
+      <HoverCardContent>
+        {collaborators.map((collaborator) => (
+          <div key={collaborator.id}>
+            <span>{collaboratorToName(collaborator)}</span>
+            <Avatar>
+              <AvatarImage src={collaborator.picture} />
+              <AvatarFallback>
+                {collaboratorToName(collaborator).charAt(0)}
+              </AvatarFallback>
+            </Avatar>
+          </div>
+        ))}
+      </HoverCardContent>
+    </HoverCard>
   );
+}
+
+function collaboratorToName(collaborator: Collaborator): string {
+  return `${collaborator.givenName ?? ""} ${collaborator.familyName ?? ""}`.trim();
 }

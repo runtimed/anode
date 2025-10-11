@@ -1,6 +1,8 @@
+import { useMaxWidth } from "@/hooks/use-breakpoint.ts";
+import { cn } from "@/lib/utils.ts";
+import React, { Suspense } from "react";
 import { MinimalLoading } from "../loading/LoadingState.js";
 import { useDebug } from "./debug-mode.tsx";
-import React, { Suspense } from "react";
 
 // Dynamic import for FPSMeter - development tool only
 const FPSMeterComponent = React.lazy(() =>
@@ -11,6 +13,7 @@ const FPSMeterComponent = React.lazy(() =>
 
 export const FPSMeter = () => {
   const debug = useDebug();
+  const isMedium = useMaxWidth("md");
 
   if (!debug.enabled || !import.meta.env.DEV) {
     return null;
@@ -18,16 +21,13 @@ export const FPSMeter = () => {
 
   return (
     <div
-      style={{
-        bottom: 0,
-        right: debug.enabled ? 400 : 0, // Leave space for debug panel
-        position: "fixed",
-        background: "#333",
-        zIndex: 50,
-      }}
+      className={cn(
+        "fixed bottom-0 z-50 bg-black text-white",
+        isMedium ? "right-0 bottom-12" : "right-12"
+      )}
     >
       <Suspense fallback={<MinimalLoading message="Loading FPS meter..." />}>
-        <FPSMeterComponent height={40} />
+        <FPSMeterComponent height={30} />
       </Suspense>
     </div>
   );

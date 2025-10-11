@@ -2,8 +2,7 @@ import { Key, LogOut, Settings } from "lucide-react";
 import React, { useState } from "react";
 import { useAuth, type AuthUser } from "../../auth/index.js";
 import { ApiKeysDialog } from "../auth/ApiKeysDialog.js";
-import { Avatar, AvatarFallback } from "../ui/avatar.js";
-import { Button } from "../ui/button";
+import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar.js";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -79,15 +78,18 @@ export const SimpleUserProfile: React.FC<SimpleUserProfileProps> = ({
   const displayName = getDisplayName(user);
   const initials = getUserInitials(user);
 
+  // user.picture = "https://picsum.photos/200/200";
+
   return (
     <div className={className}>
       <DropdownMenu open={isDropdownOpen} onOpenChange={setIsDropdownOpen}>
         <DropdownMenuTrigger asChild>
-          <Button variant="ghost" className="h-8 w-8 rounded-full p-0">
-            <Avatar>
+          <Avatar asChild>
+            <button>
+              <AvatarImage src={user.picture} />
               <AvatarFallback>{initials}</AvatarFallback>
-            </Avatar>
-          </Button>
+            </button>
+          </Avatar>
         </DropdownMenuTrigger>
 
         <DropdownMenuContent align="end" className="w-56">
