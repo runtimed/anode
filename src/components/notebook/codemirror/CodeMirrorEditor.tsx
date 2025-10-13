@@ -19,8 +19,10 @@ import { markdown } from "@codemirror/lang-markdown";
 import { SupportedLanguage } from "@/types/misc.js";
 import { sql } from "@codemirror/lang-sql";
 import { html } from "@codemirror/lang-html";
-import { useCodeMirror } from "@uiw/react-codemirror";
+import { Extension, useCodeMirror } from "@uiw/react-codemirror";
 import { baseExtensions, aiBaseExtensions } from "./baseExtensions.js";
+import { toast } from "sonner";
+import { indentWithTab } from "@codemirror/commands";
 
 export interface CodeMirrorEditorRef {
   focus: () => void;
@@ -80,6 +82,24 @@ export const CodeMirrorEditor = forwardRef<
     const editorRef = useRef<HTMLDivElement | null>(null);
     const editorViewRef = useRef<EditorView | null>(null);
 
+    const tabBehavior = useMemo(() => {
+      return [
+        keymap.of([
+          {
+            key: "Tab",
+            shift: (target: EditorView) => {
+              if (target.state.doc.length === 0) {
+                toast.error("Cell is empty");
+                return true;
+              }
+              return false;
+            },
+          },
+          indentWithTab,
+        ]),
+      ];
+    }, []);
+
     const langExtension = useMemo(
       () => languageExtension(language),
       [language]
@@ -90,10 +110,11 @@ export const CodeMirrorEditor = forwardRef<
         ? aiBaseExtensions
         : baseExtensions;
 
-      const exts = [
+      const exts: Extension[] = [
         keymap.of(keyMap || []),
         ...selectedBaseExtensions,
         langExtension,
+        ...tabBehavior,
       ];
 
       if (placeholder) {
@@ -111,6 +132,7 @@ export const CodeMirrorEditor = forwardRef<
       placeholder,
       enableLineWrapping,
       disableAutocompletion,
+      tabBehavior,
     ]);
 
     const handleChange = useCallback(
@@ -126,6 +148,7 @@ export const CodeMirrorEditor = forwardRef<
 
     const { setContainer, view } = useCodeMirror({
       container: editorRef.current,
+      indentWithTab: false,
       extensions,
       basicSetup: false,
       maxHeight,
