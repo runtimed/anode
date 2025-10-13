@@ -1,26 +1,23 @@
-import React from "react";
-import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { Brain, ChevronDown, Eye, Wrench } from "lucide-react";
+  Command,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "@/components/ui/command";
 import {
-  useAvailableAiModels,
-  getNotebookAiModels,
-  getProviderBadgeColor,
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import {
   getModelSizeDisplay,
+  getNotebookAiModels,
+  useAvailableAiModels,
 } from "@/util/ai-models.js";
-import {
-  SimpleTooltip,
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
+import { Brain, ChevronsUpDown, Eye, Wrench } from "lucide-react";
+import React from "react";
 
 interface AiToolbarProps {
   provider: string;
@@ -28,17 +25,33 @@ interface AiToolbarProps {
   onProviderChange: (provider: string, model: string) => void;
 }
 
+// Based on: https://craft.mxkaske.dev/post/fancy-box
+
 export const AiToolbar: React.FC<AiToolbarProps> = ({
   provider,
   model,
   onProviderChange,
 }) => {
+  const inputRef = React.useRef<HTMLInputElement>(null);
+  const [openCombobox, setOpenCombobox] = React.useState(false);
+  const [inputValue, setInputValue] = React.useState<string>("");
+
   const { models: availableModels } = useAvailableAiModels();
   const notebookModels = getNotebookAiModels(availableModels);
 
-  // Group models by provider
+  // Filter models based on search input
+  const filteredModels = React.useMemo(() => {
+    if (!inputValue) return notebookModels;
+    return notebookModels.filter(
+      (model) =>
+        model.displayName.toLowerCase().includes(inputValue.toLowerCase()) ||
+        model.provider.toLowerCase().includes(inputValue.toLowerCase())
+    );
+  }, [notebookModels, inputValue]);
+
+  // Group filtered models by provider
   const providerGroups = Object.entries(
-    notebookModels.reduce(
+    filteredModels.reduce(
       (acc, model) => {
         if (!acc[model.provider]) {
           acc[model.provider] = [];
@@ -46,89 +59,101 @@ export const AiToolbar: React.FC<AiToolbarProps> = ({
         acc[model.provider].push(model);
         return acc;
       },
-      {} as Record<string, typeof notebookModels>
+      {} as Record<string, typeof filteredModels>
     )
   );
 
-  const getProviderBadge = () => {
-    const currentModel = availableModels.find(
+  const selectModel = (selectedProvider: string, selectedModel: string) => {
+    onProviderChange(selectedProvider, selectedModel);
+    setOpenCombobox(false);
+  };
+
+  const onComboboxOpenChange = (value: boolean) => {
+    inputRef.current?.blur();
+    setOpenCombobox(value);
+    if (value) {
+      setInputValue(""); // Clear input text when opening menu
+    }
+  };
+
+  const getCurrentModel = () => {
+    return availableModels.find(
       (m) => m.name === model && m.provider === provider
-    );
-
-    const displayName =
-      provider === "ollama" ? "Ollama" : provider.toUpperCase();
-    const modelDisplay = currentModel ? currentModel.displayName : model;
-    const colorClass = getProviderBadgeColor(provider);
-
-    return (
-      <Badge
-        variant="outline"
-        className={`h-5 cursor-pointer text-xs hover:opacity-80 ${colorClass}`}
-        title={`Provider: ${displayName}, Model: ${modelDisplay}`}
-      >
-        {displayName} • {modelDisplay}
-      </Badge>
     );
   };
 
+  const currentModel = getCurrentModel();
+  const displayName = provider === "ollama" ? "Ollama" : provider.toUpperCase();
+  const modelDisplay = currentModel ? currentModel.displayName : model;
+
   return (
     <div className="flex items-center gap-2">
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <div className="flex items-center gap-1">
-            {getProviderBadge()}
-            <ChevronDown className="text-muted-foreground h-3 w-3" />
-          </div>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent align="start">
-          {notebookModels.length > 0 ? (
-            providerGroups.map(([provider, models], providerIndex) => (
-              <React.Fragment key={provider}>
-                {providerIndex > 0 && <DropdownMenuSeparator />}
-                <DropdownMenuLabel className="px-2 py-1 text-xs font-medium text-gray-600">
-                  {provider.toUpperCase()}
-                </DropdownMenuLabel>
-                {models.map((model) => (
-                  <DropdownMenuItem
-                    key={`${model.provider}-${model.name}`}
-                    onClick={() => onProviderChange(model.provider, model.name)}
+      <Popover open={openCombobox} onOpenChange={onComboboxOpenChange}>
+        <PopoverTrigger asChild>
+          <Button
+            variant="outline"
+            role="combobox"
+            aria-expanded={openCombobox}
+            className="h-5 min-w-0 justify-between px-2 text-xs"
+          >
+            <span className="truncate">
+              {displayName} • {modelDisplay}
+            </span>
+            <ChevronsUpDown className="ml-1 h-3 w-3 shrink-0 opacity-50" />
+          </Button>
+        </PopoverTrigger>
+        <PopoverContent className="w-[300px] p-0" align="start">
+          <Command loop>
+            <CommandInput
+              ref={inputRef}
+              placeholder="Search models..."
+              value={inputValue}
+              onValueChange={setInputValue}
+            />
+            <CommandList>
+              {filteredModels.length > 0 ? (
+                providerGroups.map(([providerName, models]) => (
+                  <CommandGroup
+                    key={providerName}
+                    heading={providerName.toUpperCase()}
                   >
-                    {model.displayName}
-                    {model.provider === "ollama" && getModelSizeDisplay(model)}
-                    <div className="flex-1" />
-                    {model.capabilities.includes("thinking") && (
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <Brain />
-                        </TooltipTrigger>
-                        <TooltipContent>Thinking</TooltipContent>
-                      </Tooltip>
-                    )}
-                    {model.capabilities.includes("tools") && (
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <Wrench />
-                        </TooltipTrigger>
-                        <TooltipContent>Tools</TooltipContent>
-                      </Tooltip>
-                    )}
-                    {model.capabilities.includes("vision") && (
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <Eye />
-                        </TooltipTrigger>
-                        <TooltipContent>Thinking</TooltipContent>
-                      </Tooltip>
-                    )}
-                  </DropdownMenuItem>
-                ))}
-              </React.Fragment>
-            ))
-          ) : (
-            <DropdownMenuItem disabled>No models available</DropdownMenuItem>
-          )}
-        </DropdownMenuContent>
-      </DropdownMenu>
+                    {models.map((modelItem) => (
+                      <CommandItem
+                        key={`${modelItem.provider}-${modelItem.name}`}
+                        value={`${modelItem.provider}-${modelItem.name}`}
+                        onSelect={() =>
+                          selectModel(modelItem.provider, modelItem.name)
+                        }
+                        className="flex items-center justify-between"
+                      >
+                        <div className="flex items-center gap-2">
+                          <span>{modelItem.displayName}</span>
+                          {modelItem.provider === "ollama" &&
+                            getModelSizeDisplay(modelItem)}
+                        </div>
+                        <div className="text-muted-foreground flex items-center gap-1">
+                          {/* Not showing icon for completion capabilities because it's not special enough to call out */}
+                          {modelItem.capabilities.includes("thinking") && (
+                            <Brain />
+                          )}
+                          {modelItem.capabilities.includes("tools") && (
+                            <Wrench />
+                          )}
+                          {modelItem.capabilities.includes("vision") && <Eye />}
+                        </div>
+                      </CommandItem>
+                    ))}
+                  </CommandGroup>
+                ))
+              ) : (
+                <CommandGroup>
+                  <CommandItem disabled>No models found</CommandItem>
+                </CommandGroup>
+              )}
+            </CommandList>
+          </Command>
+        </PopoverContent>
+      </Popover>
     </div>
   );
 };
