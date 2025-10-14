@@ -11,6 +11,10 @@ import { NotebookSidebar } from "../../notebook/NotebookSidebar.js";
 
 import { useIsMobile } from "@/hooks/use-mobile.js";
 import { ChatModeProvider } from "@/hooks/useChatMode.js";
+import {
+  DragDropSortProvider,
+  DragDropScrollArea,
+} from "@/hooks/useDragDropCellSort.js";
 import { Button } from "../../ui/button.js";
 import { SharingDialog } from "../SharingDialog.js";
 import type { NotebookProcessed } from "../types.js";
@@ -97,16 +101,17 @@ function NotebookPageWithIdAndNotebook({
           onTitleSaved={refetch}
           setIsSharingDialogOpen={() => setIsSharingDialogOpen(true)}
         />
-
-        <div
-          ref={nbContentScrollRef}
-          className="w-full min-w-0 flex-1 overflow-y-scroll"
-        >
-          <div className="px-2 sm:mx-auto sm:px-4 xl:container">
-            <NotebookContent />
-            <div className="h-[70vh]"></div>
-          </div>
-        </div>
+        <DragDropSortProvider>
+          <DragDropScrollArea
+            ref={nbContentScrollRef}
+            className="w-full min-w-0 flex-1 overflow-y-scroll"
+          >
+            <div className="px-2 sm:mx-auto sm:px-4 xl:container">
+              <NotebookContent />
+              <div className="h-[70vh]"></div>
+            </div>
+          </DragDropScrollArea>
+        </DragDropSortProvider>
         {isScrolled && !isMobile && (
           <Button
             variant="ghost"
@@ -122,10 +127,9 @@ function NotebookPageWithIdAndNotebook({
       </div>
 
       <SharingDialog
-        notebook={notebook}
+        notebookId={notebook.id}
         isOpen={isSharingDialogOpen}
-        onClose={() => setIsSharingDialogOpen(false)}
-        onUpdate={refetch}
+        onOpenChange={setIsSharingDialogOpen}
       />
     </div>
   );

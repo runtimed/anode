@@ -8,22 +8,33 @@ import {
   type ExecutionContext,
   type RuntimeCapabilities,
 } from "@runtimed/agent-core";
+
+// Extend global scope for debugging
+declare global {
+  var __PYODIDE_WORKER__: Worker | null;
+  var __PYODIDE_RUNTIME_AGENT__: PyodideRuntimeAgent | null;
+  var __PYODIDE_DEBUG__: {
+    runPython(code: string): Promise<unknown>;
+    checkStatus(): Promise<unknown>;
+    loadPackage(packageName: string): Promise<unknown>;
+    installPackage(packageName: string): Promise<unknown>;
+    help(): void;
+  };
+}
 import {
   LocalRuntimeAgent,
   type LocalRuntimeConfig,
 } from "./LocalRuntimeAgent.ts";
+import { logger } from "@runtimed/agent-core";
 
 import {
   ensureTextPlainFallback,
-  // discoverAvailableAiModels,
   executeAI,
   gatherNotebookContext,
-  // aiRegistry,
-  // AnacondaAIClient,
-  // OpenAIClient,
   type NotebookTool,
+  type AIMediaBundle,
 } from "@runtimed/ai-core";
-// import type { AiModel } from "@runtimed/agent-core";
+import type { AiModel } from "@runtimed/agent-core";
 import {
   cellReferences$,
   isJsonMimeType,
@@ -31,8 +42,6 @@ import {
   KNOWN_MIME_TYPES,
   type KnownMimeType,
   maxAiIterations$,
-  MediaBundle,
-  validateMediaBundle,
 } from "@runtimed/schema";
 
 // Type guard for objects with string indexing
@@ -43,8 +52,6 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 function hasDataProperty(value: unknown): value is { data: unknown } {
   return isRecord(value) && "data" in value;
 }
-
-const logger = console;
 
 export class PyodideRuntimeAgent extends LocalRuntimeAgent {
   private worker: Worker | null = null;
@@ -64,16 +71,15 @@ export class PyodideRuntimeAgent extends LocalRuntimeAgent {
     }
   >();
   private interruptBuffer?: SharedArrayBuffer;
-  private currentAIExecution: {
-    cellId: string;
-    abortController: AbortController;
-  } | null = null;
-  private signalHandlers = new Map<string, () => void>();
-
-  private isInitialized = false;
+  private discoveredAiModels: AiModel[] = [];
 
   constructor(config: LocalRuntimeConfig) {
     super(config);
+
+    // Configure logger if logging config is provided
+    if (config.logging) {
+      logger.configure(config.logging);
+    }
   }
 
   private async processExecutionQueue(): Promise<void> {
@@ -193,33 +199,72 @@ export class PyodideRuntimeAgent extends LocalRuntimeAgent {
   }
 
   /**
-   * Define capabilities for HTML runtime
+   * Define capabilities for Pyodide runtime
    */
   protected getCapabilities(): RuntimeCapabilities {
     return {
       canExecuteCode: true,
       canExecuteSql: false,
       canExecuteAi: true,
-      // For now, none
-      availableAiModels: [],
+      availableAiModels: this.discoveredAiModels,
     };
   }
 
   /**
-   * Start the HTML runtime agent with AI model discovery
+   * Start the Pyodide runtime agent with AI model discovery
    */
   async start(): Promise<RuntimeAgent> {
     console.log(
       `${this.getLogIcon()} Starting ${this.getRuntimeType()} runtime agent`
     );
 
-    // TODO: Discover available AI models BEFORE calling super.start()
-    // This ensures capabilities are ready when runtime announces itself
+    // Discover available AI models using shared browser AI provider
+    try {
+      console.log(
+        "🔍 Discovering available AI models from shared browser provider..."
+      );
+
+      // Access the global browser AI provider
+      const browserAiProvider =
+        (globalThis as any).__RUNT_AI__ ||
+        (globalThis as any).window?.__RUNT_AI__;
+
+      if (browserAiProvider) {
+        this.discoveredAiModels = await browserAiProvider.discoverModels();
+
+        if (this.discoveredAiModels.length === 0) {
+          console.warn(
+            "⚠️  No AI models discovered - provider may not be configured"
+          );
+        } else {
+          console.log(
+            `✅ Discovered ${this.discoveredAiModels.length} AI model${this.discoveredAiModels.length === 1 ? "" : "s"} from providers: ${[...new Set(this.discoveredAiModels.map((m) => m.provider))].join(", ")}`
+          );
+        }
+      } else {
+        console.warn(
+          "⚠️  No browser AI provider found - AI features may not be available"
+        );
+        this.discoveredAiModels = [];
+      }
+    } catch (error) {
+      console.error("❌ Failed to discover AI models", {
+        error: error instanceof Error ? error.message : String(error),
+      });
+      this.discoveredAiModels = [];
+    }
 
     // Call parent to start the agent - capabilities now include discovered models
     const agent = await super.start();
 
-    agent.onExecution(this.executeCell.bind(this));
+    // Initialize Pyodide worker
+    await this.initializePyodideWorker();
+
+    // Expose runtime agent globally for debugging
+    globalThis.__PYODIDE_RUNTIME_AGENT__ = this;
+    console.log(
+      "🔧 Pyodide runtime agent exposed as globalThis.__PYODIDE_RUNTIME_AGENT__ for debugging"
+    );
 
     return agent;
   }
@@ -323,14 +368,14 @@ export class PyodideRuntimeAgent extends LocalRuntimeAgent {
   private formatRichOutput(
     result: unknown,
     metadata?: Record<string, unknown>
-  ): MediaBundle {
+  ): AIMediaBundle {
     if (result === null || result === undefined) {
       return { "text/plain": "" };
     }
 
     // If result is already a formatted output dict with MIME types
     if (isRecord(result)) {
-      const rawBundle: MediaBundle = {};
+      const rawBundle: AIMediaBundle = {};
       let hasMimeType = false;
 
       // Check all known MIME types and any +json types
@@ -366,9 +411,8 @@ export class PyodideRuntimeAgent extends LocalRuntimeAgent {
       }
 
       if (hasMimeType) {
-        // Validate and ensure text/plain fallback for display
-        const validated = validateMediaBundle(rawBundle);
-        return ensureTextPlainFallback(validated);
+        // Ensure text/plain fallback for display
+        return ensureTextPlainFallback(rawBundle);
       }
 
       // Check if it's a rich data structure with data and metadata
@@ -408,124 +452,7 @@ export class PyodideRuntimeAgent extends LocalRuntimeAgent {
   }
 
   protected createExecutionHandler(): ExecutionHandler {
-    return async (context: ExecutionContext) => {
-      const { cell } = context;
-
-      // Clear previous outputs
-      context.clear();
-
-      if (cell.cellType === "ai") {
-        try {
-          // Ensure agent is initialized
-          if (!this.agent) {
-            throw new Error("Runtime agent not initialized");
-          }
-
-          // TODO: Convert to a query for a specific cell by ID
-          const cellReferences = this.agent.config.store.query(cellReferences$);
-          const currentCellRef = cellReferences.find(
-            (ref: any) => ref.id === cell.id
-          );
-
-          if (!currentCellRef) {
-            throw new Error(
-              `Could not find cell reference for cell ${cell.id}`
-            );
-          }
-
-          const notebookContext = gatherNotebookContext(
-            this.agent.config.store,
-            currentCellRef
-          );
-
-          // Track AI execution for cancellation
-          const aiAbortController = new AbortController();
-
-          // Connect the AI abort controller to the execution context's abort signal
-          if (context.abortSignal.aborted) {
-            aiAbortController.abort();
-          } else {
-            context.abortSignal.addEventListener("abort", () => {
-              aiAbortController.abort();
-            });
-          }
-
-          // Create a modified context with the AI-specific abort signal
-          const aiContext = {
-            ...context,
-            abortSignal: aiAbortController.signal,
-          };
-
-          // For now, use empty notebook tools array - can be extended later
-          const notebookTools: NotebookTool[] = [];
-
-          // Use default max iterations - can be made configurable later
-          const maxIterations = 10;
-
-          return await executeAI(
-            aiContext,
-            notebookContext,
-            this.agent.config.store,
-            this.agent.config.sessionId,
-            notebookTools,
-            maxIterations
-          );
-        } catch (error) {
-          const errorMsg =
-            error instanceof Error ? error.message : String(error);
-          console.error(`❌ AI execution failed for cell: ${cell.id}`, error);
-
-          context.error("AIExecutionError", errorMsg, [
-            `Error executing AI cell: ${cell.id}`,
-            errorMsg,
-          ]);
-
-          return {
-            success: false,
-            error: errorMsg,
-          };
-        }
-      }
-
-      // Only handle code cells
-      if (cell.cellType !== "code") {
-        const errorMsg = `Unsupported cell type ${cell.cellType}`;
-        context.error("UnsupportedCellType", errorMsg, []);
-        return {
-          success: false,
-          error: errorMsg,
-        };
-      }
-
-      // Check for empty source
-      if (!cell.source || cell.source.trim() === "") {
-        // Empty cell is considered successful with no output
-        return { success: true };
-      }
-
-      try {
-        await context.display({
-          "text/plain": "Not yet implemented",
-        });
-
-        return { success: true };
-      } catch (error) {
-        const errorMsg = error instanceof Error ? error.message : String(error);
-
-        console.error(`❌ execution failed for cell: ${cell.id}`, error);
-
-        // Emit error to the notebook
-        context.error("ExecutionError", errorMsg, [
-          `Error executing cell: ${cell.id}`,
-          errorMsg,
-        ]);
-
-        return {
-          success: false,
-          error: errorMsg,
-        };
-      }
-    };
+    return this.executeCell.bind(this);
   }
 
   /**
@@ -561,10 +488,6 @@ export class PyodideRuntimeAgent extends LocalRuntimeAgent {
 
       // Track AI execution for cancellation
       const aiAbortController = new AbortController();
-      this.currentAIExecution = {
-        cellId: cell.id,
-        abortController: aiAbortController,
-      };
 
       // Connect the AI abort controller to the execution context's abort signal
       if (context.abortSignal.aborted) {
@@ -597,7 +520,7 @@ export class PyodideRuntimeAgent extends LocalRuntimeAgent {
           maxAiIterations
         );
       } finally {
-        this.currentAIExecution = null;
+        // AI execution completed
       }
     }
 
@@ -630,10 +553,28 @@ export class PyodideRuntimeAgent extends LocalRuntimeAgent {
       // const packagesToLoad =
       // this.pyodideOptions.packages || getEssentialPackages();
 
-      // Create SharedArrayBuffer for interrupt signaling
-      this.interruptBuffer = new SharedArrayBuffer(4);
-      const interruptView = new Int32Array(this.interruptBuffer);
-      interruptView[0] = 0; // Initialize to no interrupt
+      // Create SharedArrayBuffer for interrupt signaling (if available)
+      try {
+        if (typeof SharedArrayBuffer !== "undefined") {
+          this.interruptBuffer = new SharedArrayBuffer(4);
+          const interruptView = new Int32Array(this.interruptBuffer);
+          interruptView[0] = 0; // Initialize to no interrupt
+          console.log(
+            "🔧 SharedArrayBuffer available - interrupt signaling enabled"
+          );
+        } else {
+          console.warn(
+            "⚠️ SharedArrayBuffer not available - interrupt signaling disabled"
+          );
+          this.interruptBuffer = undefined;
+        }
+      } catch (error) {
+        console.warn(
+          "⚠️ SharedArrayBuffer creation failed - interrupt signaling disabled:",
+          error
+        );
+        this.interruptBuffer = undefined;
+      }
 
       // Create worker with Pyodide
       this.worker = new Worker(
@@ -647,22 +588,31 @@ export class PyodideRuntimeAgent extends LocalRuntimeAgent {
         this.handleWorkerMessage.bind(this)
       );
       this.worker.addEventListener("error", (error) => {
-        logger.error("Worker error", {
-          message: error.message || "Unknown worker error",
-          filename: error.filename,
-          lineno: error.lineno,
-        });
+        logger.error(
+          "Worker error",
+          new Error(error.message || "Unknown worker error"),
+          {
+            filename: error.filename,
+            lineno: error.lineno,
+          }
+        );
         this.handleWorkerCrash("Worker error event");
       });
       this.worker.addEventListener("messageerror", (error) => {
-        logger.error("Worker message error", {
+        logger.error("Worker message error", undefined, {
           type: error.type,
           data: error.data,
         });
         this.handleWorkerCrash("Worker message error");
       });
 
-      const packagesToLoad = ["pandas"];
+      // Expose worker globally for debugging
+      globalThis.__PYODIDE_WORKER__ = this.worker;
+      console.log(
+        "🔧 Pyodide worker exposed as globalThis.__PYODIDE_WORKER__ for debugging"
+      );
+
+      const packagesToLoad: string[] = [];
 
       // Initialize Pyodide in worker
       await this.sendWorkerMessage("init", {
@@ -670,12 +620,9 @@ export class PyodideRuntimeAgent extends LocalRuntimeAgent {
         packages: packagesToLoad,
       });
 
-      this.isInitialized = true;
       logger.info("Pyodide worker initialized successfully");
     } catch (error) {
-      logger.error("Failed to initialize Pyodide worker", {
-        error: error instanceof Error ? error.message : String(error),
-      });
+      logger.error("Failed to initialize Pyodide worker", error);
       throw error;
     }
   }
@@ -684,11 +631,11 @@ export class PyodideRuntimeAgent extends LocalRuntimeAgent {
    * Handle worker crash and cleanup
    */
   private handleWorkerCrash(reason: string): void {
-    logger.error("Uncaught error", { error: "null" });
+    logger.error("Uncaught error", new Error(reason));
 
     // Reject all pending executions
     for (const [id, pending] of this.pendingExecutions) {
-      logger.error(`Rejected execution ${id}: ${reason}`);
+      logger.error(`Rejected execution ${id}: ${reason}`, new Error(reason));
       pending.reject(new Error(`Worker crashed: ${reason}`));
     }
     this.pendingExecutions.clear();
@@ -699,8 +646,6 @@ export class PyodideRuntimeAgent extends LocalRuntimeAgent {
     }
     this.executionQueue.length = 0;
 
-    // Mark as uninitialized to trigger restart
-    this.isInitialized = false;
     this.currentExecutionContext = null;
 
     // Clean up worker (async but don't wait for it in crash handler)
@@ -730,6 +675,13 @@ export class PyodideRuntimeAgent extends LocalRuntimeAgent {
         data,
       });
     });
+  }
+
+  /**
+   * Send message to worker for debugging
+   */
+  public async sendDebugMessage(type: string, data: unknown): Promise<unknown> {
+    return this.sendWorkerMessage(type, data);
   }
 
   /**
@@ -763,6 +715,42 @@ export class PyodideRuntimeAgent extends LocalRuntimeAgent {
 
 /**
  * Factory function to create and start a runtime agent with AI capabilities
+ *
+ * @example
+ * // Create agent with default logging (INFO level, console enabled)
+ * const agent = await createAgent({
+ *   store,
+ *   authToken,
+ *   notebookId,
+ *   userId,
+ * });
+ *
+ * @example
+ * // Create agent with debug logging enabled
+ * const agent = await createAgent({
+ *   store,
+ *   authToken,
+ *   notebookId,
+ *   userId,
+ *   logging: {
+ *     level: 0, // DEBUG level
+ *     console: true,
+ *     service: "my-pyodide-runtime"
+ *   }
+ * });
+ *
+ * @example
+ * // Create agent with logging completely disabled
+ * const agent = await createAgent({
+ *   store,
+ *   authToken,
+ *   notebookId,
+ *   userId,
+ *   logging: {
+ *     level: 3, // ERROR level (quiet)
+ *     console: false,
+ *   }
+ * });
  */
 export async function createAgent(
   config: LocalRuntimeConfig
@@ -770,4 +758,71 @@ export async function createAgent(
   const agent = new PyodideRuntimeAgent(config);
   await agent.start();
   return agent;
+}
+
+// Global debug helpers
+if (typeof globalThis !== "undefined") {
+  globalThis.__PYODIDE_DEBUG__ = {
+    async runPython(code: string) {
+      const agent = globalThis.__PYODIDE_RUNTIME_AGENT__;
+      if (!agent) {
+        throw new Error(
+          "No Pyodide runtime agent available. Launch Python runtime first."
+        );
+      }
+      return await agent.sendDebugMessage("debug", { code });
+    },
+
+    async checkStatus() {
+      const agent = globalThis.__PYODIDE_RUNTIME_AGENT__;
+      if (!agent) {
+        return { agent: null, worker: null };
+      }
+      return {
+        agent: !!agent,
+        worker: !!globalThis.__PYODIDE_WORKER__,
+        status: agent.getStatus?.() || "unknown",
+      };
+    },
+
+    async loadPackage(packageName: string) {
+      const agent = globalThis.__PYODIDE_RUNTIME_AGENT__;
+      if (!agent) {
+        throw new Error("No Pyodide runtime agent available");
+      }
+      return await agent.sendDebugMessage("debug", {
+        code: `await pyodide.loadPackage("${packageName}")`,
+      });
+    },
+
+    async installPackage(packageName: string) {
+      const agent = globalThis.__PYODIDE_RUNTIME_AGENT__;
+      if (!agent) {
+        throw new Error("No Pyodide runtime agent available");
+      }
+      return await agent.sendDebugMessage("debug", {
+        code: `import micropip; await micropip.install("${packageName}")`,
+      });
+    },
+
+    help() {
+      console.log("🔧 Pyodide Debug Helpers:");
+      console.log("  __PYODIDE_DEBUG__.runPython(code) - Run Python code");
+      console.log("  __PYODIDE_DEBUG__.checkStatus() - Check runtime status");
+      console.log(
+        "  __PYODIDE_DEBUG__.loadPackage(name) - Load Pyodide package"
+      );
+      console.log(
+        "  __PYODIDE_DEBUG__.installPackage(name) - Install via micropip"
+      );
+      console.log("  __PYODIDE_RUNTIME_AGENT__ - Runtime agent instance");
+      console.log("  __PYODIDE_WORKER__ - Worker instance");
+    },
+  };
+
+  // Show help on first load
+  console.log(
+    "🔧 Pyodide debug helpers available at globalThis.__PYODIDE_DEBUG__"
+  );
+  console.log("   Try: __PYODIDE_DEBUG__.help()");
 }

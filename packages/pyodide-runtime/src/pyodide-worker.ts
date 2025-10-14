@@ -7,16 +7,29 @@
 
 /// <reference lib="webworker" />
 
-import { getEssentialPackages } from "./pypackages.ts";
-
 import { loadPyodide, type PyodideInterface } from "pyodide";
+
+// Import Python files as text assets
+import runtRuntimePy from "./runt_runtime.py?raw";
+import runtRuntimeRegistryPy from "./runt_runtime_registry.py?raw";
+import runtRuntimeDisplayPy from "./runt_runtime_display.py?raw";
+import runtRuntimeBootstrapPy from "./runt_runtime_bootstrap.py?raw";
+import runtRuntimeShellPy from "./runt_runtime_shell.py?raw";
+import runtRuntimeInterruptPatchesPy from "./runt_runtime_interrupt_patches.py?raw";
 
 declare const self: DedicatedWorkerGlobalScope;
 
+// Extend global scope for debugging
+declare global {
+  var pyodide: PyodideInterface | null;
+}
+
 let pyodide: PyodideInterface | null = null;
-let interruptBuffer: SharedArrayBuffer | null = null;
+let interruptBuffer: SharedArrayBuffer | null | undefined = null;
 let isShuttingDown = false;
-const backgroundOperations: Array<() => void> = [];
+let isBootstrapComplete = false;
+let bootstrapPromise: Promise<void> | null = null;
+const backgroundOperations: (() => void)[] = [];
 
 // Global error handler for uncaught worker errors
 self.addEventListener("error", (event) => {
@@ -109,6 +122,33 @@ await run_registered_tool("${data.toolName}", kwargs_string)
         break;
       }
 
+      case "debug": {
+        // Debug message handler - allows direct access to pyodide instance
+        try {
+          if (!pyodide) {
+            throw new Error("Pyodide not initialized");
+          }
+
+          // Execute debug command
+          const result = await pyodide.runPythonAsync(
+            data.code || "print('Debug mode active')"
+          );
+          self.postMessage({
+            id,
+            type: "response",
+            data: { result, pyodideReady: !!pyodide },
+          });
+        } catch (error) {
+          self.postMessage({
+            id,
+            type: "response",
+            error: error instanceof Error ? error.message : String(error),
+            data: { pyodideReady: !!pyodide },
+          });
+        }
+        break;
+      }
+
       case "shutdown": {
         await shutdownWorker();
         self.postMessage({ id, type: "response", data: { success: true } });
@@ -131,7 +171,7 @@ await run_registered_tool("${data.toolName}", kwargs_string)
  * Initialize Pyodide with advanced IPython integration
  */
 async function initializePyodide(
-  buffer: SharedArrayBuffer,
+  buffer: SharedArrayBuffer | null | undefined,
   packagesToLoad?: string[],
   mountData?: Array<{
     hostPath: string;
@@ -145,14 +185,22 @@ async function initializePyodide(
     data: "Loading Pyodide with display support",
   });
 
-  // Store interrupt buffer
-  interruptBuffer = buffer;
+  // Store interrupt buffer (if available)
+  interruptBuffer = buffer || null;
 
-  // Get cache configuration and packages to load
-  const basePackages = packagesToLoad || getEssentialPackages();
+  // Hybrid approach: local core files, CDN packages
+  // Core Pyodide runtime files from local /pyodide/, packages loaded separately from CDN
+  const basePackages: string[] = [];
 
-  // Load Pyodide with bootstrap packages for maximum efficiency
+  // Set matplotlib backend environment variable early to prevent WebWorker DOM issues
+  self.postMessage({
+    type: "log",
+    data: "Configuring matplotlib backend for WebWorker compatibility",
+  });
+
+  // Load Pyodide with CDN packages to avoid SRI issues
   pyodide = await loadPyodide({
+    indexURL: "https://cdn.jsdelivr.net/pyodide/v0.27.7/full/",
     packages: basePackages,
     stdout: (text: string) => {
       // Log startup messages to our telemetry for debugging
@@ -183,30 +231,18 @@ async function initializePyodide(
         data: "Preloading runt_runtime modules into filesystem",
       });
 
-      // Load all module files directly to site-packages
-      // TODO: Fetch in parallel
-      const moduleFiles = [
-        "runt_runtime.py",
-        "runt_runtime_registry.py",
-        "runt_runtime_display.py",
-        "runt_runtime_bootstrap.py",
-        "runt_runtime_shell.py",
-        "runt_runtime_interrupt_patches.py",
-      ];
+      // Load all module files directly to site-packages using imported content
+      const moduleFiles = {
+        "runt_runtime.py": runtRuntimePy,
+        "runt_runtime_registry.py": runtRuntimeRegistryPy,
+        "runt_runtime_display.py": runtRuntimeDisplayPy,
+        "runt_runtime_bootstrap.py": runtRuntimeBootstrapPy,
+        "runt_runtime_shell.py": runtRuntimeShellPy,
+        "runt_runtime_interrupt_patches.py": runtRuntimeInterruptPatchesPy,
+      };
 
-      for (const moduleFile of moduleFiles) {
+      for (const [moduleFile, moduleCode] of Object.entries(moduleFiles)) {
         try {
-          const moduleCode = await fetch(
-            new URL(`./${moduleFile}`, import.meta.url)
-          ).then((response) => {
-            if (!response.ok) {
-              throw new Error(
-                `HTTP ${response.status}: ${response.statusText}`
-              );
-            }
-            return response.text();
-          });
-
           FS.writeFile(`${info.sitePackages}/${moduleFile}`, moduleCode);
         } catch (error) {
           self.postMessage({
@@ -225,12 +261,24 @@ async function initializePyodide(
     },
   });
 
-  // Set up interrupt buffer
+  // Set up interrupt buffer (if available)
   if (interruptBuffer) {
     const interruptView = new Int32Array(interruptBuffer);
     pyodide.setInterruptBuffer(interruptView);
     self.postMessage({ type: "log", data: "Interrupt buffer configured" });
+  } else {
+    self.postMessage({
+      type: "log",
+      data: "Interrupt buffer not available - continuing without interrupt support",
+    });
   }
+
+  // Expose pyodide globally for debugging
+  globalThis.pyodide = pyodide;
+  self.postMessage({
+    type: "log",
+    data: "Pyodide exposed as globalThis.pyodide for debugging",
+  });
 
   // Create mounted directories and copy files from host
   if (mountData && mountData.length > 0) {
@@ -413,8 +461,57 @@ async function setupIPythonEnvironment(): Promise<void> {
     data: "Loading pseudo-IPython environment from preloaded modules",
   });
 
-  // Install pydantic first (required by registry.py)
-  await pyodide!.loadPackage("pydantic");
+  // Load bootstrap packages from CDN to avoid SRI integrity issues
+  const bootstrapPackages = ["micropip", "packaging"];
+
+  try {
+    self.postMessage({
+      type: "log",
+      data: `Loading micropip, packaging`,
+    });
+
+    for (const pkg of bootstrapPackages) {
+      await pyodide!.loadPackage(pkg);
+    }
+
+    self.postMessage({
+      type: "log",
+      data: `Loading Pygments, asttokens, six, sqlite3, stack-data, traitlets, wcwidth`,
+    });
+
+    // Load IPython dependencies first
+    const ipythonDeps = [
+      "ipython",
+      "matplotlib",
+      "decorator",
+      "executing",
+      "asttokens",
+      "six",
+      "matplotlib-inline",
+      "prompt_toolkit",
+      "stack-data",
+      "traitlets",
+      "pure-eval",
+      "Pygments",
+      "sqlite3",
+      "wcwidth",
+    ];
+
+    for (const pkg of ipythonDeps) {
+      await pyodide!.loadPackage(pkg);
+    }
+
+    // Install pydantic (required by registry.py) using micropip from CDN
+    await pyodide!.runPythonAsync(
+      "import micropip; await micropip.install('pydantic')"
+    );
+  } catch (error) {
+    self.postMessage({
+      type: "log",
+      data: `Failed to load ${JSON.stringify(bootstrapPackages)}: ${error}`,
+    });
+    throw error;
+  }
 
   // Import and initialize the runt_runtime package
   await pyodide!.runPythonAsync(`
@@ -436,41 +533,99 @@ globals()['js_clear_callback'] = runt_runtime.js_clear_callback
     data: "Pseudo-IPython environment loaded successfully from modules",
   });
 
-  // Install micropip packages in background without blocking
+  // Install micropip packages synchronously to prevent execution before bootstrap completes
   // Skip during tests to prevent execution interference
   const isTest = globalThis.location?.search?.includes("test");
 
   if (!isTest) {
-    // Use setTimeout to isolate from execution pipeline
-    const micropipTimeout = setTimeout(() => {
-      if (isShuttingDown) return;
-      pyodide!
-        .runPythonAsync(`await runt_runtime.bootstrap_micropip_packages()`)
-        .then(() => {
-          if (!isShuttingDown) {
-            self.postMessage({
-              type: "log",
-              data: "Micropip packages installed successfully",
-            });
-          }
-        })
-        .catch((error) => {
-          if (!isShuttingDown) {
-            self.postMessage({
-              type: "log",
-              data: `Warning: Micropip package installation failed: ${error}`,
-            });
-          }
-        });
-    }, 100);
+    self.postMessage({
+      type: "log",
+      data: "Installing essential packages (pandas, numpy)...",
+    });
 
-    backgroundOperations.push(() => clearTimeout(micropipTimeout));
+    bootstrapPromise = (async () => {
+      try {
+        await pyodide!.runPythonAsync(
+          `await runt_runtime.bootstrap_micropip_packages()`
+        );
+        isBootstrapComplete = true;
+        if (!isShuttingDown) {
+          self.postMessage({
+            type: "log",
+            data: "Essential packages installed successfully",
+          });
+        }
+      } catch (error) {
+        isBootstrapComplete = true; // Mark as complete even on error to avoid infinite waiting
+        if (!isShuttingDown) {
+          self.postMessage({
+            type: "log",
+            data: `Warning: Essential package installation failed: ${error}`,
+          });
+        }
+      }
+    })();
   } else {
+    isBootstrapComplete = true;
     self.postMessage({
       type: "log",
       data: "Skipping micropip bootstrap during tests",
     });
   }
+}
+
+/**
+ * Analyze Python code to detect required packages
+ */
+function analyzeRequiredPackages(code: string): string[] {
+  const requiredPackages: string[] = [];
+  const lines = code.split("\n");
+
+  for (const line of lines) {
+    const trimmed = line.trim();
+
+    // Match import statements
+    const importMatch = trimmed.match(/^(?:import|from)\s+(\w+)/);
+    if (importMatch) {
+      const packageName = importMatch[1];
+
+      // Map common package aliases to actual package names
+      const packageMap: Record<string, string> = {
+        pd: "pandas",
+        np: "numpy",
+        plt: "matplotlib",
+        sns: "seaborn",
+        sk: "scikit-learn",
+        sklearn: "scikit-learn",
+        bs4: "beautifulsoup4",
+        PIL: "pillow",
+        cv2: "opencv-python",
+      };
+
+      const actualPackage = packageMap[packageName] || packageName;
+
+      // Only track packages we know about
+      const knownPackages = [
+        "pandas",
+        "numpy",
+        "matplotlib",
+        "seaborn",
+        "scipy",
+        "sympy",
+        "scikit-learn",
+        "beautifulsoup4",
+        "pillow",
+        "requests",
+        "lxml",
+      ];
+
+      if (knownPackages.includes(actualPackage)) {
+        requiredPackages.push(actualPackage);
+      }
+    }
+  }
+
+  return [...new Set(requiredPackages)]; // Remove duplicates
 }
 
 /**
@@ -481,6 +636,49 @@ async function executePython(code: string): Promise<{
 }> {
   if (!pyodide) {
     throw new Error("Pyodide not initialized");
+  }
+
+  // Wait for bootstrap to complete before executing user code
+  if (!isBootstrapComplete && bootstrapPromise) {
+    self.postMessage({
+      type: "log",
+      data: "Waiting for essential packages to finish loading...",
+    });
+    await bootstrapPromise;
+  }
+
+  // Analyze code for required packages and wait for them
+  const requiredPackages = analyzeRequiredPackages(code);
+  if (requiredPackages.length > 0) {
+    self.postMessage({
+      type: "log",
+      data: `Checking availability of required packages: ${requiredPackages.join(", ")}`,
+    });
+
+    // Wait for each required package
+    for (const pkg of requiredPackages) {
+      try {
+        const available = await pyodide.runPythonAsync(`
+try:
+    await runt_runtime.wait_for_package("${pkg}", 10)
+    True
+except:
+    False
+        `);
+
+        if (!available) {
+          self.postMessage({
+            type: "log",
+            data: `Warning: Package ${pkg} may not be available`,
+          });
+        }
+      } catch (error) {
+        self.postMessage({
+          type: "log",
+          data: `Warning: Failed to check package ${pkg}: ${error}`,
+        });
+      }
+    }
   }
 
   let result = null;

@@ -14,8 +14,10 @@ import {
   RuntimeConfig,
   type ExecutionHandler,
   type RuntimeCapabilities,
+  type LoggerConfig,
 } from "@runtimed/agent-core";
 import type { Store } from "@runtimed/schema";
+import { events } from "@runtimed/schema";
 
 /**
  * Configuration for local runtime agents
@@ -33,6 +35,8 @@ export interface LocalRuntimeConfig {
   runtimeId?: string;
   /** Optional sync URL (defaults to localhost:8787 for dev) */
   syncUrl?: string;
+  /** Optional logger configuration */
+  logging?: Partial<LoggerConfig>;
 }
 
 /**
@@ -88,6 +92,28 @@ export abstract class LocalRuntimeAgent {
 
     // Start the agent
     await this.agent.start();
+
+    // Set notebook metadata to indicate which runtime type is active
+    this.agent.store.commit(
+      events.notebookMetadataSet({
+        key: "runtimeType",
+        value: this.getRuntimeType(),
+      })
+    );
+
+    this.agent.store.commit(
+      events.notebookMetadataSet({
+        key: "lastUsedRuntimeType",
+        value: this.getRuntimeType(),
+      })
+    );
+
+    this.agent.store.commit(
+      events.notebookMetadataSet({
+        key: "runtimeStartedAt",
+        value: new Date().toISOString(),
+      })
+    );
 
     // Allow subclasses to perform post-start actions
     await this.onAfterStart?.(this.agent);

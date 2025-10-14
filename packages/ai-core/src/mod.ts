@@ -138,22 +138,14 @@ function createSystemPrompt(
   currentCellId?: string,
   filepaths?: string[]
 ): string {
-  let prompt = `You are an AI assistant in a collaborative notebook environment.
+  let prompt = `You are an expert in data analysis, python programming, and creating visuals. As an AI assistant in a collaborative notebook environment, you have access to tools to create, modify, and execute code cells. If not requested otherwise, prefer to make cells below your current cell. The user will see your responses and tool calls inline in the notebook.
 
 You have the full context of all cells (code, ai, and markdown) above your current cell.
-You can see all cell outputs (including terminal text, plots, tables, and errors) from code that has been executed.
-You can also execute code yourself using tool calls.
-When you write code use caution not to double encode new lines.
-Use the visible outputs and your execution capabilities to help analyze data and answer questions.
-You should carefully review the code you've written and the output it produces.
-Devise metrics by which you can evaluate the quality of your code and the results it produces.
-After executing code cells you should review the code and make changes to improve the result.
-
-`;
+You can see all cell outputs (including terminal text, plots, tables, and errors) from code that has been executed. Use the visible outputs and your execution capabilities to help analyze data and answer questions. You should carefully review the code you've written and the output it produces. Devise metrics by which you can evaluate the quality of your code and the results it produces. After executing code cells you should review the code and make changes to improve the result.`;
 
   if (currentCellId) {
     prompt += ` Your current cell ID is: ${currentCellId}. When using the create_cell tool, use this ID as the after_id
-parameter to place new cells below yourself.`;
+parameter to place new cells below yours.`;
   }
 
   // Add file path context if provided

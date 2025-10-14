@@ -9,6 +9,7 @@ import { SimpleUserProfile } from "@/components/notebooks/SimpleUserProfile";
 import { TrpcProvider, useTrpc } from "@/components/TrpcProvider";
 import { Button } from "@/components/ui/button";
 import { useAddCell } from "@/hooks/useAddCell";
+import { DragDropSortProvider } from "@/hooks/useDragDropCellSort";
 import { CustomLiveStoreProvider } from "@/livestore";
 import { useQuery, useStore } from "@livestore/react";
 import {
@@ -75,7 +76,7 @@ function InnerDemo() {
           <div className="max-w-lg rounded-md border border-gray-200 p-4">
             <RuntimePanelView nbId={nbId} />
           </div>
-          <NbDemo />
+          <CellList />
         </div>
       </CustomLiveStoreProvider>
     </>
@@ -194,11 +195,11 @@ function AddCellButtons() {
   );
 }
 
-function NbDemo() {
+function CellList() {
   const cellReferences = useQuery(cellReferences$);
 
   return (
-    <div>
+    <DragDropSortProvider>
       {/* Cell list */}
       <div className="relative flex flex-col gap-2">
         {cellReferences.map((cell) => (
@@ -207,7 +208,7 @@ function NbDemo() {
           </div>
         ))}
       </div>
-    </div>
+    </DragDropSortProvider>
   );
 }
 

@@ -19,7 +19,7 @@ import { markdown } from "@codemirror/lang-markdown";
 import { SupportedLanguage } from "@/types/misc.js";
 import { sql } from "@codemirror/lang-sql";
 import { html } from "@codemirror/lang-html";
-import { useCodeMirror } from "@uiw/react-codemirror";
+import { Extension, useCodeMirror } from "@uiw/react-codemirror";
 import { baseExtensions, aiBaseExtensions } from "./baseExtensions.js";
 
 export interface CodeMirrorEditorRef {
@@ -90,7 +90,7 @@ export const CodeMirrorEditor = forwardRef<
         ? aiBaseExtensions
         : baseExtensions;
 
-      const exts = [
+      const exts: Extension[] = [
         keymap.of(keyMap || []),
         ...selectedBaseExtensions,
         langExtension,
@@ -126,8 +126,12 @@ export const CodeMirrorEditor = forwardRef<
 
     const { setContainer, view } = useCodeMirror({
       container: editorRef.current,
-      extensions,
+      // Manually setting basicSetup
       basicSetup: false,
+      // Manually setting the indentWithTab shortcut, so not doing it here
+      // To customize behavior, we want to ensure that our own keyMap is applied first
+      indentWithTab: false,
+      extensions,
       maxHeight,
       value,
       onChange: handleChange,

@@ -187,6 +187,90 @@ export function useApiKeys() {
     [makeAuthenticatedRequest]
   );
 
+  const smartDeleteOrRevoke = useCallback(
+    async (keyId: string): Promise<void> => {
+      setLoading(true);
+      setError(null);
+
+      try {
+        // Try delete first, fallback to revoke
+        try {
+          await makeAuthenticatedRequest(`${API_BASE}/${keyId}`, {
+            method: "DELETE",
+          });
+        } catch {
+          // If delete fails, try revoke
+          await makeAuthenticatedRequest(`${API_BASE}/${keyId}`, {
+            method: "PATCH",
+            body: JSON.stringify({ revoked: true }),
+          });
+        }
+      } catch (err) {
+        const errorMessage =
+          err instanceof Error
+            ? err.message
+            : "Failed to delete or revoke API key";
+        setError(errorMessage);
+        throw new Error(errorMessage);
+      } finally {
+        setLoading(false);
+      }
+    },
+    [makeAuthenticatedRequest]
+  );
+
+  const getUserKey = useCallback(async (): Promise<{
+    api_key: ApiKey | null;
+    key_value: string | null;
+    created: boolean;
+  }> => {
+    setLoading(true);
+    setError(null);
+
+    try {
+      // First, try to get existing API keys
+      const existingKeys = await listApiKeys({});
+      const activeKey = existingKeys.find((key) => !key.revoked);
+
+      if (activeKey) {
+        // Return existing key without the value
+        return {
+          api_key: activeKey,
+          key_value: null,
+          created: false,
+        };
+      }
+
+      // No active key found, create a new one
+      const expiresAt = new Date();
+      expiresAt.setFullYear(expiresAt.getFullYear() + 1);
+
+      const keyValue = await createApiKey({
+        scopes: [Scope.RuntRead, Scope.RuntExecute],
+        expiresAt: expiresAt.toISOString(),
+        name: "Runtime Agent Key",
+        userGenerated: true,
+      });
+
+      // Get the created key metadata
+      const newKeys = await listApiKeys({});
+      const newKey = newKeys.find((key) => !key.revoked);
+
+      return {
+        api_key: newKey || null,
+        key_value: keyValue,
+        created: true,
+      };
+    } catch (err) {
+      const errorMessage =
+        err instanceof Error ? err.message : "Failed to get user API key";
+      setError(errorMessage);
+      throw new Error(errorMessage);
+    } finally {
+      setLoading(false);
+    }
+  }, [listApiKeys, createApiKey]);
+
   return {
     loading,
     error,
@@ -195,5 +279,7 @@ export function useApiKeys() {
     getApiKey,
     deleteApiKey,
     revokeApiKey,
+    getUserKey,
+    smartDeleteOrRevoke,
   };
 }

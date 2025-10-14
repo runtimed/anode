@@ -9,7 +9,10 @@ import { useUserRegistry } from "@/hooks/useUserRegistry.js";
 import { useEditorRegistry } from "@/hooks/useEditorRegistry.js";
 import { useDeleteCell } from "@/hooks/useDeleteCell.js";
 import { useAddCell } from "@/hooks/useAddCell.js";
+import { useMoveCell } from "@/hooks/useMoveCell.js";
 import { useActiveRuntime } from "@/hooks/useRuntimeHealth.js";
+import { useAutoLaunchRuntime } from "@/hooks/useAutoLaunchRuntime.js";
+import { useDetectedRuntimeType } from "@/hooks/useNotebookRuntimeType.js";
 
 import { useStore } from "@livestore/react";
 import { focusedCellSignal$, hasManuallyFocused$ } from "../signals/focus.js";
@@ -40,6 +43,7 @@ import { useToolApprovals } from "@/hooks/useToolApprovals.js";
 import { AiToolApprovalOutput } from "../../outputs/shared-with-iframe/AiToolApprovalOutput.js";
 import { cn } from "@/lib/utils.js";
 import { IframeFixCodeEvent } from "@/components/outputs/shared-with-iframe/comms.js";
+import { cycleCellType } from "@/util/cycle-cell-type.js";
 
 // Cell-specific styling configuration
 const getCellStyling = (cellType: "code" | "sql" | "ai") => {
@@ -66,12 +70,14 @@ interface ExecutableCellProps {
   cell: typeof tables.cells.Type;
   autoFocus?: boolean;
   contextSelectionMode?: boolean;
+  dragHandle?: React.ReactNode;
 }
 
 export const ExecutableCell: React.FC<ExecutableCellProps> = ({
   cell,
   autoFocus = false,
   contextSelectionMode = false,
+  dragHandle,
 }) => {
   const hasRunRef = useRef(false);
   const cellRef = useRef<HTMLDivElement>(null);
@@ -85,10 +91,22 @@ export const ExecutableCell: React.FC<ExecutableCellProps> = ({
 
   const { handleDeleteCell } = useDeleteCell(cell.id);
   const { addCell } = useAddCell();
+  const {
+    moveCellUp,
+    moveCellDown,
+    moveCellToTop,
+    moveCellToBottom,
+    canMoveUp,
+    canMoveDown,
+  } = useMoveCell(cell.id);
 
   const userId = useAuthenticatedUser();
-  const { getUsersOnCell, getUserColor } = useUserRegistry();
+  const { getUsersOnCell, getUserColor, getUserInfo } = useUserRegistry();
   const activeRuntime = useActiveRuntime();
+  const detectedRuntimeType = useDetectedRuntimeType();
+  const { ensureRuntime, status: autoLaunchStatus } = useAutoLaunchRuntime({
+    runtimeType: detectedRuntimeType,
+  });
 
   // Get users present on this cell (excluding current user)
   const usersOnCell = getUsersOnCell(cell.id).filter(
@@ -180,6 +198,18 @@ export const ExecutableCell: React.FC<ExecutableCellProps> = ({
       return;
     }
 
+    // Ensure runtime is available before execution
+    console.log("🔍 Ensuring runtime is available for execution...");
+    const runtimeAvailable = await ensureRuntime();
+
+    if (!runtimeAvailable) {
+      console.warn(
+        "⚠️ Could not launch runtime automatically. User may need to start runtime manually."
+      );
+      // Still proceed with execution - the runtime might become available
+      // or the user might have an external runtime running
+    }
+
     try {
       // Save old outputs to be shown while new ones are being generated
       setStaleOutputs(outputs);
@@ -239,6 +269,7 @@ export const ExecutableCell: React.FC<ExecutableCellProps> = ({
     userId,
     setStaleOutputs,
     outputs,
+    ensureRuntime,
   ]);
 
   const { interruptExecution: interruptCell } = useInterruptExecution({
@@ -289,6 +320,7 @@ export const ExecutableCell: React.FC<ExecutableCellProps> = ({
     onDeleteCell: () => handleDeleteCell("keyboard"),
     onExecute: executeCell,
     onUpdateSource: updateSource,
+    onEmptyCellShiftTab: () => changeCellType(cycleCellType(cell.cellType)),
   });
 
   const handleFocus = useCallback(() => {
@@ -359,8 +391,9 @@ export const ExecutableCell: React.FC<ExecutableCellProps> = ({
     >
       {/* Cell Header */}
       {!isSourceLessAiOutput && (
-        <div className="cell-header flex items-center justify-between pr-1 pb-2 pl-6 sm:pr-4">
-          <div className="flex items-center gap-3">
+        <div className="cell-header flex items-center justify-between pr-1 pb-2 pl-4 sm:pr-4">
+          <div className="flex items-center gap-1">
+            {dragHandle}
             <CellTypeSelector cell={cell} onCellTypeChange={changeCellType} />
 
             {/* Cell-type-specific toolbars */}
@@ -422,10 +455,13 @@ export const ExecutableCell: React.FC<ExecutableCellProps> = ({
             )}
 
             <ExecutionStatus executionState={cell.executionState} />
-            <PresenceBookmarks
-              usersOnCell={usersOnCell}
-              getUserColor={getUserColor}
-            />
+            <ErrorBoundary FallbackComponent={() => null}>
+              <PresenceBookmarks
+                usersOnCell={usersOnCell}
+                getUserColor={getUserColor}
+                getUserInfo={getUserInfo}
+              />
+            </ErrorBoundary>
           </div>
 
           <CellControls
@@ -437,6 +473,12 @@ export const ExecutableCell: React.FC<ExecutableCellProps> = ({
             hasOutputs={hasOutputs}
             toggleSourceVisibility={toggleSourceVisibility}
             toggleAiContextVisibility={toggleAiContextVisibility}
+            onMoveUp={moveCellUp}
+            onMoveDown={moveCellDown}
+            onMoveToTop={moveCellToTop}
+            onMoveToBottom={moveCellToBottom}
+            canMoveUp={canMoveUp}
+            canMoveDown={canMoveDown}
             playButton={
               <PlayButton
                 executionState={cell.executionState}
@@ -445,6 +487,7 @@ export const ExecutableCell: React.FC<ExecutableCellProps> = ({
                 onExecute={executeCell}
                 onInterrupt={interruptCell}
                 className="mobile-play-btn block sm:hidden"
+                isAutoLaunching={autoLaunchStatus.isLaunching}
               />
             }
           />
@@ -471,6 +514,7 @@ export const ExecutableCell: React.FC<ExecutableCellProps> = ({
               focusedClass={
                 cell.cellType === "ai" ? "text-purple-600" : undefined
               }
+              isAutoLaunching={autoLaunchStatus.isLaunching}
             />
           </div>
 
