@@ -37,9 +37,15 @@ export const useOrderedCollaboratorInfo = (currentUsers: UserInfo[]) => {
     );
 
     // TODO: in the future, we could clean up old users from the list, so this would become less relevant
-    const justOneBot = bots[0];
+    const justOneBot = bots.length ? [bots[0]] : [];
 
-    const orderedUsers = [...users, ...tuis, ...automations, justOneBot];
+    let orderedUsers = [] as UserInfoWithClientType[];
+    orderedUsers.push(...users);
+    orderedUsers.push(...tuis);
+    orderedUsers.push(...automations);
+    if (justOneBot.length > 0) {
+      orderedUsers.push(justOneBot[0]);
+    }
 
     return orderedUsers;
   }, [currentUsers]);
