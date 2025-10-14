@@ -691,7 +691,7 @@ export const appRouter = router({
       }
     }),
 
-  // System prompt endpoints
+  // Saved prompt endpoints
   getSavedPrompt: authedProcedure.query(async (opts) => {
     const { ctx } = opts;
     const {
@@ -762,7 +762,7 @@ export const appRouter = router({
     } catch (error) {
       throw new TRPCError({
         code: "INTERNAL_SERVER_ERROR",
-        message: `Failed to delete system prompt: ${error instanceof Error ? error.message : "Unknown error"}`,
+        message: `Failed to delete saved prompt: ${error instanceof Error ? error.message : "Unknown error"}`,
       });
     }
   }),

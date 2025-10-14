@@ -92,16 +92,16 @@ import { Kbd, KbdGroup } from "@/components/ui/kbd";
 export const SavedPromptEditor: React.FC = () => {
   const trpc = useTRPCClient();
 
-  // Fetch current system prompt
+  // Fetch current saved prompt
   const { data: currentSavedPrompt, isFetching } = useQuery(
     trpc.getSavedPrompt.queryOptions()
   );
 
-  // Update system prompt mutation
+  // Update saved prompt mutation
   const updateSavedPromptMutation = useMutation(
     trpc.upsertSavedPrompt.mutationOptions({
       onSuccess: (data) => {
-        toast.success("System prompt updated");
+        toast.success("Saved prompt updated");
         setPrompt(data.prompt || "");
         trpcQueryClient.invalidateQueries(trpc.getSavedPrompt.queryOptions());
       },
@@ -111,7 +111,7 @@ export const SavedPromptEditor: React.FC = () => {
     })
   );
 
-  // Delete system prompt mutation
+  // Delete saved prompt mutation
   const deleteSavePromptMutation = useMutation(
     trpc.deleteSavedPrompt.mutationOptions({
       onSuccess: () => {
@@ -156,7 +156,7 @@ export const SavedPromptEditor: React.FC = () => {
         readOnly={isLoading}
         disabled={isLoading}
         onKeyDown={(e) => {
-          // Ctrl+Enter: Save system prompt
+          // Ctrl+Enter: Save the user's prompt
           if ((e.metaKey || e.ctrlKey) && e.key === "Enter" && !isLoading) {
             e.preventDefault();
             handleSave();
