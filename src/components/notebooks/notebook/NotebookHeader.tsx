@@ -20,7 +20,7 @@ export function NotebookHeader({
 }) {
   const canEdit = notebook.myPermission === "OWNER";
 
-  useTitle(notebook.title ?? "Untitled Notebook");
+  useTitle(notebook.title || "Untitled Notebook");
 
   return (
     <div className="border-b bg-white">
