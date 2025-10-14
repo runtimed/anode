@@ -28,17 +28,20 @@ import { CellTypeSelector } from "./shared/CellTypeSelector.js";
 import { Editor, EditorRef } from "./shared/Editor.js";
 import { PresenceBookmarks } from "./shared/PresenceBookmarks.js";
 import { IframeOutput } from "@/components/outputs/MaybeCellOutputs.js";
+import { cycleCellType } from "@/util/cycle-cell-type.js";
 
 interface MarkdownCellProps {
   cell: typeof tables.cells.Type;
   autoFocus?: boolean;
   contextSelectionMode?: boolean;
+  dragHandle?: React.ReactNode;
 }
 
 export const MarkdownCell: React.FC<MarkdownCellProps> = ({
   cell,
   autoFocus = false,
   contextSelectionMode = false,
+  dragHandle,
 }) => {
   const editButtonRef = useRef<HTMLButtonElement>(null);
   const cellContainerRef = useRef<HTMLDivElement>(null);
@@ -168,6 +171,7 @@ export const MarkdownCell: React.FC<MarkdownCellProps> = ({
     onFocusPrevious,
     onDeleteCell: () => handleDeleteCell("keyboard"),
     onUpdateSource: updateSource,
+    onEmptyCellShiftTab: () => changeCellType(cycleCellType(cell.cellType)),
   });
 
   // Because this is a markdown cell, there's nothing to execute, but we do want to handle the same keybindings as a code cell
@@ -251,10 +255,11 @@ export const MarkdownCell: React.FC<MarkdownCellProps> = ({
     >
       {/* Cell Header */}
       <div
-        className="cell-header flex items-center justify-between pr-1 pb-2 pl-6 sm:pr-4"
+        className="cell-header relative flex items-center justify-between pr-1 pb-2 pl-4 sm:pr-4"
         onKeyDown={!isEditing ? handleKeyDown : undefined}
       >
-        <div className="flex items-center gap-3">
+        <div className="relative flex items-center gap-3">
+          {dragHandle}
           <CellTypeSelector cell={cell} onCellTypeChange={changeCellType} />
           {isEditing ? (
             <Button

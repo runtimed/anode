@@ -8,10 +8,11 @@ interface CellProps {
   cell: CellData;
   isFocused: boolean;
   contextSelectionMode: boolean;
+  dragHandle?: React.ReactNode;
 }
 
 export const Cell: React.FC<CellProps> = memo(
-  ({ cell, isFocused, contextSelectionMode }) => {
+  ({ cell, isFocused, contextSelectionMode, dragHandle }) => {
     if (!cell) {
       console.warn("Asked to render a cell that does not exist");
       return null;
@@ -24,12 +25,14 @@ export const Cell: React.FC<CellProps> = memo(
             cell={cell}
             autoFocus={isFocused}
             contextSelectionMode={contextSelectionMode}
+            dragHandle={dragHandle}
           />
         ) : (
           <ExecutableCell
             cell={cell}
             autoFocus={isFocused}
             contextSelectionMode={contextSelectionMode}
+            dragHandle={dragHandle}
           />
         )}
       </ErrorBoundary>

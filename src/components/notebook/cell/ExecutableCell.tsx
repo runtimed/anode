@@ -42,6 +42,7 @@ import { MaybeCellOutputs } from "@/components/outputs/MaybeCellOutputs.js";
 import { useToolApprovals } from "@/hooks/useToolApprovals.js";
 import { AiToolApprovalOutput } from "../../outputs/shared-with-iframe/AiToolApprovalOutput.js";
 import { cn } from "@/lib/utils.js";
+import { cycleCellType } from "@/util/cycle-cell-type.js";
 
 // Cell-specific styling configuration
 const getCellStyling = (cellType: "code" | "sql" | "ai") => {
@@ -68,12 +69,14 @@ interface ExecutableCellProps {
   cell: typeof tables.cells.Type;
   autoFocus?: boolean;
   contextSelectionMode?: boolean;
+  dragHandle?: React.ReactNode;
 }
 
 export const ExecutableCell: React.FC<ExecutableCellProps> = ({
   cell,
   autoFocus = false,
   contextSelectionMode = false,
+  dragHandle,
 }) => {
   const hasRunRef = useRef(false);
   const cellRef = useRef<HTMLDivElement>(null);
@@ -316,6 +319,7 @@ export const ExecutableCell: React.FC<ExecutableCellProps> = ({
     onDeleteCell: () => handleDeleteCell("keyboard"),
     onExecute: executeCell,
     onUpdateSource: updateSource,
+    onEmptyCellShiftTab: () => changeCellType(cycleCellType(cell.cellType)),
   });
 
   const handleFocus = useCallback(() => {
@@ -378,8 +382,9 @@ export const ExecutableCell: React.FC<ExecutableCellProps> = ({
     >
       {/* Cell Header */}
       {!isSourceLessAiOutput && (
-        <div className="cell-header flex items-center justify-between pr-1 pb-2 pl-6 sm:pr-4">
-          <div className="flex items-center gap-3">
+        <div className="cell-header flex items-center justify-between pr-1 pb-2 pl-4 sm:pr-4">
+          <div className="flex items-center gap-1">
+            {dragHandle}
             <CellTypeSelector cell={cell} onCellTypeChange={changeCellType} />
 
             {/* Cell-type-specific toolbars */}

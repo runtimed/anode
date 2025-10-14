@@ -274,6 +274,32 @@ Anode supports **Groq** as a first-class AI provider alongside OpenAI and Ollama
 
 External Python runtime and AI features are handled by the separate [@runt packages](https://github.com/runtimed/runt), while in-browser runtime agents execute directly in the web client. The integrated development server runs both frontend and backend in a single process for convenience.
 
+## Environment Variables
+
+The following environment variables can be configured for development and deployment:
+
+### Runtime Logging
+
+- `VITE_RUNT_LOG_LEVEL`: Control log level for in-browser runtime agents
+  - `DEBUG`: Show all logs including debug information
+  - `INFO`: Show informational messages and above (default for development)
+  - `WARN`: Show warnings and errors only
+  - `ERROR`: Show errors only (default for production)
+
+Example:
+
+```bash
+# Enable debug logging for runtime agents
+VITE_RUNT_LOG_LEVEL=DEBUG pnpm dev
+
+# Disable most logging (quiet mode)
+VITE_RUNT_LOG_LEVEL=ERROR pnpm dev
+```
+
+### Other Environment Variables
+
+See `.env.example` and `.dev.vars.example` for complete configuration options including authentication, sync URLs, and API keys.
+
 ## Troubleshooting
 
 | Problem                   | Solution                                                                    |

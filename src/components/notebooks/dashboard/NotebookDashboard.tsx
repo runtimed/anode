@@ -23,6 +23,7 @@ import {
   useSmartDefaultFilter,
 } from "./helpers";
 import { NoResults, Results } from "./Results";
+import { useTitle } from "react-use";
 
 const DebugNotebooks = React.lazy(() =>
   import("./DebugNotebooks").then((mod) => ({ default: mod.DebugNotebooks }))
@@ -31,6 +32,8 @@ const DebugNotebooks = React.lazy(() =>
 export const NotebookDashboard: React.FC = () => {
   const debug = useDebug();
   const trpc = useTrpc();
+
+  useTitle("Notebooks Dashboard");
 
   const { activeFilter, searchQuery, selectedTagName } = useDashboardParams();
   const {

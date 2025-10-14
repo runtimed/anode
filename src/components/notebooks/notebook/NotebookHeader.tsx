@@ -7,6 +7,7 @@ import { Button } from "../../ui/button.js";
 import { SimpleUserProfile } from "../SimpleUserProfile.js";
 import type { NotebookProcessed } from "../types.js";
 import { TitleEditor } from "./TitleEditor.js";
+import { useTitle } from "react-use";
 import { useDuplicateNotebook } from "../../../hooks/useDuplicateNotebook.js";
 import { useConfirm } from "@/components/ui/confirm.js";
 import { toast } from "sonner";
@@ -21,6 +22,8 @@ export function NotebookHeader({
   setIsSharingDialogOpen: (isOpen: boolean) => void;
 }) {
   const canEdit = notebook.myPermission === "OWNER";
+
+  useTitle(notebook.title || "Untitled Notebook");
   const { duplicateNotebook, isDuplicating } = useDuplicateNotebook();
   const { confirm } = useConfirm();
 
