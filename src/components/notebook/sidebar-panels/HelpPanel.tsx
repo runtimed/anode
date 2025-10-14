@@ -47,9 +47,11 @@ export const HelpPanel: React.FC<SidebarPanelProps> = () => {
                 (when at start of cell)
               </span>
             </div>
-            <code className="rounded bg-gray-100 px-2 py-1 text-xs">
-              Shift+Tab
-            </code>
+            <KbdGroup>
+              <Kbd>Shift</Kbd>
+              <span>+</span>
+              <Kbd>Tab</Kbd>
+            </KbdGroup>
           </div>
         </div>
       </div>
