@@ -29,6 +29,8 @@ interface AiToolbarProps {
   provider: string;
   model: string;
   onProviderChange: (provider: string, model: string) => void;
+  open: boolean;
+  onOpenChange: (isOpen: boolean) => void;
 }
 
 // Based on: https://craft.mxkaske.dev/post/fancy-box
@@ -38,9 +40,10 @@ export const AiToolbar: React.FC<AiToolbarProps> = ({
   provider,
   model,
   onProviderChange,
+  open,
+  onOpenChange,
 }) => {
   const inputRef = React.useRef<HTMLInputElement>(null);
-  const [openCombobox, setOpenCombobox] = React.useState(false);
   const [inputValue, setInputValue] = React.useState<string>("");
 
   const { models: availableModels } = useAvailableAiModels();
@@ -72,13 +75,12 @@ export const AiToolbar: React.FC<AiToolbarProps> = ({
 
   const selectModel = (selectedProvider: string, selectedModel: string) => {
     onProviderChange(selectedProvider, selectedModel);
-    setOpenCombobox(false);
+    onOpenChange(false);
   };
 
-  const onComboboxOpenChange = (value: boolean) => {
-    inputRef.current?.blur();
-    setOpenCombobox(value);
-    if (value) {
+  const onComboboxOpenChange = (isOpen: boolean) => {
+    onOpenChange(isOpen);
+    if (isOpen) {
       setInputValue(""); // Clear input text when opening menu
     }
   };
@@ -95,14 +97,14 @@ export const AiToolbar: React.FC<AiToolbarProps> = ({
 
   return (
     <div className="flex items-center gap-2">
-      <Popover open={openCombobox} onOpenChange={onComboboxOpenChange}>
+      <Popover open={open} onOpenChange={onComboboxOpenChange}>
         <Tooltip>
           <TooltipTrigger asChild>
             <PopoverTrigger asChild>
               <Button
                 variant="outline"
                 role="combobox"
-                aria-expanded={openCombobox}
+                aria-expanded={open}
                 className="h-7 min-w-0 justify-between gap-0 !pr-1.5 text-xs sm:h-6"
               >
                 <span className="truncate">
@@ -116,7 +118,7 @@ export const AiToolbar: React.FC<AiToolbarProps> = ({
             <span>
               Select an AI model with{" "}
               <KbdGroup>
-                <Kbd>^</Kbd>
+                <Kbd>Ctrl</Kbd>
                 <Kbd>Shift</Kbd>
                 <Kbd>M</Kbd>
               </KbdGroup>
@@ -127,7 +129,7 @@ export const AiToolbar: React.FC<AiToolbarProps> = ({
           className="w-[300px] p-0"
           align="start"
           // Allows closing the popover when clicking on iframe
-          onBlur={() => setOpenCombobox(false)}
+          onBlur={() => onComboboxOpenChange(false)}
         >
           <Command loop>
             <CommandInput
