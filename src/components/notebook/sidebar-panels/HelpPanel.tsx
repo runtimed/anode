@@ -29,6 +29,17 @@ export const HelpPanel: React.FC<SidebarPanelProps> = () => {
               Ctrl+Enter
             </code>
           </div>
+          <div className="flex items-start justify-between">
+            <div>
+              <div className="text-gray-600">Cycle cell type</div>
+              <span className="text-xs text-gray-600">
+                (when at start of cell)
+              </span>
+            </div>
+            <code className="rounded bg-gray-100 px-2 py-1 text-xs">
+              Shift+Tab
+            </code>
+          </div>
         </div>
       </div>
 
