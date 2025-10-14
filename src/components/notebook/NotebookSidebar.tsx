@@ -21,6 +21,7 @@ import { getSidebarItems, getSidebarItemConfig } from "./sidebar-panels/config";
 
 // Icons
 import { X, ArrowLeft } from "lucide-react";
+import { DebugModeToggle } from "../debug/DebugModeToggle";
 
 interface NotebookSidebarProps {
   notebook: NotebookProcessed;
@@ -121,6 +122,12 @@ export const NotebookSidebar: React.FC<NotebookSidebarProps> = ({
               </Button>
             );
           })}
+
+          {import.meta.env.DEV && (
+            <div className="mx-auto">
+              <DebugModeToggle />
+            </div>
+          )}
         </div>
       </div>
 

@@ -4,7 +4,6 @@ import { CollaboratorAvatars } from "../../CollaboratorAvatars.js";
 import { Collaborator } from "../types.js";
 
 import { useAuthenticatedUser } from "@/auth/index.js";
-import { DebugModeToggle } from "@/components/debug/DebugModeToggle.js";
 import {
   Tooltip,
   TooltipContent,
@@ -126,9 +125,6 @@ export function NotebookHeader({
               <ErrorBoundary FallbackComponent={() => null}>
                 <CollaboratorAvatars />
               </ErrorBoundary>
-
-              {/* Debug Mode Toggle */}
-              {import.meta.env.DEV && <DebugModeToggle />}
 
               <ErrorBoundary fallback={<div>Error</div>}>
                 <SimpleUserProfile />
