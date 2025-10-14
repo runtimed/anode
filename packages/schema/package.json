@@ -17,8 +17,7 @@
     "format:check": "prettier --check ."
   },
   "dependencies": {
-    "@livestore/livestore": "^0.3.1",
-    "effect": "3.15.5",
+    "@livestore/livestore": "v0.4.0-dev.10",
     "zod": "^4.0.17"
   },
   "devDependencies": {
