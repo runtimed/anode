@@ -1,13 +1,14 @@
 import { useQuery } from "@livestore/react";
 import { queryDb } from "@runtimed/schema";
 import { tables } from "@runtimed/schema";
+import { type ModelCapability } from "packages/agent-core/src";
 import { useMemo } from "react";
 
 export type AiModel = {
   name: string;
   displayName: string;
   provider: string;
-  capabilities: string[];
+  capabilities: ModelCapability[];
   metadata?: {
     parameterSize?: string;
     modelType?: string;
@@ -105,7 +106,7 @@ export function useAvailableAiModels(): {
  */
 export function filterModelsByCapabilities(
   models: AiModel[],
-  requiredCapabilities: string[]
+  requiredCapabilities: ModelCapability[]
 ): AiModel[] {
   return models.filter((model) =>
     requiredCapabilities.every((capability) =>

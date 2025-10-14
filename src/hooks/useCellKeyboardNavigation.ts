@@ -8,6 +8,7 @@ interface CellKeyboardNavigationOptions {
   onExecute?: () => void;
   onUpdateSource?: () => void;
   onDeleteCell?: () => void;
+  onOpenAiToolbar?: () => void;
   onEmptyCellShiftTab?: () => void;
 }
 
@@ -17,6 +18,7 @@ export const useCellKeyboardNavigation = ({
   onDeleteCell,
   onExecute,
   onUpdateSource,
+  onOpenAiToolbar,
   onEmptyCellShiftTab,
 }: CellKeyboardNavigationOptions) => {
   const keyMap = useMemo(() => {
@@ -94,6 +96,13 @@ export const useCellKeyboardNavigation = ({
           return false;
         },
       },
+      {
+        key: "Ctrl-m",
+        shift: () => {
+          onOpenAiToolbar?.();
+          return true;
+        },
+      },
     ];
     return map;
   }, [
@@ -102,6 +111,7 @@ export const useCellKeyboardNavigation = ({
     onFocusPrevious,
     onDeleteCell,
     onUpdateSource,
+    onOpenAiToolbar,
     onEmptyCellShiftTab,
   ]);
 
