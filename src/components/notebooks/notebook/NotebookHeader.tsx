@@ -1,4 +1,4 @@
-import { Share2, User, Users } from "lucide-react";
+import { CopyPlus, Share2, User, Users } from "lucide-react";
 import { ErrorBoundary } from "react-error-boundary";
 import { CollaboratorAvatars } from "../../CollaboratorAvatars.js";
 import { Collaborator } from "../types.js";
@@ -8,6 +8,9 @@ import { SimpleUserProfile } from "../SimpleUserProfile.js";
 import type { NotebookProcessed } from "../types.js";
 import { TitleEditor } from "./TitleEditor.js";
 import { useTitle } from "react-use";
+import { useDuplicateNotebook } from "../../../hooks/useDuplicateNotebook.js";
+import { useConfirm } from "@/components/ui/confirm.js";
+import { toast } from "sonner";
 
 export function NotebookHeader({
   notebook,
@@ -21,6 +24,25 @@ export function NotebookHeader({
   const canEdit = notebook.myPermission === "OWNER";
 
   useTitle(notebook.title || "Untitled Notebook");
+  const { duplicateNotebook, isDuplicating } = useDuplicateNotebook();
+  const { confirm } = useConfirm();
+
+  const handleDuplicateNotebook = async () => {
+    confirm({
+      title: "Duplicate Notebook",
+      description: `Please confirm that you want to duplicate "${notebook.title || "Untitled Notebook"}".`,
+      onConfirm: handleDuplicateNotebookConfirm,
+      nonDestructive: true,
+    });
+  };
+
+  const handleDuplicateNotebookConfirm = async () => {
+    try {
+      await duplicateNotebook(notebook.title || "Untitled Notebook");
+    } catch (error) {
+      toast.error("Failed to duplicate notebook");
+    }
+  };
 
   return (
     <div className="border-b bg-white">
@@ -35,12 +57,22 @@ export function NotebookHeader({
           </div>
 
           {/* Right side - Mobile optimized */}
-          <div className="flex shrink-0 items-center gap-2 sm:gap-3">
-            <div className="hidden sm:block">
-              <ErrorBoundary FallbackComponent={() => null}>
-                <CollaboratorAvatars />
-              </ErrorBoundary>
-            </div>
+          <div className="flex shrink-0 items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              className="px-1 text-xs sm:px-2"
+              onClick={handleDuplicateNotebook}
+              disabled={isDuplicating}
+            >
+              <CopyPlus className="h-3 w-3" />
+              <span className="sr-only sm:not-sr-only">
+                {isDuplicating ? "Duplicating..." : "Duplicate Notebook"}
+              </span>
+              <span className="sm:hidden">
+                {isDuplicating ? "Duplicating..." : "Duplicate"}
+              </span>
+            </Button>
 
             {canEdit && (
               <Button
@@ -53,6 +85,12 @@ export function NotebookHeader({
                 <span className="sr-only sm:not-sr-only">Share</span>
               </Button>
             )}
+
+            <div className="hidden sm:block">
+              <ErrorBoundary FallbackComponent={() => null}>
+                <CollaboratorAvatars />
+              </ErrorBoundary>
+            </div>
 
             <ErrorBoundary fallback={<div>Error</div>}>
               <SimpleUserProfile />
