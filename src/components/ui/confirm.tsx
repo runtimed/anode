@@ -19,6 +19,7 @@ interface ConfirmOptions {
   description: ReactNode;
   actionButtonText: string;
   onConfirm: (() => void) | null;
+  nonDestructive: boolean;
 }
 
 interface ConfirmContextType {
@@ -37,6 +38,7 @@ export function ConfirmProvider({ children }: { children: ReactNode }) {
     description: null,
     onConfirm: null,
     actionButtonText: "Delete",
+    nonDestructive: false,
   });
 
   const setConfirmOptions = useCallback((options: Partial<ConfirmOptions>) => {
@@ -67,7 +69,8 @@ function useConfirmContext() {
 
 export function Confirmer() {
   const { confirmOptions, isOpen, setIsOpen } = useConfirmContext();
-  const { title, description, onConfirm, actionButtonText } = confirmOptions;
+  const { title, description, onConfirm, actionButtonText, nonDestructive } =
+    confirmOptions;
 
   const handleConfirm = () => {
     onConfirm?.();
@@ -85,17 +88,30 @@ export function Confirmer() {
           <DialogTitle>{title}</DialogTitle>
           <DialogDescription>{description}</DialogDescription>
         </DialogHeader>
-        <div className="flex justify-end gap-2 pt-4">
-          <Button variant="outline" onClick={handleCancel} showFocusRing>
-            Cancel
-          </Button>
-          <Button
-            onClick={handleConfirm}
-            className="bg-red-600 hover:bg-red-700 focus:ring-red-600"
-          >
-            {actionButtonText}
-          </Button>
-        </div>
+        {nonDestructive && (
+          <div className="flex flex-row-reverse justify-start gap-2 pt-4">
+            <Button
+              showFocusRing
+              variant={nonDestructive ? "default" : "destructive"}
+              onClick={handleConfirm}
+            >
+              {actionButtonText}
+            </Button>
+            <Button variant="outline" onClick={handleCancel} showFocusRing>
+              Cancel
+            </Button>
+          </div>
+        )}
+        {!nonDestructive && (
+          <div className="flex justify-end gap-2 pt-4">
+            <Button variant="outline" onClick={handleCancel} showFocusRing>
+              Cancel
+            </Button>
+            <Button showFocusRing variant="destructive" onClick={handleConfirm}>
+              {actionButtonText}
+            </Button>
+          </div>
+        )}
       </DialogContent>
     </Dialog>
   );
@@ -110,17 +126,21 @@ export function useConfirm() {
       description,
       onConfirm,
       actionButtonText,
+      nonDestructive,
     }: {
       title: string;
       description: ReactNode | null;
       onConfirm: () => void;
       actionButtonText?: string;
+      nonDestructive?: boolean;
     }) => {
       setConfirmOptions({
         title,
         description,
         onConfirm,
-        actionButtonText: actionButtonText || "Delete",
+        actionButtonText:
+          actionButtonText || (nonDestructive ? "Confirm" : "Delete"),
+        nonDestructive,
       });
       setIsOpen(true);
     },

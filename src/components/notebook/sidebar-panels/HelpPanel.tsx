@@ -5,6 +5,9 @@ import type { SidebarPanelProps } from "./types";
 import { Kbd, KbdGroup } from "@/components/ui/kbd";
 // Icons
 import { Star, Bug, ExternalLink } from "lucide-react";
+import { getOS } from "@/util/os";
+
+const os = getOS();
 
 export const HelpPanel: React.FC<SidebarPanelProps> = () => {
   return (
@@ -18,7 +21,7 @@ export const HelpPanel: React.FC<SidebarPanelProps> = () => {
             <span className="text-gray-600">Navigate cells</span>
             <KbdGroup>
               <Kbd aria-label="Arrow Up">↑</Kbd>
-              <span>or</span>
+              <span className="text-xs opacity-70">or</span>
               <Kbd aria-label="Arrow Down" className="ml-1">
                 ↓
               </Kbd>
@@ -28,15 +31,13 @@ export const HelpPanel: React.FC<SidebarPanelProps> = () => {
             <span className="text-gray-600">Run & next</span>
             <KbdGroup>
               <Kbd>Shift</Kbd>
-              <span>+</span>
               <Kbd>Enter</Kbd>
             </KbdGroup>
           </div>
           <div className="flex justify-between">
             <span className="text-gray-600">Run cell</span>
             <KbdGroup>
-              <Kbd>Ctrl</Kbd>
-              <span>+</span>
+              {os === "mac" ? <Kbd>⌘</Kbd> : <Kbd>Ctrl</Kbd>}
               <Kbd>Enter</Kbd>
             </KbdGroup>
           </div>
@@ -47,9 +48,10 @@ export const HelpPanel: React.FC<SidebarPanelProps> = () => {
                 (when at start of cell)
               </span>
             </div>
-            <code className="rounded bg-gray-100 px-2 py-1 text-xs">
-              Shift+Tab
-            </code>
+            <KbdGroup>
+              <Kbd>Shift</Kbd>
+              <Kbd>Tab</Kbd>
+            </KbdGroup>
           </div>
         </div>
       </div>

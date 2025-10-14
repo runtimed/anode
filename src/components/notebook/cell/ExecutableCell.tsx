@@ -18,7 +18,7 @@ import { useStore } from "@livestore/react";
 import { focusedCellSignal$, hasManuallyFocused$ } from "../signals/focus.js";
 import { events, tables, queries, CellTypeNoRaw } from "@runtimed/schema";
 import { ChevronDown, ChevronUp } from "lucide-react";
-import React, { useCallback, useEffect, useRef } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import { ErrorBoundary } from "react-error-boundary";
 import { CellContainer } from "./shared/CellContainer.js";
 import { CellControls } from "./shared/CellControls.js";
@@ -87,6 +87,9 @@ export const ExecutableCell: React.FC<ExecutableCellProps> = ({
     unregisterEditor,
     focusCell: registryFocusCell,
   } = useEditorRegistry();
+
+  // TODO: ideally, we'd not be tracking state in the cell component, but in the toolbar component
+  const [openAiToolbar, setOpenAiToolbar] = useState(false);
 
   const { handleDeleteCell } = useDeleteCell(cell.id);
   const { addCell } = useAddCell();
@@ -318,6 +321,7 @@ export const ExecutableCell: React.FC<ExecutableCellProps> = ({
     onFocusPrevious,
     onDeleteCell: () => handleDeleteCell("keyboard"),
     onExecute: executeCell,
+    onOpenAiToolbar: () => setOpenAiToolbar(true),
     onUpdateSource: updateSource,
     onEmptyCellShiftTab: () => changeCellType(cycleCellType(cell.cellType)),
   });
@@ -391,6 +395,8 @@ export const ExecutableCell: React.FC<ExecutableCellProps> = ({
             {cell.cellType === "code" && <CodeToolbar />}
             {cell.cellType === "ai" && (
               <AiToolbar
+                open={openAiToolbar}
+                onOpenChange={setOpenAiToolbar}
                 provider={cell.aiProvider || "openai"}
                 model={cell.aiModel || "gpt-4o-mini"}
                 onProviderChange={(newProvider: string, newModel: string) => {
