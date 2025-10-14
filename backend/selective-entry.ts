@@ -72,6 +72,16 @@ honoApp.use("*", async (c, next) => {
   console.log(`[HONO] ${method} ${path} ${status} ${duration}ms`);
 });
 
+// No-cache middleware for API routes
+honoApp.use("*", async (c, next) => {
+  await next();
+
+  // Add no-cache headers to prevent edge caching
+  c.res.headers.set("Cache-Control", "no-cache, no-store, must-revalidate");
+  c.res.headers.set("Pragma", "no-cache");
+  c.res.headers.set("Expires", "0");
+});
+
 // Environment-based security check middleware for local OIDC
 honoApp.use("/local_oidc/*", async (c, next) => {
   const allowLocalAuth = c.env.ALLOW_LOCAL_AUTH === "true";
@@ -174,6 +184,15 @@ export default {
             };
           },
         });
+
+        // Add no-cache headers to tRPC responses
+        response.headers.set(
+          "Cache-Control",
+          "no-cache, no-store, must-revalidate"
+        );
+        response.headers.set("Pragma", "no-cache");
+        response.headers.set("Expires", "0");
+
         console.log("✅ tRPC response:", response.status);
         return response as unknown as WorkerResponse;
       } catch (error) {
@@ -212,6 +231,15 @@ export default {
       console.log("🛠️  Routing to Hono API");
       try {
         const response = await honoApp.fetch(request as any, env, ctx);
+
+        // Add no-cache headers to API responses
+        response.headers.set(
+          "Cache-Control",
+          "no-cache, no-store, must-revalidate"
+        );
+        response.headers.set("Pragma", "no-cache");
+        response.headers.set("Expires", "0");
+
         console.log("✅ Hono API response:", response.status);
         return response as unknown as WorkerResponse;
       } catch (error) {

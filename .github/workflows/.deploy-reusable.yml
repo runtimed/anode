@@ -76,6 +76,7 @@ jobs:
           VITE_RUNTIME_COMMAND: ${{ vars.VITE_RUNTIME_COMMAND }}
           VITE_AI_PROVIDER: ${{ vars.VITE_AI_PROVIDER }}
           VITE_GIT_COMMIT_HASH: ${{ github.sha }}
+          VITE_LS_DEV: "true"
 
       - name: Build iframe outputs
         run: pnpm run build:iframe

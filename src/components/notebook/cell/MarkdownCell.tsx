@@ -28,6 +28,7 @@ import { CellTypeSelector } from "./shared/CellTypeSelector.js";
 import { Editor, EditorRef } from "./shared/Editor.js";
 import { PresenceBookmarks } from "./shared/PresenceBookmarks.js";
 import { IframeOutput } from "@/components/outputs/MaybeCellOutputs.js";
+import { cycleCellType } from "@/util/cycle-cell-type.js";
 
 interface MarkdownCellProps {
   cell: typeof tables.cells.Type;
@@ -170,6 +171,7 @@ export const MarkdownCell: React.FC<MarkdownCellProps> = ({
     onFocusPrevious,
     onDeleteCell: () => handleDeleteCell("keyboard"),
     onUpdateSource: updateSource,
+    onEmptyCellShiftTab: () => changeCellType(cycleCellType(cell.cellType)),
   });
 
   // Because this is a markdown cell, there's nothing to execute, but we do want to handle the same keybindings as a code cell

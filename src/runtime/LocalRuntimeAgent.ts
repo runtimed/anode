@@ -14,6 +14,7 @@ import {
   RuntimeConfig,
   type ExecutionHandler,
   type RuntimeCapabilities,
+  type LoggerConfig,
 } from "@runtimed/agent-core";
 import type { Store } from "@runtimed/schema";
 import { events } from "@runtimed/schema";
@@ -34,6 +35,8 @@ export interface LocalRuntimeConfig {
   runtimeId?: string;
   /** Optional sync URL (defaults to localhost:8787 for dev) */
   syncUrl?: string;
+  /** Optional logger configuration */
+  logging?: Partial<LoggerConfig>;
 }
 
 /**

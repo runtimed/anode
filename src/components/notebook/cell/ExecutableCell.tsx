@@ -42,6 +42,7 @@ import { MaybeCellOutputs } from "@/components/outputs/MaybeCellOutputs.js";
 import { useToolApprovals } from "@/hooks/useToolApprovals.js";
 import { AiToolApprovalOutput } from "../../outputs/shared-with-iframe/AiToolApprovalOutput.js";
 import { cn } from "@/lib/utils.js";
+import { cycleCellType } from "@/util/cycle-cell-type.js";
 
 // Cell-specific styling configuration
 const getCellStyling = (cellType: "code" | "sql" | "ai") => {
@@ -318,6 +319,7 @@ export const ExecutableCell: React.FC<ExecutableCellProps> = ({
     onDeleteCell: () => handleDeleteCell("keyboard"),
     onExecute: executeCell,
     onUpdateSource: updateSource,
+    onEmptyCellShiftTab: () => changeCellType(cycleCellType(cell.cellType)),
   });
 
   const handleFocus = useCallback(() => {

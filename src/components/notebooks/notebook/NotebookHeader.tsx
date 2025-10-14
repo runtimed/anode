@@ -17,6 +17,7 @@ import {
 import { Avatar } from "@/components/ui/avatar.js";
 import { AvatarImage } from "@/components/ui/avatar.js";
 import { AvatarFallback } from "@/components/ui/avatar.js";
+import { useTitle } from "react-use";
 
 export function NotebookHeader({
   notebook,
@@ -28,6 +29,8 @@ export function NotebookHeader({
   setIsSharingDialogOpen: (isOpen: boolean) => void;
 }) {
   const canEdit = notebook.myPermission === "OWNER";
+
+  useTitle(notebook.title || "Untitled Notebook");
   const userId = useAuthenticatedUser();
 
   const ownerName =
