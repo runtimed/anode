@@ -92,12 +92,6 @@ Groq API key not found. Please set \`GROQ_API_KEY\` environment variable.`;
       },
       {
         provider: "groq",
-        name: "deepseek-r1-distill-llama-70b",
-        displayName: "DeepSeek R1 Distill Llama 70B",
-        capabilities: ["completion", "tools", "thinking"],
-      },
-      {
-        provider: "groq",
         name: "llama-3.3-70b-versatile",
         displayName: "Llama 3.3 70B Versatile",
         capabilities: ["completion", "tools", "thinking"],
