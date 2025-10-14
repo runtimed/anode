@@ -15,6 +15,7 @@ beforeAll(async () => {
   process.env.VITE_AUTH_REDIRECT_URI = "http://localhost:3000/callback";
   process.env.VITE_LIVESTORE_SYNC_URL = "ws://localhost:8787";
   process.env.VITE_RUNTIME_COMMAND = "";
+  process.env.VITE_LS_DEV = "true";
 
   // Suppress console.log in tests unless explicitly needed
   if (!process.env.DEBUG_TESTS) {

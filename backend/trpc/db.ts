@@ -10,10 +10,6 @@ import {
 } from "backend/users/utils";
 import { nanoid } from "nanoid";
 
-// Cache configuration
-const CACHE_PREFIX = "notebooks:";
-const CACHE_TTL = 300; // 5 minutes in seconds
-
 export async function getNotebooks(
   ctx: {
     user: ValidatedUser;
@@ -33,27 +29,6 @@ export async function getNotebooks(
     env: { DB },
     permissionsProvider,
   } = ctx;
-
-  // Generate cache key
-  const cacheKey = `${CACHE_PREFIX}${user.id}:${JSON.stringify({
-    owned: owned || false,
-    shared: shared || false,
-    limit,
-    offset,
-  })}`;
-
-  // Try cache first if available
-  try {
-    const cache = await caches.open("notebooks-cache");
-    const cached = await cache.match(new Request(`https://cache/${cacheKey}`));
-    if (cached) {
-      const cachedData = await cached.json();
-      console.log(`Cache hit for notebooks query: ${cacheKey}`);
-      return cachedData;
-    }
-  } catch (error) {
-    console.warn("Cache read failed:", error);
-  }
 
   let accessibleNotebookIds: string[];
 
@@ -100,23 +75,7 @@ export async function getNotebooks(
 
   // Fall back to two-step approach for external providers
   if (accessibleNotebookIds.length === 0) {
-    const emptyResult: any[] = [];
-
-    // Cache empty result
-    try {
-      const cache = await caches.open("notebooks-cache");
-      const response = new Response(JSON.stringify(emptyResult), {
-        headers: {
-          "Content-Type": "application/json",
-          "Cache-Control": `max-age=${CACHE_TTL}`,
-        },
-      });
-      await cache.put(new Request(`https://cache/${cacheKey}`), response);
-    } catch (error) {
-      console.warn("Cache write failed:", error);
-    }
-
-    return emptyResult;
+    return [];
   }
 
   // Use chunked queries to avoid SQL parameter limits
@@ -161,55 +120,12 @@ export async function getNotebooks(
     }))
   );
 
-  // Cache the successful result
-  try {
-    const cache = await caches.open("notebooks-cache");
-    const response = new Response(
-      JSON.stringify(notebooksWithCollaboratorsAndTags),
-      {
-        headers: {
-          "Content-Type": "application/json",
-          "Cache-Control": `max-age=${CACHE_TTL}`,
-        },
-      }
-    );
-    await cache.put(new Request(`https://cache/${cacheKey}`), response);
-    console.log(`Cache write for notebooks query: ${cacheKey}`);
-  } catch (error) {
-    console.warn("Cache write failed:", error);
-  }
-
   return notebooksWithCollaboratorsAndTags;
 }
 
 // Helper function to invalidate notebook cache for a user
-export async function invalidateNotebookCache(userId: string): Promise<void> {
-  try {
-    const cache = await caches.open("notebooks-cache");
-
-    // Since Cloudflare Cache API doesn't support wildcard deletion,
-    // we need to track and delete specific cache keys.
-    // For now, we'll delete the most common cache patterns
-    const commonCacheKeys = [
-      // All notebooks (default query)
-      `${CACHE_PREFIX}${userId}:${JSON.stringify({ owned: false, shared: false, limit: 5000, offset: 0 })}`,
-      // Owned only
-      `${CACHE_PREFIX}${userId}:${JSON.stringify({ owned: true, shared: false, limit: 5000, offset: 0 })}`,
-      // Shared only
-      `${CACHE_PREFIX}${userId}:${JSON.stringify({ owned: false, shared: true, limit: 5000, offset: 0 })}`,
-      // Both owned and shared
-      `${CACHE_PREFIX}${userId}:${JSON.stringify({ owned: true, shared: true, limit: 5000, offset: 0 })}`,
-    ];
-
-    const deletePromises = commonCacheKeys.map((cacheKey) =>
-      cache.delete(new Request(`https://cache/${cacheKey}`))
-    );
-
-    await Promise.all(deletePromises);
-    console.log(`Cache invalidated for user: ${userId}`);
-  } catch (error) {
-    console.warn("Cache invalidation failed:", error);
-  }
+export async function invalidateNotebookCache(_userId: string): Promise<void> {
+  // No-op: server-side caching disabled
 }
 
 // Helper function to get notebook collaborators

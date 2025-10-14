@@ -13,6 +13,7 @@ interface ImportMetaEnv {
   VITE_RUNT_API_KEY?: string;
   VITE_OPENAI_API_KEY?: string;
   VITE_GROQ_API_KEY?: string;
+  VITE_LS_DEV?: string;
 }
 
 interface ImportMeta {
