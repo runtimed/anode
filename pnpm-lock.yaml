@@ -206,8 +206,8 @@ importers:
         specifier: ^0.16.22
         version: 0.16.22
       lucide-react:
-        specifier: ^0.514.0
-        version: 0.514.0(react@19.0.0)
+        specifier: ^0.545.0
+        version: 0.545.0(react@19.0.0)
       maplibre-gl:
         specifier: ^5.7.1
         version: 5.7.1
@@ -4099,8 +4099,8 @@ packages:
     resolution: {integrity: sha512-jumlc0BIUrS3qJGgIkWZsyfAM7NCWiBcCDhnd+3NNM5KbBmLTgHVfWBcg6W+rLUsIpzpERPsvwUP7CckAQSOoA==}
     engines: {node: '>=12'}
 
-  lucide-react@0.514.0:
-    resolution: {integrity: sha512-HXD0OAMd+JM2xCjlwG1EGW9Nuab64dhjO3+MvdyD+pSUeOTBaVAPhQblKIYmmX4RyBYbdzW0VWnJpjJmxWGr6w==}
+  lucide-react@0.545.0:
+    resolution: {integrity: sha512-7r1/yUuflQDSt4f1bpn5ZAocyIxcTyVyBBChSVtBKn5M+392cPmI5YJMWOJKk/HUWGm5wg83chlAZtCcGbEZtw==}
     peerDependencies:
       react: 19.0.0
 
@@ -9478,7 +9478,7 @@ snapshots:
 
   lru-cache@7.18.3: {}
 
-  lucide-react@0.514.0(react@19.0.0):
+  lucide-react@0.545.0(react@19.0.0):
     dependencies:
       react: 19.0.0
 
