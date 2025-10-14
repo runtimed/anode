@@ -7,6 +7,7 @@ import { Button } from "../../ui/button.js";
 import { SimpleUserProfile } from "../SimpleUserProfile.js";
 import type { NotebookProcessed } from "../types.js";
 import { TitleEditor } from "./TitleEditor.js";
+import { useTitle } from "react-use";
 
 export function NotebookHeader({
   notebook,
@@ -18,6 +19,8 @@ export function NotebookHeader({
   setIsSharingDialogOpen: (isOpen: boolean) => void;
 }) {
   const canEdit = notebook.myPermission === "OWNER";
+
+  useTitle(notebook.title || "Untitled Notebook");
 
   return (
     <div className="border-b bg-white">
