@@ -63,7 +63,7 @@ export function TitleEditor({
           <Input
             value={editTitle}
             onChange={(e) => setEditTitle(e.target.value)}
-            className="field-sizing-content max-w-[calc(100vw/2)] px-1 py-0 pr-20 text-sm font-semibold sm:text-lg md:text-xl"
+            className={`field-sizing-content max-w-[calc(100vw/2)] bg-white px-1 py-0 pr-20 ${textStyles}`}
             placeholder="Notebook title..."
             onKeyDown={(e) => {
               if (e.key === "Enter") handleSaveTitle();
@@ -94,7 +94,7 @@ export function TitleEditor({
           className="group/nb-title flex min-w-0 items-center gap-1 rounded-sm hover:ring-1 hover:ring-gray-300 hover:ring-offset-2 sm:gap-2"
           onClick={handleStartEditTitle}
         >
-          <h1 className="tight truncate text-sm font-semibold transition-shadow sm:text-lg md:text-xl">
+          <h1 className={`tight truncate px-1 transition-shadow ${textStyles}`}>
             {notebook.title || "Untitled Notebook"}
           </h1>
           {canEdit && (
@@ -112,3 +112,5 @@ export function TitleEditor({
     </div>
   );
 }
+
+const textStyles = "text-sm sm:text-base md:text-lg font-semibold";
