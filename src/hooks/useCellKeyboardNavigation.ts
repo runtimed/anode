@@ -32,6 +32,7 @@ export const useCellKeyboardNavigation = ({
           return false;
         },
       },
+      // NOTE: put custom tab behavior above this line since `indentWithTab` prevents any subsequent keybindings from being applied
       indentWithTab,
       {
         mac: "Meta-Enter",

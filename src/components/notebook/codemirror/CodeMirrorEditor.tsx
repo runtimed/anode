@@ -126,9 +126,12 @@ export const CodeMirrorEditor = forwardRef<
 
     const { setContainer, view } = useCodeMirror({
       container: editorRef.current,
+      // Manually setting basicSetup
+      basicSetup: false,
+      // Manually setting the indentWithTab shortcut, so not doing it here
+      // To customize behavior, we want to ensure that our own keyMap is applied first
       indentWithTab: false,
       extensions,
-      basicSetup: false,
       maxHeight,
       value,
       onChange: handleChange,
