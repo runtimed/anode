@@ -102,7 +102,12 @@ export const AiToolbar: React.FC<AiToolbarProps> = ({
             <ChevronsUpDown className="ml-1 h-3 w-3 shrink-0 opacity-50" />
           </Button>
         </PopoverTrigger>
-        <PopoverContent className="w-[300px] p-0" align="start">
+        <PopoverContent
+          className="w-[300px] p-0"
+          align="start"
+          // Allows closing the popover when clicking on iframe
+          onBlur={() => setOpenCombobox(false)}
+        >
           <Command loop>
             <CommandInput
               ref={inputRef}
