@@ -6,11 +6,17 @@ import {
   CommandItem,
   CommandList,
 } from "@/components/ui/command";
+import { Kbd, KbdGroup } from "@/components/ui/kbd";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import {
   getModelSizeDisplay,
   getNotebookAiModels,
@@ -90,19 +96,33 @@ export const AiToolbar: React.FC<AiToolbarProps> = ({
   return (
     <div className="flex items-center gap-2">
       <Popover open={openCombobox} onOpenChange={onComboboxOpenChange}>
-        <PopoverTrigger asChild>
-          <Button
-            variant="outline"
-            role="combobox"
-            aria-expanded={openCombobox}
-            className="h-7 min-w-0 justify-between gap-0 !pr-1.5 text-xs sm:h-6"
-          >
-            <span className="truncate">
-              {displayName} • {modelDisplay}
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <PopoverTrigger asChild>
+              <Button
+                variant="outline"
+                role="combobox"
+                aria-expanded={openCombobox}
+                className="h-7 min-w-0 justify-between gap-0 !pr-1.5 text-xs sm:h-6"
+              >
+                <span className="truncate">
+                  {displayName} • {modelDisplay}
+                </span>
+                <ChevronDown className="ml-1 h-3 w-3 shrink-0 opacity-50" />
+              </Button>
+            </PopoverTrigger>
+          </TooltipTrigger>
+          <TooltipContent>
+            <span>
+              Select an AI model with{" "}
+              <KbdGroup>
+                <Kbd>^</Kbd>
+                <Kbd>Shift</Kbd>
+                <Kbd>M</Kbd>
+              </KbdGroup>
             </span>
-            <ChevronDown className="ml-1 h-3 w-3 shrink-0 opacity-50" />
-          </Button>
-        </PopoverTrigger>
+          </TooltipContent>
+        </Tooltip>
         <PopoverContent
           className="w-[300px] p-0"
           align="start"
