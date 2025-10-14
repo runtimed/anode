@@ -24,13 +24,11 @@ export const AiPanel: React.FC<SidebarPanelProps> = () => {
       </div>
 
       <div className="border-t pt-4">
-        <h4 className="mb-3 text-sm font-medium text-gray-700">
-          System Prompt
-        </h4>
+        <h4 className="mb-3 text-sm font-medium text-gray-700">Saved Prompt</h4>
         <p className="mb-3 text-xs text-gray-500">
           Customize the AI's behavior and personality
         </p>
-        <SystemPromptEditor />
+        <SavedPromptEditor />
       </div>
 
       <div className="border-t pt-4">
@@ -89,22 +87,23 @@ import { cn } from "@/lib/utils";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 import { toast } from "sonner";
+import { Kbd, KbdGroup } from "@/components/ui/kbd";
 
-export const SystemPromptEditor: React.FC = () => {
+export const SavedPromptEditor: React.FC = () => {
   const trpc = useTRPCClient();
 
   // Fetch current system prompt
-  const { data: currentSystemPrompt, isFetching } = useQuery(
-    trpc.getSystemPrompt.queryOptions()
+  const { data: currentSavedPrompt, isFetching } = useQuery(
+    trpc.getSavedPrompt.queryOptions()
   );
 
   // Update system prompt mutation
-  const updateSystemPromptMutation = useMutation(
-    trpc.upsertSystemPrompt.mutationOptions({
+  const updateSavedPromptMutation = useMutation(
+    trpc.upsertSavedPrompt.mutationOptions({
       onSuccess: (data) => {
         toast.success("System prompt updated");
-        setSystemPrompt(data.system_prompt || "");
-        trpcQueryClient.invalidateQueries(trpc.getSystemPrompt.queryOptions());
+        setPrompt(data.prompt || "");
+        trpcQueryClient.invalidateQueries(trpc.getSavedPrompt.queryOptions());
       },
       onError: (error) => {
         toast.error(error.message);
@@ -113,48 +112,46 @@ export const SystemPromptEditor: React.FC = () => {
   );
 
   // Delete system prompt mutation
-  const deleteSystemPromptMutation = useMutation(
-    trpc.deleteSystemPrompt.mutationOptions({
+  const deleteSavePromptMutation = useMutation(
+    trpc.deleteSavedPrompt.mutationOptions({
       onSuccess: () => {
-        setSystemPrompt("");
-        trpcQueryClient.invalidateQueries(trpc.getSystemPrompt.queryOptions());
+        setPrompt("");
+        trpcQueryClient.invalidateQueries(trpc.getSavedPrompt.queryOptions());
       },
     })
   );
 
-  const [systemPrompt, setSystemPrompt] = useState(
-    currentSystemPrompt?.system_prompt || ""
-  );
+  const [prompt, setPrompt] = useState(currentSavedPrompt?.prompt || "");
 
   const handleSave = () => {
-    const isEmpty = systemPrompt.trim() === "";
+    const isEmpty = prompt.trim() === "";
     if (isEmpty) {
-      deleteSystemPromptMutation.mutate();
+      deleteSavePromptMutation.mutate();
     } else {
-      updateSystemPromptMutation.mutate({
-        system_prompt: systemPrompt,
+      updateSavedPromptMutation.mutate({
+        prompt,
         ai_model: null, // Default to null for now
       });
     }
   };
 
   const handleCancel = () => {
-    setSystemPrompt(currentSystemPrompt?.system_prompt || "");
+    setPrompt(currentSavedPrompt?.prompt || "");
   };
 
-  const isEditing = systemPrompt !== (currentSystemPrompt?.system_prompt ?? "");
+  const isEditing = prompt !== (currentSavedPrompt?.prompt ?? "");
 
   const isLoading =
     isFetching ||
-    updateSystemPromptMutation.isPending ||
-    deleteSystemPromptMutation.isPending;
+    updateSavedPromptMutation.isPending ||
+    deleteSavePromptMutation.isPending;
 
   return (
     <div className="space-y-3">
       <Textarea
-        value={systemPrompt}
-        onChange={(e) => setSystemPrompt(e.target.value)}
-        placeholder="Enter your system prompt here..."
+        value={prompt}
+        onChange={(e) => setPrompt(e.target.value)}
+        placeholder="Enter your saved prompt here..."
         className="min-h-24 resize-y"
         readOnly={isLoading}
         disabled={isLoading}
@@ -164,6 +161,10 @@ export const SystemPromptEditor: React.FC = () => {
             e.preventDefault();
             handleSave();
           }
+          if (e.key === "Escape" && !isLoading) {
+            e.preventDefault();
+            handleCancel();
+          }
         }}
       />
 
@@ -171,10 +172,18 @@ export const SystemPromptEditor: React.FC = () => {
         {isEditing && (
           <>
             <Button size="sm" onClick={handleSave} disabled={isLoading}>
-              {updateSystemPromptMutation.isPending ||
-              deleteSystemPromptMutation.isPending
-                ? "Saving..."
-                : "Save"}
+              {updateSavedPromptMutation.isPending ||
+              deleteSavePromptMutation.isPending ? (
+                "Saving..."
+              ) : (
+                <>
+                  Save{" "}
+                  <KbdGroup>
+                    <Kbd>⌘</Kbd>
+                    <Kbd>⏎</Kbd>
+                  </KbdGroup>
+                </>
+              )}
             </Button>
 
             <Button
@@ -184,6 +193,9 @@ export const SystemPromptEditor: React.FC = () => {
               disabled={isLoading}
             >
               Cancel
+              <KbdGroup>
+                <Kbd>Esc</Kbd>
+              </KbdGroup>
             </Button>
           </>
         )}

@@ -24,9 +24,9 @@ import {
   updateNotebook,
   updateTag,
   getNotebookCollaborators,
-  upsertSystemPrompt,
-  getSystemPrompt,
-  deleteSystemPrompt,
+  upsertSavedPrompt,
+  getSavedPrompt,
+  deleteSavedPrompt,
 } from "./db.ts";
 import { authedProcedure, publicProcedure, router } from "./trpc";
 import { NotebookPermission, TagColor } from "./types.ts";
@@ -692,7 +692,7 @@ export const appRouter = router({
     }),
 
   // System prompt endpoints
-  getSystemPrompt: authedProcedure.query(async (opts) => {
+  getSavedPrompt: authedProcedure.query(async (opts) => {
     const { ctx } = opts;
     const {
       user,
@@ -700,20 +700,20 @@ export const appRouter = router({
     } = ctx;
 
     try {
-      const systemPrompt = await getSystemPrompt(DB, user.id);
-      return systemPrompt;
+      const prompt = await getSavedPrompt(DB, user.id);
+      return prompt;
     } catch (error) {
       throw new TRPCError({
         code: "INTERNAL_SERVER_ERROR",
-        message: `Failed to get system prompt: ${error instanceof Error ? error.message : "Unknown error"}`,
+        message: `Failed to get saved prompt: ${error instanceof Error ? error.message : "Unknown error"}`,
       });
     }
   }),
 
-  upsertSystemPrompt: authedProcedure
+  upsertSavedPrompt: authedProcedure
     .input(
       z.object({
-        system_prompt: z.string(),
+        prompt: z.string(),
         ai_model: z.string().nullable().optional(),
       })
     )
@@ -723,19 +723,19 @@ export const appRouter = router({
         user,
         env: { DB },
       } = ctx;
-      const { system_prompt, ai_model } = input;
+      const { prompt, ai_model } = input;
 
       try {
-        const result = await upsertSystemPrompt(DB, {
+        const result = await upsertSavedPrompt(DB, {
           user_id: user.id,
-          system_prompt,
+          prompt,
           ai_model,
         });
 
         if (!result) {
           throw new TRPCError({
             code: "INTERNAL_SERVER_ERROR",
-            message: "Failed to update system prompt",
+            message: "Failed to update saved prompt",
           });
         }
 
@@ -744,12 +744,12 @@ export const appRouter = router({
         if (error instanceof TRPCError) throw error;
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
-          message: `Failed to update system prompt: ${error instanceof Error ? error.message : "Unknown error"}`,
+          message: `Failed to update saved prompt: ${error instanceof Error ? error.message : "Unknown error"}`,
         });
       }
     }),
 
-  deleteSystemPrompt: authedProcedure.mutation(async (opts) => {
+  deleteSavedPrompt: authedProcedure.mutation(async (opts) => {
     const { ctx } = opts;
     const {
       user,
@@ -757,7 +757,7 @@ export const appRouter = router({
     } = ctx;
 
     try {
-      const success = await deleteSystemPrompt(DB, user.id);
+      const success = await deleteSavedPrompt(DB, user.id);
       return { success };
     } catch (error) {
       throw new TRPCError({

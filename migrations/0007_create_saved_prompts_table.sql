@@ -1,10 +1,10 @@
--- Migration number: 0007 	 2025-09-27T23:41:22.653Z
+-- Migration number: 0007 	 2025-10-14T15:50:54.528Z
 
--- System prompts table
-CREATE TABLE system_prompts (
+-- Saved prompts table
+CREATE TABLE saved_prompts (
   id TEXT PRIMARY KEY,
   user_id TEXT NOT NULL,
-  system_prompt TEXT NOT NULL,
+  prompt TEXT NOT NULL,
   ai_model TEXT DEFAULT NULL,
   created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
   updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -12,5 +12,5 @@ CREATE TABLE system_prompts (
 );
 
 -- Performance indexes
-CREATE INDEX idx_system_prompts_user_id ON system_prompts(user_id);
-CREATE INDEX idx_system_prompts_ai_model ON system_prompts(ai_model);
+CREATE INDEX idx_saved_prompts_user_id ON saved_prompts(user_id);
+CREATE INDEX idx_saved_prompts_ai_model ON saved_prompts(ai_model);

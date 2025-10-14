@@ -4,7 +4,7 @@ import {
   NotebookRow,
   TagRow,
   TagColor,
-  SystemPromptRow,
+  SavedPromptRow,
 } from "./types";
 import { PermissionsProvider } from "backend/notebook-permissions/types";
 import { ValidatedUser } from "backend/auth";
@@ -541,90 +541,90 @@ export async function getNotebookTags(
   return result.results;
 }
 
-// System prompt-related functions
+// Saved prompt-related functions
 
-// Create or update system prompt for user
-export async function upsertSystemPrompt(
+// Create or update saved prompt for user
+export async function upsertSavedPrompt(
   db: D1Database,
   params: {
     user_id: string;
-    system_prompt: string;
+    prompt: string;
     ai_model?: string | null;
   }
-): Promise<SystemPromptRow | null> {
-  const { user_id, system_prompt, ai_model = null } = params;
+): Promise<SavedPromptRow | null> {
+  const { user_id, prompt, ai_model = null } = params;
 
-  // First, try to get existing system prompt for this user
+  // First, try to get existing saved prompt for this user
   const existing = await db
-    .prepare("SELECT id FROM system_prompts WHERE user_id = ?")
+    .prepare("SELECT id FROM saved_prompts WHERE user_id = ?")
     .bind(user_id)
     .first<{ id: string }>();
 
   if (existing) {
-    // Update existing system prompt
+    // Update existing saved prompt
     const result = await db
       .prepare(
         `
-        UPDATE system_prompts
-        SET system_prompt = ?, ai_model = ?, updated_at = CURRENT_TIMESTAMP
+        UPDATE saved_prompts
+        SET prompt = ?, ai_model = ?, updated_at = CURRENT_TIMESTAMP
         WHERE user_id = ?
       `
       )
-      .bind(system_prompt, ai_model, user_id)
+      .bind(prompt, ai_model, user_id)
       .run();
 
     if (result.success) {
-      // Return the updated system prompt
-      return await getSystemPrompt(db, user_id);
+      // Return the updated saved prompt
+      return await getSavedPrompt(db, user_id);
     }
     return null;
   } else {
-    // Create new system prompt
+    // Create new saved prompt
     const id = nanoid();
     const result = await db
       .prepare(
         `
-        INSERT INTO system_prompts (id, user_id, system_prompt, ai_model)
+        INSERT INTO saved_prompts (id, user_id, prompt, ai_model)
         VALUES (?, ?, ?, ?)
       `
       )
-      .bind(id, user_id, system_prompt, ai_model)
+      .bind(id, user_id, prompt, ai_model)
       .run();
 
     if (result.success) {
-      // Return the newly created system prompt
-      return await getSystemPrompt(db, user_id);
+      // Return the newly created saved prompt
+      return await getSavedPrompt(db, user_id);
     }
     return null;
   }
 }
 
-// Get system prompt for user
-export async function getSystemPrompt(
+// Get saved prompt for user
+export async function getSavedPrompt(
   db: D1Database,
   user_id: string
-): Promise<SystemPromptRow | null> {
-  // Only return one system prompt for the user for now
+): Promise<SavedPromptRow | null> {
+  // Only return one saved prompt for the user for now
   const result = await db
     .prepare(
-      `SELECT id, user_id, system_prompt, ai_model,
+      `SELECT id, user_id, prompt, ai_model,
               strftime('%Y-%m-%dT%H:%M:%SZ', created_at) as created_at,
               strftime('%Y-%m-%dT%H:%M:%SZ', updated_at) as updated_at
-              FROM system_prompts WHERE user_id = ?`
+              FROM saved_prompts WHERE user_id = ?`
     )
     .bind(user_id)
-    .first<SystemPromptRow>();
+    .first<SavedPromptRow>();
 
   return result || null;
 }
 
-// Delete system prompt for user
-export async function deleteSystemPrompt(
+// Delete saved prompt for user
+export async function deleteSavedPrompt(
   db: D1Database,
   user_id: string
 ): Promise<boolean> {
   const result = await db
-    .prepare("DELETE FROM system_prompts WHERE user_id = ?")
+    .prepare("DELETE FROM saved_prompts WHERE user_id = ?")
     .bind(user_id)
     .run();
 

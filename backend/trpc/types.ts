@@ -39,10 +39,10 @@ export interface NotebookTagRow {
   created_at: string;
 }
 
-export interface SystemPromptRow {
+export interface SavedPromptRow {
   id: string;
   user_id: string;
-  system_prompt: string;
+  prompt: string;
   ai_model: string | null;
   created_at: string;
   updated_at: string;

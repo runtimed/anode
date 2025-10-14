@@ -83,8 +83,8 @@ export const ExecutableCell: React.FC<ExecutableCellProps> = ({
   const trpc = useTrpc();
   const { store } = useStore();
 
-  const { data: systemPrompt } = useTanstackQuery({
-    ...trpc.getSystemPrompt.queryOptions(),
+  const { data: savedPrompt } = useTanstackQuery({
+    ...trpc.getSavedPrompt.queryOptions(),
     enabled: autoFocus && cell.cellType === "ai",
   });
 
@@ -224,8 +224,8 @@ export const ExecutableCell: React.FC<ExecutableCellProps> = ({
 
       store.commit(
         events.notebookMetadataSet({
-          key: "user_system_prompt",
-          value: systemPrompt?.system_prompt || "",
+          key: "user_saved_prompt",
+          value: savedPrompt?.prompt || "",
         })
       );
 
@@ -276,7 +276,7 @@ export const ExecutableCell: React.FC<ExecutableCellProps> = ({
       );
     }
   }, [
-    systemPrompt?.system_prompt,
+    savedPrompt?.prompt,
     cell.id,
     localSource,
     cell.source,
