@@ -56,6 +56,9 @@ export function NotebookHeader({
       ? `${notebook.owner.givenName ?? ""} ${notebook.owner.familyName ?? ""}`.trim()
       : "Unknown Owner";
 
+  const hasCollaborators =
+    notebook.collaborators && notebook.collaborators.length > 0;
+
   return (
     <div className="border-b bg-white">
       <div className="mx-auto p-2 pl-5 sm:p-2 sm:pl-5">
@@ -90,7 +93,7 @@ export function NotebookHeader({
             </Button>
 
             <div className="flex shrink-0 items-center gap-1 sm:gap-2">
-              {notebook.collaborators && notebook.collaborators.length > 0 && (
+              {hasCollaborators && (
                 <div className="flex flex-col gap-2 text-xs text-gray-500 sm:flex-row sm:items-center sm:justify-between">
                   <div className="flex items-center gap-2 sm:gap-4">
                     {/* Owner name - Mobile: Show on mobile with CollaboratorAvatars */}
@@ -101,15 +104,15 @@ export function NotebookHeader({
                       </div>
                     )}
 
-                    {notebook.collaborators &&
-                      notebook.collaborators.length > 0 && (
-                        <CollaboratorSection
-                          collaborators={notebook.collaborators}
-                        />
-                      )}
+                    {!canEdit && (
+                      <CollaboratorSection
+                        collaborators={notebook.collaborators}
+                      />
+                    )}
                   </div>
                 </div>
               )}
+
               {canEdit && (
                 <Button
                   variant="outline"
@@ -117,8 +120,18 @@ export function NotebookHeader({
                   onClick={() => setIsSharingDialogOpen(true)}
                   className="px-1 text-xs sm:px-2"
                 >
-                  <Share2 />
-                  <span className="sr-only sm:not-sr-only">Share</span>
+                  {hasCollaborators ? (
+                    <>
+                      <CollaboratorSection
+                        collaborators={notebook.collaborators}
+                      />
+                    </>
+                  ) : (
+                    <>
+                      <Share2 />
+                      <span className="sr-only sm:not-sr-only">Share</span>
+                    </>
+                  )}
                 </Button>
               )}
 
