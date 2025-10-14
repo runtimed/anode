@@ -2,6 +2,7 @@ import React from "react";
 import { GitCommitHash } from "@/components/notebook/GitCommitHash";
 import type { SidebarPanelProps } from "./types";
 
+import { Kbd, KbdGroup } from "@/components/ui/kbd";
 // Icons
 import { Star, Bug, ExternalLink } from "lucide-react";
 
@@ -15,19 +16,29 @@ export const HelpPanel: React.FC<SidebarPanelProps> = () => {
         <div className="space-y-3 text-sm">
           <div className="flex justify-between">
             <span className="text-gray-600">Navigate cells</span>
-            <code className="rounded bg-gray-100 px-2 py-1 text-xs">↑↓</code>
+            <KbdGroup>
+              <Kbd aria-label="Arrow Up">↑</Kbd>
+              <span>or</span>
+              <Kbd aria-label="Arrow Down" className="ml-1">
+                ↓
+              </Kbd>
+            </KbdGroup>
           </div>
           <div className="flex justify-between">
             <span className="text-gray-600">Run & next</span>
-            <code className="rounded bg-gray-100 px-2 py-1 text-xs">
-              Shift+Enter
-            </code>
+            <KbdGroup>
+              <Kbd>Shift</Kbd>
+              <span>+</span>
+              <Kbd>Enter</Kbd>
+            </KbdGroup>
           </div>
           <div className="flex justify-between">
             <span className="text-gray-600">Run cell</span>
-            <code className="rounded bg-gray-100 px-2 py-1 text-xs">
-              Ctrl+Enter
-            </code>
+            <KbdGroup>
+              <Kbd>Ctrl</Kbd>
+              <span>+</span>
+              <Kbd>Enter</Kbd>
+            </KbdGroup>
           </div>
         </div>
       </div>
