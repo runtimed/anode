@@ -3,21 +3,18 @@ import { ErrorBoundary } from "react-error-boundary";
 import { CollaboratorAvatars } from "../../CollaboratorAvatars.js";
 import { Collaborator } from "../types.js";
 
+import { useAuthenticatedUser } from "@/auth/index.js";
+import { DebugModeToggle } from "@/components/debug/DebugModeToggle.js";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip.js";
+import { useTitle } from "react-use";
 import { Button } from "../../ui/button.js";
 import { SimpleUserProfile } from "../SimpleUserProfile.js";
 import type { NotebookProcessed } from "../types.js";
 import { TitleEditor } from "./TitleEditor.js";
-import { DebugModeToggle } from "@/components/debug/DebugModeToggle.js";
-import { useAuthenticatedUser } from "@/auth/index.js";
-import {
-  HoverCard,
-  HoverCardContent,
-  HoverCardTrigger,
-} from "@/components/ui/hover-card.js";
-import { Avatar } from "@/components/ui/avatar.js";
-import { AvatarImage } from "@/components/ui/avatar.js";
-import { AvatarFallback } from "@/components/ui/avatar.js";
-import { useTitle } from "react-use";
 
 export function NotebookHeader({
   notebook,
@@ -114,9 +111,11 @@ function CollaboratorSection({
     return null;
   }
 
+  const LIMIT = 10;
+
   return (
-    <HoverCard>
-      <HoverCardTrigger asChild>
+    <Tooltip>
+      <TooltipTrigger asChild>
         <div className="flex items-center gap-1 sm:gap-2">
           <div className="flex items-center gap-1 sm:gap-1.5">
             <Users className="h-3 w-3" />
@@ -127,21 +126,20 @@ function CollaboratorSection({
             <span className="sm:hidden">{collaborators.length}</span>
           </div>
         </div>
-      </HoverCardTrigger>
-      <HoverCardContent>
-        {collaborators.map((collaborator) => (
+      </TooltipTrigger>
+      <TooltipContent>
+        {collaborators.slice(0, LIMIT).map((collaborator) => (
           <div key={collaborator.id}>
             <span>{collaboratorToName(collaborator)}</span>
-            <Avatar>
-              <AvatarImage src={collaborator.picture} />
-              <AvatarFallback>
-                {collaboratorToName(collaborator).charAt(0)}
-              </AvatarFallback>
-            </Avatar>
           </div>
         ))}
-      </HoverCardContent>
-    </HoverCard>
+        {collaborators.length > LIMIT && (
+          <div>
+            <span>+{collaborators.length - LIMIT} more</span>
+          </div>
+        )}
+      </TooltipContent>
+    </Tooltip>
   );
 }
 
