@@ -24,7 +24,8 @@ export const useCellKeyboardNavigation = ({
       {
         key: "Tab",
         shift: (target: EditorView) => {
-          if (target.state.doc.length === 0) {
+          const cursorPos = target.state.selection.main.head;
+          if (cursorPos === 0) {
             onEmptyCellShiftTab?.();
             return true;
           }
