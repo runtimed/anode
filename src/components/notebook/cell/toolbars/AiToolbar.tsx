@@ -75,14 +75,8 @@ export const AiToolbar: React.FC<AiToolbarProps> = ({
 
   const selectModel = (selectedProvider: string, selectedModel: string) => {
     onProviderChange(selectedProvider, selectedModel);
+    setInputValue(""); // Clear input text
     onOpenChange(false);
-  };
-
-  const onComboboxOpenChange = (isOpen: boolean) => {
-    onOpenChange(isOpen);
-    if (isOpen) {
-      setInputValue(""); // Clear input text when opening menu
-    }
   };
 
   const getCurrentModel = () => {
@@ -97,7 +91,7 @@ export const AiToolbar: React.FC<AiToolbarProps> = ({
 
   return (
     <div className="flex items-center gap-2">
-      <Popover open={open} onOpenChange={onComboboxOpenChange}>
+      <Popover open={open} onOpenChange={onOpenChange}>
         <Tooltip>
           <TooltipTrigger asChild>
             <PopoverTrigger asChild>
@@ -129,7 +123,7 @@ export const AiToolbar: React.FC<AiToolbarProps> = ({
           className="w-[300px] p-0"
           align="start"
           // Allows closing the popover when clicking on iframe
-          onBlur={() => onComboboxOpenChange(false)}
+          onBlur={() => onOpenChange(false)}
         >
           <Command loop>
             <CommandInput
