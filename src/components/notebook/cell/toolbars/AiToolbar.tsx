@@ -16,7 +16,7 @@ import {
   getNotebookAiModels,
   useAvailableAiModels,
 } from "@/util/ai-models.js";
-import { Brain, ChevronsUpDown, Eye, Wrench } from "lucide-react";
+import { Brain, ChevronDown, Eye, Wrench } from "lucide-react";
 import React from "react";
 
 interface AiToolbarProps {
@@ -27,6 +27,7 @@ interface AiToolbarProps {
 
 // Based on: https://craft.mxkaske.dev/post/fancy-box
 
+// TODO: Make this work on mobile by using a bottom sheet, and no search input to avoid Safari bugs
 export const AiToolbar: React.FC<AiToolbarProps> = ({
   provider,
   model,
@@ -94,12 +95,12 @@ export const AiToolbar: React.FC<AiToolbarProps> = ({
             variant="outline"
             role="combobox"
             aria-expanded={openCombobox}
-            className="h-5 min-w-0 justify-between px-2 text-xs"
+            className="h-7 min-w-0 justify-between gap-0 !pr-1.5 text-xs sm:h-6"
           >
             <span className="truncate">
               {displayName} • {modelDisplay}
             </span>
-            <ChevronsUpDown className="ml-1 h-3 w-3 shrink-0 opacity-50" />
+            <ChevronDown className="ml-1 h-3 w-3 shrink-0 opacity-50" />
           </Button>
         </PopoverTrigger>
         <PopoverContent
