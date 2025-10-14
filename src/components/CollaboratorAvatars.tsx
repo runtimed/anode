@@ -33,7 +33,7 @@ export function CollaboratorAvatars() {
             <HoverCardTrigger asChild>
               <div
                 className={cn(
-                  "relative shrink-0 cursor-pointer overflow-hidden rounded-full border-2",
+                  "relative shrink-0 cursor-default overflow-hidden rounded-full border-2",
                   index > 0 ? "-ml-2" : ""
                 )}
                 style={{
