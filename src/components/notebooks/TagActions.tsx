@@ -54,6 +54,7 @@ export const TagActions = ({ tag }: { tag: TagRow }) => {
             </DropdownMenuItem>
           </TagEditDialog>
           <DropdownMenuItem
+            variant="destructive"
             onClick={() =>
               confirm({
                 title: "Delete Tag",
@@ -67,7 +68,6 @@ export const TagActions = ({ tag }: { tag: TagRow }) => {
                 onConfirm: handleDeleteConfirm,
               })
             }
-            className="text-red-600 focus:text-red-600"
           >
             <Trash2 className="mr-2 h-4 w-4" />
             Delete

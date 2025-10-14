@@ -16,7 +16,8 @@ export function useSmartDefaultFilter({
 }: {
   allNotebooks: NotebookProcessed[];
 }) {
-  const { activeFilter, setActiveFilter } = useDashboardParams();
+  const { activeFilter, setActiveFilter, isFilterExplicit } =
+    useDashboardParams();
 
   // Check if user has named notebooks
   const hasNamedNotebooks = useMemo(() => {
@@ -26,10 +27,10 @@ export function useSmartDefaultFilter({
     );
   }, [allNotebooks]);
 
-  // Set smart default filter when data first loads
+  // Set smart default filter when data first loads, but only if no explicit filter was provided
   const hasNotebooks = allNotebooks.length > 0;
   React.useEffect(() => {
-    if (hasNotebooks && activeFilter === "named") {
+    if (hasNotebooks && activeFilter === "named" && !isFilterExplicit) {
       const hasScratchNotebooks = allNotebooks.some(
         (n) =>
           n.myPermission === "OWNER" &&
@@ -54,6 +55,7 @@ export function useSmartDefaultFilter({
     hasNamedNotebooks,
     allNotebooks,
     setActiveFilter,
+    isFilterExplicit,
   ]);
 }
 
@@ -100,6 +102,10 @@ export function useDashboardParams() {
     filterParam === "named"
       ? filterParam
       : "named";
+  const isFilterExplicit =
+    filterParam === "scratch" ||
+    filterParam === "shared" ||
+    filterParam === "named";
   const searchQuery = searchParams.get("q") || "";
   const selectedTagName = searchParams.get("tag") || "";
   const viewModeParam = searchParams.get("view");
@@ -150,6 +156,7 @@ export function useDashboardParams() {
     searchQuery,
     selectedTagName,
     viewMode,
+    isFilterExplicit,
     setViewMode,
     setActiveFilter,
     setSearchQuery,

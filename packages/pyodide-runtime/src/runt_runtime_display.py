@@ -13,6 +13,29 @@ import io
 from IPython.core.displaypub import DisplayPublisher
 from IPython.core.displayhook import DisplayHook
 
+# Configure matplotlib backend early for WebWorker compatibility
+try:
+    import matplotlib
+
+    # Set Agg backend for WebWorker compatibility
+    matplotlib.use("Agg", force=True)
+
+    # Configure for headless operation
+    import matplotlib.pyplot as plt
+
+    plt.rcParams["figure.dpi"] = 100
+    plt.rcParams["savefig.dpi"] = 100
+    plt.rcParams["figure.facecolor"] = "white"
+    plt.rcParams["savefig.facecolor"] = "white"
+    plt.rcParams["figure.figsize"] = (8, 6)
+    plt.rcParams["axes.facecolor"] = "white"
+
+    print("Matplotlib configured with Agg backend for WebWorker compatibility")
+except ImportError:
+    print("Matplotlib not available during backend configuration")
+except Exception as e:
+    print(f"Warning: Failed to configure matplotlib backend: {e}")
+
 
 class RichDisplayPublisher(DisplayPublisher):
     """Enhanced display publisher for rich IPython output handling"""
@@ -59,6 +82,12 @@ class RichDisplayHook(DisplayHook):
     def __call__(self, result):
         """Process execution results using IPython's formatters"""
         if result is not None:
+            # Auto-show matplotlib plots if result is a matplotlib object
+            try:
+                self._auto_show_matplotlib_if_needed(result)
+            except Exception as e:
+                print(f"Error in matplotlib auto-show: {e}")
+
             # Use IPython's formatters to get properly formatted display data
             if self.shell and hasattr(self.shell, "display_formatter"):
                 format_dict, metadata_dict = self.shell.display_formatter.format(result)
@@ -78,6 +107,30 @@ class RichDisplayHook(DisplayHook):
                         self.js_callback(execution_count, result, None)
                     except Exception as e:
                         print(f"Error in display hook callback: {e}")
+
+    def _auto_show_matplotlib_if_needed(self, result):
+        """Automatically show matplotlib plot if result is a matplotlib object"""
+        try:
+            import matplotlib.pyplot as plt
+            import matplotlib.axes
+
+            # Check if result is a matplotlib Axes or contains matplotlib objects
+            is_matplotlib_obj = isinstance(result, matplotlib.axes.Axes) or (
+                hasattr(result, "__module__")
+                and result.__module__
+                and "matplotlib" in result.__module__
+            )
+
+            if is_matplotlib_obj:
+                # Check if current figure has any plots
+                fig = plt.gcf()
+                if fig.get_axes():
+                    plt.show()  # This will trigger our enhanced_show function
+
+        except ImportError:
+            pass  # matplotlib not available
+        except Exception as e:
+            print(f"Warning: Error in matplotlib auto-show: {e}")
 
 
 def _capture_matplotlib_show():
@@ -138,6 +191,45 @@ def _capture_matplotlib_show():
     plt.show = enhanced_show
 
 
+def _patch_matplotlib_for_auto_display():
+    """Patch matplotlib functions to auto-display plots when created"""
+    try:
+        import matplotlib.pyplot as plt
+        import matplotlib.axes
+
+        # Store original plotting functions
+        original_plot_functions = {}
+        plot_functions = ["plot", "scatter", "bar", "hist", "boxplot", "pie"]
+
+        for func_name in plot_functions:
+            if hasattr(plt, func_name):
+                original_plot_functions[func_name] = getattr(plt, func_name)
+
+        # Patch pandas plotting to auto-show
+        try:
+            import pandas as pd
+
+            original_plot = pd.DataFrame.plot
+
+            def auto_display_plot(*args, **kwargs):
+                result = original_plot(*args, **kwargs)
+                # Check if there's a current figure with plots
+                fig = plt.gcf()
+                if fig.get_axes():
+                    plt.show()  # This will trigger our enhanced_show
+                return result
+
+            pd.DataFrame.plot = auto_display_plot
+            print("Patched pandas plotting for auto-display")
+        except ImportError:
+            pass
+        except Exception as e:
+            print(f"Warning: Could not patch pandas plotting: {e}")
+
+    except Exception as e:
+        print(f"Error patching matplotlib for auto-display: {e}")
+
+
 # Default callback implementations
 def default_display_callback(data, metadata, transient, update=False):
     """Default display callback that prints to stdout"""
@@ -163,9 +255,10 @@ js_clear_callback = default_clear_callback
 def setup_rich_formatters():
     """Set up rich display formatters for various data types"""
     try:
-        # Set up matplotlib integration
+        # Set up matplotlib integration (backend already configured at module level)
         _capture_matplotlib_show()
-        print("Matplotlib display support enabled")
+        _patch_matplotlib_for_auto_display()
+        print("Matplotlib display support enabled with auto-capture")
     except ImportError:
         print("Matplotlib not available, skipping plot capture setup")
 

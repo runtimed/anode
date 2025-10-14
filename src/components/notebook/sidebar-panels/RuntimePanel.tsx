@@ -3,12 +3,13 @@ import { RuntimeHealthIndicator } from "@/components/notebook/RuntimeHealthIndic
 import { useRuntimeHealth } from "@/hooks/useRuntimeHealth";
 import { getRuntimeCommand } from "@/util/runtime-command";
 import { Button } from "@/components/ui/button";
-import { Copy, Trash2, Globe } from "lucide-react";
+import { Copy, Trash2, Globe, Code2 } from "lucide-react";
 import { events, tables } from "@runtimed/schema";
 import { queryDb } from "@runtimed/schema";
 import { useQuery, useStore } from "@livestore/react";
 import type { SidebarPanelProps } from "./types";
 import { useAuthenticatedUser } from "@/auth";
+import { useAutoLaunchRuntime } from "@/hooks/useAutoLaunchRuntime";
 
 export const RuntimePanel: React.FC<SidebarPanelProps> = ({ notebook }) => {
   const { store } = useStore();
@@ -16,6 +17,13 @@ export const RuntimePanel: React.FC<SidebarPanelProps> = ({ notebook }) => {
   const userId = useAuthenticatedUser();
   const [isLaunchingLocal, setIsLaunchingLocal] = useState(false);
   const [localError, setLocalError] = useState<string | null>(null);
+  const [isLaunchingPyodide, setIsLaunchingPyodide] = useState(false);
+  const [pyodideError, setPyodideError] = useState<string | null>(null);
+  const {
+    status: autoLaunchStatus,
+    config: autoLaunchConfig,
+    updateConfig: updateAutoLaunchConfig,
+  } = useAutoLaunchRuntime();
 
   const activeRuntimeSessions = useQuery(
     queryDb(tables.runtimeSessions.select().where("isActive", "=", true))
@@ -82,9 +90,34 @@ export const RuntimePanel: React.FC<SidebarPanelProps> = ({ notebook }) => {
     }
   }, [store]);
 
+  const launchLocalPyodideRuntime = useCallback(async () => {
+    try {
+      setIsLaunchingPyodide(true);
+      setPyodideError(null);
+
+      if (!window.__RUNT_LAUNCHER__) {
+        throw new Error("Console launcher not available");
+      }
+
+      // Use existing store connection
+      window.__RUNT_LAUNCHER__.useExistingStore(store);
+
+      // Launch the Pyodide runtime
+      await window.__RUNT_LAUNCHER__.launchPythonAgent();
+    } catch (err) {
+      const message =
+        err instanceof Error ? err.message : "Failed to launch runtime";
+      setPyodideError(message);
+      console.error("Pyodide runtime launch failed:", err);
+    } finally {
+      setIsLaunchingPyodide(false);
+    }
+  }, [store]);
+
   const stopLocalRuntime = useCallback(async () => {
     try {
       setLocalError(null);
+      setPyodideError(null);
 
       if (!window.__RUNT_LAUNCHER__) {
         throw new Error("Console launcher not available");
@@ -95,6 +128,7 @@ export const RuntimePanel: React.FC<SidebarPanelProps> = ({ notebook }) => {
       const message =
         err instanceof Error ? err.message : "Failed to stop runtime";
       setLocalError(message);
+      setPyodideError(message);
       console.error("Local runtime stop failed:", err);
     }
   }, []);
@@ -118,6 +152,30 @@ export const RuntimePanel: React.FC<SidebarPanelProps> = ({ notebook }) => {
             <span className="text-xs text-gray-600">Connection</span>
             <RuntimeHealthIndicator showStatus />
           </div>
+
+          {/* Auto-launch status indicators */}
+          {autoLaunchStatus.isLaunching && (
+            <div className="flex items-center justify-between">
+              <span className="text-xs text-gray-600">Auto-launch</span>
+              <div className="flex items-center gap-1">
+                <div className="h-2 w-2 animate-pulse rounded-full bg-blue-500"></div>
+                <span className="text-xs text-blue-600">Starting...</span>
+              </div>
+            </div>
+          )}
+
+          {autoLaunchStatus.lastError && !autoLaunchStatus.isLaunching && (
+            <div className="flex items-center justify-between">
+              <span className="text-xs text-gray-600">Auto-launch</span>
+              <span
+                className="text-xs text-red-600"
+                title={autoLaunchStatus.lastError}
+              >
+                Failed
+              </span>
+            </div>
+          )}
+
           {hasActiveRuntime && (
             <div className="flex items-center justify-between">
               <span className="text-xs text-gray-600">Type</span>
@@ -223,9 +281,54 @@ export const RuntimePanel: React.FC<SidebarPanelProps> = ({ notebook }) => {
                 <p className="text-xs text-red-600">{localError}</p>
               )}
 
+              <Button
+                onClick={launchLocalPyodideRuntime}
+                disabled={isLaunchingPyodide}
+                size="sm"
+                className="flex w-full items-center gap-1"
+              >
+                <Code2 className="h-3 w-3" />
+                {isLaunchingPyodide ? "Starting..." : "Launch Python Runtime"}
+              </Button>
+
+              {pyodideError && (
+                <p className="text-xs text-red-600">{pyodideError}</p>
+              )}
+
               <p className="text-xs text-gray-400">
                 Limited capabilities. Other users will see "Local (You)".
               </p>
+
+              {/* Auto-launch Configuration */}
+              <div className="mt-4 border-t border-gray-200 pt-3">
+                <div className="mb-2 flex items-center justify-between">
+                  <span className="text-xs font-medium text-gray-700">
+                    Auto-launch
+                  </span>
+                  <label className="relative inline-flex cursor-pointer items-center">
+                    <input
+                      type="checkbox"
+                      checked={autoLaunchConfig.enabled}
+                      onChange={(e) =>
+                        updateAutoLaunchConfig({ enabled: e.target.checked })
+                      }
+                      className="peer sr-only"
+                    />
+                    <div className="peer h-5 w-9 rounded-full bg-gray-200 peer-checked:bg-blue-600 peer-focus:outline-none after:absolute after:top-[2px] after:left-[2px] after:h-4 after:w-4 after:rounded-full after:bg-white after:transition-all after:content-[''] peer-checked:after:translate-x-full peer-checked:after:border-white"></div>
+                  </label>
+                </div>
+                <p className="text-xs text-gray-500">
+                  {autoLaunchConfig.enabled
+                    ? "Runtime will start automatically when you execute cells"
+                    : "You'll need to start runtime manually"}
+                </p>
+                {autoLaunchStatus.launchCount > 0 && (
+                  <p className="mt-1 text-xs text-gray-400">
+                    Launched {autoLaunchStatus.launchCount} time
+                    {autoLaunchStatus.launchCount === 1 ? "" : "s"}
+                  </p>
+                )}
+              </div>
             </div>
           </div>
         </div>

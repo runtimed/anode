@@ -101,7 +101,7 @@ export const AuthGuard: React.FC<AuthGuardProps> = ({ children, fallback }) => {
                 />
               </animated.div>
               <animated.div style={contentSpring}>
-                <h1 className="text-foreground mb-8 text-4xl leading-tight font-semibold tracking-wide">
+                <h1 className="text-foreground text-3xl leading-tight font-semibold">
                   Chase the White Rabbit
                 </h1>
                 <p className="text-muted-foreground text-base font-normal">

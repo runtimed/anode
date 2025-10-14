@@ -20,14 +20,11 @@ import {
 } from "./LocalRuntimeAgent.js";
 
 import {
-  discoverAvailableAiModels,
   executeAI,
   gatherNotebookContext,
-  aiRegistry,
-  AnacondaAIClient,
-  OpenAIClient,
   type NotebookTool,
 } from "@runtimed/ai-core";
+import { aiProvider } from "./ai-provider.js";
 import type { AiModel } from "@runtimed/agent-core";
 import { cellReferences$ } from "@runtimed/schema";
 
@@ -76,20 +73,29 @@ export class HtmlRuntimeAgent extends LocalRuntimeAgent {
   async start(): Promise<RuntimeAgent> {
     console.log(`🌐 Starting ${this.getRuntimeType()} runtime agent`);
 
-    // Discover available AI models BEFORE calling super.start()
+    // Discover available AI models using shared AI provider
     // This ensures capabilities are ready when runtime announces itself
     try {
-      console.log("🔍 Discovering available AI models...");
-      this.discoveredAiModels = await discoverAvailableAiModels();
+      console.log("🔍 Discovering available AI models from shared provider...");
+      const provider = aiProvider.getProvider();
 
-      if (this.discoveredAiModels.length === 0) {
-        console.warn(
-          "⚠️  No AI models discovered - API keys may not be configured or Ollama server may not be available"
-        );
+      if (provider) {
+        this.discoveredAiModels = await aiProvider.discoverModels();
+
+        if (this.discoveredAiModels.length === 0) {
+          console.warn(
+            "⚠️  No AI models discovered - API keys may not be configured or provider may not be available"
+          );
+        } else {
+          console.log(
+            `✅ Discovered ${this.discoveredAiModels.length} AI model${this.discoveredAiModels.length === 1 ? "" : "s"} from providers: ${[...new Set(this.discoveredAiModels.map((m) => m.provider))].join(", ")}`
+          );
+        }
       } else {
-        console.log(
-          `✅ Discovered ${this.discoveredAiModels.length} AI model${this.discoveredAiModels.length === 1 ? "" : "s"} from providers: ${[...new Set(this.discoveredAiModels.map((m) => m.provider))].join(", ")}`
+        console.warn(
+          "⚠️  No AI provider configured - set VITE_ANACONDA_API_KEY or similar"
         );
+        this.discoveredAiModels = [];
       }
     } catch (error) {
       console.error("❌ Failed to discover AI models", {
@@ -236,6 +242,7 @@ export class HtmlRuntimeAgent extends LocalRuntimeAgent {
 
   /**
    * Register AI clients with API keys for authenticated usage
+   * Uses the shared browser AI provider system
    *
    * @example
    * ```typescript
@@ -247,21 +254,13 @@ export class HtmlRuntimeAgent extends LocalRuntimeAgent {
    * ```
    */
   public registerAIClient(
-    provider: "anaconda" | "openai",
-    config: { apiKey: string; [key: string]: any }
+    provider: "anaconda" | "openai" | "groq" | "ollama",
+    config: { apiKey?: string; [key: string]: any }
   ): void {
-    switch (provider) {
-      case "anaconda":
-        aiRegistry.register(provider, () => new AnacondaAIClient(config));
-        break;
-      case "openai":
-        aiRegistry.register(provider, () => new OpenAIClient(config));
-        break;
-      default:
-        throw new Error(`Unsupported AI provider: ${provider}`);
-    }
-
-    console.log(`🔗 Registered ${provider} AI client for HTML runtime`);
+    aiProvider.configure(provider, config);
+    console.log(
+      `🔗 Registered ${provider} AI client for HTML runtime via shared provider`
+    );
   }
 
   /**
@@ -272,8 +271,8 @@ export class HtmlRuntimeAgent extends LocalRuntimeAgent {
    */
   public async refreshAIModels(): Promise<void> {
     try {
-      console.log("🔄 Refreshing AI models...");
-      this.discoveredAiModels = await discoverAvailableAiModels();
+      console.log("🔄 Refreshing AI models from shared provider...");
+      this.discoveredAiModels = await aiProvider.discoverModels();
 
       console.log(
         `✅ Refreshed AI models: ${this.discoveredAiModels.length} model${this.discoveredAiModels.length === 1 ? "" : "s"} from providers: ${[...new Set(this.discoveredAiModels.map((m) => m.provider))].join(", ")}`

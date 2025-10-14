@@ -129,6 +129,11 @@ export async function getNotebooks(
   return notebooksWithCollaboratorsAndTags;
 }
 
+// Helper function to invalidate notebook cache for a user
+export async function invalidateNotebookCache(_userId: string): Promise<void> {
+  // No-op: server-side caching disabled
+}
+
 // Helper function to get notebook collaborators
 export async function getNotebookCollaborators(
   db: D1Database,

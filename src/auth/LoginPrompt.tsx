@@ -3,7 +3,9 @@ import { useNavigate } from "react-router-dom";
 import { LogIn, ExternalLink } from "lucide-react";
 import { getOpenIdService, RedirectUrls } from "./openid";
 import { redirectHelper } from "./redirect-url-helper";
-import psl from "psl";
+import { getAuthProviderName } from "./auth-provider-name";
+import { Button } from "@/components/ui/button";
+import { Spinner } from "@/components/ui/Spinner";
 
 // DEV MODE: Design testing states
 const DESIGN_TEST_MODE = {
@@ -17,30 +19,6 @@ interface LoginPromptProps {
   error: string | null;
   setError: (error: string | null) => void;
   onButtonHover?: (hovered: boolean) => void;
-}
-
-function getAuthProviderName(url: URL | null | undefined): string | null {
-  if (!url) {
-    return null;
-  }
-  const hostname = url.hostname;
-
-  const parsed = psl.parse(hostname);
-
-  // Check if parsing failed (returned ErrorResult)
-  if ("error" in parsed) {
-    return null;
-  }
-
-  // Now we know it's a ParsedDomain
-  if (!parsed.domain) {
-    return null;
-  }
-
-  const domainParts = parsed.domain.split(".");
-  const mainPart = domainParts[0];
-
-  return mainPart.charAt(0).toUpperCase() + mainPart.slice(1);
 }
 
 const LoginPrompt: React.FC<LoginPromptProps> = ({
@@ -157,14 +135,29 @@ const LoginPrompt: React.FC<LoginPromptProps> = ({
     }
   };
 
-  const signinText = providerName ? `Sign In with ${providerName}` : "Sign In";
+  const signinText = providerName ? (
+    <>
+      <span>Sign In with</span>
+      {/* https://css-tricks.com/snippets/css/prevent-long-urls-from-breaking-out-of-container/ */}
+      <span
+        className="whitespace-normal underline decoration-white/50 decoration-1 underline-offset-2"
+        style={{ wordBreak: "break-word" }}
+      >
+        {providerName}
+      </span>
+    </>
+  ) : (
+    <>Sign In</>
+  );
 
   return (
-    <div className="auth-wrapper mx-auto flex max-w-[400px] flex-col items-center space-y-8">
+    <div className="auth-wrapper mx-auto flex max-w-[400px] flex-col items-center space-y-1">
       {/* Primary action button */}
       <div className="flex w-full justify-center">
-        <button
-          className="group flex h-12 w-full max-w-[280px] cursor-pointer items-center justify-center gap-3 rounded-lg bg-[rgb(8,202,74)] text-base font-semibold text-white transition-all duration-200 hover:bg-[rgb(7,180,66)] active:bg-[rgb(6,160,59)] disabled:cursor-not-allowed disabled:opacity-50"
+        <Button
+          size="xl"
+          variant="success"
+          className="group h-auto min-h-12 w-full flex-wrap items-center justify-center gap-1 p-2.5"
           onClick={() => handler("login")}
           onMouseEnter={() => onButtonHover?.(true)}
           onMouseLeave={() => onButtonHover?.(false)}
@@ -172,14 +165,17 @@ const LoginPrompt: React.FC<LoginPromptProps> = ({
           disabled={loading}
         >
           {loading ? (
-            <div className="h-5 w-5 animate-spin rounded-full border-2 border-white/20 border-t-white" />
+            <div className="size-5 animate-spin rounded-full border-2 border-white/20 border-t-white" />
           ) : (
             <>
-              <span>{signinText}</span>
-              <LogIn className="h-5 w-5 transition-transform group-hover:translate-x-0.5" />
+              {signinText}
+              <LogIn
+                className="size-5 transition-transform group-hover:translate-x-0.5"
+                strokeWidth={2}
+              />
             </>
           )}
-        </button>
+        </Button>
       </div>
 
       {/* Error message */}
@@ -191,26 +187,31 @@ const LoginPrompt: React.FC<LoginPromptProps> = ({
 
       {/* Secondary action */}
       <div className="text-center">
-        <button
+        <Button
+          variant="link"
+          size="xl"
           onClick={() => handler("registration")}
           onMouseEnter={() => onButtonHover?.(true)}
-          onMouseLeave={() => onButtonHover?.(false)}
-          className="text-primary hover:text-primary/80 group inline-flex cursor-pointer items-center gap-1.5 border-none bg-none text-base font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-50"
           data-qa-id="registration-button"
           disabled={loading}
         >
           {loading && action === "registration" ? (
             <>
-              <div className="border-primary/20 border-t-primary h-4 w-4 animate-spin rounded-full border-2" />
+              <Spinner size="md" className="text-black" />
               <span>Creating account...</span>
             </>
           ) : (
             <>
               <span>Create your account</span>
-              <ExternalLink className="h-4 w-4 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+              {providerName && (
+                <ExternalLink
+                  strokeWidth={2}
+                  className="h-4 w-4 transition-transform"
+                />
+              )}
             </>
           )}
-        </button>
+        </Button>
       </div>
     </div>
   );

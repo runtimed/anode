@@ -104,10 +104,7 @@ export const NotebookActions: React.FC<NotebookActionsProps> = ({
             <Tag className="mr-2 h-4 w-4" />
             Manage Tags
           </DropdownMenuItem>
-          <DropdownMenuItem
-            onClick={handleDeleteClick}
-            className="text-red-600 focus:text-red-600"
-          >
+          <DropdownMenuItem variant="destructive" onClick={handleDeleteClick}>
             <Trash2 className="mr-2 h-4 w-4" />
             Delete
           </DropdownMenuItem>
@@ -116,10 +113,9 @@ export const NotebookActions: React.FC<NotebookActionsProps> = ({
 
       {/* Sharing Dialog */}
       <SharingDialog
-        notebook={notebook}
+        notebookId={notebook.id}
         isOpen={isSharingDialogOpen}
-        onClose={() => setIsSharingDialogOpen(false)}
-        onUpdate={onUpdate}
+        onOpenChange={setIsSharingDialogOpen}
       />
 
       {/* Tag Selection Dialog */}
