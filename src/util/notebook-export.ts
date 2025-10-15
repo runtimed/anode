@@ -63,7 +63,7 @@ function convertOutputToJupyter(output: any): JupyterOutput | null {
         return {
           output_type: "display_data",
           data: jupyterData,
-          // metadata: jupyterMetadata,
+          metadata: {},
           execution_count: output.executionCount || null,
         };
       }
@@ -76,6 +76,7 @@ function convertOutputToJupyter(output: any): JupyterOutput | null {
         output_type: "stream",
         name: streamName,
         text: data || "",
+        metadata: {},
         execution_count: output.executionCount || null,
       };
     }
@@ -87,6 +88,7 @@ function convertOutputToJupyter(output: any): JupyterOutput | null {
         ename: "Error",
         evalue: data || "Unknown error",
         traceback: [data || "Unknown error"],
+        metadata: {},
         execution_count: output.executionCount || null,
       };
 
@@ -117,6 +119,7 @@ function convertOutputToJupyter(output: any): JupyterOutput | null {
         data: {
           "text/plain": data || "",
         },
+        metadata: {},
         execution_count: output.executionCount || null,
       };
   }
@@ -191,7 +194,7 @@ export function exportNotebookToJupyter(
       },
       source: source,
       execution_count: cell.executionCount || null,
-      outputs: jupyterOutputs.length > 0 ? jupyterOutputs : undefined,
+      outputs: jupyterOutputs,
     };
   });
 
