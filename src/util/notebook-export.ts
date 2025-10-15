@@ -1,51 +1,6 @@
 import { tables, queryDb } from "@runtimed/schema";
-import Ajv from "ajv";
-import nbformatSchema from "@/data/nbformat-schema-v4.json";
-
-/**
- * Jupyter Notebook (.ipynb) format interface
- */
-export interface JupyterNotebook {
-  cells: JupyterCell[];
-  // TODO: Add metadata
-  // metadata: {
-  //   kernelspec: {
-  //     display_name: string;
-  //     language: string;
-  //     name: string;
-  //   };
-  //   language_info: {
-  //     name: string;
-  //     version: string;
-  //   };
-  //   anode?: {
-  //     exported_at: string;
-  //     version: string;
-  //   };
-  // };
-  nbformat: number;
-  nbformat_minor: number;
-}
-
-export interface JupyterCell {
-  cell_type: "code" | "markdown" | "raw";
-  metadata: Record<string, any>;
-  source: string | string[];
-  execution_count?: number | null;
-  outputs?: JupyterOutput[];
-}
-
-export interface JupyterOutput {
-  output_type: "execute_result" | "display_data" | "stream" | "error";
-  execution_count?: number | null;
-  data?: Record<string, any>;
-  metadata?: Record<string, any>;
-  name?: string;
-  text?: string | string[];
-  ename?: string;
-  evalue?: string;
-  traceback?: string[];
-}
+import { JupyterOutput, JupyterCell, JupyterNotebook } from "@/types/jupyter";
+import { validateJupyterNotebook } from "./notebook-validate";
 
 /**
  * Convert Anode cell type to Jupyter cell type
@@ -66,20 +21,6 @@ function anodeCellTypeToJupyter(cellType: string): "code" | "markdown" | "raw" {
 }
 
 const imageMimeTypes = ["image/png", "image/jpeg", "image/gif"];
-
-// Initialize AJV validator with nbformat schema
-const ajv = new Ajv();
-// const validateNotebook = ajv.compile(nbformatSchema);
-
-/**
- * Validate notebook against Jupyter nbformat schema
- */
-function validateJupyterNotebook(notebook: JupyterNotebook): void {
-  const result = ajv.validate(nbformatSchema, notebook);
-  if (!result) {
-    throw new Error(`Failed to export a valid ipynb notebook.`);
-  }
-}
 
 /**
  * Convert Anode output to Jupyter output format
@@ -151,22 +92,23 @@ function convertOutputToJupyter(output: any): JupyterOutput | null {
 
     case "ai_tool_call":
     case "ai_tool_result":
-      // AI tool outputs - convert to display_data
-      return {
-        output_type: "display_data",
-        data: {
-          "text/plain": data || "",
-          "application/json": JSON.stringify(
-            {
-              type: outputType,
-              data: data,
-            },
-            null,
-            2
-          ),
-        },
-        execution_count: output.executionCount || null,
-      };
+      return null;
+    // AI tool outputs - convert to display_data
+    // return {
+    //   output_type: "display_data",
+    //   data: {
+    //     "text/plain": data || "",
+    //     "application/json": JSON.stringify(
+    //       {
+    //         type: outputType,
+    //         data: data,
+    //       },
+    //       null,
+    //       2
+    //     ),
+    //   },
+    //   execution_count: output.executionCount || null,
+    // };
 
     default:
       // Fallback for unknown output types
@@ -255,21 +197,21 @@ export function exportNotebookToJupyter(
 
   const notebook: JupyterNotebook = {
     cells: jupyterCells,
-    // metadata: {
-    //   kernelspec: {
-    //     display_name: "Python 3",
-    //     language: "python",
-    //     name: "python3",
-    //   },
-    //   language_info: {
-    //     name: "python",
-    //     version: "3.10.0",
-    //   },
-    //   // anode: {
-    //   //   exported_at: new Date().toISOString(),
-    //   //   version: "1.0.0",
-    //   // },
-    // },
+    metadata: {
+      kernelspec: {
+        display_name: "Python 3",
+        language: "python",
+        name: "python3",
+      },
+      language_info: {
+        name: "python",
+        version: "3.10.0",
+      },
+      // anode: {
+      //   exported_at: new Date().toISOString(),
+      //   version: "1.0.0",
+      // },
+    },
     nbformat: 4,
     nbformat_minor: 4,
   };
