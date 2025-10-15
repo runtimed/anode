@@ -193,11 +193,11 @@ Tailwind breakpoints don't show up as CSS vars unless they're explicity defined.
 @layer utilities {
   /* Touch device styles (regardless of screen size) */
   @media (hover: none) and (pointer: coarse) {
-    /* Make buttons more touch-friendly */
-    button {
+    /* Make buttons more touch-friendly, commenting out for now because it breaks some UI */
+    /* button {
       min-height: 44px;
       min-width: 44px;
-    }
+    } */
 
     /* Improve textarea touch experience - only apply large font on mobile Safari */
     @supports (-webkit-touch-callout: none) {

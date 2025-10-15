@@ -258,13 +258,14 @@ export const MarkdownCell: React.FC<MarkdownCellProps> = ({
         className="cell-header relative flex items-center justify-between pr-1 pb-2 pl-4 sm:pr-4"
         onKeyDown={!isEditing ? handleKeyDown : undefined}
       >
-        <div className="relative flex items-center gap-3">
+        <div className="relative flex items-center gap-1">
           {dragHandle}
           <CellTypeSelector cell={cell} onCellTypeChange={changeCellType} />
           {isEditing ? (
             <Button
               variant="outline"
               size="xs"
+              className="text-xs"
               ref={editButtonRef}
               onClick={() => setIsEditing(false)}
             >
@@ -274,6 +275,7 @@ export const MarkdownCell: React.FC<MarkdownCellProps> = ({
             <Button
               variant="outline"
               size="xs"
+              className="text-xs"
               onClick={() => setIsEditing(true)}
             >
               <Edit3 className="size-4" /> Edit

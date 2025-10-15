@@ -59,11 +59,11 @@ export function TitleEditor({
   return (
     <div ref={ref} className="flex items-center gap-2">
       {isEditingTitle ? (
-        <div className="flex items-center gap-1 sm:gap-2">
+        <div className="relative flex items-center gap-1 sm:gap-2">
           <Input
             value={editTitle}
             onChange={(e) => setEditTitle(e.target.value)}
-            className="field-sizing-content max-w-[calc(100vw/2)] text-sm font-semibold sm:text-lg"
+            className={`field-sizing-content max-w-[calc(100vw/2)] bg-white px-1 py-0 pr-20 ${textStyles}`}
             placeholder="Notebook title..."
             onKeyDown={(e) => {
               if (e.key === "Enter") handleSaveTitle();
@@ -71,30 +71,30 @@ export function TitleEditor({
             }}
             autoFocus
           />
-          <Button
-            size="sm"
-            variant="ghost"
-            onClick={handleSaveTitle}
-            disabled={!editTitle.trim()}
-            className="h-8 w-8 shrink-0 p-0"
-          >
-            <Check className="h-4 w-4" />
-          </Button>
-          <Button
-            size="sm"
-            variant="ghost"
-            onClick={handleCancelEdit}
-            className="h-8 w-8 shrink-0 p-0"
-          >
-            <X className="h-4 w-4" />
-          </Button>
+          <div className="absolute right-1 flex items-center gap-1">
+            <Button
+              variant="ghost"
+              onClick={handleSaveTitle}
+              disabled={!editTitle.trim()}
+              className="size-7 shrink-0 p-0"
+            >
+              <Check className="h-4 w-4" />
+            </Button>
+            <Button
+              variant="ghost"
+              onClick={handleCancelEdit}
+              className="size-7 shrink-0 p-0"
+            >
+              <X className="h-4 w-4" />
+            </Button>
+          </div>
         </div>
       ) : (
         <div
           className="group/nb-title flex min-w-0 items-center gap-1 rounded-sm hover:ring-1 hover:ring-gray-300 hover:ring-offset-2 sm:gap-2"
           onClick={handleStartEditTitle}
         >
-          <h1 className="truncate text-sm font-semibold transition-shadow sm:text-lg md:text-xl">
+          <h1 className={`tight truncate px-1 transition-shadow ${textStyles}`}>
             {notebook.title || "Untitled Notebook"}
           </h1>
           {canEdit && (
@@ -112,3 +112,5 @@ export function TitleEditor({
     </div>
   );
 }
+
+const textStyles = "text-sm sm:text-base md:text-lg font-semibold";
