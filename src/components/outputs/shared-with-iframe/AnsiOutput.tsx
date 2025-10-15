@@ -1,7 +1,5 @@
-import Ansi from "ansi-to-react";
-import { Bug } from "lucide-react";
 import React from "react";
-import { sendFromIframe } from "./comms";
+import Ansi from "ansi-to-react";
 
 interface AnsiOutputProps {
   children: string;
@@ -79,15 +77,6 @@ export const AnsiErrorOutput: React.FC<{
           </AnsiOutput>
         </div>
       )}
-      <button
-        onClick={() =>
-          sendFromIframe({ type: "iframe-fix-code", ename, evalue, traceback })
-        }
-        className="flex appearance-none items-center gap-1 rounded-md border-none bg-red-500 px-2 py-1 text-sm text-white ring-0 transition-colors outline-none hover:bg-red-600 focus:ring-2 focus:ring-red-500/20 active:bg-red-800"
-      >
-        <Bug className="h-3 w-3" />
-        Fix Code
-      </button>
     </div>
   );
 };
