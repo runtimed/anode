@@ -1,4 +1,6 @@
 import { tables, queryDb } from "@runtimed/schema";
+import Ajv from "ajv";
+import nbformatSchema from "@/data/nbformat-schema-v4.json";
 
 /**
  * Jupyter Notebook (.ipynb) format interface
@@ -64,6 +66,20 @@ function anodeCellTypeToJupyter(cellType: string): "code" | "markdown" | "raw" {
 }
 
 const imageMimeTypes = ["image/png", "image/jpeg", "image/gif"];
+
+// Initialize AJV validator with nbformat schema
+const ajv = new Ajv();
+// const validateNotebook = ajv.compile(nbformatSchema);
+
+/**
+ * Validate notebook against Jupyter nbformat schema
+ */
+function validateJupyterNotebook(notebook: JupyterNotebook): void {
+  const result = ajv.validate(nbformatSchema, notebook);
+  if (!result) {
+    throw new Error(`Failed to export a valid ipynb notebook.`);
+  }
+}
 
 /**
  * Convert Anode output to Jupyter output format
@@ -237,7 +253,7 @@ export function exportNotebookToJupyter(
     };
   });
 
-  return {
+  const notebook: JupyterNotebook = {
     cells: jupyterCells,
     // metadata: {
     //   kernelspec: {
@@ -257,6 +273,11 @@ export function exportNotebookToJupyter(
     nbformat: 4,
     nbformat_minor: 4,
   };
+
+  // Validate the notebook against Jupyter nbformat schema
+  validateJupyterNotebook(notebook);
+
+  return notebook;
 }
 
 /**
