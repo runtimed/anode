@@ -5,21 +5,22 @@ import { tables, queryDb } from "@runtimed/schema";
  */
 export interface JupyterNotebook {
   cells: JupyterCell[];
-  metadata: {
-    kernelspec: {
-      display_name: string;
-      language: string;
-      name: string;
-    };
-    language_info: {
-      name: string;
-      version: string;
-    };
-    anode?: {
-      exported_at: string;
-      version: string;
-    };
-  };
+  // TODO: Add metadata
+  // metadata: {
+  //   kernelspec: {
+  //     display_name: string;
+  //     language: string;
+  //     name: string;
+  //   };
+  //   language_info: {
+  //     name: string;
+  //     version: string;
+  //   };
+  //   anode?: {
+  //     exported_at: string;
+  //     version: string;
+  //   };
+  // };
   nbformat: number;
   nbformat_minor: number;
 }
@@ -68,7 +69,7 @@ const imageMimeTypes = ["image/png", "image/jpeg", "image/gif"];
  * Convert Anode output to Jupyter output format
  */
 function convertOutputToJupyter(output: any): JupyterOutput | null {
-  const { outputType, data, representations, metadata } = output;
+  const { outputType, data, representations } = output;
 
   // Handle different output types
   switch (outputType) {
@@ -77,7 +78,6 @@ function convertOutputToJupyter(output: any): JupyterOutput | null {
       // Rich output with multiple representations
       if (representations) {
         const jupyterData: Record<string, any> = {};
-        const jupyterMetadata: Record<string, any> = {};
 
         // Convert representations to Jupyter format
         for (const [mimeType, representation] of Object.entries(
@@ -97,10 +97,8 @@ function convertOutputToJupyter(output: any): JupyterOutput | null {
               }
               jupyterData[mimeType] = rep.data;
             } else if (rep.type === "artifact") {
-              // For artifacts, we'll include the artifact ID as metadata
-              jupyterMetadata[
-                `artifact_${mimeType.replace(/[^a-zA-Z0-9]/g, "_")}`
-              ] = rep.data;
+              // TODO: Figure out what to do with artifacts. For now, we ignore them
+              // In the future we could either include the artifact ID as metadata, or pull the artifact content and include it as inline data
             }
           }
         }
@@ -108,7 +106,7 @@ function convertOutputToJupyter(output: any): JupyterOutput | null {
         return {
           output_type: "display_data",
           data: jupyterData,
-          metadata: jupyterMetadata,
+          // metadata: jupyterMetadata,
           execution_count: output.executionCount || null,
         };
       }
@@ -146,17 +144,10 @@ function convertOutputToJupyter(output: any): JupyterOutput | null {
             {
               type: outputType,
               data: data,
-              metadata: metadata || {},
             },
             null,
             2
           ),
-        },
-        metadata: {
-          anode: {
-            output_type: outputType,
-            ...metadata,
-          },
         },
         execution_count: output.executionCount || null,
       };
@@ -167,12 +158,6 @@ function convertOutputToJupyter(output: any): JupyterOutput | null {
         output_type: "display_data",
         data: {
           "text/plain": data || "",
-        },
-        metadata: {
-          anode: {
-            output_type: outputType,
-            ...metadata,
-          },
         },
         execution_count: output.executionCount || null,
       };
@@ -233,16 +218,16 @@ export function exportNotebookToJupyter(
     return {
       cell_type: anodeCellTypeToJupyter(cell.cellType),
       metadata: {
-        anode: {
-          cell_type: cell.cellType,
-          id: cell.id,
-          fractional_index: cell.fractionalIndex,
-          created_by: cell.createdBy,
-          execution_state: cell.executionState,
-          source_visible: cell.sourceVisible,
-          output_visible: cell.outputVisible,
-          ai_context_visible: cell.aiContextVisible,
-        },
+        // anode: {
+        //   cell_type: cell.cellType,
+        //   id: cell.id,
+        //   fractional_index: cell.fractionalIndex,
+        //   created_by: cell.createdBy,
+        //   execution_state: cell.executionState,
+        //   source_visible: cell.sourceVisible,
+        //   output_visible: cell.outputVisible,
+        //   ai_context_visible: cell.aiContextVisible,
+        // },
         // Add execution count if available
         ...(cell.executionCount && { execution_count: cell.executionCount }),
       },
@@ -254,21 +239,21 @@ export function exportNotebookToJupyter(
 
   return {
     cells: jupyterCells,
-    metadata: {
-      kernelspec: {
-        display_name: "Python 3",
-        language: "python",
-        name: "python3",
-      },
-      language_info: {
-        name: "python",
-        version: "3.10.0",
-      },
-      anode: {
-        exported_at: new Date().toISOString(),
-        version: "1.0.0",
-      },
-    },
+    // metadata: {
+    //   kernelspec: {
+    //     display_name: "Python 3",
+    //     language: "python",
+    //     name: "python3",
+    //   },
+    //   language_info: {
+    //     name: "python",
+    //     version: "3.10.0",
+    //   },
+    //   // anode: {
+    //   //   exported_at: new Date().toISOString(),
+    //   //   version: "1.0.0",
+    //   // },
+    // },
     nbformat: 4,
     nbformat_minor: 4,
   };
