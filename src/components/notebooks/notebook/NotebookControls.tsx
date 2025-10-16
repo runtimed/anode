@@ -22,8 +22,6 @@ export function NotebookControls({
 }: {
   notebook: NotebookProcessed;
 }) {
-  const { exportToJupyter } = useNotebookExport();
-
   return (
     <div className="flex items-center gap-1">
       <DropdownMenu>
@@ -35,8 +33,8 @@ export function NotebookControls({
         <DropdownMenuContent align="end">
           <CreateNotebookAction />
           <DuplicateAction notebook={notebook} />
+          <ExportAction />
           <DropdownMenuSeparator />
-          <ExportAction exportToJupyter={exportToJupyter} />
           <DeleteAction notebook={notebook} />
         </DropdownMenuContent>
       </DropdownMenu>
@@ -87,7 +85,9 @@ function DuplicateAction({ notebook }: { notebook: NotebookProcessed }) {
   );
 }
 
-function ExportAction({ exportToJupyter }: { exportToJupyter: () => void }) {
+function ExportAction() {
+  const { exportToJupyter } = useNotebookExport();
+
   return (
     <DropdownMenuItem onSelect={exportToJupyter}>
       <FileDown />
