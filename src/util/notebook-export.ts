@@ -106,22 +106,6 @@ function convertOutputToJupyter(output: any): JupyterOutput | null {
     case "ai_tool_call":
     case "ai_tool_result":
       return null;
-    // AI tool outputs - convert to display_data
-    // return {
-    //   output_type: "display_data",
-    //   data: {
-    //     "text/plain": data || "",
-    //     "application/json": JSON.stringify(
-    //       {
-    //         type: outputType,
-    //         data: data,
-    //       },
-    //       null,
-    //       2
-    //     ),
-    //   },
-    //   execution_count: output.executionCount || null,
-    // };
 
     default:
       // Fallback for unknown output types
@@ -189,18 +173,7 @@ export function exportNotebookToJupyter(
       const baseCell = {
         id: cellId,
         cell_type: cellType,
-        metadata: {
-          // anode: {
-          //   cell_type: cell.cellType,
-          //   id: cell.id,
-          //   fractional_index: cell.fractionalIndex,
-          //   created_by: cell.createdBy,
-          //   execution_state: cell.executionState,
-          //   source_visible: cell.sourceVisible,
-          //   output_visible: cell.outputVisible,
-          //   ai_context_visible: cell.aiContextVisible,
-          // },
-        },
+        metadata: {},
         source: source,
       };
 
@@ -229,10 +202,6 @@ export function exportNotebookToJupyter(
         name: "python",
         version: "3.10.0",
       },
-      // anode: {
-      //   exported_at: new Date().toISOString(),
-      //   version: "1.0.0",
-      // },
     },
     nbformat: 4,
     nbformat_minor: 5,
