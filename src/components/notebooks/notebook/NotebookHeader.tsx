@@ -1,4 +1,4 @@
-import { CopyPlus, Share2, UserLock, Users } from "lucide-react";
+import { Share2, UserLock, Users } from "lucide-react";
 import { ErrorBoundary } from "react-error-boundary";
 import { CollaboratorAvatars } from "../../CollaboratorAvatars.js";
 import { Collaborator } from "../types.js";
@@ -14,9 +14,7 @@ import { SimpleUserProfile } from "../SimpleUserProfile.js";
 import type { NotebookProcessed } from "../types.js";
 import { TitleEditor } from "./TitleEditor.js";
 import { useTitle } from "react-use";
-import { useDuplicateNotebook } from "../../../hooks/useDuplicateNotebook.js";
-import { useConfirm } from "@/components/ui/confirm.js";
-import { toast } from "sonner";
+import { NotebookControls } from "./NotebookControls.js";
 
 export function NotebookHeader({
   notebook,
@@ -30,25 +28,6 @@ export function NotebookHeader({
   const canEdit = notebook.myPermission === "OWNER";
 
   useTitle(notebook.title || "Untitled Notebook");
-  const { duplicateNotebook, isDuplicating } = useDuplicateNotebook();
-  const { confirm } = useConfirm();
-
-  const handleDuplicateNotebook = async () => {
-    confirm({
-      title: "Duplicate Notebook",
-      description: `Please confirm that you want to duplicate "${notebook.title || "Untitled Notebook"}".`,
-      onConfirm: handleDuplicateNotebookConfirm,
-      nonDestructive: true,
-    });
-  };
-
-  const handleDuplicateNotebookConfirm = async () => {
-    try {
-      await duplicateNotebook(notebook.title || "Untitled Notebook");
-    } catch (error) {
-      toast.error("Failed to duplicate notebook");
-    }
-  };
   const userId = useAuthenticatedUser();
 
   const ownerName =
@@ -101,56 +80,38 @@ export function NotebookHeader({
           {/* Right side */}
 
           <div className="flex shrink-0 items-center gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              className="px-1 text-xs sm:px-2"
-              onClick={handleDuplicateNotebook}
-              disabled={isDuplicating}
-            >
-              <CopyPlus className="h-3 w-3" />
-              <span className="sr-only sm:not-sr-only">
-                {isDuplicating ? "Duplicating..." : "Duplicate Notebook"}
-              </span>
-              <span className="sm:hidden">
-                {isDuplicating ? "Duplicating..." : "Duplicate"}
-              </span>
-            </Button>
+            {canEdit && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setIsSharingDialogOpen(true)}
+                className="px-1 text-xs sm:px-2"
+              >
+                {hasCollaborators ? (
+                  <>
+                    <CollaboratorSection
+                      collaborators={notebook.collaborators}
+                    />
+                  </>
+                ) : (
+                  <>
+                    <Share2 />
+                    <span className="sr-only sm:not-sr-only">Share</span>
+                  </>
+                )}
+              </Button>
+            )}
 
-            <div className="flex shrink-0 items-center gap-1 sm:gap-2">
-              {canEdit && (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setIsSharingDialogOpen(true)}
-                  className="px-1 text-xs sm:px-2"
-                >
-                  {hasCollaborators ? (
-                    <>
-                      <CollaboratorSection
-                        collaborators={notebook.collaborators}
-                      />
-                    </>
-                  ) : (
-                    <>
-                      <Share2 />
-                      <span className="sr-only sm:not-sr-only">Share</span>
-                    </>
-                  )}
-                </Button>
-              )}
+            <ErrorBoundary FallbackComponent={() => null}>
+              <CollaboratorAvatars />
+            </ErrorBoundary>
 
-              <ErrorBoundary FallbackComponent={() => null}>
-                <CollaboratorAvatars />
-              </ErrorBoundary>
+            <NotebookControls notebook={notebook} />
 
-              <ErrorBoundary fallback={<div>Error</div>}>
-                <SimpleUserProfile />
-              </ErrorBoundary>
-            </div>
+            <ErrorBoundary fallback={<div>Error</div>}>
+              <SimpleUserProfile />
+            </ErrorBoundary>
           </div>
-
-          {/* Metadata - Mobile optimized */}
         </div>
       </div>
     </div>

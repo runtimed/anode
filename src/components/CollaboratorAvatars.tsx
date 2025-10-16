@@ -20,6 +20,10 @@ export function CollaboratorAvatars() {
 
   const LIMIT = 3;
 
+  if (otherUsersOrdered.length === 0) {
+    return null;
+  }
+
   return (
     <div className="relative flex items-center">
       {otherUsersOrdered.slice(0, LIMIT).map((user, index) => {
