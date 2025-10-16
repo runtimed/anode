@@ -8,6 +8,7 @@ import { trpcQueryClient } from "@/lib/trpc-client";
 import { NotebookProcessed } from "@/components/notebooks/types";
 import { FilterType } from "@/hooks/use-notebooks";
 import { getNotebookVanityUrl } from "@/util/url-utils";
+import { toast } from "sonner";
 
 type ViewMode = "grid" | "table";
 
@@ -83,10 +84,11 @@ export function useCreateNotebookAndNavigate() {
         navigate(getNotebookVanityUrl(result.id, result.title), {
           state: { initialNotebook: result },
         });
+        toast.success("Notebook created successfully");
       }
     } catch (err) {
       console.error("Failed to create notebook:", err);
-      // TODO: Show error toast
+      toast.error("Failed to create notebook");
     }
   }, [createNotebookMutation, trpc, navigate]);
 

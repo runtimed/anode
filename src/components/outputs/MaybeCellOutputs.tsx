@@ -1,6 +1,6 @@
 import { cn } from "@/lib/utils";
 import { outputsDeltasQuery, processDeltas } from "@/queries/outputDeltas";
-import { OutputData, SAFE_MIME_TYPES } from "@runtimed/schema";
+import { CellType, OutputData, SAFE_MIME_TYPES } from "@runtimed/schema";
 import { groupConsecutiveStreamOutputs } from "@/util/output-grouping";
 import { useQuery } from "@livestore/react";
 import { useMemo, useState } from "react";
@@ -9,17 +9,22 @@ import { SingleOutput } from "./shared-with-iframe/SingleOutput";
 import { useDebounce } from "react-use";
 import { OutputsContainer } from "./shared-with-iframe/OutputsContainer";
 import { SuspenseSpinner } from "./shared-with-iframe/SuspenseSpinner";
+import { MaybeFixCodeButton } from "./MaybeFixCodeButton";
 
 /**
  * TODO: consider renaming this component
  * By default, we want to be ready to render the outputs
  */
 export const MaybeCellOutputs = ({
+  cellId,
+  cellType,
   outputs,
   shouldAlwaysUseIframe = false,
   isLoading,
   showOutput,
 }: {
+  cellId: string;
+  cellType: CellType;
   outputs: readonly OutputData[];
   shouldAlwaysUseIframe?: boolean;
   isLoading: boolean;
@@ -54,6 +59,13 @@ export const MaybeCellOutputs = ({
           isLoading && outputs.length ? "opacity-50" : "opacity-100"
         )}
       >
+        {cellType === "code" && (
+          <MaybeFixCodeButton
+            isLoading={isLoading}
+            cellId={cellId}
+            outputs={outputs}
+          />
+        )}
         {/* TODO: consider rendering an empty iframewhen we have a safe output currently rendered but cell input has changed */}
         {shouldUseIframe ? (
           <IframeOutput
