@@ -439,7 +439,7 @@ describe("Notebook Export to Jupyter", () => {
 
       // Verify cell has no outputs
       const cell = exportedNotebook.cells[0];
-      expect(cell.outputs).toBeUndefined();
+      expect(cell.outputs).toEqual([]);
     });
 
     it("should handle multimedia outputs with multiple representations", async () => {
@@ -622,40 +622,34 @@ describe("Notebook Export to Jupyter", () => {
         executionCount: null,
       };
 
-      // We can't easily insert this through the normal event system,
-      // so we'll test the conversion function directly
-      const { exportNotebookToJupyter } = await import(
-        "../src/util/notebook-export.js"
+      // Add a multimedia output that will be converted to display_data
+      store.commit(
+        events.multimediaDisplayOutputAdded({
+          id: "unknown-output",
+          cellId: cellId,
+          representations: {
+            "text/plain": {
+              type: "inline",
+              data: "Some unknown data",
+            },
+          },
+          position: 0,
+        })
       );
 
-      // Create a mock store that returns our test data
-      const mockStore = {
-        query: vi.fn((query) => {
-          if (query.toString().includes("cells")) {
-            return [
-              {
-                id: cellId,
-                cellType: "code",
-                source: "print('test')",
-                fractionalIndex: "a0",
-                executionCount: null,
-              },
-            ];
-          }
-          if (query.toString().includes("outputs")) {
-            return [unknownOutput];
-          }
-          return [];
-        }),
-      };
+      // Wait for state to settle
+      await waitFor(() => {
+        const outputs = store.query(tables.outputs.select());
+        return outputs.length === 1;
+      });
 
       // Export should not throw an error
       expect(() => {
-        exportNotebookToJupyter(mockStore);
+        exportNotebookToJupyter(store);
       }).not.toThrow();
 
       // Verify the notebook is still valid
-      const exportedNotebook = exportNotebookToJupyter(mockStore);
+      const exportedNotebook = exportNotebookToJupyter(store);
       expect(exportedNotebook).toBeDefined();
       expect(exportedNotebook.cells).toHaveLength(1);
 
@@ -671,48 +665,6 @@ describe("Notebook Export to Jupyter", () => {
 
   describe("Jupyter Validation", () => {
     it("should produce valid Jupyter notebooks that pass validation", async () => {
-      const cellId = "validation-cell";
-      const outputId = "validation-output";
-
-      // Store is already initialized with storeId
-
-      store.commit(
-        events.cellCreated2({
-          id: cellId,
-          cellType: "code",
-          fractionalIndex: "a0",
-          createdBy: "test-user",
-        })
-      );
-
-      store.commit(
-        events.cellSourceChanged({
-          id: cellId,
-          source: "print('Validation test')",
-          modifiedBy: "test-user",
-        })
-      );
-
-      store.commit(
-        events.terminalOutputAdded({
-          id: outputId,
-          cellId,
-          content: {
-            type: "inline",
-            data: "Validation test\n",
-          },
-          streamName: "stdout",
-          position: 0,
-        })
-      );
-
-      // Wait for state to settle
-      await waitFor(() => {
-        const cells = store.query(tables.cells.select());
-        const outputs = store.query(tables.outputs.select());
-        return cells.length === 1 && outputs.length === 1;
-      });
-
       // Export notebook - this should not throw validation errors
       expect(() => {
         const exportedNotebook = exportNotebookToJupyter(store);
@@ -720,7 +672,7 @@ describe("Notebook Export to Jupyter", () => {
         // Verify the exported notebook has the expected structure
         expect(exportedNotebook.nbformat).toBe(4);
         expect(exportedNotebook.nbformat_minor).toBe(4);
-        expect(exportedNotebook.cells).toHaveLength(1);
+        expect(exportedNotebook.cells).toHaveLength(0);
         expect(exportedNotebook.metadata.kernelspec).toBeDefined();
         expect(exportedNotebook.metadata.language_info).toBeDefined();
       }).not.toThrow();

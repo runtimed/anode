@@ -64,33 +64,44 @@ function convertOutputToJupyter(output: any): JupyterOutput | null {
           output_type: "display_data",
           data: jupyterData,
           metadata: {},
-          execution_count: output.executionCount || null,
         };
       }
       break;
 
-    case "terminal_output": {
+    case "terminal": {
       // Terminal output (stdout/stderr)
       const streamName = output.streamName || "stdout";
       return {
         output_type: "stream",
         name: streamName,
         text: data || "",
-        metadata: {},
-        execution_count: output.executionCount || null,
       };
     }
 
-    case "error":
+    case "error": {
       // Error output
+      let errorData = data || "Unknown error";
+      let ename = "Error";
+      let evalue = errorData;
+      let traceback = [errorData];
+
+      // Try to parse JSON error data
+      try {
+        const parsed = JSON.parse(errorData);
+        if (parsed.ename) ename = parsed.ename;
+        if (parsed.evalue) evalue = parsed.evalue;
+        if (parsed.traceback) traceback = parsed.traceback;
+      } catch {
+        // If parsing fails, use the raw data
+      }
+
       return {
         output_type: "error",
-        ename: "Error",
-        evalue: data || "Unknown error",
-        traceback: [data || "Unknown error"],
-        metadata: {},
-        execution_count: output.executionCount || null,
+        ename: ename,
+        evalue: evalue,
+        traceback: traceback,
       };
+    }
 
     case "ai_tool_call":
     case "ai_tool_result":
@@ -120,7 +131,6 @@ function convertOutputToJupyter(output: any): JupyterOutput | null {
           "text/plain": data || "",
         },
         metadata: {},
-        execution_count: output.executionCount || null,
       };
   }
 
@@ -176,8 +186,11 @@ export function exportNotebookToJupyter(
             .join("\n")
         : cell.source || "";
 
-    return {
-      cell_type: anodeCellTypeToJupyter(cell.cellType),
+    const cellType = anodeCellTypeToJupyter(cell.cellType);
+
+    // Base cell structure
+    const baseCell = {
+      cell_type: cellType,
       metadata: {
         // anode: {
         //   cell_type: cell.cellType,
@@ -189,13 +202,21 @@ export function exportNotebookToJupyter(
         //   output_visible: cell.outputVisible,
         //   ai_context_visible: cell.aiContextVisible,
         // },
-        // Add execution count if available
-        ...(cell.executionCount && { execution_count: cell.executionCount }),
       },
       source: source,
-      execution_count: cell.executionCount || null,
-      outputs: jupyterOutputs,
     };
+
+    // Add execution_count and outputs only for code cells
+    if (cellType === "code") {
+      return {
+        ...baseCell,
+        execution_count: cell.executionCount || null,
+        outputs: jupyterOutputs,
+      };
+    } else {
+      // For markdown and raw cells, no execution_count or outputs
+      return baseCell;
+    }
   });
 
   const notebook: JupyterNotebook = {
