@@ -5,14 +5,16 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useDuplicateNotebook } from "@/hooks/useDuplicateNotebook";
 import { useMutation } from "@tanstack/react-query";
-import { CopyPlus, MoreHorizontal, Trash2 } from "lucide-react";
-import { toast } from "sonner";
-import type { NotebookProcessed } from "../types";
+import { CopyPlus, MoreHorizontal, Plus, Trash2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { toast } from "sonner";
+import { useCreateNotebookAndNavigate } from "../dashboard/helpers";
+import type { NotebookProcessed } from "../types";
 
 export function NotebookControls({
   notebook,
@@ -28,11 +30,24 @@ export function NotebookControls({
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
+          <CreateNotebookAction />
           <DuplicateAction notebook={notebook} />
+          <DropdownMenuSeparator />
           <DeleteAction notebook={notebook} />
         </DropdownMenuContent>
       </DropdownMenu>
     </div>
+  );
+}
+
+function CreateNotebookAction() {
+  const createNotebookAndNavigate = useCreateNotebookAndNavigate();
+
+  return (
+    <DropdownMenuItem onSelect={createNotebookAndNavigate}>
+      <Plus />
+      Create New Notebook
+    </DropdownMenuItem>
   );
 }
 
