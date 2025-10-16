@@ -176,7 +176,7 @@ export function exportNotebookToJupyter(
       .filter((output): output is JupyterOutput => output !== null);
 
     // Add "AI PROMPT: " prefix for AI cells and ensure each line is a comment
-    const source =
+    const sourceText =
       cell.cellType === "ai"
         ? (cell.source || "")
             .split("\n")
@@ -186,10 +186,17 @@ export function exportNotebookToJupyter(
             .join("\n")
         : cell.source || "";
 
+    // Convert source to array of strings for nbformat 4.5
+    const source = sourceText ? sourceText.split("\n") : [""];
+
     const cellType = anodeCellTypeToJupyter(cell.cellType);
+
+    // Generate a valid cell ID (must match pattern ^[a-zA-Z0-9-_]+$ and be 1-64 chars)
+    const cellId = cell.id || `cell-${Date.now()}`;
 
     // Base cell structure
     const baseCell = {
+      id: cellId,
       cell_type: cellType,
       metadata: {
         // anode: {
@@ -237,7 +244,7 @@ export function exportNotebookToJupyter(
       // },
     },
     nbformat: 4,
-    nbformat_minor: 4,
+    nbformat_minor: 5,
   };
 
   // Validate the notebook against Jupyter nbformat schema

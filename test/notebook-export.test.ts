@@ -124,7 +124,7 @@ describe("Notebook Export to Jupyter", () => {
       // Verify basic structure
       expect(exportedNotebook).toBeDefined();
       expect(exportedNotebook.nbformat).toBe(4);
-      expect(exportedNotebook.nbformat_minor).toBe(4);
+      expect(exportedNotebook.nbformat_minor).toBe(5);
       expect(exportedNotebook.cells).toHaveLength(2);
 
       // Verify metadata
@@ -137,7 +137,7 @@ describe("Notebook Export to Jupyter", () => {
       // Verify cells
       const cell1 = exportedNotebook.cells[0];
       expect(cell1.cell_type).toBe("code");
-      expect(cell1.source).toBe('print("Hello, World!")');
+      expect(cell1.source).toEqual(['print("Hello, World!")']);
       expect(cell1.outputs).toHaveLength(1);
       expect(cell1.outputs![0].output_type).toBe("stream");
       expect(cell1.outputs![0].name).toBe("stdout");
@@ -145,7 +145,7 @@ describe("Notebook Export to Jupyter", () => {
 
       const cell2 = exportedNotebook.cells[1];
       expect(cell2.cell_type).toBe("code");
-      expect(cell2.source).toBe("x = 42\nprint(f'x = {x}')");
+      expect(cell2.source).toEqual(["x = 42", "print(f'x = {x}')"]);
       expect(cell2.outputs).toHaveLength(1);
       expect(cell2.outputs![0].output_type).toBe("stream");
       expect(cell2.outputs![0].name).toBe("stdout");
@@ -242,22 +242,24 @@ describe("Notebook Export to Jupyter", () => {
 
       // Verify cell types are converted correctly
       expect(exportedNotebook.cells[0].cell_type).toBe("code");
-      expect(exportedNotebook.cells[0].source).toBe("print('Code cell')");
+      expect(exportedNotebook.cells[0].source).toEqual(["print('Code cell')"]);
 
       expect(exportedNotebook.cells[1].cell_type).toBe("markdown");
-      expect(exportedNotebook.cells[1].source).toBe(
-        "# Markdown Cell\n\nThis is a markdown cell."
-      );
+      expect(exportedNotebook.cells[1].source).toEqual([
+        "# Markdown Cell",
+        "",
+        "This is a markdown cell.",
+      ]);
 
       expect(exportedNotebook.cells[2].cell_type).toBe("code");
-      expect(exportedNotebook.cells[2].source).toBe(
-        "# AI PROMPT: Create a function to calculate fibonacci numbers"
-      );
+      expect(exportedNotebook.cells[2].source).toEqual([
+        "# AI PROMPT: Create a function to calculate fibonacci numbers",
+      ]);
 
       expect(exportedNotebook.cells[3].cell_type).toBe("code");
-      expect(exportedNotebook.cells[3].source).toBe(
-        "SELECT * FROM users LIMIT 10;"
-      );
+      expect(exportedNotebook.cells[3].source).toEqual([
+        "SELECT * FROM users LIMIT 10;",
+      ]);
     });
 
     it("should handle empty notebook", async () => {
@@ -270,7 +272,7 @@ describe("Notebook Export to Jupyter", () => {
       expect(exportedNotebook).toBeDefined();
       expect(exportedNotebook.cells).toHaveLength(0);
       expect(exportedNotebook.nbformat).toBe(4);
-      expect(exportedNotebook.nbformat_minor).toBe(4);
+      expect(exportedNotebook.nbformat_minor).toBe(5);
     });
   });
 
@@ -542,7 +544,7 @@ describe("Notebook Export to Jupyter", () => {
       // Verify cells are in correct order
       expect(exportedNotebook.cells).toHaveLength(4);
       exportedNotebook.cells.forEach((cell, index) => {
-        expect(cell.source).toBe(`print("Cell ${index + 1}")`);
+        expect(cell.source).toEqual([`print("Cell ${index + 1}")`]);
       });
     });
   });
@@ -671,7 +673,7 @@ describe("Notebook Export to Jupyter", () => {
 
         // Verify the exported notebook has the expected structure
         expect(exportedNotebook.nbformat).toBe(4);
-        expect(exportedNotebook.nbformat_minor).toBe(4);
+        expect(exportedNotebook.nbformat_minor).toBe(5);
         expect(exportedNotebook.cells).toHaveLength(0);
         expect(exportedNotebook.metadata.kernelspec).toBeDefined();
         expect(exportedNotebook.metadata.language_info).toBeDefined();
