@@ -20,6 +20,7 @@ export type FeatureFlagKey = keyof FeatureFlags;
 interface FeatureFlagContextType {
   flags: FeatureFlags;
   setFlag: (key: FeatureFlagKey, value: boolean) => void;
+  allFlagKeys: FeatureFlagKey[];
 }
 
 const FeatureFlagContext = createContext<FeatureFlagContextType | undefined>(
@@ -74,8 +75,10 @@ export function FeatureFlagProvider({ children }: FeatureFlagProviderProps) {
     }));
   };
 
+  const allFlagKeys = Object.keys(DEFAULT_FLAGS) as FeatureFlagKey[];
+
   return (
-    <FeatureFlagContext.Provider value={{ flags, setFlag }}>
+    <FeatureFlagContext.Provider value={{ flags, setFlag, allFlagKeys }}>
       {children}
     </FeatureFlagContext.Provider>
   );
