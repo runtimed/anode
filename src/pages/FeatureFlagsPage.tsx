@@ -5,17 +5,16 @@ import {
   useFeatureFlagContext,
 } from "../contexts/FeatureFlagContext";
 
-export function FeatureFlagDemoPage() {
+export function FeatureFlagsPage() {
   const { allFlagKeys } = useFeatureFlagContext();
 
   return (
     <div className="container mx-auto max-w-4xl p-6">
       <div className="mb-8">
-        <h1 className="mb-2 text-3xl font-bold">Feature Flag Demo</h1>
+        <h1 className="mb-2 text-3xl font-bold">Feature Flags</h1>
         <p className="text-muted-foreground">
-          This page demonstrates the feature flag system. Toggle flags below to
-          see them in action. Flags are stored in sessionStorage and persist
-          across page reloads.
+          This page allows you to toggle feature flags. Flags are stored in
+          sessionStorage and persist across page reloads.
         </p>
       </div>
 

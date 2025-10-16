@@ -51,9 +51,9 @@ const TrpcDemoPage = React.lazy(() =>
     default: mod.TrpcDemoPage,
   }))
 );
-const FeatureFlagDemoPage = React.lazy(() =>
-  import("./pages/FeatureFlagDemoPage").then((mod) => ({
-    default: mod.FeatureFlagDemoPage,
+const FeatureFlagsPage = React.lazy(() =>
+  import("./pages/FeatureFlagsPage").then((mod) => ({
+    default: mod.FeatureFlagsPage,
   }))
 );
 
@@ -156,10 +156,7 @@ export const App: React.FC = () => {
                     </AuthGuard>
                   }
                 />
-                <Route
-                  path="/demo/feature-flags"
-                  element={<FeatureFlagDemoPage />}
-                />
+                <Route path="/feature-flags" element={<FeatureFlagsPage />} />
               </Routes>
               <FPSMeter />
               <Toaster />
