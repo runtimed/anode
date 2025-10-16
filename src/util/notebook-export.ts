@@ -168,63 +168,54 @@ export function exportNotebookToJupyter(
     outputsByCellId.get(output.cellId)!.push(output);
   }
 
-  // Convert cells to Jupyter format
-  const jupyterCells: JupyterCell[] = cells.map((cell: any) => {
-    const cellOutputs = outputsByCellId.get(cell.id) || [];
-    const jupyterOutputs = cellOutputs
-      .map(convertOutputToJupyter)
-      .filter((output): output is JupyterOutput => output !== null);
+  // Convert cells to Jupyter format, filtering out AI cells
+  const jupyterCells: JupyterCell[] = cells
+    .filter((cell: any) => cell.cellType !== "ai")
+    .map((cell: any) => {
+      const cellOutputs = outputsByCellId.get(cell.id) || [];
+      const jupyterOutputs = cellOutputs
+        .map(convertOutputToJupyter)
+        .filter((output): output is JupyterOutput => output !== null);
 
-    // Add "AI PROMPT: " prefix for AI cells and ensure each line is a comment
-    const sourceText =
-      cell.cellType === "ai"
-        ? (cell.source || "")
-            .split("\n")
-            .map((line: string, index: number) =>
-              index === 0 ? `# AI PROMPT: ${line}` : `# ${line}`
-            )
-            .join("\n")
-        : cell.source || "";
+      // Convert source to array of strings for nbformat 4.5
+      const source = cell.source ? cell.source.split("\n") : [""];
 
-    // Convert source to array of strings for nbformat 4.5
-    const source = sourceText ? sourceText.split("\n") : [""];
+      const cellType = anodeCellTypeToJupyter(cell.cellType);
 
-    const cellType = anodeCellTypeToJupyter(cell.cellType);
+      // Generate a valid cell ID (must match pattern ^[a-zA-Z0-9-_]+$ and be 1-64 chars)
+      const cellId = cell.id || `cell-${Date.now()}`;
 
-    // Generate a valid cell ID (must match pattern ^[a-zA-Z0-9-_]+$ and be 1-64 chars)
-    const cellId = cell.id || `cell-${Date.now()}`;
-
-    // Base cell structure
-    const baseCell = {
-      id: cellId,
-      cell_type: cellType,
-      metadata: {
-        // anode: {
-        //   cell_type: cell.cellType,
-        //   id: cell.id,
-        //   fractional_index: cell.fractionalIndex,
-        //   created_by: cell.createdBy,
-        //   execution_state: cell.executionState,
-        //   source_visible: cell.sourceVisible,
-        //   output_visible: cell.outputVisible,
-        //   ai_context_visible: cell.aiContextVisible,
-        // },
-      },
-      source: source,
-    };
-
-    // Add execution_count and outputs only for code cells
-    if (cellType === "code") {
-      return {
-        ...baseCell,
-        execution_count: cell.executionCount || null,
-        outputs: jupyterOutputs,
+      // Base cell structure
+      const baseCell = {
+        id: cellId,
+        cell_type: cellType,
+        metadata: {
+          // anode: {
+          //   cell_type: cell.cellType,
+          //   id: cell.id,
+          //   fractional_index: cell.fractionalIndex,
+          //   created_by: cell.createdBy,
+          //   execution_state: cell.executionState,
+          //   source_visible: cell.sourceVisible,
+          //   output_visible: cell.outputVisible,
+          //   ai_context_visible: cell.aiContextVisible,
+          // },
+        },
+        source: source,
       };
-    } else {
-      // For markdown and raw cells, no execution_count or outputs
-      return baseCell;
-    }
-  });
+
+      // Add execution_count and outputs only for code cells
+      if (cellType === "code") {
+        return {
+          ...baseCell,
+          execution_count: cell.executionCount || null,
+          outputs: jupyterOutputs,
+        };
+      } else {
+        // For markdown and raw cells, no execution_count or outputs
+        return baseCell;
+      }
+    });
 
   const notebook: JupyterNotebook = {
     cells: jupyterCells,
