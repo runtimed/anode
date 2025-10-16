@@ -19,7 +19,7 @@ export function FeatureFlagDemoPage() {
         </p>
       </div>
 
-      <div className="grid gap-x-4 gap-y-1 md:grid-cols-1 lg:grid-cols-3">
+      <div className="grid gap-x-4 gap-y-1 md:grid-cols-2 lg:grid-cols-3">
         {allFlagKeys.map((flagKey) => (
           <FeatureFlagToggle key={flagKey} flagKey={flagKey} />
         ))}

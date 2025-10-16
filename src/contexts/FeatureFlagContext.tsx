@@ -1,4 +1,5 @@
-import React, { createContext, useContext, useEffect, useState } from "react";
+import React, { createContext, useContext } from "react";
+import { useSessionStorage } from "react-use";
 
 // Define available feature flags with strict TypeScript definitions
 export interface FeatureFlags {
@@ -32,47 +33,10 @@ interface FeatureFlagProviderProps {
 }
 
 export function FeatureFlagProvider({ children }: FeatureFlagProviderProps) {
-  const [flags, setFlags] = useState<FeatureFlags>(DEFAULT_FLAGS);
-
-  // Load feature flags from sessionStorage on mount
-  useEffect(() => {
-    const loadFlagsFromStorage = () => {
-      const storedFlags = { ...DEFAULT_FLAGS };
-
-      // Check each flag in sessionStorage
-      Object.keys(DEFAULT_FLAGS).forEach((key) => {
-        const flagKey = key as FeatureFlagKey;
-        const storedValue = sessionStorage.getItem(`feature-flag-${flagKey}`);
-        if (storedValue !== null) {
-          storedFlags[flagKey] = storedValue === "true";
-        }
-      });
-
-      setFlags(storedFlags);
-    };
-
-    loadFlagsFromStorage();
-
-    // Listen for storage changes (in case flags are updated in another tab)
-    const handleStorageChange = (e: StorageEvent) => {
-      if (e.key && e.key.startsWith("feature-flag-")) {
-        loadFlagsFromStorage();
-      }
-    };
-
-    window.addEventListener("storage", handleStorageChange);
-    return () => window.removeEventListener("storage", handleStorageChange);
-  }, []);
+  const [flags, setFlags] = useSessionStorage("feature-flags", DEFAULT_FLAGS);
 
   const setFlag = (key: FeatureFlagKey, value: boolean) => {
-    // Update sessionStorage
-    sessionStorage.setItem(`feature-flag-${key}`, value.toString());
-
-    // Update local state
-    setFlags((prev) => ({
-      ...prev,
-      [key]: value,
-    }));
+    setFlags({ ...flags, [key]: value });
   };
 
   const allFlagKeys = Object.keys(DEFAULT_FLAGS) as FeatureFlagKey[];
