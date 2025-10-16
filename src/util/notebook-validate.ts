@@ -1,5 +1,5 @@
 import Ajv from "ajv";
-import nbformatSchema from "@/data/nbformat-schema-v4.json";
+import nbformatSchema from "@/data/nbformat.v4.schema.json";
 import { JupyterNotebook } from "@/types/jupyter";
 
 // Initialize AJV validator with nbformat schema
