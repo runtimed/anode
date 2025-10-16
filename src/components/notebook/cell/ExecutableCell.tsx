@@ -613,6 +613,8 @@ export const ExecutableCell: React.FC<ExecutableCellProps> = ({
 
       <ErrorBoundary FallbackComponent={OutputsErrorBoundary}>
         <MaybeCellOutputs
+          cellId={cell.id}
+          cellType={cell.cellType}
           isLoading={cell.executionState === "running" && !hasOutputs}
           outputs={hasOutputs ? outputs : staleOutputs}
           showOutput={showOutput}
