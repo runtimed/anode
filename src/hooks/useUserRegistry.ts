@@ -20,7 +20,9 @@ export type UserInfo = {
 
 // Queries for user presence and profile information from LiveStore
 const actorsQuery = queryDb(tables.actors);
-const presenceQuery = queryDb(tables.presence);
+const presenceQuery = queryDb(
+  tables.presence.select().orderBy("userId", "asc")
+);
 
 export const useUserRegistry = () => {
   // Fetch all actor profiles and presence data from LiveStore

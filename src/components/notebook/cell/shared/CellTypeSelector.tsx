@@ -1,4 +1,3 @@
-import React from "react";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -6,8 +5,9 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Bot, Code, Database, FileText } from "lucide-react";
 import { CellTypeNoRaw, tables } from "@runtimed/schema";
+import { Bot, ChevronDown, Code, Database, FileText } from "lucide-react";
+import React from "react";
 
 interface CellTypeSelectorProps {
   cell: typeof tables.cells.Type;
@@ -37,9 +37,9 @@ export const CellTypeSelector: React.FC<CellTypeSelectorProps> = ({
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Button
-          variant="ghost"
+          variant="outline"
           size="sm"
-          className={`h-7 gap-1.5 px-2 text-xs font-medium sm:h-6 ${
+          className={`h-7 gap-1 gap-1.5 !pr-1.5 pr-0 !pl-2 text-xs font-medium sm:h-6 ${
             cell.cellType === "sql"
               ? "hover:bg-muted/50 border border-blue-200 bg-blue-50 text-blue-700"
               : cell.cellType === "ai"
@@ -51,6 +51,7 @@ export const CellTypeSelector: React.FC<CellTypeSelectorProps> = ({
           <span className="cell-type-label hidden capitalize sm:inline">
             {cell.cellType}
           </span>
+          <ChevronDown className="h-3 w-3 shrink-0 opacity-50" />
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="start" className="w-40">

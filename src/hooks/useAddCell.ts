@@ -18,7 +18,8 @@ export const useAddCell = () => {
     (
       cellId?: string,
       cellType: CellType = "code",
-      position: "before" | "after" = "after"
+      position: "before" | "after" = "after",
+      source?: string
     ) => {
       const cellReferences = store.query(queries.cellsWithIndices$);
       const newCellId = `cell-${Date.now()}-${Math.random()
@@ -97,6 +98,34 @@ export const useAddCell = () => {
             },
           })
         );
+      }
+
+      if (source) {
+        const cellEvents = [
+          // set cell source
+          events.cellSourceChanged({
+            id: newCellId,
+            source,
+            modifiedBy: userId,
+          }),
+          // hide cell input
+          events.cellSourceVisibilityToggled({
+            id: newCellId,
+            sourceVisible: false,
+            actorId: userId,
+          }),
+          // run cell
+          events.executionRequested({
+            cellId: newCellId,
+            actorId: userId,
+            requestedBy: userId,
+            queueId: `exec-${Date.now()}-${Math.random().toString(36).slice(2)}`,
+            executionCount:
+              (store.query(queries.cellQuery.byId(newCellId))?.executionCount ||
+                0) + 1,
+          }),
+        ];
+        store.commit(...cellEvents);
       }
 
       // Focus the new cell after creation
