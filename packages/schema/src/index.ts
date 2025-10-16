@@ -117,6 +117,13 @@ export const events = {
     }),
   }),
 
+  fileDeleted: Events.synced({
+    name: "v1.FileDeleted",
+    schema: Schema.Struct({
+      id: Schema.String,
+    }),
+  }),
+
   // Notebook events (single notebook per store)
   /** @deprecated  */
   notebookInitialized: Events.synced({
@@ -698,9 +705,13 @@ export const materializers = State.SQLite.materializers(events, {
         createdBy,
         createdAt,
       })
-      // Don't overwrite existing files
-      .onConflict("id", "ignore"),
+      // Don't overwrite existing ids
+      .onConflict("id", "ignore")
+      // Do overwrite existing file names
+      .onConflict(["notebookId", "fileName"], "replace"),
   ],
+
+  "v1.FileDeleted": ({ id }) => [tables.files.delete().where({ id })],
 
   "v1.NotebookTitleChanged": ({ title }) =>
     tables.notebookMetadata

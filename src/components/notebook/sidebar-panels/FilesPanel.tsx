@@ -1,11 +1,15 @@
 import { queryDb } from "@livestore/livestore";
-import { useQuery } from "@livestore/react";
+import { useQuery, useStore } from "@livestore/react";
 import { tables } from "@runtimed/schema";
-import React from "react";
+import React, { useCallback, useRef } from "react";
 import type { SidebarPanelProps } from "./types";
 
-import { Tree } from "@/components/ui/file-tree";
+import { FileItem, Tree } from "@/components/ui/file-tree";
 import { SidebarMenu, SidebarProvider } from "@/components/ui/sidebar";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { useFileUpload } from "@/hooks/useFileUpload";
+import { toast } from "sonner";
 
 const data2 = {
   tree: [
@@ -38,14 +42,53 @@ const data2 = {
 
 export const FilesPanel: React.FC<SidebarPanelProps> = () => {
   const files = useQuery(queryDb(tables.files.select()));
-  console.log(files);
+  const { store } = useStore();
+
+  const { uploadFile, isUploading } = useFileUpload({
+    notebookId: store.storeId,
+    onFileUploaded: ({ fileName }) => {
+      toast.success(`File uploaded: ${fileName}`);
+    },
+  });
+
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleFileSelect = useCallback(
+    (event: React.ChangeEvent<HTMLInputElement>) => {
+      const file = event.target.files?.[0];
+      console.log("file", file);
+      if (file && file.type === "text/csv") {
+        console.log("uploading file", file);
+        uploadFile(file);
+      } else if (file) {
+        // Show error for non-CSV files
+        alert("Please select a CSV file");
+      }
+      // Reset input
+      if (fileInputRef.current) {
+        fileInputRef.current.value = "";
+      }
+    },
+    [uploadFile]
+  );
+
+  if (!files || files.length === 0)
+    return (
+      <div>
+        No files found{" "}
+        <Input disabled={isUploading} type="file" onChange={handleFileSelect} />
+      </div>
+    );
 
   return (
-    <div className="space-y-6">
+    <div className="-m-2 space-y-6">
       <SidebarProvider>
         <SidebarMenu>
-          {data2.tree.map((item, index) => (
+          {/* {data2.tree.map((item, index) => (
             <Tree key={index} item={item} />
+          ))} */}
+          {files.map((file) => (
+            <FileItem key={file.id} name={file.fileName} />
           ))}
         </SidebarMenu>
       </SidebarProvider>

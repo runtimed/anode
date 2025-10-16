@@ -449,6 +449,8 @@ export class RuntimeAgent {
         if (this.isShuttingDown) return;
         if (entries.length === 0) return;
 
+        console.log("uploaded files (from subscription)", entries);
+
         for (const entry of entries) {
           this.fileUpload?.(entry.id);
         }
