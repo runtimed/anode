@@ -44,44 +44,33 @@ describe("Notebook Export to Jupyter", () => {
       const outputId1 = "output-001";
       const outputId2 = "output-002";
 
-      // Create first code cell
-      store.commit(
+      // Create all events at once
+      const eventsArray = [
+        // Create first code cell
         events.cellCreated2({
           id: cellId1,
           cellType: "code",
           fractionalIndex: "a0",
           createdBy: "test-user",
-        })
-      );
-
-      store.commit(
+        }),
         events.cellSourceChanged({
           id: cellId1,
           source: 'print("Hello, World!")',
           modifiedBy: "test-user",
-        })
-      );
-
-      // Create second code cell
-      store.commit(
+        }),
+        // Create second code cell
         events.cellCreated2({
           id: cellId2,
           cellType: "code",
           fractionalIndex: "a1",
           createdBy: "test-user",
-        })
-      );
-
-      store.commit(
+        }),
         events.cellSourceChanged({
           id: cellId2,
           source: "x = 42\nprint(f'x = {x}')",
           modifiedBy: "test-user",
-        })
-      );
-
-      // Add outputs to first cell
-      store.commit(
+        }),
+        // Add outputs to first cell
         events.terminalOutputAdded({
           id: outputId1,
           cellId: cellId1,
@@ -91,11 +80,8 @@ describe("Notebook Export to Jupyter", () => {
           },
           streamName: "stdout",
           position: 0,
-        })
-      );
-
-      // Add outputs to second cell
-      store.commit(
+        }),
+        // Add outputs to second cell
         events.terminalOutputAdded({
           id: outputId2,
           cellId: cellId2,
@@ -105,8 +91,10 @@ describe("Notebook Export to Jupyter", () => {
           },
           streamName: "stdout",
           position: 0,
-        })
-      );
+        }),
+      ];
+
+      store.commit(...eventsArray);
 
       // Wait for state to settle
       await waitFor(() => {
@@ -158,75 +146,59 @@ describe("Notebook Export to Jupyter", () => {
       const aiCellId = "ai-cell";
       const sqlCellId = "sql-cell";
 
-      // Store is already initialized with storeId
-
-      // Create code cell
-      store.commit(
+      // Create all events at once
+      const eventsArray = [
+        // Create code cell
         events.cellCreated2({
           id: codeCellId,
           cellType: "code",
           fractionalIndex: "a0",
           createdBy: "test-user",
-        })
-      );
-      store.commit(
+        }),
         events.cellSourceChanged({
           id: codeCellId,
           source: "print('Code cell')",
           modifiedBy: "test-user",
-        })
-      );
-
-      // Create markdown cell
-      store.commit(
+        }),
+        // Create markdown cell
         events.cellCreated2({
           id: markdownCellId,
           cellType: "markdown",
           fractionalIndex: "a1",
           createdBy: "test-user",
-        })
-      );
-      store.commit(
+        }),
         events.cellSourceChanged({
           id: markdownCellId,
           source: "# Markdown Cell\n\nThis is a markdown cell.",
           modifiedBy: "test-user",
-        })
-      );
-
-      // Create AI cell
-      store.commit(
+        }),
+        // Create AI cell
         events.cellCreated2({
           id: aiCellId,
           cellType: "ai",
           fractionalIndex: "a2",
           createdBy: "test-user",
-        })
-      );
-      store.commit(
+        }),
         events.cellSourceChanged({
           id: aiCellId,
           source: "Create a function to calculate fibonacci numbers",
           modifiedBy: "test-user",
-        })
-      );
-
-      // Create SQL cell
-      store.commit(
+        }),
+        // Create SQL cell
         events.cellCreated2({
           id: sqlCellId,
           cellType: "sql",
           fractionalIndex: "a3",
           createdBy: "test-user",
-        })
-      );
-      store.commit(
+        }),
         events.cellSourceChanged({
           id: sqlCellId,
           source: "SELECT * FROM users LIMIT 10;",
           modifiedBy: "test-user",
-        })
-      );
+        }),
+      ];
+
+      store.commit(...eventsArray);
 
       // Wait for state to settle
       await waitFor(() => {
@@ -284,19 +256,15 @@ describe("Notebook Export to Jupyter", () => {
       const errorOutputId = "error-output";
       const multimediaOutputId = "multimedia-output";
 
-      // Store is already initialized with storeId
-
-      store.commit(
+      // Create all events at once
+      const eventsArray = [
         events.cellCreated2({
           id: cellId,
           cellType: "code",
           fractionalIndex: "a0",
           createdBy: "test-user",
-        })
-      );
-
-      // Add stdout output
-      store.commit(
+        }),
+        // Add stdout output
         events.terminalOutputAdded({
           id: stdoutOutputId,
           cellId,
@@ -306,11 +274,8 @@ describe("Notebook Export to Jupyter", () => {
           },
           streamName: "stdout",
           position: 0,
-        })
-      );
-
-      // Add stderr output
-      store.commit(
+        }),
+        // Add stderr output
         events.terminalOutputAdded({
           id: stderrOutputId,
           cellId,
@@ -320,11 +285,8 @@ describe("Notebook Export to Jupyter", () => {
           },
           streamName: "stderr",
           position: 1,
-        })
-      );
-
-      // Add error output
-      store.commit(
+        }),
+        // Add error output
         events.errorOutputAdded({
           id: errorOutputId,
           cellId,
@@ -341,11 +303,8 @@ describe("Notebook Export to Jupyter", () => {
             },
           },
           position: 2,
-        })
-      );
-
-      // Add multimedia output (rich display)
-      store.commit(
+        }),
+        // Add multimedia output (rich display)
         events.multimediaDisplayOutputAdded({
           id: multimediaOutputId,
           cellId,
@@ -360,8 +319,10 @@ describe("Notebook Export to Jupyter", () => {
             },
           },
           position: 3,
-        })
-      );
+        }),
+      ];
+
+      store.commit(...eventsArray);
 
       // Wait for state to settle
       await waitFor(() => {
@@ -411,24 +372,22 @@ describe("Notebook Export to Jupyter", () => {
     it("should handle cells without outputs", async () => {
       const cellId = "no-output-cell";
 
-      // Store is already initialized with storeId
-
-      store.commit(
+      // Create all events at once
+      const eventsArray = [
         events.cellCreated2({
           id: cellId,
           cellType: "code",
           fractionalIndex: "a0",
           createdBy: "test-user",
-        })
-      );
-
-      store.commit(
+        }),
         events.cellSourceChanged({
           id: cellId,
           source: "# This cell has no output",
           modifiedBy: "test-user",
-        })
-      );
+        }),
+      ];
+
+      store.commit(...eventsArray);
 
       // Wait for state to settle
       await waitFor(() => {
@@ -448,19 +407,15 @@ describe("Notebook Export to Jupyter", () => {
       const cellId = "multimedia-cell";
       const multimediaOutputId = "multimedia-output";
 
-      // Store is already initialized with storeId
-
-      store.commit(
+      // Create all events at once
+      const eventsArray = [
         events.cellCreated2({
           id: cellId,
           cellType: "code",
           fractionalIndex: "a0",
           createdBy: "test-user",
-        })
-      );
-
-      // Add multimedia output with multiple representations
-      store.commit(
+        }),
+        // Add multimedia output with multiple representations
         events.multimediaDisplayOutputAdded({
           id: multimediaOutputId,
           cellId,
@@ -479,8 +434,10 @@ describe("Notebook Export to Jupyter", () => {
             },
           },
           position: 0,
-        })
-      );
+        }),
+      ];
+
+      store.commit(...eventsArray);
 
       // Wait for state to settle
       await waitFor(() => {
@@ -510,27 +467,22 @@ describe("Notebook Export to Jupyter", () => {
       const cellIds = ["cell-1", "cell-2", "cell-3", "cell-4"];
       const fractionalIndexes = ["a0", "a1", "a2", "a3"];
 
-      // Store is already initialized with storeId
+      // Create all events at once
+      const eventsArray = cellIds.flatMap((cellId, index) => [
+        events.cellCreated2({
+          id: cellId,
+          cellType: "code",
+          fractionalIndex: fractionalIndexes[index],
+          createdBy: "test-user",
+        }),
+        events.cellSourceChanged({
+          id: cellId,
+          source: `print("Cell ${index + 1}")`,
+          modifiedBy: "test-user",
+        }),
+      ]);
 
-      // Create cells in specific order
-      cellIds.forEach((cellId, index) => {
-        store.commit(
-          events.cellCreated2({
-            id: cellId,
-            cellType: "code",
-            fractionalIndex: fractionalIndexes[index],
-            createdBy: "test-user",
-          })
-        );
-
-        store.commit(
-          events.cellSourceChanged({
-            id: cellId,
-            source: `print("Cell ${index + 1}")`,
-            modifiedBy: "test-user",
-          })
-        );
-      });
+      store.commit(...eventsArray);
 
       // Wait for state to settle
       await waitFor(() => {
@@ -554,19 +506,15 @@ describe("Notebook Export to Jupyter", () => {
       const cellId = "malformed-cell";
       const outputId = "malformed-output";
 
-      // Store is already initialized with storeId
-
-      store.commit(
+      // Create all events at once
+      const eventsArray = [
         events.cellCreated2({
           id: cellId,
           cellType: "code",
           fractionalIndex: "a0",
           createdBy: "test-user",
-        })
-      );
-
-      // Add output with malformed data
-      store.commit(
+        }),
+        // Add output with malformed data
         events.multimediaDisplayOutputAdded({
           id: outputId,
           cellId,
@@ -577,8 +525,10 @@ describe("Notebook Export to Jupyter", () => {
             },
           },
           position: 0,
-        })
-      );
+        }),
+      ];
+
+      store.commit(...eventsArray);
 
       // Wait for state to settle
       await waitFor(() => {
@@ -600,32 +550,15 @@ describe("Notebook Export to Jupyter", () => {
     it("should handle unknown output types with fallback", async () => {
       const cellId = "unknown-output-cell";
 
-      // Store is already initialized with storeId
-
-      store.commit(
+      // Create all events at once
+      const eventsArray = [
         events.cellCreated2({
           id: cellId,
           cellType: "code",
           fractionalIndex: "a0",
           createdBy: "test-user",
-        })
-      );
-
-      // Manually insert an output with unknown type (simulating edge case)
-      // This would normally be done through events, but we're testing edge cases
-      const unknownOutput = {
-        id: "unknown-output",
-        cellId,
-        outputType: "unknown_type",
-        data: "Some unknown data",
-        position: 0,
-        streamName: null,
-        representations: null,
-        executionCount: null,
-      };
-
-      // Add a multimedia output that will be converted to display_data
-      store.commit(
+        }),
+        // Add a multimedia output that will be converted to display_data
         events.multimediaDisplayOutputAdded({
           id: "unknown-output",
           cellId: cellId,
@@ -636,8 +569,10 @@ describe("Notebook Export to Jupyter", () => {
             },
           },
           position: 0,
-        })
-      );
+        }),
+      ];
+
+      store.commit(...eventsArray);
 
       // Wait for state to settle
       await waitFor(() => {
