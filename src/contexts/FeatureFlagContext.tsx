@@ -4,6 +4,7 @@ import { useSessionStorage } from "react-use";
 // Define available feature flags with strict TypeScript definitions
 export interface FeatureFlags {
   "test-flag": boolean;
+  /** Can remove this feature flag once we have a proper way to get the Python version from the kernel */
   "ipynb-export": boolean;
   "user-prompt": boolean;
 }
