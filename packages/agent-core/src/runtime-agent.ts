@@ -26,6 +26,7 @@ import type {
 import type {
   CellData,
   ExecutionQueueData,
+  FileData,
   RuntimeSessionData,
 } from "@runtimed/schema";
 
@@ -46,7 +47,7 @@ export class RuntimeAgent {
   activeExecutions = new Map<string, AbortController>();
   cancellationHandlers: CancellationHandler[] = [];
   renewalInterval?: ReturnType<typeof setInterval>;
-
+  fileUpload?: (id: string) => void;
   artifactClient: IArtifactClient;
 
   config: RuntimeConfig;
@@ -62,6 +63,10 @@ export class RuntimeAgent {
     this.capabilities = capabilities;
     this.artifactClient = config.artifactClient;
     this.handlers = handlers;
+  }
+
+  onFileUpload(cb: (id: string) => void) {
+    this.fileUpload = cb;
   }
 
   /**
@@ -295,6 +300,11 @@ export class RuntimeAgent {
       }
     );
 
+    // Watch for file uploads
+    const fileUploadedQuery$ = queryDb(tables.files.select(), {
+      label: "fileUploaded",
+    });
+
     // Watch for cancelled executions
     const cancelledWorkQuery$ = queryDb(
       tables.executionQueue.select().where({ status: "cancelled" }),
@@ -434,13 +444,27 @@ export class RuntimeAgent {
       },
     });
 
+    const fileUploadedSub = this.store.subscribe(fileUploadedQuery$, {
+      onUpdate: (entries: readonly FileData[]) => {
+        if (this.isShuttingDown) return;
+        if (entries.length === 0) return;
+
+        console.log("uploaded files (from subscription)", entries);
+
+        for (const entry of entries) {
+          this.fileUpload?.(entry.id);
+        }
+      },
+    });
+
     // Store subscriptions for cleanup
     this.subscriptions.push(
       assignedWorkSub,
       pendingWorkSub,
       cancelledWorkSub,
       completedExecutionsSub,
-      failedExecutionsSub
+      failedExecutionsSub,
+      fileUploadedSub
     );
   }
 

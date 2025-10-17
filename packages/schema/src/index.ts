@@ -106,6 +106,24 @@ export const events = {
     }),
   }),
 
+  fileUploaded: Events.synced({
+    name: "v1.FileUploaded",
+    schema: Schema.Struct({
+      artifactId: Schema.String,
+      mimeType: Schema.String,
+      fileName: Schema.String,
+      createdAt: Schema.Date,
+      createdBy: Schema.String,
+    }),
+  }),
+
+  fileDeleted: Events.synced({
+    name: "v1.FileDeleted",
+    schema: Schema.Struct({
+      id: Schema.String,
+    }),
+  }),
+
   // Notebook events (single notebook per store)
   /** @deprecated  */
   notebookInitialized: Events.synced({
@@ -671,6 +689,29 @@ export const materializers = State.SQLite.materializers(events, {
       })
       .onConflict("id", "replace"),
   ],
+
+  "v1.FileUploaded": ({
+    artifactId,
+    mimeType,
+    fileName,
+    createdBy,
+    createdAt,
+  }) => [
+    tables.files
+      .insert({
+        id: artifactId,
+        mimeType,
+        fileName,
+        createdBy,
+        createdAt,
+      })
+      // Don't overwrite existing ids
+      .onConflict("id", "ignore"),
+    // TODO: overwrite existing file names
+    // .onConflict(["notebookId", "fileName"], "replace"),
+  ],
+
+  "v1.FileDeleted": ({ id }) => [tables.files.delete().where({ id })],
 
   "v1.NotebookTitleChanged": ({ title }) =>
     tables.notebookMetadata
@@ -1298,6 +1339,7 @@ export type OutputData = typeof tables.outputs.Type;
 export type RuntimeSessionData = typeof tables.runtimeSessions.Type;
 export type ExecutionQueueData = typeof tables.executionQueue.Type;
 export type UiStateData = typeof tables.uiState.Type;
+export type FileData = typeof tables.files.Type;
 
 // Type guards for MediaContainer
 export function isInlineContainer<T>(

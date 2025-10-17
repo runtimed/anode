@@ -5,7 +5,13 @@ export interface SidebarPanelProps {
   onUpdate: () => void;
 }
 
-export type SidebarSection = "metadata" | "ai" | "runtime" | "debug" | "help";
+export type SidebarSection =
+  | "metadata"
+  | "files"
+  | "ai"
+  | "runtime"
+  | "debug"
+  | "help";
 
 export interface SidebarItemConfig {
   id: SidebarSection;

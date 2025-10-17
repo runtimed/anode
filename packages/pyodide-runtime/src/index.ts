@@ -42,6 +42,7 @@ import {
   KNOWN_MIME_TYPES,
   type KnownMimeType,
   maxAiIterations$,
+  tables,
 } from "@runtimed/schema";
 
 // Type guard for objects with string indexing
@@ -259,6 +260,26 @@ export class PyodideRuntimeAgent extends LocalRuntimeAgent {
 
     // Initialize Pyodide worker
     await this.initializePyodideWorker();
+
+    // Send uploaded files to worker
+    if (this.agent) {
+      const agent = this.agent;
+      const files = agent.store.query(tables.files.select());
+      if (files.length > 0) {
+        const filesWithUrls = files.map((file) => ({
+          ...file,
+          url: agent.artifactClient.getArtifactUrl(file.id),
+        }));
+        this.sendWorkerMessage("files", { files: filesWithUrls });
+        this.agent.onFileUpload((id) => {
+          const files = agent.store.query(tables.files.select().where({ id }));
+          const file = files[0];
+          if (file) {
+            this.sendWorkerMessage("files", { files: [file] });
+          }
+        });
+      }
+    }
 
     // Expose runtime agent globally for debugging
     globalThis.__PYODIDE_RUNTIME_AGENT__ = this;

@@ -6,6 +6,7 @@ import {
   DatabaseZap,
   HelpCircle,
   BotIcon,
+  Folder,
 } from "lucide-react";
 
 interface SidebarConfigOptions {
@@ -33,6 +34,12 @@ const SIDEBAR_ITEM_CONFIGS: Record<SidebarSection, SidebarItemConfig> = {
     icon: BotIcon,
     tooltip: "AI Context Controls",
     title: "AI Context Controls",
+  },
+  files: {
+    id: "files",
+    icon: Folder,
+    tooltip: "Files",
+    title: "Files",
   },
   debug: {
     id: "debug",
@@ -73,6 +80,8 @@ export function getSidebarItems(
 
   // Always show AI panel
   items.push(SIDEBAR_ITEM_CONFIGS.ai);
+
+  items.push(SIDEBAR_ITEM_CONFIGS.files);
 
   // Show debug panel only in development
   if (isDev) {
