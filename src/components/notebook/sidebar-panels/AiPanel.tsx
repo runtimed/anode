@@ -7,6 +7,7 @@ import { useMaxIterations } from "@/hooks/useMaxIterations";
 import type { SidebarPanelProps } from "./types";
 
 export const AiPanel: React.FC<SidebarPanelProps> = () => {
+  const userSavedPromptEnabled = useFeatureFlag("user-saved-prompt");
   const chatMode = useChatMode();
   const { setMaxIterations, localMaxIterations, setLocalMaxIterations } =
     useMaxIterations();
@@ -23,13 +24,17 @@ export const AiPanel: React.FC<SidebarPanelProps> = () => {
         <ContextSelectionModeButton />
       </div>
 
-      <div className="border-t pt-4">
-        <h4 className="mb-3 text-sm font-medium text-gray-700">Saved Prompt</h4>
-        <p className="mb-3 text-xs text-gray-500">
-          Customize the AI's behavior and personality
-        </p>
-        <SavedPromptEditor />
-      </div>
+      {userSavedPromptEnabled && (
+        <div className="border-t pt-4">
+          <h4 className="mb-3 text-sm font-medium text-gray-700">
+            Saved Prompt
+          </h4>
+          <p className="mb-3 text-xs text-gray-500">
+            Customize the AI's behavior and personality
+          </p>
+          <SavedPromptEditor />
+        </div>
+      )}
 
       <div className="border-t pt-4">
         <h4 className="mb-3 text-sm font-medium text-gray-700">AI Settings</h4>
@@ -88,6 +93,7 @@ import { useMutation, useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 import { toast } from "sonner";
 import { Kbd, KbdGroup } from "@/components/ui/kbd";
+import { useFeatureFlag } from "@/contexts/FeatureFlagContext";
 
 export const SavedPromptEditor: React.FC = () => {
   const trpc = useTRPCClient();
