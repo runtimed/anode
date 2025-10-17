@@ -400,6 +400,7 @@ export const ExecutableCell: React.FC<ExecutableCellProps> = ({
                 provider={cell.aiProvider || "openai"}
                 model={cell.aiModel || "gpt-4o-mini"}
                 onProviderChange={(newProvider: string, newModel: string) => {
+                  registryFocusCell(cell.id, "end");
                   store.commit(
                     ...[
                       events.aiSettingsChanged({
