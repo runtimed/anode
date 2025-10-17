@@ -16,12 +16,15 @@ import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { useCreateNotebookAndNavigate } from "../dashboard/helpers";
 import type { NotebookProcessed } from "../types";
+import { useFeatureFlag } from "@/contexts/FeatureFlagContext";
 
 export function NotebookControls({
   notebook,
 }: {
   notebook: NotebookProcessed;
 }) {
+  const exportEnabled = useFeatureFlag("ipynb-export");
+
   return (
     <div className="flex items-center gap-1">
       <DropdownMenu>
@@ -33,7 +36,7 @@ export function NotebookControls({
         <DropdownMenuContent align="end">
           <CreateNotebookAction />
           <DuplicateAction notebook={notebook} />
-          <ExportAction />
+          {exportEnabled && <ExportAction />}
           <DropdownMenuSeparator />
           <DeleteAction notebook={notebook} />
         </DropdownMenuContent>
