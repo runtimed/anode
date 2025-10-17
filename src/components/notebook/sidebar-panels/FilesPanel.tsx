@@ -1,6 +1,6 @@
 import { queryDb } from "@livestore/livestore";
 import { useQuery, useStore } from "@livestore/react";
-import { tables } from "@runtimed/schema";
+import { events, tables } from "@runtimed/schema";
 import React, { useCallback, useRef } from "react";
 import type { SidebarPanelProps } from "./types";
 
@@ -44,6 +44,13 @@ export const FilesPanel: React.FC<SidebarPanelProps> = () => {
     [uploadFile]
   );
 
+  const handleDelete = useCallback(
+    (fileId: string) => {
+      store.commit(events.fileDeleted({ id: fileId }));
+    },
+    [store]
+  );
+
   if (!files || files.length === 0)
     return (
       <div>
@@ -57,7 +64,11 @@ export const FilesPanel: React.FC<SidebarPanelProps> = () => {
       <SidebarProvider>
         <SidebarMenu>
           {files.map((file) => (
-            <FileItem key={file.id} name={file.fileName} />
+            <FileItem
+              key={file.id}
+              name={file.fileName}
+              onDelete={() => handleDelete(file.id)}
+            />
           ))}
         </SidebarMenu>
       </SidebarProvider>
@@ -65,7 +76,7 @@ export const FilesPanel: React.FC<SidebarPanelProps> = () => {
   );
 };
 
-function FileItem({ name }: { name: string }) {
+function FileItem({ name, onDelete }: { name: string; onDelete?: () => void }) {
   const handleClick = (event: React.MouseEvent<HTMLDivElement>) => {
     event.currentTarget.focus();
   };
@@ -83,6 +94,7 @@ function FileItem({ name }: { name: string }) {
       {name}
       <div className="grow"></div>
       <Button
+        onClick={onDelete}
         size="xs"
         variant="destructiveGhost"
         className="hidden group-focus-within/tree-item:block group-hover/tree-item:block"
