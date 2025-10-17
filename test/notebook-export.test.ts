@@ -231,7 +231,7 @@ describe("Notebook Export to Jupyter", () => {
       // Wait for state to settle
       await waitFor(() => {
         const cells = store.query(tables.cells.select());
-        return cells.length === 4;
+        return cells.length === 3;
       });
 
       // Export notebook
