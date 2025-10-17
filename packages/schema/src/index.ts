@@ -706,9 +706,9 @@ export const materializers = State.SQLite.materializers(events, {
         createdAt,
       })
       // Don't overwrite existing ids
-      .onConflict("id", "ignore")
-      // Do overwrite existing file names
-      .onConflict(["notebookId", "fileName"], "replace"),
+      .onConflict("id", "ignore"),
+    // TODO: overwrite existing file names
+    // .onConflict(["notebookId", "fileName"], "replace"),
   ],
 
   "v1.FileDeleted": ({ id }) => [tables.files.delete().where({ id })],
