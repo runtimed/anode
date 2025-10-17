@@ -2,7 +2,7 @@ import { ContextSelectionModeButton } from "@/components/notebook/ContextSelecti
 import { Switch } from "@/components/ui/switch";
 import { Slider } from "@/components/ui/slider";
 import { useChatMode } from "@/hooks/useChatMode";
-import React from "react";
+import React, { useEffect } from "react";
 import { useMaxIterations } from "@/hooks/useMaxIterations";
 import type { SidebarPanelProps } from "./types";
 
@@ -128,6 +128,13 @@ export const SavedPromptEditor: React.FC = () => {
   );
 
   const [prompt, setPrompt] = useState(currentSavedPrompt?.prompt || "");
+
+  // Set the prompt to the current saved prompt when it changes
+  useEffect(() => {
+    if (currentSavedPrompt) {
+      setPrompt(currentSavedPrompt.prompt);
+    }
+  }, [currentSavedPrompt]);
 
   const handleSave = () => {
     const isEmpty = prompt.trim() === "";
