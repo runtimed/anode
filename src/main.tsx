@@ -15,6 +15,7 @@ import "./runtime/console-launcher.js";
 // Import AI provider to make it available globally
 import "./runtime/ai-provider.js";
 import { LoadingState } from "./components/loading/LoadingState.js";
+import { FeatureFlagProvider } from "./contexts/FeatureFlagContext.js";
 
 // Verify launcher is available
 if (typeof window !== "undefined" && window.__RUNT_LAUNCHER__) {
@@ -31,15 +32,17 @@ if (typeof window !== "undefined" && window.__RUNT_AI__) {
 ReactDOM.createRoot(document.getElementById("react-app")!).render(
   <React.StrictMode>
     <DebugProvider>
-      <BrowserRouter>
-        <Suspense
-          fallback={
-            <LoadingState variant="fullscreen" message="Loading app..." />
-          }
-        >
-          <App />
-        </Suspense>
-      </BrowserRouter>
+      <FeatureFlagProvider>
+        <BrowserRouter>
+          <Suspense
+            fallback={
+              <LoadingState variant="fullscreen" message="Loading app..." />
+            }
+          >
+            <App />
+          </Suspense>
+        </BrowserRouter>
+      </FeatureFlagProvider>
     </DebugProvider>
   </React.StrictMode>
 );
