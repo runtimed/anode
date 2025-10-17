@@ -45,6 +45,7 @@ import { AiToolApprovalOutput } from "../../outputs/shared-with-iframe/AiToolApp
 import { cn } from "@/lib/utils.js";
 import { useTrpc } from "@/components/TrpcProvider.js";
 import { cycleCellType } from "@/util/cycle-cell-type.js";
+import { useFeatureFlag } from "@/contexts/FeatureFlagContext.js";
 
 // Cell-specific styling configuration
 const getCellStyling = (cellType: "code" | "sql" | "ai") => {
@@ -80,12 +81,13 @@ export const ExecutableCell: React.FC<ExecutableCellProps> = ({
   contextSelectionMode = false,
   dragHandle,
 }) => {
+  const userSavedPromptEnabled = useFeatureFlag("user-saved-prompt");
   const trpc = useTrpc();
   const { store } = useStore();
 
   const { data: savedPrompt } = useTanstackQuery({
     ...trpc.getSavedPrompt.queryOptions(),
-    enabled: autoFocus && cell.cellType === "ai",
+    enabled: userSavedPromptEnabled && autoFocus && cell.cellType === "ai",
   });
 
   const hasRunRef = useRef(false);
@@ -225,12 +227,14 @@ export const ExecutableCell: React.FC<ExecutableCellProps> = ({
       // Save old outputs to be shown while new ones are being generated
       setStaleOutputs(outputs);
 
-      store.commit(
-        events.notebookMetadataSet({
-          key: "user_saved_prompt",
-          value: savedPrompt?.prompt || "",
-        })
-      );
+      if (userSavedPromptEnabled) {
+        store.commit(
+          events.notebookMetadataSet({
+            key: "user_saved_prompt",
+            value: savedPrompt?.prompt || "",
+          })
+        );
+      }
 
       // Clear previous outputs before generating new ones
       store.commit(
