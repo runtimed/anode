@@ -1,5 +1,11 @@
 import type { D1Database } from "@cloudflare/workers-types";
-import { NotebookPermissionRow, NotebookRow, TagRow, TagColor } from "./types";
+import {
+  NotebookPermissionRow,
+  NotebookRow,
+  TagRow,
+  TagColor,
+  SavedPromptRow,
+} from "./types";
 import { PermissionsProvider } from "backend/notebook-permissions/types";
 import { ValidatedUser } from "backend/auth";
 import {
@@ -533,4 +539,94 @@ export async function getNotebookTags(
   const result = await db.prepare(query).bind(notebookId, userId).all<TagRow>();
 
   return result.results;
+}
+
+// Saved prompt-related functions
+
+// Create or update saved prompt for user
+export async function upsertSavedPrompt(
+  db: D1Database,
+  params: {
+    user_id: string;
+    prompt: string;
+    ai_model?: string | null;
+  }
+): Promise<SavedPromptRow | null> {
+  const { user_id, prompt, ai_model = null } = params;
+
+  // First, try to get existing saved prompt for this user
+  const existing = await db
+    .prepare("SELECT id FROM saved_prompts WHERE user_id = ?")
+    .bind(user_id)
+    .first<{ id: string }>();
+
+  if (existing) {
+    // Update existing saved prompt
+    const result = await db
+      .prepare(
+        `
+        UPDATE saved_prompts
+        SET prompt = ?, ai_model = ?, updated_at = CURRENT_TIMESTAMP
+        WHERE user_id = ?
+      `
+      )
+      .bind(prompt, ai_model, user_id)
+      .run();
+
+    if (result.success) {
+      // Return the updated saved prompt
+      return await getSavedPrompt(db, user_id);
+    }
+    return null;
+  } else {
+    // Create new saved prompt
+    const id = nanoid();
+    const result = await db
+      .prepare(
+        `
+        INSERT INTO saved_prompts (id, user_id, prompt, ai_model)
+        VALUES (?, ?, ?, ?)
+      `
+      )
+      .bind(id, user_id, prompt, ai_model)
+      .run();
+
+    if (result.success) {
+      // Return the newly created saved prompt
+      return await getSavedPrompt(db, user_id);
+    }
+    return null;
+  }
+}
+
+// Get saved prompt for user
+export async function getSavedPrompt(
+  db: D1Database,
+  user_id: string
+): Promise<SavedPromptRow | null> {
+  // Only return one saved prompt for the user for now
+  const result = await db
+    .prepare(
+      `SELECT id, user_id, prompt, ai_model,
+              strftime('%Y-%m-%dT%H:%M:%SZ', created_at) as created_at,
+              strftime('%Y-%m-%dT%H:%M:%SZ', updated_at) as updated_at
+              FROM saved_prompts WHERE user_id = ?`
+    )
+    .bind(user_id)
+    .first<SavedPromptRow>();
+
+  return result || null;
+}
+
+// Delete saved prompt for user
+export async function deleteSavedPrompt(
+  db: D1Database,
+  user_id: string
+): Promise<boolean> {
+  const result = await db
+    .prepare("DELETE FROM saved_prompts WHERE user_id = ?")
+    .bind(user_id)
+    .run();
+
+  return result.meta.changes > 0;
 }
