@@ -200,6 +200,7 @@ export function exportNotebookToJupyter(
       },
       language_info: {
         name: "python",
+        // TODO: Get the correct version from the kernel
         version: "3.10.0",
       },
     },
