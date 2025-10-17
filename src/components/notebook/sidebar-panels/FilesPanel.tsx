@@ -4,41 +4,13 @@ import { tables } from "@runtimed/schema";
 import React, { useCallback, useRef } from "react";
 import type { SidebarPanelProps } from "./types";
 
-import { FileItem, Tree } from "@/components/ui/file-tree";
-import { SidebarMenu, SidebarProvider } from "@/components/ui/sidebar";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { SidebarMenu, SidebarProvider } from "@/components/ui/sidebar";
 import { useFileUpload } from "@/hooks/useFileUpload";
 import { toast } from "sonner";
-
-const data2 = {
-  tree: [
-    [
-      "app",
-      [
-        "api",
-        ["hello", ["route.ts"]],
-        "page.tsx",
-        "layout.tsx",
-        ["blog", ["page.tsx"]],
-      ],
-    ],
-    [
-      "components",
-      ["ui", "button.tsx", "card.tsx"],
-      "header.tsx",
-      "footer.tsx",
-    ],
-    ["lib", ["util.ts"]],
-    ["public", "favicon.ico", "vercel.svg"],
-    ".eslintrc.json",
-    ".gitignore",
-    "next.config.js",
-    "tailwind.config.js",
-    "package.json",
-    "README.md",
-  ],
-};
+import { Button, buttonVariants } from "@/components/ui/button";
+import { File, Trash2 } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 export const FilesPanel: React.FC<SidebarPanelProps> = () => {
   const files = useQuery(queryDb(tables.files.select()));
@@ -84,23 +56,39 @@ export const FilesPanel: React.FC<SidebarPanelProps> = () => {
     <div className="-m-2 space-y-6">
       <SidebarProvider>
         <SidebarMenu>
-          {/* {data2.tree.map((item, index) => (
-            <Tree key={index} item={item} />
-          ))} */}
           {files.map((file) => (
             <FileItem key={file.id} name={file.fileName} />
           ))}
         </SidebarMenu>
       </SidebarProvider>
-
-      {/* <Tree>
-        <File value="page.tsx">page.tsx</File>
-        {files.map((file) => (
-          <File value={file.id} key={file.id}>
-            {file.fileName}
-          </File>
-        ))}
-      </Tree> */}
     </div>
   );
 };
+
+function FileItem({ name }: { name: string }) {
+  const handleClick = (event: React.MouseEvent<HTMLDivElement>) => {
+    event.currentTarget.focus();
+  };
+
+  return (
+    <div
+      tabIndex={0}
+      onClick={handleClick}
+      className={cn(
+        buttonVariants({ size: "sm", variant: "ghost" }),
+        "group/tree-item focus:bg-gray-100"
+      )}
+    >
+      <File />
+      {name}
+      <div className="grow"></div>
+      <Button
+        size="xs"
+        variant="destructiveGhost"
+        className="hidden group-focus-within/tree-item:block group-hover/tree-item:block"
+      >
+        <Trash2 />
+      </Button>
+    </div>
+  );
+}
