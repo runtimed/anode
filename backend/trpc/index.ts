@@ -24,6 +24,9 @@ import {
   updateNotebook,
   updateTag,
   getNotebookCollaborators,
+  upsertSavedPrompt,
+  getSavedPrompt,
+  deleteSavedPrompt,
 } from "./db.ts";
 import { authedProcedure, publicProcedure, router } from "./trpc";
 import { NotebookPermission, TagColor } from "./types.ts";
@@ -687,6 +690,82 @@ export const appRouter = router({
         });
       }
     }),
+
+  // Saved prompt endpoints
+  getSavedPrompt: authedProcedure.query(async (opts) => {
+    const { ctx } = opts;
+    const {
+      user,
+      env: { DB },
+    } = ctx;
+
+    try {
+      const prompt = await getSavedPrompt(DB, user.id);
+      return prompt;
+    } catch (error) {
+      throw new TRPCError({
+        code: "INTERNAL_SERVER_ERROR",
+        message: `Failed to get saved prompt: ${error instanceof Error ? error.message : "Unknown error"}`,
+      });
+    }
+  }),
+
+  upsertSavedPrompt: authedProcedure
+    .input(
+      z.object({
+        prompt: z.string(),
+        ai_model: z.string().nullable().optional(),
+      })
+    )
+    .mutation(async (opts) => {
+      const { ctx, input } = opts;
+      const {
+        user,
+        env: { DB },
+      } = ctx;
+      const { prompt, ai_model } = input;
+
+      try {
+        const result = await upsertSavedPrompt(DB, {
+          user_id: user.id,
+          prompt,
+          ai_model,
+        });
+
+        if (!result) {
+          throw new TRPCError({
+            code: "INTERNAL_SERVER_ERROR",
+            message: "Failed to update saved prompt",
+          });
+        }
+
+        return result;
+      } catch (error) {
+        if (error instanceof TRPCError) throw error;
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: `Failed to update saved prompt: ${error instanceof Error ? error.message : "Unknown error"}`,
+        });
+      }
+    }),
+
+  deleteSavedPrompt: authedProcedure.mutation(async (opts) => {
+    const { ctx } = opts;
+    const {
+      user,
+      env: { DB },
+    } = ctx;
+
+    try {
+      const success = await deleteSavedPrompt(DB, user.id);
+      return { success };
+    } catch (error) {
+      throw new TRPCError({
+        code: "INTERNAL_SERVER_ERROR",
+        message: `Failed to delete saved prompt: ${error instanceof Error ? error.message : "Unknown error"}`,
+      });
+    }
+  }),
 
   // Legacy endpoint for backward compatibility
   user: authedProcedure.query(async (opts) => {
