@@ -13,34 +13,34 @@ import { useDragDropCellSort } from "@/hooks/useDragDropCellSort";
 
 export const NotebookContent = () => {
   const { store } = useStore();
-  const cellReferences = useQuery(queries.cells$);
+  const cells = useQuery(queries.cells$);
 
   const focusedCellId = useQuery(focusedCellSignal$);
   const hasManuallyFocused = useQuery(hasManuallyFocused$);
 
   // Reset focus when focused cell changes or is removed
   React.useEffect(() => {
-    if (focusedCellId && !cellReferences.find((c) => c.id === focusedCellId)) {
+    if (focusedCellId && !cells.find((c) => c.id === focusedCellId)) {
       store.setSignal(focusedCellSignal$, null);
     }
-  }, [focusedCellId, cellReferences, store]);
+  }, [focusedCellId, cells, store]);
 
   // Focus first cell when notebook loads and has cells (but not after deletion)
   React.useEffect(() => {
-    if (!focusedCellId && cellReferences.length > 0 && !hasManuallyFocused) {
-      store.setSignal(focusedCellSignal$, cellReferences[0].id);
+    if (!focusedCellId && cells.length > 0 && !hasManuallyFocused) {
+      store.setSignal(focusedCellSignal$, cells[0].id);
       store.setSignal(hasManuallyFocused$, true);
     }
-  }, [focusedCellId, cellReferences, store, hasManuallyFocused]);
+  }, [focusedCellId, cells, store, hasManuallyFocused]);
 
   return (
     <>
-      {cellReferences.length === 0 ? (
+      {cells.length === 0 ? (
         <EmptyStateCellAdder />
       ) : (
         <>
           <ErrorBoundary fallback={<div>Error rendering cell list</div>}>
-            <CellList cells={cellReferences} />
+            <CellList cells={cells} />
           </ErrorBoundary>
           {/* Add Cell Buttons */}
           <div className="border-border/30 mt-6 border-t px-4 pt-4 sm:mt-8 sm:px-0 sm:pt-6">
