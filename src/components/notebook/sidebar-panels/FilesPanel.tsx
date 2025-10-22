@@ -5,6 +5,14 @@ import React, { useCallback, useRef } from "react";
 import type { SidebarPanelProps } from "./types";
 
 import { Button, buttonVariants } from "@/components/ui/button";
+import {
+  Empty,
+  EmptyContent,
+  EmptyDescription,
+  EmptyHeader,
+  EmptyMedia,
+  EmptyTitle,
+} from "@/components/ui/empty";
 import { SidebarMenu, SidebarProvider } from "@/components/ui/sidebar";
 import { useFileUpload } from "@/hooks/useFileUpload";
 import { cn } from "@/lib/utils";
@@ -31,10 +39,20 @@ export const FilesPanel: React.FC<SidebarPanelProps> = () => {
 
   if (!files || files.length === 0)
     return (
-      <div>
-        No files found{" "}
-        <UploadButton uploadFile={uploadFile} isUploading={isUploading} />
-      </div>
+      <Empty>
+        <EmptyHeader>
+          <EmptyMedia variant="icon">
+            <File className="size-6" />
+          </EmptyMedia>
+          <EmptyTitle>No files uploaded</EmptyTitle>
+          <EmptyDescription>
+            Upload files to share them available to your notebook and AI agents.
+          </EmptyDescription>
+        </EmptyHeader>
+        <EmptyContent>
+          <UploadButton uploadFile={uploadFile} isUploading={isUploading} />
+        </EmptyContent>
+      </Empty>
     );
 
   return (
