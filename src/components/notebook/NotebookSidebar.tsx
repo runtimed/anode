@@ -23,6 +23,7 @@ import { getSidebarItems, getSidebarItemConfig } from "./sidebar-panels/config";
 // Icons
 import { X, ArrowLeft } from "lucide-react";
 import { DebugModeToggle } from "../debug/DebugModeToggle";
+import { useFeatureFlag } from "@/contexts/FeatureFlagContext";
 
 interface NotebookSidebarProps {
   notebook: NotebookProcessed;
@@ -48,6 +49,7 @@ export const NotebookSidebar: React.FC<NotebookSidebarProps> = ({
     null
   );
   const { hasActiveRuntime, runtimeHealth } = useRuntimeHealth();
+  const showFilesPanel = useFeatureFlag("file-upload");
 
   const toggleSection = (section: SidebarSection) => {
     const newActiveSection = activeSection === section ? null : section;
@@ -70,6 +72,7 @@ export const NotebookSidebar: React.FC<NotebookSidebarProps> = ({
     runtimeHealth,
     activeSection,
     isDev: import.meta.env.DEV,
+    showFilesPanel,
   });
 
   const renderPanelContent = () => {

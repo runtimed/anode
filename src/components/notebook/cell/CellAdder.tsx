@@ -7,6 +7,7 @@ import {
   AiCellButton,
 } from "./CellTypeButtons";
 import { CsvUploadButton } from "./CsvUploadButton";
+import { useFeatureFlag } from "@/contexts/FeatureFlagContext";
 
 export function CellAdder({
   position,
@@ -16,6 +17,7 @@ export function CellAdder({
   className?: string;
 }) {
   const { addCell } = useAddCell();
+  const fileUploadFlag = useFeatureFlag("file-upload");
   return (
     <div className={cn("flex justify-center gap-2", className)}>
       <CodeCellButton
@@ -38,7 +40,7 @@ export function CellAdder({
         showPlus={true}
         onClick={() => addCell(undefined, "ai", position)}
       />
-      <CsvUploadButton size="sm" position={position} />
+      {fileUploadFlag && <CsvUploadButton size="sm" position={position} />}
     </div>
   );
 }

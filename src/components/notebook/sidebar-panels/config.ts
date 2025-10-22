@@ -14,6 +14,7 @@ interface SidebarConfigOptions {
   runtimeHealth: string;
   activeSection: SidebarSection | null;
   isDev: boolean;
+  showFilesPanel: boolean;
 }
 
 const SIDEBAR_ITEM_CONFIGS: Record<SidebarSection, SidebarItemConfig> = {
@@ -58,7 +59,13 @@ const SIDEBAR_ITEM_CONFIGS: Record<SidebarSection, SidebarItemConfig> = {
 export function getSidebarItems(
   options: SidebarConfigOptions
 ): SidebarItemConfig[] {
-  const { hasActiveRuntime, runtimeHealth, activeSection, isDev } = options;
+  const {
+    hasActiveRuntime,
+    runtimeHealth,
+    activeSection,
+    isDev,
+    showFilesPanel,
+  } = options;
 
   const items: SidebarItemConfig[] = [];
 
@@ -81,7 +88,9 @@ export function getSidebarItems(
   // Always show AI panel
   items.push(SIDEBAR_ITEM_CONFIGS.ai);
 
-  items.push(SIDEBAR_ITEM_CONFIGS.files);
+  if (showFilesPanel) {
+    items.push(SIDEBAR_ITEM_CONFIGS.files);
+  }
 
   // Show debug panel only in development
   if (isDev) {

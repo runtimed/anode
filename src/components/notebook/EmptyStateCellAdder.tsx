@@ -8,9 +8,12 @@ import {
   AiCellButton,
 } from "./cell/CellTypeButtons";
 import { CsvUploadButton } from "./cell/CsvUploadButton";
+import { useFeatureFlag } from "@/contexts/FeatureFlagContext";
 
 export const EmptyStateCellAdder: React.FC = () => {
   const { addCell } = useAddCell();
+
+  const fileUploadFlag = useFeatureFlag("file-upload");
   return (
     <div className="px-4 pt-6 pb-6 text-center sm:px-0 sm:pt-12">
       <div className="text-muted-foreground mb-6">
@@ -45,7 +48,9 @@ export const EmptyStateCellAdder: React.FC = () => {
           onClick={() => addCell(undefined, "ai")}
           className="flex items-center gap-2"
         />
-        <CsvUploadButton size="lg" className="flex items-center gap-2" />
+        {fileUploadFlag && (
+          <CsvUploadButton size="lg" className="flex items-center gap-2" />
+        )}
       </div>
       <div className="text-muted-foreground hidden text-xs sm:block">
         💡 Real-time collaborative computing. Pick a cell type to start
