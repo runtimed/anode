@@ -120,7 +120,7 @@ export const events = {
   fileDeleted: Events.synced({
     name: "v1.FileDeleted",
     schema: Schema.Struct({
-      id: Schema.String,
+      fileName: Schema.String,
     }),
   }),
 
@@ -699,7 +699,7 @@ export const materializers = State.SQLite.materializers(events, {
   }) => [
     tables.files
       .insert({
-        id: artifactId,
+        artifactId,
         mimeType,
         fileName,
         createdBy,
@@ -712,7 +712,9 @@ export const materializers = State.SQLite.materializers(events, {
       .onConflict("fileName", "replace"),
   ],
 
-  "v1.FileDeleted": ({ id }) => [tables.files.delete().where({ id })],
+  "v1.FileDeleted": ({ fileName }) => [
+    tables.files.delete().where({ fileName }),
+  ],
 
   "v1.NotebookTitleChanged": ({ title }) =>
     tables.notebookMetadata

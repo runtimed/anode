@@ -31,8 +31,8 @@ export const FilesPanel: React.FC<SidebarPanelProps> = () => {
   });
 
   const handleDelete = useCallback(
-    (fileId: string) => {
-      store.commit(events.fileDeleted({ id: fileId }));
+    (fileName: string) => {
+      store.commit(events.fileDeleted({ fileName }));
     },
     [store]
   );
@@ -61,9 +61,9 @@ export const FilesPanel: React.FC<SidebarPanelProps> = () => {
         <SidebarMenu>
           {files.map((file) => (
             <FileItem
-              key={file.id}
+              key={file.fileName + "-" + file.artifactId}
               name={file.fileName}
-              onDelete={() => handleDelete(file.id)}
+              onDelete={() => handleDelete(file.fileName)}
             />
           ))}
           <UploadButton uploadFile={uploadFile} isUploading={isUploading} />

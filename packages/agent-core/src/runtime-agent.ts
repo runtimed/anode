@@ -65,7 +65,7 @@ export class RuntimeAgent {
     this.handlers = handlers;
   }
 
-  onFileUpload(cb: (id: string) => void) {
+  onFileUpload(cb: (fileName: string) => void) {
     this.fileUpload = cb;
   }
 
@@ -452,7 +452,7 @@ export class RuntimeAgent {
         console.log("uploaded files (from subscription)", entries);
 
         for (const entry of entries) {
-          this.fileUpload?.(entry.id);
+          this.fileUpload?.(entry.fileName);
         }
       },
     });
