@@ -705,10 +705,9 @@ export const materializers = State.SQLite.materializers(events, {
         createdBy,
         createdAt,
       })
-      // Don't overwrite existing ids
+      // Don't overwrite existing ids. We generate a unique id for each upload to the artifact service
+      // It's possible that the same file is uploaded multiple times
       .onConflict("id", "ignore"),
-    // TODO: overwrite existing file names
-    // .onConflict(["notebookId", "fileName"], "replace"),
   ],
 
   "v1.FileDeleted": ({ id }) => [tables.files.delete().where({ id })],
