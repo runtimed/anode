@@ -128,9 +128,12 @@ await run_registered_tool("${data.toolName}", kwargs_string)
           throw new Error("Pyodide not initialized");
         }
 
+        // Cast the files to the expected type
+        const files = data.files as readonly (FileData & { url: string })[];
+
         // Create a set of current file names for efficient lookup
         const currentFileNames = new Set(
-          data.files.map((file: FileData) => file.fileName)
+          files.map((file: FileData) => file.fileName)
         );
 
         // TODO: this logic is broken because it will delete files created by other processes
@@ -158,7 +161,7 @@ await run_registered_tool("${data.toolName}", kwargs_string)
         }
 
         // Write the new files
-        for (const file of data.files) {
+        for (const file of files) {
           const response = await fetch(file.url);
           const content = await response.text();
           pyodide.FS.writeFile(`./${file.fileName}`, content);
