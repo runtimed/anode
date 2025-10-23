@@ -16,6 +16,7 @@ import runtRuntimeDisplayPy from "./runt_runtime_display.py?raw";
 import runtRuntimeBootstrapPy from "./runt_runtime_bootstrap.py?raw";
 import runtRuntimeShellPy from "./runt_runtime_shell.py?raw";
 import runtRuntimeInterruptPatchesPy from "./runt_runtime_interrupt_patches.py?raw";
+import type { FileData } from "@runtimed/schema";
 
 declare const self: DedicatedWorkerGlobalScope;
 
@@ -127,13 +128,43 @@ await run_registered_tool("${data.toolName}", kwargs_string)
           throw new Error("Pyodide not initialized");
         }
 
+        // Create a set of current file names for efficient lookup
+        const currentFileNames = new Set(
+          data.files.map((file: FileData) => file.fileName)
+        );
+
+        // TODO: this logic is broken because it will delete files created by other processes
+        // Delete files that are in the deletableFilesLog but not in the current files array
+        try {
+          const existingFiles = pyodide.FS.readdir("./");
+
+          // Delete files that are not in the current files list
+          for (const fileName of existingFiles) {
+            if (
+              fileName !== "." &&
+              fileName !== ".." &&
+              !currentFileNames.has(fileName)
+            ) {
+              try {
+                pyodide.FS.unlink(`./${fileName}`);
+                console.log(`Deleted file: ${fileName}`);
+              } catch (error) {
+                console.warn(`Failed to delete file ${fileName}:`, error);
+              }
+            }
+          }
+        } catch (error) {
+          console.warn("Failed to list existing files:", error);
+        }
+
+        // Write the new files
         for (const file of data.files) {
           const response = await fetch(file.url);
           const content = await response.text();
           pyodide.FS.writeFile(`./${file.fileName}`, content);
         }
 
-        console.log("worker wrote files", { data });
+        console.log("worker wrote files and cleaned up old files", { data });
 
         self.postMessage({ id, type: "response", data: { success: true } });
         break;
