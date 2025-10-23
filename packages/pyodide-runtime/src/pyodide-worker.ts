@@ -134,7 +134,16 @@ await run_registered_tool("${data.toolName}", kwargs_string)
         // Write/delete the new files
         for (const file of files) {
           if (file.deletedAt) {
-            pyodide.FS.unlink(`./${file.fileName}`);
+              console.log("worker deleting file", { file });
+              try {
+                pyodide.FS.unlink(`./${file.fileName}`);
+              } catch (error) {
+                // File doesn't exist, nothing to delete
+                console.log("file does not exist, skipping deletion", {
+                  fileName: file.fileName,
+                  error,
+                });
+              }
           } else {
             const response = await fetch(file.url);
             const content = await response.text();
