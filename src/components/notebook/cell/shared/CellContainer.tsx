@@ -93,7 +93,7 @@ export const CellContainer = forwardRef<HTMLDivElement, CellContainerProps>(
       <div
         ref={ref}
         data-cell-id={cell.id}
-        className={`cell-container group relative transition-all duration-200 ${
+        className={`cell-container group relative pt-2 transition-all duration-200 ${
           autoFocus && !contextSelectionMode ? focusBgColor : "hover:bg-gray-50"
         } ${contextSelectionMode && !cell.aiContextVisible ? "opacity-60" : ""} ${
           contextSelectionMode
