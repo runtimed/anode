@@ -47,7 +47,7 @@ export class RuntimeAgent {
   activeExecutions = new Map<string, AbortController>();
   cancellationHandlers: CancellationHandler[] = [];
   renewalInterval?: ReturnType<typeof setInterval>;
-  fileUpload?: (id: string) => void;
+  filesUpload?: (files: FileData[]) => void;
   artifactClient: IArtifactClient;
 
   config: RuntimeConfig;
@@ -65,8 +65,8 @@ export class RuntimeAgent {
     this.handlers = handlers;
   }
 
-  onFileUpload(cb: (fileName: string) => void) {
-    this.fileUpload = cb;
+  onFilesUpload(cb: (files: readonly FileData[]) => void) {
+    this.filesUpload = cb;
   }
 
   /**
@@ -451,9 +451,7 @@ export class RuntimeAgent {
 
         console.log("uploaded files (from subscription)", entries);
 
-        for (const entry of entries) {
-          this.fileUpload?.(entry.fileName);
-        }
+        this.filesUpload?.(entries as FileData[]);
       },
     });
 
