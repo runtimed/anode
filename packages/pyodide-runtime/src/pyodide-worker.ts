@@ -131,10 +131,17 @@ await run_registered_tool("${data.toolName}", kwargs_string)
         // Cast the files to the expected type
         const files = data.files as readonly (FileData & { url: string })[];
 
+          const filesInDirectory = pyodide.FS.readdir("./");
+
         // Write/delete the new files
         for (const file of files) {
           if (file.deletedAt) {
+              if (!filesInDirectory.includes(file.fileName)) {
+                continue;
+              }
               console.log("worker deleting file", { file });
+              // Just in case we couldn't match the file, we want to put a try/catch
+              // to avoid the worker crashing
               try {
                 pyodide.FS.unlink(`./${file.fileName}`);
               } catch (error) {
