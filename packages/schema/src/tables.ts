@@ -31,6 +31,7 @@ export const tables = {
       artifactId: State.SQLite.text(),
       createdAt: State.SQLite.datetime({ nullable: true }),
       createdBy: State.SQLite.text(),
+      deletedAt: State.SQLite.datetime({ nullable: true }),
     },
   }),
 

@@ -124,6 +124,14 @@ export const events = {
     }),
   }),
 
+  fileDeleted2: Events.synced({
+    name: "v2.FileDeleted",
+    schema: Schema.Struct({
+      fileName: Schema.String,
+      deletedAt: Schema.Date,
+    }),
+  }),
+
   // Notebook events (single notebook per store)
   /** @deprecated  */
   notebookInitialized: Events.synced({
@@ -714,6 +722,10 @@ export const materializers = State.SQLite.materializers(events, {
 
   "v1.FileDeleted": ({ fileName }) => [
     tables.files.delete().where({ fileName }),
+  ],
+
+  "v2.FileDeleted": ({ fileName, deletedAt }) => [
+    tables.files.update({ deletedAt }).where({ fileName }),
   ],
 
   "v1.NotebookTitleChanged": ({ title }) =>

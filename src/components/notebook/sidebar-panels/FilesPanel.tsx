@@ -1,6 +1,5 @@
-import { queryDb } from "@livestore/livestore";
 import { useQuery, useStore } from "@livestore/react";
-import { events, tables } from "@runtimed/schema";
+import { events } from "@runtimed/schema";
 import React, { useCallback, useRef } from "react";
 import type { SidebarPanelProps } from "./types";
 
@@ -16,11 +15,13 @@ import {
 import { SidebarMenu, SidebarProvider } from "@/components/ui/sidebar";
 import { useFileUpload } from "@/hooks/useFileUpload";
 import { cn } from "@/lib/utils";
+import { availableFiles$ } from "@/queries";
 import { File, Trash2, Upload } from "lucide-react";
 import { toast } from "sonner";
 
 export const FilesPanel: React.FC<SidebarPanelProps> = () => {
-  const files = useQuery(queryDb(tables.files.select()));
+  const files = useQuery(availableFiles$);
+
   const { store } = useStore();
 
   const { uploadFile, isUploading } = useFileUpload({
@@ -32,7 +33,7 @@ export const FilesPanel: React.FC<SidebarPanelProps> = () => {
 
   const handleDelete = useCallback(
     (fileName: string) => {
-      store.commit(events.fileDeleted({ fileName }));
+      store.commit(events.fileDeleted2({ fileName, deletedAt: new Date() }));
     },
     [store]
   );

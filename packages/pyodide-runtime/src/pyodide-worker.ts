@@ -131,40 +131,15 @@ await run_registered_tool("${data.toolName}", kwargs_string)
         // Cast the files to the expected type
         const files = data.files as readonly (FileData & { url: string })[];
 
-        // Create a set of current file names for efficient lookup
-        const currentFileNames = new Set(
-          files.map((file: FileData) => file.fileName)
-        );
-
-        // TODO: this logic is broken because it will delete files created by other processes
-        // Delete files that are in the deletableFilesLog but not in the current files array
-        try {
-          const existingFiles = pyodide.FS.readdir("./");
-
-          // Delete files that are not in the current files list
-          for (const fileName of existingFiles) {
-            if (
-              fileName !== "." &&
-              fileName !== ".." &&
-              !currentFileNames.has(fileName)
-            ) {
-              try {
-                pyodide.FS.unlink(`./${fileName}`);
-                console.log(`Deleted file: ${fileName}`);
-              } catch (error) {
-                console.warn(`Failed to delete file ${fileName}:`, error);
-              }
-            }
-          }
-        } catch (error) {
-          console.warn("Failed to list existing files:", error);
-        }
-
-        // Write the new files
+        // Write/delete the new files
         for (const file of files) {
-          const response = await fetch(file.url);
-          const content = await response.text();
-          pyodide.FS.writeFile(`./${file.fileName}`, content);
+          if (file.deletedAt) {
+            pyodide.FS.unlink(`./${file.fileName}`);
+          } else {
+            const response = await fetch(file.url);
+            const content = await response.text();
+            pyodide.FS.writeFile(`./${file.fileName}`, content);
+          }
         }
 
         console.log("worker wrote files and cleaned up old files", { data });
