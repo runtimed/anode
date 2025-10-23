@@ -265,19 +265,22 @@ export class PyodideRuntimeAgent extends LocalRuntimeAgent {
     // Send uploaded files to worker
     if (this.agent) {
       const agent = this.agent;
+
+      const addUrls = (files: readonly FileData[]) => {
+        return files.map((file) => ({
+          ...file,
+          url: agent.artifactClient.getArtifactUrl(file.artifactId),
+        }));
+      };
+
       const files = agent.store.query(tables.files.select());
       if (files.length > 0) {
-        const addUrls = (files: readonly FileData[]) => {
-          return files.map((file) => ({
-            ...file,
-            url: agent.artifactClient.getArtifactUrl(file.artifactId),
-          }));
-        };
         this.sendWorkerMessage("files", { files: addUrls(files) });
-        this.agent.onFilesUpload((files) => {
-          this.sendWorkerMessage("files", { files: addUrls(files) });
-        });
       }
+
+      this.agent.onFilesUpload((files) => {
+        this.sendWorkerMessage("files", { files: addUrls(files) });
+      });
     }
 
     // Expose runtime agent globally for debugging
