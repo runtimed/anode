@@ -128,14 +128,15 @@ await run_registered_tool("${data.toolName}", kwargs_string)
           throw new Error("Pyodide not initialized");
         }
 
-        // Cast the files to the expected type
-        const files = data.files as readonly (FileData & { url: string })[];
+        try {
+          // Cast the files to the expected type
+          const files = data.files as readonly (FileData & { url: string })[];
 
           const filesInDirectory = pyodide.FS.readdir("./");
 
-        // Write/delete the new files
-        for (const file of files) {
-          if (file.deletedAt) {
+          // Write/delete the new files
+          for (const file of files) {
+            if (file.deletedAt) {
               if (!filesInDirectory.includes(file.fileName)) {
                 continue;
               }
@@ -151,16 +152,24 @@ await run_registered_tool("${data.toolName}", kwargs_string)
                   error,
                 });
               }
-          } else {
-            const response = await fetch(file.url);
-            const content = await response.text();
-            pyodide.FS.writeFile(`./${file.fileName}`, content);
+            } else {
+              const response = await fetch(file.url);
+              const content = await response.text();
+              pyodide.FS.writeFile(`./${file.fileName}`, content);
+            }
           }
+
+          console.log("worker wrote files and cleaned up old files", { data });
+
+          self.postMessage({ id, type: "response", data: { success: true } });
+        } catch (error) {
+          console.error("Error in files message handler", error);
+          self.postMessage({
+            id,
+            type: "response",
+            error: error instanceof Error ? error.message : String(error),
+          });
         }
-
-        console.log("worker wrote files and cleaned up old files", { data });
-
-        self.postMessage({ id, type: "response", data: { success: true } });
         break;
       }
 
