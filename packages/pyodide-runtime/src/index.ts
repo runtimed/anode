@@ -37,7 +37,6 @@ import {
 import type { AiModel } from "@runtimed/agent-core";
 import {
   cellReferences$,
-  type FileData,
   isJsonMimeType,
   isTextBasedMimeType,
   KNOWN_MIME_TYPES,
@@ -266,20 +265,13 @@ export class PyodideRuntimeAgent extends LocalRuntimeAgent {
     if (this.agent) {
       const agent = this.agent;
 
-      const addUrls = (files: readonly FileData[]) => {
-        return files.map((file) => ({
-          ...file,
-          url: agent.artifactClient.getArtifactUrl(file.artifactId),
-        }));
-      };
-
       const files = agent.store.query(tables.files.select());
       if (files.length > 0) {
-        this.sendWorkerMessage("files", { files: addUrls(files) });
+        this.sendWorkerMessage("files", { files });
       }
 
       this.agent.onFilesUpload((files) => {
-        this.sendWorkerMessage("files", { files: addUrls(files) });
+        this.sendWorkerMessage("files", { files });
       });
     }
 

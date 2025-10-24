@@ -130,7 +130,7 @@ await run_registered_tool("${data.toolName}", kwargs_string)
 
         try {
           // Cast the files to the expected type
-          const files = data.files as readonly (FileData & { url: string })[];
+          const files = data.files as readonly FileData[];
 
           const filesInDirectory = pyodide.FS.readdir("./");
 
