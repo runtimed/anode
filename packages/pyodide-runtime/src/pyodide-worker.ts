@@ -154,8 +154,18 @@ await run_registered_tool("${data.toolName}", kwargs_string)
               }
             } else {
               const response = await fetch(file.url);
-              const content = await response.text();
-              pyodide.FS.writeFile(`./${file.fileName}`, content);
+
+              // Handle different file types based on mimeType
+              if (file.mimeType && file.mimeType.startsWith("text/")) {
+                // Text files
+                const content = await response.text();
+                pyodide.FS.writeFile(`./${file.fileName}`, content);
+              } else {
+                // Binary files (images, etc.)
+                const arrayBuffer = await response.arrayBuffer();
+                const uint8Array = new Uint8Array(arrayBuffer);
+                pyodide.FS.writeFile(`./${file.fileName}`, uint8Array);
+              }
             }
           }
 
