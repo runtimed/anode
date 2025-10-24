@@ -153,7 +153,7 @@ await run_registered_tool("${data.toolName}", kwargs_string)
                 });
               }
             } else {
-              const response = await fetch(file.url);
+              const response = await fetch(`/api/artifacts/${file.artifactId}`);
 
               // Handle different file types based on mimeType
               if (file.mimeType && file.mimeType.startsWith("text/")) {
