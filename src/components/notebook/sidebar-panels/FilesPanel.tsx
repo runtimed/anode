@@ -18,6 +18,7 @@ import { cn } from "@/lib/utils";
 import { availableFiles$ } from "@/queries";
 import { File, Trash2, Upload } from "lucide-react";
 import { toast } from "sonner";
+import { SimpleTooltip } from "@/components/ui/tooltip";
 
 export const FilesPanel: React.FC<SidebarPanelProps> = () => {
   const files = useQuery(availableFiles$);
@@ -123,25 +124,27 @@ function FileItem({ name, onDelete }: { name: string; onDelete?: () => void }) {
   };
 
   return (
-    <div
-      tabIndex={0}
-      onClick={handleClick}
-      className={cn(
-        buttonVariants({ size: "sm", variant: "ghost" }),
-        "group/tree-item focus:bg-gray-100"
-      )}
-    >
-      <File />
-      {name}
-      <div className="grow"></div>
-      <Button
-        onClick={onDelete}
-        size="xs"
-        variant="destructiveGhost"
-        className="hidden group-focus-within/tree-item:block group-hover/tree-item:block"
+    <SimpleTooltip content={name}>
+      <div
+        tabIndex={0}
+        onClick={handleClick}
+        className={cn(
+          buttonVariants({ size: "sm", variant: "ghost" }),
+          "group/tree-item focus:bg-gray-100"
+        )}
       >
-        <Trash2 />
-      </Button>
-    </div>
+        <File />
+        <span className="truncate">{name}</span>
+        <div className="grow"></div>
+        <Button
+          onClick={onDelete}
+          size="xs"
+          variant="destructiveGhost"
+          className="hidden group-focus-within/tree-item:block group-hover/tree-item:block"
+        >
+          <Trash2 />
+        </Button>
+      </div>
+    </SimpleTooltip>
   );
 }
