@@ -59,14 +59,16 @@ function TooltipContent({
 function SimpleTooltip({
   children,
   content,
+  side = "right",
 }: {
   children: React.ReactNode;
   content: React.ReactNode;
+  side?: "top" | "right" | "bottom" | "left";
 }) {
   return (
     <Tooltip>
       <TooltipTrigger asChild>{children}</TooltipTrigger>
-      <TooltipContent>{content}</TooltipContent>
+      <TooltipContent side={side}>{content}</TooltipContent>
     </Tooltip>
   );
 }

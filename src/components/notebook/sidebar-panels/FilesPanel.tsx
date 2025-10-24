@@ -1,5 +1,5 @@
 import { useQuery, useStore } from "@livestore/react";
-import { events } from "@runtimed/schema";
+import { events, FileData } from "@runtimed/schema";
 import React, { useCallback, useRef } from "react";
 import type { SidebarPanelProps } from "./types";
 
@@ -16,7 +16,7 @@ import { SidebarMenu, SidebarProvider } from "@/components/ui/sidebar";
 import { useFileUpload } from "@/hooks/useFileUpload";
 import { cn } from "@/lib/utils";
 import { availableFiles$ } from "@/queries";
-import { File, Trash2, Upload } from "lucide-react";
+import { File, FileText, Image, Trash2, Upload } from "lucide-react";
 import { toast } from "sonner";
 import { SimpleTooltip } from "@/components/ui/tooltip";
 
@@ -65,6 +65,7 @@ export const FilesPanel: React.FC<SidebarPanelProps> = () => {
             <FileItem
               key={file.fileName + "-" + file.artifactId}
               name={file.fileName}
+              file={file}
               onDelete={() => handleDelete(file.fileName)}
             />
           ))}
@@ -118,7 +119,15 @@ function UploadButton({
   );
 }
 
-function FileItem({ name, onDelete }: { name: string; onDelete?: () => void }) {
+function FileItem({
+  name,
+  file,
+  onDelete,
+}: {
+  name: string;
+  file: FileData;
+  onDelete?: () => void;
+}) {
   const handleClick = (event: React.MouseEvent<HTMLDivElement>) => {
     event.currentTarget.focus();
   };
@@ -133,7 +142,7 @@ function FileItem({ name, onDelete }: { name: string; onDelete?: () => void }) {
           "group/tree-item focus:bg-gray-100"
         )}
       >
-        <File />
+        <FileIcon file={file} />
         <span className="truncate">{name}</span>
         <div className="grow"></div>
         <Button
@@ -147,4 +156,17 @@ function FileItem({ name, onDelete }: { name: string; onDelete?: () => void }) {
       </div>
     </SimpleTooltip>
   );
+}
+
+function FileIcon({ file }: { file: FileData }) {
+  if (file.mimeType.startsWith("image/")) {
+    return <Image />;
+  }
+  if (file.mimeType.startsWith("text/")) {
+    return <FileText />;
+  }
+  if (file.mimeType.startsWith("application/")) {
+    return <File />;
+  }
+  return <File />;
 }
