@@ -59,7 +59,7 @@ function TooltipContent({
 function SimpleTooltip({
   children,
   content,
-  side = "right",
+  side,
 }: {
   children: React.ReactNode;
   content: React.ReactNode;
