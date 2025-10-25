@@ -93,7 +93,7 @@ export const NotebookSidebar: React.FC<NotebookSidebarProps> = ({
   return (
     <>
       {/* Desktop: Icon-only sidebar (hidden on mobile) */}
-      <div className="fixed top-0 left-0 z-40 hidden h-full w-12 flex-col items-center border-r bg-gray-50 py-4 lg:flex">
+      <div className="fixed top-0 left-0 z-40 hidden h-full w-12 flex-col items-center border-r bg-gray-50 py-3 lg:flex">
         {/* Logo and back navigation */}
         <div className="mb-4 flex flex-col items-center space-y-2">
           <Link
