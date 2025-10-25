@@ -57,7 +57,7 @@ export const AiToolbar: React.FC<AiToolbarProps> = ({
   const { models: availableModels } = useAvailableAiModels();
   // Filters for models that support tool calling
   const notebookModels = availableModels.filter(
-    (model) => !model.decomissioned && model.capabilities.includes("tools")
+    (model) => !model.decomissioned
   );
 
   const isDisabled = !availableModels || availableModels.length === 0;
@@ -310,6 +310,14 @@ export const AiToolbar: React.FC<AiToolbarProps> = ({
                           {modelItem.provider === "ollama" &&
                             getModelSizeDisplay(modelItem)}
                         </div>
+                        {!modelItem.capabilities.includes("tools") &&
+                          !showAiCapabilities && (
+                            <div className="flex items-center gap-1">
+                              <span className="text-muted-foreground text-xs">
+                                No tool capabilities
+                              </span>
+                            </div>
+                          )}
                         {showAiCapabilities && (
                           <div className="flex items-center gap-1 opacity-60">
                             {/* Not showing icon for completion capabilities because it's not special enough to call out */}
