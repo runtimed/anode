@@ -38,10 +38,14 @@ export function useAvailableAiModels(): {
 
     // Get the first active runtime session
     const activeRuntime = runtimeSessions[0];
-    const availableModels = activeRuntime.availableAiModels || [];
+    const availableModels: readonly AiModel[] =
+      activeRuntime.availableAiModels || [];
+    const availableAiModelsSorted = [...availableModels].sort((a, b) =>
+      a.displayName.localeCompare(b.displayName)
+    );
 
     // Convert to our interface format
-    const models: AiModel[] = availableModels.map((model: any) => ({
+    const models: AiModel[] = availableAiModelsSorted.map((model: any) => ({
       name: model.name,
       displayName: model.displayName,
       provider: model.provider,
