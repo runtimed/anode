@@ -393,13 +393,14 @@ export const ExecutableCell: React.FC<ExecutableCellProps> = ({
 
             {/* Cell-type-specific toolbars */}
             {cell.cellType === "code" && <CodeToolbar />}
-            {cell.cellType === "ai" && (
+            {/* Not showing AI toolbar if not focused because the model selector depends on the last used model and cell information */}
+            {cell.cellType === "ai" && autoFocus && (
               <AiToolbar
                 open={openAiToolbar}
                 onOpenChange={setOpenAiToolbar}
-                provider={cell.aiProvider || "openai"}
-                model={cell.aiModel || "gpt-4o-mini"}
-                onProviderChange={(newProvider: string, newModel: string) => {
+                cellProvider={cell.aiProvider}
+                cellModel={cell.aiModel}
+                onModelChange={(newProvider: string, newModel: string) => {
                   registryFocusCell(cell.id, "end");
                   store.commit(
                     ...[

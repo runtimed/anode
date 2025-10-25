@@ -1,18 +1,21 @@
-import React, { useState } from "react";
 import { useQuery, useStore } from "@livestore/react";
-import { queryDb, sql, Schema } from "@runtimed/schema";
+import { queryDb, Schema, sql } from "@runtimed/schema";
+import React, { useState } from "react";
 
-import { tables, events, queries } from "@runtimed/schema";
-import { schema } from "@runtimed/schema";
-import { Database } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
-import { trpcQueryClient } from "@/lib/trpc-client";
+import { SimpleTooltip } from "@/components/ui/tooltip";
 import {
   FeatureFlagKey,
   useFeatureFlag,
   useFeatureFlagContext,
 } from "@/contexts/FeatureFlagContext";
+import { trpcQueryClient } from "@/lib/trpc-client";
+import { lastUsedAiModel$, lastUsedAiProvider$ } from "@/queries";
+import { useAvailableAiModels } from "@/util/ai-models";
+import { events, queries, schema, tables } from "@runtimed/schema";
+import { Database } from "lucide-react";
+import { AiCapabilityIcon } from "../ai/AiCapabilityIcon";
 
 const useAvailableTables = () => {
   return useQuery(
@@ -275,6 +278,14 @@ const DebugPanel: React.FC = () => {
           </div>
         </div>
 
+        {/* AI Models */}
+        <div>
+          <h4 className="text-muted-foreground mb-2 text-xs font-medium tracking-wide uppercase">
+            AI Models
+          </h4>
+          <AiModelsTable />
+        </div>
+
         {/* Notebook Data */}
         <div>
           <h4 className="text-muted-foreground mb-2 text-xs font-medium tracking-wide uppercase">
@@ -510,6 +521,71 @@ function DebugVersion() {
   }
 
   return <div className="font-mono text-xs">Debug Version: {debugVersion}</div>;
+}
+
+function AiModelsTable() {
+  const { models: availableModels } = useAvailableAiModels();
+  const lastUsedAiModel = useQuery(lastUsedAiModel$)?.value;
+  const lastUsedAiProvider = useQuery(lastUsedAiProvider$)?.value;
+
+  return (
+    <>
+      <div className="text-xs">
+        <details className="group">
+          <summary className="hover:bg-muted/50 cursor-pointer rounded p-1 font-mono text-xs">
+            AI Models ({availableModels.length})
+          </summary>
+          <div className="mt-1 space-y-1">
+            {availableModels.map((model, index) => (
+              <div
+                key={model.provider + "-" + model.name}
+                className={`ml-2 flex items-center gap-1 rounded px-1 ${
+                  index % 2 === 0 ? "bg-gray-100" : ""
+                }`}
+              >
+                <div className="">
+                  <div className="text-muted-foreground">{model.provider}</div>
+                  <div className="font-medium">{model.name}</div>
+                </div>
+                {/* <pre>{JSON.stringify(model, null, 2)}</pre> */}
+                <div className="flex-1" />
+                {model.decomissioned && (
+                  <SimpleTooltip content="This model is decomissioned and is no longer supported.">
+                    <span>💀</span>
+                  </SimpleTooltip>
+                )}
+                <AiCapabilityIcon
+                  model={model}
+                  capability="completion"
+                  iconClassName="size-3"
+                />
+                <AiCapabilityIcon
+                  model={model}
+                  capability="vision"
+                  iconClassName="size-3"
+                />
+                <AiCapabilityIcon
+                  model={model}
+                  capability="thinking"
+                  iconClassName="size-3"
+                />
+                <AiCapabilityIcon
+                  model={model}
+                  capability="tools"
+                  iconClassName="size-3"
+                />
+              </div>
+            ))}
+          </div>
+        </details>
+        <div>
+          Last Used AI Model: {lastUsedAiModel}
+          <br />
+          Last Used AI Provider: {lastUsedAiProvider}
+        </div>
+      </div>
+    </>
+  );
 }
 
 export { DebugPanel };

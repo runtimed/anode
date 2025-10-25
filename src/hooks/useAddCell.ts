@@ -1,9 +1,4 @@
-import {
-  lastUsedAiModel$,
-  lastUsedAiProvider$,
-} from "@/components/notebook/signals/ai-context.js";
 import { focusedCellSignal$ } from "@/components/notebook/signals/focus.js";
-import { getDefaultAiModel, useAvailableAiModels } from "@/util/ai-models.js";
 import { useStore } from "@livestore/react";
 import { CellType, createCellBetween, events, queries } from "@runtimed/schema";
 import { useCallback } from "react";
@@ -12,7 +7,6 @@ import { useAuthenticatedUser } from "../auth/index.js";
 export const useAddCell = () => {
   const { store } = useStore();
   const userId = useAuthenticatedUser();
-  const { models } = useAvailableAiModels();
 
   const addCell = useCallback(
     (
@@ -25,22 +19,6 @@ export const useAddCell = () => {
       const newCellId = `cell-${Date.now()}-${Math.random()
         .toString(36)
         .slice(2)}`;
-
-      // Get default AI model if creating an AI cell
-      let aiProvider, aiModel;
-      if (cellType === "ai") {
-        const lastUsedAiModel = store.query(lastUsedAiModel$);
-        const lastUsedAiProvider = store.query(lastUsedAiProvider$);
-        const defaultModel = getDefaultAiModel(
-          models,
-          lastUsedAiProvider,
-          lastUsedAiModel
-        );
-        if (defaultModel) {
-          aiProvider = defaultModel.provider;
-          aiModel = defaultModel.model;
-        }
-      }
 
       let cellBefore = null;
       let cellAfter = null;
@@ -85,21 +63,6 @@ export const useAddCell = () => {
       // Commit all events (may include automatic rebalancing)
       cellCreationResult.events.forEach((event) => store.commit(event));
 
-      // Set default AI model for AI cells based on last used model
-      if (cellType === "ai" && aiProvider && aiModel) {
-        store.commit(
-          events.aiSettingsChanged({
-            cellId: newCellId,
-            provider: aiProvider,
-            model: aiModel,
-            settings: {
-              temperature: 0.7,
-              maxTokens: 1000,
-            },
-          })
-        );
-      }
-
       if (source) {
         const cellEvents = [
           // set cell source
@@ -133,7 +96,7 @@ export const useAddCell = () => {
 
       return newCellId;
     },
-    [store, userId, models]
+    [store, userId]
   );
 
   return { addCell };
