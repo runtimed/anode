@@ -428,13 +428,6 @@ export function buildConversationMessages(
   return messages;
 }
 
-const getDefaultModel = (provider: string): string => {
-  return (
-    DEFAULT_MODELS[provider as keyof typeof DEFAULT_MODELS] ||
-    DEFAULT_MODELS.openai
-  );
-};
-
 /**
  * Execute AI prompts using OpenAI, Ollama, or other providers
  */
@@ -551,13 +544,6 @@ export function filterModelsByCapabilities(
   );
 }
 
-// Default models for each provider
-const DEFAULT_MODELS = {
-  openai: "gpt-4o-mini",
-  groq: "moonshot/kimi-k2-instruct-0905",
-  ollama: "llama3.1",
-} as const;
-
 export type AIExecutionContext = ExecutionContext & {
   sendWorkerMessage?: (type: string, data: unknown) => Promise<unknown>;
 };
@@ -577,6 +563,14 @@ export async function executeAI(
     return { success: true };
   }
 
+  if (!cell.aiProvider) {
+    return { success: false, error: "No AI provider specified" };
+  }
+
+  if (!cell.aiModel) {
+    return { success: false, error: "No AI model specified" };
+  }
+
   try {
     if (abortSignal.aborted) {
       stderr("🛑 AI execution was already cancelled\n");
@@ -590,8 +584,8 @@ export async function executeAI(
       ? filePathMatches.map((match) => match.substring(1)) // Remove the @ symbol
       : [];
 
-    const provider = cell.aiProvider || "openai";
-    const model = cell.aiModel || getDefaultModel(provider);
+    const provider = cell.aiProvider;
+    const model = cell.aiModel;
 
     logger.info("Executing AI prompt", {
       cellId: cell.id,
