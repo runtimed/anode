@@ -104,6 +104,7 @@ export interface AiModel {
   metadata?: {
     [key: string]: unknown;
   };
+  decomissioned?: boolean;
 }
 
 /**
