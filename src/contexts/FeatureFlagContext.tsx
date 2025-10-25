@@ -7,6 +7,7 @@ export interface FeatureFlags {
   "ipynb-export": boolean;
   "user-prompt": boolean;
   "file-upload": boolean;
+  "show-ai-capabilities": boolean;
 }
 
 // Default feature flags (all disabled)
@@ -15,6 +16,7 @@ const DEFAULT_FLAGS: FeatureFlags = {
   "ipynb-export": false,
   "user-prompt": false,
   "file-upload": false,
+  "show-ai-capabilities": false,
 } as const;
 
 // Type for feature flag keys

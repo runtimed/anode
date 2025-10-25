@@ -29,6 +29,7 @@ import { ModelCapability } from "node_modules/@runtimed/agent-core/src/types";
 import React from "react";
 import { useSet } from "react-use";
 import { findBestAiModelForCell } from "./ai-model-utils";
+import { useFeatureFlag } from "@/contexts/FeatureFlagContext";
 
 interface AiToolbarProps {
   cellProvider: string | null;
@@ -51,6 +52,7 @@ export const AiToolbar: React.FC<AiToolbarProps> = ({
   const { store } = useStore();
   const inputRef = React.useRef<HTMLInputElement>(null);
   const [inputValue, setInputValue] = React.useState<string>("");
+  const showAiCapabilities = useFeatureFlag("show-ai-capabilities");
 
   const { models: availableModels } = useAvailableAiModels();
   // Filters for models that support tool calling
@@ -231,46 +233,56 @@ export const AiToolbar: React.FC<AiToolbarProps> = ({
             />
             <CommandList>
               <div className="text-muted-foreground sticky top-0 z-10 flex items-center gap-1 bg-white px-3 pt-1 text-xs">
-                Filter:
-                <Button
-                  size="xs"
-                  className="h-5 gap-1 rounded-sm px-1.5 py-0 text-xs font-normal"
-                  variant={abilities.has("thinking") ? "default" : "outline"}
-                  onClick={() => {
-                    toggle("thinking");
-                    inputRef.current?.focus();
-                  }}
-                >
-                  <Brain className="size-2.5" />
-                  Thinking
-                  {abilities.has("thinking") && <Check className="size-2.5" />}
-                </Button>
-                <Button
-                  size="xs"
-                  className="h-5 gap-1 rounded-sm px-1.5 py-0 text-xs font-normal"
-                  variant={abilities.has("vision") ? "default" : "outline"}
-                  onClick={() => {
-                    toggle("vision");
-                    inputRef.current?.focus();
-                  }}
-                >
-                  <Eye className="size-2.5" />
-                  Vision
-                  {abilities.has("vision") && <Check className="size-2.5" />}
-                </Button>
-                <Button
-                  size="xs"
-                  className="h-5 gap-1 rounded-sm px-1.5 py-0 text-xs font-normal"
-                  variant={abilities.has("tools") ? "default" : "outline"}
-                  onClick={() => {
-                    toggle("tools");
-                    inputRef.current?.focus();
-                  }}
-                >
-                  <Wrench className="size-2.5" />
-                  Tools
-                  {abilities.has("tools") && <Check className="size-2.5" />}
-                </Button>
+                {showAiCapabilities && (
+                  <>
+                    Filter:
+                    <Button
+                      size="xs"
+                      className="h-5 gap-1 rounded-sm px-1.5 py-0 text-xs font-normal"
+                      variant={
+                        abilities.has("thinking") ? "default" : "outline"
+                      }
+                      onClick={() => {
+                        toggle("thinking");
+                        inputRef.current?.focus();
+                      }}
+                    >
+                      <Brain className="size-2.5" />
+                      Thinking
+                      {abilities.has("thinking") && (
+                        <Check className="size-2.5" />
+                      )}
+                    </Button>
+                    <Button
+                      size="xs"
+                      className="h-5 gap-1 rounded-sm px-1.5 py-0 text-xs font-normal"
+                      variant={abilities.has("vision") ? "default" : "outline"}
+                      onClick={() => {
+                        toggle("vision");
+                        inputRef.current?.focus();
+                      }}
+                    >
+                      <Eye className="size-2.5" />
+                      Vision
+                      {abilities.has("vision") && (
+                        <Check className="size-2.5" />
+                      )}
+                    </Button>
+                    <Button
+                      size="xs"
+                      className="h-5 gap-1 rounded-sm px-1.5 py-0 text-xs font-normal"
+                      variant={abilities.has("tools") ? "default" : "outline"}
+                      onClick={() => {
+                        toggle("tools");
+                        inputRef.current?.focus();
+                      }}
+                    >
+                      <Wrench className="size-2.5" />
+                      Tools
+                      {abilities.has("tools") && <Check className="size-2.5" />}
+                    </Button>
+                  </>
+                )}
               </div>
               {filteredModels.length > 0 &&
                 providerGroups.map(([providerName, models]) => (
@@ -298,24 +310,26 @@ export const AiToolbar: React.FC<AiToolbarProps> = ({
                           {modelItem.provider === "ollama" &&
                             getModelSizeDisplay(modelItem)}
                         </div>
-                        <div className="flex items-center gap-1 opacity-60">
-                          {/* Not showing icon for completion capabilities because it's not special enough to call out */}
-                          <AiCapabilityIcon
-                            model={modelItem}
-                            capability="vision"
-                            iconClassName="size-3"
-                          />
-                          <AiCapabilityIcon
-                            model={modelItem}
-                            capability="thinking"
-                            iconClassName="size-3"
-                          />
-                          <AiCapabilityIcon
-                            model={modelItem}
-                            capability="tools"
-                            iconClassName="size-3"
-                          />
-                        </div>
+                        {showAiCapabilities && (
+                          <div className="flex items-center gap-1 opacity-60">
+                            {/* Not showing icon for completion capabilities because it's not special enough to call out */}
+                            <AiCapabilityIcon
+                              model={modelItem}
+                              capability="vision"
+                              iconClassName="size-3"
+                            />
+                            <AiCapabilityIcon
+                              model={modelItem}
+                              capability="thinking"
+                              iconClassName="size-3"
+                            />
+                            <AiCapabilityIcon
+                              model={modelItem}
+                              capability="tools"
+                              iconClassName="size-3"
+                            />
+                          </div>
+                        )}
                       </CommandItem>
                     ))}
                   </CommandGroup>
