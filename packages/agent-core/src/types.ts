@@ -102,8 +102,12 @@ export interface AiModel {
   capabilities: ModelCapability[];
   /** Model metadata (size, type, etc.) */
   metadata?: {
-    [key: string]: unknown;
+    parameterSize?: string;
+    modelType?: string;
+    contextLength?: number;
+    // [key: string]: unknown;
   };
+  decomissioned?: boolean;
 }
 
 /**
