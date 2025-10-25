@@ -51,7 +51,10 @@ export const CellTypeSelector: React.FC<CellTypeSelectorProps> = ({
           <span className="cell-type-label hidden capitalize sm:inline">
             {cell.cellType}
           </span>
-          <ChevronDown className="h-3 w-3 shrink-0 opacity-50" />
+          <ChevronDown
+            strokeWidth={1.5}
+            className="h-3 w-3 shrink-0 opacity-50"
+          />
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="start" className="w-40">
