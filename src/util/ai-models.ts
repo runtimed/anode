@@ -51,6 +51,7 @@ export function useAvailableAiModels(): {
       provider: model.provider,
       capabilities: model.capabilities || [],
       metadata: model.metadata,
+      decomissioned: model.decomissioned,
     }));
 
     // Group by provider
@@ -104,13 +105,6 @@ export function filterModelsByCapabilities(
       model.capabilities.includes(capability)
     )
   );
-}
-
-/**
- * Get models suitable for notebook AI cells (requires tool calling)
- */
-export function getNotebookAiModels(models: AiModel[]): AiModel[] {
-  return filterModelsByCapabilities(models, ["tools"]);
 }
 
 /**
