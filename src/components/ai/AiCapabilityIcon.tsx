@@ -1,7 +1,6 @@
 import { SimpleTooltip } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
-import { AiModel } from "@/util/ai-models";
-import { type ModelCapability } from "@runtimed/agent-core";
+import { type AiModel, type ModelCapability } from "@runtimed/agent-core";
 import { Brain, Eye, LucideIcon, Type, Wrench } from "lucide-react";
 
 const capabilityIconMap = {
