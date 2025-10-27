@@ -7,6 +7,7 @@ export interface FeatureFlags {
   "ipynb-export": boolean;
   "user-prompt": boolean;
   "file-upload": boolean;
+  /** Show AI capabilities in the AI cell dropdown. We'd enable this by default if we support vision or allow choosing models that don't have tool support. */
   "show-ai-capabilities": boolean;
 }
 
