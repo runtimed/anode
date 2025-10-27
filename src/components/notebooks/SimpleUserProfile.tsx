@@ -127,11 +127,8 @@ export const SimpleUserProfile: React.FC<SimpleUserProfileProps> = ({
 
           <DropdownMenuSeparator />
 
-          <DropdownMenuItem
-            onClick={handleSignOut}
-            className="text-red-600 focus:text-red-600"
-          >
-            <LogOut className="mr-2 h-4 w-4" />
+          <DropdownMenuItem onClick={handleSignOut} variant="destructive">
+            <LogOut />
             Sign out
           </DropdownMenuItem>
         </DropdownMenuContent>

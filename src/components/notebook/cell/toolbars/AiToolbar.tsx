@@ -112,9 +112,9 @@ export const AiToolbar: React.FC<AiToolbarProps> = ({
             <span>
               Select an AI model with{" "}
               <KbdGroup>
-                <Kbd>Ctrl</Kbd>
-                <Kbd>Shift</Kbd>
-                <Kbd>M</Kbd>
+                <Kbd variant="dark">Ctrl</Kbd>
+                <Kbd variant="dark">Shift</Kbd>
+                <Kbd variant="dark">M</Kbd>
               </KbdGroup>
             </span>
           </TooltipContent>

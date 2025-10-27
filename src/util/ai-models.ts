@@ -1,21 +1,8 @@
 import { useQuery } from "@livestore/react";
 import { queryDb } from "@runtimed/schema";
 import { tables } from "@runtimed/schema";
-import { type ModelCapability } from "packages/agent-core/src";
+import { type AiModel, type ModelCapability } from "@runtimed/agent-core";
 import { useMemo } from "react";
-
-export type AiModel = {
-  name: string;
-  displayName: string;
-  provider: string;
-  capabilities: ModelCapability[];
-  metadata?: {
-    parameterSize?: string;
-    modelType?: string;
-    contextLength?: number;
-    [key: string]: unknown;
-  };
-};
 
 export type AiProviderGroup = {
   provider: string;

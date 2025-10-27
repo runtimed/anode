@@ -7,6 +7,7 @@ export interface FeatureFlags {
   /** Can remove this feature flag once we have a proper way to get the Python version from the kernel */
   "ipynb-export": boolean;
   "user-prompt": boolean;
+  "file-upload": boolean;
 }
 
 // Default feature flags (all disabled)
@@ -14,6 +15,7 @@ const DEFAULT_FLAGS: FeatureFlags = {
   "test-flag": false,
   "ipynb-export": false,
   "user-prompt": false,
+  "file-upload": false,
 } as const;
 
 // Type for feature flag keys
