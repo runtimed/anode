@@ -5,6 +5,7 @@ import { useSessionStorage } from "react-use";
 export interface FeatureFlags {
   "test-flag": boolean;
   "ipynb-export": boolean;
+  "file-upload": boolean;
   "user-saved-prompt": boolean;
 }
 
@@ -12,6 +13,7 @@ export interface FeatureFlags {
 const DEFAULT_FLAGS: FeatureFlags = {
   "test-flag": false,
   "ipynb-export": false,
+  "file-upload": false,
   "user-saved-prompt": false,
 } as const;
 
