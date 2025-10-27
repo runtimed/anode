@@ -1,4 +1,4 @@
-// @ts-expect-error: ajv is optional and only required for notebook validation
+// @ts-expect-error
 import Ajv from "ajv";
 import nbformatSchema from "@/data/nbformat.v4.schema.json";
 import { JupyterNotebook } from "@/types/jupyter";
