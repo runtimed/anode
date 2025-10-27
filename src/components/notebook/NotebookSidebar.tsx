@@ -1,26 +1,30 @@
-import React, { useState } from "react";
+import { RuntSidebarLogo } from "@/components/logo/RuntSidebarLogo";
+import type { NotebookProcessed } from "@/components/notebooks/types";
 import { Button } from "@/components/ui/button";
 import { useRuntimeHealth } from "@/hooks/useRuntimeHealth";
-import type { NotebookProcessed } from "@/components/notebooks/types";
-import { RuntSidebarLogo } from "@/components/logo/RuntSidebarLogo";
+import React, { useState } from "react";
 import { Link } from "react-router-dom";
 
 // Panel Components
 import {
-  MetadataPanel,
   AiPanel,
-  RuntimePanel,
-  HelpPanel,
   DebugPanel,
-  type SidebarSection,
+  FilesPanel,
+  HelpPanel,
+  MetadataPanel,
+  RuntimePanel,
   type SidebarPanelProps,
+  type SidebarSection,
 } from "./sidebar-panels";
 
 // Configuration
-import { getSidebarItems, getSidebarItemConfig } from "./sidebar-panels/config";
+import { getSidebarItemConfig, getSidebarItems } from "./sidebar-panels/config";
 
 // Icons
-import { X, ArrowLeft } from "lucide-react";
+import { useFeatureFlag } from "@/contexts/FeatureFlagContext";
+import { availableFiles$ } from "@/queries";
+import { useQuery } from "@livestore/react";
+import { ArrowLeft, X } from "lucide-react";
 import { DebugModeToggle } from "../debug/DebugModeToggle";
 
 interface NotebookSidebarProps {
@@ -31,6 +35,7 @@ interface NotebookSidebarProps {
 
 const PANEL_COMPONENTS: Record<SidebarSection, React.FC<SidebarPanelProps>> = {
   metadata: MetadataPanel,
+  files: FilesPanel,
   ai: AiPanel,
   runtime: RuntimePanel,
   debug: DebugPanel,
@@ -46,6 +51,9 @@ export const NotebookSidebar: React.FC<NotebookSidebarProps> = ({
     null
   );
   const { hasActiveRuntime, runtimeHealth } = useRuntimeHealth();
+  const showFilesPanel = useFeatureFlag("file-upload");
+  const availableFiles = useQuery(availableFiles$);
+  const fileCount = availableFiles?.length ?? 0;
 
   const toggleSection = (section: SidebarSection) => {
     const newActiveSection = activeSection === section ? null : section;
@@ -68,6 +76,7 @@ export const NotebookSidebar: React.FC<NotebookSidebarProps> = ({
     runtimeHealth,
     activeSection,
     isDev: import.meta.env.DEV,
+    showFilesPanel,
   });
 
   const renderPanelContent = () => {
@@ -84,7 +93,7 @@ export const NotebookSidebar: React.FC<NotebookSidebarProps> = ({
   return (
     <>
       {/* Desktop: Icon-only sidebar (hidden on mobile) */}
-      <div className="fixed top-0 left-0 z-40 hidden h-full w-12 flex-col items-center border-r bg-gray-50 py-4 lg:flex">
+      <div className="fixed top-0 left-0 z-40 hidden h-full w-12 flex-col items-center border-r bg-gray-50 py-3 lg:flex">
         {/* Logo and back navigation */}
         <div className="mb-4 flex flex-col items-center space-y-2">
           <Link
@@ -111,7 +120,7 @@ export const NotebookSidebar: React.FC<NotebookSidebarProps> = ({
                 variant="ghost"
                 size="icon"
                 onClick={() => toggleSection(item.id)}
-                className={`h-8 w-8 ${
+                className={`relative h-8 w-8 ${
                   isActive
                     ? "bg-blue-100 text-blue-600 hover:bg-blue-200"
                     : "text-gray-600 hover:bg-gray-200 hover:text-gray-900"
@@ -119,6 +128,11 @@ export const NotebookSidebar: React.FC<NotebookSidebarProps> = ({
                 title={item.tooltip}
               >
                 <Icon className="h-4 w-4" />
+                {item.id === "files" && fileCount > 0 && (
+                  <span className="absolute -top-1 -right-1 inline-flex h-3 min-w-3 items-center justify-center rounded-full bg-gray-300 px-1 text-[9px] font-normal text-black">
+                    {fileCount > 99 ? "99+" : fileCount}
+                  </span>
+                )}
               </Button>
             );
           })}

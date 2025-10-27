@@ -421,30 +421,28 @@ export const ExecutableCell: React.FC<ExecutableCellProps> = ({
                 provider={cell.aiProvider || "openai"}
                 model={cell.aiModel || "gpt-4o-mini"}
                 onProviderChange={(newProvider: string, newModel: string) => {
+                  registryFocusCell(cell.id, "end");
                   store.commit(
-                    events.aiSettingsChanged({
-                      cellId: cell.id,
-                      provider: newProvider,
-                      model: newModel,
-                      settings: {
-                        temperature: 0.7,
-                        maxTokens: 1000,
-                      },
-                    })
-                  );
-
-                  // Save the last used AI model to notebook metadata for future AI cells
-                  store.commit(
-                    events.notebookMetadataSet({
-                      key: "lastUsedAiProvider",
-                      value: newProvider,
-                    })
-                  );
-                  store.commit(
-                    events.notebookMetadataSet({
-                      key: "lastUsedAiModel",
-                      value: newModel,
-                    })
+                    ...[
+                      events.aiSettingsChanged({
+                        cellId: cell.id,
+                        provider: newProvider,
+                        model: newModel,
+                        settings: {
+                          temperature: 0.7,
+                          maxTokens: 1000,
+                        },
+                      }),
+                      // Save the last used AI model to notebook metadata for future AI cells
+                      events.notebookMetadataSet({
+                        key: "lastUsedAiProvider",
+                        value: newProvider,
+                      }),
+                      events.notebookMetadataSet({
+                        key: "lastUsedAiModel",
+                        value: newModel,
+                      }),
+                    ]
                   );
                 }}
               />

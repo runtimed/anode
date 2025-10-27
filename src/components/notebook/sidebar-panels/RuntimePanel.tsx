@@ -1,15 +1,14 @@
-import React, { useCallback, useState } from "react";
+import { useAuthenticatedUser } from "@/auth";
 import { RuntimeHealthIndicator } from "@/components/notebook/RuntimeHealthIndicator";
+import { Button } from "@/components/ui/button";
+import { useAutoLaunchRuntime } from "@/hooks/useAutoLaunchRuntime";
 import { useRuntimeHealth } from "@/hooks/useRuntimeHealth";
 import { getRuntimeCommand } from "@/util/runtime-command";
-import { Button } from "@/components/ui/button";
-import { Copy, Trash2, Globe, Code2 } from "lucide-react";
-import { events, tables } from "@runtimed/schema";
-import { queryDb } from "@runtimed/schema";
 import { useQuery, useStore } from "@livestore/react";
+import { events, queryDb, tables } from "@runtimed/schema";
+import { BrushCleaning, Code2, Copy, Globe } from "lucide-react";
+import React, { useCallback, useState } from "react";
 import type { SidebarPanelProps } from "./types";
-import { useAuthenticatedUser } from "@/auth";
-import { useAutoLaunchRuntime } from "@/hooks/useAutoLaunchRuntime";
 
 export const RuntimePanel: React.FC<SidebarPanelProps> = ({ notebook }) => {
   const { store } = useStore();
@@ -356,9 +355,9 @@ export const RuntimePanel: React.FC<SidebarPanelProps> = ({ notebook }) => {
               variant="destructive"
               size="sm"
               onClick={clearAllRuntimes}
-              className="flex items-center gap-1"
+              className="flex w-full items-center gap-1"
             >
-              <Trash2 className="h-3 w-3" />
+              <BrushCleaning className="h-3 w-3" />
               <span>Clear All Runtimes</span>
             </Button>
           </div>

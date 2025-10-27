@@ -106,6 +106,32 @@ export const events = {
     }),
   }),
 
+  fileUploaded: Events.synced({
+    name: "v1.FileUploaded",
+    schema: Schema.Struct({
+      artifactId: Schema.String,
+      mimeType: Schema.String,
+      fileName: Schema.String,
+      createdAt: Schema.Date,
+      createdBy: Schema.String,
+    }),
+  }),
+
+  fileDeleted: Events.synced({
+    name: "v1.FileDeleted",
+    schema: Schema.Struct({
+      fileName: Schema.String,
+    }),
+  }),
+
+  fileDeleted2: Events.synced({
+    name: "v2.FileDeleted",
+    schema: Schema.Struct({
+      fileName: Schema.String,
+      deletedAt: Schema.Date,
+    }),
+  }),
+
   // Notebook events (single notebook per store)
   /** @deprecated  */
   notebookInitialized: Events.synced({
@@ -670,6 +696,36 @@ export const materializers = State.SQLite.materializers(events, {
         id,
       })
       .onConflict("id", "replace"),
+  ],
+
+  "v1.FileUploaded": ({
+    artifactId,
+    mimeType,
+    fileName,
+    createdBy,
+    createdAt,
+  }) => [
+    tables.files
+      .insert({
+        artifactId,
+        mimeType,
+        fileName,
+        createdBy,
+        createdAt,
+      })
+      // We generate a unique id for each upload to the artifact service
+      // It's possible that the same file is uploaded multiple times, so we overwrite it.
+      // It's also possible that two files can have the same artifact ID, but this wouldn't cause nearly as many issues
+      // as trying to figure out how to deal with conflicting file names
+      .onConflict("fileName", "replace"),
+  ],
+
+  "v1.FileDeleted": ({ fileName }) => [
+    tables.files.delete().where({ fileName }),
+  ],
+
+  "v2.FileDeleted": ({ fileName, deletedAt }) => [
+    tables.files.update({ deletedAt }).where({ fileName }),
   ],
 
   "v1.NotebookTitleChanged": ({ title }) =>
@@ -1298,6 +1354,7 @@ export type OutputData = typeof tables.outputs.Type;
 export type RuntimeSessionData = typeof tables.runtimeSessions.Type;
 export type ExecutionQueueData = typeof tables.executionQueue.Type;
 export type UiStateData = typeof tables.uiState.Type;
+export type FileData = typeof tables.files.Type;
 
 // Type guards for MediaContainer
 export function isInlineContainer<T>(
