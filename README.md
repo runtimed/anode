@@ -220,7 +220,6 @@ Anode supports **Groq** as a first-class AI provider alongside OpenAI and Ollama
 - **moonshotai/kimi-k2-instruct** (Primary) - Advanced reasoning and tool calling
 - **llama3-8b-8192** - Fast general-purpose model
 - **llama3-70b-8192** - High-performance large model
-- **mixtral-8x7b-32768** - Mixture of experts model
 - **gemma2-9b-it** - Efficient instruction-following model
 
 ### Quick Setup
