@@ -192,8 +192,8 @@ export const SavedPromptEditor: React.FC = () => {
                 <>
                   Save{" "}
                   <KbdGroup>
-                    <Kbd>⌘</Kbd>
-                    <Kbd>⏎</Kbd>
+                    <Kbd variant="dark">⌘</Kbd>
+                    <Kbd variant="dark">⏎</Kbd>
                   </KbdGroup>
                 </>
               )}
