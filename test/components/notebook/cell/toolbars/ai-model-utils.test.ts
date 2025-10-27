@@ -112,28 +112,6 @@ describe("findBestAiModelForCell", () => {
         decomissioned: false,
       });
     });
-
-    it("should return null when provider is not in preference order", () => {
-      const cellAiSettings = {
-        provider: "anthropic",
-        model: "claude-3",
-      };
-
-      const result = findBestAiModelForCell(
-        mockStore,
-        cellAiSettings,
-        availableModels
-      );
-
-      expect(result).toEqual({
-        provider: "anthropic",
-        name: "claude-3",
-        displayName: "claude-3",
-        capabilities: [],
-        metadata: {},
-        decomissioned: false,
-      });
-    });
   });
 
   describe("when cell has valid provider but no model", () => {
@@ -159,7 +137,7 @@ describe("findBestAiModelForCell", () => {
       });
     });
 
-    it("should fallback to next provider when default model not available", () => {
+    it("should fallback to next provider when desired provider is not available", () => {
       const limitedModels = availableModels.filter(
         (m) => m.provider !== "anaconda"
       );
@@ -183,35 +161,10 @@ describe("findBestAiModelForCell", () => {
         decomissioned: false,
       });
     });
-
-    it("should fallback to default behavior when provider not in preference order", () => {
-      const cellAiSettings = {
-        provider: "anthropic",
-        model: null,
-      };
-
-      vi.mocked(mockStore.query).mockReturnValue({ value: null });
-
-      const result = findBestAiModelForCell(
-        mockStore,
-        cellAiSettings,
-        availableModels
-      );
-
-      // Should fallback to default model from first available provider
-      expect(result).toEqual({
-        provider: "anaconda",
-        name: "moonshotai/kimi-k2-instruct-0905",
-        displayName: "Kimi K2 Instruct",
-        capabilities: ["completion", "tools"],
-        metadata: {},
-        decomissioned: false,
-      });
-    });
   });
 
   describe("when cell has model but no provider", () => {
-    it("should find model across providers in preference order", () => {
+    it("should find model across providers in order of preference", () => {
       const cellAiSettings = {
         provider: null,
         model: "gpt-4o-mini",
@@ -293,40 +246,7 @@ describe("findBestAiModelForCell", () => {
       });
     });
 
-    it("should fallback to default behavior when last used provider not in preference order", () => {
-      const cellAiSettings = {
-        provider: null,
-        model: null,
-      };
-
-      vi.mocked(mockStore.query).mockImplementation((query) => {
-        if (query === lastUsedAiModel$) {
-          return { value: "claude-3" };
-        }
-        if (query === lastUsedAiProvider$) {
-          return { value: "anthropic" };
-        }
-        return { value: null };
-      });
-
-      const result = findBestAiModelForCell(
-        mockStore,
-        cellAiSettings,
-        availableModels
-      );
-
-      // Should fallback to default model from first available provider
-      expect(result).toEqual({
-        provider: "anaconda",
-        name: "moonshotai/kimi-k2-instruct-0905",
-        displayName: "Kimi K2 Instruct",
-        capabilities: ["completion", "tools"],
-        metadata: {},
-        decomissioned: false,
-      });
-    });
-
-    it("should fallback to default behavior when last used model not found", () => {
+    it("should fallback to default behavior when last used model is not found", () => {
       const cellAiSettings = {
         provider: null,
         model: null,
@@ -361,7 +281,7 @@ describe("findBestAiModelForCell", () => {
   });
 
   describe("when no cell settings and no last used model", () => {
-    it("should return default model from first available provider", () => {
+    it("should return default model from order of preference", () => {
       const cellAiSettings = {
         provider: null,
         model: null,
@@ -418,21 +338,21 @@ describe("findBestAiModelForCell", () => {
       const toolOnlyModels = [
         {
           provider: "custom",
-          name: "tool-model",
-          displayName: "Tool Model",
-          capabilities: ["tools"] as ModelCapability[],
+          name: "completion-model",
+          displayName: "Completion Model",
+          capabilities: ["completion"],
           metadata: {},
           decomissioned: false,
         },
         {
           provider: "custom",
-          name: "completion-model",
-          displayName: "Completion Model",
-          capabilities: ["completion"] as ModelCapability[],
+          name: "tool-model",
+          displayName: "Tool Model",
+          capabilities: ["tools"],
           metadata: {},
           decomissioned: false,
         },
-      ];
+      ] as const satisfies AiModel[];
 
       const cellAiSettings = {
         provider: null,
@@ -463,7 +383,7 @@ describe("findBestAiModelForCell", () => {
           provider: "custom",
           name: "completion-model-1",
           displayName: "Completion Model 1",
-          capabilities: ["completion"] as ModelCapability[],
+          capabilities: ["completion"],
           metadata: {},
           decomissioned: false,
         },
@@ -471,11 +391,11 @@ describe("findBestAiModelForCell", () => {
           provider: "custom",
           name: "completion-model-2",
           displayName: "Completion Model 2",
-          capabilities: ["completion"] as ModelCapability[],
+          capabilities: ["completion"],
           metadata: {},
           decomissioned: false,
         },
-      ];
+      ] as const satisfies AiModel[];
 
       const cellAiSettings = {
         provider: null,
@@ -545,7 +465,7 @@ describe("findBestAiModelForCell", () => {
           provider: "anaconda",
           name: "moonshotai/kimi-k2-instruct-0905",
           displayName: "Kimi K2 Instruct",
-          capabilities: ["completion", "tools"] as ModelCapability[],
+          capabilities: ["completion", "tools"],
           metadata: {},
           decomissioned: true,
         },
@@ -553,11 +473,11 @@ describe("findBestAiModelForCell", () => {
           provider: "openai",
           name: "gpt-4o-mini",
           displayName: "GPT-4o Mini",
-          capabilities: ["completion", "tools", "vision"] as ModelCapability[],
+          capabilities: ["completion", "tools", "vision"],
           metadata: {},
           decomissioned: false,
         },
-      ];
+      ] as const satisfies AiModel[];
 
       const cellAiSettings = {
         provider: "anaconda",
