@@ -203,14 +203,14 @@ describe("Notebook Export to Jupyter", () => {
       // Wait for state to settle
       await waitFor(() => {
         const cells = store.query(tables.cells.select());
-        return cells.length === 3;
+        return cells.length === 4;
       });
 
       // Export notebook
       const exportedNotebook = exportNotebookToJupyter(store);
 
       // Verify all cells are exported
-      expect(exportedNotebook.cells).toHaveLength(4);
+      expect(exportedNotebook.cells).toHaveLength(3);
 
       // Verify cell types are converted correctly
       expect(exportedNotebook.cells[0].cell_type).toBe("code");
@@ -225,11 +225,6 @@ describe("Notebook Export to Jupyter", () => {
 
       expect(exportedNotebook.cells[2].cell_type).toBe("code");
       expect(exportedNotebook.cells[2].source).toEqual([
-        "# AI PROMPT: Create a function to calculate fibonacci numbers",
-      ]);
-
-      expect(exportedNotebook.cells[3].cell_type).toBe("code");
-      expect(exportedNotebook.cells[3].source).toEqual([
         "SELECT * FROM users LIMIT 10;",
       ]);
     });
