@@ -24,3 +24,11 @@ export const availableFiles$ = queryDb(
   tables.files.select().where({ deletedAt: null }),
   { label: "files.availableFiles" }
 );
+
+export const runningCells$ = queryDb(
+  tables.cells
+    .select()
+    .where({ executionState: { op: "IN", value: ["running", "queued"] } })
+    .orderBy("fractionalIndex", "asc"),
+  { label: "cells.runningCells" }
+);

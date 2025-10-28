@@ -21,33 +21,24 @@ import { Spinner } from "@/components/ui/Spinner";
 import { useRuntimeHealth } from "@/hooks/useRuntimeHealth";
 import { generateQueueId } from "@/util/queue-id";
 import { useQuery, useStore } from "@livestore/react";
-import { events, queries, queryDb, tables } from "@runtimed/schema";
+import { CellData, events, queries, queryDb, tables } from "@runtimed/schema";
 import { Eraser, Play, Square, Undo2 } from "lucide-react";
 import { useCallback } from "react";
 import { useDebug } from "@/components/debug/debug-mode";
+import { useFeatureFlag } from "@/contexts/FeatureFlagContext";
+import { runningCells$ } from "@/queries";
 
 export function NotebookControls({
   notebook,
 }: {
   notebook: NotebookProcessed;
 }) {
-  const { confirm } = useConfirm();
+  const allowBulkNotebookControls = useFeatureFlag("bulk-notebook-controls");
   const { store } = useStore();
   const userId = useAuthenticatedUser();
   const debug = useDebug();
 
-  const cellQueue = useQuery(
-    queryDb(
-      tables.cells
-        .select()
-        .where({ executionState: { op: "IN", value: ["running", "queued"] } })
-        .orderBy("fractionalIndex", "asc")
-    )
-  );
-
-  const { runAllCells } = useRunAllCells();
-  const { deleteAllCells } = useDeleteAllCells();
-  const { restartAndRunAllCells } = useRestartAndRunAllCells();
+  const cellQueue = useQuery(runningCells$);
 
   const handleCancelAll = useCallback(() => {
     if (cellQueue.length === 0) {
@@ -58,25 +49,17 @@ export function NotebookControls({
     toast.info("Cancelled all executions");
   }, [store, cellQueue]);
 
-  const handleClearAll = useCallback(() => {
+  const handleClearAllOutputs = useCallback(() => {
     store.commit(events.allOutputsCleared({ clearedBy: userId }));
   }, [store, userId]);
 
   return (
     <div className="flex items-center gap-2">
-      {cellQueue.length > 0 && (
-        <>
-          <span className="flex items-center gap-1">
-            <Spinner size="md" />
-            <span className="text-muted-foreground text-sm">
-              Running {cellQueue.length} cells
-            </span>
-          </span>
-          <Button variant="outline" size="sm" onClick={handleCancelAll}>
-            <Square />
-            Stop All
-          </Button>
-        </>
+      {allowBulkNotebookControls && (
+        <ActiveBulkNotebookActions
+          cellQueue={cellQueue}
+          onCancelAll={handleCancelAll}
+        />
       )}
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
@@ -85,57 +68,94 @@ export function NotebookControls({
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
-          {cellQueue.length > 0 ? (
-            <DropdownMenuItem onClick={handleCancelAll}>
-              <Square />
-              Stop All
-            </DropdownMenuItem>
-          ) : (
-            <>
-              <DropdownMenuItem onClick={runAllCells}>
-                <Play />
-                Run All Code Cells
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={restartAndRunAllCells}>
-                <span className="relative">
-                  <Play className="h-4 w-4" />
-                  <Undo2
-                    className="absolute bottom-0 left-0 size-3 -translate-x-[3px] translate-y-[3px] rounded-full bg-white p-[1px] text-gray-700"
-                    strokeWidth={3}
-                  />
-                </span>
-                Restart and Run All Code Cells
-              </DropdownMenuItem>
-            </>
+          {allowBulkNotebookControls && (
+            <BulkNotebookActions
+              cellQueue={cellQueue}
+              onCancelAll={handleCancelAll}
+              onClearAllOutputs={handleClearAllOutputs}
+            />
           )}
-          <DropdownMenuItem onClick={handleClearAll}>
-            <Eraser />
-            Clear All Outputs
-          </DropdownMenuItem>
-          <DropdownMenuSeparator />
           <CreateNotebookAction />
           <DuplicateAction notebook={notebook} />
           <DropdownMenuSeparator />
-          {debug.enabled && (
-            <DropdownMenuItem
-              variant="destructive"
-              onClick={() =>
-                confirm({
-                  title: "Delete All Cells",
-                  description: "Are you sure you want to delete all cells?",
-                  onConfirm: deleteAllCells,
-                  actionButtonText: "Delete All Cells",
-                })
-              }
-            >
-              <Trash2 />
-              DEBUG: Delete All Cells
-            </DropdownMenuItem>
-          )}
+          {debug.enabled && <DeleteAllCellsAction />}
           <DeleteAction notebook={notebook} />
         </DropdownMenuContent>
       </DropdownMenu>
     </div>
+  );
+}
+
+function ActiveBulkNotebookActions({
+  cellQueue,
+  onCancelAll,
+}: {
+  cellQueue: readonly CellData[];
+  onCancelAll: () => void;
+}) {
+  if (cellQueue.length === 0) {
+    return null;
+  }
+
+  return (
+    <>
+      <span className="flex items-center gap-1">
+        <Spinner size="md" />
+        <span className="text-muted-foreground text-sm">
+          Running {cellQueue.length} cells
+        </span>
+      </span>
+      <Button variant="outline" size="sm" onClick={onCancelAll}>
+        <Square />
+        Stop All
+      </Button>
+    </>
+  );
+}
+
+function BulkNotebookActions({
+  cellQueue,
+  onCancelAll,
+  onClearAllOutputs,
+}: {
+  cellQueue: readonly CellData[];
+  onCancelAll: () => void;
+  onClearAllOutputs: () => void;
+}) {
+  const { runAllCells } = useRunAllCells();
+  const { restartAndRunAllCells } = useRestartAndRunAllCells();
+
+  return (
+    <>
+      {cellQueue.length > 0 ? (
+        <DropdownMenuItem onClick={onCancelAll}>
+          <Square />
+          Stop All
+        </DropdownMenuItem>
+      ) : (
+        <>
+          <DropdownMenuItem onClick={runAllCells}>
+            <Play />
+            Run All Code Cells
+          </DropdownMenuItem>
+          <DropdownMenuItem onClick={restartAndRunAllCells}>
+            <span className="relative">
+              <Play className="h-4 w-4" />
+              <Undo2
+                className="absolute bottom-0 left-0 size-3 -translate-x-[3px] translate-y-[3px] rounded-full bg-white p-[1px] text-gray-700"
+                strokeWidth={3}
+              />
+            </span>
+            Restart and Run All Code Cells
+          </DropdownMenuItem>
+        </>
+      )}
+      <DropdownMenuItem onClick={onClearAllOutputs}>
+        <Eraser />
+        Clear All Outputs
+      </DropdownMenuItem>
+      <DropdownMenuSeparator />
+    </>
   );
 }
 
@@ -222,6 +242,26 @@ function DeleteAction({ notebook }: { notebook: NotebookProcessed }) {
     <DropdownMenuItem variant="destructive" onSelect={handleDeleteNotebook}>
       <Trash2 />
       Delete Notebook
+    </DropdownMenuItem>
+  );
+}
+
+function DeleteAllCellsAction() {
+  const { deleteAllCells } = useDeleteAllCells();
+  const { confirm } = useConfirm();
+
+  const handleDeleteAllCells = async () => {
+    confirm({
+      title: "Delete All Cells",
+      description: "Are you sure you want to delete all cells?",
+      onConfirm: deleteAllCells,
+      actionButtonText: "Delete All Cells",
+    });
+  };
+  return (
+    <DropdownMenuItem variant="destructive" onSelect={handleDeleteAllCells}>
+      <Trash2 />
+      DEBUG: Delete All Cells
     </DropdownMenuItem>
   );
 }
