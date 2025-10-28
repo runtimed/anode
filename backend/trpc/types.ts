@@ -38,3 +38,12 @@ export interface NotebookTagRow {
   tag_id: string;
   created_at: string;
 }
+
+export interface SavedPromptRow {
+  id: string;
+  user_id: string;
+  prompt: string;
+  ai_model: string | null;
+  created_at: string;
+  updated_at: string;
+}
