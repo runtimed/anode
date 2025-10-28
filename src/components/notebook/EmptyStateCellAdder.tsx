@@ -12,8 +12,8 @@ import { useFeatureFlag } from "@/contexts/FeatureFlagContext";
 
 export const EmptyStateCellAdder: React.FC = () => {
   const { addCell } = useAddCell();
-  const fileUploadFlag = useFeatureFlag("file-upload");
 
+  const fileUploadFlag = useFeatureFlag("file-upload");
   return (
     <div className="px-4 pt-6 pb-6 text-center sm:px-0 sm:pt-12">
       <div className="text-muted-foreground mb-6">

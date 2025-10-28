@@ -90,6 +90,7 @@ function NotebookPageWithIdAndNotebook({
         onUpdate={refetch}
         onAiPanelToggle={setIsAiPanelOpen}
       />
+
       <div
         className={`flex flex-1 flex-col overflow-x-hidden pb-16 transition-all duration-200 lg:pb-0 ${
           isAiPanelOpen ? "lg:ml-[368px]" : "lg:ml-12"
