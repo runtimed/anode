@@ -9,18 +9,18 @@ import { LoadingState } from "../../loading/LoadingState.js";
 import { NotebookContent } from "../../notebook/NotebookContent.js";
 import { NotebookSidebar } from "../../notebook/NotebookSidebar.js";
 
-import { useIsMobile } from "@/hooks/use-mobile.js";
+import { useMinWidth } from "@/hooks/use-breakpoint.js";
 import { ChatModeProvider } from "@/hooks/useChatMode.js";
 import {
-  DragDropSortProvider,
   DragDropScrollArea,
+  DragDropSortProvider,
 } from "@/hooks/useDragDropCellSort.js";
+import { useConsoleRuntimeLauncher } from "../../../runtime/setup-console-launcher.js";
 import { Button } from "../../ui/button.js";
 import { SharingDialog } from "../SharingDialog.js";
 import type { NotebookProcessed } from "../types.js";
 import { useNavigateToCanonicalUrl, useNotebook } from "./helpers.js";
 import { NotebookHeader } from "./NotebookHeader.js";
-import { useConsoleRuntimeLauncher } from "../../../runtime/setup-console-launcher.js";
 
 export const NotebookPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -73,7 +73,7 @@ function NotebookPageWithIdAndNotebook({
 }) {
   useNavigateToCanonicalUrl(notebook);
 
-  const isMobile = useIsMobile();
+  const isLargeScreen = useMinWidth("lg");
   const [isSharingDialogOpen, setIsSharingDialogOpen] = useState(false);
   const [isAiPanelOpen, setIsAiPanelOpen] = useState(false);
   const nbContentScrollRef = useRef<HTMLDivElement>(null);
@@ -92,7 +92,7 @@ function NotebookPageWithIdAndNotebook({
       />
 
       <div
-        className={`flex flex-1 flex-col overflow-x-hidden pb-16 transition-all duration-200 lg:pb-0 ${
+        className={`flex flex-1 flex-col overflow-x-hidden pb-14 transition-all duration-200 lg:pb-0 ${
           isAiPanelOpen ? "lg:ml-[368px]" : "lg:ml-12"
         }`}
       >
@@ -112,17 +112,10 @@ function NotebookPageWithIdAndNotebook({
             </div>
           </DragDropScrollArea>
         </DragDropSortProvider>
-        {isScrolled && !isMobile && (
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => {
-              nbContentScrollRef.current?.scrollTo({ top: 0 });
-            }}
-            className="bg-background/50 absolute right-4 bottom-4 backdrop-blur-xs"
-          >
-            <ArrowUp />
-          </Button>
+        {isScrolled && isLargeScreen && (
+          <ScrollToTopButton
+            onClick={() => nbContentScrollRef.current?.scrollTo({ top: 0 })}
+          />
         )}
       </div>
 
@@ -132,6 +125,19 @@ function NotebookPageWithIdAndNotebook({
         onOpenChange={setIsSharingDialogOpen}
       />
     </div>
+  );
+}
+
+function ScrollToTopButton({ onClick }: { onClick: () => void }) {
+  return (
+    <Button
+      variant="outline"
+      size="icon"
+      onClick={onClick}
+      className="bg-background/50 animate-in fade-in-0 zoom-in-95 absolute right-4 bottom-1.5 z-50 backdrop-blur-xs"
+    >
+      <ArrowUp className="h-4 w-4" />
+    </Button>
   );
 }
 
