@@ -1,6 +1,6 @@
 {
   "name": "runt-ui",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "type": "module",
   "description": "The UI for Runtime Agents",
   "engines": {
