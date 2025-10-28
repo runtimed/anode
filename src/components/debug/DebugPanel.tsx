@@ -6,7 +6,13 @@ import { tables, events, queries } from "@runtimed/schema";
 import { schema } from "@runtimed/schema";
 import { Database } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Switch } from "@/components/ui/switch";
 import { trpcQueryClient } from "@/lib/trpc-client";
+import {
+  FeatureFlagKey,
+  useFeatureFlag,
+  useFeatureFlagContext,
+} from "@/contexts/FeatureFlagContext";
 
 const useAvailableTables = () => {
   return useQuery(
@@ -105,12 +111,40 @@ const inflightExecutionQueue$ = queryDb(
     .orderBy("id", "desc")
 );
 
+interface FeatureFlagToggleProps {
+  flagKey: FeatureFlagKey;
+}
+
+const FeatureFlagToggle = ({ flagKey }: FeatureFlagToggleProps) => {
+  const isEnabled = useFeatureFlag(flagKey);
+  const { setFlag } = useFeatureFlagContext();
+
+  const toggleFlag = () => {
+    setFlag(flagKey, !isEnabled);
+  };
+
+  return (
+    <div
+      className="cursor-default space-y-3 rounded-md border border-1 border-gray-200 p-2 transition-colors hover:bg-gray-100"
+      onClick={toggleFlag}
+    >
+      <div className="flex items-center justify-between">
+        <div>
+          <p className="text-sm font-medium text-gray-700">{flagKey}</p>
+        </div>
+        <Switch checked={isEnabled} onCheckedChange={toggleFlag} />
+      </div>
+    </div>
+  );
+};
+
 const DebugPanel: React.FC = () => {
   const { store } = useStore();
   const availableTables = useAvailableTables();
   const [buttonState, setButtonState] = useState<"default" | "success">(
     "default"
   );
+  const { allFlagKeys } = useFeatureFlagContext();
 
   const notebookMetadata = useQuery(queries.notebookMetadata$);
   const cellIds = useQuery(queries.cellIDs$);
@@ -130,6 +164,20 @@ const DebugPanel: React.FC = () => {
       </a>
 
       <div className="space-y-4 pt-4">
+        {/* Feature Flags */}
+        <div>
+          <h4 className="text-muted-foreground mb-2 text-xs font-medium tracking-wide uppercase">
+            Feature Flags ({allFlagKeys.length})
+          </h4>
+          <p className="text-muted-foreground mb-3 text-xs">
+            Persisted only for current browser session
+          </p>
+          <div className="space-y-1">
+            {allFlagKeys.map((flagKey) => (
+              <FeatureFlagToggle key={flagKey} flagKey={flagKey} />
+            ))}
+          </div>
+        </div>
         <DebugVersion />
         {/* Available Tables */}
         <div>

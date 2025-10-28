@@ -20,7 +20,9 @@ export type UserInfo = {
 
 // Queries for user presence and profile information from LiveStore
 const actorsQuery = queryDb(tables.actors);
-const presenceQuery = queryDb(tables.presence);
+const presenceQuery = queryDb(
+  tables.presence.select().orderBy("userId", "asc")
+);
 
 export const useUserRegistry = () => {
   // Fetch all actor profiles and presence data from LiveStore
@@ -109,7 +111,13 @@ export const useUserRegistry = () => {
 
   // Memoize presentUsers to prevent reference instability
   const presentUsers = useMemo(
-    () => presence.map((p) => getUserInfo(p.userId)),
+    () =>
+      presence
+        .map((p) => getUserInfo(p.userId))
+        .sort((a, b) => {
+          if (a.isAnonymous === b.isAnonymous) return 0;
+          return a.isAnonymous ? 1 : -1; // anonymous last
+        }),
     [presence, getUserInfo]
   );
 

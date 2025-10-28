@@ -11,6 +11,7 @@ const DEVELOPMENT_DEFAULTS: EnvConfig = {
   VITE_LIVESTORE_SYNC_URL: "ws://localhost:8787/livestore",
   VITE_IFRAME_OUTPUT_URI: "http://localhost:8000",
   VITE_AI_PROVIDER: "anaconda",
+  VITE_LS_DEV: "true",
 };
 
 const REQUIRED_ENV_VARS = Object.keys(DEVELOPMENT_DEFAULTS);

@@ -19,3 +19,8 @@ export const lastUsedAiProvider$ = queryDb(
     .first({ fallback: () => null }),
   { label: "notebook.lastUsedAiProvider" }
 );
+
+export const availableFiles$ = queryDb(
+  tables.files.select().where({ deletedAt: null }),
+  { label: "files.availableFiles" }
+);

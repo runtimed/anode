@@ -8,37 +8,39 @@ import { CellBetweener } from "./cell/CellBetweener.js";
 import { EmptyStateCellAdder } from "./EmptyStateCellAdder";
 import { contextSelectionMode$ } from "./signals/ai-context.js";
 import { focusedCellSignal$, hasManuallyFocused$ } from "./signals/focus.js";
+import { GripVerticalIcon } from "lucide-react";
+import { useDragDropCellSort } from "@/hooks/useDragDropCellSort";
 
 export const NotebookContent = () => {
   const { store } = useStore();
-  const cellReferences = useQuery(queries.cells$);
+  const cells = useQuery(queries.cells$);
 
   const focusedCellId = useQuery(focusedCellSignal$);
   const hasManuallyFocused = useQuery(hasManuallyFocused$);
 
   // Reset focus when focused cell changes or is removed
   React.useEffect(() => {
-    if (focusedCellId && !cellReferences.find((c) => c.id === focusedCellId)) {
+    if (focusedCellId && !cells.find((c) => c.id === focusedCellId)) {
       store.setSignal(focusedCellSignal$, null);
     }
-  }, [focusedCellId, cellReferences, store]);
+  }, [focusedCellId, cells, store]);
 
   // Focus first cell when notebook loads and has cells (but not after deletion)
   React.useEffect(() => {
-    if (!focusedCellId && cellReferences.length > 0 && !hasManuallyFocused) {
-      store.setSignal(focusedCellSignal$, cellReferences[0].id);
+    if (!focusedCellId && cells.length > 0 && !hasManuallyFocused) {
+      store.setSignal(focusedCellSignal$, cells[0].id);
       store.setSignal(hasManuallyFocused$, true);
     }
-  }, [focusedCellId, cellReferences, store, hasManuallyFocused]);
+  }, [focusedCellId, cells, store, hasManuallyFocused]);
 
   return (
     <>
-      {cellReferences.length === 0 ? (
+      {cells.length === 0 ? (
         <EmptyStateCellAdder />
       ) : (
         <>
           <ErrorBoundary fallback={<div>Error rendering cell list</div>}>
-            <CellList cells={cellReferences} />
+            <CellList cells={cells} />
           </ErrorBoundary>
           {/* Add Cell Buttons */}
           <div className="border-border/30 mt-6 border-t px-4 pt-4 sm:mt-8 sm:px-0 sm:pt-6">
@@ -60,24 +62,56 @@ interface CellListProps {
 }
 
 export const CellList: React.FC<CellListProps> = ({ cells }) => {
-  const focusedCellId = useQuery(focusedCellSignal$);
-  const contextSelectionMode = useQuery(contextSelectionMode$);
-
   return (
     <div style={{ paddingLeft: "1rem" }}>
-      {cells.map((cell, index) => (
-        <div key={cell.id}>
-          <ErrorBoundary fallback={<div>Error rendering cell</div>}>
-            {index === 0 && <CellBetweener cell={cell} position="before" />}
-            <Cell
-              cell={cell}
-              isFocused={cell.id === focusedCellId}
-              contextSelectionMode={contextSelectionMode}
-            />
-            <CellBetweener cell={cell} position="after" />
-          </ErrorBoundary>
-        </div>
-      ))}
+      <DragDropCellList cells={cells} />
     </div>
   );
 };
+
+function DragDropCellList({ cells }: { cells: readonly CellData[] }) {
+  const focusedCellId = useQuery(focusedCellSignal$);
+  const contextSelectionMode = useQuery(contextSelectionMode$);
+
+  const { draggingOverCell, draggingOverPosition, draggingCellId } =
+    useDragDropCellSort();
+
+  return cells.map((cell, index) => (
+    <div key={cell.id}>
+      <ErrorBoundary fallback={<div>Error rendering cell</div>}>
+        {index === 0 && (
+          <CellBetweener
+            isDraggingOver={
+              draggingOverCell === cell.id &&
+              draggingOverPosition === "before" &&
+              draggingCellId !== cell.id
+            }
+            cell={cell}
+            position="before"
+          />
+        )}
+        <Cell
+          cell={cell}
+          isFocused={cell.id === focusedCellId}
+          contextSelectionMode={contextSelectionMode}
+          dragHandle={
+            <div className="flex w-6 cursor-grab items-center justify-center transition-colors">
+              <GripVerticalIcon className="text-muted-foreground h-4 w-4" />
+            </div>
+          }
+        />
+        <CellBetweener
+          isDraggingOver={
+            (index < cells.length - 1 &&
+              draggingOverCell === cells[index + 1].id &&
+              draggingOverPosition === "before") ||
+            (draggingOverCell === cell.id && draggingOverPosition === "after")
+            // TODO: hide when dragging results in a move to the same cell
+          }
+          cell={cell}
+          position="after"
+        />
+      </ErrorBoundary>
+    </div>
+  ));
+}

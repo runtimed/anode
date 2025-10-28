@@ -19,6 +19,22 @@ export const tables = {
     },
   }),
 
+  files: State.SQLite.table({
+    name: "files",
+    columns: {
+      // Name should be a path-like string with forward slashes.
+      // We're using the name instead of of an artifactId as the ID because we want to prevent file name conflicts.
+      // If multiple files are uploaded with the same name, loading them into the filesystem will run into issues,
+      // but we can only resolve conflicts via `.onConflict` on one column, so we use the file name.
+      fileName: State.SQLite.text({ primaryKey: true }),
+      mimeType: State.SQLite.text(),
+      artifactId: State.SQLite.text(),
+      createdAt: State.SQLite.datetime({ nullable: true }),
+      createdBy: State.SQLite.text(),
+      deletedAt: State.SQLite.datetime({ nullable: true }),
+    },
+  }),
+
   presence: State.SQLite.table({
     name: "presence",
     columns: {

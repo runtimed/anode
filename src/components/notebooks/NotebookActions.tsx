@@ -104,10 +104,7 @@ export const NotebookActions: React.FC<NotebookActionsProps> = ({
             <Tag className="mr-2 h-4 w-4" />
             Manage Tags
           </DropdownMenuItem>
-          <DropdownMenuItem
-            onClick={handleDeleteClick}
-            className="text-red-600 focus:text-red-600"
-          >
+          <DropdownMenuItem variant="destructive" onClick={handleDeleteClick}>
             <Trash2 className="mr-2 h-4 w-4" />
             Delete
           </DropdownMenuItem>

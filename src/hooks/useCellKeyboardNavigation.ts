@@ -1,4 +1,5 @@
-import { KeyBinding } from "@codemirror/view";
+import { indentWithTab } from "@codemirror/commands";
+import { EditorView, KeyBinding } from "@codemirror/view";
 import { useCallback, useMemo } from "react";
 
 interface CellKeyboardNavigationOptions {
@@ -7,6 +8,8 @@ interface CellKeyboardNavigationOptions {
   onExecute?: () => void;
   onUpdateSource?: () => void;
   onDeleteCell?: () => void;
+  onOpenAiToolbar?: () => void;
+  onEmptyCellShiftTab?: () => void;
 }
 
 export const useCellKeyboardNavigation = ({
@@ -15,9 +18,24 @@ export const useCellKeyboardNavigation = ({
   onDeleteCell,
   onExecute,
   onUpdateSource,
+  onOpenAiToolbar,
+  onEmptyCellShiftTab,
 }: CellKeyboardNavigationOptions) => {
   const keyMap = useMemo(() => {
     const map: KeyBinding[] = [
+      {
+        key: "Tab",
+        shift: (target: EditorView) => {
+          const cursorPos = target.state.selection.main.head;
+          if (cursorPos === 0) {
+            onEmptyCellShiftTab?.();
+            return true;
+          }
+          return false;
+        },
+      },
+      // NOTE: put custom tab behavior above this line since `indentWithTab` prevents any subsequent keybindings from being applied
+      indentWithTab,
       {
         mac: "Meta-Enter",
         win: "Ctrl-Enter",
@@ -78,9 +96,24 @@ export const useCellKeyboardNavigation = ({
           return false;
         },
       },
+      {
+        key: "Ctrl-m",
+        shift: () => {
+          onOpenAiToolbar?.();
+          return true;
+        },
+      },
     ];
     return map;
-  }, [onExecute, onFocusNext, onFocusPrevious, onDeleteCell, onUpdateSource]);
+  }, [
+    onExecute,
+    onFocusNext,
+    onFocusPrevious,
+    onDeleteCell,
+    onUpdateSource,
+    onOpenAiToolbar,
+    onEmptyCellShiftTab,
+  ]);
 
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent<HTMLElement>) => {

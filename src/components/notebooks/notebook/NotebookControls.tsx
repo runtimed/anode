@@ -1,4 +1,4 @@
-import { useAuthenticatedUser } from "@/auth/index.js";
+import { useTrpc } from "@/components/TrpcProvider";
 import { Button } from "@/components/ui/button";
 import { useConfirm } from "@/components/ui/confirm";
 import {
@@ -8,26 +8,33 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { useDuplicateNotebook } from "@/hooks/useDuplicateNotebook";
+import { useMutation } from "@tanstack/react-query";
+import { CopyPlus, MoreHorizontal, Plus, Trash2 } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { toast } from "sonner";
+import { useCreateNotebookAndNavigate } from "../dashboard/helpers";
+import type { NotebookProcessed } from "../types";
+
+import { useAuthenticatedUser } from "@/auth/index.js";
 import { Spinner } from "@/components/ui/Spinner";
 import { useRuntimeHealth } from "@/hooks/useRuntimeHealth";
 import { generateQueueId } from "@/util/queue-id";
 import { useQuery, useStore } from "@livestore/react";
 import { events, queries, queryDb, tables } from "@runtimed/schema";
-import {
-  Eraser,
-  MoreHorizontal,
-  Play,
-  Square,
-  Trash,
-  Undo2,
-} from "lucide-react";
+import { Eraser, Play, Square, Undo2 } from "lucide-react";
 import { useCallback } from "react";
-import { toast } from "sonner";
+import { useDebug } from "@/components/debug/debug-mode";
 
-export function NotebookControls() {
+export function NotebookControls({
+  notebook,
+}: {
+  notebook: NotebookProcessed;
+}) {
   const { confirm } = useConfirm();
   const { store } = useStore();
   const userId = useAuthenticatedUser();
+  const debug = useDebug();
 
   const cellQueue = useQuery(
     queryDb(
@@ -66,7 +73,7 @@ export function NotebookControls() {
             </span>
           </span>
           <Button variant="outline" size="sm" onClick={handleCancelAll}>
-            <Square className="mr-2 h-4 w-4" />
+            <Square />
             Stop All
           </Button>
         </>
@@ -80,17 +87,17 @@ export function NotebookControls() {
         <DropdownMenuContent align="end">
           {cellQueue.length > 0 ? (
             <DropdownMenuItem onClick={handleCancelAll}>
-              <Square className="mr-2 h-4 w-4" />
+              <Square />
               Stop All
             </DropdownMenuItem>
           ) : (
             <>
               <DropdownMenuItem onClick={runAllCells}>
-                <Play className="mr-2 h-4 w-4" />
+                <Play />
                 Run All Code Cells
               </DropdownMenuItem>
               <DropdownMenuItem onClick={restartAndRunAllCells}>
-                <span className="relative mr-2">
+                <span className="relative">
                   <Play className="h-4 w-4" />
                   <Undo2
                     className="absolute bottom-0 left-0 size-3 -translate-x-[3px] translate-y-[3px] rounded-full bg-white p-[1px] text-gray-700"
@@ -101,28 +108,121 @@ export function NotebookControls() {
               </DropdownMenuItem>
             </>
           )}
-          <DropdownMenuSeparator />
           <DropdownMenuItem onClick={handleClearAll}>
-            <Eraser className="mr-2 h-4 w-4" />
+            <Eraser />
             Clear All Outputs
           </DropdownMenuItem>
-          <DropdownMenuItem
-            onClick={() =>
-              confirm({
-                title: "Delete All Cells",
-                description: "Are you sure you want to delete all cells?",
-                onConfirm: deleteAllCells,
-                actionButtonText: "Delete All Cells",
-              })
-            }
-            className="text-red-600 focus:text-red-600"
-          >
-            <Trash className="mr-2 h-4 w-4" />
-            Delete All Cells
-          </DropdownMenuItem>
+          <DropdownMenuSeparator />
+          <CreateNotebookAction />
+          <DuplicateAction notebook={notebook} />
+          <DropdownMenuSeparator />
+          {debug.enabled && (
+            <DropdownMenuItem
+              variant="destructive"
+              onClick={() =>
+                confirm({
+                  title: "Delete All Cells",
+                  description: "Are you sure you want to delete all cells?",
+                  onConfirm: deleteAllCells,
+                  actionButtonText: "Delete All Cells",
+                })
+              }
+            >
+              <Trash2 />
+              DEBUG: Delete All Cells
+            </DropdownMenuItem>
+          )}
+          <DeleteAction notebook={notebook} />
         </DropdownMenuContent>
       </DropdownMenu>
     </div>
+  );
+}
+
+function CreateNotebookAction() {
+  const createNotebookAndNavigate = useCreateNotebookAndNavigate();
+
+  return (
+    <DropdownMenuItem onSelect={createNotebookAndNavigate}>
+      <Plus />
+      Create New Notebook
+    </DropdownMenuItem>
+  );
+}
+
+function DuplicateAction({ notebook }: { notebook: NotebookProcessed }) {
+  const { duplicateNotebook, isDuplicating } = useDuplicateNotebook();
+  const { confirm } = useConfirm();
+
+  const handleDuplicateNotebook = async () => {
+    confirm({
+      title: "Duplicate Notebook",
+      description: `Please confirm that you want to duplicate "${notebook.title || "Untitled Notebook"}".`,
+      onConfirm: handleDuplicateNotebookConfirm,
+      nonDestructive: true,
+    });
+  };
+
+  const handleDuplicateNotebookConfirm = async () => {
+    try {
+      await duplicateNotebook(notebook.title || "Untitled Notebook");
+    } catch (error) {
+      toast.error("Failed to duplicate notebook");
+    }
+  };
+
+  return (
+    <DropdownMenuItem
+      onSelect={handleDuplicateNotebook}
+      disabled={isDuplicating}
+    >
+      <CopyPlus />
+      {isDuplicating ? "Duplicating..." : "Duplicate Notebook"}
+    </DropdownMenuItem>
+  );
+}
+
+function DeleteAction({ notebook }: { notebook: NotebookProcessed }) {
+  const trpc = useTrpc();
+  const { confirm } = useConfirm();
+
+  const navigate = useNavigate();
+
+  // Delete notebook mutation
+  const deleteNotebookMutation = useMutation(
+    trpc.deleteNotebook.mutationOptions()
+  );
+
+  const handleDeleteNotebook = async () => {
+    confirm({
+      title: "Delete Notebook",
+      description: `Please confirm that you want to delete "${notebook.title || "Untitled Notebook"}".`,
+      onConfirm: handleDeleteConfirm,
+    });
+  };
+
+  const handleDeleteConfirm = async () => {
+    try {
+      await deleteNotebookMutation.mutateAsync({
+        nbId: notebook.id,
+      });
+
+      toast.success("Notebook deleted successfully");
+      navigate("/nb");
+
+      // Call onUpdate to refresh the notebook list
+      // onUpdate?.();
+    } catch (error) {
+      console.error("Failed to delete notebook:", error);
+      toast.error("Failed to delete notebook");
+    }
+  };
+
+  return (
+    <DropdownMenuItem variant="destructive" onSelect={handleDeleteNotebook}>
+      <Trash2 />
+      Delete Notebook
+    </DropdownMenuItem>
   );
 }
 

@@ -16,7 +16,7 @@ export type {
   RuntimeCapabilities,
 } from "./types.ts";
 
-export type { LoggerConfig } from "./logging.ts";
+export type { LoggerConfig, LogLevelValue } from "./logging.ts";
 
 // Artifact service client for submitting artifacts to anode
 export {

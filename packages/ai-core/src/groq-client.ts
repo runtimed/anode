@@ -59,12 +59,13 @@ Groq API key not found. Please set \`GROQ_API_KEY\` environment variable.`;
         name: "gemma2-9b-it",
         displayName: "Gemma 2 9B",
         capabilities: ["completion", "tools"],
+        decomissioned: true,
       },
       {
         provider: "groq",
         name: "groq/compound-mini",
         displayName: "Groq Compound Mini",
-        capabilities: ["completion", "tools", "thinking"],
+        capabilities: ["completion", "thinking"],
       },
       {
         provider: "groq",
@@ -92,12 +93,6 @@ Groq API key not found. Please set \`GROQ_API_KEY\` environment variable.`;
       },
       {
         provider: "groq",
-        name: "deepseek-r1-distill-llama-70b",
-        displayName: "DeepSeek R1 Distill Llama 70B",
-        capabilities: ["completion", "tools", "thinking"],
-      },
-      {
-        provider: "groq",
         name: "llama-3.3-70b-versatile",
         displayName: "Llama 3.3 70B Versatile",
         capabilities: ["completion", "tools", "thinking"],
@@ -106,7 +101,7 @@ Groq API key not found. Please set \`GROQ_API_KEY\` environment variable.`;
         provider: "groq",
         name: "allam-2-7b",
         displayName: "Allam 2 7B",
-        capabilities: ["completion", "tools"],
+        capabilities: ["completion"],
       },
     ];
     return Promise.resolve(groqModels);

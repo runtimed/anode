@@ -18,7 +18,7 @@ import { useStore } from "@livestore/react";
 import { focusedCellSignal$, hasManuallyFocused$ } from "../signals/focus.js";
 import { events, tables, queries, CellTypeNoRaw } from "@runtimed/schema";
 import { ChevronDown, ChevronUp } from "lucide-react";
-import React, { useCallback, useEffect, useRef } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import { ErrorBoundary } from "react-error-boundary";
 import { CellContainer } from "./shared/CellContainer.js";
 import { CellControls } from "./shared/CellControls.js";
@@ -43,6 +43,7 @@ import { useToolApprovals } from "@/hooks/useToolApprovals.js";
 import { AiToolApprovalOutput } from "../../outputs/shared-with-iframe/AiToolApprovalOutput.js";
 import { cn } from "@/lib/utils.js";
 import { generateQueueId } from "@/util/queue-id.js";
+import { cycleCellType } from "@/util/cycle-cell-type.js";
 
 // Cell-specific styling configuration
 const getCellStyling = (cellType: "code" | "sql" | "ai") => {
@@ -69,12 +70,14 @@ interface ExecutableCellProps {
   cell: typeof tables.cells.Type;
   autoFocus?: boolean;
   contextSelectionMode?: boolean;
+  dragHandle?: React.ReactNode;
 }
 
 export const ExecutableCell: React.FC<ExecutableCellProps> = ({
   cell,
   autoFocus = false,
   contextSelectionMode = false,
+  dragHandle,
 }) => {
   const hasRunRef = useRef(false);
   const cellRef = useRef<HTMLDivElement>(null);
@@ -85,6 +88,9 @@ export const ExecutableCell: React.FC<ExecutableCellProps> = ({
     unregisterEditor,
     focusCell: registryFocusCell,
   } = useEditorRegistry();
+
+  // TODO: ideally, we'd not be tracking state in the cell component, but in the toolbar component
+  const [openAiToolbar, setOpenAiToolbar] = useState(false);
 
   const { handleDeleteCell } = useDeleteCell(cell.id);
   const { addCell } = useAddCell();
@@ -98,7 +104,7 @@ export const ExecutableCell: React.FC<ExecutableCellProps> = ({
   } = useMoveCell(cell.id);
 
   const userId = useAuthenticatedUser();
-  const { getUsersOnCell, getUserColor } = useUserRegistry();
+  const { getUsersOnCell, getUserColor, getUserInfo } = useUserRegistry();
   const activeRuntime = useActiveRuntime();
   const detectedRuntimeType = useDetectedRuntimeType();
   const { ensureRuntime, status: autoLaunchStatus } = useAutoLaunchRuntime({
@@ -313,7 +319,9 @@ export const ExecutableCell: React.FC<ExecutableCellProps> = ({
     onFocusPrevious,
     onDeleteCell: () => handleDeleteCell("keyboard"),
     onExecute: executeCell,
+    onOpenAiToolbar: () => setOpenAiToolbar(true),
     onUpdateSource: updateSource,
+    onEmptyCellShiftTab: () => changeCellType(cycleCellType(cell.cellType)),
   });
 
   const handleFocus = useCallback(() => {
@@ -376,41 +384,42 @@ export const ExecutableCell: React.FC<ExecutableCellProps> = ({
     >
       {/* Cell Header */}
       {!isSourceLessAiOutput && (
-        <div className="cell-header flex items-center justify-between pr-1 pb-2 pl-6 sm:pr-4">
-          <div className="flex items-center gap-3">
+        <div className="cell-header flex items-center justify-between pr-1 pb-2 pl-4 sm:pr-4">
+          <div className="flex items-center gap-1">
+            {dragHandle}
             <CellTypeSelector cell={cell} onCellTypeChange={changeCellType} />
 
             {/* Cell-type-specific toolbars */}
             {cell.cellType === "code" && <CodeToolbar />}
             {cell.cellType === "ai" && (
               <AiToolbar
+                open={openAiToolbar}
+                onOpenChange={setOpenAiToolbar}
                 provider={cell.aiProvider || "openai"}
                 model={cell.aiModel || "gpt-4o-mini"}
                 onProviderChange={(newProvider: string, newModel: string) => {
+                  registryFocusCell(cell.id, "end");
                   store.commit(
-                    events.aiSettingsChanged({
-                      cellId: cell.id,
-                      provider: newProvider,
-                      model: newModel,
-                      settings: {
-                        temperature: 0.7,
-                        maxTokens: 1000,
-                      },
-                    })
-                  );
-
-                  // Save the last used AI model to notebook metadata for future AI cells
-                  store.commit(
-                    events.notebookMetadataSet({
-                      key: "lastUsedAiProvider",
-                      value: newProvider,
-                    })
-                  );
-                  store.commit(
-                    events.notebookMetadataSet({
-                      key: "lastUsedAiModel",
-                      value: newModel,
-                    })
+                    ...[
+                      events.aiSettingsChanged({
+                        cellId: cell.id,
+                        provider: newProvider,
+                        model: newModel,
+                        settings: {
+                          temperature: 0.7,
+                          maxTokens: 1000,
+                        },
+                      }),
+                      // Save the last used AI model to notebook metadata for future AI cells
+                      events.notebookMetadataSet({
+                        key: "lastUsedAiProvider",
+                        value: newProvider,
+                      }),
+                      events.notebookMetadataSet({
+                        key: "lastUsedAiModel",
+                        value: newModel,
+                      }),
+                    ]
                   );
                 }}
               />
@@ -439,10 +448,13 @@ export const ExecutableCell: React.FC<ExecutableCellProps> = ({
             )}
 
             <ExecutionStatus executionState={cell.executionState} />
-            <PresenceBookmarks
-              usersOnCell={usersOnCell}
-              getUserColor={getUserColor}
-            />
+            <ErrorBoundary FallbackComponent={() => null}>
+              <PresenceBookmarks
+                usersOnCell={usersOnCell}
+                getUserColor={getUserColor}
+                getUserInfo={getUserInfo}
+              />
+            </ErrorBoundary>
           </div>
 
           <CellControls
@@ -597,6 +609,8 @@ export const ExecutableCell: React.FC<ExecutableCellProps> = ({
 
       <ErrorBoundary FallbackComponent={OutputsErrorBoundary}>
         <MaybeCellOutputs
+          cellId={cell.id}
+          cellType={cell.cellType}
           isLoading={cell.executionState === "running" && !hasOutputs}
           outputs={hasOutputs ? outputs : staleOutputs}
           showOutput={showOutput}

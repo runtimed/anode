@@ -98,6 +98,27 @@
   --color-sidebar-ring: var(--sidebar-ring);
 }
 
+/*
+Breakpoints taken from:
+https://tailwindcss.com/docs/theme#:~:text=%2D%2Dbreakpoint%2Dsm%3A%2040,%3A%2048rem%3B
+Tailwind breakpoints don't show up as CSS vars unless they're explicity defined.
+*/
+:root {
+  --breakpoint-sm: 40rem;
+  --breakpoint-md: 48rem;
+  --breakpoint-lg: 64rem;
+  --breakpoint-xl: 80rem;
+  --breakpoint-2xl: 96rem;
+  --sidebar: hsl(0 0% 98%);
+  --sidebar-foreground: hsl(240 5.3% 26.1%);
+  --sidebar-primary: hsl(240 5.9% 10%);
+  --sidebar-primary-foreground: hsl(0 0% 98%);
+  --sidebar-accent: hsl(240 4.8% 95.9%);
+  --sidebar-accent-foreground: hsl(240 5.9% 10%);
+  --sidebar-border: hsl(220 13% 91%);
+  --sidebar-ring: hsl(217.2 91.2% 59.8%);
+}
+
 :root {
   --radius: 0.625rem;
   --background: oklch(1 0 0);
@@ -180,11 +201,11 @@
 @layer utilities {
   /* Touch device styles (regardless of screen size) */
   @media (hover: none) and (pointer: coarse) {
-    /* Make buttons more touch-friendly */
-    button {
+    /* Make buttons more touch-friendly, commenting out for now because it breaks some UI */
+    /* button {
       min-height: 44px;
       min-width: 44px;
-    }
+    } */
 
     /* Improve textarea touch experience - only apply large font on mobile Safari */
     @supports (-webkit-touch-callout: none) {

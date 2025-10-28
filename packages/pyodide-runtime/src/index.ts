@@ -25,6 +25,7 @@ import {
   LocalRuntimeAgent,
   type LocalRuntimeConfig,
 } from "./LocalRuntimeAgent.ts";
+import { logger } from "@runtimed/agent-core";
 
 import {
   ensureTextPlainFallback,
@@ -41,6 +42,7 @@ import {
   KNOWN_MIME_TYPES,
   type KnownMimeType,
   maxAiIterations$,
+  tables,
 } from "@runtimed/schema";
 
 // Type guard for objects with string indexing
@@ -51,8 +53,6 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 function hasDataProperty(value: unknown): value is { data: unknown } {
   return isRecord(value) && "data" in value;
 }
-
-const logger = console;
 
 export class PyodideRuntimeAgent extends LocalRuntimeAgent {
   private worker: Worker | null = null;
@@ -76,6 +76,11 @@ export class PyodideRuntimeAgent extends LocalRuntimeAgent {
 
   constructor(config: LocalRuntimeConfig) {
     super(config);
+
+    // Configure logger if logging config is provided
+    if (config.logging) {
+      logger.configure(config.logging);
+    }
   }
 
   private async processExecutionQueue(): Promise<void> {
@@ -255,6 +260,20 @@ export class PyodideRuntimeAgent extends LocalRuntimeAgent {
 
     // Initialize Pyodide worker
     await this.initializePyodideWorker();
+
+    // Send uploaded files to worker
+    if (this.agent) {
+      const agent = this.agent;
+
+      const files = agent.store.query(tables.files.select());
+      if (files.length > 0) {
+        this.sendWorkerMessage("files", { files });
+      }
+
+      this.agent.onFilesUpload((files) => {
+        this.sendWorkerMessage("files", { files });
+      });
+    }
 
     // Expose runtime agent globally for debugging
     globalThis.__PYODIDE_RUNTIME_AGENT__ = this;
@@ -584,15 +603,18 @@ export class PyodideRuntimeAgent extends LocalRuntimeAgent {
         this.handleWorkerMessage.bind(this)
       );
       this.worker.addEventListener("error", (error) => {
-        logger.error("Worker error", {
-          message: error.message || "Unknown worker error",
-          filename: error.filename,
-          lineno: error.lineno,
-        });
+        logger.error(
+          "Worker error",
+          new Error(error.message || "Unknown worker error"),
+          {
+            filename: error.filename,
+            lineno: error.lineno,
+          }
+        );
         this.handleWorkerCrash("Worker error event");
       });
       this.worker.addEventListener("messageerror", (error) => {
-        logger.error("Worker message error", {
+        logger.error("Worker message error", undefined, {
           type: error.type,
           data: error.data,
         });
@@ -615,9 +637,7 @@ export class PyodideRuntimeAgent extends LocalRuntimeAgent {
 
       logger.info("Pyodide worker initialized successfully");
     } catch (error) {
-      logger.error("Failed to initialize Pyodide worker", {
-        error: error instanceof Error ? error.message : String(error),
-      });
+      logger.error("Failed to initialize Pyodide worker", error);
       throw error;
     }
   }
@@ -626,11 +646,11 @@ export class PyodideRuntimeAgent extends LocalRuntimeAgent {
    * Handle worker crash and cleanup
    */
   private handleWorkerCrash(reason: string): void {
-    logger.error("Uncaught error", { error: "null" });
+    logger.error("Uncaught error", new Error(reason));
 
     // Reject all pending executions
     for (const [id, pending] of this.pendingExecutions) {
-      logger.error(`Rejected execution ${id}: ${reason}`);
+      logger.error(`Rejected execution ${id}: ${reason}`, new Error(reason));
       pending.reject(new Error(`Worker crashed: ${reason}`));
     }
     this.pendingExecutions.clear();
@@ -710,6 +730,42 @@ export class PyodideRuntimeAgent extends LocalRuntimeAgent {
 
 /**
  * Factory function to create and start a runtime agent with AI capabilities
+ *
+ * @example
+ * // Create agent with default logging (INFO level, console enabled)
+ * const agent = await createAgent({
+ *   store,
+ *   authToken,
+ *   notebookId,
+ *   userId,
+ * });
+ *
+ * @example
+ * // Create agent with debug logging enabled
+ * const agent = await createAgent({
+ *   store,
+ *   authToken,
+ *   notebookId,
+ *   userId,
+ *   logging: {
+ *     level: 0, // DEBUG level
+ *     console: true,
+ *     service: "my-pyodide-runtime"
+ *   }
+ * });
+ *
+ * @example
+ * // Create agent with logging completely disabled
+ * const agent = await createAgent({
+ *   store,
+ *   authToken,
+ *   notebookId,
+ *   userId,
+ *   logging: {
+ *     level: 3, // ERROR level (quiet)
+ *     console: false,
+ *   }
+ * });
  */
 export async function createAgent(
   config: LocalRuntimeConfig
