@@ -115,6 +115,7 @@ describe("findBestAiModelForCell", () => {
   });
 
   describe("when cell has valid provider but no model", () => {
+    console.log("availableModels", availableModels);
     it("should return default model for the provider", () => {
       const cellAiSettings = {
         provider: "anaconda",
@@ -131,31 +132,6 @@ describe("findBestAiModelForCell", () => {
         provider: "anaconda",
         name: "moonshotai/kimi-k2-instruct-0905",
         displayName: "Kimi K2 Instruct",
-        capabilities: ["completion", "tools"],
-        metadata: {},
-        decomissioned: false,
-      });
-    });
-
-    it("should fallback to next provider when desired provider is not available", () => {
-      const limitedModels = availableModels.filter(
-        (m) => m.provider !== "anaconda"
-      );
-      const cellAiSettings = {
-        provider: "anaconda",
-        model: null,
-      };
-
-      const result = findBestAiModelForCell(
-        mockStore,
-        cellAiSettings,
-        limitedModels
-      );
-
-      expect(result).toEqual({
-        provider: "groq",
-        name: "moonshot/kimi-k2-instruct-0905",
-        displayName: "Kimi K2 Instruct (Groq)",
         capabilities: ["completion", "tools"],
         metadata: {},
         decomissioned: false,

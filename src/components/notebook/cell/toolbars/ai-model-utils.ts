@@ -71,17 +71,13 @@ export function findBestAiModelForCell(
     arrayIncludes(providerPreferenceOrder, cellAiSettings.provider) &&
     !cellAiSettings.model
   ) {
-    let modelName = DEFAULT_MODELS[cellAiSettings.provider];
-    let model = findModel(cellAiSettings.provider, modelName, availableModels);
-    while (!model) {
-      const nextProvider = providerPreferenceOrder.find(
-        (p) => p !== cellAiSettings.provider
-      );
-      if (!nextProvider) continue;
-      modelName = DEFAULT_MODELS[nextProvider];
-      model = findModel(nextProvider, modelName, availableModels);
-      if (model) return model;
-    }
+    const modelName = DEFAULT_MODELS[cellAiSettings.provider];
+    const model = findModel(
+      cellAiSettings.provider,
+      modelName,
+      availableModels
+    );
+    if (model) return model;
   }
 
   // Has cell model but no cell provider
