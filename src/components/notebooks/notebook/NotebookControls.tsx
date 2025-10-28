@@ -17,16 +17,16 @@ import { useCreateNotebookAndNavigate } from "../dashboard/helpers";
 import type { NotebookProcessed } from "../types";
 
 import { useAuthenticatedUser } from "@/auth/index.js";
+import { useDebug } from "@/components/debug/debug-mode";
 import { Spinner } from "@/components/ui/Spinner";
+import { useFeatureFlag } from "@/contexts/FeatureFlagContext";
 import { useRuntimeHealth } from "@/hooks/useRuntimeHealth";
+import { runningCells$ } from "@/queries";
 import { generateQueueId } from "@/util/queue-id";
 import { useQuery, useStore } from "@livestore/react";
-import { CellData, events, queries, queryDb, tables } from "@runtimed/schema";
+import { CellData, events, queries } from "@runtimed/schema";
 import { Eraser, Play, Square, Undo2 } from "lucide-react";
 import { useCallback } from "react";
-import { useDebug } from "@/components/debug/debug-mode";
-import { useFeatureFlag } from "@/contexts/FeatureFlagContext";
-import { runningCells$ } from "@/queries";
 
 export function NotebookControls({
   notebook,
