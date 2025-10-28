@@ -131,7 +131,7 @@ class AIProviderRegistry {
             apiKey,
             baseURL: "https://anaconda.com/api/assistant/v3/groq",
             defaultHeaders: {
-              "X-Client-Version": "0.2.0",
+              "X-Client-Version": "0.3.0",
               "X-Client-Source": "anaconda-runt-dev",
             },
           })
