@@ -101,17 +101,3 @@ export const cells$ = queryDb(
   tables.cells.select().orderBy("fractionalIndex", "asc"),
   { label: "notebook.cells" }
 );
-
-// TODO: if we want to keep the AI filter, we should update all call sites of `cellsWithIndices$` with this one
-export const cellsFilterAi$ = ({
-  filterOutAiCells,
-}: {
-  filterOutAiCells: boolean;
-}) =>
-  queryDb(
-    tables.cells
-      .select()
-      .where(filterOutAiCells ? { cellType: { op: "!=", value: "ai" } } : {})
-      .orderBy("fractionalIndex", "asc"),
-    { label: `notebook.cells.${filterOutAiCells ? "noAi" : "all"}` }
-  );
