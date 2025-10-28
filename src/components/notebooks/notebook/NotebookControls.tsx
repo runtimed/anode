@@ -21,7 +21,7 @@ import { useDebug } from "@/components/debug/debug-mode";
 import { Spinner } from "@/components/ui/Spinner";
 import { useFeatureFlag } from "@/contexts/FeatureFlagContext";
 import { useRuntimeHealth } from "@/hooks/useRuntimeHealth";
-import { runningCells$ } from "@/queries";
+import { runnableCellsWithIndices$, runningCells$ } from "@/queries";
 import { generateQueueId } from "@/util/queue-id";
 import { useQuery, useStore } from "@livestore/react";
 import { CellData, events, queries } from "@runtimed/schema";
@@ -282,7 +282,7 @@ function useDeleteAllCells() {
 
 function useRunAllCells() {
   const { store } = useStore();
-  const cells = useQuery(queries.runnableCellsWithIndices$);
+  const cells = useQuery(runnableCellsWithIndices$);
   const userId = useAuthenticatedUser();
 
   const runAllCells = useCallback(() => {

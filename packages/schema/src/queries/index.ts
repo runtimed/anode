@@ -18,14 +18,6 @@ export const cellReferences$ = queryDb(
   { label: "notebook.cellReferences" }
 );
 
-export const runnableCellsWithIndices$ = queryDb(
-  tables.cells
-    .select("id", "fractionalIndex", "cellType", "executionCount")
-    .where({ cellType: { op: "IN", value: ["code", "sql"] } })
-    .orderBy("fractionalIndex", "asc"),
-  { label: "cells.withIndices.runnable" }
-);
-
 // @deprecated Use cellReferences$ instead
 export const cellList$ = cellReferences$;
 

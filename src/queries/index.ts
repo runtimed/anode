@@ -25,6 +25,14 @@ export const availableFiles$ = queryDb(
   { label: "files.availableFiles" }
 );
 
+export const runnableCellsWithIndices$ = queryDb(
+  tables.cells
+    .select("id", "fractionalIndex", "cellType", "executionCount")
+    .where({ cellType: { op: "IN", value: ["code", "sql"] } })
+    .orderBy("fractionalIndex", "asc"),
+  { label: "cells.withIndices.runnable" }
+);
+
 export const runningCells$ = queryDb(
   tables.cells
     .select()
