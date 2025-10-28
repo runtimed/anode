@@ -293,6 +293,7 @@ export const ExecutableCell: React.FC<ExecutableCellProps> = ({
     setStaleOutputs,
     outputs,
     ensureRuntime,
+    userSavedPromptEnabled,
   ]);
 
   const { interruptExecution: interruptCell } = useInterruptExecution({
