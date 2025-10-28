@@ -15,6 +15,7 @@ import { useAutoLaunchRuntime } from "@/hooks/useAutoLaunchRuntime.js";
 import { useDetectedRuntimeType } from "@/hooks/useNotebookRuntimeType.js";
 
 import { useStore } from "@livestore/react";
+import { useQuery as useTanstackQuery } from "@tanstack/react-query";
 import { focusedCellSignal$, hasManuallyFocused$ } from "../signals/focus.js";
 import { events, tables, queries, CellTypeNoRaw } from "@runtimed/schema";
 import { ChevronDown, ChevronUp } from "lucide-react";
@@ -43,7 +44,9 @@ import { useToolApprovals } from "@/hooks/useToolApprovals.js";
 import { AiToolApprovalOutput } from "../../outputs/shared-with-iframe/AiToolApprovalOutput.js";
 import { cn } from "@/lib/utils.js";
 import { generateQueueId } from "@/util/queue-id.js";
+import { useTrpc } from "@/components/TrpcProvider.js";
 import { cycleCellType } from "@/util/cycle-cell-type.js";
+import { useFeatureFlag } from "@/contexts/FeatureFlagContext.js";
 
 // Cell-specific styling configuration
 const getCellStyling = (cellType: "code" | "sql" | "ai") => {
@@ -79,10 +82,18 @@ export const ExecutableCell: React.FC<ExecutableCellProps> = ({
   contextSelectionMode = false,
   dragHandle,
 }) => {
+  const userSavedPromptEnabled = useFeatureFlag("user-saved-prompt");
+  const trpc = useTrpc();
+  const { store } = useStore();
+
+  const { data: savedPrompt } = useTanstackQuery({
+    ...trpc.getSavedPrompt.queryOptions(),
+    enabled: userSavedPromptEnabled && autoFocus && cell.cellType === "ai",
+  });
+
   const hasRunRef = useRef(false);
   const cellRef = useRef<HTMLDivElement>(null);
 
-  const { store } = useStore();
   const {
     registerEditor,
     unregisterEditor,
@@ -217,6 +228,15 @@ export const ExecutableCell: React.FC<ExecutableCellProps> = ({
       // Save old outputs to be shown while new ones are being generated
       setStaleOutputs(outputs);
 
+      if (userSavedPromptEnabled) {
+        store.commit(
+          events.notebookMetadataSet({
+            key: "user_saved_prompt",
+            value: savedPrompt?.prompt || "",
+          })
+        );
+      }
+
       // Clear previous outputs before generating new ones
       store.commit(
         events.cellOutputsCleared({
@@ -261,6 +281,7 @@ export const ExecutableCell: React.FC<ExecutableCellProps> = ({
       );
     }
   }, [
+    savedPrompt?.prompt,
     cell.id,
     localSource,
     cell.source,
@@ -270,6 +291,7 @@ export const ExecutableCell: React.FC<ExecutableCellProps> = ({
     setStaleOutputs,
     outputs,
     ensureRuntime,
+    userSavedPromptEnabled,
   ]);
 
   const { interruptExecution: interruptCell } = useInterruptExecution({
