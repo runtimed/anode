@@ -115,7 +115,6 @@ describe("findBestAiModelForCell", () => {
   });
 
   describe("when cell has valid provider but no model", () => {
-    console.log("availableModels", availableModels);
     it("should return default model for the provider", () => {
       const cellAiSettings = {
         provider: "anaconda",
