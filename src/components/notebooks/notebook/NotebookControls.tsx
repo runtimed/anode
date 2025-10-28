@@ -41,17 +41,25 @@ export function NotebookControls({
   const cellQueue = useQuery(runningCells$);
 
   const handleCancelAll = useCallback(() => {
+    if (!allowBulkNotebookControls) {
+      toast.info("Bulk notebook controls are not enabled");
+      return;
+    }
     if (cellQueue.length === 0) {
       toast.info("No cells to stop");
       return;
     }
     store.commit(events.allExecutionsCancelled());
     toast.info("Cancelled all executions");
-  }, [store, cellQueue]);
+  }, [store, cellQueue, allowBulkNotebookControls]);
 
   const handleClearAllOutputs = useCallback(() => {
+    if (!allowBulkNotebookControls) {
+      toast.info("Bulk notebook controls are not enabled");
+      return;
+    }
     store.commit(events.allOutputsCleared({ clearedBy: userId }));
-  }, [store, userId]);
+  }, [store, userId, allowBulkNotebookControls]);
 
   return (
     <div className="flex items-center gap-2">
