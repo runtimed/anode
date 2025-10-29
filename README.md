@@ -287,6 +287,7 @@ We're building this in the open and welcome experimentation:
 **🌟 Real-World Usage**
 
 Use In the Loop for actual data science work
+
 - Report issues and workflow friction
 - Share feedback on collaboration features
 
