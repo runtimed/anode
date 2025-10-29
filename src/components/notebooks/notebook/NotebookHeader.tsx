@@ -12,9 +12,9 @@ import {
 import { Button } from "../../ui/button.js";
 import { SimpleUserProfile } from "../SimpleUserProfile.js";
 import type { NotebookProcessed } from "../types.js";
+import { NotebookControls } from "./NotebookControls.js";
 import { TitleEditor } from "./TitleEditor.js";
 import { useTitle } from "react-use";
-import { NotebookControls } from "./NotebookControls.js";
 
 export function NotebookHeader({
   notebook,
