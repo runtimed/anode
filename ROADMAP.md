@@ -1,4 +1,4 @@
-# Anode Development Roadmap
+# In the Loop Development Roadmap
 
 **Vision**: A real-time collaborative notebook system enabling seamless AI ↔ Python ↔ User interactions through local-first architecture.
 
@@ -61,7 +61,7 @@ Users can create notebooks, execute Python code, collaborate in real-time, use A
 
 **Finalize Branding** (#448):
 
-- Decide between runtimed/anode/runt/rabbit naming
+- Complete transition to "In the Loop" branding
 - Domain strategy for alpha launch
 
 ### 4. Critical Bug Fixes
