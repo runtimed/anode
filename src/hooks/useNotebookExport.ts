@@ -5,6 +5,7 @@ import {
 } from "@/util/notebook-export";
 import { useStore } from "@livestore/react";
 import { useCallback } from "react";
+import { toast } from "sonner";
 
 /**
  * Hook for exporting notebook to Jupyter (.ipynb) format
@@ -30,7 +31,9 @@ export function useNotebookExport() {
 
       downloadNotebookAsIpynb(jupyterNotebook, `${filename}.ipynb`);
     } catch (error) {
-      console.error("Failed to export notebook:", error);
+      const errorMessage = "Failed to export notebook";
+      toast.error(errorMessage);
+      console.error(errorMessage, error);
     }
   }, [store, notebookTitle]);
 
