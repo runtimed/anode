@@ -21,6 +21,7 @@ import { SharingDialog } from "../SharingDialog.js";
 import type { NotebookProcessed } from "../types.js";
 import { useNavigateToCanonicalUrl, useNotebook } from "./helpers.js";
 import { NotebookHeader } from "./NotebookHeader.js";
+import { AvailableAiModelsProvider } from "@/util/ai-models.js";
 
 export const NotebookPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -60,7 +61,9 @@ function NotebookPageWithId({ id }: { id: string }) {
   }
 
   return (
-    <NotebookPageWithIdAndNotebook notebook={notebook} refetch={refetch} />
+    <AvailableAiModelsProvider>
+      <NotebookPageWithIdAndNotebook notebook={notebook} refetch={refetch} />
+    </AvailableAiModelsProvider>
   );
 }
 
