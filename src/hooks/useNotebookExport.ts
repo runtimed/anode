@@ -3,6 +3,7 @@ import {
   downloadNotebookAsIpynb,
   exportNotebookToJupyter,
 } from "@/util/notebook-export";
+import { NotebookValidationError } from "@/util/notebook-validate";
 import { useStore } from "@livestore/react";
 import { useCallback } from "react";
 import { toast } from "sonner";
@@ -31,9 +32,15 @@ export function useNotebookExport() {
 
       downloadNotebookAsIpynb(jupyterNotebook, `${filename}.ipynb`);
     } catch (error) {
-      const errorMessage = "Failed to export notebook";
-      toast.error(errorMessage);
-      console.error(errorMessage, error);
+      if (error instanceof NotebookValidationError) {
+        const errorMessage = `Failed to export notebook: ${error.message}`;
+        toast.error(errorMessage);
+        console.error(errorMessage, error.validationErrors);
+      } else {
+        const errorMessage = "Failed to export notebook";
+        toast.error(errorMessage);
+        console.error(errorMessage, error);
+      }
     }
   }, [store, notebookTitle]);
 

@@ -1,4 +1,4 @@
-import Ajv from "ajv";
+import Ajv, { ErrorObject } from "ajv";
 import nbformatSchema from "@/data/nbformat.v4.schema.json";
 import { JupyterNotebook } from "@/types/jupyter";
 
@@ -14,16 +14,24 @@ const ajv = new Ajv({
 const validateNotebook = ajv.compile(nbformatSchema);
 
 /**
+ * Custom error type for notebook validation failures
+ */
+export class NotebookValidationError extends Error {
+  readonly validationErrors: ErrorObject[];
+
+  constructor(validationErrors: ErrorObject[]) {
+    const message = "Couldn't export a valid ipynb notebook.";
+    super(message);
+    this.name = "NotebookValidationError";
+    this.validationErrors = validationErrors;
+  }
+}
+
+/**
  * Validate notebook against Jupyter nbformat schema
  */
 export function validateJupyterNotebook(notebook: JupyterNotebook): void {
   if (!validateNotebook(notebook)) {
-    const errors =
-      validateNotebook.errors
-        ?.map((err: any) => `${err.instancePath || "root"}: ${err.message}`)
-        .join(", ") || "Unknown validation error";
-    throw new Error(
-      `Failed to export a valid ipynb notebook. Validation errors: ${errors}`
-    );
+    throw new NotebookValidationError(validateNotebook.errors || []);
   }
 }
