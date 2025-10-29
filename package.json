@@ -1,8 +1,8 @@
 {
-  "name": "runt-ui",
+  "name": "intheloop-ui",
   "version": "0.3.0",
   "type": "module",
-  "description": "The UI for Runtime Agents",
+  "description": "Collaborative notebooks where AI, code, and prose work together in real-time",
   "engines": {
     "node": ">=23.0.0",
     "pnpm": ">=10.9.0"

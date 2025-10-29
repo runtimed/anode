@@ -1,10 +1,10 @@
-# Contributing to Anode
+# Contributing to In the Loop
 
-Thank you for your interest in contributing to Anode! This guide provides everything you need to get your development environment set up and start contributing.
+Thank you for your interest in contributing to In the Loop! This guide provides everything you need to get your development environment set up and start contributing.
 
 ## Core Philosophy
 
-Anode is a real-time, collaborative notebook environment built on a modern, local-first stack. We prioritize a clean, maintainable codebase and a smooth developer experience. Our goal is to make it as easy as possible for you to contribute.
+In the Loop is a real-time, collaborative notebook environment built on a modern, local-first stack. We prioritize a clean, maintainable codebase and a smooth developer experience. Our goal is to make it as easy as possible for you to contribute.
 
 ## Prerequisites
 
@@ -17,15 +17,15 @@ Before you begin, ensure you have the following installed:
 
 ## Development Setup
 
-Getting started with Anode is designed to be as simple as possible.
+Getting started with In the Loop is designed to be as simple as possible.
 
 ### 1. Clone the Repository
 
-First, clone the Anode repository to your local machine:
+First, clone the In the Loop repository to your local machine:
 
 ```bash
-git clone https://github.com/runtimed/anode.git
-cd anode
+git clone https://github.com/runtimed/intheloop.git
+cd intheloop
 ```
 
 ### 2. Install Dependencies
@@ -55,19 +55,19 @@ These files are already in `.gitignore` and should **never** be committed to the
 
 ### 4. Run the Development Server
 
-Start the entire Anode application (both the React frontend and the Cloudflare Worker backend) with a single command:
+Start the entire In the Loop application (both the React frontend and the Cloudflare Worker backend) with a single command:
 
 ```bash
 pnpm dev
 ```
 
-This will start the integrated development server using the Vite Cloudflare plugin. You can now access the Anode application in your browser at **`http://localhost:5173`**. The unified server handles both frontend assets and backend API requests, providing a seamless development experience.
+This will start the integrated development server using the Vite Cloudflare plugin. You can now access the In the Loop application in your browser at **`http://localhost:5173`**. The unified server handles both frontend assets and backend API requests, providing a seamless development experience.
 
 ### 5. Enable Python Execution
 
 To run Python code cells, you need to start the separate Pyodide runtime agent.
 
-1.  Open Anode in your browser (`http://localhost:5173`).
+1.  Open In the Loop in your browser (`http://localhost:5173`).
 2.  Create a new notebook.
 3.  Click the **Runtime** button in the notebook header to view the required startup command.
 4.  Copy the command (it will look something like `NOTEBOOK_ID=notebook-xyz... pnpm dev:runtime`).
@@ -77,7 +77,7 @@ Your notebook is now connected to a Python runtime and can execute code cells.
 
 ## Schema Linking for Development
 
-The `@runtimed/schema` package provides shared types and events for Anode. The linking method depends on your development phase:
+The `@runtimed/schema` package provides shared types and events for In the Loop. The linking method depends on your development phase:
 
 ### Production (JSR Package)
 
@@ -101,7 +101,7 @@ Use this when testing changes from a merged PR in the Runt repository. Replace t
 "@runtimed/schema": "workspace:*"
 ```
 
-Use this when developing locally with both Anode and Runt repositories side-by-side.
+Use this when developing locally with both In the Loop and Runt repositories side-by-side.
 
 ### Switching Between Modes
 

@@ -6,7 +6,7 @@ yarn-debug.log*
 yarn-error.log*
 lerna-debug.log*
 .pnpm-debug.log*
-# Anode gitignore
+# In the Loop gitignore
 
 # Dependencies
 node_modules/
@@ -144,7 +144,7 @@ dist
 .DS_Store
 Thumbs.db
 
-# LiveStore / Anode specific
+# LiveStore / In the Loop specific
 tmp/
 .wrangler/
 iframe-outputs/worker/.wrangler/
