@@ -204,6 +204,35 @@ export const ExecutableCell: React.FC<ExecutableCellProps> = ({
     }
   }, [cell.id, store, hasOutputs, userId]);
 
+  const selectModel = useCallback(
+    (provider: string, model: string) => {
+      registryFocusCell(cell.id, "end");
+      store.commit(
+        ...[
+          events.aiSettingsChanged({
+            cellId: cell.id,
+            provider: provider,
+            model: model,
+            settings: {
+              temperature: 0.7,
+              maxTokens: 1000,
+            },
+          }),
+          // Save the last used AI model to notebook metadata for future AI cells
+          events.notebookMetadataSet({
+            key: "lastUsedAiProvider",
+            value: provider,
+          }),
+          events.notebookMetadataSet({
+            key: "lastUsedAiModel",
+            value: model,
+          }),
+        ]
+      );
+    },
+    [cell.id, registryFocusCell, store]
+  );
+
   // Execution handler for all executable cell types
   const executeCell = useCallback(async (): Promise<void> => {
     // Use localSource instead of cell.source to get the current typed content
@@ -420,31 +449,7 @@ export const ExecutableCell: React.FC<ExecutableCellProps> = ({
                 onOpenChange={setOpenAiToolbar}
                 cellProvider={cell.aiProvider}
                 cellModel={cell.aiModel}
-                onModelChange={(newProvider: string, newModel: string) => {
-                  registryFocusCell(cell.id, "end");
-                  store.commit(
-                    ...[
-                      events.aiSettingsChanged({
-                        cellId: cell.id,
-                        provider: newProvider,
-                        model: newModel,
-                        settings: {
-                          temperature: 0.7,
-                          maxTokens: 1000,
-                        },
-                      }),
-                      // Save the last used AI model to notebook metadata for future AI cells
-                      events.notebookMetadataSet({
-                        key: "lastUsedAiProvider",
-                        value: newProvider,
-                      }),
-                      events.notebookMetadataSet({
-                        key: "lastUsedAiModel",
-                        value: newModel,
-                      }),
-                    ]
-                  );
-                }}
+                onModelChange={selectModel}
               />
             )}
             {cell.cellType === "sql" && (
