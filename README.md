@@ -1,8 +1,8 @@
-# Anode
+# In the Loop
 
 **The notebook that thinks with you.**
 
-Anode is an **agentic notebook** where AI, code, and prose work together in
+In the Loop is an **agentic notebook** where AI, code, and prose work together in
 real-time. Never lose your outputs when tabs close. Collaborate with AI that
 sees your data, not just your code. Built on event-sourced architecture for
 persistent, collaborative computation.
@@ -29,14 +29,14 @@ access. The notebook exists as a file on disk, but the live state (outputs,
 execution results) only lives in your browser. Close that tab, and you lose the
 connection to work happening elsewhere.
 
-**Anode's approach**: Persistent outputs that survive browser crashes, tab
+**In the Loop's approach**: Persistent outputs that survive browser crashes, tab
 closures, and device switches. Real-time collaboration without conflicts. AI
 that sees your actual results. Full Jupyter compatibility through .ipynb
 import/export. Your computation lives independently of any browser session.
 
 ## Architecture
 
-Anode is built as a monorepo with four core packages and a unified web client:
+In the Loop is built as a monorepo with four core packages and a unified web client:
 
 ### Core Packages (`packages/`)
 
@@ -182,7 +182,7 @@ See `.env.example` and `.dev.vars.example` for complete configuration options.
 
 ## Deployment
 
-Anode runs on **Cloudflare Workers** with a unified architecture:
+In the Loop runs on **Cloudflare Workers** with a unified architecture:
 
 - **Single Worker** serves both frontend assets and backend API
 - **D1 Database** stores LiveStore events for persistence
@@ -286,7 +286,8 @@ We're building this in the open and welcome experimentation:
 
 **🌟 Real-World Usage**
 
-- Use Anode for actual data science work
+Use In the Loop for actual data science work
+
 - Report issues and workflow friction
 - Share feedback on collaboration features
 

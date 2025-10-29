@@ -1,6 +1,6 @@
 # AI Agent Development Context
 
-This document provides essential context for AI assistants working on the [Anode](https://github.com/runtimed/anode) project.
+This document provides essential context for AI assistants working on the [In the Loop](https://github.com/runtimed/intheloop) project.
 
 Current work state and development priorities. What works, what's experimental, what needs improvement. Last updated: October 2025.
 
@@ -8,7 +8,7 @@ Current work state and development priorities. What works, what's experimental, 
 
 ## Project Overview
 
-Anode is a real-time collaborative notebook system built on event-sourced architecture using LiveStore. It supports multiple runtime paradigms: external runtime agents via `@runt` JSR packages, and in-browser runtime agents for HTML and Python (Pyodide) that execute directly in the web client.
+In the Loop is a real-time collaborative notebook system built on event-sourced architecture using LiveStore. It supports multiple runtime paradigms: external runtime agents via `@runt` JSR packages, and in-browser runtime agents for HTML and Python (Pyodide) that execute directly in the web client.
 
 **Current Status**: A working system deployed at https://app.runt.run. Features real-time collaboration, persistent execution outputs, and integrated AI capabilities. The system is stable for experimentation and real usage while actively developed.
 
@@ -16,7 +16,7 @@ Anode is a real-time collaborative notebook system built on event-sourced archit
 
 ### Monorepo Structure
 
-Anode is organized as a monorepo with four core packages and a unified web application:
+In the Loop is organized as a monorepo with four core packages and a unified web application:
 
 - **Packages** (`packages/`): Core libraries published to npm/JSR for runtime agent development
 - **Web Client** (`src/`): React-based notebook interface with integrated backend

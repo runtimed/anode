@@ -1,10 +1,10 @@
 # Deployment Guide
 
-This document describes how to deploy Anode using the unified all-in-one worker
+This document describes how to deploy In the Loop using the unified all-in-one worker
 architecture that serves both the web client and backend API from a single
 Cloudflare Worker.
 
-**Current Status**: Anode is deployed and accessible at **https://app.runt.run** using this unified architecture.
+**Current Status**: In the Loop is deployed and accessible at **https://app.runt.run** using this unified architecture.
 
 ## Architecture Overview
 
@@ -268,7 +268,7 @@ The unified architecture serves both frontend and backend from a single URL, sim
 
 ## Iframe Outputs Service
 
-Anode uses a separate domain (`runtusercontent.com`) to securely render user-generated HTML and SVG content in iframes. This provides security isolation from the main application domain.
+In the Loop uses a separate domain (`runtusercontent.com`) to securely render user-generated HTML and SVG content in iframes. This provides security isolation from the main application domain.
 
 ### Deploy Iframe Outputs
 
