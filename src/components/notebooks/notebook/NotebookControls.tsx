@@ -8,6 +8,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { useFeatureFlag } from "@/contexts/FeatureFlagContext";
 import { useDuplicateNotebook } from "@/hooks/useDuplicateNotebook";
 import { useNotebookExport } from "@/hooks/useNotebookExport";
 import { useMutation } from "@tanstack/react-query";
@@ -16,12 +17,10 @@ import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { useCreateNotebookAndNavigate } from "../dashboard/helpers";
 import type { NotebookProcessed } from "../types";
-import { useFeatureFlag } from "@/contexts/FeatureFlagContext";
 
 import { useAuthenticatedUser } from "@/auth/index.js";
 import { useDebug } from "@/components/debug/debug-mode";
 import { Spinner } from "@/components/ui/Spinner";
-import { useFeatureFlag } from "@/contexts/FeatureFlagContext";
 import { useRuntimeHealth } from "@/hooks/useRuntimeHealth";
 import { runnableCellsWithIndices$, runningCells$ } from "@/queries";
 import { generateQueueId } from "@/util/queue-id";
