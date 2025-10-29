@@ -470,6 +470,11 @@ async function initializePyodide(
   // Load our Python bootstrap file - bootstrap packages are already available
   await setupIPythonEnvironment();
 
+  self.postMessage({
+    type: "log",
+    data: "Python environment setup completed",
+  });
+
   // Switch to raw write handler for stdout to capture all bytes
   pyodide.setStdout({
     write: (buffer: Uint8Array) => {
@@ -741,6 +746,14 @@ except:
       }
     }
   }
+
+  // Ensure shell is available before execution (idempotent)
+  await pyodide.runPythonAsync(`
+# Ensure shell is available in globals - this is idempotent
+import runt_runtime
+if 'shell' not in globals() or shell is None:
+    globals()['shell'] = runt_runtime.shell
+  `);
 
   let result = null;
   let executionError: {

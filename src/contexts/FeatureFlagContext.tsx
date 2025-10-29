@@ -6,16 +6,19 @@ export interface FeatureFlags {
   "test-flag": boolean;
   /** Can remove this feature flag once we have a proper way to get the Python version from the kernel */
   "ipynb-export": boolean;
-  "user-prompt": boolean;
   "file-upload": boolean;
+  /** Show AI capabilities in the AI cell dropdown. We'd enable this by default if we support vision or allow choosing models that don't have tool support. */
+  "show-ai-capabilities": boolean;
+  "user-saved-prompt": boolean;
 }
 
 // Default feature flags (all disabled)
 const DEFAULT_FLAGS: FeatureFlags = {
   "test-flag": false,
   "ipynb-export": false,
-  "user-prompt": false,
   "file-upload": false,
+  "show-ai-capabilities": false,
+  "user-saved-prompt": false,
 } as const;
 
 // Type for feature flag keys

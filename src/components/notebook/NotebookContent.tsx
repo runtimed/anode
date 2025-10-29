@@ -43,13 +43,12 @@ export const NotebookContent = () => {
             <CellList cells={cells} />
           </ErrorBoundary>
           {/* Add Cell Buttons */}
-          <div className="border-border/30 mt-6 border-t px-4 pt-4 sm:mt-8 sm:px-0 sm:pt-6">
-            <div className="space-y-3 text-center">
-              <CellAdder position="after" />
-              <div className="text-muted-foreground mt-2 hidden text-xs sm:block">
-                Add a new cell
-              </div>
-            </div>
+
+          <div className="border-border/50 sticky bottom-0 z-30 mt-6 border-t bg-white p-2 px-4 sm:mt-8 sm:px-0">
+            <CellAdder position="after" />
+          </div>
+          <div className="text-muted-foreground hidden text-center text-xs sm:block">
+            Add a new cell
           </div>
         </>
       )}
