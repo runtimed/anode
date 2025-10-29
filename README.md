@@ -47,7 +47,7 @@ In the Loop is built as a monorepo with four core packages and a unified web cli
 
 ### Runtime System
 
-Anode supports **three execution paradigms**:
+In the Loop supports **three execution paradigms**:
 
 1. **External Runtime Agents** - Python execution via `@runt/pyodide-runtime-agent` (JSR package)
 2. **In-Browser HTML Runtime** - Direct DOM execution for HTML/CSS/JavaScript

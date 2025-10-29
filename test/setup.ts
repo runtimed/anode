@@ -5,7 +5,7 @@ import "@testing-library/jest-dom/vitest";
 
 // Global test setup
 beforeAll(async () => {
-  console.log("🧪 Starting Anode test suite...");
+  console.log("🧪 Starting In the Loop test suite...");
 
   // Set test environment variables
   process.env.NODE_ENV = "test";
@@ -25,7 +25,7 @@ beforeAll(async () => {
 });
 
 afterAll(async () => {
-  console.log("🏁 Anode test suite completed");
+  console.log("🏁 In the Loop test suite completed");
 });
 
 beforeEach(async () => {

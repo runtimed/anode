@@ -285,14 +285,14 @@ export default {
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Anode Local Development</title>
+  <title>In the Loop Local Development</title>
   <style>
     body { font-family: system-ui; margin: 40px; line-height: 1.6; }
     .code { background: #f5f5f5; padding: 2px 6px; border-radius: 3px; font-family: monospace; }
   </style>
 </head>
 <body>
-  <h1>Anode Backend Worker</h1>
+  <h1>In the Loop Backend Worker</h1>
   <p>The backend API is running at <span class="code">${url.origin}</span></p>
   <p>For the web client, run <span class="code">pnpm dev</span> in a separate terminal.</p>
   <h2>Available Endpoints:</h2>

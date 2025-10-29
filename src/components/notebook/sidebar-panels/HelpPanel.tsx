@@ -67,7 +67,9 @@ export const HelpPanel: React.FC<SidebarPanelProps> = () => {
       </div>
 
       <div className="border-t pt-4">
-        <h4 className="mb-3 text-sm font-medium text-gray-700">About Anode</h4>
+        <h4 className="mb-3 text-sm font-medium text-gray-700">
+          About In the Loop
+        </h4>
         <div className="space-y-3">
           <div className="flex flex-col space-y-2">
             <a
