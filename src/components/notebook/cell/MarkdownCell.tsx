@@ -240,8 +240,8 @@ export const MarkdownCell: React.FC<MarkdownCellProps> = ({
     };
   }, [cell.id, unregisterEditor]);
 
-  const focusColor = "bg-amber-500/40";
-  const focusBgColor = "bg-amber-50/20";
+  const focusBgColor = "bg-amber-50";
+  const focusBorderColor = "border-amber-400";
 
   return (
     <CellContainer
@@ -250,8 +250,9 @@ export const MarkdownCell: React.FC<MarkdownCellProps> = ({
       autoFocus={autoFocus}
       contextSelectionMode={contextSelectionMode}
       onFocus={handleFocus}
-      focusColor={focusColor}
       focusBgColor={focusBgColor}
+      focusBorderColor={focusBorderColor}
+      className="hover:border-amber-300"
     >
       {/* Cell Header */}
       <div

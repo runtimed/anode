@@ -1,6 +1,7 @@
 import { tables } from "@runtimed/schema";
 import { forwardRef, ReactNode, useCallback } from "react";
 import { useDragDropCellSort } from "@/hooks/useDragDropCellSort";
+import { cn } from "@/lib/utils";
 
 interface CellContainerProps {
   cell: typeof tables.cells.Type;
@@ -8,8 +9,9 @@ interface CellContainerProps {
   contextSelectionMode?: boolean;
   onFocus?: () => void;
   children: ReactNode;
-  focusColor?: string;
   focusBgColor?: string;
+  focusBorderColor?: string;
+  className?: string;
 }
 
 export const CellContainer = forwardRef<HTMLDivElement, CellContainerProps>(
@@ -20,8 +22,9 @@ export const CellContainer = forwardRef<HTMLDivElement, CellContainerProps>(
       contextSelectionMode = false,
       onFocus,
       children,
-      focusColor = "bg-primary/60",
       focusBgColor = "bg-primary/5",
+      focusBorderColor = "border-primary/60",
+      className = "",
     },
     ref
   ) => {
@@ -93,15 +96,19 @@ export const CellContainer = forwardRef<HTMLDivElement, CellContainerProps>(
       <div
         ref={ref}
         data-cell-id={cell.id}
-        className={`cell-container group relative pt-2 transition-all duration-200 ${
-          autoFocus && !contextSelectionMode ? focusBgColor : "hover:bg-gray-50"
-        } ${contextSelectionMode && !cell.aiContextVisible ? "opacity-60" : ""} ${
-          contextSelectionMode
-            ? cell.aiContextVisible
+        className={cn(
+          "cell-container group relative border-2 pt-2 transition-all duration-200",
+          autoFocus && !contextSelectionMode
+            ? [focusBgColor, focusBorderColor]
+            : "hover:bg-muted/10",
+          contextSelectionMode && !cell.aiContextVisible && "opacity-60",
+          contextSelectionMode &&
+            (cell.aiContextVisible
               ? "bg-purple-50/30 ring-2 ring-purple-300"
-              : "bg-gray-50/30 ring-2 ring-gray-300"
-            : ""
-        } ${isBeingDragged ? "scale-95 opacity-10" : ""}`}
+              : "bg-gray-50/30 ring-2 ring-gray-300"),
+          isBeingDragged && "scale-95 opacity-10",
+          className
+        )}
         onClick={contextSelectionMode ? onFocus : undefined}
         onMouseDown={onFocus}
         style={{
@@ -114,16 +121,6 @@ export const CellContainer = forwardRef<HTMLDivElement, CellContainerProps>(
         onDragLeave={handleDragLeave}
         onDrop={handleDrop}
       >
-        {/* Custom left border with controlled height */}
-        <div
-          className={`cell-border absolute top-0 left-3 w-0.5 transition-all duration-200 sm:left-0 ${
-            autoFocus && !contextSelectionMode ? focusColor : "bg-border/30"
-          }`}
-          style={{
-            height: "100%", // Will be controlled by content
-          }}
-        />
-
         {children}
       </div>
     );

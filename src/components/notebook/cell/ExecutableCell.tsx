@@ -53,18 +53,18 @@ const getCellStyling = (cellType: "code" | "sql" | "ai") => {
   switch (cellType) {
     case "sql":
       return {
-        focusColor: "bg-blue-500/40",
-        focusBgColor: "bg-blue-50/20",
+        focusBgColor: "bg-blue-100",
+        focusBorderColor: "border-blue-700",
       };
     case "ai":
       return {
-        focusColor: "bg-purple-500/40",
-        focusBgColor: "bg-purple-50/20",
+        focusBgColor: "bg-purple-50",
+        focusBorderColor: "border-purple-700",
       };
     default: // code
       return {
-        focusColor: "bg-primary/60",
-        focusBgColor: "bg-primary/5",
+        focusBgColor: "bg-gray-100",
+        focusBorderColor: "border-black",
       };
   }
 };
@@ -376,7 +376,7 @@ export const ExecutableCell: React.FC<ExecutableCellProps> = ({
     };
   }, [cell.id, unregisterEditor]);
 
-  const { focusColor, focusBgColor } = getCellStyling(
+  const { focusBgColor, focusBorderColor } = getCellStyling(
     cell.cellType as "code" | "sql" | "ai"
   );
 
@@ -394,19 +394,26 @@ export const ExecutableCell: React.FC<ExecutableCellProps> = ({
       cell.executionState === "running" ||
       staleOutputs.length > 0);
 
+  const cellTypeClassName = cn(
+    cell.cellType === "code" && "hover:border-gray-500",
+    cell.cellType === "ai" && "hover:border-purple-500",
+    cell.cellType === "sql" && "hover:border-blue-500"
+  );
+
   return (
     <CellContainer
       ref={cellRef}
       cell={cell}
       autoFocus={autoFocus}
       contextSelectionMode={contextSelectionMode}
+      className={cellTypeClassName}
       onFocus={handleFocus}
-      focusColor={focusColor}
       focusBgColor={focusBgColor}
+      focusBorderColor={focusBorderColor}
     >
       {/* Cell Header */}
       {!isSourceLessAiOutput && (
-        <div className="cell-header flex items-center justify-between pr-1 pb-2 pl-4 sm:pr-4">
+        <div className="cell-header mb-2 flex items-center justify-between pr-1 pl-1 sm:pr-4">
           <div className="flex items-center gap-1">
             {dragHandle}
             <CellTypeSelector cell={cell} onCellTypeChange={changeCellType} />
