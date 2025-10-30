@@ -115,11 +115,6 @@ export const SimpleUserProfile: React.FC<SimpleUserProfileProps> = ({
           <DropdownMenuSeparator />
 
           {/* Actions */}
-          <DropdownMenuItem disabled className="cursor-not-allowed">
-            <Settings className="mr-2 h-4 w-4" />
-            Settings
-            <span className="text-muted-foreground ml-auto text-xs">Soon</span>
-          </DropdownMenuItem>
           <DropdownMenuItem onClick={() => setIsApiKeysDialogOpen(true)}>
             <Key className="h-4 w-4" />
             API Keys
