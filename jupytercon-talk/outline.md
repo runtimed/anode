@@ -23,27 +23,29 @@
 
 ## 2. The Core Problem (3 minutes)
 
-**The Jupyter Architecture We All Know**
+**The Traditional Model** (45 seconds)
 - Notebook file on disk
 - Kernel runs your code
-- Browser holds the live state
-- This was a smart choice in 2011
+- Browser session holds the live state
+- This was smart in 2011, and Jupyter RTC has made human collaboration work well
 
-**What This Prevents**
-- Can't open same notebook in multiple tabs
-- Can't collaborate without conflicts
-- Work trapped in single browser session
-- Close the tab, lose the connection to running work
+**The Deeper Problem** (1 minute)
+- Jupyter RTC solved human-to-human collaboration
+- But what about human-AI-system collaboration?
+- Think papermill: system generates notebook, runs it
+- Now you want to edit it while kernel is still alive
+- Or: AI agent modifies cells and executes them
+- Who made which changes? What ran when? How do we audit this?
 
-**📺 DEMO 1: The Problem (30 seconds)**
-- Open two tabs on same notebook
-- Try to work in both
-- Show the conflict/confusion
+**📺 DEMO 1: The Multi-Actor Problem (30 seconds)**
+- Show notebook being edited by multiple actors
+- Code executes, outputs appear
+- Who did what? When? Why?
+- Traditional architecture: no attribution, no audit trail
 
-**Transition**: We've learned enough to try something better.
+**The Real Question**: How do we build a notebook system where humans, AI, and automated systems can all work together - with accountability?
 
-
-NOTE: Jupyter collaboration actually works today and solves this. It doesn't go after the problem I want though -- systems being able to update notebooks a la papermill or AI and then allow human collaborators to edit and refine those while the kernel is still alive.
+**Transition**: Event sourcing gives us a way forward.
 
 ---
 
@@ -110,7 +112,12 @@ Talk note: I'll open up by saying that agents has dual meaning here. "The most i
 - Multiple users just append events
 - Everyone's client syncs from same event log
 - Operational transforms? Don't need them.
-- Conflicts? Can't happen.
+- Conflicts get resolved through event ordering (last-write-wins by default, custom strategies possible)
+
+**Jupyter RTC vs In the Loop**
+- Jupyter RTC solves collaboration between humans - and it works well
+- In the Loop solves collaboration between **humans, AI, and automated systems**
+- All working on the same live document with a running kernel
 
 **📺 DEMO 3: Collaboration (1 minute)**
 - Two browser windows, two "users"
@@ -151,54 +158,66 @@ SIDE NOTE: Should we, since this is a jupytercon audience, mention briefly that 
 
 ---
 
-## 7. What This Unlocks (3 minutes)
+## 7. The Architectural Shift (3 minutes)
 
-**Persistent Computation**
-- Runtime crashes? Outputs survive
-- Network drops? Sync when reconnected
-- Switch devices? Pick up where you left off
+**From Session-Bound to Document-Centric** (1 minute)
+- Traditional: computation tied to your browser session
+- In the Loop: computation lives in the document
+- Multiple actors (humans, AI, runtimes) all work on same document
+- Each with proper attribution and accountability
 
-**True Collaboration**
-- Multiple people, one notebook, no conflicts
-- Mobile-responsive - edit from phone
-- Share by URL - it just works
+**Event Sourcing as Foundation** (1 minute)
+- Every change is an attributed event: who did what, when
+- Immutable audit trail of all actions
+- Not just code changes - execution results, AI edits, everything
+- Replay the history: understand how the document evolved
 
-**Autonomous AI Agents**
-- AI can work while you're away
-- Full audit trail of what changed
-- Approve or reject changes later
+**The Notebook as Eval Layer** (1 minute)
+- The notebook becomes a traceable, executable record
+- Unlike chat logs: you can re-run and verify
+- Unlike traditional automation: you see exactly what the agent did
+- Attribution shows which actor (human/AI/system) made which changes
 
-**All Auditable**
-- Every change in event log
-- Replay history to any point
-- Debug what happened, when, and why
+**Agents "On Behalf Of" Users**
+- Agents operate with real identity in the document
+- Approval system: humans retain control
+- Full accountability: audit who changed what and see the results
+- This creates transparency that doesn't exist in typical AI tooling
 
-**The Paradigm Shift**
-- Document lives on server
-- Runtimes are agents that connect to it
-- Browsers are just views into the event stream
+**The Game Loop**
+- Human writes code
+- AI suggests improvements
+- Runtime executes
+- All actors see results
+- Iterate, with full history preserved
 
 ---
 
 ## 8. Close (2 minutes)
 
-**This Is Working Today**
+**What We've Built** (45 seconds)
+- A document engine where computation lives in the document, not the session
+- Multiple actors (humans, AI, runtimes) collaborate with full attribution
+- The notebook becomes an executable, auditable record of multi-actor work
+- Event sourcing provides the foundation for accountability
+
+**Why This Matters** (45 seconds)
+- We're not just solving the parking lot problem
+- We're building infrastructure for human-AI-system collaboration
+- With real auth, real attribution, real audit trails
+- The notebook becomes an implicit eval layer for what agents actually did
+
+**This Is Working Today** (30 seconds)
 - https://app.runt.run - deployed and stable
 - Built on Cloudflare Workers (D1 + R2)
-- Real-time collaboration working
-- AI integration working
 - Open source, BSD 3-Clause
-
-**It's Time to Evolve**
-- Jupyter's architecture was right for 2011
-- We've learned enough to build what's right for 2025
-- Event sourcing + runtime agents = persistent, collaborative, AI-enabled notebooks
-- The parking lot problem? Solved.
-
-**Try It**
-- app.runt.run
 - github.com/runtimed/intheloop
-- Built for real work, not just demos
+
+**The Shift**
+- From session-bound, single-actor computation
+- To document-centric, multi-actor computing
+- Event sourcing + runtime agents = the foundation
+- The parking lot problem? Just the beginning.
 
 ---
 
