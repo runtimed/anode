@@ -44,7 +44,7 @@ export const NotebookContent = () => {
           </ErrorBoundary>
           {/* Add Cell Buttons */}
 
-          <div className="border-border/50 sticky bottom-0 z-30 mt-6 border-t bg-white p-2 px-4 sm:mt-8 sm:px-0">
+          <div className="border-border/50 sticky bottom-0 z-20 mt-6 border-t bg-white p-2 px-4 sm:mt-8 sm:px-0">
             <CellAdder position="after" />
           </div>
           <div className="text-muted-foreground hidden text-center text-xs sm:block">
