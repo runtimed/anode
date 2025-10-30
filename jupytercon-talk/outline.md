@@ -13,8 +13,8 @@
 
 **The Netflix Parking Lot Story** (1:45)
 - Colleagues holding laptops open walking to their cars
-- Hoping Spark jobs finish before losing browser session
-- Soccer practice deadline pressure
+- Hoping Spark jobs or model training finishes before losing browser session
+- Little league deadline pressure
 - The absurdity: analysis runs on powerful clusters, but results are locked to the browser tab where you started them
 
 **The Question**: Why are we still doing this?
@@ -42,6 +42,9 @@
 
 **Transition**: We've learned enough to try something better.
 
+
+NOTE: Jupyter collaboration actually works today and solves this. It doesn't go after the problem I want though -- systems being able to update notebooks a la papermill or AI and then allow human collaborators to edit and refine those while the kernel is still alive.
+
 ---
 
 ## 3. The Solution: Event Sourcing (5 minutes)
@@ -61,7 +64,6 @@
 - Redux in nteract
 - JSON operational transforms at Noteable
 - CoCalc's collaborative approach
-- We're standing on shoulders of giants
 
 **LiveStore Makes It Real** (1 minute)
 - SQLite for frontend querying
@@ -75,14 +77,16 @@
 
 ## 4. Runtime Agents (5 minutes)
 
-**The Breakthrough** (1 minute)
+
+Talk note: I'll open up by saying that agents has dual meaning here. "The most important piece I've long wanted is an agent (in the old sense of the term, though we'll also bring agentic in later). The runtime should connect to the document and be able to update that document and execute cells by ID because it knows the state of the whole document"
+
+**Decoupling Compute** (1 minute)
 - Runtime connects to the *document*, not the *browser*
 - Runtime agent: independent process that reads events, executes code, writes result events
 - Your kernel runs separately from any user's session
 
-**Three Execution Modes** (2 minutes)
+**Execution Modes** (2 minutes)
 1. External runtime agent - connects via WebSocket, runs anywhere
-2. In-browser HTML runtime - immediate prototyping
 3. In-browser Python (Pyodide) - scientific stack, no server needed
 
 **📺 DEMO 2: Persistence (1 minute)**
@@ -111,10 +115,10 @@
 **📺 DEMO 3: Collaboration (1 minute)**
 - Two browser windows, two "users"
 - Both editing simultaneously
-- Cursor positions, cell edits, execution results
+- Cell edits, execution results
 - All sync in real-time
 
-**Transition**: Here's where it gets interesting - AI as another collaborator.
+**Transition**: The big feature to me though is not about realtime collaboration between humans. It's going to be collaboration between systems, agents, and humans.
 
 ---
 
@@ -122,16 +126,18 @@
 
 **The Key Difference** (1 minute)
 - Most AI coding tools see source code
-- In the Loop AI sees *execution results*
+- AI being In the Loop see *execution results*
 - Context includes outputs, errors, actual data
-- AI understands what your code *does*, not just what it says
+- AI can see what your code *does*, not just what it says
 
-**Tool Calling with Approval** (2 minutes)
+**Tool Calling** (2 minutes)
 - AI can create cells
 - AI can modify code
 - AI can trigger execution
 - But: approval system for safety
 - All changes are events - fully auditable
+
+SIDE NOTE: Should we, since this is a jupytercon audience, mention briefly that all these outputs are using the media type outputs for the function call requests and responses?
 
 **📺 DEMO 4: AI Agent (2 minutes)**
 - Ask AI to analyze data in notebook
@@ -141,7 +147,7 @@
 - Execute, see result
 - Point out: AI saw the actual data, not just code
 
-**Transition**: This isn't just a better architecture - it unlocks entirely new workflows.
+**Transition**: This unlocks new workflows.
 
 ---
 
