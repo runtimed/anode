@@ -1,4 +1,4 @@
-import { Key, LogOut, Settings } from "lucide-react";
+import { Key, LogOut } from "lucide-react";
 import React, { useState } from "react";
 import { useAuth, type AuthUser } from "../../auth/index.js";
 import { ApiKeysDialog } from "../auth/ApiKeysDialog.js";
