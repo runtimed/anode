@@ -171,7 +171,13 @@ function CreateNotebookAction() {
   const createNotebookAndNavigate = useCreateNotebookAndNavigate();
 
   return (
-    <DropdownMenuItem onSelect={createNotebookAndNavigate}>
+    <DropdownMenuItem
+      onSelect={() =>
+        createNotebookAndNavigate(() => {
+          toast.success("Notebook created successfully");
+        })
+      }
+    >
       <Plus />
       Create New Notebook
     </DropdownMenuItem>

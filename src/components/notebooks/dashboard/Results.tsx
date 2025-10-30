@@ -146,7 +146,7 @@ export function NoResults() {
               : "No notebooks have been shared with you yet."}
       </p>
       {!isSearching && activeFilter !== "shared" && (
-        <Button onClick={createNotebook}>
+        <Button onClick={() => createNotebook()}>
           <Plus className="mr-2 h-4 w-4" />
           {activeFilter === "scratch"
             ? "Start Experimenting"
