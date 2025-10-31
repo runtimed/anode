@@ -67,11 +67,13 @@ export const HelpPanel: React.FC<SidebarPanelProps> = () => {
       </div>
 
       <div className="border-t pt-4">
-        <h4 className="mb-3 text-sm font-medium text-gray-700">About Anode</h4>
+        <h4 className="mb-3 text-sm font-medium text-gray-700">
+          About In the Loop
+        </h4>
         <div className="space-y-3">
           <div className="flex flex-col space-y-2">
             <a
-              href="https://github.com/runtimed/anode"
+              href="https://github.com/runtimed/intheloop"
               target="_blank"
               rel="noopener noreferrer"
               className="flex items-center gap-2 rounded px-2 py-1.5 text-xs hover:bg-gray-100"
@@ -81,7 +83,7 @@ export const HelpPanel: React.FC<SidebarPanelProps> = () => {
               <ExternalLink className="h-3 w-3 opacity-60" />
             </a>
             <a
-              href="https://github.com/runtimed/anode/issues"
+              href="https://github.com/runtimed/intheloop/issues"
               target="_blank"
               rel="noopener noreferrer"
               className="flex items-center gap-2 rounded px-2 py-1.5 text-xs hover:bg-gray-100"

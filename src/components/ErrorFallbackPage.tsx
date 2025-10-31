@@ -111,7 +111,7 @@ export const ErrorFallbackPage = (props: Partial<FallbackProps>) => {
 
   const handleReportIssue = () => {
     const errorInfo = `**Error Type:** ${name}\n**Message:** ${message}\n\n**Stack Trace:**\n\`\`\`\n${stack}\n\`\`\``;
-    const issueUrl = `https://github.com/runtimed/anode/issues/new?title=${encodeURIComponent(`Error: ${message}`)}&body=${encodeURIComponent(errorInfo)}`;
+    const issueUrl = `https://github.com/runtimed/intheloop/issues/new?title=${encodeURIComponent(`Error: ${message}`)}&body=${encodeURIComponent(errorInfo)}`;
     window.open(issueUrl, "_blank");
   };
 
