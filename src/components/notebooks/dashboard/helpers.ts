@@ -69,28 +69,31 @@ export function useCreateNotebookAndNavigate() {
     trpc.createNotebook.mutationOptions()
   );
 
-  const createNotebook = useCallback(async () => {
-    const input = {
-      title: "Untitled Notebook",
-    };
+  const createNotebook = useCallback(
+    async (cb?: () => void) => {
+      const input = {
+        title: "Untitled Notebook",
+      };
 
-    try {
-      const result = await createNotebookMutation.mutateAsync(input);
-      trpcQueryClient.invalidateQueries({
-        queryKey: trpc.notebooks.queryKey(),
-      });
-      if (result) {
-        // Redirect to the new notebook with initial data to prevent flicker
-        navigate(getNotebookVanityUrl(result.id, result.title), {
-          state: { initialNotebook: result },
+      try {
+        const result = await createNotebookMutation.mutateAsync(input);
+        trpcQueryClient.invalidateQueries({
+          queryKey: trpc.notebooks.queryKey(),
         });
-        toast.success("Notebook created successfully");
+        if (result) {
+          // Redirect to the new notebook with initial data to prevent flicker
+          navigate(getNotebookVanityUrl(result.id, result.title), {
+            state: { initialNotebook: result },
+          });
+          cb?.();
+        }
+      } catch (err) {
+        console.error("Failed to create notebook:", err);
+        toast.error("Failed to create notebook");
       }
-    } catch (err) {
-      console.error("Failed to create notebook:", err);
-      toast.error("Failed to create notebook");
-    }
-  }, [createNotebookMutation, trpc, navigate]);
+    },
+    [createNotebookMutation, trpc, navigate]
+  );
 
   return createNotebook;
 }
