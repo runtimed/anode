@@ -526,13 +526,25 @@ export class PyodideRuntimeAgent extends LocalRuntimeAgent {
       )) as NotebookTool[];
 
       try {
+        let userSavedPrompt = this.agent.store.query(
+          tables.notebookMetadata
+            .select()
+            .where({ key: "user_saved_prompt" })
+            .first({ fallback: () => "" })
+        );
+
+        if (typeof userSavedPrompt !== "string") {
+          userSavedPrompt = userSavedPrompt.value;
+        }
+
         return await executeAI(
           aiContext,
           notebookContext,
           this.agent.store,
           this.agent.config.sessionId,
           notebookTools,
-          maxAiIterations
+          maxAiIterations,
+          userSavedPrompt
         );
       } finally {
         // AI execution completed
