@@ -18,6 +18,8 @@ export function CellAdder({
 }) {
   const { addCell } = useAddCell();
   const fileUploadFlag = useFeatureFlag("file-upload");
+  const sqlCellsFlag = useFeatureFlag("enable-sql-cells");
+
   return (
     <div className={cn("flex justify-center gap-2", className)}>
       <CodeCellButton
@@ -30,11 +32,13 @@ export function CellAdder({
         showPlus={true}
         onClick={() => addCell(undefined, "markdown", position)}
       />
-      <SqlCellButton
-        size="sm"
-        showPlus={true}
-        onClick={() => addCell(undefined, "sql", position)}
-      />
+      {sqlCellsFlag && (
+        <SqlCellButton
+          size="sm"
+          showPlus={true}
+          onClick={() => addCell(undefined, "sql", position)}
+        />
+      )}
       <AiCellButton
         size="sm"
         showPlus={true}

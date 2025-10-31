@@ -136,6 +136,9 @@ function BulkNotebookActions({
 }) {
   const { runAllCells } = useRunAllCells();
   const { restartAndRunAllCells } = useRestartAndRunAllCells();
+  const restartAndRunAllCellsEnabled = useFeatureFlag(
+    "restart-and-run-all-cells"
+  );
 
   return (
     <>
@@ -150,16 +153,18 @@ function BulkNotebookActions({
             <Play />
             Run All Code Cells
           </DropdownMenuItem>
-          <DropdownMenuItem onClick={restartAndRunAllCells}>
-            <span className="relative">
-              <Play className="h-4 w-4" />
-              <Undo2
-                className="absolute bottom-0 left-0 size-3 -translate-x-[3px] translate-y-[3px] rounded-full bg-white p-[1px] text-gray-700"
-                strokeWidth={3}
-              />
-            </span>
-            Restart and Run All Code Cells
-          </DropdownMenuItem>
+          {restartAndRunAllCellsEnabled && (
+            <DropdownMenuItem onClick={restartAndRunAllCells}>
+              <span className="relative">
+                <Play className="h-4 w-4" />
+                <Undo2
+                  className="absolute bottom-0 left-0 size-3 -translate-x-[3px] translate-y-[3px] rounded-full bg-white p-[1px] text-gray-700"
+                  strokeWidth={3}
+                />
+              </span>
+              Restart and Run All Code Cells
+            </DropdownMenuItem>
+          )}
         </>
       )}
       <DropdownMenuItem onClick={onClearAllOutputs}>

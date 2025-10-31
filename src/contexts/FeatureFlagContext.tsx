@@ -4,24 +4,31 @@ import { useSessionStorage } from "react-use";
 // Define available feature flags with strict TypeScript definitions
 export interface FeatureFlags {
   "test-flag": boolean;
+  /** Show AI capabilities in the AI cell dropdown. We'd enable this by default if we support vision or allow choosing models that don't have tool support. */
+  "show-ai-capabilities": boolean;
+  "restart-and-run-all-cells": boolean;
+  "enable-sql-cells": boolean;
+
+  "user-saved-prompt": boolean;
   /** Can remove this feature flag once we have a proper way to get the Python version from the kernel */
   "ipynb-export": boolean;
   "file-upload": boolean;
   /** Whether to enable the notebook controls */
   "bulk-notebook-controls": boolean;
-  /** Show AI capabilities in the AI cell dropdown. We'd enable this by default if we support vision or allow choosing models that don't have tool support. */
-  "show-ai-capabilities": boolean;
-  "user-saved-prompt": boolean;
 }
 
 // Default feature flags (all disabled)
 const DEFAULT_FLAGS: FeatureFlags = {
   "test-flag": false,
-  "ipynb-export": false,
-  "file-upload": false,
-  "bulk-notebook-controls": false,
   "show-ai-capabilities": false,
-
+  "restart-and-run-all-cells": false,
+  "enable-sql-cells": false,
+  
+  // --- Enabled by default ---
+  "user-saved-prompt": true,
+  "ipynb-export": true,
+  "file-upload": true,
+  "bulk-notebook-controls": true,
   "user-saved-prompt": false,
 } as const;
 
