@@ -23,13 +23,12 @@ const DEFAULT_FLAGS: FeatureFlags = {
   "show-ai-capabilities": false,
   "restart-and-run-all-cells": false,
   "enable-sql-cells": false,
-  
+
   // --- Enabled by default ---
   "user-saved-prompt": true,
   "ipynb-export": true,
   "file-upload": true,
   "bulk-notebook-controls": true,
-  "user-saved-prompt": false,
 } as const;
 
 // Type for feature flag keys
