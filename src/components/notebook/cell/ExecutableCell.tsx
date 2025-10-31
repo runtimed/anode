@@ -47,6 +47,9 @@ import { generateQueueId } from "@/util/queue-id.js";
 import { useTrpc } from "@/components/TrpcProvider.js";
 import { cycleCellType } from "@/util/cycle-cell-type.js";
 import { useFeatureFlag } from "@/contexts/FeatureFlagContext.js";
+import { findBestAiModelForCell } from "./toolbars/ai-model-utils.js";
+import { useAvailableAiModels } from "@/util/ai-models.js";
+import { toast } from "sonner";
 
 // Cell-specific styling configuration
 const getCellStyling = (cellType: "code" | "sql" | "ai") => {
@@ -82,6 +85,7 @@ export const ExecutableCell: React.FC<ExecutableCellProps> = ({
   contextSelectionMode = false,
   dragHandle,
 }) => {
+  const { models: availableModels } = useAvailableAiModels();
   const userSavedPromptEnabled = useFeatureFlag("user-saved-prompt");
   const trpc = useTrpc();
   const { store } = useStore();
@@ -204,6 +208,35 @@ export const ExecutableCell: React.FC<ExecutableCellProps> = ({
     }
   }, [cell.id, store, hasOutputs, userId]);
 
+  const selectModel = useCallback(
+    (provider: string, model: string) => {
+      registryFocusCell(cell.id, "end");
+      store.commit(
+        ...[
+          events.aiSettingsChanged({
+            cellId: cell.id,
+            provider: provider,
+            model: model,
+            settings: {
+              temperature: 0.7,
+              maxTokens: 1000,
+            },
+          }),
+          // Save the last used AI model to notebook metadata for future AI cells
+          events.notebookMetadataSet({
+            key: "lastUsedAiProvider",
+            value: provider,
+          }),
+          events.notebookMetadataSet({
+            key: "lastUsedAiModel",
+            value: model,
+          }),
+        ]
+      );
+    },
+    [cell.id, registryFocusCell, store]
+  );
+
   // Execution handler for all executable cell types
   const executeCell = useCallback(async (): Promise<void> => {
     // Use localSource instead of cell.source to get the current typed content
@@ -235,6 +268,26 @@ export const ExecutableCell: React.FC<ExecutableCellProps> = ({
             value: savedPrompt?.prompt || "",
           })
         );
+      }
+
+      if (cell.cellType === "ai") {
+        if (!runtimeAvailable || !activeRuntime) {
+          // TODO: properly handle this case by waiting for runtime to launch and then retrying execution
+          toast.error("Wait for runtime to launch, then retry execution...");
+          return;
+        }
+        const bestModel = findBestAiModelForCell(
+          store,
+          { provider: cell.aiProvider, model: cell.aiModel },
+          availableModels
+        );
+
+        if (bestModel) {
+          selectModel(bestModel.provider, bestModel.name);
+        } else {
+          toast.error("No AI model found");
+          return;
+        }
       }
 
       // Clear previous outputs before generating new ones
@@ -281,17 +334,23 @@ export const ExecutableCell: React.FC<ExecutableCellProps> = ({
       );
     }
   }, [
-    savedPrompt?.prompt,
-    cell.id,
     localSource,
     cell.source,
+    cell.cellType,
+    cell.id,
     cell.executionCount,
-    store,
-    userId,
+    cell.aiProvider,
+    cell.aiModel,
+    ensureRuntime,
     setStaleOutputs,
     outputs,
-    ensureRuntime,
     userSavedPromptEnabled,
+    store,
+    userId,
+    savedPrompt?.prompt,
+    availableModels,
+    selectModel,
+    activeRuntime,
   ]);
 
   const { interruptExecution: interruptCell } = useInterruptExecution({
@@ -420,31 +479,7 @@ export const ExecutableCell: React.FC<ExecutableCellProps> = ({
                 onOpenChange={setOpenAiToolbar}
                 cellProvider={cell.aiProvider}
                 cellModel={cell.aiModel}
-                onModelChange={(newProvider: string, newModel: string) => {
-                  registryFocusCell(cell.id, "end");
-                  store.commit(
-                    ...[
-                      events.aiSettingsChanged({
-                        cellId: cell.id,
-                        provider: newProvider,
-                        model: newModel,
-                        settings: {
-                          temperature: 0.7,
-                          maxTokens: 1000,
-                        },
-                      }),
-                      // Save the last used AI model to notebook metadata for future AI cells
-                      events.notebookMetadataSet({
-                        key: "lastUsedAiProvider",
-                        value: newProvider,
-                      }),
-                      events.notebookMetadataSet({
-                        key: "lastUsedAiModel",
-                        value: newModel,
-                      }),
-                    ]
-                  );
-                }}
+                onModelChange={selectModel}
               />
             )}
             {cell.cellType === "sql" && (

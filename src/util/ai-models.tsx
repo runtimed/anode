@@ -2,7 +2,51 @@ import { useQuery } from "@livestore/react";
 import { queryDb } from "@runtimed/schema";
 import { tables } from "@runtimed/schema";
 import { type AiModel, type ModelCapability } from "@runtimed/agent-core";
-import { useMemo } from "react";
+import { createContext, useContext, useMemo } from "react";
+
+const AvailableAiModelsContext = createContext<{
+  models: AiModel[];
+  providerGroups: AiProviderGroup[];
+  isLoading: boolean;
+  hasToolCapableModels: boolean;
+  hasVisionCapableModels: boolean;
+}>({
+  models: [],
+  providerGroups: [],
+  isLoading: false,
+  hasToolCapableModels: false,
+  hasVisionCapableModels: false,
+});
+
+export function AvailableAiModelsProvider({
+  children,
+}: {
+  children: React.ReactNode;
+}): React.ReactNode {
+  const result = useAvailableAiModelsInternal();
+
+  return (
+    <AvailableAiModelsContext.Provider value={result}>
+      {children}
+    </AvailableAiModelsContext.Provider>
+  );
+}
+
+export function useAvailableAiModels(): {
+  models: AiModel[];
+  providerGroups: AiProviderGroup[];
+  isLoading: boolean;
+  hasToolCapableModels: boolean;
+  hasVisionCapableModels: boolean;
+} {
+  const context = useContext(AvailableAiModelsContext);
+  if (!context) {
+    throw new Error(
+      "useAvailableAiModels must be used within a AvailableAiModelsProvider"
+    );
+  }
+  return context;
+}
 
 export type AiProviderGroup = {
   provider: string;
@@ -12,7 +56,7 @@ export type AiProviderGroup = {
 /**
  * Hook to get available AI models from runtime capabilities
  */
-export function useAvailableAiModels(): {
+function useAvailableAiModelsInternal(): {
   models: AiModel[];
   providerGroups: AiProviderGroup[];
   isLoading: boolean;
