@@ -7,6 +7,7 @@ export interface FeatureFlags {
   /** Show AI capabilities in the AI cell dropdown. We'd enable this by default if we support vision or allow choosing models that don't have tool support. */
   "show-ai-capabilities": boolean;
   "restart-and-run-all-cells": boolean;
+  "enable-sql-cells": boolean;
 
   "user-saved-prompt": boolean;
   /** Can remove this feature flag once we have a proper way to get the Python version from the kernel */
@@ -21,11 +22,14 @@ const DEFAULT_FLAGS: FeatureFlags = {
   "test-flag": false,
   "show-ai-capabilities": false,
   "restart-and-run-all-cells": false,
+  "enable-sql-cells": false,
+  
   // --- Enabled by default ---
   "user-saved-prompt": true,
   "ipynb-export": true,
   "file-upload": true,
   "bulk-notebook-controls": true,
+  "user-saved-prompt": false,
 } as const;
 
 // Type for feature flag keys

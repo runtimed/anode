@@ -5,6 +5,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { useFeatureFlag } from "@/contexts/FeatureFlagContext";
 import { CellTypeNoRaw, tables } from "@runtimed/schema";
 import { Bot, ChevronDown, Code, Database, FileText } from "lucide-react";
 import React from "react";
@@ -18,6 +19,8 @@ export const CellTypeSelector: React.FC<CellTypeSelectorProps> = ({
   cell,
   onCellTypeChange,
 }) => {
+  const enableSqlCells = useFeatureFlag("enable-sql-cells");
+
   const getCellTypeIcon = () => {
     switch (cell.cellType) {
       case "code":
@@ -72,13 +75,15 @@ export const CellTypeSelector: React.FC<CellTypeSelectorProps> = ({
           <FileText className="h-4 w-4" />
           Markdown
         </DropdownMenuItem>
-        <DropdownMenuItem
-          onClick={() => onCellTypeChange("sql")}
-          className="gap-2"
-        >
-          <Database className="h-4 w-4" />
-          SQL Query
-        </DropdownMenuItem>
+        {enableSqlCells && (
+          <DropdownMenuItem
+            onClick={() => onCellTypeChange("sql")}
+            className="gap-2"
+          >
+            <Database className="h-4 w-4" />
+            SQL Query
+          </DropdownMenuItem>
+        )}
         <DropdownMenuItem
           onClick={() => onCellTypeChange("ai")}
           className="gap-2"
