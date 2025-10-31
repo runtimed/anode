@@ -29,6 +29,7 @@ import { Editor, EditorRef } from "./shared/Editor.js";
 import { PresenceBookmarks } from "./shared/PresenceBookmarks.js";
 import { IframeOutput } from "@/components/outputs/MaybeCellOutputs.js";
 import { cycleCellType } from "@/util/cycle-cell-type.js";
+import { useFeatureFlag } from "@/contexts/FeatureFlagContext.js";
 
 interface MarkdownCellProps {
   cell: typeof tables.cells.Type;
@@ -43,6 +44,8 @@ export const MarkdownCell: React.FC<MarkdownCellProps> = ({
   contextSelectionMode = false,
   dragHandle,
 }) => {
+  const enableSqlCells = useFeatureFlag("enable-sql-cells");
+
   const editButtonRef = useRef<HTMLButtonElement>(null);
   const cellContainerRef = useRef<HTMLDivElement>(null);
 
@@ -171,7 +174,8 @@ export const MarkdownCell: React.FC<MarkdownCellProps> = ({
     onFocusPrevious,
     onDeleteCell: () => handleDeleteCell("keyboard"),
     onUpdateSource: updateSource,
-    onEmptyCellShiftTab: () => changeCellType(cycleCellType(cell.cellType)),
+    onEmptyCellShiftTab: () =>
+      changeCellType(cycleCellType(cell.cellType, enableSqlCells)),
   });
 
   // Because this is a markdown cell, there's nothing to execute, but we do want to handle the same keybindings as a code cell

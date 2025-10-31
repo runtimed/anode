@@ -12,6 +12,7 @@ export interface FeatureFlags {
   /** Show AI capabilities in the AI cell dropdown. We'd enable this by default if we support vision or allow choosing models that don't have tool support. */
   "show-ai-capabilities": boolean;
   "user-saved-prompt": boolean;
+  "enable-sql-cells": boolean;
 }
 
 // Default feature flags (all disabled)
@@ -21,8 +22,8 @@ const DEFAULT_FLAGS: FeatureFlags = {
   "file-upload": false,
   "bulk-notebook-controls": false,
   "show-ai-capabilities": false,
-
   "user-saved-prompt": false,
+  "enable-sql-cells": false,
 } as const;
 
 // Type for feature flag keys

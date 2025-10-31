@@ -87,6 +87,8 @@ export const ExecutableCell: React.FC<ExecutableCellProps> = ({
 }) => {
   const { models: availableModels } = useAvailableAiModels();
   const userSavedPromptEnabled = useFeatureFlag("user-saved-prompt");
+  const enableSqlCells = useFeatureFlag("enable-sql-cells");
+
   const trpc = useTrpc();
   const { store } = useStore();
 
@@ -402,7 +404,8 @@ export const ExecutableCell: React.FC<ExecutableCellProps> = ({
     onExecute: executeCell,
     onOpenAiToolbar: () => setOpenAiToolbar(true),
     onUpdateSource: updateSource,
-    onEmptyCellShiftTab: () => changeCellType(cycleCellType(cell.cellType)),
+    onEmptyCellShiftTab: () =>
+      changeCellType(cycleCellType(cell.cellType, enableSqlCells)),
   });
 
   const handleFocus = useCallback(() => {

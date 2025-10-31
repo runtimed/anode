@@ -12,8 +12,9 @@ import { useFeatureFlag } from "@/contexts/FeatureFlagContext";
 
 export const EmptyStateCellAdder: React.FC = () => {
   const { addCell } = useAddCell();
-
   const fileUploadFlag = useFeatureFlag("file-upload");
+  const sqlCellsFlag = useFeatureFlag("enable-sql-cells");
+
   return (
     <div className="px-4 pt-6 pb-6 text-center sm:px-0 sm:pt-12">
       <div className="text-muted-foreground mb-6">
@@ -36,12 +37,14 @@ export const EmptyStateCellAdder: React.FC = () => {
           onClick={() => addCell(undefined, "markdown")}
           className="flex items-center gap-2"
         />
-        <SqlCellButton
-          size="lg"
-          label="SQL Query"
-          onClick={() => addCell(undefined, "sql")}
-          className="flex items-center gap-2"
-        />
+        {sqlCellsFlag && (
+          <SqlCellButton
+            size="lg"
+            label="SQL Query"
+            onClick={() => addCell(undefined, "sql")}
+            className="flex items-center gap-2"
+          />
+        )}
         <AiCellButton
           size="lg"
           label="AI Assistant"
