@@ -132,6 +132,13 @@ export const NotebookSidebar: React.FC<NotebookSidebarProps> = ({
                     {fileCount > 99 ? "99+" : fileCount}
                   </span>
                 )}
+                {/* {item.id === "runtime" && (
+                  <span className="absolute top-0.5 right-0.5">
+                    <Circle
+                      className={`size-2 fill-current ${getStatusColor(runtimeHealth, runtimeStatus)}`}
+                    />
+                  </span>
+                )} */}
               </Button>
             );
           })}

@@ -28,6 +28,7 @@ import { useQuery, useStore } from "@livestore/react";
 import { CellData, events, queries } from "@runtimed/schema";
 import { Eraser, Play, Square, Undo2 } from "lucide-react";
 import { useCallback } from "react";
+import { useTimeout } from "react-use";
 
 export function NotebookControls({
   notebook,
@@ -110,19 +111,29 @@ function ActiveBulkNotebookActions({
   }
 
   return (
-    <>
+    <DelayedRender>
       <span className="flex items-center gap-1">
-        <Spinner size="md" />
-        <span className="text-muted-foreground text-sm">
+        <Spinner size="sm" />
+        <span className="text-muted-foreground text-xs">
           Running {cellQueue.length} cells
         </span>
       </span>
-      <Button variant="outline" size="sm" onClick={onCancelAll}>
+      <Button
+        variant="outline"
+        size="sm"
+        className="text-destructive text-xs"
+        onClick={onCancelAll}
+      >
         <Square />
         Stop All
       </Button>
-    </>
+    </DelayedRender>
   );
+}
+
+function DelayedRender({ children }: { children: React.ReactNode }) {
+  const [isReady] = useTimeout(200);
+  return isReady() ? children : null;
 }
 
 function BulkNotebookActions({
