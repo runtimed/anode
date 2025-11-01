@@ -9,12 +9,13 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip.js";
+import { useTitle } from "react-use";
 import { Button } from "../../ui/button.js";
 import { SimpleUserProfile } from "../SimpleUserProfile.js";
 import type { NotebookProcessed } from "../types.js";
 import { NotebookControls } from "./NotebookControls.js";
+import { RuntimeActions } from "./RuntimeActions.js";
 import { TitleEditor } from "./TitleEditor.js";
-import { useTitle } from "react-use";
 
 export function NotebookHeader({
   notebook,
@@ -41,8 +42,8 @@ export function NotebookHeader({
   return (
     <div className="border-b bg-white">
       <div className="mx-auto p-2 pl-2 sm:p-2 sm:pr-3 sm:pl-6">
-        <div className="flex items-center justify-start gap-1 sm:gap-4">
-          <div className="flex min-w-0 flex-col md:flex-row md:gap-3">
+        <div className="flex items-center justify-between gap-1 sm:gap-4">
+          <div className="flex min-w-0 flex-col">
             <TitleEditor
               notebook={notebook}
               onTitleSaved={onTitleSaved}
@@ -75,14 +76,17 @@ export function NotebookHeader({
             )}
           </div>
 
-          <div className="flex-1" />
+          <div className="flex items-center gap-2">
+            <RuntimeActions notebook={notebook} />
+            <NotebookControls notebook={notebook} />
+          </div>
 
           {/* Right side */}
 
           <div className="flex shrink-0 items-center gap-2">
             {canEdit && (
               <Button
-                variant="outline"
+                variant="ghost"
                 size="sm"
                 onClick={() => setIsSharingDialogOpen(true)}
                 className="px-1 text-xs sm:px-2"
@@ -105,8 +109,6 @@ export function NotebookHeader({
             <ErrorBoundary FallbackComponent={() => null}>
               <CollaboratorAvatars />
             </ErrorBoundary>
-
-            <NotebookControls notebook={notebook} />
 
             <ErrorBoundary fallback={<div>Error</div>}>
               <SimpleUserProfile />

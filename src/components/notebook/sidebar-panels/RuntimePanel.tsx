@@ -6,11 +6,14 @@ import { useRuntimeHealth } from "@/hooks/useRuntimeHealth";
 import { getRuntimeCommand } from "@/util/runtime-command";
 import { useQuery, useStore } from "@livestore/react";
 import { events, queryDb, tables } from "@runtimed/schema";
-import { BrushCleaning, Code2, Copy, Globe } from "lucide-react";
+import { BrushCleaning, Code, Code2, Copy, Globe, Play } from "lucide-react";
 import React, { useCallback, useState } from "react";
 import type { SidebarPanelProps } from "./types";
+import { PythonTerminalIcon, PythonWasmIcon } from "@/runtime/runtime-icons";
+import { useFeatureFlag } from "@/contexts/FeatureFlagContext";
 
 export const RuntimePanel: React.FC<SidebarPanelProps> = ({ notebook }) => {
+  const enableHtmlRuntime = useFeatureFlag("html-runtime");
   const { store } = useStore();
   const { hasActiveRuntime, activeRuntime } = useRuntimeHealth();
   const userId = useAuthenticatedUser();
@@ -241,7 +244,7 @@ export const RuntimePanel: React.FC<SidebarPanelProps> = ({ notebook }) => {
           <div className="space-y-3">
             <div>
               <h4 className="mb-2 text-xs font-medium text-gray-700">
-                Start Runtime
+                Start System Runtime
               </h4>
               <p className="mb-2 text-xs text-gray-500">
                 Set RUNT_API_KEY in your environment, then run:
@@ -259,44 +262,46 @@ export const RuntimePanel: React.FC<SidebarPanelProps> = ({ notebook }) => {
             <div className="space-y-3">
               <div>
                 <h4 className="mb-2 text-xs font-medium text-gray-700">
-                  Local Runtime
+                  Browser-based Runtime
                 </h4>
-                <p className="mb-2 text-xs text-gray-500">
-                  Run HTML directly in your browser
-                </p>
               </div>
 
-              <Button
-                onClick={launchLocalHtmlRuntime}
-                disabled={isLaunchingLocal}
-                size="sm"
-                className="flex w-full items-center gap-1"
-              >
-                <Globe className="h-3 w-3" />
-                {isLaunchingLocal ? "Starting..." : "Launch HTML Runtime"}
-              </Button>
-
-              {localError && (
-                <p className="text-xs text-red-600">{localError}</p>
-              )}
-
-              <Button
-                onClick={launchLocalPyodideRuntime}
-                disabled={isLaunchingPyodide}
-                size="sm"
-                className="flex w-full items-center gap-1"
-              >
-                <Code2 className="h-3 w-3" />
-                {isLaunchingPyodide ? "Starting..." : "Launch Python Runtime"}
-              </Button>
+              <div className="space-y-1">
+                <Button
+                  onClick={launchLocalPyodideRuntime}
+                  disabled={isLaunchingPyodide}
+                  size="sm"
+                  className="w-full"
+                >
+                  <PythonWasmIcon className="h-3 w-3" />
+                  {isLaunchingPyodide ? "Starting..." : "Launch Python Runtime"}
+                </Button>
+                <p className="text-xs leading-tight text-pretty text-gray-500">
+                  Limited capabilities. Other users will see "Local (You)".
+                </p>
+              </div>
 
               {pyodideError && (
                 <p className="text-xs text-red-600">{pyodideError}</p>
               )}
 
-              <p className="text-xs text-gray-400">
-                Limited capabilities. Other users will see "Local (You)".
-              </p>
+              {enableHtmlRuntime && (
+                <>
+                  <Button
+                    onClick={launchLocalHtmlRuntime}
+                    disabled={isLaunchingLocal}
+                    size="sm"
+                    className="w-full"
+                  >
+                    <Code2 className="h-3 w-3" />
+                    {isLaunchingLocal ? "Starting..." : "Launch HTML Runtime"}
+                  </Button>
+
+                  {localError && (
+                    <p className="text-xs text-red-600">{localError}</p>
+                  )}
+                </>
+              )}
 
               {/* Auto-launch Configuration */}
               <div className="mt-4 border-t border-gray-200 pt-3">
@@ -316,7 +321,7 @@ export const RuntimePanel: React.FC<SidebarPanelProps> = ({ notebook }) => {
                     <div className="peer h-5 w-9 rounded-full bg-gray-200 peer-checked:bg-blue-600 peer-focus:outline-none after:absolute after:top-[2px] after:left-[2px] after:h-4 after:w-4 after:rounded-full after:bg-white after:transition-all after:content-[''] peer-checked:after:translate-x-full peer-checked:after:border-white"></div>
                   </label>
                 </div>
-                <p className="text-xs text-gray-500">
+                <p className="text-xs text-pretty text-gray-500">
                   {autoLaunchConfig.enabled
                     ? "Runtime will start automatically when you execute cells"
                     : "You'll need to start runtime manually"}

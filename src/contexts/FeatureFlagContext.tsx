@@ -8,6 +8,7 @@ export interface FeatureFlags {
   "show-ai-capabilities": boolean;
   "restart-and-run-all-cells": boolean;
   "enable-sql-cells": boolean;
+  "html-runtime": boolean;
 
   "user-saved-prompt": boolean;
   /** Can remove this feature flag once we have a proper way to get the Python version from the kernel */
@@ -23,6 +24,7 @@ const DEFAULT_FLAGS: FeatureFlags = {
   "show-ai-capabilities": false,
   "restart-and-run-all-cells": false,
   "enable-sql-cells": false,
+  "html-runtime": false,
 
   // --- Enabled by default ---
   "user-saved-prompt": true,
