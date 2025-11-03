@@ -10,6 +10,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "../ui/dropdown-menu";
+import { SimpleTooltip } from "../ui/tooltip.js";
 
 interface SimpleUserProfileProps {
   className?: string;
@@ -92,6 +93,7 @@ export const SimpleUserProfile: React.FC<SimpleUserProfileProps> = ({
           </Avatar>
         </DropdownMenuTrigger>
 
+        {/* <DropdownMenuContent align="end" className="min-w-56 max-w-96"> */}
         <DropdownMenuContent align="end" className="w-56">
           {/* User Info */}
           <div className="px-2 py-1.5">
@@ -99,14 +101,16 @@ export const SimpleUserProfile: React.FC<SimpleUserProfileProps> = ({
               <Avatar>
                 <AvatarFallback>{initials}</AvatarFallback>
               </Avatar>
-              <div className="flex flex-col space-y-1">
+              <div className="flex min-w-0 flex-col space-y-1">
                 <p className="text-sm leading-none font-medium">
                   {displayName}
                 </p>
                 {user?.email && (
-                  <p className="text-muted-foreground text-xs leading-none">
-                    {user.email}
-                  </p>
+                  <SimpleTooltip content={user.email}>
+                    <p className="text-muted-foreground truncate text-xs leading-none">
+                      {user.email}
+                    </p>
+                  </SimpleTooltip>
                 )}
               </div>
             </div>
