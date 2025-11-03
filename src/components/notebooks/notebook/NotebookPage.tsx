@@ -22,6 +22,7 @@ import type { NotebookProcessed } from "../types.js";
 import { useNavigateToCanonicalUrl, useNotebook } from "./helpers.js";
 import { NotebookHeader } from "./NotebookHeader.js";
 import { AvailableAiModelsProvider } from "@/util/ai-models.js";
+import { SidebarItemProvider } from "@/contexts/SidebarItemContext.js";
 
 export const NotebookPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -31,7 +32,9 @@ export const NotebookPage: React.FC = () => {
   return (
     <CustomLiveStoreProvider storeId={id}>
       <ChatModeProvider>
-        <NotebookPageWithId id={id} />
+        <SidebarItemProvider>
+          <NotebookPageWithId id={id} />
+        </SidebarItemProvider>
       </ChatModeProvider>
     </CustomLiveStoreProvider>
   );
