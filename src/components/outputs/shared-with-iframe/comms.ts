@@ -22,11 +22,16 @@ type IframeDoubleClickEvent = {
   type: "iframe-double-click";
 };
 
+type IframeMarkdownRenderedEvent = {
+  type: "iframe-markdown-rendered";
+};
+
 export type ToIframeEvent = UpdateOutputsEvent;
 export type FromIframeEvent =
   | IframeHeightEvent
   | IframeLoadedEvent
-  | IframeDoubleClickEvent;
+  | IframeDoubleClickEvent
+  | IframeMarkdownRenderedEvent;
 
 export function sendFromIframe(event: FromIframeEvent) {
   window.parent.postMessage(event, "*");
@@ -60,11 +65,13 @@ export function useIframeCommsParent({
   onHeightChange,
   outputs,
   onDoubleClick,
+  onMarkdownRendered,
 }: {
   defaultHeight: string;
   onHeightChange?: (height: number) => void;
   outputs?: OutputData[];
   onDoubleClick?: () => void;
+  onMarkdownRendered?: () => void;
 }) {
   const iframeRef = useRef<HTMLIFrameElement>(null);
 
@@ -97,6 +104,9 @@ export function useIframeCommsParent({
       }
       if (event.data && event.data.type === "iframe-double-click") {
         onDoubleClick?.();
+      }
+      if (event.data && event.data.type === "iframe-markdown-rendered") {
+        onMarkdownRendered?.();
       }
     };
 

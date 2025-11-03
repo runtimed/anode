@@ -2,10 +2,10 @@ import { useAddCell } from "@/hooks/useAddCell.js";
 import { useCellContent } from "@/hooks/useCellContent.js";
 import { useCellKeyboardNavigation } from "@/hooks/useCellKeyboardNavigation.js";
 import { useDeleteCell } from "@/hooks/useDeleteCell.js";
-import { useMoveCell } from "@/hooks/useMoveCell.js";
 import { useEditorRegistry } from "@/hooks/useEditorRegistry.js";
-import { events, queries, tables, CellTypeNoRaw } from "@runtimed/schema";
+import { useMoveCell } from "@/hooks/useMoveCell.js";
 import { useStore } from "@livestore/react";
+import { CellTypeNoRaw, events, queries, tables } from "@runtimed/schema";
 import React, {
   useCallback,
   useEffect,
@@ -14,9 +14,12 @@ import React, {
   useState,
 } from "react";
 
+import { IframeOutput } from "@/components/outputs/MaybeCellOutputs.js";
 import { Button } from "@/components/ui/button.js";
+import { useFeatureFlag } from "@/contexts/FeatureFlagContext.js";
 import { useUserRegistry } from "@/hooks/useUserRegistry.js";
 import { cn } from "@/lib/utils.js";
+import { cycleCellType } from "@/util/cycle-cell-type.js";
 import { Edit3, Eye } from "lucide-react";
 import { ErrorBoundary } from "react-error-boundary";
 import { useClickAway } from "react-use";
@@ -27,9 +30,7 @@ import { CellControls } from "./shared/CellControls.js";
 import { CellTypeSelector } from "./shared/CellTypeSelector.js";
 import { Editor, EditorRef } from "./shared/Editor.js";
 import { PresenceBookmarks } from "./shared/PresenceBookmarks.js";
-import { IframeOutput } from "@/components/outputs/MaybeCellOutputs.js";
-import { cycleCellType } from "@/util/cycle-cell-type.js";
-import { useFeatureFlag } from "@/contexts/FeatureFlagContext.js";
+import { Spinner } from "@/components/ui/Spinner.js";
 
 interface MarkdownCellProps {
   cell: typeof tables.cells.Type;
@@ -48,6 +49,8 @@ export const MarkdownCell: React.FC<MarkdownCellProps> = ({
 
   const editButtonRef = useRef<HTMLButtonElement>(null);
   const cellContainerRef = useRef<HTMLDivElement>(null);
+
+  const [readyToShowRendered, setReadyToShowRendered] = useState(false);
 
   const { store } = useStore();
   const {
@@ -247,6 +250,8 @@ export const MarkdownCell: React.FC<MarkdownCellProps> = ({
   const focusBgColor = "bg-amber-50";
   const focusBorderColor = "border-amber-400";
 
+  const showRenderedOutput = readyToShowRendered && !isEditing;
+
   return (
     <CellContainer
       ref={cellContainerRef}
@@ -266,25 +271,31 @@ export const MarkdownCell: React.FC<MarkdownCellProps> = ({
         <div className="relative flex items-center gap-1">
           {dragHandle}
           <CellTypeSelector cell={cell} onCellTypeChange={changeCellType} />
-          {isEditing ? (
-            <Button
-              variant="outline"
-              size="xs"
-              className="text-xs"
-              ref={editButtonRef}
-              onClick={() => setIsEditing(false)}
-            >
-              <Eye className="size-4" /> Preview
-            </Button>
+          {readyToShowRendered ? (
+            <>
+              {isEditing ? (
+                <Button
+                  variant="outline"
+                  size="xs"
+                  className="text-xs"
+                  ref={editButtonRef}
+                  onClick={() => setIsEditing(false)}
+                >
+                  <Eye className="size-4" /> Preview
+                </Button>
+              ) : (
+                <Button
+                  variant="outline"
+                  size="xs"
+                  className="text-xs"
+                  onClick={() => setIsEditing(true)}
+                >
+                  <Edit3 className="size-4" /> Edit
+                </Button>
+              )}
+            </>
           ) : (
-            <Button
-              variant="outline"
-              size="xs"
-              className="text-xs"
-              onClick={() => setIsEditing(true)}
-            >
-              <Edit3 className="size-4" /> Edit
-            </Button>
+            <Spinner size="sm" />
           )}
 
           <PresenceBookmarks
@@ -316,12 +327,13 @@ export const MarkdownCell: React.FC<MarkdownCellProps> = ({
           className={cn(
             "cell-content bg-white pr-4 pl-4 transition-colors",
             // Ensure we don't add to parent height if hidden
-            cell.sourceVisible && !isEditing ? "h-auto py-1" : "h-0 opacity-0"
+            showRenderedOutput ? "h-auto py-1" : "h-0 opacity-0"
           )}
         >
           {/* Send markdown content to iframe */}
           <IframeOutput
             onDoubleClick={() => setIsEditing(true)}
+            onMarkdownRendered={() => setReadyToShowRendered(true)}
             outputs={[
               {
                 id: cell.id + "-output",
@@ -353,7 +365,7 @@ export const MarkdownCell: React.FC<MarkdownCellProps> = ({
           className={cn(
             "cell-content bg-white pl-4 transition-colors",
             // Ensure we don't add to parent height if hidden
-            cell.sourceVisible && isEditing ? "block py-1" : "hidden"
+            !showRenderedOutput ? "block py-1" : "hidden"
           )}
         >
           <ErrorBoundary fallback={<div>Error rendering editor</div>}>

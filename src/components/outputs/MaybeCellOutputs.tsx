@@ -95,6 +95,7 @@ interface IframeOutputProps {
   isReact?: boolean;
   defaultHeight?: string;
   onDoubleClick?: () => void;
+  onMarkdownRendered?: () => void;
 }
 
 export const IframeOutput: React.FC<IframeOutputProps> = ({
@@ -105,12 +106,14 @@ export const IframeOutput: React.FC<IframeOutputProps> = ({
   onHeightChange,
   defaultHeight = "0px",
   onDoubleClick,
+  onMarkdownRendered,
 }) => {
   const { iframeRef, iframeHeight } = useIframeCommsParent({
     defaultHeight,
     onHeightChange,
     outputs,
     onDoubleClick,
+    onMarkdownRendered,
   });
 
   const [debouncedIframeHeight, setDebouncedIframeHeight] =
