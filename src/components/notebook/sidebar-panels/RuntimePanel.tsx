@@ -7,7 +7,7 @@ import { useRuntimeHealth } from "@/hooks/useRuntimeHealth";
 import { getRuntimeCommand } from "@/util/runtime-command";
 import { useQuery, useStore } from "@livestore/react";
 import { events, queryDb, tables } from "@runtimed/schema";
-import { BrushCleaning, Code2, Copy } from "lucide-react";
+import { BrushCleaning, Code2, Copy, Square } from "lucide-react";
 import React, { useCallback, useState } from "react";
 import type { SidebarPanelProps } from "./types";
 import { PythonIcon } from "@/icons/python-icon";
@@ -230,8 +230,9 @@ export const RuntimePanel: React.FC<SidebarPanelProps> = ({ notebook }) => {
                   onClick={stopLocalRuntime}
                   size="sm"
                   variant="outline"
-                  className="w-full text-xs"
+                  className="text-destructive w-full text-xs"
                 >
+                  <Square />
                   Stop Local Runtime
                 </Button>
                 {localError && (
