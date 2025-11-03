@@ -15,6 +15,7 @@ import type { NotebookProcessed } from "../types.js";
 import { NotebookControls } from "./NotebookControls.js";
 import { TitleEditor } from "./TitleEditor.js";
 import { useTitle } from "react-use";
+import { RuntimeStateButton } from "./RuntimeStateButton.js";
 
 export function NotebookHeader({
   notebook,
@@ -74,6 +75,8 @@ export function NotebookHeader({
               </div>
             )}
           </div>
+
+          <RuntimeStateButton />
 
           <div className="flex-1" />
 
