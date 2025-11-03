@@ -1,16 +1,20 @@
 import { useAuthenticatedUser } from "@/auth";
 import { RuntimeHealthIndicator } from "@/components/notebook/RuntimeHealthIndicator";
 import { Button } from "@/components/ui/button";
+import { useFeatureFlag } from "@/contexts/FeatureFlagContext";
 import { useAutoLaunchRuntime } from "@/hooks/useAutoLaunchRuntime";
 import { useRuntimeHealth } from "@/hooks/useRuntimeHealth";
 import { getRuntimeCommand } from "@/util/runtime-command";
 import { useQuery, useStore } from "@livestore/react";
 import { events, queryDb, tables } from "@runtimed/schema";
-import { BrushCleaning, Code2, Copy, Globe } from "lucide-react";
+import { BrushCleaning, Code2, Copy } from "lucide-react";
 import React, { useCallback, useState } from "react";
 import type { SidebarPanelProps } from "./types";
+import { PythonIcon } from "@/icons/python-icon";
+import { Separator } from "@/components/ui/separator";
 
 export const RuntimePanel: React.FC<SidebarPanelProps> = ({ notebook }) => {
+  const enableHtmlRuntime = useFeatureFlag("html-runtime");
   const { store } = useStore();
   const { hasActiveRuntime, activeRuntime } = useRuntimeHealth();
   const userId = useAuthenticatedUser();
@@ -141,12 +145,12 @@ export const RuntimePanel: React.FC<SidebarPanelProps> = ({ notebook }) => {
   }, [activeRuntime]);
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-3">
       <div>
         <h4 className="mb-3 text-sm font-medium text-gray-700">
           Runtime Status
         </h4>
-        <div className="space-y-2">
+        <div className="space-y-1">
           <div className="flex items-center justify-between">
             <span className="text-xs text-gray-600">Connection</span>
             <RuntimeHealthIndicator showStatus />
@@ -187,7 +191,7 @@ export const RuntimePanel: React.FC<SidebarPanelProps> = ({ notebook }) => {
       </div>
 
       {hasActiveRuntime && activeRuntime && (
-        <div className="border-t pt-4">
+        <>
           <h4 className="mb-2 text-xs font-medium text-gray-700">
             Runtime Details
           </h4>
@@ -217,8 +221,11 @@ export const RuntimePanel: React.FC<SidebarPanelProps> = ({ notebook }) => {
                       activeRuntime.status.slice(1)}
               </span>
             </div>
-            {isLocalRuntime() && (
-              <div className="mt-2 border-t pt-2">
+          </div>
+          {isLocalRuntime() && (
+            <>
+              <Separator />
+              <div>
                 <Button
                   onClick={stopLocalRuntime}
                   size="sm"
@@ -231,137 +238,137 @@ export const RuntimePanel: React.FC<SidebarPanelProps> = ({ notebook }) => {
                   <p className="mt-1 text-xs text-red-600">{localError}</p>
                 )}
               </div>
-            )}
-          </div>
-        </div>
+            </>
+          )}
+        </>
       )}
 
       {!hasActiveRuntime && (
-        <div className="border-t pt-4">
-          <div className="space-y-3">
-            <div>
-              <h4 className="mb-2 text-xs font-medium text-gray-700">
-                Start Runtime
-              </h4>
-              <p className="mb-2 text-xs text-gray-500">
-                Set RUNT_API_KEY in your environment, then run:
-              </p>
-            </div>
-
-            <RuntimeCodeBlock notebookId={notebook.id} />
-
-            <p className="text-xs text-gray-500">
-              Each notebook needs its own runtime instance.
+        <>
+          <Separator />
+          <div>
+            <h4 className="mb-2 text-xs font-medium text-gray-700">
+              Launch Python Runtime (system)
+            </h4>
+            <p className="mb-2 text-xs text-gray-500">
+              Set RUNT_API_KEY in your environment, then run:
             </p>
           </div>
 
-          <div className="mt-3 border-t pt-3">
-            <div className="space-y-3">
-              <div>
-                <h4 className="mb-2 text-xs font-medium text-gray-700">
-                  Local Runtime
-                </h4>
-                <p className="mb-2 text-xs text-gray-500">
-                  Run HTML directly in your browser
-                </p>
-              </div>
+          <RuntimeCodeBlock notebookId={notebook.id} />
 
+          <p className="text-xs text-gray-500">
+            Each notebook needs its own runtime instance.
+          </p>
+
+          <Separator />
+
+          <div>
+            <h4 className="mb-2 text-xs font-medium text-gray-700">
+              Browser-based Runtime
+            </h4>
+          </div>
+
+          <div className="space-y-1">
+            <Button
+              onClick={launchLocalPyodideRuntime}
+              disabled={isLaunchingPyodide}
+              size="sm"
+              className="w-full"
+            >
+              <PythonIcon />
+              {isLaunchingPyodide ? "Starting..." : "Launch Python Runtime"}
+            </Button>
+            <p className="text-xs leading-tight text-pretty text-gray-500">
+              Limited capabilities. Other users will see "Local (You)".
+            </p>
+          </div>
+
+          {pyodideError && (
+            <p className="text-xs text-red-600">{pyodideError}</p>
+          )}
+
+          {enableHtmlRuntime && (
+            <>
               <Button
                 onClick={launchLocalHtmlRuntime}
                 disabled={isLaunchingLocal}
                 size="sm"
-                className="flex w-full items-center gap-1"
+                className="w-full"
               >
-                <Globe className="h-3 w-3" />
+                <Code2 />
                 {isLaunchingLocal ? "Starting..." : "Launch HTML Runtime"}
               </Button>
 
               {localError && (
                 <p className="text-xs text-red-600">{localError}</p>
               )}
+            </>
+          )}
 
-              <Button
-                onClick={launchLocalPyodideRuntime}
-                disabled={isLaunchingPyodide}
-                size="sm"
-                className="flex w-full items-center gap-1"
-              >
-                <Code2 className="h-3 w-3" />
-                {isLaunchingPyodide ? "Starting..." : "Launch Python Runtime"}
-              </Button>
+          <Separator />
 
-              {pyodideError && (
-                <p className="text-xs text-red-600">{pyodideError}</p>
-              )}
-
-              <p className="text-xs text-gray-400">
-                Limited capabilities. Other users will see "Local (You)".
-              </p>
-
-              {/* Auto-launch Configuration */}
-              <div className="mt-4 border-t border-gray-200 pt-3">
-                <div className="mb-2 flex items-center justify-between">
-                  <span className="text-xs font-medium text-gray-700">
-                    Auto-launch
-                  </span>
-                  <label className="relative inline-flex cursor-pointer items-center">
-                    <input
-                      type="checkbox"
-                      checked={autoLaunchConfig.enabled}
-                      onChange={(e) =>
-                        updateAutoLaunchConfig({ enabled: e.target.checked })
-                      }
-                      className="peer sr-only"
-                    />
-                    <div className="peer h-5 w-9 rounded-full bg-gray-200 peer-checked:bg-blue-600 peer-focus:outline-none after:absolute after:top-[2px] after:left-[2px] after:h-4 after:w-4 after:rounded-full after:bg-white after:transition-all after:content-[''] peer-checked:after:translate-x-full peer-checked:after:border-white"></div>
-                  </label>
-                </div>
-                <p className="text-xs text-gray-500">
-                  {autoLaunchConfig.enabled
-                    ? "Runtime will start automatically when you execute cells"
-                    : "You'll need to start runtime manually"}
-                </p>
-                {autoLaunchStatus.launchCount > 0 && (
-                  <p className="mt-1 text-xs text-gray-400">
-                    Launched {autoLaunchStatus.launchCount} time
-                    {autoLaunchStatus.launchCount === 1 ? "" : "s"}
-                  </p>
-                )}
-              </div>
+          {/* Auto-launch Configuration */}
+          <div>
+            <div className="mb-2 flex items-center justify-between">
+              <span className="text-xs font-medium text-gray-700">
+                Auto-launch
+              </span>
+              <label className="relative inline-flex cursor-pointer items-center">
+                <input
+                  type="checkbox"
+                  checked={autoLaunchConfig.enabled}
+                  onChange={(e) =>
+                    updateAutoLaunchConfig({ enabled: e.target.checked })
+                  }
+                  className="peer sr-only"
+                />
+                <div className="peer h-5 w-9 rounded-full bg-gray-200 peer-checked:bg-blue-600 peer-focus:outline-none after:absolute after:top-[2px] after:left-[2px] after:h-4 after:w-4 after:rounded-full after:bg-white after:transition-all after:content-[''] peer-checked:after:translate-x-full peer-checked:after:border-white"></div>
+              </label>
             </div>
+            <p className="text-xs text-pretty text-gray-500">
+              {autoLaunchConfig.enabled
+                ? "Runtime will start automatically when you execute cells"
+                : "You'll need to start runtime manually"}
+            </p>
+            {autoLaunchStatus.launchCount > 0 && (
+              <p className="mt-1 text-xs text-gray-400">
+                Launched {autoLaunchStatus.launchCount} time
+                {autoLaunchStatus.launchCount === 1 ? "" : "s"}
+              </p>
+            )}
           </div>
-        </div>
+        </>
       )}
 
       {/* Show clear all button if there are any runtime sessions */}
       {activeRuntimeSessions.length > 0 && (
-        <div className="border-t pt-4">
-          <div className="space-y-3">
-            <div>
-              <h4 className="mb-2 text-xs font-medium text-gray-700">
-                Runtime Management
-              </h4>
-              <p className="mb-2 text-xs text-gray-500">
-                {activeRuntimeSessions.length} active runtime session
-                {activeRuntimeSessions.length !== 1 ? "s" : ""}
-              </p>
-              <p className="mb-2 text-xs text-gray-400">
-                This will terminate all runtimes and cancel any running
-                executions.
-              </p>
-            </div>
-
-            <Button
-              variant="destructive"
-              size="sm"
-              onClick={clearAllRuntimes}
-              className="flex w-full items-center gap-1"
-            >
-              <BrushCleaning className="h-3 w-3" />
-              <span>Clear All Runtimes</span>
-            </Button>
+        <>
+          <Separator />
+          <div>
+            <h4 className="mb-2 text-xs font-medium text-gray-700">
+              Runtime Management
+            </h4>
+            <p className="mb-2 text-xs text-gray-500">
+              {activeRuntimeSessions.length} active runtime session
+              {activeRuntimeSessions.length !== 1 ? "s" : ""}
+            </p>
+            <p className="mb-2 text-xs text-gray-400">
+              This will terminate all runtimes and cancel any running
+              executions.
+            </p>
           </div>
-        </div>
+
+          <Button
+            variant="destructive"
+            size="sm"
+            onClick={clearAllRuntimes}
+            className="flex w-full items-center gap-1"
+          >
+            <BrushCleaning className="h-3 w-3" />
+            <span>Clear All Runtimes</span>
+          </Button>
+        </>
       )}
     </div>
   );
