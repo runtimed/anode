@@ -5,7 +5,10 @@ import {
   getStatusText,
 } from "@/components/notebook/RuntimeHealthIndicator";
 import { Button } from "@/components/ui/button";
-import { ButtonGroup } from "@/components/ui/button-group";
+import {
+  ButtonGroup,
+  ButtonGroupSeparator,
+} from "@/components/ui/button-group";
 import { Separator } from "@/components/ui/separator";
 import { Spinner } from "@/components/ui/Spinner";
 import { SimpleTooltip } from "@/components/ui/tooltip";
@@ -19,8 +22,10 @@ import {
   Circle,
   Code2,
   Copy,
+  PanelLeftOpen,
   Play,
   PlayIcon,
+  Sidebar,
   Square,
 } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
@@ -30,6 +35,7 @@ import {
   PythonTerminalIcon,
   PythonWasmIcon,
 } from "@/runtime/runtime-icons";
+import { cn } from "@/lib/utils";
 
 export function RuntimeActions({ notebook }: { notebook: NotebookProcessed }) {
   const { store } = useStore();
@@ -92,40 +98,40 @@ export function RuntimeActions({ notebook }: { notebook: NotebookProcessed }) {
 
   return (
     <>
-      {isLaunchingPyodide && <Spinner />}
-      {!isLaunchingPyodide && (
+      {/* {isLaunchingPyodide && <Spinner />} */}
+      {/* {!isLaunchingPyodide && (
         <Circle
           className={`size-2 fill-current ${getHealthColor(runtimeHealth)}`}
         />
-      )}
+      )} */}
       {!hasActiveRuntime ? (
         <>
           <ButtonGroup>
-            <SimpleTooltip content="Start Browser-based Python Runtime (pyodide)">
+            <SimpleTooltip content="Start browser-based Python runtime (Pyodide)">
               <Button
                 size="sm"
-                variant="outline"
+                variant="secondary"
                 className="text-xs"
                 onClick={launchLocalPyodideRuntime}
                 disabled={isLaunchingPyodide}
               >
                 {!isLaunchingPyodide && <Play />}
-                Start
-                <SeparatorLine />
-                <PythonWasmIcon />
-                Python
+                Start Python Runtime
               </Button>
             </SimpleTooltip>
             {/* <Popover>
               <PopoverTrigger asChild> */}
-            <Button
-              size="sm"
-              variant="outline"
-              className="text-xs"
-              onClick={() => setActiveSection("runtime")}
-            >
-              <ChevronDown />
-            </Button>
+            <ButtonGroupSeparator />
+            <SimpleTooltip content="Open runtime panel">
+              <Button
+                size="sm"
+                variant="secondary"
+                className="group gap-0 text-xs hover:gap-2"
+                onClick={() => setActiveSection("runtime")}
+              >
+                <PanelLeftOpen />
+              </Button>
+            </SimpleTooltip>
             {/* </PopoverTrigger>
               <PopoverContent align="end" className="w-80">
                 <StartRuntime
@@ -144,23 +150,30 @@ export function RuntimeActions({ notebook }: { notebook: NotebookProcessed }) {
       ) : (
         hasActiveRuntime &&
         activeRuntime && (
-          <Button
-            size="sm"
-            variant="outline"
-            className={`text-xs has-[>svg]:px-4`}
-            onClick={() => setActiveSection("runtime")}
-          >
-            {isLaunchingPyodide ? (
-              <span className="text-muted-foreground">Starting</span>
-            ) : (
-              <span className={getStatusColor(runtimeHealth, runtimeStatus)}>
-                {getStatusText(runtimeHealth, runtimeStatus)}
-              </span>
-            )}
-            <SeparatorLine />
-            <LogoForRuntimeType runtimeType={activeRuntime.runtimeType} />
-            {runtimeTypeToTitle(activeRuntime.runtimeType)}
-          </Button>
+          <SimpleTooltip content="Open runtime panel">
+            <Button
+              size="sm"
+              variant="secondary"
+              className={cn(
+                "group gap-0 text-xs hover:gap-2",
+                getHealthButtonClassNames(runtimeHealth)
+              )}
+              onClick={() => setActiveSection("runtime")}
+            >
+              {/* <PanelLeftOpen className="!w-0 opacity-0 transition-[transform,width,opacity] duration-200 group-hover:!w-4 group-hover:!opacity-100" /> */}
+              {isLaunchingPyodide ? (
+                <span className="text-muted-foreground">
+                  Starting {runtimeTypeToTitle(activeRuntime.runtimeType)}...
+                </span>
+              ) : (
+                <span>
+                  {runtimeTypeToTitle(activeRuntime.runtimeType)}{" "}
+                  {getStatusText(runtimeHealth, runtimeStatus)}
+                </span>
+              )}
+              {/* <LogoForRuntimeType runtimeType={activeRuntime.runtimeType} /> */}
+            </Button>
+          </SimpleTooltip>
         )
       )}
     </>
@@ -174,7 +187,7 @@ const runtimeTypeToTitle = (runtimeType: string) => {
     case "python":
       return "Python";
     case "python3-pyodide":
-      return "Python (system)";
+      return "Python";
     default:
       return "Unknown";
   }
@@ -245,7 +258,7 @@ function StartRuntime({
             className="flex w-full items-center gap-1"
           >
             <Code2 className="h-3 w-3" />
-            {isLaunchingLocal ? "Starting..." : "Launch HTML Runtime"}
+            {isLaunchingLocal ? "Starting..." : "Start HTML Runtime"}
           </Button>
 
           <Button
@@ -255,7 +268,7 @@ function StartRuntime({
             className="flex w-full items-center gap-1"
           >
             <PythonWasmIcon className="h-3 w-3" />
-            {isLaunchingPyodide ? "Starting..." : "Launch Python Runtime"}
+            {isLaunchingPyodide ? "Starting..." : "Start Python Runtime"}
           </Button>
 
           {localError && (

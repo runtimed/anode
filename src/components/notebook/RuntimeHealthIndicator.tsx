@@ -25,7 +25,7 @@ export function getHealthColor(health: RuntimeHealth): string {
 export function getHealthButtonClassNames(health: RuntimeHealth): string {
   switch (health) {
     case "healthy":
-      return "bg-green-50 border-green-300 hover:border-green-400 hover:bg-green-100";
+      return "bg-green-100 shadow-none text-green-600 border-transparent hover:border-green-300 border-1 hover:border-green-300 hover:bg-green-100";
     case "warning":
       return "bg-amber-50 border-amber-300 hover:border-amber-400 hover:bg-amber-100";
     case "connecting":

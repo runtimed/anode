@@ -29,6 +29,7 @@ import { CellData, events, queries } from "@runtimed/schema";
 import { Eraser, Play, Square, Undo2 } from "lucide-react";
 import { useCallback } from "react";
 import { useTimeout } from "react-use";
+import { SimpleTooltip } from "@/components/ui/tooltip";
 
 export function NotebookControls({
   notebook,
@@ -74,11 +75,13 @@ export function NotebookControls({
         />
       )}
       <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <Button variant="ghost" size="sm" className="relative">
-            <MoreHorizontal className="h-4 w-4" />
-          </Button>
-        </DropdownMenuTrigger>
+        <SimpleTooltip content="Notebook actions">
+          <DropdownMenuTrigger asChild>
+            <Button variant="ghost" size="sm" className="relative">
+              <MoreHorizontal className="h-4 w-4" />
+            </Button>
+          </DropdownMenuTrigger>
+        </SimpleTooltip>
         <DropdownMenuContent align="end">
           {allowBulkNotebookControls && (
             <BulkNotebookActions

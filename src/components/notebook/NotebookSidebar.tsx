@@ -25,8 +25,9 @@ import { useFeatureFlag } from "@/contexts/FeatureFlagContext";
 import { useSidebarItem } from "@/contexts/SidebarItemContext";
 import { availableFiles$ } from "@/queries";
 import { useQuery } from "@livestore/react";
-import { ArrowLeft, X } from "lucide-react";
+import { ArrowLeft, Circle, X } from "lucide-react";
 import { DebugModeToggle } from "../debug/DebugModeToggle";
+import { getStatusColor } from "./RuntimeHealthIndicator";
 
 interface NotebookSidebarProps {
   notebook: NotebookProcessed;
@@ -49,7 +50,7 @@ export const NotebookSidebar: React.FC<NotebookSidebarProps> = ({
   onAiPanelToggle,
 }) => {
   const { activeSection, setActiveSection } = useSidebarItem();
-  const { hasActiveRuntime, runtimeHealth } = useRuntimeHealth();
+  const { hasActiveRuntime, runtimeHealth, runtimeStatus } = useRuntimeHealth();
   const showFilesPanel = useFeatureFlag("file-upload");
   const availableFiles = useQuery(availableFiles$);
   const fileCount = availableFiles?.length ?? 0;
@@ -132,13 +133,14 @@ export const NotebookSidebar: React.FC<NotebookSidebarProps> = ({
                     {fileCount > 99 ? "99+" : fileCount}
                   </span>
                 )}
-                {/* {item.id === "runtime" && (
+                {item.id === "runtime" && (
                   <span className="absolute top-0.5 right-0.5">
                     <Circle
-                      className={`size-2 fill-current ${getStatusColor(runtimeHealth, runtimeStatus)}`}
+                      key={runtimeHealth + runtimeStatus}
+                      className={`animate-in fade-in zoom-in-0 size-2 fill-current duration-200 ${getStatusColor(runtimeHealth, runtimeStatus)}`}
                     />
                   </span>
-                )} */}
+                )}
               </Button>
             );
           })}
