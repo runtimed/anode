@@ -1,13 +1,12 @@
-import type { SidebarItemConfig, SidebarSection } from "./types";
 import {
-  Tag,
-  MonitorCheck,
-  MonitorOff,
-  DatabaseZap,
-  HelpCircle,
   BotIcon,
+  Cpu,
+  DatabaseZap,
   Folder,
+  HelpCircle,
+  Tag,
 } from "lucide-react";
+import type { SidebarItemConfig, SidebarSection } from "./types";
 
 interface SidebarConfigOptions {
   hasActiveRuntime: boolean;
@@ -26,7 +25,7 @@ const SIDEBAR_ITEM_CONFIGS: Record<SidebarSection, SidebarItemConfig> = {
   },
   runtime: {
     id: "runtime",
-    icon: MonitorCheck, // Will be overridden based on runtime state
+    icon: Cpu,
     tooltip: "Runtime",
     title: "Runtime Configuration",
   },
@@ -59,31 +58,14 @@ const SIDEBAR_ITEM_CONFIGS: Record<SidebarSection, SidebarItemConfig> = {
 export function getSidebarItems(
   options: SidebarConfigOptions
 ): SidebarItemConfig[] {
-  const {
-    hasActiveRuntime,
-    runtimeHealth,
-    activeSection,
-    isDev,
-    showFilesPanel,
-  } = options;
+  const { isDev, showFilesPanel } = options;
 
   const items: SidebarItemConfig[] = [];
 
   // Always show metadata panel
   items.push(SIDEBAR_ITEM_CONFIGS.metadata);
 
-  // Show runtime panel conditionally
-  const shouldShowRuntime =
-    hasActiveRuntime ||
-    runtimeHealth !== "healthy" ||
-    activeSection === "runtime";
-
-  if (shouldShowRuntime) {
-    items.push({
-      ...SIDEBAR_ITEM_CONFIGS.runtime,
-      icon: hasActiveRuntime ? MonitorCheck : MonitorOff,
-    });
-  }
+  items.push(SIDEBAR_ITEM_CONFIGS.runtime);
 
   // Always show AI panel
   items.push(SIDEBAR_ITEM_CONFIGS.ai);
