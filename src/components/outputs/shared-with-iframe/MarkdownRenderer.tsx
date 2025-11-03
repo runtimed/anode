@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
@@ -10,6 +10,7 @@ import rehypeRaw from "rehype-raw";
 import remarkMath from "remark-math";
 import rehypeKatex from "rehype-katex";
 import "katex/dist/katex.min.css";
+import { sendFromIframe } from "./comms";
 
 interface MarkdownRendererProps {
   content: string;
@@ -89,6 +90,10 @@ export const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({
   enableCopyCode = true,
   generateHeadingIds = false,
 }) => {
+  useEffect(() => {
+    sendFromIframe({ type: "iframe-markdown-rendered" });
+  }, [content]);
+
   return (
     <div className={`${className} [&_pre]:!bg-gray-50`}>
       <ReactMarkdown
