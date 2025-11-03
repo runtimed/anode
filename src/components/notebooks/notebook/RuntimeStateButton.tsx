@@ -53,7 +53,9 @@ export function RuntimeStateButton() {
         <span
           className={`text-xs ${getStatusColor(runtimeHealth, runtimeStatus)}`}
         >
-          {runtimeTypeToTitle(activeRuntime.runtimeType)}{" "}
+          <span className="hidden sm:inline">
+            {runtimeTypeToTitle(activeRuntime.runtimeType)}
+          </span>{" "}
           {getStatusText(runtimeHealth, runtimeStatus)}
         </span>
       </Button>
