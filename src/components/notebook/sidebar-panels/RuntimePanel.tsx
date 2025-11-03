@@ -224,7 +224,6 @@ export const RuntimePanel: React.FC<SidebarPanelProps> = ({ notebook }) => {
           </div>
           {isLocalRuntime() && (
             <>
-              <Separator />
               <div>
                 <Button
                   onClick={stopLocalRuntime}
