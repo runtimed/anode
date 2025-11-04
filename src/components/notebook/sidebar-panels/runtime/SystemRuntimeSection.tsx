@@ -1,5 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { getRuntimeCommand } from "@/util/runtime-command";
+import { Copy } from "lucide-react";
 import { useCallback } from "react";
 
 export const SystemRuntimeSection = ({
