@@ -29,6 +29,14 @@
 - Browser session holds the live state
 - This was smart in 2011, and Jupyter RTC has made human collaboration work well
 
+
+**Alt slide**
+
+Pull from ChatGPT
+
+Document engine that lives on the server side
+
+
 **The Deeper Problem** (1 minute)
 - Jupyter RTC solved human-to-human collaboration
 - But what about human-AI-system collaboration?
@@ -99,8 +107,6 @@ Talk note: I'll open up by saying that agents has dual meaning here. "The most i
 
 **Execution Queue Coordination** (1 minute)
 - Events form a natural queue: `executionRequested` → `executionAssigned` → `executionStarted` → `executionCompleted`
-- Multiple runtimes can coordinate through events
-- Each gets unique session ID for clean handoffs
 
 **Transition**: Now that computation is independent of the browser, collaboration becomes trivial.
 
@@ -111,8 +117,7 @@ Talk note: I'll open up by saying that agents has dual meaning here. "The most i
 **What Event Sourcing Unlocks** (1 minute)
 - Multiple users just append events
 - Everyone's client syncs from same event log
-- Operational transforms? Don't need them.
-- Conflicts get resolved through event ordering (last-write-wins by default, custom strategies possible)
+- Conflicts get resolved through event ordering (last-write-wins by default)
 
 **Jupyter RTC vs In the Loop**
 - Jupyter RTC solves collaboration between humans - and it works well
