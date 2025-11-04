@@ -2,18 +2,25 @@ import { Button } from "@/components/ui/button";
 import { RuntimeSessionData } from "@runtimed/schema";
 import { Square } from "lucide-react";
 import { SidebarGroupLabel } from "./components";
+import { useCallback } from "react";
 
 export const RuntimeDetailsSection = ({
   activeRuntime,
-  isLocalRuntime,
   stopLocalRuntime,
   localError,
 }: {
   activeRuntime: RuntimeSessionData;
-  isLocalRuntime: () => boolean;
   stopLocalRuntime: () => void;
   localError: string | null;
 }) => {
+  const isLocalRuntime = useCallback(() => {
+    if (!activeRuntime || !window.__RUNT_LAUNCHER__) {
+      return false;
+    }
+    const status = window.__RUNT_LAUNCHER__.getStatus();
+    return status.hasAgent && status.sessionId === activeRuntime.sessionId;
+  }, [activeRuntime]);
+
   return (
     <>
       <SidebarGroupLabel>Runtime Details</SidebarGroupLabel>
