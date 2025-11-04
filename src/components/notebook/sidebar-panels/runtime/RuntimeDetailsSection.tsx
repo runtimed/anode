@@ -1,6 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { RuntimeSessionData } from "@runtimed/schema";
 import { Square } from "lucide-react";
+import { SidebarGroupLabel } from "./components";
 
 export const RuntimeDetailsSection = ({
   activeRuntime,
@@ -15,9 +16,7 @@ export const RuntimeDetailsSection = ({
 }) => {
   return (
     <>
-      <h4 className="mb-2 text-xs font-medium text-gray-700">
-        Runtime Details
-      </h4>
+      <SidebarGroupLabel>Runtime Details</SidebarGroupLabel>
       <div className="space-y-1 text-xs">
         <div className="flex justify-between">
           <span className="text-gray-600">Session:</span>

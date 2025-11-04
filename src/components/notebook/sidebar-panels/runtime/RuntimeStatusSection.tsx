@@ -1,6 +1,7 @@
 import { RuntimeSessionData } from "@runtimed/schema";
 import { RuntimeHealthIndicator } from "../../RuntimeHealthIndicator";
 import { AutoLaunchStatus } from "@/hooks/useAutoLaunchRuntime";
+import { SidebarGroupLabel } from "./components";
 
 export const RuntimeStatusSection = ({
   activeRuntime,
@@ -11,7 +12,7 @@ export const RuntimeStatusSection = ({
 }) => {
   return (
     <>
-      <h4 className="mb-3 text-sm font-medium text-gray-700">Runtime Status</h4>
+      <SidebarGroupLabel>Runtime Status</SidebarGroupLabel>
       <div className="space-y-1">
         <div className="flex items-center justify-between">
           <span className="text-xs text-gray-600">Connection</span>

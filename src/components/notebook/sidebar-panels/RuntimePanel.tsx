@@ -1,6 +1,5 @@
 import { useAuthenticatedUser } from "@/auth";
 import { Button } from "@/components/ui/button";
-import { Separator } from "@/components/ui/separator";
 import { useFeatureFlag } from "@/contexts/FeatureFlagContext";
 import { useAutoLaunchRuntime } from "@/hooks/useAutoLaunchRuntime";
 import { useRuntimeHealth } from "@/hooks/useRuntimeHealth";
@@ -14,6 +13,8 @@ import { RuntimeDetailsSection } from "./runtime/RuntimeDetailsSection";
 import { RuntimeStatusSection } from "./runtime/RuntimeStatusSection";
 import type { SidebarPanelProps } from "./types";
 import { SystemRuntimeSection } from "./runtime/SystemRuntimeSection";
+import { SidebarGroupLabel } from "./runtime/components";
+import { Separator } from "@/components/ui/separator";
 
 export const RuntimePanel: React.FC<SidebarPanelProps> = ({ notebook }) => {
   const enableHtmlRuntime = useFeatureFlag("html-runtime");
@@ -170,11 +171,7 @@ export const RuntimePanel: React.FC<SidebarPanelProps> = ({ notebook }) => {
 
           <Separator />
 
-          <div>
-            <h4 className="mb-2 text-xs font-medium text-gray-700">
-              Browser-based Runtime
-            </h4>
-          </div>
+          <SidebarGroupLabel>Browser-based Runtime</SidebarGroupLabel>
 
           <div className="space-y-1">
             <Button
@@ -247,11 +244,8 @@ function ClearAllRuntimesSection({
 }) {
   return (
     <>
-      <Separator />
+      <SidebarGroupLabel>Runtime Management</SidebarGroupLabel>
       <div>
-        <h4 className="mb-2 text-xs font-medium text-gray-700">
-          Runtime Management
-        </h4>
         <p className="mb-2 text-xs text-gray-500">
           {activeRuntimeSessions.length} active runtime session
           {activeRuntimeSessions.length !== 1 ? "s" : ""}

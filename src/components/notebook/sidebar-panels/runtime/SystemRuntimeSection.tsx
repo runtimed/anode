@@ -1,4 +1,5 @@
 import { Button } from "@/components/ui/button";
+import { SidebarGroupLabel } from "./components";
 import { getRuntimeCommand } from "@/util/runtime-command";
 import { Copy } from "lucide-react";
 import { useCallback } from "react";
@@ -11,9 +12,7 @@ export const SystemRuntimeSection = ({
   return (
     <>
       <div>
-        <h4 className="mb-2 text-xs font-medium text-gray-700">
-          Launch Python Runtime (system)
-        </h4>
+        <SidebarGroupLabel>Launch Python Runtime (system)</SidebarGroupLabel>
         <p className="mb-2 text-xs text-gray-500">
           Set RUNT_API_KEY in your environment, then run:
         </p>
