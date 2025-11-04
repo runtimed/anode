@@ -14,7 +14,7 @@ import { useAuthenticatedUser, useAuth } from "../auth";
 
 export type AutoLaunchRuntimeType = "html" | "python";
 
-interface AutoLaunchConfig {
+export interface AutoLaunchConfig {
   /** Which runtime to auto-launch (default: "html") */
   runtimeType: AutoLaunchRuntimeType;
   /** Whether auto-launch is enabled (default: true) */
@@ -23,7 +23,7 @@ interface AutoLaunchConfig {
   startupTimeoutMs: number;
 }
 
-interface AutoLaunchStatus {
+export interface AutoLaunchStatus {
   isLaunching: boolean;
   lastLaunchAttempt: Date | null;
   lastLaunchSuccess: boolean;

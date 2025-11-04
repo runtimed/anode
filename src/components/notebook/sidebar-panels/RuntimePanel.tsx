@@ -1,17 +1,19 @@
 import { useAuthenticatedUser } from "@/auth";
-import { RuntimeHealthIndicator } from "@/components/notebook/RuntimeHealthIndicator";
 import { Button } from "@/components/ui/button";
+import { Separator } from "@/components/ui/separator";
 import { useFeatureFlag } from "@/contexts/FeatureFlagContext";
 import { useAutoLaunchRuntime } from "@/hooks/useAutoLaunchRuntime";
 import { useRuntimeHealth } from "@/hooks/useRuntimeHealth";
-import { getRuntimeCommand } from "@/util/runtime-command";
-import { useQuery, useStore } from "@livestore/react";
-import { events, queryDb, tables } from "@runtimed/schema";
-import { BrushCleaning, Code2, Copy, Square } from "lucide-react";
-import React, { useCallback, useState } from "react";
-import type { SidebarPanelProps } from "./types";
 import { PythonIcon } from "@/icons/python-icon";
-import { Separator } from "@/components/ui/separator";
+import { useQuery, useStore } from "@livestore/react";
+import { events, queryDb, RuntimeSessionData, tables } from "@runtimed/schema";
+import { BrushCleaning, Code2 } from "lucide-react";
+import React, { useCallback, useState } from "react";
+import { AutoLaunchSection } from "./runtime/AutoLaunchSection";
+import { RuntimeDetailsSection } from "./runtime/RuntimeDetailsSection";
+import { RuntimeStatusSection } from "./runtime/RuntimeStatusSection";
+import type { SidebarPanelProps } from "./types";
+import { SystemRuntimeSection } from "./runtime/SystemRuntimeSection";
 
 export const RuntimePanel: React.FC<SidebarPanelProps> = ({ notebook }) => {
   const enableHtmlRuntime = useFeatureFlag("html-runtime");
@@ -146,120 +148,25 @@ export const RuntimePanel: React.FC<SidebarPanelProps> = ({ notebook }) => {
 
   return (
     <div className="space-y-3">
-      <div>
-        <h4 className="mb-3 text-sm font-medium text-gray-700">
-          Runtime Status
-        </h4>
-        <div className="space-y-1">
-          <div className="flex items-center justify-between">
-            <span className="text-xs text-gray-600">Connection</span>
-            <RuntimeHealthIndicator showStatus />
-          </div>
-
-          {/* Auto-launch status indicators */}
-          {autoLaunchStatus.isLaunching && (
-            <div className="flex items-center justify-between">
-              <span className="text-xs text-gray-600">Auto-launch</span>
-              <div className="flex items-center gap-1">
-                <div className="h-2 w-2 animate-pulse rounded-full bg-blue-500"></div>
-                <span className="text-xs text-blue-600">Starting...</span>
-              </div>
-            </div>
-          )}
-
-          {autoLaunchStatus.lastError && !autoLaunchStatus.isLaunching && (
-            <div className="flex items-center justify-between">
-              <span className="text-xs text-gray-600">Auto-launch</span>
-              <span
-                className="text-xs text-red-600"
-                title={autoLaunchStatus.lastError}
-              >
-                Failed
-              </span>
-            </div>
-          )}
-
-          {hasActiveRuntime && (
-            <div className="flex items-center justify-between">
-              <span className="text-xs text-gray-600">Type</span>
-              <span className="font-mono text-xs">
-                {activeRuntime?.runtimeType ?? "unknown"}
-              </span>
-            </div>
-          )}
-        </div>
-      </div>
+      <RuntimeStatusSection
+        activeRuntime={activeRuntime}
+        autoLaunchStatus={autoLaunchStatus}
+      />
 
       {hasActiveRuntime && activeRuntime && (
-        <>
-          <h4 className="mb-2 text-xs font-medium text-gray-700">
-            Runtime Details
-          </h4>
-          <div className="space-y-1 text-xs">
-            <div className="flex justify-between">
-              <span className="text-gray-600">Session:</span>
-              <code className="rounded bg-gray-100 px-1 text-xs">
-                {activeRuntime.sessionId.slice(-8)}
-              </code>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-gray-600">Status:</span>
-              <span
-                className={`text-xs font-medium ${
-                  activeRuntime.status === "ready"
-                    ? "text-green-600"
-                    : activeRuntime.status === "busy"
-                      ? "text-amber-600"
-                      : "text-red-600"
-                }`}
-              >
-                {activeRuntime.status === "ready"
-                  ? "Ready"
-                  : activeRuntime.status === "busy"
-                    ? "Busy"
-                    : activeRuntime.status.charAt(0).toUpperCase() +
-                      activeRuntime.status.slice(1)}
-              </span>
-            </div>
-          </div>
-          {isLocalRuntime() && (
-            <>
-              <div>
-                <Button
-                  onClick={stopLocalRuntime}
-                  size="sm"
-                  variant="outline"
-                  className="text-destructive w-full text-xs"
-                >
-                  <Square />
-                  Stop Local Runtime
-                </Button>
-                {localError && (
-                  <p className="mt-1 text-xs text-red-600">{localError}</p>
-                )}
-              </div>
-            </>
-          )}
-        </>
+        <RuntimeDetailsSection
+          activeRuntime={activeRuntime}
+          isLocalRuntime={isLocalRuntime}
+          stopLocalRuntime={stopLocalRuntime}
+          localError={localError}
+        />
       )}
+
+      {!hasActiveRuntime && <Separator />}
 
       {!hasActiveRuntime && (
         <>
-          <Separator />
-          <div>
-            <h4 className="mb-2 text-xs font-medium text-gray-700">
-              Launch Python Runtime (system)
-            </h4>
-            <p className="mb-2 text-xs text-gray-500">
-              Set RUNT_API_KEY in your environment, then run:
-            </p>
-          </div>
-
-          <RuntimeCodeBlock notebookId={notebook.id} />
-
-          <p className="text-xs text-gray-500">
-            Each notebook needs its own runtime instance.
-          </p>
+          <SystemRuntimeSection notebookId={notebook.id} />
 
           <Separator />
 
@@ -309,35 +216,11 @@ export const RuntimePanel: React.FC<SidebarPanelProps> = ({ notebook }) => {
           <Separator />
 
           {/* Auto-launch Configuration */}
-          <div>
-            <div className="mb-2 flex items-center justify-between">
-              <span className="text-xs font-medium text-gray-700">
-                Auto-launch
-              </span>
-              <label className="relative inline-flex cursor-pointer items-center">
-                <input
-                  type="checkbox"
-                  checked={autoLaunchConfig.enabled}
-                  onChange={(e) =>
-                    updateAutoLaunchConfig({ enabled: e.target.checked })
-                  }
-                  className="peer sr-only"
-                />
-                <div className="peer h-5 w-9 rounded-full bg-gray-200 peer-checked:bg-blue-600 peer-focus:outline-none after:absolute after:top-[2px] after:left-[2px] after:h-4 after:w-4 after:rounded-full after:bg-white after:transition-all after:content-[''] peer-checked:after:translate-x-full peer-checked:after:border-white"></div>
-              </label>
-            </div>
-            <p className="text-xs text-pretty text-gray-500">
-              {autoLaunchConfig.enabled
-                ? "Runtime will start automatically when you execute cells"
-                : "You'll need to start runtime manually"}
-            </p>
-            {autoLaunchStatus.launchCount > 0 && (
-              <p className="mt-1 text-xs text-gray-400">
-                Launched {autoLaunchStatus.launchCount} time
-                {autoLaunchStatus.launchCount === 1 ? "" : "s"}
-              </p>
-            )}
-          </div>
+          <AutoLaunchSection
+            autoLaunchConfig={autoLaunchConfig}
+            updateAutoLaunchConfig={updateAutoLaunchConfig}
+            autoLaunchStatus={autoLaunchStatus}
+          />
         </>
       )}
 
@@ -345,58 +228,48 @@ export const RuntimePanel: React.FC<SidebarPanelProps> = ({ notebook }) => {
       {activeRuntimeSessions.length > 0 && (
         <>
           <Separator />
-          <div>
-            <h4 className="mb-2 text-xs font-medium text-gray-700">
-              Runtime Management
-            </h4>
-            <p className="mb-2 text-xs text-gray-500">
-              {activeRuntimeSessions.length} active runtime session
-              {activeRuntimeSessions.length !== 1 ? "s" : ""}
-            </p>
-            <p className="mb-2 text-xs text-gray-400">
-              This will terminate all runtimes and cancel any running
-              executions.
-            </p>
-          </div>
-
-          <Button
-            variant="destructive"
-            size="sm"
-            onClick={clearAllRuntimes}
-            className="flex w-full items-center gap-1"
-          >
-            <BrushCleaning className="h-3 w-3" />
-            <span>Clear All Runtimes</span>
-          </Button>
+          <ClearAllRuntimesSection
+            activeRuntimeSessions={activeRuntimeSessions}
+            clearAllRuntimes={clearAllRuntimes}
+          />
         </>
       )}
     </div>
   );
 };
 
-export const RuntimeCodeBlock = ({ notebookId }: { notebookId: string }) => {
-  const runtimeCommand = getRuntimeCommand(notebookId);
-
-  const copyRuntimeCommand = useCallback(() => {
-    navigator.clipboard.writeText(runtimeCommand);
-  }, [runtimeCommand]);
-
+function ClearAllRuntimesSection({
+  activeRuntimeSessions,
+  clearAllRuntimes,
+}: {
+  activeRuntimeSessions: readonly RuntimeSessionData[];
+  clearAllRuntimes: () => void;
+}) {
   return (
-    <div className="rounded bg-slate-900 p-2">
-      <div className="flex items-start gap-2">
-        <code className="flex-1 overflow-x-auto font-mono text-xs break-all whitespace-pre-wrap text-slate-100">
-          {runtimeCommand}
-        </code>
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={copyRuntimeCommand}
-          className="h-6 w-6 shrink-0 p-0 text-slate-300 hover:bg-slate-700 hover:text-slate-100"
-          title="Copy command"
-        >
-          <Copy className="h-3 w-3" />
-        </Button>
+    <>
+      <Separator />
+      <div>
+        <h4 className="mb-2 text-xs font-medium text-gray-700">
+          Runtime Management
+        </h4>
+        <p className="mb-2 text-xs text-gray-500">
+          {activeRuntimeSessions.length} active runtime session
+          {activeRuntimeSessions.length !== 1 ? "s" : ""}
+        </p>
+        <p className="mb-2 text-xs text-gray-400">
+          This will terminate all runtimes and cancel any running executions.
+        </p>
       </div>
-    </div>
+
+      <Button
+        variant="destructive"
+        size="sm"
+        onClick={clearAllRuntimes}
+        className="flex w-full items-center gap-1"
+      >
+        <BrushCleaning className="h-3 w-3" />
+        <span>Clear All Runtimes</span>
+      </Button>
+    </>
   );
-};
+}
