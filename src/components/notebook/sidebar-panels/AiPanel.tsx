@@ -13,10 +13,8 @@ export const AiPanel: React.FC<SidebarPanelProps> = () => {
 
   return (
     <div className="space-y-3">
-      <div>
         <SidebarGroupLabel>Context Selection</SidebarGroupLabel>
         <ContextSelectionModeButton />
-      </div>
 
       {userSavedPromptEnabled && (
         <>
