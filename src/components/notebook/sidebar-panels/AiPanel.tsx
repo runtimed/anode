@@ -13,14 +13,19 @@ export const AiPanel: React.FC<SidebarPanelProps> = () => {
 
   return (
     <div className="space-y-3">
-        <SidebarGroupLabel>Context Selection</SidebarGroupLabel>
-        <ContextSelectionModeButton />
+      <SidebarGroupLabel>Context Selection</SidebarGroupLabel>
+      <ContextSelectionModeButton />
 
       {userSavedPromptEnabled && (
         <>
           <Separator />
-          <SidebarGroupLabel>Saved Prompt</SidebarGroupLabel>
-          <SavedPromptEditor />
+          <div className="space-y-1">
+            <SidebarGroupLabel>User Prompt</SidebarGroupLabel>
+            <p className="text-xs text-gray-500">
+              This text gets to your AI along with the system prompt.
+            </p>
+            <SavedPromptEditor />
+          </div>
         </>
       )}
 
@@ -144,11 +149,11 @@ export const SavedPromptEditor: React.FC = () => {
     deleteSavePromptMutation.isPending;
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-2">
       <Textarea
         value={prompt}
         onChange={(e) => setPrompt(e.target.value)}
-        placeholder="Enter your saved prompt here..."
+        placeholder="Enter your prompt here..."
         className="min-h-24 resize-y"
         readOnly={isLoading}
         disabled={isLoading}
