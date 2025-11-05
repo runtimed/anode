@@ -116,7 +116,7 @@ export function useIframeCommsParent({
     return () => {
       removeParentMessageListener(handleMessage);
     };
-  }, [onHeightChange, onDoubleClick]);
+  }, [onHeightChange, onDoubleClick, onMarkdownRendered]);
 
   useEffect(() => {
     // We cannot send content to iframe before it is loaded
