@@ -271,29 +271,25 @@ export const MarkdownCell: React.FC<MarkdownCellProps> = ({
         <div className="relative flex items-center gap-1">
           {dragHandle}
           <CellTypeSelector cell={cell} onCellTypeChange={changeCellType} />
-          {readyToShowRendered ? (
-            <>
-              {isEditing ? (
-                <Button
-                  variant="outline"
-                  size="xs"
-                  className="text-xs"
-                  ref={editButtonRef}
-                  onClick={() => setIsEditing(false)}
-                >
-                  <Eye className="size-4" /> Preview
-                </Button>
-              ) : (
-                <Button
-                  variant="outline"
-                  size="xs"
-                  className="text-xs"
-                  onClick={() => setIsEditing(true)}
-                >
-                  <Edit3 className="size-4" /> Edit
-                </Button>
-              )}
-            </>
+          {isEditing ? (
+            <Button
+              variant="outline"
+              size="xs"
+              className="text-xs"
+              ref={editButtonRef}
+              onClick={() => setIsEditing(false)}
+            >
+              <Eye className="size-4" /> Preview
+            </Button>
+          ) : readyToShowRendered ? (
+            <Button
+              variant="outline"
+              size="xs"
+              className="text-xs"
+              onClick={() => setIsEditing(true)}
+            >
+              <Edit3 className="size-4" /> Edit
+            </Button>
           ) : (
             <Spinner size="sm" />
           )}
