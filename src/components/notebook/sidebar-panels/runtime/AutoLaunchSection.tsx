@@ -27,7 +27,7 @@ export const AutoLaunchSection = ({
         }
       />
       {autoLaunchStatus.launchCount > 0 && (
-        <p className="mt-1 text-xs text-gray-400">
+        <p className="text-xs text-gray-400">
           Launched {autoLaunchStatus.launchCount} time
           {autoLaunchStatus.launchCount === 1 ? "" : "s"}
         </p>
