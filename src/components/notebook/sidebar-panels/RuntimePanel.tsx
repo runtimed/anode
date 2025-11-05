@@ -67,14 +67,14 @@ export const RuntimePanel: React.FC<SidebarPanelProps> = ({ notebook }) => {
       {!hasActiveRuntime && <Separator />}
       {!hasActiveRuntime && (
         <>
-          <SystemRuntimeSection notebookId={notebook.id} />
-          <Separator />
           <BrowserRuntimeSection
             localError={localError}
             setLocalError={setLocalError}
             pyodideError={pyodideError}
             setPyodideError={setPyodideError}
           />
+          <Separator />
+          <SystemRuntimeSection notebookId={notebook.id} />
           <Separator />
           {/* Auto-launch Configuration */}
           <AutoLaunchSection
