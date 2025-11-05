@@ -58,11 +58,14 @@ export const RuntimePanel: React.FC<SidebarPanelProps> = ({ notebook }) => {
         autoLaunchStatus={autoLaunchStatus}
       />
       {hasActiveRuntime && activeRuntime && (
-        <RuntimeDetailsSection
-          activeRuntime={activeRuntime}
-          stopLocalRuntime={stopLocalRuntime}
-          localError={localError}
-        />
+        <>
+          <Separator />
+          <RuntimeDetailsSection
+            activeRuntime={activeRuntime}
+            stopLocalRuntime={stopLocalRuntime}
+            localError={localError}
+          />
+        </>
       )}
       {!hasActiveRuntime && <Separator />}
       {!hasActiveRuntime && (
