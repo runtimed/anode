@@ -10,20 +10,18 @@ export const SystemRuntimeSection = ({
   notebookId: string;
 }) => {
   return (
-    <>
-      <div>
-        <SidebarGroupLabel>Launch Python Runtime (system)</SidebarGroupLabel>
-        <p className="mb-2 text-xs text-gray-500">
-          Set RUNT_API_KEY in your environment, then run:
-        </p>
-      </div>
+    <div className="space-y-1">
+      <SidebarGroupLabel>Launch Python Runtime (system)</SidebarGroupLabel>
+      <p className="text-xs text-gray-500">
+        Set RUNT_API_KEY in your environment, then run:
+      </p>
 
       <RuntimeCodeBlock notebookId={notebookId} />
 
       <p className="text-xs text-gray-500">
         Each notebook needs its own runtime instance.
       </p>
-    </>
+    </div>
   );
 };
 

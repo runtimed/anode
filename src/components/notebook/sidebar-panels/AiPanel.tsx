@@ -12,7 +12,7 @@ export const AiPanel: React.FC<SidebarPanelProps> = () => {
     useMaxIterations();
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-4">
       <SidebarGroupLabel>Context Selection</SidebarGroupLabel>
       <ContextSelectionModeButton />
 
@@ -31,45 +31,54 @@ export const AiPanel: React.FC<SidebarPanelProps> = () => {
 
       <Separator />
 
-      <>
-        <SidebarGroupLabel>AI Settings</SidebarGroupLabel>
-        <div className="space-y-4">
-          <SidebarSwitch
-            title="Chat Mode"
-            description="Enable chat mode"
-            enabled={chatMode.enabled}
-            onEnabledChange={chatMode.setEnabled}
-          />
-
-          <div className="-m-2 space-y-3 rounded-md p-2">
-            <div>
-              <div className="mb-2 flex items-center justify-between">
-                <p className="text-sm font-medium text-gray-700">
-                  Max Iterations
-                </p>
-                <span className="text-sm text-gray-500">
-                  {localMaxIterations}
-                </span>
-              </div>
-              <p className="mb-3 text-xs text-gray-500">
-                Number of AI conversation iterations (1-100)
-              </p>
-              <Slider
-                min={1}
-                max={100}
-                step={1}
-                value={[localMaxIterations]}
-                onValueChange={(values) => setLocalMaxIterations(values[0])}
-                onBlur={() => setMaxIterations(localMaxIterations)}
-                className="w-full"
-              />
-            </div>
-          </div>
-        </div>
-      </>
+      <SidebarGroupLabel>AI Settings</SidebarGroupLabel>
+      <div className="flex flex-col gap-3">
+        <SidebarSwitch
+          title="Chat Mode"
+          description="Enable chat mode"
+          enabled={chatMode.enabled}
+          onEnabledChange={chatMode.setEnabled}
+        />
+        <MaxIterationsSlider
+          localMaxIterations={localMaxIterations}
+          setLocalMaxIterations={setLocalMaxIterations}
+          setMaxIterations={setMaxIterations}
+        />
+      </div>
     </div>
   );
 };
+
+function MaxIterationsSlider({
+  localMaxIterations,
+  setLocalMaxIterations,
+  setMaxIterations,
+}: {
+  localMaxIterations: number;
+  setLocalMaxIterations: (value: number) => void;
+  setMaxIterations: (value: number) => void;
+}) {
+  return (
+    <div>
+      <div className="mb-2 flex items-center justify-between">
+        <p className="text-sm font-medium text-gray-700">Max Iterations</p>
+        <span className="text-sm text-gray-500">{localMaxIterations}</span>
+      </div>
+      <Slider
+        min={1}
+        max={100}
+        step={1}
+        value={[localMaxIterations]}
+        onValueChange={(values) => setLocalMaxIterations(values[0])}
+        onBlur={() => setMaxIterations(localMaxIterations)}
+        className="w-full"
+      />
+      <p className="mt-2 text-xs text-gray-500">
+        Number of AI conversation iterations (1-100)
+      </p>
+    </div>
+  );
+}
 
 import { Button } from "@/components/ui/button";
 import { Kbd, KbdGroup } from "@/components/ui/kbd";

@@ -52,7 +52,7 @@ export const RuntimePanel: React.FC<SidebarPanelProps> = ({ notebook }) => {
   }, []);
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-4">
       <RuntimeStatusSection
         activeRuntime={activeRuntime}
         autoLaunchStatus={autoLaunchStatus}
