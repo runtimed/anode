@@ -23,6 +23,7 @@ import React, { useCallback, useEffect, useRef, useState } from "react";
 import { ErrorBoundary } from "react-error-boundary";
 import { CellContainer } from "./shared/CellContainer.js";
 import { CellControls } from "./shared/CellControls.js";
+import { CellHeader } from "./shared/CellHeader.js";
 import { CellTypeSelector } from "./shared/CellTypeSelector.js";
 import { Editor, EditorRef } from "./shared/Editor.js";
 import {
@@ -475,84 +476,88 @@ export const ExecutableCell: React.FC<ExecutableCellProps> = ({
     >
       {/* Cell Header */}
       {!isSourceLessAiOutput && (
-        <div className="cell-header mb-2 flex items-center justify-between pr-1 pl-1 sm:pr-4">
-          <div className="flex items-center gap-1">
-            {dragHandle}
-            <CellTypeSelector cell={cell} onCellTypeChange={changeCellType} />
+        <CellHeader
+          cellId={cell.id}
+          leftContent={
+            <>
+              {dragHandle}
+              <CellTypeSelector cell={cell} onCellTypeChange={changeCellType} />
 
-            {/* Cell-type-specific toolbars */}
-            {cell.cellType === "code" && <CodeToolbar />}
-            {/* Not showing AI toolbar if not focused because the model selector depends on the last used model and cell information */}
-            {cell.cellType === "ai" && autoFocus && (
-              <AiToolbar
-                open={openAiToolbar}
-                onOpenChange={setOpenAiToolbar}
-                cellProvider={cell.aiProvider}
-                cellModel={cell.aiModel}
-                onModelChange={selectModel}
-              />
-            )}
-            {cell.cellType === "sql" && (
-              <SqlToolbar
-                dataConnection={cell.sqlConnectionId || "default"}
-                onDataConnectionChange={(newConnectionId: string) => {
-                  store.commit(
-                    events.sqlConnectionChanged({
-                      cellId: cell.id,
-                      connectionId: newConnectionId,
-                      changedBy: userId,
-                    })
-                  );
+              {/* Cell-type-specific toolbars */}
+              {cell.cellType === "code" && <CodeToolbar />}
+              {/* Not showing AI toolbar if not focused because the model selector depends on the last used model and cell information */}
+              {cell.cellType === "ai" && autoFocus && (
+                <AiToolbar
+                  open={openAiToolbar}
+                  onOpenChange={setOpenAiToolbar}
+                  cellProvider={cell.aiProvider}
+                  cellModel={cell.aiModel}
+                  onModelChange={selectModel}
+                />
+              )}
+              {cell.cellType === "sql" && (
+                <SqlToolbar
+                  dataConnection={cell.sqlConnectionId || "default"}
+                  onDataConnectionChange={(newConnectionId: string) => {
+                    store.commit(
+                      events.sqlConnectionChanged({
+                        cellId: cell.id,
+                        connectionId: newConnectionId,
+                        changedBy: userId,
+                      })
+                    );
 
-                  // Save the last used SQL connection to notebook metadata for future SQL cells
-                  store.commit(
-                    events.notebookMetadataSet({
-                      key: "lastUsedSqlConnection",
-                      value: newConnectionId,
-                    })
-                  );
-                }}
-              />
-            )}
+                    // Save the last used SQL connection to notebook metadata for future SQL cells
+                    store.commit(
+                      events.notebookMetadataSet({
+                        key: "lastUsedSqlConnection",
+                        value: newConnectionId,
+                      })
+                    );
+                  }}
+                />
+              )}
 
-            <ExecutionStatus executionState={cell.executionState} />
-            <ErrorBoundary FallbackComponent={() => null}>
-              <PresenceBookmarks
-                usersOnCell={usersOnCell}
-                getUserColor={getUserColor}
-                getUserInfo={getUserInfo}
-              />
-            </ErrorBoundary>
-          </div>
-
-          <CellControls
-            sourceVisible={cell.sourceVisible}
-            aiContextVisible={cell.aiContextVisible}
-            contextSelectionMode={contextSelectionMode}
-            onDeleteCell={() => handleDeleteCell("click")}
-            onClearOutputs={clearCellOutputs}
-            hasOutputs={hasOutputs}
-            toggleSourceVisibility={toggleSourceVisibility}
-            toggleAiContextVisibility={toggleAiContextVisibility}
-            onMoveUp={moveCellUp}
-            onMoveDown={moveCellDown}
-            onMoveToTop={moveCellToTop}
-            onMoveToBottom={moveCellToBottom}
-            canMoveUp={canMoveUp}
-            canMoveDown={canMoveDown}
-            playButton={
-              <PlayButton
-                executionState={cell.executionState}
-                cellType={cell.cellType}
-                isFocused={autoFocus}
-                onExecute={executeCell}
-                onInterrupt={interruptCell}
-                className="mobile-play-btn block sm:hidden"
-                isAutoLaunching={autoLaunchStatus.isLaunching}
-              />
-            }
-          />
-        </div>
+              <ExecutionStatus executionState={cell.executionState} />
+              <ErrorBoundary FallbackComponent={() => null}>
+                <PresenceBookmarks
+                  usersOnCell={usersOnCell}
+                  getUserColor={getUserColor}
+                  getUserInfo={getUserInfo}
+                />
+              </ErrorBoundary>
+            </>
+          }
+          rightContent={
+            <CellControls
+              sourceVisible={cell.sourceVisible}
+              aiContextVisible={cell.aiContextVisible}
+              contextSelectionMode={contextSelectionMode}
+              onDeleteCell={() => handleDeleteCell("click")}
+              onClearOutputs={clearCellOutputs}
+              hasOutputs={hasOutputs}
+              toggleSourceVisibility={toggleSourceVisibility}
+              toggleAiContextVisibility={toggleAiContextVisibility}
+              onMoveUp={moveCellUp}
+              onMoveDown={moveCellDown}
+              onMoveToTop={moveCellToTop}
+              onMoveToBottom={moveCellToBottom}
+              canMoveUp={canMoveUp}
+              canMoveDown={canMoveDown}
+              playButton={
+                <PlayButton
+                  executionState={cell.executionState}
+                  cellType={cell.cellType}
+                  isFocused={autoFocus}
+                  onExecute={executeCell}
+                  onInterrupt={interruptCell}
+                  className="mobile-play-btn block sm:hidden"
+                  isAutoLaunching={autoLaunchStatus.isLaunching}
+                />
+              }
+            />
+          }
+        />
       )}
 
       {/* Cell Content with Left Gutter Play Button - Desktop Only */}

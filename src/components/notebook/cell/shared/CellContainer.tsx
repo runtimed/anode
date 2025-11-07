@@ -31,21 +31,12 @@ export const CellContainer = forwardRef<HTMLDivElement, CellContainerProps>(
     const {
       draggingCellId,
       draggingOverPosition,
-      setDraggingCell,
       setDraggingOverCell,
       onDrop,
       clearDragState,
     } = useDragDropCellSort();
 
     const isBeingDragged = draggingCellId === cell.id;
-
-    const handleDragStart = useCallback(
-      (e: React.DragEvent) => {
-        e.dataTransfer.effectAllowed = "move";
-        setDraggingCell(cell.id);
-      },
-      [cell.id, setDraggingCell]
-    );
 
     const handleDragEnd = useCallback(() => {
       clearDragState();
@@ -97,7 +88,7 @@ export const CellContainer = forwardRef<HTMLDivElement, CellContainerProps>(
         ref={ref}
         data-cell-id={cell.id}
         className={cn(
-          "cell-container group relative border-2 pt-2 transition-all duration-200",
+          "cell-container group relative border-2 transition-all duration-200",
           autoFocus && !contextSelectionMode
             ? [focusBgColor, focusBorderColor]
             : "hover:bg-muted/10",
@@ -114,8 +105,6 @@ export const CellContainer = forwardRef<HTMLDivElement, CellContainerProps>(
         style={{
           position: "relative",
         }}
-        draggable={!contextSelectionMode}
-        onDragStart={handleDragStart}
         onDragEnd={handleDragEnd}
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
