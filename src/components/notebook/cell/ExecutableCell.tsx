@@ -8,6 +8,7 @@ import { useInterruptExecution } from "@/hooks/useInterruptExecution.js";
 import { useUserRegistry } from "@/hooks/useUserRegistry.js";
 import { useEditorRegistry } from "@/hooks/useEditorRegistry.js";
 import { useDeleteCell } from "@/hooks/useDeleteCell.js";
+import { useDeleteCellsBelow } from "@/hooks/useDeleteCellsBelow.js";
 import { useAddCell } from "@/hooks/useAddCell.js";
 import { useMoveCell } from "@/hooks/useMoveCell.js";
 import { useActiveRuntime } from "@/hooks/useRuntimeHealth.js";
@@ -110,6 +111,7 @@ export const ExecutableCell: React.FC<ExecutableCellProps> = ({
   const [openAiToolbar, setOpenAiToolbar] = useState(false);
 
   const { handleDeleteCell } = useDeleteCell(cell.id);
+  const { deleteAllCellsBelow, hasCellsBelow } = useDeleteCellsBelow(cell.id);
   const { addCell } = useAddCell();
   const {
     moveCellUp,
@@ -540,6 +542,8 @@ export const ExecutableCell: React.FC<ExecutableCellProps> = ({
             onMoveToBottom={moveCellToBottom}
             canMoveUp={canMoveUp}
             canMoveDown={canMoveDown}
+            onDeleteAllBelow={deleteAllCellsBelow}
+            hasCellsBelow={hasCellsBelow}
             playButton={
               <PlayButton
                 executionState={cell.executionState}

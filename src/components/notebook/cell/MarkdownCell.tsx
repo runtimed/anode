@@ -2,6 +2,7 @@ import { useAddCell } from "@/hooks/useAddCell.js";
 import { useCellContent } from "@/hooks/useCellContent.js";
 import { useCellKeyboardNavigation } from "@/hooks/useCellKeyboardNavigation.js";
 import { useDeleteCell } from "@/hooks/useDeleteCell.js";
+import { useDeleteCellsBelow } from "@/hooks/useDeleteCellsBelow.js";
 import { useEditorRegistry } from "@/hooks/useEditorRegistry.js";
 import { useMoveCell } from "@/hooks/useMoveCell.js";
 import { useStore } from "@livestore/react";
@@ -60,6 +61,7 @@ export const MarkdownCell: React.FC<MarkdownCellProps> = ({
   } = useEditorRegistry();
 
   const { handleDeleteCell } = useDeleteCell(cell.id);
+  const { deleteAllCellsBelow, hasCellsBelow } = useDeleteCellsBelow(cell.id);
   const { addCell } = useAddCell();
   const { moveCellUp, moveCellDown, canMoveUp, canMoveDown } = useMoveCell(
     cell.id
@@ -314,6 +316,8 @@ export const MarkdownCell: React.FC<MarkdownCellProps> = ({
           onMoveDown={moveCellDown}
           canMoveUp={canMoveUp}
           canMoveDown={canMoveDown}
+          onDeleteAllBelow={deleteAllCellsBelow}
+          hasCellsBelow={hasCellsBelow}
         />
       </div>
 

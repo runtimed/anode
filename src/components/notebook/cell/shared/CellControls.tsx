@@ -19,6 +19,7 @@ import {
   ArrowDown,
   ArrowUpToLine,
   ArrowDownToLine,
+  Trash2,
 } from "lucide-react";
 interface CellControlsProps {
   sourceVisible: boolean;
@@ -36,6 +37,8 @@ interface CellControlsProps {
   onMoveToBottom?: () => void;
   canMoveUp?: boolean;
   canMoveDown?: boolean;
+  onDeleteAllBelow?: () => void;
+  hasCellsBelow?: boolean;
 }
 
 export const CellControls: React.FC<CellControlsProps> = ({
@@ -54,6 +57,8 @@ export const CellControls: React.FC<CellControlsProps> = ({
   onMoveToBottom,
   canMoveUp = false,
   canMoveDown = false,
+  onDeleteAllBelow,
+  hasCellsBelow = false,
 }) => {
   return (
     <div className="cell-controls flex items-center gap-0.5 opacity-100 transition-opacity sm:opacity-0 sm:group-hover:opacity-100">
@@ -148,6 +153,16 @@ export const CellControls: React.FC<CellControlsProps> = ({
               <Eraser className="mr-2 h-4 w-4" />
               <span>Clear outputs</span>
             </DropdownMenuItem>
+            {onDeleteAllBelow && (
+              <DropdownMenuItem
+                onClick={onDeleteAllBelow}
+                disabled={!hasCellsBelow}
+                variant="destructive"
+              >
+                <Trash2 className="mr-2 h-4 w-4" />
+                <span>Delete all cells below</span>
+              </DropdownMenuItem>
+            )}
             <DropdownMenuItem onClick={onDeleteCell} variant="destructive">
               <X className="mr-2 h-4 w-4" />
               <span>Delete cell</span>
