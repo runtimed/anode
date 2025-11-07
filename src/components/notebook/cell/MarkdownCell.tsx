@@ -28,6 +28,7 @@ import { useAuthenticatedUser } from "../../../auth/index.js";
 import { focusedCellSignal$, hasManuallyFocused$ } from "../signals/focus.js";
 import { CellContainer } from "./shared/CellContainer.js";
 import { CellControls } from "./shared/CellControls.js";
+import { CellHeader } from "./shared/CellHeader.js";
 import { CellTypeSelector } from "./shared/CellTypeSelector.js";
 import { Editor, EditorRef } from "./shared/Editor.js";
 import { PresenceBookmarks } from "./shared/PresenceBookmarks.js";
@@ -266,60 +267,62 @@ export const MarkdownCell: React.FC<MarkdownCellProps> = ({
       className="hover:border-amber-300"
     >
       {/* Cell Header */}
-      <div
-        className="cell-header relative flex items-center justify-between pr-1 pb-2 pl-4 sm:pr-4"
+      <CellHeader
+        cellId={cell.id}
         onKeyDown={!isEditing ? handleKeyDown : undefined}
-      >
-        <div className="relative flex items-center gap-1">
-          {dragHandle}
-          <CellTypeSelector cell={cell} onCellTypeChange={changeCellType} />
-          {isEditing ? (
-            <Button
-              variant="outline"
-              size="xs"
-              className="text-xs"
-              ref={editButtonRef}
-              onClick={() => setIsEditing(false)}
-            >
-              <Eye className="size-4" /> Preview
-            </Button>
-          ) : readyToShowRendered ? (
-            <Button
-              variant="outline"
-              size="xs"
-              className="text-xs"
-              onClick={() => setIsEditing(true)}
-            >
-              <Edit3 className="size-4" /> Edit
-            </Button>
-          ) : (
-            <Spinner size="sm" />
-          )}
+        leftContent={
+          <>
+            {dragHandle}
+            <CellTypeSelector cell={cell} onCellTypeChange={changeCellType} />
+            {isEditing ? (
+              <Button
+                variant="outline"
+                size="xs"
+                className="text-xs"
+                ref={editButtonRef}
+                onClick={() => setIsEditing(false)}
+              >
+                <Eye className="size-4" /> Preview
+              </Button>
+            ) : readyToShowRendered ? (
+              <Button
+                variant="outline"
+                size="xs"
+                className="text-xs"
+                onClick={() => setIsEditing(true)}
+              >
+                <Edit3 className="size-4" /> Edit
+              </Button>
+            ) : (
+              <Spinner size="sm" />
+            )}
 
-          <PresenceBookmarks
-            usersOnCell={usersOnCell}
-            getUserColor={getUserColor}
-            getUserInfo={getUserInfo}
+            <PresenceBookmarks
+              usersOnCell={usersOnCell}
+              getUserColor={getUserColor}
+              getUserInfo={getUserInfo}
+            />
+          </>
+        }
+        rightContent={
+          <CellControls
+            sourceVisible={cell.sourceVisible}
+            aiContextVisible={cell.aiContextVisible}
+            contextSelectionMode={contextSelectionMode}
+            onDeleteCell={() => handleDeleteCell("click")}
+            onClearOutputs={clearCellOutputs}
+            hasOutputs={true}
+            toggleSourceVisibility={toggleSourceVisibility}
+            toggleAiContextVisibility={toggleAiContextVisibility}
+            onMoveUp={moveCellUp}
+            onMoveDown={moveCellDown}
+            canMoveUp={canMoveUp}
+            canMoveDown={canMoveDown}
+            onDeleteAllBelow={deleteAllCellsBelow}
+            hasCellsBelow={hasCellsBelow}
           />
-        </div>
-
-        <CellControls
-          sourceVisible={cell.sourceVisible}
-          aiContextVisible={cell.aiContextVisible}
-          contextSelectionMode={contextSelectionMode}
-          onDeleteCell={() => handleDeleteCell("click")}
-          onClearOutputs={clearCellOutputs}
-          hasOutputs={true}
-          toggleSourceVisibility={toggleSourceVisibility}
-          toggleAiContextVisibility={toggleAiContextVisibility}
-          onMoveUp={moveCellUp}
-          onMoveDown={moveCellDown}
-          canMoveUp={canMoveUp}
-          canMoveDown={canMoveDown}
-          onDeleteAllBelow={deleteAllCellsBelow}
-          hasCellsBelow={hasCellsBelow}
-        />
-      </div>
+        }
+      />
 
       {/* Cell Content */}
       <div className="relative">
