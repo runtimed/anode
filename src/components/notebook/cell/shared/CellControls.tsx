@@ -156,10 +156,9 @@ export const CellControls: React.FC<CellControlsProps> = ({
               <X className="mr-2 h-4 w-4" />
               <span>Delete cell</span>
             </DropdownMenuItem>
-            {onDeleteAllBelow && (
+            {onDeleteAllBelow && hasCellsBelow && (
               <DropdownMenuItem
                 onClick={onDeleteAllBelow}
-                disabled={!hasCellsBelow}
                 variant="destructive"
               >
                 <X className="mr-2 h-4 w-4" />
