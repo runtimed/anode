@@ -1,4 +1,3 @@
-import React from "react";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -8,19 +7,19 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import {
-  ChevronUp,
+  ArrowDown,
+  ArrowDownToLine,
+  ArrowUp,
+  ArrowUpToLine,
   ChevronDown,
+  ChevronUp,
+  Eraser,
   Eye,
   EyeOff,
-  X,
   MoreVertical,
-  Eraser,
-  ArrowUp,
-  ArrowDown,
-  ArrowUpToLine,
-  ArrowDownToLine,
-  Trash2,
+  X,
 } from "lucide-react";
+import React from "react";
 interface CellControlsProps {
   sourceVisible: boolean;
   aiContextVisible: boolean;
@@ -163,8 +162,9 @@ export const CellControls: React.FC<CellControlsProps> = ({
                 disabled={!hasCellsBelow}
                 variant="destructive"
               >
-                <Trash2 className="mr-2 h-4 w-4" />
+                <X className="mr-2 h-4 w-4" />
                 <span>Delete all cells below</span>
+                <ArrowDownToLine className="mr-2 h-4 w-4" />
               </DropdownMenuItem>
             )}
           </DropdownMenuContent>
