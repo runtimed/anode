@@ -8,6 +8,7 @@ import { useAuthenticatedUser } from "@/auth";
 import { useAddCell } from "@/hooks/useAddCell";
 import { events } from "@runtimed/schema";
 import { toast } from "sonner";
+import { MAX_FILE_UPLOAD_SIZE } from "shared/constants";
 
 interface CsvUploadButtonProps
   extends Omit<ComponentProps<typeof Button>, "children"> {
@@ -54,12 +55,27 @@ df.head()`;
     (event: React.ChangeEvent<HTMLInputElement>) => {
       const file = event.target.files?.[0];
       console.log("file", file);
-      if (file && file.type === "text/csv") {
+      if (!file) {
+        return;
+      }
+
+      if (file.size > MAX_FILE_UPLOAD_SIZE) {
+        toast.error(
+          `File size (${(file.size / 1024 / 1024).toFixed(2)}MB) exceeds the maximum allowed size of 100MB`
+        );
+        // Reset input
+        if (fileInputRef.current) {
+          fileInputRef.current.value = "";
+        }
+        return;
+      }
+
+      if (file.type === "text/csv") {
         console.log("uploading file", file);
         uploadFile(file);
-      } else if (file) {
+      } else {
         // Show error for non-CSV files
-        alert("Please select a CSV file");
+        toast.error("Please select a CSV file");
       }
       // Reset input
       if (fileInputRef.current) {

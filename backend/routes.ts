@@ -1,3 +1,4 @@
+import { MAX_FILE_UPLOAD_SIZE } from "./../shared/constants";
 import { Hono } from "hono";
 import { v4 as uuidv4 } from "uuid";
 import { z } from "zod";
@@ -293,6 +294,7 @@ api.post("/artifacts", authMiddleware, async (c) => {
 
   const notebookId = c.req.header("x-notebook-id");
   const mimeType = c.req.header("content-type") || "application/octet-stream";
+  const contentLength = c.req.header("content-length");
 
   if (!notebookId) {
     return c.json(
@@ -304,6 +306,20 @@ api.post("/artifacts", authMiddleware, async (c) => {
     );
   }
 
+  // Check file size before reading the body
+  if (contentLength) {
+    const size = parseInt(contentLength, 10);
+    if (isNaN(size) || size > MAX_FILE_UPLOAD_SIZE) {
+      return c.json(
+        {
+          error: "Payload Too Large",
+          message: `File size (${(size / 1024 / 1024).toFixed(2)}MB) exceeds the maximum allowed size of 100MB`,
+        },
+        413
+      );
+    }
+  }
+
   try {
     // TODO: Validate the notebook ID
     // TODO: Validate that the user has permission to add artifacts to this notebook
@@ -311,8 +327,22 @@ api.post("/artifacts", authMiddleware, async (c) => {
     // TODO: Compute hash of data on the fly
     // TODO: Rely on multipart upload for large files
 
+    // Read the body and check size if Content-Length wasn't available
+    const body = await c.req.arrayBuffer();
+
+    // Double-check size after reading (in case Content-Length was missing or incorrect)
+    if (body.byteLength > MAX_FILE_SIZE) {
+      return c.json(
+        {
+          error: "Payload Too Large",
+          message: `File size (${(body.byteLength / 1024 / 1024).toFixed(2)}MB) exceeds the maximum allowed size of 100MB`,
+        },
+        413
+      );
+    }
+
     const artifactId = `${notebookId}/${uuidv4()}`;
-    await c.env.ARTIFACT_BUCKET.put(artifactId, await c.req.arrayBuffer(), {
+    await c.env.ARTIFACT_BUCKET.put(artifactId, body, {
       httpMetadata: {
         contentType: mimeType,
       },
@@ -321,6 +351,18 @@ api.post("/artifacts", authMiddleware, async (c) => {
     return c.json({ artifactId });
   } catch (error) {
     console.error("❌ Artifact upload failed:", error);
+
+    // Check if it's a size-related error
+    if (error instanceof Error && error.message.includes("size")) {
+      return c.json(
+        {
+          error: "Payload Too Large",
+          message: "File size exceeds the maximum allowed size of 100MB",
+        },
+        413
+      );
+    }
+
     return c.json(
       {
         error: "Internal Server Error",

@@ -19,6 +19,7 @@ import { availableFiles$ } from "@/queries";
 import { File, FileText, Image, Trash2, Upload } from "lucide-react";
 import { toast } from "sonner";
 import { SimpleTooltip } from "@/components/ui/tooltip";
+import { MAX_FILE_UPLOAD_SIZE } from "shared/constants";
 
 export const FilesPanel: React.FC<SidebarPanelProps> = () => {
   const files = useQuery(availableFiles$);
@@ -88,9 +89,22 @@ function UploadButton({
   const handleFileSelect = useCallback(
     (event: React.ChangeEvent<HTMLInputElement>) => {
       const file = event.target.files?.[0];
-      if (file) {
-        uploadFile(file);
+      if (!file) {
+        return;
       }
+
+      if (file.size > MAX_FILE_UPLOAD_SIZE) {
+        toast.error(
+          `File size (${(file.size / 1024 / 1024).toFixed(2)}MB) exceeds the maximum allowed size of 100MB`
+        );
+        // Reset input
+        if (fileInputRef.current) {
+          fileInputRef.current.value = "";
+        }
+        return;
+      }
+
+      uploadFile(file);
       // Reset input
       if (fileInputRef.current) {
         fileInputRef.current.value = "";
