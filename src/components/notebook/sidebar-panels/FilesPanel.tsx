@@ -19,7 +19,7 @@ import { availableFiles$ } from "@/queries";
 import { File, FileText, Image, Trash2, Upload } from "lucide-react";
 import { toast } from "sonner";
 import { SimpleTooltip } from "@/components/ui/tooltip";
-import { MAX_FILE_UPLOAD_SIZE } from "shared/constants";
+import { MAX_FILE_UPLOAD_SIZE } from "../../../../shared/constants";
 
 export const FilesPanel: React.FC<SidebarPanelProps> = () => {
   const files = useQuery(availableFiles$);

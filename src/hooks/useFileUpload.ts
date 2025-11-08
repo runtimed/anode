@@ -3,7 +3,7 @@ import { useAuth, useAuthenticatedUser } from "@/auth";
 import { toast } from "sonner";
 import { useStore } from "@livestore/react";
 import { events } from "@runtimed/schema";
-import { MAX_FILE_UPLOAD_SIZE } from "shared/constants";
+import { MAX_FILE_UPLOAD_SIZE } from "../../shared/constants";
 
 interface FileUploadOptions {
   notebookId: string;

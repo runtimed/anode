@@ -8,7 +8,7 @@ import { useAuthenticatedUser } from "@/auth";
 import { useAddCell } from "@/hooks/useAddCell";
 import { events } from "@runtimed/schema";
 import { toast } from "sonner";
-import { MAX_FILE_UPLOAD_SIZE } from "shared/constants";
+import { MAX_FILE_UPLOAD_SIZE } from "../../../../shared/constants";
 
 interface CsvUploadButtonProps
   extends Omit<ComponentProps<typeof Button>, "children"> {
