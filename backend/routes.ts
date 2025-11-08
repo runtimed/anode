@@ -2,6 +2,7 @@ import { MAX_FILE_UPLOAD_SIZE } from "./../shared/constants";
 import { Hono } from "hono";
 import { v4 as uuidv4 } from "uuid";
 import { z } from "zod";
+import prettyBytes from "pretty-bytes";
 import { authMiddleware, type AuthContext } from "./middleware.ts";
 import { type Env } from "./types.ts";
 
@@ -313,7 +314,7 @@ api.post("/artifacts", authMiddleware, async (c) => {
       return c.json(
         {
           error: "Payload Too Large",
-          message: `File size (${(size / 1024 / 1024).toFixed(2)}MB) exceeds the maximum allowed size of 100MB`,
+          message: `File size (${prettyBytes(size)}) exceeds the maximum allowed size of ${prettyBytes(MAX_FILE_UPLOAD_SIZE)}`,
         },
         413
       );
@@ -331,11 +332,11 @@ api.post("/artifacts", authMiddleware, async (c) => {
     const body = await c.req.arrayBuffer();
 
     // Double-check size after reading (in case Content-Length was missing or incorrect)
-    if (body.byteLength > MAX_FILE_SIZE) {
+    if (body.byteLength > MAX_FILE_UPLOAD_SIZE) {
       return c.json(
         {
           error: "Payload Too Large",
-          message: `File size (${(body.byteLength / 1024 / 1024).toFixed(2)}MB) exceeds the maximum allowed size of 100MB`,
+          message: `File size (${prettyBytes(body.byteLength)}) exceeds the maximum allowed size of ${prettyBytes(MAX_FILE_UPLOAD_SIZE)}`,
         },
         413
       );
@@ -357,7 +358,7 @@ api.post("/artifacts", authMiddleware, async (c) => {
       return c.json(
         {
           error: "Payload Too Large",
-          message: "File size exceeds the maximum allowed size of 100MB",
+          message: `File size exceeds the maximum allowed size of ${prettyBytes(MAX_FILE_UPLOAD_SIZE)}`,
         },
         413
       );

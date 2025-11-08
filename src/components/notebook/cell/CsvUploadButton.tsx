@@ -9,6 +9,7 @@ import { useAddCell } from "@/hooks/useAddCell";
 import { events } from "@runtimed/schema";
 import { toast } from "sonner";
 import { MAX_FILE_UPLOAD_SIZE } from "../../../../shared/constants";
+import prettyBytes from "pretty-bytes";
 
 interface CsvUploadButtonProps
   extends Omit<ComponentProps<typeof Button>, "children"> {
@@ -61,7 +62,7 @@ df.head()`;
 
       if (file.size > MAX_FILE_UPLOAD_SIZE) {
         toast.error(
-          `File size (${(file.size / 1024 / 1024).toFixed(2)}MB) exceeds the maximum allowed size of 100MB`
+          `File size (${prettyBytes(file.size)}) exceeds the maximum allowed size of ${prettyBytes(MAX_FILE_UPLOAD_SIZE)}`
         );
         // Reset input
         if (fileInputRef.current) {

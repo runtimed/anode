@@ -4,6 +4,7 @@ import { toast } from "sonner";
 import { useStore } from "@livestore/react";
 import { events } from "@runtimed/schema";
 import { MAX_FILE_UPLOAD_SIZE } from "../../shared/constants";
+import prettyBytes from "pretty-bytes";
 
 interface FileUploadOptions {
   notebookId: string;
@@ -39,7 +40,7 @@ export const useFileUpload = ({
 
       // Check file size before upload
       if (file.size > MAX_FILE_UPLOAD_SIZE) {
-        const message = `File size (${(file.size / 1024 / 1024).toFixed(2)}MB) exceeds the maximum allowed size of 100MB`;
+        const message = `File size (${prettyBytes(file.size)}) exceeds the maximum allowed size of ${prettyBytes(MAX_FILE_UPLOAD_SIZE)}`;
         toast.error(message);
         setIsUploading(false);
         throw new Error(message);
