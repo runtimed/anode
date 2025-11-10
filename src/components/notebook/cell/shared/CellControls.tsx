@@ -1,4 +1,3 @@
-import React from "react";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -8,18 +7,19 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import {
-  ChevronUp,
+  ArrowDown,
+  ArrowDownToLine,
+  ArrowUp,
+  ArrowUpToLine,
   ChevronDown,
+  ChevronUp,
+  Eraser,
   Eye,
   EyeOff,
-  X,
   MoreVertical,
-  Eraser,
-  ArrowUp,
-  ArrowDown,
-  ArrowUpToLine,
-  ArrowDownToLine,
+  X,
 } from "lucide-react";
+import React from "react";
 interface CellControlsProps {
   sourceVisible: boolean;
   aiContextVisible: boolean;
@@ -36,6 +36,8 @@ interface CellControlsProps {
   onMoveToBottom?: () => void;
   canMoveUp?: boolean;
   canMoveDown?: boolean;
+  onDeleteAllBelow?: () => void;
+  hasCellsBelow?: boolean;
 }
 
 export const CellControls: React.FC<CellControlsProps> = ({
@@ -54,6 +56,8 @@ export const CellControls: React.FC<CellControlsProps> = ({
   onMoveToBottom,
   canMoveUp = false,
   canMoveDown = false,
+  onDeleteAllBelow,
+  hasCellsBelow = false,
 }) => {
   return (
     <div className="cell-controls flex items-center gap-0.5 opacity-100 transition-opacity sm:opacity-0 sm:group-hover:opacity-100">
@@ -152,6 +156,16 @@ export const CellControls: React.FC<CellControlsProps> = ({
               <X className="mr-2 h-4 w-4" />
               <span>Delete cell</span>
             </DropdownMenuItem>
+            {onDeleteAllBelow && hasCellsBelow && (
+              <DropdownMenuItem
+                onClick={onDeleteAllBelow}
+                variant="destructive"
+              >
+                <X className="mr-2 h-4 w-4" />
+                <span>Delete all cells below</span>
+                <ArrowDownToLine className="mr-2 h-4 w-4" />
+              </DropdownMenuItem>
+            )}
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
