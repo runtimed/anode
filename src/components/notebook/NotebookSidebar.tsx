@@ -2,7 +2,7 @@ import { RuntSidebarLogo } from "@/components/logo/RuntSidebarLogo";
 import type { NotebookProcessed } from "@/components/notebooks/types";
 import { Button } from "@/components/ui/button";
 import { useRuntimeHealth } from "@/hooks/useRuntimeHealth";
-import React, { useState } from "react";
+import React from "react";
 import { Link } from "react-router-dom";
 
 // Panel Components
@@ -22,6 +22,7 @@ import { getSidebarItemConfig, getSidebarItems } from "./sidebar-panels/config";
 
 // Icons
 import { useFeatureFlag } from "@/contexts/FeatureFlagContext";
+import { useSidebarItem } from "@/contexts/SidebarItemContext";
 import { availableFiles$ } from "@/queries";
 import { useQuery } from "@livestore/react";
 import { ArrowLeft, X } from "lucide-react";
@@ -47,9 +48,7 @@ export const NotebookSidebar: React.FC<NotebookSidebarProps> = ({
   onUpdate,
   onAiPanelToggle,
 }) => {
-  const [activeSection, setActiveSection] = useState<SidebarSection | null>(
-    null
-  );
+  const { activeSection, setActiveSection } = useSidebarItem();
   const { hasActiveRuntime, runtimeHealth } = useRuntimeHealth();
   const showFilesPanel = useFeatureFlag("file-upload");
   const availableFiles = useQuery(availableFiles$);
