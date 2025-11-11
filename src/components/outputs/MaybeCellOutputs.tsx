@@ -3,7 +3,7 @@ import { outputsDeltasQuery, processDeltas } from "@/queries/outputDeltas";
 import { CellType, OutputData, SAFE_MIME_TYPES } from "@runtimed/schema";
 import { groupConsecutiveStreamOutputs } from "@/util/output-grouping";
 import { useQuery } from "@livestore/react";
-import { useMemo, useState } from "react";
+import { useMemo, useState, useRef, useEffect } from "react";
 import { useIframeCommsParent } from "./shared-with-iframe/comms";
 import { SingleOutput } from "./shared-with-iframe/SingleOutput";
 import { useDebounce } from "react-use";
@@ -72,6 +72,7 @@ export const MaybeCellOutputs = ({
             outputs={processedOutputs}
             className="transition-[height] duration-150 ease-out"
             isReact
+            cellType={cellType}
           />
         ) : (
           <SuspenseSpinner>
@@ -96,6 +97,7 @@ interface IframeOutputProps {
   defaultHeight?: string;
   onDoubleClick?: () => void;
   onMarkdownRendered?: () => void;
+  cellType?: CellType;
 }
 
 export const IframeOutput: React.FC<IframeOutputProps> = ({
@@ -107,6 +109,7 @@ export const IframeOutput: React.FC<IframeOutputProps> = ({
   defaultHeight = "0px",
   onDoubleClick,
   onMarkdownRendered,
+  cellType,
 }) => {
   const { iframeRef, iframeHeight } = useIframeCommsParent({
     defaultHeight,
@@ -123,7 +126,18 @@ export const IframeOutput: React.FC<IframeOutputProps> = ({
   // TODO: ensure that it's a leading debounce!
   useDebounce(() => setDebouncedIframeHeight(iframeHeight), 50, [iframeHeight]);
 
-  return (
+  const isAiCell = cellType === "ai";
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+
+  // Auto-scroll to bottom when content changes for AI cells
+  useEffect(() => {
+    if (isAiCell && scrollContainerRef.current) {
+      const container = scrollContainerRef.current;
+      container.scrollTop = container.scrollHeight;
+    }
+  }, [isAiCell, outputs, debouncedIframeHeight]);
+
+  const iframeElement = (
     <iframe
       src={
         import.meta.env.VITE_IFRAME_OUTPUT_URI + (isReact ? "/react.html" : "")
@@ -138,6 +152,16 @@ export const IframeOutput: React.FC<IframeOutputProps> = ({
       loading="lazy"
     />
   );
+
+  if (isAiCell) {
+    return (
+      <div ref={scrollContainerRef} className="max-h-[30vh] overflow-y-auto">
+        {iframeElement}
+      </div>
+    );
+  }
+
+  return iframeElement;
 };
 
 const hasUnsafeOutputs = (outputs: OutputData[]) => {
