@@ -4,10 +4,12 @@ import { Slider } from "@/components/ui/slider";
 import { useChatMode } from "@/hooks/useChatMode";
 import React, { useEffect } from "react";
 import { useMaxIterations } from "@/hooks/useMaxIterations";
+import { useFeatureFlag } from "@/contexts/FeatureFlagContext";
 import type { SidebarPanelProps } from "./types";
 
 export const AiPanel: React.FC<SidebarPanelProps> = () => {
   const userSavedPromptEnabled = useFeatureFlag("user-saved-prompt");
+  const chatModeEnabled = useFeatureFlag("chat-mode");
   const chatMode = useChatMode();
   const { setMaxIterations, localMaxIterations, setLocalMaxIterations } =
     useMaxIterations();
@@ -39,21 +41,23 @@ export const AiPanel: React.FC<SidebarPanelProps> = () => {
       <div className="border-t pt-4">
         <h4 className="mb-3 text-sm font-medium text-gray-700">AI Settings</h4>
         <div className="space-y-4">
-          <div
-            className="-m-2 cursor-default space-y-3 rounded-md p-2 transition-colors hover:bg-gray-100"
-            onClick={() => chatMode.setEnabled(!chatMode.enabled)}
-          >
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-700">Chat Mode</p>
-                <p className="text-xs text-gray-500">Enable chat mode</p>
+          {chatModeEnabled && (
+            <div
+              className="-m-2 cursor-default space-y-3 rounded-md p-2 transition-colors hover:bg-gray-100"
+              onClick={() => chatMode.setEnabled(!chatMode.enabled)}
+            >
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-gray-700">Chat Mode</p>
+                  <p className="text-xs text-gray-500">Enable chat mode</p>
+                </div>
+                <Switch
+                  checked={chatMode.enabled}
+                  onCheckedChange={chatMode.setEnabled}
+                />
               </div>
-              <Switch
-                checked={chatMode.enabled}
-                onCheckedChange={chatMode.setEnabled}
-              />
             </div>
-          </div>
+          )}
 
           <div className="-m-2 space-y-3 rounded-md p-2">
             <div>
@@ -93,7 +97,6 @@ import { useMutation, useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 import { toast } from "sonner";
 import { Kbd, KbdGroup } from "@/components/ui/kbd";
-import { useFeatureFlag } from "@/contexts/FeatureFlagContext";
 
 export const SavedPromptEditor: React.FC = () => {
   const trpc = useTRPCClient();
