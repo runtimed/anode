@@ -1,6 +1,7 @@
 import { RuntSidebarLogo } from "@/components/logo/RuntSidebarLogo";
 import type { NotebookProcessed } from "@/components/notebooks/types";
 import { Button } from "@/components/ui/button";
+import { SimpleTooltip } from "@/components/ui/tooltip";
 import { useRuntimeHealth } from "@/hooks/useRuntimeHealth";
 import React from "react";
 import { Link } from "react-router-dom";
@@ -95,16 +96,18 @@ export const NotebookSidebar: React.FC<NotebookSidebarProps> = ({
       <div className="fixed top-0 left-0 z-40 hidden h-full w-12 flex-col items-center border-r bg-gray-50 py-3 lg:flex">
         {/* Logo and back navigation */}
         <div className="mb-4 flex flex-col items-center space-y-2">
-          <Link
-            to="/nb"
-            className="group/logo relative flex h-8 w-8 items-center justify-center rounded hover:bg-gray-200"
-            title="Back to Notebooks"
-          >
-            <span className="relative transition-opacity group-hover/logo:opacity-20">
-              <RuntSidebarLogo />
-            </span>
-            <ArrowLeft className="absolute h-4 w-4 opacity-0 transition-opacity group-hover/logo:opacity-100" />
-          </Link>
+          {/* TODO: we should make it easier to get back to all notebooks, because some users try to go to the files tab to see their notebooks */}
+          <SimpleTooltip content="Show all notebooks">
+            <Link
+              to="/nb"
+              className="group/logo relative flex h-8 w-8 items-center justify-center rounded hover:bg-gray-200"
+            >
+              <span className="relative transition-opacity group-hover/logo:opacity-20">
+                <RuntSidebarLogo />
+              </span>
+              <ArrowLeft className="absolute h-4 w-4 opacity-0 transition-opacity group-hover/logo:opacity-100" />
+            </Link>
+          </SimpleTooltip>
         </div>
 
         {/* Sidebar items */}
@@ -148,13 +151,14 @@ export const NotebookSidebar: React.FC<NotebookSidebarProps> = ({
       <div className="fixed right-0 bottom-0 left-0 z-40 flex items-center justify-center border-t bg-white p-2 shadow-lg lg:hidden">
         {/* Back button */}
         <div className="flex w-full items-center justify-between px-2">
-          <Link
-            to="/nb"
-            className="flex h-10 w-10 items-center justify-center rounded-lg bg-gray-100 hover:bg-gray-200"
-            title="Back to Notebooks"
-          >
-            <ArrowLeft className="h-5 w-5 text-gray-600" />
-          </Link>
+          <SimpleTooltip content="Show all notebooks">
+            <Link
+              to="/nb"
+              className="flex h-10 w-10 items-center justify-center rounded-lg bg-gray-100 hover:bg-gray-200"
+            >
+              <ArrowLeft className="h-5 w-5 text-gray-600" />
+            </Link>
+          </SimpleTooltip>
 
           {/* Mobile sidebar items */}
           <div className="flex items-center space-x-1">

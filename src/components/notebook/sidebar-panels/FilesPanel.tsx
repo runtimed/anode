@@ -1,6 +1,7 @@
 import { useQuery, useStore } from "@livestore/react";
 import { events, FileData } from "@runtimed/schema";
 import React, { useCallback, useRef } from "react";
+import { Link } from "react-router-dom";
 import type { SidebarPanelProps } from "./types";
 
 import { Button, buttonVariants } from "@/components/ui/button";
@@ -41,20 +42,24 @@ export const FilesPanel: React.FC<SidebarPanelProps> = () => {
 
   if (!files || files.length === 0)
     return (
-      <Empty>
-        <EmptyHeader>
-          <EmptyMedia variant="icon">
-            <File className="size-6" />
-          </EmptyMedia>
-          <EmptyTitle>No files uploaded</EmptyTitle>
-          <EmptyDescription>
-            Upload files to share them available to your notebook and AI agents.
-          </EmptyDescription>
-        </EmptyHeader>
-        <EmptyContent>
-          <UploadButton uploadFile={uploadFile} isUploading={isUploading} />
-        </EmptyContent>
-      </Empty>
+      <div className="space-y-6">
+        <Empty>
+          <EmptyHeader>
+            <EmptyMedia variant="icon">
+              <File className="size-6" />
+            </EmptyMedia>
+            <EmptyTitle>No files uploaded</EmptyTitle>
+            <EmptyDescription>
+              Upload files to share them available to your notebook and AI
+              agents.
+            </EmptyDescription>
+          </EmptyHeader>
+          <EmptyContent>
+            <UploadButton uploadFile={uploadFile} isUploading={isUploading} />
+          </EmptyContent>
+        </Empty>
+        <LookingForYourNotebooksLink />
+      </div>
     );
 
   return (
@@ -70,11 +75,27 @@ export const FilesPanel: React.FC<SidebarPanelProps> = () => {
             />
           ))}
           <UploadButton uploadFile={uploadFile} isUploading={isUploading} />
+          <LookingForYourNotebooksLink />
         </SidebarMenu>
       </SidebarProvider>
     </div>
   );
 };
+
+function LookingForYourNotebooksLink() {
+  return (
+    <div className="mt-6 text-center text-sm text-pretty text-gray-500">
+      Looking for your notebooks? Find them on the{" "}
+      <Link
+        to="/nb"
+        className="font-medium underline hover:text-gray-900 hover:underline"
+      >
+        dashboard
+      </Link>
+      .
+    </div>
+  );
+}
 
 function UploadButton({
   uploadFile,
