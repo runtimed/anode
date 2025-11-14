@@ -87,7 +87,7 @@ export const ApiKeysDialog: React.FC<ApiKeysDialogProps> = ({
     await loadUserKey();
   };
 
-  const displayKey = keyValue || (apiKey ? "eyJ" + "•".repeat(32) : "");
+  const displayKey = keyValue && (apiKey ? "eyJ" + "•".repeat(32) : "");
   const shouldShowValue = revealed && keyValue;
 
   return (
